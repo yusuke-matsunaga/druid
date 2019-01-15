@@ -126,7 +126,6 @@ if ( DOXYGEN_FOUND )
     ${PROJECT_BINARY_DIR}/include
     ${PROJECT_SOURCE_DIR}/include
     ${YM_SUBMODULE_INCLUDE_LIST}
-    ${PROJECT_SOURCE_DIR}/atpg_tclsh
     )
 
   ym_add_doxygen ()
