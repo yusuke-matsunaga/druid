@@ -8,10 +8,10 @@
 /// Copyright (C) 2005-2010, 2012, 2014 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @brief 1ワードのビットベクタを表す型
@@ -64,6 +64,6 @@ count_ones(PackedVal word)
   return word;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // PACKEDVAL_H

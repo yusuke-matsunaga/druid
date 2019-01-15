@@ -12,7 +12,7 @@
 #include "GateType.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 // SnInput
@@ -77,4 +77,4 @@ SnInput::_calc_gobs(int ipos)
   return kPvAll0;
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM

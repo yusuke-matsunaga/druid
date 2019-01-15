@@ -12,7 +12,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 // SnXor
@@ -197,4 +197,4 @@ SnXnor2::_calc_val()
   return ~_calc_xor();
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM

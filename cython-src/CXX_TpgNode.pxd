@@ -14,7 +14,7 @@ from CXX_GateType cimport GateType
 from CXX_Val3 cimport Val3
 
 
-cdef extern from "TpgNode.h" namespace "nsYm::nsSatpg" :
+cdef extern from "TpgNode.h" namespace "nsYm::nsDruid" :
 
     ## @brief TpgNode の cython バージョン
     cdef cppclass TpgNode :

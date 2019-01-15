@@ -8,10 +8,10 @@
 /// Copyright (C) 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class MpColGraph MpColGraph.h "MpColGraph.h"
@@ -257,6 +257,6 @@ MpColGraph::set_color(const vector<int>& node_id_list,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // MPCOLGRAPH_H

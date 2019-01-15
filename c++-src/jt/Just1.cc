@@ -11,7 +11,7 @@
 #include "JustData.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -76,4 +76,4 @@ Just1::just_end()
   // なにもしない．
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

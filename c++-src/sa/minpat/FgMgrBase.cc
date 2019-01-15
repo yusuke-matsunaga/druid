@@ -15,7 +15,7 @@
 #include "TpgFault.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 bool verify_add_fault = false;
 
@@ -784,4 +784,4 @@ FgMgrBase::FaultGroup::FaultData::FaultData(ymuint fid,
 {
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

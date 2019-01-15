@@ -10,7 +10,7 @@
 #include "DopList.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス DopList
@@ -49,4 +49,4 @@ DopList::operator()(const TpgFault* f,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

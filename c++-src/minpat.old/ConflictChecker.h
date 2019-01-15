@@ -15,7 +15,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 class FaultAnalyzer;
 
@@ -180,6 +180,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // CONFLICTCHECKER_H

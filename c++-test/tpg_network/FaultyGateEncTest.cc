@@ -18,7 +18,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class FaultyGateEncTest :
   public ::testing::Test
@@ -1308,4 +1308,4 @@ TEST_F(FaultyGateEncTest, xnor2_1_i1)
   check_ifault(2, GateType::Xnor, 1, 1, vals);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -10,7 +10,7 @@
 #include "Rtpg.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス Rtpg
@@ -75,4 +75,4 @@ Rtpg::pattern_list() const
   return mPatternList;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

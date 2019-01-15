@@ -12,7 +12,7 @@
 #include "GateType.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 // 故障シミュレーション用のイベントキューを表すクラス
@@ -148,4 +148,4 @@ EventQ::simulate(SimNode* target)
   return obs;
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM

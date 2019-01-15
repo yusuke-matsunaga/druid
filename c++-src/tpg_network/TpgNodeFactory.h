@@ -9,11 +9,11 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "ym/Alloc.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgNodeFactory TpgNodeFactory.h "TpgNodeFactory.h"
@@ -144,6 +144,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGNODEFACTORY_H

@@ -12,7 +12,7 @@
 #include "DetectOp.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DopDummy DopDummy.h "DopDummy.h"
@@ -51,6 +51,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DOPDUMMY_H

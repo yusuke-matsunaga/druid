@@ -12,7 +12,7 @@
 #include "SnGate.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 /// @class SnXor SimNode.h
@@ -199,6 +199,6 @@ public:
 
 };
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM
 
 #endif // SNXOR_H

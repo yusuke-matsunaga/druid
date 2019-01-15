@@ -10,7 +10,7 @@
 #include "DopDummy.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 'dummy' タイプを生成する．
 DetectOp*
@@ -43,4 +43,4 @@ DopDummy::operator()(const TpgFault* f,
 {
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

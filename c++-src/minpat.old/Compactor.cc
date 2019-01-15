@@ -13,7 +13,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 BEGIN_NONAMESPACE
 
@@ -528,4 +528,4 @@ Compactor::phase2(FgMgr& fgmgr,
   }
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

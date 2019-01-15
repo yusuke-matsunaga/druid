@@ -8,12 +8,12 @@
 /// Copyright (C) 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 #include "FaultStatus.h"
 #include "TestVector.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgResult DtpgResult.h "DtpgResult.h"
@@ -172,6 +172,6 @@ DtpgResult::testvector() const
   return mTestVector;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DTPGRESULT_H

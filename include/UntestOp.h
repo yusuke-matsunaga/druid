@@ -9,10 +9,10 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class UntestOp UntestOp.h "UntestOp.h"
@@ -56,6 +56,6 @@ new_UopSkip(int threshold,
 UntestOp*
 new_UopDummy();
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // UNTESTOP_H

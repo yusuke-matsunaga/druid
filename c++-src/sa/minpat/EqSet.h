@@ -13,7 +13,7 @@
 #include "PackedVal.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class EqSet EqSet.h "EqSet.h"
@@ -125,6 +125,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // EQSET_H

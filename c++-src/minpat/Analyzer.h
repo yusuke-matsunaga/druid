@@ -8,12 +8,12 @@
 /// Copyright (C) 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 #include "DtpgEngine.h"
 #include "ym/Expr.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class FaultInfo;
 
@@ -123,6 +123,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // ANALYZER_H

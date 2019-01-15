@@ -15,7 +15,7 @@ from CXX_TpgDff cimport TpgDff
 from CXX_TpgFault cimport TpgFault
 
 
-cdef extern from "TpgNetwork.h" namespace "nsYm::nsSatpg" :
+cdef extern from "TpgNetwork.h" namespace "nsYm::nsDruid" :
 
     ### @brief TpgNetwork の cython バージョン
     cdef cppclass TpgNetwork :

@@ -15,7 +15,7 @@
 #include "ym/SatSolver.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 class FoCone;
 
@@ -469,6 +469,6 @@ StructEnc::debug() const
   return mDebugFlag;
 }
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // TD_STRUCTSAT_H

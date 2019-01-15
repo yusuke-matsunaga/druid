@@ -15,7 +15,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 const char* argv0 = "";
 bool verbose = false;
@@ -398,12 +398,12 @@ fsim2test(int argc,
   return 0;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 
 int
 main(int argc,
      char** argv)
 {
-  return SATPG_NAMESPACE::fsim2test(argc, argv);
+  return DRUID_NAMESPACE::fsim2test(argc, argv);
 }

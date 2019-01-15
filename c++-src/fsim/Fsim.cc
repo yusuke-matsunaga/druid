@@ -12,7 +12,7 @@
 #include "TestVector.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 namespace nsFsimSa2 {
   std::unique_ptr<FsimImpl> new_Fsim(const TpgNetwork& network);
@@ -383,4 +383,4 @@ Fsim::det_fault_pat_list()
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

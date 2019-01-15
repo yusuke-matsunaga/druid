@@ -14,7 +14,7 @@
 #include "PackedVal3.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 /// @class SimNode SimNode.h "SimNode.h"
@@ -478,6 +478,6 @@ SimNode::clear_flip()
   mFanoutNum &= ~(1U << 3);
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM
 
 #endif // FSIM_SIMNODE_H

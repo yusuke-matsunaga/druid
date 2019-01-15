@@ -10,7 +10,7 @@
 #include "UopDummy.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 'dummy' タイプを生成する．
 UntestOp*
@@ -41,4 +41,4 @@ UopDummy::operator()(const TpgFault* f)
 {
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

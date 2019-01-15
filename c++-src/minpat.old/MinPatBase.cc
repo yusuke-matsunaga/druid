@@ -29,7 +29,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 // クラス MinPatBase
@@ -351,4 +351,4 @@ MinPatBase::make_testvector(TpgNetwork& network,
   }
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

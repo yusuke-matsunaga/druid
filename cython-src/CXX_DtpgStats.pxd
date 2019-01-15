@@ -11,7 +11,7 @@ from CXX_USTime cimport USTime
 from CXX_SatStats cimport SatStats
 
 
-cdef extern from "DtpgStats.h" namespace "nsYm::nsSatpg" :
+cdef extern from "DtpgStats.h" namespace "nsYm::nsDruid" :
 
     ### @brief DtpgStats の Cython バージョン
     cdef cppclass DtpgStats :

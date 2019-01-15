@@ -14,7 +14,7 @@
 #include "ym/HashMap.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgFFR2 DtpgFFR2.h "DtpgFFR2.h"
@@ -95,6 +95,6 @@ private:
 //////////////////////////////////////////////////////////////////////
 
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DTPGFFR2_H

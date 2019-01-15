@@ -12,7 +12,7 @@
 #include "TpgPPI.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgDffOutput TpgDffOutput.h "TpgDffOutput.h"
@@ -73,6 +73,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGDFFOUTPUT_H

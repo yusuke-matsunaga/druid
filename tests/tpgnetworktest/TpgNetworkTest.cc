@@ -11,7 +11,7 @@
 #include "FaultStatusMgr.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 void
 loop_test(ymuint loop_count,
@@ -33,7 +33,7 @@ loop_test(ymuint loop_count,
   cout << endl;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 int
 main(int argc,
@@ -46,7 +46,7 @@ main(int argc,
     return 255;
   }
 
-  SATPG_NAMESPACE::loop_test(100, argv[1]);
+  DRUID_NAMESPACE::loop_test(100, argv[1]);
 
   return 0;
 }

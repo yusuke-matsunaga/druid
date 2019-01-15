@@ -8,11 +8,11 @@
 /// Copyright (C) 2017, 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 #include "ym/Array.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class TpgFaultBase;
 
@@ -184,6 +184,6 @@ TpgFFR::set(const TpgNode* root,
   mFaultList = fault_list;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGFFR_H

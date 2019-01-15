@@ -10,7 +10,7 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 
 #include "DtpgStats.h"
 #include "FaultStatus.h"
@@ -18,7 +18,7 @@
 #include "ym/RandGen.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class Dtpg2 Dtpg2.h "Dtpg2.h"
@@ -159,6 +159,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DTPG2_H

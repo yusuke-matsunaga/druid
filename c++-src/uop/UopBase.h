@@ -12,7 +12,7 @@
 #include "UntestOp.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class UopBase UopBase.h "UopBase.h"
@@ -54,6 +54,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // UOPBASE_H

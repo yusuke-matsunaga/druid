@@ -17,7 +17,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class GateEncTest :
   public ::testing::Test
@@ -285,4 +285,4 @@ TEST_F(GateEncTest, xnor2)
   check(2, GateType::Xnor, vals);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

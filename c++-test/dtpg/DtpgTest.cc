@@ -19,7 +19,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] network 対象のネットワーク
@@ -339,4 +339,4 @@ DtpgTest::print_stats(int detect_num,
   cout.flags(save);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -13,7 +13,7 @@
 #include "NodeValList.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class FaultInfo FaultInfo.h "FaultInfo.h"
@@ -217,6 +217,6 @@ FaultInfo::dom_list() const
   return mDomList;
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // FAULTINFO_H

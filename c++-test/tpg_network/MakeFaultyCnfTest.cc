@@ -8,14 +8,14 @@
 
 
 #include "gtest/gtest.h"
-#include "satpg.h"
+#include "druid.h"
 #include "TpgNode.h"
 #include "GateLitMap_vect.h"
 #include "ym/SimpleAlloc.h"
 #include "ym/SatSolver.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class MakeFaultyCnfTest :
 public ::testing::Test
@@ -1723,4 +1723,4 @@ TEST_F(MakeFaultyCnfTest, XNOR2_1_1)
   do_test(2, kGateXNOR, 1, 1, vals);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

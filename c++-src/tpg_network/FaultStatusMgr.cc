@@ -12,7 +12,7 @@
 #include "TpgFault.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス FaultStatusMgr
@@ -48,4 +48,4 @@ FaultStatusMgr::get(const TpgFault* fault) const
 }
 
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

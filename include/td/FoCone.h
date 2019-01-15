@@ -13,7 +13,7 @@
 #include "td/ConeBase.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 //////////////////////////////////////////////////////////////////////
 /// @class FoCone FoCone.h "td/FoCone.h"
@@ -77,6 +77,6 @@ private:
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // TD_FOCONE_H

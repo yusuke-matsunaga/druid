@@ -9,13 +9,13 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "ym/logic.h"
 #include "ym/HashMap.h"
 #include "ym/TvFunc.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgGateInfo TpgGateInfo.h "TpgGateInfo.h"
@@ -135,6 +135,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGGATEINFO_H

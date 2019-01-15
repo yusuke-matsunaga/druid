@@ -17,7 +17,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 // 故障シミュレーション用のノードを表すクラス
@@ -154,4 +154,4 @@ SimNode::set_fanout_list(const vector<SimNode*>& fo_list,
   mFanoutNum |= (nfo << 16) | (ipos << 4);
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM

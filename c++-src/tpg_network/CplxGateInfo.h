@@ -12,7 +12,7 @@
 #include "ym/Expr.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class CplxGateInfo CplxGateInfo.h "CplxGateInfo.h"
@@ -90,6 +90,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // CPLXGATEINFO_H

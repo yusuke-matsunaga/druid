@@ -15,7 +15,7 @@
 #include "ym/HashMap.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class Extractor Extractor.h "sa/Extractor.h"
@@ -102,6 +102,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // SA_EXTRACTOR_H

@@ -11,7 +11,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス Dsatur
@@ -252,4 +252,4 @@ Dsatur::update(int node_id,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

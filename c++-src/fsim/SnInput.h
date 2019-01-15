@@ -12,7 +12,7 @@
 #include "SimNode.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 /// @class SnInput SimNode.h
@@ -80,6 +80,6 @@ public:
 
 };
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM
 
 #endif // SNINPUT_H

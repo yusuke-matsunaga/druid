@@ -7,12 +7,12 @@
 ### Copyright (C) 2018 Yusuke Matsunaga
 ### All rights reserved.
 
-from satpg_core import TestVector
-from satpg_core import Fsim
-from satpg_core import UdGraph
-from satpg_core import MinCov
-from satpg_core import gen_compat_graph
-from satpg_core import Val3
+from druid_core import TestVector
+from druid_core import Fsim
+from druid_core import UdGraph
+from druid_core import MinCov
+from druid_core import gen_compat_graph
+from druid_core import Val3
 
 
 ### @brief グラフ彩色を用いた圧縮を行う．

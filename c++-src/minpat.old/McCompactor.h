@@ -12,7 +12,7 @@
 #include "sa/sa_nsdef.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class Compactor Compactor.h "Compactor.h"
@@ -70,6 +70,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // MCCOMPACTOR_H

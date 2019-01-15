@@ -9,12 +9,12 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "TpgNode.h"
 #include "ym/SatBool3.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class JustData;
 
@@ -169,6 +169,6 @@ JustImpl::mark(const TpgNode* node,
   return static_cast<bool>((mMarkArray[node->id()] >> time) & 1U);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // JUSTIMPL_H

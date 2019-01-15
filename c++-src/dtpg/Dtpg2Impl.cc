@@ -32,7 +32,7 @@ const int debug_dtpg2 = 0;
 END_NONAMESPACE
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] sat_type SATソルバの種類を表す文字列
@@ -194,4 +194,4 @@ Dtpg2Impl::dtpg_with_xor(const TpgFault* fault,
   return ans;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

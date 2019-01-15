@@ -13,7 +13,7 @@
 #include "NodeValList.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 BEGIN_NONAMESPACE
 
@@ -246,4 +246,4 @@ Extractor::record_node(const TpgNode* node,
   assign_list.add(node, 0, val);
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

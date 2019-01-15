@@ -14,7 +14,7 @@
 #include "NodeValList.h"
 #include "GateEnc.h"
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 extern
 NodeValList
@@ -23,9 +23,9 @@ extract(const TpgNode*,
 	const VidMap&,
 	const vector<SatBool3>&);
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
-BEGIN_NAMESPACE_SATPG_STRUCTENC
+BEGIN_NAMESPACE_DRUID_STRUCTENC
 
 BEGIN_NONAMESPACE
 
@@ -199,7 +199,7 @@ NodeValList
 PropCone::extract(const vector<SatBool3>& model,
 		  const TpgNode* root)
 {
-  return nsYm::nsSatpg::extract(root, gvar_map(), fvar_map(), model);
+  return nsYm::nsDruid::extract(root, gvar_map(), fvar_map(), model);
 }
 
 // @brief node に関する故障伝搬条件を作る．
@@ -241,4 +241,4 @@ PropCone::make_dchain_cnf(const TpgNode* node)
   }
 }
 
-END_NAMESPACE_SATPG_STRUCTENC
+END_NAMESPACE_DRUID_STRUCTENC

@@ -12,7 +12,7 @@
 #include "DetectOp.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DopList DopList.h "sa/DopList.h"
@@ -62,6 +62,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DOPLIST_H

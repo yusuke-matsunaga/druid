@@ -13,7 +13,7 @@
 #include "td/td_nsdef.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 //////////////////////////////////////////////////////////////////////
 /// @class Fsim Fsim.h "td/Fsim.h"
@@ -149,6 +149,6 @@ extern
 Fsim*
 new_Fsim3();
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // TD_FSIM_H

@@ -12,7 +12,7 @@
 #include "sa/sa_nsdef.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class FgMgr FgMgr.h "FgMgr.h"
@@ -226,6 +226,6 @@ FgMgr::find_group(ymuint fid,
   return find_group(fid, group_list, fast, true, dummy);
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // FGMGR_H

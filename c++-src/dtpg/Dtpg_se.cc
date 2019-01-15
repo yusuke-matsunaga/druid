@@ -14,7 +14,7 @@
 #include "TestVector.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ(ノードモード)
 // @param[in] network 対象のネットワーク
@@ -212,4 +212,4 @@ Dtpg_se::timer_stop()
   return time;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

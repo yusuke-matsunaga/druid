@@ -10,16 +10,16 @@
 import argparse
 import os.path
 import time
-from satpg_core import FaultType
-from satpg_core import TpgNetwork
-from satpg_core import Fsim
-from satpg_core import TestVector
-from satpg_core import MinCov
-from satpg_core import ColCov
+from druid_core import FaultType
+from druid_core import TpgNetwork
+from druid_core import Fsim
+from druid_core import TestVector
+from druid_core import MinCov
+from druid_core import ColCov
 from dtpg import Dtpg
 from compaction import mincov, coloring
-from satpg_core import gen_colcov
-from satpg_core import MinPatMgr
+from druid_core import gen_colcov
+from druid_core import MinPatMgr
 
 algorithm_list = ('coloring2', 'coloring3', 'mincov+dsatur', 'mincov+isx', 'isx+mincov', 'dsatur+mincov')
 

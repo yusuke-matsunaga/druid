@@ -9,11 +9,11 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "ym/SatBool3.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @brief 3値を表す列挙型
@@ -223,6 +223,6 @@ __int_to_val3(int val)
   return Val3::_X;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // VAL3_H

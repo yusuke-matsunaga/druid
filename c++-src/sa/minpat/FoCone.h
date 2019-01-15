@@ -15,7 +15,7 @@
 #include "TpgNode.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class FoCone FoCone.h "FoCone.h"
@@ -377,6 +377,6 @@ FoCone::solver()
   return mStructSat.solver();
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // FOCONE_H

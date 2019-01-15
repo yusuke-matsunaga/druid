@@ -12,7 +12,7 @@
 #include "fsim_nsdef.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 class SimFault;
 class SimNode;
@@ -120,6 +120,6 @@ SimFFR::fault_list() const
   return mFaultList;
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM
 
 #endif // SIMFFR_H

@@ -16,7 +16,7 @@
 #include "ym/RandGen.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 // @brief インスタンスを生成する関数
 // @param[in] group_dominance グループ支配を計算する．
@@ -109,4 +109,4 @@ MinPatSimple::init(const vector<ymuint>& fid_list,
   set_fid_list(dom_fid_list);
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

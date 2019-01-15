@@ -28,7 +28,7 @@
 #include "ym/HashSet.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 BEGIN_NONAMESPACE
 
@@ -614,4 +614,4 @@ FaultAnalyzer::print_stats(ostream& s) const
     << "  # of common dominator checkes " << mDomCheckCount << endl;
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

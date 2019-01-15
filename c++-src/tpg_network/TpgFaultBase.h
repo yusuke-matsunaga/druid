@@ -11,7 +11,7 @@
 #include "TpgFault.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgFaultBase TpgFaultBase.h "TpgFaultBase.h"
@@ -126,6 +126,6 @@ TpgFaultBase::node_name() const
   return mNodeName;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGFAULTBASE_H

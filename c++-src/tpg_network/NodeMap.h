@@ -9,11 +9,11 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "ym/HashMap.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class NodeMap NodeMap.h "NodeMap.h"
@@ -63,6 +63,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // NODEMAP_H

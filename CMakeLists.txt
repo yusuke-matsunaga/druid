@@ -14,12 +14,12 @@ set (CMAKE_CXX_STANDARD 14)
 set ( YM_VERSION_MAJOR 1 )
 set ( YM_VERSION_MINOR 0 )
 set ( YM_VERSION "${YM_VERSION_MAJOR}.${YM_VERSION_MINOR}" )
-project ( satpg VERSION "${YM_VERSION}" )
+project ( druid VERSION "${YM_VERSION}" )
 
 set ( YM_PROJECT_STRING "${PROJECT_NAME}-${PROJECT_VERSION}" )
 
 # 名前空間
-set ( SATPG_NSNAME "nsSatpg" )
+set ( DRUID_NSNAME "nsDruid" )
 
 # インストールディレクトリ
 set ( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/stage" )
@@ -58,8 +58,8 @@ ym_use_gtest ()
 # ===================================================================
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/etc/satpg.h.in"
-  "${PROJECT_BINARY_DIR}/include/satpg.h"
+  "${PROJECT_SOURCE_DIR}/etc/druid.h.in"
+  "${PROJECT_BINARY_DIR}/include/druid.h"
   )
 
 
@@ -111,13 +111,11 @@ include_directories (
 foreach ( dir ${YM_SUBMODULE_LIST} )
   add_subdirectory ( ${dir} )
 endforeach ()
-add_subdirectory ( ym-tclpp )
 
 add_subdirectory ( c++-src )
 add_subdirectory ( c++-test )
 add_subdirectory ( cython-src )
 add_subdirectory ( py-src )
-add_subdirectory ( atpg_tclsh )
 
 add_subdirectory ( tests )
 

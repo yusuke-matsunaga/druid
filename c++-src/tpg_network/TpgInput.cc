@@ -10,7 +10,7 @@
 #include "TpgInput.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgInput
@@ -37,4 +37,4 @@ TpgInput::is_primary_input() const
   return true;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

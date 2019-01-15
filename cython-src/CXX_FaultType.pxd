@@ -7,7 +7,7 @@
 # All rights reserved.
 
 
-cdef extern from "FaultType.h" namespace "nsYm::nsSatpg" :
+cdef extern from "FaultType.h" namespace "nsYm::nsDruid" :
 
     cdef enum FaultType :
         None,

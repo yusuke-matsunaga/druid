@@ -23,7 +23,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgNetworkImpl
@@ -573,4 +573,4 @@ TpgNetworkImpl::new_ifault(const char* name,
   ++ mFaultNum;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -8,11 +8,11 @@
 /// Copyright (C) 2016 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 #include "PackedVal.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class PackedVal3 PackedVal3.h "PackedVal3.h"
@@ -515,6 +515,6 @@ diff(PackedVal3 left,
   return (val0_0 & ~val0_1 & ~val1_0 & val1_1) | (~val0_0 & val0_1 & val1_0 & ~val1_1);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // PACKEDVAL_H

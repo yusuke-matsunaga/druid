@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 
 #include "NodeValList.h"
 
@@ -20,7 +20,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class FaultAnalyzer FaultAnalyzer.h "FaultAnalyzer.h"
@@ -214,6 +214,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // FAULTANALYZER_H

@@ -18,7 +18,7 @@ from CXX_FaultType cimport FaultType
 ctypedef unsigned long PackedVal
 
 
-cdef extern from "Fsim.h" namespace "nsYm::nsSatpg" :
+cdef extern from "Fsim.h" namespace "nsYm::nsDruid" :
 
     ## @brief Fsim の cython バージョン
     cdef cppclass Fsim :

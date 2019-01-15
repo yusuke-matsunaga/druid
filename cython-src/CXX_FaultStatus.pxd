@@ -7,7 +7,7 @@
 # All rights reserved.
 
 
-cdef extern from "FaultStatus.h" namespace "nsYm::nsSatpg" :
+cdef extern from "FaultStatus.h" namespace "nsYm::nsDruid" :
 
     cdef enum FaultStatus :
         Undetected

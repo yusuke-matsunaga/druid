@@ -12,7 +12,7 @@
 #include "TpgGateInfo.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class SimpleGateInfo SimpleGateInfo.h "SimpleGateInfo.h"
@@ -85,6 +85,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // SIMPLEGATEINFO_H

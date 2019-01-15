@@ -9,14 +9,14 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "TpgNode.h"
 #include "VidMap.h"
 #include "NodeValList.h"
 #include "Val3.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class JustData JustData.h "JustData.h"
@@ -164,6 +164,6 @@ JustData::record_value(const TpgNode* node,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // JUSTDATA_H

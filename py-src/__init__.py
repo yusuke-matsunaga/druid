@@ -7,10 +7,10 @@
 ### Copyright (C) 2018 Yusuke Matsunaga
 ### All rights reserved.
 
-from satpg.satpg_core import DtpgFFR
-from satpg.satpg_core import DtpgMFFC
-from satpg.satpg_core import FaultStatus
-from satpg.satpg_core import FaultType
-from satpg.satpg_core import Fsim
-from satpg.satpg_core import TestVector
-from satpg.satpg_core import TpgNetwork
+from satpg.druid_core import DtpgFFR
+from satpg.druid_core import DtpgMFFC
+from satpg.druid_core import FaultStatus
+from satpg.druid_core import FaultType
+from satpg.druid_core import Fsim
+from satpg.druid_core import TestVector
+from satpg.druid_core import TpgNetwork

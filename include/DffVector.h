@@ -12,7 +12,7 @@
 #include "BitVector.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DffVector DffVector.h "DffVector.h"
@@ -102,6 +102,6 @@ DffVector::~DffVector()
 {
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DFFVECTOR_H

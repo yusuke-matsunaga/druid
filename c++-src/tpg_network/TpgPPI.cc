@@ -12,7 +12,7 @@
 
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgPPI
@@ -88,4 +88,4 @@ TpgPPI::fanin(int pos) const
   return nullptr;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

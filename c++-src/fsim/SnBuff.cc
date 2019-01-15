@@ -11,7 +11,7 @@
 #include "GateType.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 // SnBuff
@@ -81,4 +81,4 @@ SnNot::_calc_val()
   return ~_fanin()->val();
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM

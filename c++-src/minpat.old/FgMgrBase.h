@@ -20,7 +20,7 @@
 #include "ym/USTime.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class FgMgrBase FgMgrBase.h "FgMgrBase.h"
@@ -554,6 +554,6 @@ FgMgrBase::_fault_group(ymuint gid) const
   return fg;
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // FGMGRBASE_H

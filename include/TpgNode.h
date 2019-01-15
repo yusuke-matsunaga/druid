@@ -9,16 +9,16 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "ym/Alloc.h"
 #include "ym/Array.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgNode TpgNode.h "TpgNode.h"
-/// @brief SATPG 用のノードを表すクラス
+/// @brief DRUID 用のノードを表すクラス
 /// @sa TpgNetwork
 /// @sa TpgFault
 /// @sa TpgMFFC
@@ -403,6 +403,6 @@ TpgNode::imm_dom() const
   return mImmDom;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGNODE_H

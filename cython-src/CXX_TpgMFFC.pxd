@@ -10,7 +10,7 @@ from CXX_TpgNode cimport TpgNode
 from CXX_TpgFault cimport TpgFault
 
 
-cdef extern from "TpgMFFC.h" namespace "nsYm::nsSatpg" :
+cdef extern from "TpgMFFC.h" namespace "nsYm::nsDruid" :
 
     ### @brief TpgMFFC の Cython バージョン
     cdef cppclass TpgMFFC :

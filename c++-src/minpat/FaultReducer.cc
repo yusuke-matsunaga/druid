@@ -19,7 +19,7 @@
 #include <random>
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -681,4 +681,4 @@ FaultReducer::count_faults() const
   return n;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -11,7 +11,7 @@
 #include "FaultStatusMgr.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 'base' タイプを生成する．
 // @param[in] fsmgr 故障マネージャ
@@ -48,4 +48,4 @@ DopBase::operator()(const TpgFault* f,
   mFaultStatusMgr.set(f, FaultStatus::Detected);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

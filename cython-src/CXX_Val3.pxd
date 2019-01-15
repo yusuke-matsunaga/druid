@@ -8,7 +8,7 @@
 
 from libcpp cimport bool
 
-cdef extern from "Val3.h" namespace "nsYm::nsSatpg" :
+cdef extern from "Val3.h" namespace "nsYm::nsDruid" :
 
     cdef enum Val3 :
         _X,

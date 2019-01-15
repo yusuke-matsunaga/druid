@@ -12,7 +12,7 @@
 #include "MinPatBase.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class MinPatNaive MinPatNaive.h "MinPatNaive.h"
@@ -101,6 +101,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // MINPATNAIVE_H

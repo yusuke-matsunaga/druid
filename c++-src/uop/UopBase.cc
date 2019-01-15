@@ -12,7 +12,7 @@
 #include "TpgFault.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 'base' タイプを生成する．
 // @param[in] fsmgr 故障マネージャ
@@ -48,4 +48,4 @@ UopBase::operator()(const TpgFault* f)
 }
 
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

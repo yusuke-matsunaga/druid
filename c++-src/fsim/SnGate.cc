@@ -12,7 +12,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 // @class SnGate SimNode.h
@@ -297,4 +297,4 @@ SnGate4::dump(ostream& s) const
     << ")" << endl;
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM

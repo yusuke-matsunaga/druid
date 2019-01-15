@@ -14,7 +14,7 @@
 #include "ym/USTime.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class MinPat MinPat.h "sa/MinPat.h"
@@ -100,6 +100,6 @@ extern
 MinPat*
 new_MinPatDsatur2();
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // MINPAT_H

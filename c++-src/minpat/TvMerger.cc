@@ -13,7 +13,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -362,4 +362,4 @@ TvMerger::check_compatible(const TestVector& tv,
   return true;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

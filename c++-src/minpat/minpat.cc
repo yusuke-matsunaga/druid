@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "TestVector.h"
 #include "TpgNetwork.h"
 #include "TpgFault.h"
@@ -18,7 +18,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -169,4 +169,4 @@ minpat(const vector<const TpgFault*>& fault_list,
   return nc;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

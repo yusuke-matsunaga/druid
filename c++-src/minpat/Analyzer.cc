@@ -21,7 +21,7 @@
 #include <random>
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -876,4 +876,4 @@ Analyzer::_restrict_sub(const Expr& expr,
   return Expr::zero();
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -12,7 +12,7 @@
 #include "DtpgTest.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 struct TestData
 {
@@ -267,4 +267,4 @@ INSTANTIATE_TEST_CASE_P(DtpgTest, DtpgTestWithParam,
 					   ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
 					   ::testing::Values("just1", "just2")));
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

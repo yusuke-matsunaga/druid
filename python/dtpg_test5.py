@@ -10,9 +10,9 @@
 import argparse
 import os.path
 import time
-from satpg_core import FaultType
-from satpg_core import TpgNetwork
-from satpg_core import MinPatMgr
+from druid_core import FaultType
+from druid_core import TpgNetwork
+from druid_core import MinPatMgr
 from dtpg import Dtpg
 from exec_one import exec_one
 

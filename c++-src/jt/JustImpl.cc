@@ -12,7 +12,7 @@
 #include "TpgDff.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス JustImpl
@@ -150,4 +150,4 @@ JustImpl::clear_mark()
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

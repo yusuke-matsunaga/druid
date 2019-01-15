@@ -30,7 +30,7 @@ const int debug_mffc = 0;
 END_NONAMESPACE
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] network 対象のネットワーク
@@ -304,4 +304,4 @@ DtpgMFFC::inject_fault(int ffr_pos,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

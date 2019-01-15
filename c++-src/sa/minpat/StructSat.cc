@@ -16,7 +16,7 @@
 #include "../../struct_enc/GateLitMap_vid.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 // クラス StructSat
@@ -348,4 +348,4 @@ StructSat::check_sat(const NodeValList& assign_list1,
   return mSolver.solve(assumptions, sat_model);
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

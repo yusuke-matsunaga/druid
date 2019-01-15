@@ -15,7 +15,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -388,4 +388,4 @@ TpgGateInfoMgr::complex_type(int ni,
   return node_info;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

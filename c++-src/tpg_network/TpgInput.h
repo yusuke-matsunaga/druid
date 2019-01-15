@@ -12,7 +12,7 @@
 #include "TpgPPI.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgInput TpgInput.h "TpgInput.h"
@@ -60,6 +60,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGINPUT_H

@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 
 #include "ym/bnet.h"
 #include "ym/clib.h"
@@ -18,7 +18,7 @@
 #include "ym/SimpleAlloc.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class TpgNodeInfo;
 class AuxNodeInfo;
@@ -773,6 +773,6 @@ TpgNetworkImpl::rep_fault_list() const
   return Array<const TpgFault*>(mRepFaultArray, 0, rep_fault_num());
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGNETWORKIMPL_H

@@ -8,12 +8,12 @@
 /// Copyright (C) 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 #include "Val3.h"
 #include "ym/HashFunc.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgFault TpgFault.h "TpgFault.h"
@@ -180,15 +180,15 @@ operator<<(ostream& s,
   return s << f->str();
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 BEGIN_NAMESPACE_YM
 // TpgFault へのポインタをキーにしたハッシュ関数クラスの定義
 template <>
-struct HashFunc<SATPG_NAMESPACE::TpgFault*>
+struct HashFunc<DRUID_NAMESPACE::TpgFault*>
 {
   SizeType
-  operator()(SATPG_NAMESPACE::TpgFault* fault) const
+  operator()(DRUID_NAMESPACE::TpgFault* fault) const
   {
     return fault->id();
   }

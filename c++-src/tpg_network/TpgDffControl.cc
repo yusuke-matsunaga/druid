@@ -10,7 +10,7 @@
 #include "TpgDffControl.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgDffControl
@@ -67,4 +67,4 @@ TpgDffControl::dff() const
   return mDff;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

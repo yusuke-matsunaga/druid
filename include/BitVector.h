@@ -13,7 +13,7 @@
 #include <random>
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class BitVector BitVector.h "BitVector.h"
@@ -628,6 +628,6 @@ BitVector::uniquefy()
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // BITVECTOR_H

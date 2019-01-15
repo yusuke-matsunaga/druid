@@ -7,7 +7,7 @@
 # All rights reserved.
 
 
-cdef extern from "GateType.h" namespace "nsYm::nsSatpg" :
+cdef extern from "GateType.h" namespace "nsYm::nsDruid" :
 
     cdef enum GateType :
         CONST0,

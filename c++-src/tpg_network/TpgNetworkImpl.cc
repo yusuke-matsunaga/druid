@@ -29,7 +29,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -930,4 +930,4 @@ TpgNetworkImpl::make_fault_array(const vector<const TpgFault*>& fault_list)
   return fault_array;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

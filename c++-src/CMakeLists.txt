@@ -159,7 +159,7 @@ set (td_SOURCES
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
-ym_add_object_library ( satpg_common
+ym_add_object_library ( druid_common
   ${tpg_network_SOURCES}
   ${fsim_SOURCES}
   ${struct_enc_SOURCES}

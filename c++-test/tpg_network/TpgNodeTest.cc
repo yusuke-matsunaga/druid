@@ -15,7 +15,7 @@
 #include "Val3.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class TpgNodeTest :
 public ::testing::Test
@@ -411,4 +411,4 @@ TEST_F(TpgNodeTest, XNOR2)
   cval_test(node, Val3::_X, Val3::_X, Val3::_X, Val3::_X);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -12,7 +12,7 @@
 #include "UntestOp.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class UopDummy UopDummy.h "UopDummy.h"
@@ -44,6 +44,6 @@ public:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // UOPDUMMY_H

@@ -14,7 +14,7 @@
 #include "TestVector.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 'drop' タイプを生成する．
 // @param[in] fsmgr 故障マネージャ
@@ -63,4 +63,4 @@ DopDrop::operator()(const TpgFault* f,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

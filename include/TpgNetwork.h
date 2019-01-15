@@ -9,20 +9,20 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 
 #include "ym/bnet.h"
 #include "ym/clib.h"
 #include "ym/Array.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class TpgNetworkImpl;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgNetwork TpgNetwork.h "TpgNetwork.h"
-/// @brief SATPG 用のネットワークを表すクラス
+/// @brief DRUID 用のネットワークを表すクラス
 /// @sa TpgNode
 /// @sa TpgDff
 /// @sa TpgFault
@@ -311,6 +311,6 @@ void
 print_network(ostream& s,
 	      const TpgNetwork& network);
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGNETWORK_H

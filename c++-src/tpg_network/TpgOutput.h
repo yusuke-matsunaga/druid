@@ -12,7 +12,7 @@
 #include "TpgPPO.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgOutput TpgOutput.h "TpgOutput.h"
@@ -61,6 +61,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGOUTPUT_H

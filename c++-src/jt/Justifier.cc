@@ -15,7 +15,7 @@
 #include "TpgNetwork.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -87,4 +87,4 @@ Justifier::operator()(const NodeValList& assign_list,
 					  FaultType::TransitionDelay, pi_assign_list);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

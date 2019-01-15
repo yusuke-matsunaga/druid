@@ -8,10 +8,10 @@
 /// Copyright (C) 2005-2007, 2012-2014, 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @brief 故障の状態
@@ -74,6 +74,6 @@ __int_to_fault_status(int val)
   return FaultStatus::Undetected;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // FAULTSTATUS_H

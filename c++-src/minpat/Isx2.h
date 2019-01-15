@@ -9,12 +9,12 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "MpColGraph.h"
 #include "ym/RandGen.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class Isx2 Isx2.h "Isx2.h"
@@ -136,6 +136,6 @@ Isx2::random_select(const vector<int>& cand_list)
   return cand_list[r];
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // ISX2_H

@@ -9,7 +9,7 @@
 /// Copyright (C) 2016, 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 
 // ちょっと特殊なマクロ定義
 // 2値/3値の切り替えと縮退故障/遷移故障の切り替えを
@@ -53,12 +53,12 @@
 
 // namespace でネストするのがいやなので define マクロでごまかす．
 
-#define BEGIN_NAMESPACE_SATPG_FSIM \
-BEGIN_NAMESPACE_SATPG \
+#define BEGIN_NAMESPACE_DRUID_FSIM \
+BEGIN_NAMESPACE_DRUID \
 BEGIN_NAMESPACE(FSIM_NAMESPACE)
 
-#define END_NAMESPACE_SATPG_FSIM \
+#define END_NAMESPACE_DRUID_FSIM \
 END_NAMESPACE(FSIM_NAMESPACE) \
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // FSIM_NSDEF_H

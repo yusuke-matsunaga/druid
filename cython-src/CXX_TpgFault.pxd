@@ -11,7 +11,7 @@ from libcpp.string cimport string
 from CXX_TpgNode cimport TpgNode
 
 
-cdef extern from "TpgFault.h" namespace "nsYm::nsSatpg" :
+cdef extern from "TpgFault.h" namespace "nsYm::nsDruid" :
 
     ## @brief TpgFault の Cython バージョン
     cdef cppclass TpgFault :

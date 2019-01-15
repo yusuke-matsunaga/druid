@@ -11,7 +11,7 @@
 #include "FaultAnalyzer.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 // @brief インスタンスを生成する関数
 // @param[in] group_dominance グループ支配を計算する．
@@ -102,4 +102,4 @@ MinPatNaive::get_next_fault(FgMgr& fgmgr,
   }
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

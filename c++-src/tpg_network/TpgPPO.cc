@@ -11,7 +11,7 @@
 #include "GateType.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgPPO
@@ -106,4 +106,4 @@ TpgPPO::set_output_id2(int id)
   mOutputId2 = id;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

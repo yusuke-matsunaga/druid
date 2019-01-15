@@ -7,7 +7,7 @@
 ### All rights reserved.
 
 
-cdef extern from "Justifier.h" namespace "nsYm::nsSatpg" :
+cdef extern from "Justifier.h" namespace "nsYm::nsDruid" :
 
     ### @brief Justifier の Cython バージョン
     cdef cppclass Justifier :

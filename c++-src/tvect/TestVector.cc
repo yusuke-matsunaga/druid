@@ -13,7 +13,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 割当リストからTestVectorを作るクラスメソッド
 // @param[in] input_num 入力数
@@ -76,4 +76,4 @@ merge(const vector<TestVector>& tv_list)
   return ans;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

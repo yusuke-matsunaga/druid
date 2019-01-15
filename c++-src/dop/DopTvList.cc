@@ -11,7 +11,7 @@
 #include "TestVector.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 'tvlist' タイプを生成する．
 // @param[in] input_num 入力数
@@ -63,4 +63,4 @@ DopTvList::operator()(const TpgFault* f,
   mTvList.push_back(tv);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

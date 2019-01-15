@@ -13,7 +13,7 @@
 #include "ym/RandGen.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 //////////////////////////////////////////////////////////////////////
 /// @class RtpgImpl RtpgImpl.h "RtpgImpl.h"
@@ -74,6 +74,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // RTPGIMPL_H

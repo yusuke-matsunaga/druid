@@ -13,7 +13,7 @@
 #include "ym/RandGen.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 //////////////////////////////////////////////////////////////////////
 /// @class RtpgP2 RtpgP2.h "RtpgP2.h"
@@ -80,6 +80,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // RTPGP2_H

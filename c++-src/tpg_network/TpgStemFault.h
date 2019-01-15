@@ -11,7 +11,7 @@
 #include "TpgFaultBase.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgStemFault TpgStemFault.h "TpgStemFault.h"
@@ -75,6 +75,6 @@ public:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TPGSTEMFAULT_H

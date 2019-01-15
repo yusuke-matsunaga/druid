@@ -14,7 +14,7 @@
 #include "ym/HashSet.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 // クラス Verifier
@@ -84,4 +84,4 @@ Verifier::check(Fsim& fsim,
   return no_error;
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

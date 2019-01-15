@@ -25,7 +25,7 @@
 #include "ym/MinCov.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] sat_type SATソルバの種類を表す文字列
@@ -714,4 +714,4 @@ Dtpg2::make_input_constraint(TvMgr& tvmgr,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

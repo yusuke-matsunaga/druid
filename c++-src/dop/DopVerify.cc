@@ -14,7 +14,7 @@
 #include "NodeValList.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 'verify' タイプを生成する．
 // @param[in] fsim 故障シミュレータ
@@ -62,4 +62,4 @@ DopVerify::operator()(const TpgFault* f,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

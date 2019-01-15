@@ -16,7 +16,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 Rtpg*
 new_Rtpg()
@@ -175,4 +175,4 @@ RtpgImpl::run(TpgFaultMgr& fmgr,
   stats.set(total_det_count, pat_num, epat_num, time);
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

@@ -9,10 +9,10 @@
 /// Copyright (C) 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @brief 故障の種類を表す列挙型
@@ -71,6 +71,6 @@ __int_to_fault_type(int fval)
   return FaultType::None;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // FAULTTYPE_H

@@ -8,23 +8,23 @@
 /// Copyright (C) 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 
 //////////////////////////////////////////////////////////////////////
 // 名前空間の定義用マクロ
 // namespace でネストするのがいやなので define マクロでごまかす．
 //////////////////////////////////////////////////////////////////////
 
-#define BEGIN_NAMESPACE_SATPG_STRUCTENC \
-BEGIN_NAMESPACE_SATPG \
+#define BEGIN_NAMESPACE_DRUID_STRUCTENC \
+BEGIN_NAMESPACE_DRUID \
 BEGIN_NAMESPACE(nsStructEnc)
 
-#define END_NAMESPACE_SATPG_STRUCTENC \
+#define END_NAMESPACE_DRUID_STRUCTENC \
 END_NAMESPACE(nsStructEnc) \
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 
-BEGIN_NAMESPACE_SATPG_STRUCTENC
+BEGIN_NAMESPACE_DRUID_STRUCTENC
 
 //////////////////////////////////////////////////////////////////////
 // クラス名の宣言
@@ -33,18 +33,18 @@ BEGIN_NAMESPACE_SATPG_STRUCTENC
 class StructEnc;
 class PropCone;
 
-END_NAMESPACE_SATPG_STRUCTENC
+END_NAMESPACE_DRUID_STRUCTENC
 
 
 //////////////////////////////////////////////////////////////////////
 // 外部から用いられるクラス名のエクスポート
 //////////////////////////////////////////////////////////////////////
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 using nsStructEnc::StructEnc;
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 
 #endif // STRUCT_ENC_NSDEF_H

@@ -12,7 +12,7 @@
 #include "Val3.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogicBUFF
@@ -81,4 +81,4 @@ TpgLogicBUFF::noval() const
   return Val3::_X;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -24,7 +24,7 @@
 #include "ym/HashSet.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 BEGIN_NONAMESPACE
 
@@ -619,4 +619,4 @@ ConflictChecker::record_pat(const vector<ymuint>& fid_list)
   return nchg;
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

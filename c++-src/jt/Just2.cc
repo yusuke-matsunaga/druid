@@ -12,7 +12,7 @@
 #include "TpgDff.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -218,4 +218,4 @@ Just2::calc_value(const JustData& jd,
   mTmpArray[node->id() * 2 + time] = val;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -15,7 +15,7 @@
 #include "TpgNode.h"
 
 
-BEGIN_NAMESPACE_SATPG_STRUCTENC
+BEGIN_NAMESPACE_DRUID_STRUCTENC
 
 //////////////////////////////////////////////////////////////////////
 /// @class PropCone PropCone.h "PropCone.h"
@@ -440,6 +440,6 @@ PropCone::solver()
   return mStructEnc.solver();
 }
 
-END_NAMESPACE_SATPG_STRUCTENC
+END_NAMESPACE_DRUID_STRUCTENC
 
 #endif // PROPCONE_H

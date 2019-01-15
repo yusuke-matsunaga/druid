@@ -11,7 +11,7 @@
 #include "TpgFault.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief 'skip' タイプを生成する．
 // @param[in] threshold しきい値
@@ -79,4 +79,4 @@ UopSkip::clear()
   mSkipList.clear();
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -8,10 +8,10 @@
 /// Copyright (C) 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TvMerger TvMerger.h "TvMerger.h"
@@ -138,6 +138,6 @@ TvMerger::_block_list(int bit,
   return mBlockListArray[bit * 2 + val];
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // TVMERGER_H

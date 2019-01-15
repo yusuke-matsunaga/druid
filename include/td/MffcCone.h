@@ -13,7 +13,7 @@
 #include "td/ConeBase.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 //////////////////////////////////////////////////////////////////////
 /// @class MffcCone MffcCone.h "td/MffcCone.h"
@@ -131,6 +131,6 @@ MffcCone::mffc_elem_var(ymuint pos) const
   return mElemVarList[pos];
 }
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // TD_MFFCCONE_H

@@ -7,10 +7,10 @@
 ### Copyright (C) 2018 Yusuke Matsunaga
 ### All rights reserved.
 
-from satpg_core import DtpgFFR, DtpgMFFC
-from satpg_core import Fsim
-from satpg_core import FaultStatus
-from satpg_core import TestVector
+from druid_core import DtpgFFR, DtpgMFFC
+from druid_core import Fsim
+from druid_core import FaultStatus
+from druid_core import TestVector
 
 
 ### @brief DTPG を行うクラス

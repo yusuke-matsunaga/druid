@@ -1,14 +1,14 @@
-﻿#ifndef SATPG_H
-#define SATPG_H
+﻿#ifndef DRUID_H
+#define DRUID_H
 
-/// @file satpg.h
-/// @brief SATPG 用の名前空間の定義
+/// @file druid.h
+/// @brief Druid 用の名前空間の定義
 ///
 /// 必ず先頭でインクルードしなければならない．
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012, 2013, 2017 Yusuke Matsunaga
+/// Copyright (C) 2005-2010, 2012, 2013, 2017, 2019 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "ym_config.h"
@@ -19,19 +19,19 @@
 //////////////////////////////////////////////////////////////////////
 
 /// @brief プロジェクトの major バージョン
-#define SATPG_VERSION_MAJIR @PROJECT_VERSION_MAJOR@
+#define DRUID_VERSION_MAJIR @PROJECT_VERSION_MAJOR@
 
 /// @brief プロジェクトの minor バージョン
-#define SATPG_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define DRUID_VERSION_MINOR @PROJECT_VERSION_MINOR@
 
 /// @brief プロジェクトのバージョン
-#define SATPG_VERSION @PROJECT_VERSION@
+#define DRUID_VERSION @PROJECT_VERSION@
 
 /// @brief プロジェクトのバージョンの文字列
-#define SATPG_VERSION_STR "@PROJECT_VERSION@"
+#define DRUID_VERSION_STR "@PROJECT_VERSION@"
 
 /// @brief バージョン付きのプロジェクト名の文字列
-#define SATPG_PROJECT_STR "@YM_PROJECT_STRING@"
+#define DRUID_PROJECT_STR "@YM_PROJECT_STRING@"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -39,24 +39,24 @@
 // namespace でネストするのがいやなので define マクロでごまかす．
 //////////////////////////////////////////////////////////////////////
 
-/// @brief satpg 用の名前空間の開始
-#define BEGIN_NAMESPACE_SATPG \
+/// @brief druid 用の名前空間の開始
+#define BEGIN_NAMESPACE_DRUID \
 BEGIN_NAMESPACE_YM \
-BEGIN_NAMESPACE(@SATPG_NSNAME@)
+BEGIN_NAMESPACE(@DRUID_NSNAME@)
 
-/// @brief satpg 用の名前空間の終了
-#define END_NAMESPACE_SATPG \
-END_NAMESPACE(@SATPG_NSNAME@) \
+/// @brief druid 用の名前空間の終了
+#define END_NAMESPACE_DRUID \
+END_NAMESPACE(@DRUID_NSNAME@) \
 END_NAMESPACE_YM
 
-/// @brief satpg 用の名前空間
-#define SATPG_NAMESPACE YM_NAMESPACE::@SATPG_NSNAME@
+/// @brief druid 用の名前空間
+#define DRUID_NAMESPACE YM_NAMESPACE::@DRUID_NSNAME@
 
-/// @brief satpg 用の名前空間の文字列
-#define SATPG_NAMESPACE_STR YM_NAMESPACE_STR "::@SATPG_NSNAME@"
+/// @brief druid 用の名前空間の文字列
+#define DRUID_NAMESPACE_STR YM_NAMESPACE_STR "::@DRUID_NSNAME@"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス名の宣言
@@ -95,6 +95,6 @@ enum class FaultType;
 enum class GateType;
 enum class Val3;
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
-#endif // SATPG_H
+#endif // DRUID_H

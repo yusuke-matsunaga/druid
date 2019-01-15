@@ -10,7 +10,7 @@
 #include "TpgDffClock.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgDffClock
@@ -39,4 +39,4 @@ TpgDffClock::is_dff_clock() const
   return true;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -15,7 +15,7 @@
 #include "ym/SatSolver.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] solver SATソルバ
@@ -277,4 +277,4 @@ GateEnc::lit(const TpgNode* node)
   return SatLiteral(mVarMap(node));
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

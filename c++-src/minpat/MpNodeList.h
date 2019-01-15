@@ -8,10 +8,10 @@
 /// Copyright (C) 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "satpg.h"
+#include "druid.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class MpColGraph;
 
@@ -246,6 +246,6 @@ MpNodeIterator::operator!=(const MpNodeIterator& right) const
   return !operator==(right);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // MPNODELIST_H

@@ -11,7 +11,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogic
@@ -331,4 +331,4 @@ TpgLogicN::set_fanin(const vector<TpgNode*>& inode_list,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

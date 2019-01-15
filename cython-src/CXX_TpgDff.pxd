@@ -9,7 +9,7 @@
 from CXX_TpgNode cimport TpgNode
 
 
-cdef extern from "TpgDff.h" namespace "nsYm::nsSatpg" :
+cdef extern from "TpgDff.h" namespace "nsYm::nsDruid" :
 
     ## @brief TpgDff の Cython バージョン
     cdef cppclass TpgDff :

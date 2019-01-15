@@ -13,7 +13,7 @@
 #include "NodeValList.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 Expr
 extract_all(const TpgNode* root,
@@ -219,4 +219,4 @@ MultiExtractor::record_masking_node(const TpgNode* node)
   return expr;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

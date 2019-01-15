@@ -12,7 +12,7 @@
 #include "MinPatBase.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 /// @class MinPatDsatur2 MinPatDsatur2.h "MinPatDsatur2.h"
@@ -142,6 +142,6 @@ private:
   ymuint mPrevGid;
 };
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // MINPATDSATUR2_H

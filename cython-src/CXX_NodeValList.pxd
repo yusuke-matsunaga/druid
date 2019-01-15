@@ -12,7 +12,7 @@ from CXX_TpgNode cimport TpgNode
 ctypedef unsigned int ymuint
 
 
-cdef extern from "NodeValList.h" namespace "nsYm::nsSatpg" :
+cdef extern from "NodeValList.h" namespace "nsYm::nsDruid" :
 
     ## @brief NodeVal の Cython バージョン
     cdef cppclass NodeVal :

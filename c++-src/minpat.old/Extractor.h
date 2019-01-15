@@ -9,13 +9,13 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "ValMap.h"
 #include "ym/HashSet.h"
 #include "ym/HashMap.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class Extractor Extractor.h "sa/Extractor.h"
@@ -105,6 +105,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // EXTRACTOR_H

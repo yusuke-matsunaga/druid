@@ -16,7 +16,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 Rtpg*
 new_Rtpg1()
@@ -131,4 +131,4 @@ RtpgImpl::run(const vector<const TpgFault*>& fault_list,
   stats.set(total_det_count, pat_num, epat_num, time);
 }
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD

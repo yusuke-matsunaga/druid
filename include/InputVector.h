@@ -12,7 +12,7 @@
 #include "BitVector.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class InputVector InputVector.h "InputVector.h"
@@ -102,6 +102,6 @@ InputVector::~InputVector()
 {
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // INPUTVECTOR_H

@@ -12,7 +12,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 BEGIN_NONAMESPACE
 
@@ -380,4 +380,4 @@ SnNand4::_calc_val()
   return ~_calc_and();
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM

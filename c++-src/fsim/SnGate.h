@@ -12,7 +12,7 @@
 #include "SimNode.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 /// @class SnGate SimNode.h
@@ -361,6 +361,6 @@ SnGate4::_fanin(int pos) const
   return mFanins[pos];
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM
 
 #endif // SNGATE_H

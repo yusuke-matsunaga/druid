@@ -14,7 +14,7 @@
 #include "ym/USTime.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 //////////////////////////////////////////////////////////////////////
 /// @class RtpgStats Rtpg.h "td/Rtpg.h"
@@ -151,6 +151,6 @@ RtpgStats::time() const
   return mTime;
 }
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // TD_RTPGSTATS_H

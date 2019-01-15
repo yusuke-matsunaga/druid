@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "TpgNetwork.h"
 #include "FaultStatusMgr.h"
 #include "Fsim.h"
@@ -21,7 +21,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgTest DtpgTest.h "DtpgTest.h"
@@ -137,6 +137,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DTPGTEST_H

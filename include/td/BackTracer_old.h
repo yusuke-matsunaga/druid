@@ -12,7 +12,7 @@
 #include "td/td_nsdef.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 class BtImpl;
 
@@ -71,6 +71,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // TD_BACKTRACER_H

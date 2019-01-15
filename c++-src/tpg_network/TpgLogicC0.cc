@@ -11,7 +11,7 @@
 #include "GateType.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogcC0
@@ -38,4 +38,4 @@ TpgLogicC0::gate_type() const
   return GateType::Const0;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

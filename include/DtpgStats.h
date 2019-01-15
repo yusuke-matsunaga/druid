@@ -10,13 +10,13 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 
 #include "ym/USTime.h"
 #include "ym/SatStats.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgStats DtpgStats.h "DtpgStats.h"
@@ -188,6 +188,6 @@ DtpgStats::merge(const DtpgStats& src)
   mBackTraceTime += src.mBackTraceTime;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DTPGSTATS_H

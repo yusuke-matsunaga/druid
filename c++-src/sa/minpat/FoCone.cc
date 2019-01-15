@@ -16,7 +16,7 @@
 #include "NodeValList.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 BEGIN_NONAMESPACE
 
@@ -241,4 +241,4 @@ FoCone::make_dchain_cnf(const TpgNode* node)
   }
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

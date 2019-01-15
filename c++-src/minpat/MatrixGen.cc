@@ -15,7 +15,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] fault_list 故障のリスト
@@ -91,4 +91,4 @@ MatrixGen::do_fsim(McMatrix& matrix,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

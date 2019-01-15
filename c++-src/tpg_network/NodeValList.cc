@@ -11,7 +11,7 @@
 #include "TpgNode.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief マージする．
 // @param[in] src_list マージするリスト
@@ -209,4 +209,4 @@ operator<(const NodeVal& left,
   return left.val() < right.val();
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

@@ -15,7 +15,7 @@
 #include "TpgNode.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 //////////////////////////////////////////////////////////////////////
 /// @class ConeBase ConeBase.h "td/ConeBase.h"
@@ -380,6 +380,6 @@ ConeBase::solver()
   return mStructEnc.solver();
 }
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // TD_CONEBASE_H

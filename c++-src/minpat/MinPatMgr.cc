@@ -21,7 +21,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -611,4 +611,4 @@ MinPatMgr::merge_tv_list(const vector<TestVector>& tv_list,
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

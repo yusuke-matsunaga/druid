@@ -10,13 +10,13 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "FaultType.h"
 #include "PackedVal.h"
 #include "ym/Array.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 class FsimImpl;
 
@@ -268,6 +268,6 @@ private:
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // FSIM_H

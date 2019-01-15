@@ -13,7 +13,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] tv_list テストパタンのリスト
@@ -264,4 +264,4 @@ MpColGraph::get_color_map(vector<int>& color_map) const
   return color_num();
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

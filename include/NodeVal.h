@@ -9,10 +9,10 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class NodeVal NodeVal.h "td/NodeVal.h"
@@ -184,6 +184,6 @@ operator>=(const NodeVal& left,
   return !operator<(left, right);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // NODEVAL_H

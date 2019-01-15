@@ -13,7 +13,7 @@
 #include "DtpgEngine.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgFFR DtpgFFR.h "DtpgFFR.h"
@@ -99,6 +99,6 @@ private:
 //////////////////////////////////////////////////////////////////////
 
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DTPGFFR_H

@@ -15,7 +15,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] network 対象のネットワーク
@@ -228,4 +228,4 @@ DtpgFFR::gen_core_expr(const TpgFault* fault,
   return expr;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

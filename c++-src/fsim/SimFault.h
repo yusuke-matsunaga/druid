@@ -11,7 +11,7 @@
 #include "fsim_nsdef.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 class SimNode;
 
@@ -84,6 +84,6 @@ public:
 
 };
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM
 
 #endif // SIMFAULT_H

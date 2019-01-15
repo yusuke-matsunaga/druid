@@ -13,7 +13,7 @@
 #include "ym/MinCov.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 // クラス McCompactor
@@ -100,4 +100,4 @@ McCompactor::run(const vector<const TpgFault*>& fault_list,
   }
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

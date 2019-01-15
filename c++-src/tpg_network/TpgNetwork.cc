@@ -17,7 +17,7 @@
 #include "ym/ClibCellLibrary.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgNetwork
@@ -427,4 +427,4 @@ print_node(ostream& s,
   s << "NODE#" << node->id() << ": " << network.node_name(node->id());
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

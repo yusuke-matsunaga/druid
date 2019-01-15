@@ -21,7 +21,7 @@
 #include "TestVector.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 class SimFFR;
 class SimNode;
@@ -698,6 +698,6 @@ FSIM_CLASSNAME::_prop_sim(SimNode* root,
   return obs;
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM
 
 #endif // FSIMX_H

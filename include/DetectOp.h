@@ -9,11 +9,11 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "FaultType.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DetectOp DetectOp.h "DetectOp.h"
@@ -74,6 +74,6 @@ new_DopVerify(Fsim& fsim,
 DetectOp*
 new_DopDummy();
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DETECTOP_H

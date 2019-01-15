@@ -12,7 +12,7 @@ from CXX_FaultType cimport FaultType
 from CXX_Val3 cimport Val3
 
 
-cdef extern from "TestVector.h" namespace "nsYm::nsSatpg" :
+cdef extern from "TestVector.h" namespace "nsYm::nsDruid" :
 
     ### @brief TestVector の cython ヴァージョン
     cdef cppclass TestVector :

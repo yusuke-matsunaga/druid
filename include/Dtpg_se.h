@@ -10,7 +10,7 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 
 #include "FaultType.h"
 #include "Justifier.h"
@@ -21,7 +21,7 @@
 #include "ym/StopWatch.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class Dtpg_se Dtpg_se.h "Dtpg_se.h"
@@ -139,6 +139,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // DTPG_SE_H

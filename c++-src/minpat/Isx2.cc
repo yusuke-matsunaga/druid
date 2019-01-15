@@ -14,7 +14,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス Isx2
@@ -294,4 +294,4 @@ Isx2::update_cand_list(int node_id)
   }
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

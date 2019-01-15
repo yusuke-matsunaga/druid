@@ -16,7 +16,7 @@
 #include "Fsim.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 //////////////////////////////////////////////////////////////////////
 // クラス EqChecker
@@ -251,4 +251,4 @@ EqChecker::do_fsim(const vector<ymuint>& fid_list)
   mPatNum = npat;
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

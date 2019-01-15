@@ -17,7 +17,7 @@
 #include "ym/SatSolver.h"
 
 
-BEGIN_NAMESPACE_SATPG_STRUCTENC
+BEGIN_NAMESPACE_DRUID_STRUCTENC
 
 //////////////////////////////////////////////////////////////////////
 /// @class StructEnc StructEnc.h "StructEnc.h"
@@ -685,6 +685,6 @@ StructEnc::debug() const
   return mDebugFlag;
 }
 
-END_NAMESPACE_SATPG_STRUCTENC
+END_NAMESPACE_DRUID_STRUCTENC
 
 #endif // STRUCTENC_H

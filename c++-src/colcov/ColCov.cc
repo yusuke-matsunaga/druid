@@ -13,7 +13,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 // クラス ColCov
@@ -235,4 +235,4 @@ ColCov::check_conflict(const vector<int>& color_map)
   return true;
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

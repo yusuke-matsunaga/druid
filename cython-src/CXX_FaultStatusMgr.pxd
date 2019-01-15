@@ -11,7 +11,7 @@ from CXX_TpgFault cimport TpgFault
 from CXX_FaultStatus cimport FaultStatus
 
 
-cdef extern from "FaultStatusMgr.h" namespace "nsYm::nsSatpg" :
+cdef extern from "FaultStatusMgr.h" namespace "nsYm::nsDruid" :
 
     ### @brief FaultStatusMgr の Cython バージョン
     cdef cppclass FaultStatusMgr :

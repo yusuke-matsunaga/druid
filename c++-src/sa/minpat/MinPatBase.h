@@ -13,7 +13,7 @@
 #include "FaultAnalyzer.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 class FgMgr;
 
@@ -171,6 +171,6 @@ private:
 
 };
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA
 
 #endif // MINPATBASE_H

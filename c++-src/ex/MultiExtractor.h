@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 
-#include "satpg.h"
+#include "druid.h"
 #include "NodeValList.h"
 #include "VidMap.h"
 #include "Val3.h"
@@ -18,7 +18,7 @@
 #include "ym/SatBool3.h"
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class MultiExtractor MultiExtractor.h "MultiExtractor.h"
@@ -167,6 +167,6 @@ MultiExtractor::fval(const TpgNode* node)
   return bool3_to_val3(mSatModel[mFvarMap(node).val()]);
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID
 
 #endif // MULTIEXTRACTOR_H

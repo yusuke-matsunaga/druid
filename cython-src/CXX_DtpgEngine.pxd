@@ -23,7 +23,7 @@ from CXX_SatBool3 cimport SatBool3
 from CXX_SatSolverType cimport SatSolverType
 from CXX_TestVector cimport TestVector
 
-cdef extern from "DtpgFFR.h" namespace "nsYm::nsSatpg" :
+cdef extern from "DtpgFFR.h" namespace "nsYm::nsDruid" :
 
     ## @brief DtpgFFR の Cython バージョン
     cdef cppclass DtpgFFR :
@@ -33,7 +33,7 @@ cdef extern from "DtpgFFR.h" namespace "nsYm::nsSatpg" :
         const DtpgStats& stats()
 
 
-cdef extern from "DtpgMFFC.h" namespace "nsYm::nsSatpg" :
+cdef extern from "DtpgMFFC.h" namespace "nsYm::nsDruid" :
 
     ## @brief DtpgMFFC の Cython バージョン
     cdef cppclass DtpgMFFC :

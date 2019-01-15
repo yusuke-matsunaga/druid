@@ -17,7 +17,7 @@
 #include "ym/RandCombiGen.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 Rtpg*
 new_RtpgP2(ymuint nbits)
@@ -234,4 +234,4 @@ RtpgP2::run(TpgFaultMgr& fmgr,
   cout << "# of generated patterns = " << gnum << endl;
 }
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD

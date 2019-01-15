@@ -36,7 +36,7 @@ const int debug_dtpg = 0;
 END_NONAMESPACE
 
 
-BEGIN_NAMESPACE_SATPG
+BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 // @param[in] network 対象のネットワーク
@@ -724,4 +724,4 @@ DtpgEngine::_add_negation_sub(const Expr& expr)
   return SatLiteral();
 }
 
-END_NAMESPACE_SATPG
+END_NAMESPACE_DRUID

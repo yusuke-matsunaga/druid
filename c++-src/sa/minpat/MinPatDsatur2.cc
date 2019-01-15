@@ -17,7 +17,7 @@
 #include "ym/RandGen.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 // @brief インスタンスを生成する関数
 MinPat*
@@ -232,4 +232,4 @@ MinPatDsatur2::find_group(FgMgr& fgmgr,
   return gid;
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

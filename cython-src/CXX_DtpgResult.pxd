@@ -11,7 +11,7 @@ from CXX_FaultStatus cimport FaultStatus
 from CXX_TestVector cimport TestVector
 
 
-cdef extern from "DtpgResult.h" namespace "nsYm::nsSatpg" :
+cdef extern from "DtpgResult.h" namespace "nsYm::nsDruid" :
 
     ### @brief DtpgResult の Cython バージョン
     cdef cppclass DtpgResult :

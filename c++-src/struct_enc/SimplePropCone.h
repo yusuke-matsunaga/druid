@@ -13,7 +13,7 @@
 #include "PropCone.h"
 
 
-BEGIN_NAMESPACE_SATPG_STRUCTENC
+BEGIN_NAMESPACE_DRUID_STRUCTENC
 
 //////////////////////////////////////////////////////////////////////
 /// @class SimplePropCone SimplePropCone.h "SimplePropCone.h"
@@ -91,6 +91,6 @@ private:
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
 
-END_NAMESPACE_SATPG_STRUCTENC
+END_NAMESPACE_DRUID_STRUCTENC
 
 #endif // SIMPLEPROPCONE_H

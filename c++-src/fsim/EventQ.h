@@ -14,7 +14,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_SATPG_FSIM
+BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
 /// @class EventQ EventQ.h "EventQ.h"
@@ -247,6 +247,6 @@ EventQ::set_flip_mask(SimNode* node,
   ++ mMaskPos;
 }
 
-END_NAMESPACE_SATPG_FSIM
+END_NAMESPACE_DRUID_FSIM
 
 #endif // FSIM_EVENTQ_H

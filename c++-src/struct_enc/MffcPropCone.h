@@ -14,7 +14,7 @@
 #include "ym/HashMap.h"
 
 
-BEGIN_NAMESPACE_SATPG_STRUCTENC
+BEGIN_NAMESPACE_DRUID_STRUCTENC
 
 //////////////////////////////////////////////////////////////////////
 /// @class MffcPropCone MffcPropCone.h "MffcPropCone.h"
@@ -109,6 +109,6 @@ private:
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
 
-END_NAMESPACE_SATPG_STRUCTENC
+END_NAMESPACE_DRUID_STRUCTENC
 
 #endif // MFFCPROPCONE_H

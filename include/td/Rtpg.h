@@ -13,7 +13,7 @@
 #include "td/td_nsdef.h"
 
 
-BEGIN_NAMESPACE_SATPG_TD
+BEGIN_NAMESPACE_DRUID_TD
 
 //////////////////////////////////////////////////////////////////////
 /// @class Rtpg Rtpg.h "td/Rtpg.h"
@@ -74,6 +74,6 @@ extern
 Rtpg*
 new_RtpgP2(ymuint nbits = 1);
 
-END_NAMESPACE_SATPG_TD
+END_NAMESPACE_DRUID_TD
 
 #endif // TD_RTPG_H

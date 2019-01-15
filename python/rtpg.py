@@ -7,7 +7,7 @@
 ### Copyright (C) 2017 Yusuke Matsunaga
 ### All rights reserved.
 
-import satpg_core
+import druid_core
 
 class Rtpg :
 

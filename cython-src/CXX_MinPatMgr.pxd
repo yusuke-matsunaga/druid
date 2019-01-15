@@ -14,7 +14,7 @@ from CXX_TestVector cimport TestVector
 from CXX_TpgNetwork cimport TpgNetwork
 from CXX_FaultType cimport FaultType
 
-cdef extern from "MinPatMgr.h" namespace "nsYm::nsSatpg" :
+cdef extern from "MinPatMgr.h" namespace "nsYm::nsDruid" :
 
     ### @brief MinPatMgr の cython バージョン
     cdef cppclass MinPatMgr :

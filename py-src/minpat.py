@@ -8,7 +8,7 @@
 # All rights reserved.
 
 from compaction import mincov, coloring
-from satpg_core import MinPatMgr
+from druid_core import MinPatMgr
 
 def minpat(tv_list, fault_list, network, fault_type, cmp_algorithm) :
     if cmp_algorithm == 'mincov+dsatur' :

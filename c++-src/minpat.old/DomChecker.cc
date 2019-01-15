@@ -18,7 +18,7 @@
 #include "StructEnc.h"
 
 
-BEGIN_NAMESPACE_SATPG_SA
+BEGIN_NAMESPACE_DRUID_SA
 
 BEGIN_NONAMESPACE
 
@@ -653,4 +653,4 @@ DomChecker::DomStats::operator+=(const DomStats& right)
   return *this;
 }
 
-END_NAMESPACE_SATPG_SA
+END_NAMESPACE_DRUID_SA

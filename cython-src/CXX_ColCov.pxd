@@ -11,7 +11,7 @@ from libcpp.string cimport string
 from libcpp.pair cimport pair
 from libcpp.vector cimport vector
 
-cdef extern from "ColCov.h" namespace "nsYm::nsSatpg" :
+cdef extern from "ColCov.h" namespace "nsYm::nsDruid" :
 
     ### @brief ColCov の Cython バージョン
     cdef cppclass ColCov :
