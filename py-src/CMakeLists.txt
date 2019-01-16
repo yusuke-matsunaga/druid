@@ -38,7 +38,6 @@ set_source_files_properties (
 #  module ターゲットの設定
 # ===================================================================
 
-list ( REMOVE_ITEM YM_SUBMODULE_LIST "$<TARGET_OBJECTS:ym_tclpp>" )
 cython_add_module ( druid_core
   ${CYTHON_SOURCES}
   $<TARGET_OBJECTS:druid_common>
@@ -61,11 +60,6 @@ target_link_libraries ( druid_core
   ${YM_LIB_DEPENDS}
   )
 
-install (TARGETS
-  druid_core
-  DESTINATION lib/python/site-packages
-  )
-
 
 cython_add_module ( druid_core_d
   ${CYTHON_SOURCES}
@@ -85,6 +79,9 @@ target_link_libraries ( druid_core_d
   ${YM_LIB_DEPENDS}
   )
 
+# debug/druid_core.so を druid_core_d.so の別名にする．
+# するとライブラリパスの変更で
+# import druid_core のままリリース版/デバッグ版の切り替えが行える．
 add_custom_command (
   TARGET druid_core_d
   POST_BUILD
@@ -98,7 +95,7 @@ add_custom_command (
 # ===================================================================
 
 install ( TARGETS druid_core
-  DESTINATION "${YM_PYTHON_LIBDIR}/satpg"
+  DESTINATION "${YM_PYTHON_LIBDIR}"
   )
 
 install ( FILES
@@ -106,5 +103,5 @@ install ( FILES
   compaction.py
   dtpg.py
   minpat.py
-  DESTINATION "${YM_PYTHON_LIBDIR}/satpg"
+  DESTINATION "${YM_PYTHON_LIBDIR}"
   )
