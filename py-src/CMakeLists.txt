@@ -94,8 +94,10 @@ add_custom_command (
 #  インストールターゲットの設定
 # ===================================================================
 
+set ( YM_PYTHON_PKGDIR "${YM_PYTHON_LIBDIR}/${PROJECT_NAME}" )
+
 install ( TARGETS druid_core
-  DESTINATION "${YM_PYTHON_LIBDIR}"
+  DESTINATION "${YM_PYTHON_PKGDIR}"
   )
 
 install ( FILES
@@ -103,5 +105,5 @@ install ( FILES
   compaction.py
   dtpg.py
   minpat.py
-  DESTINATION "${YM_PYTHON_LIBDIR}"
+  DESTINATION "${YM_PYTHON_PKGDIR}"
   )

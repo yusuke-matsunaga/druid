@@ -1,16 +1,17 @@
 #! /usr/bin/env python3
 
 ### @file __init__.py
-### @brief satpg パッケージの初期化スクリプト
+### @brief druidg パッケージの初期化スクリプト
 ### @author Yusuke Matsunaga (松永 裕介)
 ###
-### Copyright (C) 2018 Yusuke Matsunaga
+### Copyright (C) 2018, 2019 Yusuke Matsunaga
 ### All rights reserved.
 
-from satpg.druid_core import DtpgFFR
-from satpg.druid_core import DtpgMFFC
-from satpg.druid_core import FaultStatus
-from satpg.druid_core import FaultType
-from satpg.druid_core import Fsim
-from satpg.druid_core import TestVector
-from satpg.druid_core import TpgNetwork
+from druid.druid_core import DtpgFFR
+from druid.druid_core import DtpgMFFC
+from druid.druid_core import FaultStatus
+from druid.druid_core import FaultType
+from druid.druid_core import Fsim
+from druid.druid_core import TestVector
+from druid.druid_core import TpgNetwork
+from druid.dtpg import Dtpg
