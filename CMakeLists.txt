@@ -46,6 +46,9 @@ ym_init_doxygen ()
 ym_init_gperftools ()
 ym_init_ctest ()
 
+# Python パッケージのインストール先
+set ( YM_DRUID_PKGDIR "${YM_PYTHON_LIBDIR}/${PROJECT_NAME}" )
+
 
 # ===================================================================
 # google-test は内蔵のものを使う．
