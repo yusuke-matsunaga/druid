@@ -145,12 +145,10 @@ public:
 			  const NodeValList& suf_cond);
 
   /// @brief バックトレースを行う．
-  /// @param[in] fault 故障
   /// @param[in] suf_cond 十分条件の割り当て
   /// @return テストパタンを返す．
   TestVector
-  backtrace(const TpgFault* fault,
-	    const NodeValList& suf_cond);
+  backtrace(const NodeValList& suf_cond);
 
 
 protected:

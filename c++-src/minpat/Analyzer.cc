@@ -142,7 +142,7 @@ Analyzer::gen_fault_list(const vector<bool>& mark,
       if ( sat_res == SatBool3::True ) {
 	NodeValList suf_cond = dtpg.get_sufficient_condition();
 	suf_cond.merge(ffr_cond);
-	TestVector testvect = dtpg.backtrace(fault, suf_cond);
+	TestVector testvect = dtpg.backtrace(suf_cond);
 	testvect.fix_x_from_random(randgen);
 	FaultInfo* fi = new FaultInfo(fault, ffr_cond, suf_cond, testvect);
 	tmp_fi_list.push_back(fi);
