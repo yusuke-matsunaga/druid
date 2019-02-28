@@ -89,7 +89,7 @@ DtpgFFR::gen_pattern(const TpgFault* fault)
   if ( sat_res == SatBool3::True ) {
     NodeValList suf_cond = get_sufficient_condition();
     suf_cond.merge(ffr_cond);
-    TestVector testvect = backtrace(fault, suf_cond);
+    TestVector testvect = backtrace(suf_cond);
     return DtpgResult(testvect);
   }
   else if ( sat_res == SatBool3::False ) {
@@ -127,7 +127,7 @@ DtpgFFR::gen_k_patterns(const TpgFault* fault,
   if ( sat_res == SatBool3::True ) {
     NodeValList suf_cond = get_sufficient_condition();
     suf_cond.merge(ffr_cond);
-    TestVector testvect = backtrace(fault, suf_cond);
+    TestVector testvect = backtrace(suf_cond);
     DtpgResult ans(testvect);
     tv_list.clear();
     tv_list.push_back(testvect);
@@ -162,7 +162,7 @@ DtpgFFR::gen_k_patterns(const TpgFault* fault,
 	if ( sat_res == SatBool3::True ) {
 	  NodeValList suf_cond = get_sufficient_condition();
 	  suf_cond.merge(ffr_cond);
-	  testvect = backtrace(fault, suf_cond);
+	  testvect = backtrace(suf_cond);
 	  tv_list.push_back(testvect);
 	}
 	else {
