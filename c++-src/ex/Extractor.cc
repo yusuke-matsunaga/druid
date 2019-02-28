@@ -22,7 +22,17 @@ extract(const TpgNode* root,
 	const vector<SatBool3>& model)
 {
   Extractor extractor(gvar_map, fvar_map, model);
-  return extractor.get_assignment(root);
+  return extractor.get_assignment(vector<const TpgNode*>{root});
+}
+
+NodeValList
+extract(const vector<const TpgNode*>& root_list,
+	const VidMap& gvar_map,
+	const VidMap& fvar_map,
+	const vector<SatBool3>& model)
+{
+  Extractor extractor(gvar_map, fvar_map, model);
+  return extractor.get_assignment(root_list);
 }
 
 BEGIN_NONAMESPACE
@@ -52,16 +62,18 @@ Extractor::~Extractor()
 {
 }
 
-// @brief 値割当を求める．
-// @param[in] root 起点となるノード
-// @param[out] assign_list 値の割当リスト
+// @brief 値割り当てを１つ求める．
+// @param[in] root_list 起点となるノードのリスト
+// @return 値の割当リスト
 NodeValList
-Extractor::get_assignment(const TpgNode* root)
+Extractor::get_assignment(const vector<const TpgNode*>& root_list)
 {
   // root の TFO (fault cone) に印をつける．
   // 同時に故障差の伝搬している外部出力のリストを作る．
   mFconeMark.clear();
-  mark_tfo(root);
+  for ( auto root: root_list ) {
+    mark_tfo(root);
+  }
 
   // 故障差の伝搬している経路を探す．
   ASSERT_COND( mSpoList.size() > 0 );
@@ -76,8 +88,14 @@ Extractor::get_assignment(const TpgNode* root)
 
   if ( debug ) {
     ostream& dbg_out = cout;
-    dbg_out << "Extract at Node#" << root->id() << endl;
+    dbg_out << "Extract at ";
     const char* comma = "";
+    for ( auto root: root_list ) {
+      dbg_out << comma << "Node#" << root->id();
+      comma = ", ";
+    }
+    dbg_out << endl;
+    comma = "";
     for ( auto nv: assign_list ) {
       const TpgNode* node = nv.node();
       dbg_out << comma << "Node#" << node->id()

@@ -55,10 +55,10 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 値割り当てを１つ求める．
-  /// @param[in] root 起点となるノード
+  /// @param[in] root_list 起点となるノードのリスト
   /// @return 値の割当リスト
   NodeValList
-  get_assignment(const TpgNode* root);
+  get_assignment(const vector<const TpgNode*>& root_list);
 
 
 private:
