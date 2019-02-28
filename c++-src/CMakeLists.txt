@@ -125,6 +125,10 @@ set (minpat_SOURCES
   minpat/TvMerger.cc
   )
 
+set (mf_SOURCES
+  mf_dtpg/MF_DTPG.cc
+  )
+
 set (sa_SOURCES
 
   sa/minpat/Verifier.cc
@@ -170,6 +174,7 @@ ym_add_object_library ( druid_common
   ${jt_SOURCES}
   ${colcov_SOURCES}
   ${minpat_SOURCES}
+  ${mf_SOURCES}
 #  ${sa_SOURCES}
 #  ${td_SOURCES}
   )

@@ -11,6 +11,7 @@
 #include "Dtpg_se.h"
 #include "DtpgFFR.h"
 #include "DtpgMFFC.h"
+#include "MF_Dtpg.h"
 
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
@@ -82,9 +83,6 @@ DtpgTest::ffr_test()
     cout << "Error: " << f->str() << " is not detected with "
 	 << tv << endl;
   }
-  if ( n > 0 ) {
-    return make_pair(0, 0);
-  }
 
   return make_pair(detect_num, untest_num);
 }
@@ -127,9 +125,6 @@ DtpgTest::mffc_test()
     cout << "Error: " << f->str() << " is not detected with "
 	 << tv << endl;
   }
-  if ( n > 0 ) {
-    return make_pair(0, 0);
-  }
 
   return make_pair(detect_num, untest_num);
 }
@@ -163,9 +158,6 @@ DtpgTest::ffr_new_test()
     TestVector tv = mVerifyResult.error_testvector(i);
     cout << "Error: " << f->str() << " is not detected with "
 	 << tv << endl;
-  }
-  if ( n > 0 ) {
-    return make_pair(0, 0);
   }
 
   return make_pair(mDetectNum, mUntestNum);
@@ -202,8 +194,37 @@ DtpgTest::mffc_new_test()
     cout << "Error: " << f->str() << " is not detected with "
 	 << tv << endl;
   }
-  if ( n > 0 ) {
-    return make_pair(0, 0);
+
+  return make_pair(mDetectNum, mUntestNum);
+}
+
+// @brief テストを行う．
+// @return 検出故障数と冗長故障数を返す．
+pair<int, int>
+DtpgTest::mf_test()
+{
+  mTimer.reset();
+  mTimer.start();
+
+  mDetectNum = 0;
+  mUntestNum = 0;
+  for ( auto fault: mNetwork.rep_fault_list() ) {
+    if ( mFaultMgr.get(fault) == FaultStatus::Undetected ) {
+      MF_Dtpg dtpg(mNetwork, mFaultType, mJustType, mSolverType);
+      DtpgResult result = dtpg.gen_pattern(vector<const TpgFault*>{fault});
+      update_result(fault, result);
+      mStats.merge(dtpg.stats());
+    }
+  }
+
+  mTimer.stop();
+
+  int n = mVerifyResult.error_count();
+  for ( int i = 0; i < n; ++ i ) {
+    const TpgFault* f = mVerifyResult.error_fault(i);
+    TestVector tv = mVerifyResult.error_testvector(i);
+    cout << "Error: " << f->str() << " is not detected with "
+	 << tv << endl;
   }
 
   return make_pair(mDetectNum, mUntestNum);

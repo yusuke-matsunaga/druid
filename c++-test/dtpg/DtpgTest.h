@@ -70,6 +70,11 @@ public:
   pair<int, int>
   mffc_new_test();
 
+  /// @brief 多重故障用のエンジンを用いてテストを行う．
+  /// @return 検出故障数と冗長故障数を返す．
+  pair<int, int>
+  mf_test();
+
   /// @brief 検証結果を得る．
   const DopVerifyResult&
   verify_result() const;
