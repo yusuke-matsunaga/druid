@@ -144,9 +144,8 @@ JustImpl::just_main(const JustData& jd,
 void
 JustImpl::clear_mark()
 {
-  for ( vector<ymuint8>::iterator p = mMarkArray.begin();
-	p != mMarkArray.end(); ++ p ) {
-    *p = 0U;
+  for ( auto& m: mMarkArray ) {
+    m = 0U;
   }
 }
 

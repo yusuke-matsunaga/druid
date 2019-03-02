@@ -82,18 +82,17 @@ DomChecker::DomChecker(const TpgNetwork& network,
   //////////////////////////////////////////////////////////////////////
   {
     int no = mOutputList[0].size();
-    vector<SatLiteral> odiff(no);
-    for (int i = 0; i < no; ++ i) {
-      const TpgNode* node = mOutputList[0][i];
+    vector<SatLiteral> odiff;
+    odiff.reserve(no);
+    for ( auto node: mOutputList[0] ) {
       SatLiteral dlit(dvar(node));
-      odiff[i] = dlit;
+      odiff.push_back(dlit);
     }
     mSolver.add_clause(odiff);
-
-    if ( !mRoot[0]->is_ppo() ) {
-      // mRoot の dlit が1でなければならない．
-      mSolver.add_clause(SatLiteral(dvar(mRoot[0])));
-    }
+  }
+  if ( !mRoot[0]->is_ppo() ) {
+    // mRoot の dlit が1でなければならない．
+    mSolver.add_clause(SatLiteral(dvar(mRoot[0])));
   }
 
   //////////////////////////////////////////////////////////////////////

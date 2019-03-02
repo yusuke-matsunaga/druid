@@ -8,6 +8,7 @@
 
 
 #include "Rtpg.h"
+#include "ym/Range.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -28,7 +29,7 @@ Rtpg::Rtpg(const TpgNetwork& network,
 {
   mFsim = Fsim::new_Fsim2(network, fault_type);
 
-  for ( int i = 0; i < kPvBitLen; ++ i ) {
+  for ( int i: Range(0, kPvBitLen) ) {
     tv_array[i] = mTvMgr.new_vector();
   }
 
@@ -41,7 +42,7 @@ Rtpg::~Rtpg()
 {
   delete mFsim;
 
-  for ( int i = 0; i < kPvBitLen; ++ i ) {
+  for ( int i: Range(0, kPvBitLen) ) {
     mTvMgr.delete_vector(tv_array[i]);
   }
 }

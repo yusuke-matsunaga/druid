@@ -3,7 +3,7 @@
 /// @brief TpgNetworkImpl の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2019 Yusuke Matsunaga
 /// All rights reserved.
 
 
@@ -777,6 +777,7 @@ TpgNetworkImpl::set_rep_faults(const TpgNode* node)
   }
 
   if ( !node->is_ppo() ) {
+    // of0, of1 の代表故障が設定されていない場合には自分自身を代表故障とする．
     TpgFaultBase* of0 = _node_output_fault(node->id(), 0);
     if ( of0 != nullptr ) {
       const TpgFault* rep0 = of0->rep_fault();
@@ -803,6 +804,7 @@ TpgNetworkImpl::set_rep_faults(const TpgNode* node)
   }
 
   for ( auto i: Range(node->fanin_num()) ) {
+    // if0, if1 の代表故障が設定されていない場合には自分自身を代表故障とする．
     TpgFaultBase* if0 = _node_input_fault(node->id(), 0, i);
     if ( if0 != nullptr ) {
       const TpgFault* rep0 = if0->rep_fault();

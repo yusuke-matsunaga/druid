@@ -3,11 +3,12 @@
 /// @brief BitVectorRep の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2019 Yusuke Matsunaga
 /// All rights reserved.
 
 
 #include "BitVectorRep.h"
+#include "ym/Range.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -32,7 +33,7 @@ BitVectorRep::new_vector(const BitVectorRep& src)
   auto rep = new_vector(src.len());
 
   int n = block_num(src.len());
-  for ( int i = 0; i < n; ++ i ) {
+  for ( int i: Range(0, n) ) {
     rep->mPat[i] = src.mPat[i];
   }
   return rep;
@@ -62,7 +63,7 @@ BitVectorRep::x_count() const
 {
   int nb = block_num(len());
   int n = 0;
-  for ( int i = 0; i < nb; i += 2 ) {
+  for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
     PackedVal pat0 = mPat[i0];
@@ -84,7 +85,7 @@ BitVectorRep::is_eq(const BitVectorRep& bv1,
   ASSERT_COND( bv1.len() == bv2.len() );
 
   int nb = block_num(bv1.len());
-  for ( int i = 0; i < nb; ++ i ) {
+  for ( int i: Range(0, nb) ) {
     if ( bv1.mPat[i] != bv2.mPat[i] ) {
       return false;
     }
@@ -103,7 +104,7 @@ BitVectorRep::is_lt(const BitVectorRep& bv1,
 
   int nb = block_num(bv1.len());
   bool diff = false;
-  for ( int i = 0; i < nb; i += 2 ) {
+  for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
     PackedVal val1_0 = bv1.mPat[i0];
@@ -133,7 +134,7 @@ BitVectorRep::is_le(const BitVectorRep& bv1,
   ASSERT_COND( bv1.len() == bv2.len() );
 
   int nb = block_num(bv1.len());
-  for ( int i = 0; i < nb; i += 2 ) {
+  for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
     PackedVal val1_0 = bv1.mPat[i0];
@@ -156,7 +157,7 @@ BitVectorRep::is_compat(const BitVectorRep& bv1,
   ASSERT_COND( bv1.len() == bv2.len() );
 
   int nb = block_num(bv1.len());
-  for ( int i = 0; i < nb; i += 2 ) {
+  for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
     // 0 のビットと 1 のビットの両方が異なっていると
@@ -175,7 +176,7 @@ void
 BitVectorRep::init()
 {
   int nb = block_num(len());
-  for ( int i = 0; i < nb; i += 2 ) {
+  for ( int i: Range_<int, 2>(0, nb) ) {
     if ( i < nb - 2 ) {
       mPat[i + 0] = kPvAll1;
       mPat[i + 1] = kPvAll1;
@@ -204,7 +205,7 @@ BitVectorRep::set_from_bin(const string& bin_string)
   int blk = 0;
   PackedVal pat0 = kPvAll0;
   PackedVal pat1 = kPvAll0;
-  for ( int i = 0; i < nl; ++ i ) {
+  for ( int i: Range(0, nl) ) {
     char c = (i < bin_string.size()) ? bin_string[i] : 'X';
     PackedVal b0;
     PackedVal b1;
@@ -250,7 +251,7 @@ BitVectorRep::set_from_hex(const string& hex_string)
   int sft = 0;
   int blk = 0;
   PackedVal pat = kPvAll0;
-  for ( int i = 0; i < nl; ++ i ) {
+  for ( int i: Range(0, nl) ) {
     char c = (i < hex_string.size()) ? hex_string[i] : 'X';
     PackedVal pat1 = kPvAll0;
     if ( '0' <= c && c <= '9' ) {
@@ -293,7 +294,7 @@ BitVectorRep::merge(const BitVectorRep& src)
   int nb = block_num(len());
 
   // コンフリクトチェック
-  for ( int i = 0; i < nb; i += 2 ) {
+  for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
     PackedVal diff0 = (mPat[i0] ^ src.mPat[i0]);
@@ -304,7 +305,7 @@ BitVectorRep::merge(const BitVectorRep& src)
   }
 
   // 実際のマージ
-  for ( int i = 0; i < nb; i += 2 ) {
+  for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
     mPat[i0] &= src.mPat[i0];
@@ -319,7 +320,7 @@ BitVectorRep::bin_str() const
 {
   // よく問題になるが，ここでは最下位ビット側から出力する．
   string ans;
-  for ( int i = 0; i < len(); ++ i ) {
+  for ( int i: Range(0, len()) ) {
     switch ( val(i) ) {
     case Val3::_0: ans += '0'; break;
     case Val3::_1: ans += '1'; break;

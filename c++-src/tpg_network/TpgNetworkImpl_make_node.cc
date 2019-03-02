@@ -3,7 +3,7 @@
 /// @brief TpgNetworkImpl の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2019 Yusuke Matsunaga
 /// All rights reserved.
 
 
@@ -49,7 +49,7 @@ TpgNetworkImpl::make_input_node(int iid,
 
   // 出力位置の故障を生成
   const char* c_name = node_name(node->id());
-  for (int val = 0; val < 2; ++ val) {
+  for (int val: {0, 1} ) {
     new_ofault(c_name, val, node);
   }
 
@@ -78,7 +78,7 @@ TpgNetworkImpl::make_output_node(int oid,
   // 入力位置の故障を生成
   const char* c_name = node_name(node->id());
   int ipos = 0;
-  for ( int val = 0; val < 2; ++ val ) {
+  for ( int val: {0, 1} ) {
     new_ifault(c_name, ipos, val, InodeInfo(node, ipos), nullptr);
   }
 
@@ -108,7 +108,7 @@ TpgNetworkImpl::make_dff_input_node(int oid,
   // 入力位置の故障を生成
   const char* c_name = node_name(node->id());
   int ipos = 0;
-  for ( int val = 0; val < 2; ++ val ) {
+  for ( int val: {0, 1} ) {
     new_ifault(c_name, ipos, val, InodeInfo(node, ipos), nullptr);
   }
 
@@ -137,7 +137,7 @@ TpgNetworkImpl::make_dff_output_node(int iid,
 
   // 出力位置の故障を生成
   const char* c_name = node_name(node->id());
-  for (int val = 0; val < 2; ++ val) {
+  for (int val: {0, 1} ) {
     new_ofault(c_name, val, node);
   }
 
@@ -165,7 +165,7 @@ TpgNetworkImpl::make_dff_clock_node(const TpgDff* dff,
   // 入力位置の故障を生成
   const char* c_name = node_name(node->id());
   int ipos = 0;
-  for ( int val = 0; val < 2; ++ val ) {
+  for ( int val: {0, 1} ) {
     new_ifault(c_name, ipos, val, InodeInfo(node, ipos), nullptr);
   }
 
@@ -193,7 +193,7 @@ TpgNetworkImpl::make_dff_clear_node(const TpgDff* dff,
   // 入力位置の故障を生成
   const char* c_name = node_name(node->id());
   int ipos = 0;
-  for ( int val = 0; val < 2; ++ val ) {
+  for ( int val: {0, 1} ) {
     new_ifault(c_name, ipos, val, InodeInfo(node, ipos), nullptr);
   }
 
@@ -221,7 +221,7 @@ TpgNetworkImpl::make_dff_preset_node(const TpgDff* dff,
   // 入力位置の故障を生成
   const char* c_name = node_name(node->id());
   int ipos = 0;
-  for ( int val = 0; val < 2; ++ val ) {
+  for ( int val: {0, 1} ) {
     new_ifault(c_name, ipos, val, InodeInfo(node, ipos), nullptr);
   }
 
@@ -364,11 +364,12 @@ TpgNetworkImpl::make_logic_node(const string& src_name,
 
   // 出力位置の故障を生成
   const char* c_name = node_name(node->id());
-  for (int val = 0; val < 2; ++ val) {
+  for (int val: {0, 1} ) {
     new_ofault(c_name, val, node);
   }
 
   // 入力位置の故障を生成
+  // 制御値を考慮して代表故障の設定を行う．
   for ( auto i: Range(ni) ) {
     Val3 oval0 = node_info->cval(i, Val3::_0);
     Val3 oval1 = node_info->cval(i, Val3::_1);

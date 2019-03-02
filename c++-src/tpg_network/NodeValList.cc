@@ -3,7 +3,7 @@
 /// @brief NodeValList の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2019 Yusuke Matsunaga
 /// All rights reserved.
 
 
@@ -100,8 +100,7 @@ bool
 NodeValList::sanity_check() const
 {
   NodeVal prev(nullptr, 0, false);
-  for (int i = 0; i < mAsList.size(); ++ i) {
-    NodeVal nv = mAsList[i];
+  for ( auto nv: mAsList ) {
     if ( prev.node_time() == nv.node_time() && prev.val() != nv.val() ) {
       return false;
     }
@@ -179,8 +178,7 @@ operator<<(ostream& s,
 {
   int n = src_list.size();
   const char* comma = "";
-  for (int i = 0; i < n; ++ i) {
-    NodeVal nv = src_list[i];
+  for ( auto nv: src_list ) {
     s << comma << nv;
     comma = ", ";
   }

@@ -3,10 +3,11 @@
 /// @brief AuxNodeInfo の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2019 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "AuxNodeInfo.h"
+#include "ym/Range.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -48,7 +49,7 @@ AuxNodeInfo::init(const string& name,
 {
   int n = name.size();
   mName = alloc.get_array<char>(n + 1);
-  for ( int i = 0; i < n; ++ i ) {
+  for ( int i: Range(0, n) ) {
     mName[i] = name[i];
   }
   mName[n] = '\0';
@@ -57,7 +58,7 @@ AuxNodeInfo::init(const string& name,
 
   int ni2 = ni * 2;
   mInputFaults = alloc.get_array<TpgFaultBase*>(ni2);
-  for ( int i = 0; i < ni2; ++ i ) {
+  for ( int i: Range(0, ni2) ) {
     mInputFaults[i] = nullptr;
   }
 }
@@ -91,7 +92,7 @@ AuxNodeInfo::set_fault_list(int fault_num,
 void
 AuxNodeInfo::add_to_fault_list(vector<const TpgFault*>& fault_list)
 {
-  for ( int i = 0; i < mFaultNum; ++ i ) {
+  for ( int i: Range(0, mFaultNum) ) {
     fault_list.push_back(mFaultList[i]);
   }
 }

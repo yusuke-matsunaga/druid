@@ -233,7 +233,7 @@ Analyzer::dom_reduction1(vector<FaultInfo*>& fi_list)
   //int checker_num = 0;
 
   vector<bool> mark(nf, false);
-  for ( int i1 = 0; i1 < nf; ++ i1 ) {
+  for ( int i1: Range(0, nf) ) {
     auto fi1 = fi_list[i1];
     auto fault1 = fi1->fault();
     UndetChecker undet_checker(mNetwork, mFaultType, fault1);
@@ -327,12 +327,11 @@ Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
   int success_num = 0;
   int n = fi_list.size();
   vector<bool> mark(mNetwork.max_fault_id(), false);
-  for ( int i1 = 0; i1 < n; ++ i1 ) {
-    auto fi1 = fi_list[i1];
-    auto fault1 = fi1->fault();
-    mark[fault1->id()] = true;
+  for ( auto fi: fi_list ) {
+    auto fault = fi->fault();
+    mark[fault->id()] = true;
   }
-  for ( int i1 = 0; i1 < n; ++ i1 ) {
+  for ( int i1: Range(0, n) ) {
     auto fi1 = fi_list[i1];
     auto fault1 = fi1->fault();
     // fault2 が fault1 を支配している時
