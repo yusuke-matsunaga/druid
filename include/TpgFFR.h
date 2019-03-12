@@ -63,6 +63,19 @@ public:
   const TpgNode*
   root() const;
 
+  /// @brief 葉(FFRの入力)の数を返す．
+  int
+  input_num() const;
+
+  /// @brief 葉(FFRの入力)を返す．
+  /// @param[in] pos 位置番号 ( 0 <= pos < input_num() )
+  const TpgNode*
+  input(int pos) const;
+
+  /// @brief 葉(FFRの入力)のリストを返す．
+  Array<const TpgNode*>
+  input_list() const;
+
   /// @brief このFFRに含まれる代表故障の数を返す．
   int
   fault_num() const;
@@ -84,10 +97,17 @@ public:
 
   /// @brief 内容を設定する．
   /// @param[in] root 根のノード
+  /// @param[in] input_num 入力数
+  /// @param[in] input_list 入力のノードのリスト(配列)
   /// @param[in] fault_num  故障数
   /// @param[in] fault_list 故障のリスト(配列)
+  ///
+  /// input_list, fault_list の所有権は移譲しない．
+  /// 生成/解放の責任は親の TpgNetwork にある．
   void
   set(const TpgNode* root,
+      int input_num,
+      const TpgNode** input_list,
       int fault_num,
       const TpgFault** fault_list);
 
@@ -105,6 +125,12 @@ private:
 
   // 根のノード
   const TpgNode* mRoot;
+
+  // 葉の数
+  int mInputNum;
+
+  // 葉のノードの配列
+  const TpgNode** mInputList;
 
   // 故障数
   int mFaultNum;
@@ -124,6 +150,8 @@ inline
 TpgFFR::TpgFFR()
 {
   mRoot = nullptr;
+  mInputNum = 0;
+  mInputList = nullptr;
   mFaultNum = 0;
   mFaultList = nullptr;
 }
@@ -140,6 +168,33 @@ const TpgNode*
 TpgFFR::root() const
 {
   return mRoot;
+}
+
+// @brief 葉(FFRの入力)の数を返す．
+inline
+int
+TpgFFR::input_num() const
+{
+  return mInputNum;
+}
+
+// @brief 葉(FFRの入力)を返す．
+// @param[in] pos 位置番号 ( 0 <= pos < input_num() )
+inline
+const TpgNode*
+TpgFFR::input(int pos) const
+{
+  ASSERT_COND( 0 <= pos && pos < input_num() );
+
+  return mInputList[pos];
+}
+
+// @brief 葉(FFRの入力)のリストを返す．
+inline
+Array<const TpgNode*>
+TpgFFR::input_list() const
+{
+  return Array<const TpgNode*>(mInputList, 0, input_num());
 }
 
 // @brief このFFRに含まれる代表故障の数を返す．
@@ -171,15 +226,21 @@ TpgFFR::fault_list() const
 
 // @brief 内容を設定する．
 // @param[in] root 根のノード
+// @param[in] input_num 入力数
+// @param[in] input_list 入力のノードのリスト(配列)
 // @param[in] fault_num  故障数
 // @param[in] fault_list 故障のリスト(配列)
 inline
 void
 TpgFFR::set(const TpgNode* root,
+	    int input_num,
+	    const TpgNode** input_list,
 	    int fault_num,
 	    const TpgFault** fault_list)
 {
   mRoot = root;
+  mInputNum = input_num;
+  mInputList = input_list;
   mFaultNum = fault_num;
   mFaultList = fault_list;
 }

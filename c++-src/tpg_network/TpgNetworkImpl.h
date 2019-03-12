@@ -495,6 +495,10 @@ public:
   set_mffc(const TpgNode* root,
 	   TpgMFFC* mffc);
 
+  /// @brief ノードのリストからノードの配列を作る．
+  const TpgNode**
+  make_node_array(const vector<const TpgNode*>& node_list);
+
   /// @brief 故障リストから故障の配列を作る．
   const TpgFault**
   make_fault_array(const vector<const TpgFault*>& fault_list);

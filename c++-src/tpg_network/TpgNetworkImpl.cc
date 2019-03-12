@@ -27,6 +27,7 @@
 #include "ym/BnNode.h"
 #include "ym/Expr.h"
 #include "ym/Range.h"
+#include "ym/HashSet.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -846,26 +847,41 @@ TpgNetworkImpl::set_ffr(const TpgNode* root,
   // root を根とするFFRの故障リストを求める．
   vector<const TpgFault*> fault_list;
 
-  vector<const TpgNode*> node_list;
-  node_list.push_back(root);
-  while ( !node_list.empty() ) {
-    const TpgNode* node = node_list.back();
-    node_list.pop_back();
+  // root を根とするFFRの入力のリスト
+  vector<const TpgNode*> input_list;
+  // input_list の重複チェック用のハッシュ表
+  HashSet<int> input_hash;
+
+  // DFS を行うためのスタック
+  vector<const TpgNode*> node_stack;
+  node_stack.push_back(root);
+  while ( !node_stack.empty() ) {
+    const TpgNode* node = node_stack.back();
+    node_stack.pop_back();
 
     mAuxInfoArray[node->id()].add_to_fault_list(fault_list);
 
     for ( auto inode: node->fanin_list() ) {
-      if ( inode->ffr_root() != inode ) {
-	node_list.push_back(inode);
+      if ( inode->ffr_root() == inode || inode->is_ppi() ) {
+	// inode は他の FFR の根
+	if ( !input_hash.check(inode->id()) ) {
+	  input_hash.add(inode->id());
+	  input_list.push_back(inode);
+	}
+      }
+      else {
+	node_stack.push_back(inode);
       }
     }
   }
 
   mAuxInfoArray[root->id()].set_ffr(ffr);
 
+  int input_num = input_list.size();
+  const TpgNode** input_array = make_node_array(input_list);
   int fault_num = fault_list.size();
   const TpgFault** fault_array = make_fault_array(fault_list);
-  ffr->set(root, fault_num, fault_array);
+  ffr->set(root, input_num, input_array, fault_num, fault_array);
 }
 
 // @brief MFFC の情報を設定する．
@@ -913,6 +929,21 @@ TpgNetworkImpl::set_mffc(const TpgNode* root,
   int fault_num = fault_list.size();
   const TpgFault** fault_array = make_fault_array(fault_list);
   mffc->set(root, ffr_num, ffr_array, fault_num, fault_array);
+}
+
+// @brief ノードのリストからノードの配列を作る．
+const TpgNode**
+TpgNetworkImpl::make_node_array(const vector<const TpgNode*>& node_list)
+{
+  int node_num = node_list.size();
+  const TpgNode** node_array = nullptr;
+  if ( node_num > 0 ) {
+    node_array = mAlloc.get_array<const TpgNode*>(node_num);
+    for ( auto i: Range(node_num) ) {
+      node_array[i] = node_list[i];
+    }
+  }
+  return node_array;
 }
 
 // @brief 故障リストから故障の配列を作る．
