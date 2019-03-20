@@ -233,3 +233,75 @@ if ( GPERFTOOLS_FOUND )
     ${GPERFTOOLS_LIBRARIES}
     )
 endif ()
+
+
+# ===================================================================
+#  mf_comp
+# ===================================================================
+
+set ( mf_comp_SOURCES
+  mf_comp/mf_comp.cc
+  )
+
+add_executable ( mf_comp
+  ${mf_comp_SOURCES}
+  $<TARGET_OBJECTS:druid_common_a>
+  $<TARGET_OBJECTS:druid_fsimsa2_a>
+  $<TARGET_OBJECTS:druid_fsimsa3_a>
+  $<TARGET_OBJECTS:druid_fsimtd2_a>
+  $<TARGET_OBJECTS:druid_fsimtd3_a>
+  $<TARGET_OBJECTS:ym_base_a>
+  $<TARGET_OBJECTS:ym_logic_a>
+  $<TARGET_OBJECTS:ym_cell_a>
+  $<TARGET_OBJECTS:ym_bnet_a>
+  $<TARGET_OBJECTS:ym_sat_a>
+  $<TARGET_OBJECTS:ym_combopt_a>
+  )
+
+target_compile_options ( mf_comp
+  PRIVATE "-O3"
+  )
+
+target_compile_definitions ( mf_comp
+  PRIVATE "-DNDEBUG"
+  )
+
+target_link_libraries ( mf_comp
+  ${YM_LIB_DEPENDS}
+  )
+
+if ( GPERFTOOLS_FOUND )
+  target_link_libraries ( mf_comp
+    ${GPERFTOOLS_LIBRARIES}
+    )
+endif ()
+
+
+add_executable ( mf_comp_d
+  ${mf_comp_SOURCES}
+  $<TARGET_OBJECTS:druid_common_ad>
+  $<TARGET_OBJECTS:druid_fsimsa2_ad>
+  $<TARGET_OBJECTS:druid_fsimsa3_ad>
+  $<TARGET_OBJECTS:druid_fsimtd2_ad>
+  $<TARGET_OBJECTS:druid_fsimtd3_ad>
+  $<TARGET_OBJECTS:ym_base_ad>
+  $<TARGET_OBJECTS:ym_logic_ad>
+  $<TARGET_OBJECTS:ym_cell_ad>
+  $<TARGET_OBJECTS:ym_bnet_ad>
+  $<TARGET_OBJECTS:ym_sat_ad>
+  $<TARGET_OBJECTS:ym_combopt_ad>
+  )
+
+target_compile_options ( mf_comp_d
+  PRIVATE "-g"
+  )
+
+target_link_libraries ( mf_comp_d
+  ${YM_LIB_DEPENDS}
+  )
+
+if ( GPERFTOOLS_FOUND )
+  target_link_libraries ( mf_comp_d
+    ${GPERFTOOLS_LIBRARIES}
+    )
+endif ()
