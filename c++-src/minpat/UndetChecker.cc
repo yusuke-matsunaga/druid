@@ -187,6 +187,7 @@ UndetChecker::prepare_vars()
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
     SatVarId gvar = mSolver.new_variable();
+    mSolver.freeze_literal(SatLiteral{gvar});
 
     set_gvar(node, gvar);
 
@@ -199,6 +200,8 @@ UndetChecker::prepare_vars()
   for ( auto node: mTfoList ) {
     SatVarId gvar = mSolver.new_variable();
     SatVarId fvar = mSolver.new_variable();
+    mSolver.freeze_literal(SatLiteral{gvar});
+    mSolver.freeze_literal(SatLiteral{fvar});
 
     set_gvar(node, gvar);
     set_fvar(node, fvar);
@@ -213,6 +216,7 @@ UndetChecker::prepare_vars()
   // prev TFI の部分に変数を割り当てる．
   for ( auto node: mPrevTfiList ) {
     SatVarId hvar = mSolver.new_variable();
+    mSolver.freeze_literal(SatLiteral{hvar});
 
     set_hvar(node, hvar);
 
@@ -396,6 +400,7 @@ UndetChecker::make_good_cnf(const TpgNode* node)
     return;
   }
   SatVarId var = mSolver.new_variable();
+  mSolver.freeze_literal(SatLiteral{var});
   set_gvar(node, var);
 
   for ( auto inode: node->fanin_list() ) {
@@ -413,6 +418,7 @@ UndetChecker::make_prev_cnf(const TpgNode* node)
     return;
   }
   SatVarId var = mSolver.new_variable();
+  mSolver.freeze_literal(SatLiteral{var});
   set_hvar(node, var);
 
   for ( auto inode: node->fanin_list() ) {
