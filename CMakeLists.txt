@@ -72,12 +72,12 @@ configure_file(
 
 if ( PYTHONINTERP_FOUND )
   configure_file(
-    "${PROJECT_SOURCE_DIR}/etc/ym_python.in"
-    "${PROJECT_BINARY_DIR}/ym_python"
+    "${PROJECT_SOURCE_DIR}/etc/druid_python.in"
+    "${PROJECT_BINARY_DIR}/druid_python"
     @ONLY
     )
 
-  install ( PROGRAMS ${PROJECT_BINARY_DIR}/ym_python
+  install ( PROGRAMS ${PROJECT_BINARY_DIR}/druid_python
     DESTINATION bin
     )
 endif ()

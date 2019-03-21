@@ -7,8 +7,8 @@
 # Copyright (C) 2018 Yusuke Matsunaga
 # All rights reserved.
 
-from compaction import mincov, coloring
-from druid_core import MinPatMgr
+from druid.compaction import mincov, coloring
+from druid.druid_core import MinPatMgr
 
 def minpat(tv_list, fault_list, network, fault_type, cmp_algorithm) :
     if cmp_algorithm == 'mincov+dsatur' :

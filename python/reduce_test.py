@@ -10,10 +10,10 @@
 import argparse
 import os.path
 import time
-from druid_core import TpgNetwork
-from druid_core import FaultType
-from druid_core import MinPatMgr
-from dtpg import Dtpg
+from druid import TpgNetwork
+from druid import FaultType
+from druid import MinPatMgr
+from druid import Dtpg
 from exec_one import exec_one
 
 def dtpg1(file_name, fault_type) :
@@ -61,6 +61,8 @@ def dtpg1(file_name, fault_type) :
 
 
 def main() :
+
+    print('reduce_test.py: main()')
 
     parser = argparse.ArgumentParser()
 

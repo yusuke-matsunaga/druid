@@ -9,8 +9,8 @@
 
 import os.path
 import time
-from dtpg import Dtpg
-from minpat import minpat
+from druid import Dtpg
+from druid import minpat
 
 
 def exec_one(dtpg, network, fault_type, fault_list, k, algorithm_list, result_dic, verbose) :
