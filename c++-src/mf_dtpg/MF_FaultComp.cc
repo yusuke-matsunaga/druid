@@ -28,9 +28,8 @@ void
 add_constraint(SatSolver& solver,
 	       const TpgNetwork& network,
 	       const TpgNode* root,
-	       const vector<const TpgNode*>& input_list,
-	       const vector<const TpgFault*>& fault_list,
-	       const vector<SatVarId>& fault_vars,
+	       const vector<const TpgNode*>& inode_list,
+	       const vector<pair<const TpgFault*, SatLiteral>>& fault_list,
 	       const vector<bool>& fvec)
 {
   if ( 0 ) {
@@ -47,27 +46,24 @@ add_constraint(SatSolver& solver,
     cout << endl;
   }
 
-  int ni = input_list.size();
-  vector<SatVarId> input_vars(ni);
-  for ( int i: Range(ni) ) {
+  vector<pair<const TpgNode*, SatLiteral>> input_list;
+  input_list.reserve(inode_list.size());
+  for ( auto node: inode_list ) {
     auto var = solver.new_variable();
-    input_vars[i] = var;
+    SatLiteral lit{var};
+    input_list.push_back(make_pair(node, lit));
   }
 
   int nf = fault_list.size();
 
-#if 0
-  // 正常回路
-  SatVarId gvar = solver.new_variable();
-  MF_Enc::make_good_FFR(solver, root, input_list, input_vars, gvar);
-#endif
-
   // fvec で指定された参照用故障回路
-  vector<SatVarId> fault_vars1(nf);
+  vector<pair<const TpgFault*, SatLiteral>> fault_list1;
+  fault_list1.reserve(nf);
   for ( int i: Range(nf) ) {
+    auto fault = fault_list[i].first;
     auto var = solver.new_variable();
-    fault_vars1[i] = var;
-    SatLiteral lit(var);
+    SatLiteral lit{var};
+    fault_list1.push_back(make_pair(fault, lit));
     if ( fvec[i] ) {
       solver.add_clause(lit);
     }
@@ -77,28 +73,15 @@ add_constraint(SatSolver& solver,
   }
 
   SatVarId fvar = solver.new_variable();
-  MF_Enc::make_faulty_FFR(solver, network, root, input_list, input_vars, fvar,
-			  fault_list, fault_vars1);
+  SatLiteral flit{fvar};
+  MF_Enc::make_faulty_FFR(solver, network, input_list, root, flit, fault_list1);
 
   // 故障回路
   SatVarId ovar = solver.new_variable();
-  MF_Enc::make_faulty_FFR(solver, network, root, input_list, input_vars, ovar,
-			  fault_list, fault_vars);
+  SatLiteral olit{ovar};
+  MF_Enc::make_faulty_FFR(solver, network, input_list, root, olit, fault_list);
 
-  //  SatLiteral glit(gvar);
-  SatLiteral flit(fvar);
-  SatLiteral olit(ovar);
-
-
-#if 0
-  // fvar が検出される条件
-  solver.add_neq_rel(flit, glit);
-
-  // ovar が検出されない条件
-  solver.add_eq_rel(olit, glit);
-#else
   solver.add_neq_rel(olit, flit);
-#endif
 }
 
 void
@@ -129,19 +112,21 @@ vector<vector<const TpgFault*>>
 MF_FaultComp::get_faults_list(const TpgNetwork& network,
 			      const TpgNode* root,
 			      const vector<const TpgNode*>& input_list,
-			      const vector<const TpgFault*>& fault_list,
+			      const vector<const TpgFault*>& f_list,
 			      SatSolverType solver_type)
 {
-  int nf = fault_list.size();
+  int nf = f_list.size();
 
   SatSolver solver(solver_type);
 
-  vector<SatVarId> fault_vars(nf);
+  vector<pair<const TpgFault*, SatLiteral>> fault_list(nf);
   vector<SatLiteral> tmp_lits(nf);
   for ( int i: Range(nf) ) {
+    auto fault = f_list[i];
     auto var = solver.new_variable();
-    solver.freeze_literal(SatLiteral{var});
-    fault_vars[i] = var;
+    SatLiteral lit{var};
+    solver.freeze_literal(lit);
+    fault_list[i] = make_pair(fault, lit);
     tmp_lits[i] = SatLiteral{var};
   }
   // 最低1つは故障を含むという制約
@@ -153,10 +138,11 @@ MF_FaultComp::get_faults_list(const TpgNetwork& network,
   for ( int i: Range(nf) ) {
     vector<bool> fvec(nf, false);
     fvec[i] = true;
-    add_constraint(solver, network, root, input_list, fault_list, fault_vars, fvec);
+    add_constraint(solver, network, root, input_list, fault_list, fvec);
     fvec_list.push_back(fvec);
   }
 
+  cout << "nf = " << nf << endl;
   for ( ; ; ) {
     vector<SatBool3> model;
     SatBool3 ans = solver.solve(model);
@@ -172,7 +158,7 @@ MF_FaultComp::get_faults_list(const TpgNetwork& network,
     // fvec を作る．
     vector<bool> fvec(nf);
     for ( int i: Range(nf) ) {
-      SatVarId fvar = fault_vars[i];
+      SatVarId fvar = fault_list[i].second.varid();
       SatBool3 val = model[fvar.val()];
       if ( val == SatBool3::True ) {
 	fvec[i] = true;
@@ -185,44 +171,17 @@ MF_FaultComp::get_faults_list(const TpgNetwork& network,
       }
     }
 
-    add_constraint(solver, network, root, input_list, fault_list, fault_vars, fvec);
+    add_constraint(solver, network, root, input_list, fault_list, fvec);
     fvec_list.push_back(fvec);
+    cout << ".";
+    cout.flush();
   }
+  cout << endl;
+  cout << " " << fvec_list.size();
 
-  vector<vector<const TpgFault*> > ans_list;
-  {
-    SatSolver solver(solver_type);
-    for ( int i: Range(nf) ) {
-      auto var = solver.new_variable();
-      solver.freeze_literal(SatLiteral{var});
-      fault_vars[i] = var;
-      tmp_lits[i] = SatLiteral{var};
-    }
-    // 最低1つは故障を含むという制約
-    solver.add_clause(tmp_lits);
-
-    int nv = fvec_list.size();
-    for ( int i = nv - 1; i >= 0; -- i ) {
-      const auto& fvec = fvec_list[i];
-      vector<SatLiteral> assumptions(nf);
-      for ( int i: Range(nf) ) {
-	SatVarId fvar = fault_vars[i];
-	SatLiteral flit{fvar};
-	if ( fvec[i] ) {
-	  assumptions[i] = flit;
-	}
-	else {
-	  assumptions[i] = ~flit;
-	}
-      }
-      vector<SatBool3> model;
-      SatBool3 stat = solver.solve(assumptions, model);
-      if ( stat == SatBool3::True ) {
-	add_constraint(solver, network, root, input_list, fault_list, fault_vars, fvec);
-	add_faults(ans_list, fault_list, fvec);
-
-      }
-    }
+  vector<vector<const TpgFault*>> ans_list;
+  for ( const auto& fvec: fvec_list ) {
+    add_faults(ans_list, f_list, fvec);
   }
 
   return ans_list;

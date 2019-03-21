@@ -14,6 +14,7 @@
 #include "TpgNetwork.h"
 
 #include "ym/sat.h"
+#include "ym/HashMap.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -33,42 +34,55 @@ public:
 
   /// @brief FFR に対する正常回路を作る．
   /// @param[in] solver SATソルバ
-  /// @param[in] root FFR の根のノード
-  /// @param[in] input_list FFR の葉のノードのリスト
-  /// @param[in] input_vars FFR の入力に対応する変数のリスト
-  /// @param[in] output_var FFR の出力に対応する変数
-  ///
-  /// * input_vars の順番は input_list の順番と同じ
+  /// @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
+  /// @param[in] onode 出力のノード
+  /// @param[in] olit 出力のノードに対応するSATのリテラル
   static
   void
   make_good_FFR(SatSolver& solver,
-		const TpgNode* root,
-		const vector<const TpgNode*>& input_list,
-		const vector<SatVarId>& input_vars,
-		SatVarId output_var);
+		const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+		const TpgNode* onode,
+		SatLiteral olit);
+
+  /// @brief 部分回路に対する正常回路を作る．
+  /// @param[in] solver SATソルバ
+  /// @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
+  /// @param[in] output_list 出力のノードと対応するSATのリテラルのペアのリスト
+  static
+  void
+  make_good_cnf(SatSolver& solver,
+		const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+		const vector<pair<const TpgNode*, SatLiteral>>& output_list);
 
   /// @brief FFR に対する故障回路を作る．
   /// @param[in] solver SATソルバ
   /// @param[in] network 対象のネットワーク
-  /// @param[in] root FFR の根のノード
-  /// @param[in] input_list FFR の葉のノードのリスト
-  /// @param[in] input_vars FFR の入力に対応する変数のリスト
-  /// @param[in] output_var FFR の出力に対応する変数
-  /// @param[in] fault_list FFR内の代表故障のリスト
-  /// @param[in] fault_vars FFR内の代表故障に対応する変数のリスト
-  ///
-  /// * input_vars の順番は input_list の順番と同じ
-  /// * fault_vars の順番は fault_list の順番と同じ
+  /// @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
+  /// @param[in] onode 出力のノード
+  /// @param[in] olit 出力のノードに対応するSATのリテラル
+  /// @param[in] fault_list 代表故障と対応するSATのリテラルのペアのリスト
   static
   void
   make_faulty_FFR(SatSolver& solver,
 		  const TpgNetwork& network,
-		  const TpgNode* root,
-		  const vector<const TpgNode*>& input_list,
-		  const vector<SatVarId>& input_vars,
-		  SatVarId output_var,
-		  const vector<const TpgFault*>& fault_list,
-		  const vector<SatVarId>& fault_vars);
+		  const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+		  const TpgNode* onode,
+		  SatLiteral olit,
+		  const vector<pair<const TpgFault*, SatLiteral>>& fault_list);
+
+  /// @brief 部分回路に対する故障回路を作る．
+  /// @param[in] solver SATソルバ
+  /// @param[in] network 対象のネットワーク
+  /// @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
+  /// @param[in] output_list 出力のノードと対応するSATのリテラルのペアのリスト
+  /// @param[in] fault_list 代表故障と対応するSATのリテラルのペアのリスト
+  static
+  void
+  make_faulty_cnf(SatSolver& solver,
+		  const TpgNetwork& network,
+		  const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+		  const vector<pair<const TpgNode*, SatLiteral>>& output_list,
+		  const vector<pair<const TpgFault*, SatLiteral>>& fault_list);
 
 
 private:
