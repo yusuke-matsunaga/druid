@@ -120,7 +120,7 @@ add_subdirectory ( c++-test )
 add_subdirectory ( cython-src )
 add_subdirectory ( py-src )
 
-add_subdirectory ( tests )
+add_subdirectory ( test-programs )
 
 if ( DOXYGEN_FOUND )
   # doxygen の対象となるヘッダファイル(のパタン)を YM_DOXY_SRCS に入れる．
