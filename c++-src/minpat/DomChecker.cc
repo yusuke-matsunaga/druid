@@ -82,18 +82,17 @@ DomChecker::DomChecker(const TpgNetwork& network,
   //////////////////////////////////////////////////////////////////////
   {
     int no = mOutputList[0].size();
-    vector<SatLiteral> odiff(no);
-    for (int i = 0; i < no; ++ i) {
-      const TpgNode* node = mOutputList[0][i];
+    vector<SatLiteral> odiff;
+    odiff.reserve(no);
+    for ( auto node: mOutputList[0] ) {
       SatLiteral dlit(dvar(node));
-      odiff[i] = dlit;
+      odiff.push_back(dlit);
     }
     mSolver.add_clause(odiff);
-
-    if ( !mRoot[0]->is_ppo() ) {
-      // mRoot の dlit が1でなければならない．
-      mSolver.add_clause(SatLiteral(dvar(mRoot[0])));
-    }
+  }
+  if ( !mRoot[0]->is_ppo() ) {
+    // mRoot の dlit が1でなければならない．
+    mSolver.add_clause(SatLiteral(dvar(mRoot[0])));
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -213,6 +212,7 @@ DomChecker::prepare_vars()
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
     SatVarId gvar = mSolver.new_variable();
+    mSolver.freeze_literal(SatLiteral{gvar});
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap[0].set_vid(node, gvar);
@@ -229,6 +229,8 @@ DomChecker::prepare_vars()
     // TFO の部分に変数を割り当てる．
     for ( auto node: mTfoList[pos] ) {
       SatVarId fvar = mSolver.new_variable();
+      mSolver.freeze_literal(SatLiteral{fvar});
+
       mFvarMap[pos].set_vid(node, fvar);
       if ( pos == 0 ) {
 	SatVarId dvar = mSolver.new_variable();
@@ -254,6 +256,7 @@ DomChecker::prepare_vars()
   // prev TFI の部分に変数を割り当てる．
   for ( auto node: mPrevTfiList ) {
     SatVarId hvar = mSolver.new_variable();
+    mSolver.freeze_literal(SatLiteral{hvar});
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {

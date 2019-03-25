@@ -14,4 +14,7 @@ from druid.druid_core import FaultType
 from druid.druid_core import Fsim
 from druid.druid_core import TestVector
 from druid.druid_core import TpgNetwork
+from druid.druid_core import MinPatMgr
+from druid.compaction import mincov, coloring
 from druid.dtpg import Dtpg
+from druid.minpat import minpat

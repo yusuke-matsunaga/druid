@@ -126,7 +126,9 @@ set (minpat_SOURCES
   )
 
 set (mf_SOURCES
-  mf_dtpg/MF_DTPG.cc
+  mf_dtpg/MF_Dtpg.cc
+  mf_dtpg/MF_Enc.cc
+  mf_dtpg/MF_FaultComp.cc
   )
 
 set (sa_SOURCES
