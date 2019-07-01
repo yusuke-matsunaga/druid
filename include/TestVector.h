@@ -506,7 +506,7 @@ TestVector::operator=(const TestVector& src)
 {
   mInputNum = src.mInputNum;
   mDffNum = src.mDffNum;
-  mFaultType = mFaultType;
+  mFaultType = src.mFaultType;
   mVector = src.mVector;
 
   return *this;
