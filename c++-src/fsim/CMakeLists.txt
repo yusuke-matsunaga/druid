@@ -29,23 +29,23 @@ ym_add_object_library ( druid_fsimsa2
   ${fsim_SOURCES}
   )
 
-target_compile_definitions ( druid_fsimsa2
+target_compile_definitions ( druid_fsimsa2_obj
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_SA=1"
   )
 
-target_compile_definitions ( druid_fsimsa2_a
+target_compile_definitions ( druid_fsimsa2_obj_a
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_SA=1"
   )
 
-target_compile_definitions ( druid_fsimsa2_ad
+target_compile_definitions ( druid_fsimsa2_obj_ad
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_SA=1"
   )
 
-target_compile_definitions ( druid_fsimsa2_d
+target_compile_definitions ( druid_fsimsa2_obj_d
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_SA=1"
   )
 
-target_compile_definitions ( druid_fsimsa2_p
+target_compile_definitions ( druid_fsimsa2_obj_p
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_SA=1"
   )
 
@@ -54,23 +54,23 @@ ym_add_object_library ( druid_fsimsa3
   ${fsim_SOURCES}
   )
 
-target_compile_definitions ( druid_fsimsa3
+target_compile_definitions ( druid_fsimsa3_obj
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_SA=1"
   )
 
-target_compile_definitions ( druid_fsimsa3_a
+target_compile_definitions ( druid_fsimsa3_obj_a
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_SA=1"
   )
 
-target_compile_definitions ( druid_fsimsa3_ad
+target_compile_definitions ( druid_fsimsa3_obj_ad
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_SA=1"
   )
 
-target_compile_definitions ( druid_fsimsa3_d
+target_compile_definitions ( druid_fsimsa3_obj_d
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_SA=1"
   )
 
-target_compile_definitions ( druid_fsimsa3_p
+target_compile_definitions ( druid_fsimsa3_obj_p
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_SA=1"
   )
 
@@ -79,23 +79,23 @@ ym_add_object_library ( druid_fsimtd2
   ${fsim_SOURCES}
   )
 
-target_compile_definitions ( druid_fsimtd2
+target_compile_definitions ( druid_fsimtd2_obj
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_TD=1"
   )
 
-target_compile_definitions ( druid_fsimtd2_a
+target_compile_definitions ( druid_fsimtd2_obj_a
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_TD=1"
   )
 
-target_compile_definitions ( druid_fsimtd2_ad
+target_compile_definitions ( druid_fsimtd2_obj_ad
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_TD=1"
   )
 
-target_compile_definitions ( druid_fsimtd2_d
+target_compile_definitions ( druid_fsimtd2_obj_d
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_TD=1"
   )
 
-target_compile_definitions ( druid_fsimtd2_p
+target_compile_definitions ( druid_fsimtd2_obj_p
   PRIVATE "-DFSIM_VAL2=1" "-DFSIM_TD=1"
   )
 
@@ -104,23 +104,23 @@ ym_add_object_library ( druid_fsimtd3
   ${fsim_SOURCES}
   )
 
-target_compile_definitions ( druid_fsimtd3
+target_compile_definitions ( druid_fsimtd3_obj
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_TD=1"
   )
 
-target_compile_definitions ( druid_fsimtd3_a
+target_compile_definitions ( druid_fsimtd3_obj_a
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_TD=1"
   )
 
-target_compile_definitions ( druid_fsimtd3_ad
+target_compile_definitions ( druid_fsimtd3_obj_ad
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_TD=1"
   )
 
-target_compile_definitions ( druid_fsimtd3_d
+target_compile_definitions ( druid_fsimtd3_obj_d
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_TD=1"
   )
 
-target_compile_definitions ( druid_fsimtd3_p
+target_compile_definitions ( druid_fsimtd3_obj_p
   PRIVATE "-DFSIM_VAL3=1" "-DFSIM_TD=1"
   )
 

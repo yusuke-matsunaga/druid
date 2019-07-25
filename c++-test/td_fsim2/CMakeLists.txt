@@ -23,13 +23,13 @@ include_directories(
 
 add_executable ( TdFsim2SimNodeTest
   SimNodeTest.cc
-  $<TARGET_OBJECTS:druid_common_ad>
-  $<TARGET_OBJECTS:ym_base_ad>
-  $<TARGET_OBJECTS:ym_logic_ad>
-  $<TARGET_OBJECTS:ym_cell_ad>
-  $<TARGET_OBJECTS:ym_bnet_ad>
-  $<TARGET_OBJECTS:ym_sat_ad>
-  $<TARGET_OBJECTS:ym_combopt_ad>
+  $<TARGET_OBJECTS:druid_common_obj_ad>
+  $<TARGET_OBJECTS:ym_base_obj_ad>
+  $<TARGET_OBJECTS:ym_logic_obj_ad>
+  $<TARGET_OBJECTS:ym_cell_obj_ad>
+  $<TARGET_OBJECTS:ym_bnet_obj_ad>
+  $<TARGET_OBJECTS:ym_sat_obj_ad>
+  $<TARGET_OBJECTS:ym_combopt_obj_ad>
   )
 
 target_compile_options ( TdFsim2SimNodeTest
