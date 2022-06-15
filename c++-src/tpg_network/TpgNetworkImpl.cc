@@ -8,7 +8,6 @@
 
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
-#include "TpgNodeFactory.h"
 #include "TpgGateInfo.h"
 #include "TpgFaultBase.h"
 #include "TpgDff.h"
