@@ -21,6 +21,7 @@ add_subdirectory ( fsim )
 # ===================================================================
 
 set (tpg_network_SOURCES
+  tpg_network/NodeValList.cc
   tpg_network/TpgNetwork.cc
   tpg_network/TpgNetworkImpl.cc
   tpg_network/TpgNetworkImpl_make_node.cc
@@ -31,14 +32,12 @@ set (tpg_network_SOURCES
   tpg_network/TpgPPO.cc
   tpg_network/TpgDffControl.cc
   tpg_network/TpgLogic.cc
-
   tpg_network/TpgFault.cc
   tpg_network/FaultStatusMgr.cc
 
   tvect/BitVectorRep.cc
   tvect/TestVector.cc
 
-  tpg_network/NodeValList.cc
   )
 
 set (fsim_SOURCES
