@@ -5,7 +5,7 @@
 /// @brief TpgMFFC のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -46,33 +46,60 @@ public:
 
   /// @brief 根のノードを返す．
   const TpgNode*
-  root() const;
+  root() const
+  {
+    return mRoot;
+  }
 
   /// @brief このMFFCに含まれるFFR数を返す．
-  int
-  ffr_num() const;
+  SizeType
+  ffr_num() const
+  {
+    return mFfrList.size();
+  }
 
   /// @brief このMFFCに含まれるFFRを返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < ffr_num() )
   const TpgFFR*
-  ffr(int pos) const;
+  ffr(
+    SizeType pos /// [in] 位置番号 ( 0 <= pos < ffr_num() )
+  ) const
+  {
+    ASSERT_COND( pos < ffr_num() );
+
+    return mFfrList[pos];
+  }
 
   /// @brief このMFFCに含まれるFFRのリストを返す．
   const vector<const TpgFFR*>&
-  ffr_list() const;
+  ffr_list() const
+  {
+    return mFfrList;
+  }
 
   /// @brief このMFFCに含まれる代表故障の数を返す．
-  int
-  fault_num() const;
+  SizeType
+  fault_num() const
+  {
+    return mFaultList.size();
+  }
 
   /// @brief このFFRに含まれる代表故障を返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < fault_num() )
   const TpgFault*
-  fault(int pos) const;
+  fault(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < fault_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < fault_num() );
+
+    return mFaultList[pos];
+  }
 
   /// @brief このFFRに含まれる代表故障のリストを返す．
   const vector<const TpgFault*>&
-  fault_list() const;
+  fault_list() const
+  {
+    return mFaultList;
+  }
 
 
 public:
@@ -81,21 +108,17 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 内容を設定する．
-  /// @param[in] root 根のノード
-  /// @param[in] ffr_num このMFFCに含まれるFFR数
-  /// @param[in] ffr_list このMFFCに含まれるFFRのリスト
-  /// @param[in] fault_num このMFFCに含まれる故障数
-  /// @param[in] fault_list このMFFCに含まれる故障のリスト
   void
-  set(const TpgNode* root,
-      const vector<const TpgFFR*>& ffr_list,
-      const vector<const TpgFault*>& fault_list);
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  set(
+    const TpgNode* root,                      ///< [in] 根のノード
+    const vector<const TpgFFR*>& ffr_list,    ///< [in]	このMFFCに含まれるFFRのリスト
+    const vector<const TpgFault*>& fault_list ///< [in] このMFFCに含まれる故障のリスト
+  )
+  {
+    mRoot = root;
+    mFfrList = ffr_list;
+    mFaultList = fault_list;
+  }
 
 
 private:
@@ -113,92 +136,6 @@ private:
   vector<const TpgFault*> mFaultList;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief 根のノードを返す．
-inline
-const TpgNode*
-TpgMFFC::root() const
-{
-  return mRoot;
-}
-
-// @brief このMFFCに含まれるFFR数を返す．
-inline
-int
-TpgMFFC::ffr_num() const
-{
-  return mFfrList.size();
-}
-
-// @brief このMFFCに含まれるFFRを返す．
-// @param[in] pos 位置番号 ( 0 <= pos < ffr_num() )
-inline
-const TpgFFR*
-TpgMFFC::ffr(int pos) const
-{
-  ASSERT_COND( pos < ffr_num() );
-
-  return mFfrList[pos];
-}
-
-// @brief このMFFCに含まれるFFRのリストを返す．
-inline
-const vector<const TpgFFR*>&
-TpgMFFC::ffr_list() const
-{
-  return mFfrList;
-}
-
-// @brief このFFRに含まれる代表故障の数を返す．
-inline
-int
-TpgMFFC::fault_num() const
-{
-  return mFaultList.size();
-}
-
-// @brief このFFRに含まれる代表故障を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < fault_num() )
-inline
-const TpgFault*
-TpgMFFC::fault(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < fault_num() );
-
-  return mFaultList[pos];
-}
-
-// @brief このFFRに含まれる代表故障のリストを返す．
-inline
-const vector<const TpgFault*>&
-TpgMFFC::fault_list() const
-{
-  return mFaultList;
-}
-
-// @brief 内容を設定する．
-// @param[in] root 根のノード
-// @param[in] ffr_num このMFFCに含まれるFFR数
-// @param[in] ffr_list このMFFCに含まれるFFRのリスト
-// @param[in] fault_num このMFFCに含まれる故障数
-// @param[in] fault_list このMFFCに含まれる故障のリスト
-inline
-void
-TpgMFFC::set(
-  const TpgNode* root,
-  const vector<const TpgFFR*>& ffr_list,
-  const vector<const TpgFault*>& fault_list
-)
-{
-  mRoot = root;
-  mFfrList = ffr_list;
-  mFaultList = fault_list;
-}
 
 END_NAMESPACE_DRUID
 

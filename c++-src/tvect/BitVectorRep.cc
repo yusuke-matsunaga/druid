@@ -3,9 +3,8 @@
 /// @brief BitVectorRep の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2019 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2019, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "BitVectorRep.h"
 #include "ym/Range.h"
@@ -14,11 +13,10 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief ベクタ長を指定してオブジェクトを作る．
-// @param[in] len ベクタ長
-//
-// 内容は X に初期化される．
 BitVectorRep*
-BitVectorRep::new_vector(int len)
+BitVectorRep::new_vector(
+  SizeType len
+)
 {
   SizeType size = sizeof(BitVectorRep) + sizeof(PackedVal) * (block_num(len) - 1);
   void* p = new char[size];
@@ -26,13 +24,14 @@ BitVectorRep::new_vector(int len)
 }
 
 // @brief 内容をコピーする．
-// @param[in] src コピー元のオブジェクト
 BitVectorRep*
-BitVectorRep::new_vector(const BitVectorRep& src)
+BitVectorRep::new_vector(
+  const BitVectorRep& src
+)
 {
   auto rep = new_vector(src.len());
 
-  int n = block_num(src.len());
+  SizeType n = block_num(src.len());
   for ( int i: Range(0, n) ) {
     rep->mPat[i] = src.mPat[i];
   }
@@ -40,12 +39,12 @@ BitVectorRep::new_vector(const BitVectorRep& src)
 }
 
 // @brief コンストラクタ
-// @param[in] vlen ベクタ長
-BitVectorRep::BitVectorRep(int vlen) :
-  mLength(vlen)
+BitVectorRep::BitVectorRep(
+  SizeType vlen
+) : mLength{vlen}
 {
   // マスクを設定する．
-  int k = len() % kPvBitLen;
+  SizeType k = len() % kPvBitLen;
   if ( k == 0 ) {
     mMask = kPvAll1;
   }
@@ -58,11 +57,11 @@ BitVectorRep::BitVectorRep(int vlen) :
 }
 
 // @brief X の個数を得る．
-int
+SizeType
 BitVectorRep::x_count() const
 {
-  int nb = block_num(len());
-  int n = 0;
+  SizeType nb = block_num(len());
+  SizeType n = 0;
   for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
@@ -76,15 +75,15 @@ BitVectorRep::x_count() const
 }
 
 // @brief 2つのビットベクタの等価比較を行う．
-// @param[in] bv1, bv2 対象のビットベクタ
-// @return 2つのビットベクタが等しい時 true を返す．
 bool
-BitVectorRep::is_eq(const BitVectorRep& bv1,
-		    const BitVectorRep& bv2)
+BitVectorRep::is_eq(
+  const BitVectorRep& bv1,
+  const BitVectorRep& bv2
+)
 {
   ASSERT_COND( bv1.len() == bv2.len() );
 
-  int nb = block_num(bv1.len());
+  SizeType nb = block_num(bv1.len());
   for ( int i: Range(0, nb) ) {
     if ( bv1.mPat[i] != bv2.mPat[i] ) {
       return false;
@@ -94,15 +93,15 @@ BitVectorRep::is_eq(const BitVectorRep& bv1,
 }
 
 // @brief 2つのビットベクタの包含関係を調べる．
-// @param[in] bv1, bv2 対象のビットベクタ
-// @return bv1 が真に bv2 に含まれる時 true を返す．
 bool
-BitVectorRep::is_lt(const BitVectorRep& bv1,
-		    const BitVectorRep& bv2)
+BitVectorRep::is_lt(
+  const BitVectorRep& bv1,
+  const BitVectorRep& bv2
+)
 {
   ASSERT_COND( bv1.len() == bv2.len() );
 
-  int nb = block_num(bv1.len());
+  SizeType nb = block_num(bv1.len());
   bool diff = false;
   for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
@@ -123,17 +122,15 @@ BitVectorRep::is_lt(const BitVectorRep& bv1,
 }
 
 // @brief 2つのビットベクタの包含関係を調べる．
-// @param[in] bv1, bv2 対象のビットベクタ
-// @return bv1 が bv2 に含まれる時 true を返す．
-//
-// こちらは bv1 と bv2 が等しい場合も true を返す．
 bool
-BitVectorRep::is_le(const BitVectorRep& bv1,
-		    const BitVectorRep& bv2)
+BitVectorRep::is_le(
+  const BitVectorRep& bv1,
+  const BitVectorRep& bv2
+)
 {
   ASSERT_COND( bv1.len() == bv2.len() );
 
-  int nb = block_num(bv1.len());
+  SizeType nb = block_num(bv1.len());
   for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
@@ -151,12 +148,14 @@ BitVectorRep::is_le(const BitVectorRep& bv1,
 
 // @brief 2つのベクタが両立するとき true を返す．
 bool
-BitVectorRep::is_compat(const BitVectorRep& bv1,
-			const BitVectorRep& bv2)
+BitVectorRep::is_compat(
+  const BitVectorRep& bv1,
+  const BitVectorRep& bv2
+)
 {
   ASSERT_COND( bv1.len() == bv2.len() );
 
-  int nb = block_num(bv1.len());
+  SizeType nb = block_num(bv1.len());
   for ( int i: Range_<int, 2>(0, nb) ) {
     int i0 = i;
     int i1 = i + 1;
@@ -175,8 +174,8 @@ BitVectorRep::is_compat(const BitVectorRep& bv1,
 void
 BitVectorRep::init()
 {
-  int nb = block_num(len());
-  for ( int i: Range_<int, 2>(0, nb) ) {
+  SizeType nb = block_num(len());
+  for ( SizeType i: Range_<SizeType, 2>(0, nb) ) {
     if ( i < nb - 2 ) {
       mPat[i + 0] = kPvAll1;
       mPat[i + 1] = kPvAll1;
@@ -189,20 +188,15 @@ BitVectorRep::init()
 }
 
 // @brief BIN文字列から内容を設定する．
-// @param[in] bin_string BIN文字列
-// @retval true 適切に設定された．
-// @retval false bin_string に不適切な文字が含まれていた．
-//
-// - bin_string がベクタ長より短い時には残りはXで初期化される．
-// - bin_string がベクタ長より長い時には余りは切り捨てられる．
-// - 有効な文字は '0', '1', 'x', 'X'
 bool
-BitVectorRep::set_from_bin(const string& bin_string)
+BitVectorRep::set_from_bin(
+  const string& bin_string
+)
 {
   // よく問題になるが，ここでは最下位ビット側から入力する．
-  int nl = len();
-  int sft = 0;
-  int blk = 0;
+  SizeType nl = len();
+  SizeType sft = 0;
+  SizeType blk = 0;
   PackedVal pat0 = kPvAll0;
   PackedVal pat1 = kPvAll0;
   for ( int i: Range(0, nl) ) {
@@ -238,18 +232,15 @@ BitVectorRep::set_from_bin(const string& bin_string)
 }
 
 // @brief HEX文字列から内容を設定する．
-// @param[in] hex_string HEX 文字列
-// @return hex_string に不適切な文字が含まれていたら false を返す．
-//
-// - hex_string が短い時には残りはXで初期化される．
-// - hex_string が長い時には余りは捨てられる．
 bool
-BitVectorRep::set_from_hex(const string& hex_string)
+BitVectorRep::set_from_hex(
+  const string& hex_string
+)
 {
   // よく問題になるが，ここでは最下位ビット側から入力する．
-  int nl = hex_length(len());
-  int sft = 0;
-  int blk = 0;
+  SizeType nl = hex_length(len());
+  SizeType sft = 0;
+  SizeType blk = 0;
   PackedVal pat = kPvAll0;
   for ( int i: Range(0, nl) ) {
     char c = (i < hex_string.size()) ? hex_string[i] : 'X';
@@ -285,13 +276,14 @@ BitVectorRep::set_from_hex(const string& hex_string)
 }
 
 // @breif ビットベクタをマージする．
-// @note X 以外で相異なるビットがあったら false を返す．
 bool
-BitVectorRep::merge(const BitVectorRep& src)
+BitVectorRep::merge(
+  const BitVectorRep& src
+)
 {
   ASSERT_COND( len() == src.len() );
 
-  int nb = block_num(len());
+  SizeType nb = block_num(len());
 
   // コンフリクトチェック
   for ( int i: Range_<int, 2>(0, nb) ) {

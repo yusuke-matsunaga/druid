@@ -30,7 +30,6 @@ public:
   /// @brief デストラクタ
   ///
   /// ここに登録された DetectOp も破棄される．
-  virtual
   ~DopList();
 
 

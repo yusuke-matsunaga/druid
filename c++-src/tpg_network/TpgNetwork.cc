@@ -35,21 +35,17 @@ TpgNetwork::~TpgNetwork()
 }
 
 // @brief ノード数を得る．
-int
+SizeType
 TpgNetwork::node_num() const
 {
   return mImpl->node_num();
 }
 
 // @brief ノードを得る．
-// @param[in] id ID番号 ( 0 <= id < node_num() )
-//
-// @code
-// node = network.node(node->id())
-// @endcode
-// の関係が成り立つ．
 const TpgNode*
-TpgNetwork::node(int id) const
+TpgNetwork::node(
+  SizeType id
+) const
 {
   return mImpl->node(id);
 }
@@ -71,21 +67,17 @@ TpgNetwork::node_name(
 }
 
 // @brief 外部入力数を得る．
-int
+SizeType
 TpgNetwork::input_num() const
 {
   return mImpl->input_num();
 }
 
 // @brief 外部入力ノードを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < input_num() )
-//
-// @code
-// node = network.input(node->input_id())
-// @endcode
-// の関係が成り立つ．
 const TpgNode*
-TpgNetwork::input(int pos) const
+TpgNetwork::input(
+  SizeType pos
+) const
 {
   return mImpl->input(pos);
 }
@@ -98,21 +90,17 @@ TpgNetwork::input_list() const
 }
 
 // @brief 外部出力数を得る．
-int
+SizeType
 TpgNetwork::output_num() const
 {
   return mImpl->output_num();
 }
 
 // @brief 外部出力ノードを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < output_num() )
-//
-// @code
-// node = network.output(node->output_id())
-// @endcode
-// の関係が成り立つ．
 const TpgNode*
-TpgNetwork::output(int pos) const
+TpgNetwork::output(
+  SizeType pos
+) const
 {
   return mImpl->output(pos);
 }
@@ -125,36 +113,26 @@ TpgNetwork::output_list() const
 }
 
 // @brief TFIサイズの降順で整列した順番で外部出力ノードを取り出す．
-// @param[in] pos 位置番号 ( 0 <= pos < output_num() )
-//
-// @code
-// node = network.output2(node->output_id2())
-// @endcode
-// の関係が成り立つ．
 const TpgNode*
-TpgNetwork::output2(int pos) const
+TpgNetwork::output2(
+  SizeType pos
+) const
 {
   return mImpl->output2(pos);
 }
 
 // @brief スキャン方式の擬似外部入力数を得る．
-//
-// = input_num() + dff_num()
-int
+SizeType
 TpgNetwork::ppi_num() const
 {
   return mImpl->ppi_num();
 }
 
 // @brief スキャン方式の擬似外部入力を得る．
-// @param[in] pos 位置番号 ( 0 <= pos < ppi_num() )
-//
-// @code
-// node = network.ppi(node->input_id())
-// @endcode
-// の関係が成り立つ．
 const TpgNode*
-TpgNetwork::ppi(int pos) const
+TpgNetwork::ppi(
+  SizeType pos
+) const
 {
   return mImpl->ppi(pos);
 }
@@ -167,23 +145,17 @@ TpgNetwork::ppi_list() const
 }
 
 // @brief スキャン方式の擬似外部出力数を得る．
-//
-// = output_num() + dff_num()
-int
+SizeType
 TpgNetwork::ppo_num() const
 {
   return mImpl->ppo_num();
 }
 
 // @brief スキャン方式の擬似外部出力を得る．
-// @param[in] pos 位置番号 ( 0 <= pos < ppo_num() )
-//
-// @code
-// node = network.ppo(node->output_id())
-// @endcode
-// の関係が成り立つ．
 const TpgNode*
-TpgNetwork::ppo(int pos) const
+TpgNetwork::ppo(
+  SizeType pos
+) const
 {
   return mImpl->ppo(pos);
 }
@@ -196,7 +168,7 @@ TpgNetwork::ppo_list() const
 }
 
 // @brief MFFC 数を返す．
-int
+SizeType
 TpgNetwork::mffc_num() const
 {
   return mImpl->mffc_num();
@@ -205,7 +177,9 @@ TpgNetwork::mffc_num() const
 // @brief MFFC を返す．
 // @param[in] pos 位置番号 ( 0 <= pos < mffc_num() )
 const TpgMFFC&
-TpgNetwork::mffc(int pos) const
+TpgNetwork::mffc(
+  SizeType pos
+) const
 {
   return mImpl->mffc(pos);
 }
@@ -218,16 +192,17 @@ TpgNetwork::mffc_list() const
 }
 
 // @brief FFR 数を返す．
-int
+SizeType
 TpgNetwork::ffr_num() const
 {
   return mImpl->ffr_num();
 }
 
 // @brief FFR を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < ffr_num() )
 const TpgFFR&
-TpgNetwork::ffr(int pos) const
+TpgNetwork::ffr(
+  SizeType pos
+) const
 {
   return mImpl->ffr(pos);
 }
@@ -240,16 +215,17 @@ TpgNetwork::ffr_list() const
 }
 
 // @brief DFF数を得る．
-int
+SizeType
 TpgNetwork::dff_num() const
 {
   return mImpl->dff_num();
 }
 
 // @brief DFF を得る．
-// @param[in] pos 位置番号 ( 0 <= pos < dff_num() )
 const TpgDff&
-TpgNetwork::dff(int pos) const
+TpgNetwork::dff(
+  SizeType pos
+) const
 {
   return mImpl->dff(pos);
 }
@@ -262,14 +238,14 @@ TpgNetwork::dff_list() const
 }
 
 // @brief 故障IDの最大値+1を返す．
-int
+SizeType
 TpgNetwork::max_fault_id() const
 {
   return mImpl->max_fault_id();
 }
 
 // @brief 全代表故障数を返す．
-int
+SizeType
 TpgNetwork::rep_fault_num() const
 {
   return mImpl->rep_fault_num();
@@ -278,7 +254,9 @@ TpgNetwork::rep_fault_num() const
 // @brief 代表故障を返す．
 // @param[in] pos 位置番号 ( 0 <= pos < rep_fault_num() )
 const TpgFault*
-TpgNetwork::rep_fault(int pos) const
+TpgNetwork::rep_fault(
+  SizeType pos
+) const
 {
   return mImpl->rep_fault(pos);
 }
@@ -291,47 +269,48 @@ TpgNetwork::rep_fault_list() const
 }
 
 // @brief ノードに関係した代表故障数を返す．
-// @param[in] id ID番号 ( 0 <= id < node_num() )
-int
-TpgNetwork::node_rep_fault_num(int id) const
+SizeType
+TpgNetwork::node_rep_fault_num(
+  SizeType id
+) const
 {
   return mImpl->node_rep_fault_num(id);
 }
 
 // @brief ノードに関係した代表故障を返す．
-// @param[in] id ID番号 ( 0 <= id < node_num() )
-// @param[in] pos 位置番号 ( 0 <= pos < node_rep_fault_num(id) )
 const TpgFault*
-TpgNetwork::node_rep_fault(int id,
-			   int pos) const
+TpgNetwork::node_rep_fault(
+  SizeType id,
+  SizeType pos
+) const
 {
   return mImpl->node_rep_fault(id, pos);
 }
 
 // @brief BnNetwork から内容を設定する．
-// @param[in] network 設定元のネットワーク
 void
-TpgNetwork::set(const BnNetwork& network)
+TpgNetwork::set(
+  const BnNetwork& network
+)
 {
   mImpl->set(network);
 }
 
 // @brief blif ファイルを読み込む．
-// @param[in] filename ファイル名
-// @return 読み込みが成功したら true を返す．
 bool
-TpgNetwork::read_blif(const string& filename)
+TpgNetwork::read_blif(
+  const string& filename
+)
 {
   return read_blif(filename, ClibCellLibrary());
 }
 
 // @brief blif ファイルを読み込む．
-// @param[in] filename ファイル名
-// @param[in] cell_library セルライブラリ
-// @return 読み込みが成功したら true を返す．
 bool
-TpgNetwork::read_blif(const string& filename,
-		      const ClibCellLibrary& cell_library)
+TpgNetwork::read_blif(
+  const string& filename,
+  const ClibCellLibrary& cell_library
+)
 {
   BnNetwork network = BnNetwork::read_blif(filename, cell_library);
   bool stat = network.node_num() != 0;
@@ -343,10 +322,10 @@ TpgNetwork::read_blif(const string& filename,
 }
 
 // @brief iscas89 形式のファイルを読み込む．
-// @param[in] filename ファイル名
-// @return 読み込みが成功したら true を返す．
 bool
-TpgNetwork::read_iscas89(const string& filename)
+TpgNetwork::read_iscas89(
+  const string& filename
+)
 {
   BnNetwork network = BnNetwork::read_iscas89(filename);
   bool stat = network.node_num() != 0;
@@ -358,11 +337,11 @@ TpgNetwork::read_iscas89(const string& filename)
 }
 
 // @brief TpgNetwork の内容を出力する関数
-// @param[in] s 出力先のストリーム
-// @param[in] network 対象のネットワーク
 void
-print_network(ostream& s,
-	      const TpgNetwork& network)
+print_network(
+  ostream& s,
+  const TpgNetwork& network
+)
 {
   int n = network.node_num();
   for ( auto node: network.node_list() ) {

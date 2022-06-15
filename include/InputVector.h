@@ -57,46 +57,6 @@ public:
 
 };
 
-
-#if 0
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-//< [in] len ベクタ長
-inline
-InputVector::InputVector(int len) :
-  BitVector(len)
-{
-}
-
-// @brief コピーコンストラクタ
-//< [in] src コピー元のソース
-inline
-InputVector::InputVector(const InputVector& src) :
-  BitVector(src)
-{
-}
-
-// @brief コピー代入演算子
-//< [in] src コピー元のソース
-inline
-InputVector&
-InputVector::operator=(const InputVector& src)
-{
-  BitVector::operator=(src);
-
-  return *this;
-}
-
-// @brief デストラクタ
-inline
-InputVector::~InputVector()
-{
-}
-#endif
-
 END_NAMESPACE_DRUID
 
 #endif // INPUTVECTOR_H

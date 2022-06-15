@@ -48,7 +48,7 @@ public:
   static
   BitVectorRep*
   new_vector(
-    int len  ///< [in] ベクタ長
+    SizeType len  ///< [in] ベクタ長
   );
 
   /// @brief 内容をコピーする．
@@ -71,7 +71,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ベクタ長を返す．
-  int
+  SizeType
   len() const
   {
     return mLength;
@@ -80,7 +80,7 @@ public:
   /// @brief 値を得る．
   Val3
   val(
-    int pos  ///< [in] 位置番号 ( 0 <= pos < len() )
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < len() )
   ) const
   {
     ASSERT_COND( pos < len() );
@@ -95,7 +95,7 @@ public:
   }
 
   /// @brief X の個数を得る．
-  int
+  SizeType
   x_count() const;
 
   /// @brief 2つのビットベクタの等価比較を行う．
@@ -160,7 +160,7 @@ public:
   /// @brief 値を設定する．
   void
   set_val(
-    int pos, ///< [in] 位置番号 ( 0 <= pos < len() )
+    SizeType pos, ///< [in] 位置番号 ( 0 <= pos < len() )
     Val3 val ///< [in] 値
   )
   {
@@ -278,9 +278,9 @@ private:
 
   /// @brief ブロック数を返す．
   static
-  int
+  SizeType
   block_num(
-    int length  ///< [in] ベクタ長
+    SizeType length  ///< [in] ベクタ長
   )
   {
     return ((length + kPvBitLen - 1) / kPvBitLen) * 2;
@@ -288,9 +288,9 @@ private:
 
   /// @brief HEX文字列の長さを返す．
   static
-  int
+  SizeType
   hex_length(
-    int length  ///< [in] ベクタ長
+    SizeType length  ///< [in] ベクタ長
   )
   {
     return (length + 3) / 4;
@@ -298,9 +298,9 @@ private:
 
   // 位置からブロック番号を得る．
   static
-  int
+  SizeType
   block_idx(
-    int pos  ///< [in] 位置番号
+    SizeType pos  ///< [in] 位置番号
   )
   {
     return (pos / kPvBitLen) * 2;
@@ -308,9 +308,9 @@ private:
 
   // 位置からシフト量を得る．
   static
-  int
+  SizeType
   shift_num(
-    int pos  ///< [in] 位置番号
+    SizeType pos  ///< [in] 位置番号
   )
   {
     return pos % kPvBitLen;
@@ -324,7 +324,7 @@ private:
 
   /// @brief コンストラクタ
   BitVectorRep(
-    int length  ///< [in] ベクタ長
+    SizeType length  ///< [in] ベクタ長
   );
 
 
@@ -334,7 +334,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // ベクタ長
-  int mLength;
+  SizeType mLength;
 
   // 最後のブロックのマスク
   PackedVal mMask;
@@ -350,7 +350,7 @@ private:
 
   // 1ワードあたりのHEX文字数
   static
-  const int HPW = kPvBitLen / 4;
+  const SizeType HPW = kPvBitLen / 4;
 
 };
 
@@ -376,170 +376,6 @@ operator<<(
 {
   return s << bvp->bin_str();
 }
-
-#if 0
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief デストラクタ
-inline
-BitVectorRep::~BitVectorRep()
-{
-}
-
-// @brief ベクタ長を返す．
-inline
-int
-BitVectorRep::len() const
-{
-  return mLength;
-}
-
-// @brief 値を得る．
-//< [in] pos 位置番号 ( 0 <= pos < len() )
-inline
-Val3
-BitVectorRep::val(int pos) const
-{
-  ASSERT_COND( pos < len() );
-
-  int shift = shift_num(pos);
-  int block0 = block_idx(pos);
-  int block1 = block0 + 1;
-  int v0 = (mPat[block0] >> shift) & 1UL;
-  int v1 = (mPat[block1] >> shift) & 1UL;
-  int tmp = v0 + v0 + v1;
-  return static_cast<Val3>((v0 + v0 + v1) ^ 3);
-}
-
-// @breif pos 番めの値を設定する．
-inline
-void
-BitVectorRep::set_val(int pos,
-		      Val3 val)
-{
-  ASSERT_COND( pos < len() );
-
-  int shift = shift_num(pos);
-  int block0 = block_idx(pos);
-  int block1 = block0 + 1;
-  PackedVal mask = 1UL << shift;
-  switch ( val ) {
-  case Val3::_0:
-    mPat[block0] |=  mask;
-    mPat[block1] &= ~mask;
-    break;
-  case Val3::_1:
-    mPat[block0] &= ~mask;
-    mPat[block1] |=  mask;
-    break;
-  case Val3::_X:
-    mPat[block0] |=  mask;
-    mPat[block1] |=  mask;
-  }
-}
-
-// @brief 乱数パタンを設定する．
-//< [in] randgen 乱数生成器
-template<class URNG>
-inline
-void
-BitVectorRep::set_from_random(URNG& randgen)
-{
-  std::uniform_int_distribution<PackedVal> rd;
-  int nb = block_num(len());
-  for ( int i = 0; i < nb; i += 2 ) {
-    PackedVal v = rd(randgen);
-    int i0 = i;
-    int i1 = i + 1;
-    if ( i == nb - 2 ) {
-      mPat[i0] = ~v & mMask;
-      mPat[i1] =  v & mMask;
-    }
-    else {
-      mPat[i0] = ~v;
-      mPat[i1] =  v;
-    }
-  }
-}
-
-// @brief X の部分を乱数で 0/1 に設定する．
-//< [in] randgen 乱数生成器
-template<class URNG>
-inline
-void
-BitVectorRep::fix_x_from_random(URNG& randgen)
-{
-  std::uniform_int_distribution<PackedVal> rd;
-  int nb = block_num(len());
-  for ( int i = 0; i < nb; i += 2 ) {
-    int i0 = i;
-    int i1 = i + 1;
-    // X のビットマスク
-    PackedVal xmask = mPat[i0] & mPat[i1];
-    if ( i == nb - 2 ) {
-      xmask &= mMask;
-    }
-    if ( xmask == kPvAll0 ) {
-      continue;
-    }
-    PackedVal v = rd(randgen);
-    mPat[i0] &= ~(~v & xmask);
-    mPat[i1] &= ~( v & xmask);
-  }
-}
-
-// @brief ブロック数を返す．
-inline
-int
-BitVectorRep::block_num(int len)
-{
-  return ((len + kPvBitLen - 1) / kPvBitLen) * 2;
-}
-
-// @brief HEX文字列の長さを返す．
-inline
-int
-BitVectorRep::hex_length(int len)
-{
-  return (len + 3) / 4;
-}
-
-// 入力位置からブロック番号を得る．
-inline
-int
-BitVectorRep::block_idx(int pos)
-{
-  return (pos / kPvBitLen) * 2;
-}
-
-// 入力位置からシフト量を得る．
-inline
-int
-BitVectorRep::shift_num(int pos)
-{
-  return pos % kPvBitLen;
-}
-
-// @brief 内容を出力する．
-inline
-ostream&
-operator<<(ostream& s,
-	   const BitVectorRep& bv)
-{
-  return s << bv.bin_str();
-}
-
-// @brief 内容を出力する．
-inline
-ostream&
-operator<<(ostream& s,
-	   const BitVectorRep* bvp)
-{
-  return s << bvp->bin_str();
-}
-#endif
 
 END_NAMESPACE_DRUID
 

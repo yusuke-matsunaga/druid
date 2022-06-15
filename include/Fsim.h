@@ -227,14 +227,14 @@ public:
   /// @brief ppsfp 用のパタンを設定する．
   void
   set_pattern(
-    int pos,             ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
     const TestVector& tv ///< [in] テストベクタ
   );
 
   /// @brief 設定した ppsfp 用のパタンを読み出す．
   TestVector
   get_pattern(
-    int pos  ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
   );
 
 
@@ -248,9 +248,10 @@ public:
   det_fault_num();
 
   /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-  ///< [in] pos 位置番号 ( 0 <= pos < det_fault_num() )
   const TpgFault*
-  det_fault(int pos);
+  det_fault(
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
+  );
 
   /// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
   Array<const TpgFault*>
@@ -259,7 +260,7 @@ public:
   /// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
   PackedVal
   det_fault_pat(
-    int pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
   );
 
   /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
@@ -276,11 +277,6 @@ private:
   std::unique_ptr<FsimImpl> mImpl;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
 
 END_NAMESPACE_DRUID
 

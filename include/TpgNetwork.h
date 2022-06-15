@@ -5,9 +5,8 @@
 /// @brief TpgNetwork のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 
@@ -74,7 +73,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ノード数を得る．
-  int
+  SizeType
   node_num() const;
 
   /// @brief ノードを得る．
@@ -85,7 +84,7 @@ public:
   /// の関係が成り立つ．
   const TpgNode*
   node(
-    int id ///< [in] ID番号 ( 0 <= id < node_num() )
+    SizeType id ///< [in] ID番号 ( 0 <= id < node_num() )
   ) const;
 
   /// @brief 全ノードのリストを得る．
@@ -99,7 +98,7 @@ public:
   ) const;
 
   /// @brief 外部入力数を得る．
-  int
+  SizeType
   input_num() const;
 
   /// @brief 外部入力ノードを得る．
@@ -110,7 +109,7 @@ public:
   /// の関係が成り立つ．
   const TpgNode*
   input(
-    int pos ///< [in] 位置番号 ( 0 <= pos < input_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < input_num() )
   ) const;
 
   /// @brief 外部入力ノードのリストを得る．
@@ -118,7 +117,7 @@ public:
   input_list() const;
 
   /// @brief 外部出力数を得る．
-  int
+  SizeType
   output_num() const;
 
   /// @brief 外部出力ノードを得る．
@@ -129,7 +128,7 @@ public:
   /// の関係が成り立つ．
   const TpgNode*
   output(
-    int pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
   ) const;
 
   /// @brief 外部出力ノードのリストを得る．
@@ -144,13 +143,13 @@ public:
   /// の関係が成り立つ．
   const TpgNode*
   output2(
-    int pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
   ) const;
 
   /// @brief スキャン方式の擬似外部入力数を得る．
   ///
   /// = input_num() + dff_num()
-  int
+  SizeType
   ppi_num() const;
 
   /// @brief スキャン方式の擬似外部入力を得る．
@@ -161,7 +160,7 @@ public:
   /// の関係が成り立つ．
   const TpgNode*
   ppi(
-    int pos ///< [in] 位置番号 ( 0 <= pos < ppi_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ppi_num() )
   ) const;
 
   /// @brief 擬似外部入力のリストを得る．
@@ -171,7 +170,7 @@ public:
   /// @brief スキャン方式の擬似外部出力数を得る．
   ///
   /// = output_num() + dff_num()
-  int
+  SizeType
   ppo_num() const;
 
   /// @brief スキャン方式の擬似外部出力を得る．
@@ -182,7 +181,7 @@ public:
   /// の関係が成り立つ．
   const TpgNode*
   ppo(
-    int pos ///< [in] 位置番号 ( 0 <= pos < ppo_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ppo_num() )
   ) const;
 
   /// @brief 擬似外部出力のリストを得る．
@@ -190,13 +189,13 @@ public:
   ppo_list() const;
 
   /// @brief MFFC 数を返す．
-  int
+  SizeType
   mffc_num() const;
 
   /// @brief MFFC を返す．
   const TpgMFFC&
   mffc(
-    int pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
   ) const;
 
   /// @brief MFFC のリストを得る．
@@ -204,13 +203,13 @@ public:
   mffc_list() const;
 
   /// @brief FFR 数を返す．
-  int
+  SizeType
   ffr_num() const;
 
   /// @brief FFR を返す．
   const TpgFFR&
   ffr(
-    int pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
   ) const;
 
   /// @brief FFR のリストを得る．
@@ -218,7 +217,7 @@ public:
   ffr_list() const;
 
   /// @brief DFF数を得る．
-  int
+  SizeType
   dff_num() const;
 
   /// @brief DFF を得る．
@@ -229,7 +228,7 @@ public:
   /// の関係が成り立つ．
   const TpgDff&
   dff(
-    int pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
   ) const;
 
   /// @brief DFF のリストを得る．
@@ -237,17 +236,17 @@ public:
   dff_list() const;
 
   /// @brief 故障IDの最大値+1を返す．
-  int
+  SizeType
   max_fault_id() const;
 
   /// @brief 全代表故障数を返す．
-  int
+  SizeType
   rep_fault_num() const;
 
   /// @brief 代表故障を返す．
   const TpgFault*
   rep_fault(
-    int pos ///< [in] 位置番号 ( 0 <= pos < rep_fault_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < rep_fault_num() )
   ) const;
 
   /// @brief 代表故障のリストを返す．
@@ -255,16 +254,16 @@ public:
   rep_fault_list() const;
 
   /// @brief ノードに関係した代表故障数を返す．
-  int
+  SizeType
   node_rep_fault_num(
-    int id ///< [in] ID番号 ( 0 <= id < node_num() )
+    SizeType id ///< [in] ID番号 ( 0 <= id < node_num() )
   ) const;
 
   /// @brief ノードに関係した代表故障を返す．
   const TpgFault*
   node_rep_fault(
-    int id, ///< [in] ノードのID番号 ( 0 <= id < node_num() )
-    int pos ///< [in] 位置番号 ( 0 <= pos < node_rep_fault_num(id) )
+    SizeType id, ///< [in] ノードのID番号 ( 0 <= id < node_num() )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < node_rep_fault_num(id) )
   ) const;
 
 
@@ -299,12 +298,6 @@ public:
   /// @return 読み込みが成功したら true を返す．
   bool
   read_iscas89(const string& filename);
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:

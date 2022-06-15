@@ -26,10 +26,10 @@ class MinPatMgr
 public:
 
   /// @brief コンストラクタ
-  MinPatMgr();
+  MinPatMgr() = default;
 
   /// @brief デストラクタ
-  ~MinPatMgr();
+  ~MinPatMgr() = default;
 
 
 public:
@@ -113,12 +113,6 @@ private:
     const vector<int>& color_map,      ///< [in] 彩色結果
     vector<TestVector>& new_tv_list    ///< [out] マージされたテストパタンのリスト
   );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
 
 };
 

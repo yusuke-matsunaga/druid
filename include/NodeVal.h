@@ -118,8 +118,10 @@ operator<<(
 // @brief 大小関係の比較関数
 inline
 bool
-operator>(const NodeVal& left,
-	  const NodeVal& right)
+operator>(
+  const NodeVal& left,
+  const NodeVal& right
+)
 {
   return operator<(right, left);
 }
@@ -127,8 +129,10 @@ operator>(const NodeVal& left,
 // @brief 大小関係の比較関数
 inline
 bool
-operator<=(const NodeVal& left,
-	   const NodeVal& right)
+operator<=(
+  const NodeVal& left,
+  const NodeVal& right
+)
 {
   return !operator<(right, left);
 }
@@ -136,72 +140,13 @@ operator<=(const NodeVal& left,
 // @brief 大小関係の比較関数
 inline
 bool
-operator>=(const NodeVal& left,
-	   const NodeVal& right)
+operator>=(
+  const NodeVal& left,
+  const NodeVal& right
+)
 {
   return !operator<(left, right);
 }
-
-#if 0
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief 空のコンストラクタ
-//
-// 内容は不定
-inline
-NodeVal::NodeVal() :
-  mPackVal(0UL)
-{
-}
-
-// @brief 値を指定したコンストラクタ
-//< [in] node ノード
-//< [in] time 時刻(0 or 1)
-//< [in] val 値
-inline
-NodeVal::NodeVal(const TpgNode* node,
-		 int time,
-		 bool val) :
-  mPackVal(reinterpret_cast<ympuint>(node) | (time << 1) | val)
-{
-}
-
-// @brief ノードを返す．
-inline
-const TpgNode*
-NodeVal::node() const
-{
-  return reinterpret_cast<const TpgNode*>(mPackVal & ~3UL);
-}
-
-// @brief 時刻を返す．
-inline
-int
-NodeVal::time() const
-{
-  return static_cast<int>((mPackVal >> 1) & 1U);
-}
-
-// @brief ノードと時刻をパックした値を返す．
-//
-// 結果は等価比較のみに用いる．
-inline
-ympuint
-NodeVal::node_time() const
-{
-  return mPackVal & ~1UL;
-}
-
-// @brief 値を返す．
-inline
-bool
-NodeVal::val() const
-{
-  return static_cast<bool>(mPackVal & 1UL);
-}
-#endif
 
 END_NAMESPACE_DRUID
 

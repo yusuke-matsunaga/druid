@@ -57,13 +57,13 @@ public:
   /// @brief ブランチの入力位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
-  int
+  SizeType
   fault_pos() const override;
 
   /// @brief tpg_onode 上の故障位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
-  int
+  SizeType
   tpg_pos() const override;
 
   /// @brief 故障の内容を表す文字列を返す．

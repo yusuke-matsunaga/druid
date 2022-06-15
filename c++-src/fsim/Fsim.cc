@@ -297,11 +297,11 @@ Fsim::clear_patterns()
 }
 
 // @brief ppsfp 用のパタンを設定する．
-// @param[in] pos 位置番号 ( 0 <= pos < kPvBitLen )
-// @param[in] tv テストベクタ
 void
-Fsim::set_pattern(int pos,
-		  const TestVector& tv)
+Fsim::set_pattern(
+  SizeType pos,
+  const TestVector& tv
+)
 {
   if ( mImpl ) {
     mImpl->set_pattern(pos, tv);
@@ -309,9 +309,10 @@ Fsim::set_pattern(int pos,
 }
 
 // @brief 設定した ppsfp 用のパタンを読み出す．
-// @param[in] pos 位置番号 ( 0 <= pos < kPvBitLen )
 TestVector
-Fsim::get_pattern(int pos)
+Fsim::get_pattern(
+  SizeType pos
+)
 {
   if ( mImpl ) {
     return mImpl->get_pattern(pos);
@@ -336,7 +337,9 @@ Fsim::det_fault_num()
 // @brief 直前の sppfp/ppsfp で検出された故障を返す．
 // @param[in] pos 位置番号 ( 0 <= pos < det_fault_num() )
 const TpgFault*
-Fsim::det_fault(int pos)
+Fsim::det_fault(
+  SizeType pos
+)
 {
   if ( mImpl ) {
     return mImpl->det_fault(pos);
@@ -361,7 +364,9 @@ Fsim::det_fault_list()
 // @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
 // @param[in] pos 位置番号 ( 0 <= pos < det_fault_num() )
 PackedVal
-Fsim::det_fault_pat(int pos)
+Fsim::det_fault_pat(
+  SizeType pos
+)
 {
   if ( mImpl ) {
     return mImpl->det_fault_pat(pos);

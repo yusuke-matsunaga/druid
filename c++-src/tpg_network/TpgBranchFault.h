@@ -28,9 +28,9 @@ public:
     int val,              ///< [in] 故障値
     const TpgNode* onode, ///< [in] 出力側の TpgNode
     const string& name,	  ///< [in] ノード名
-    int pos,		  ///< [in] 故障の入力位置
+    SizeType pos,	  ///< [in] 故障の入力位置
     const TpgNode* inode, ///< [in] 入力側の TpgNode
-    int tpg_pos,	  ///< [in] onode 上の故障位置
+    SizeType tpg_pos,	  ///< [in] onode 上の故障位置
     TpgFault* rep_fault	  ///< [in] 代表故障
   );
 
@@ -58,13 +58,13 @@ public:
   /// @brief ブランチの入力位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
-  int
+  SizeType
   fault_pos() const override;
 
   /// @brief tpg_inode 上の故障位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
-  int
+  SizeType
   tpg_pos() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -79,13 +79,13 @@ private:
 
   // 故障の入力位置
   // もとの BnNode に対するもの
-  int mPos;
+  SizeType mPos;
 
   // 入力側の TpgNode
   const TpgNode* mInode;
 
   // mInode 上の入力位置
-  int mTpgPos;
+  SizeType mTpgPos;
 
 };
 

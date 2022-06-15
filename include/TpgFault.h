@@ -73,13 +73,16 @@ public:
 
   /// @brief ブランチの故障の時 true を返す．
   bool
-  is_branch_fault() const;
+  is_branch_fault() const
+  {
+    return !is_stem_fault();
+  }
 
   /// @brief ブランチの入力位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
   virtual
-  int
+  SizeType
   fault_pos() const = 0;
 
   /// @brief tpg_onode 上の故障位置を返す．
@@ -87,7 +90,7 @@ public:
   /// is_branch_fault() == true の時のみ意味を持つ．
   /// tpg_onode()->fanin(tpg_pos()) == tpg_inode() が成り立つ．
   virtual
-  int
+  SizeType
   tpg_pos() const = 0;
 
   /// @brief 故障値を返す．
@@ -98,7 +101,15 @@ public:
 
   /// @brief 故障値を3値型で返す．
   Val3
-  val3() const;
+  val3() const
+  {
+    if ( val() ) {
+      return Val3::_1;
+    }
+    else {
+      return Val3::_0;
+    }
+  }
 
   /// @brief 故障の内容を表す文字列を返す．
   virtual
@@ -107,7 +118,10 @@ public:
 
   /// @brief 代表故障の時 true を返す．
   bool
-  is_rep() const;
+  is_rep() const
+  {
+    return rep_fault() == this;
+  }
 
   /// @brief 代表故障を返す．
   ///
@@ -120,61 +134,20 @@ public:
 
 /// @relates TpgFault
 /// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
-/// @param[in] fault 故障
-/// @param[in] fault_type 故障の種類
 NodeValList
-ffr_propagate_condition(const TpgFault* fault,
-			FaultType fault_type);
+ffr_propagate_condition(
+  const TpgFault* fault, ///< [in] 故障
+  FaultType fault_type   ///< [in] 故障の種類
+);
 
 /// @relates TpgFault
 /// @brief ストリーム出力演算子
-/// @param[in] s 出力先のストリーム
-/// @param[in] f 故障
-ostream&
-operator<<(ostream& s,
-	   const TpgFault* f);
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief ブランチの故障の時 true を返す．
-inline
-bool
-TpgFault::is_branch_fault() const
-{
-  return !is_stem_fault();
-}
-
-// @brief 代表故障の時 true を返す．
-inline
-bool
-TpgFault::is_rep() const
-{
-  return rep_fault() == this;
-}
-
-// @brief 故障値を3値型で返す．
-inline
-Val3
-TpgFault::val3() const
-{
-  if ( val() ) {
-    return Val3::_1;
-  }
-  else {
-    return Val3::_0;
-  }
-}
-
-// @brief ストリーム出力演算子
-// @param[in] s 出力先のストリーム
-// @param[in] f 故障
 inline
 ostream&
-operator<<(ostream& s,
-	   const TpgFault* f)
+operator<<(
+  ostream& s,       ///< [in] 出力先のストリーム
+  const TpgFault* f ///< [in] 故障
+)
 {
   return s << f->str();
 }

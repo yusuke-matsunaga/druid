@@ -197,16 +197,6 @@ END_NONAMESPACE
 // クラス MinPatMgr
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-MinPatMgr::MinPatMgr()
-{
-}
-
-// @brief デストラクタ
-MinPatMgr::~MinPatMgr()
-{
-}
-
 // @brief 故障リストを縮約する．
 void
 MinPatMgr::fault_reduction(vector<const TpgFault*>& fault_list,

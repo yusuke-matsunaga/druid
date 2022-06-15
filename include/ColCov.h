@@ -26,8 +26,8 @@ public:
 
   /// @brief コンストラクタ
   ColCov(
-    int row_size, ///< [in] 行数
-    int col_size  ///< [in] 列数
+    SizeType row_size, ///< [in] 行数
+    SizeType col_size  ///< [in] 列数
   );
 
   /// @brief デストラクタ
@@ -44,47 +44,47 @@ public:
   /// 以前の内容は破棄される．
   void
   resize(
-    int row_size, ///< [in] 行数
-    int col_size  ///< [in] 列数
+    SizeType row_size, ///< [in] 行数
+    SizeType col_size  ///< [in] 列数
   );
 
   /// @brief 行列の要素を追加する．
   void
   insert_elem(
-    int row_pos, ///< [in] 行の位置 ( 0 <= row_pos < row_size() )
-    int col_pos	 ///< [in] 列の位置 ( 0 <= col_pos < col_size() )
+    SizeType row_pos, ///< [in] 行の位置 ( 0 <= row_pos < row_size() )
+    SizeType col_pos  ///< [in] 列の位置 ( 0 <= col_pos < col_size() )
   );
 
   /// @brief 列の衝突関係を追加する．
   void
   insert_conflict(
-    int col_pos1, ///< [in] 列1の位置 ( 0 <= col_pos1 < col_size() )
-    int col_pos2  ///< [in] 列2の位置 ( 0 <= col_pos2 < col_size() )
+    SizeType col_pos1, ///< [in] 列1の位置 ( 0 <= col_pos1 < col_size() )
+    SizeType col_pos2  ///< [in] 列2の位置 ( 0 <= col_pos2 < col_size() )
   );
 
   /// @brief 行数を得る．
-  int
+  SizeType
   row_size() const
   {
     return mRowSize;
   }
 
   /// @brief 列数を得る．
-  int
+  SizeType
   col_size() const
   {
     return mColSize;
   }
 
   /// @brief 行列の要素のリストを得る．
-  const vector<pair<int, int>>&
+  const vector<pair<SizeType, SizeType>>&
   elem_list() const
   {
     return mElemList;
   }
 
   /// @brief 衝突関係のリストを得る．
-  const vector<pair<int, int>>&
+  const vector<pair<SizeType, SizeType>>&
   conflict_list() const
   {
     return mConflictList;
@@ -139,59 +139,20 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 行数
-  int mRowSize;
+  SizeType mRowSize;
 
   // 列数
-  int mColSize;
+  SizeType mColSize;
 
   // 行列の要素のリスト
   // (row_pos, col_pos) のリスト
-  vector<pair<int, int>> mElemList;
+  vector<pair<SizeType, SizeType>> mElemList;
 
   // 衝突関係のリスト
   // (col_pos1, col_pos2) のリスト
-  vector<pair<int, int>> mConflictList;
+  vector<pair<SizeType, SizeType>> mConflictList;
 
 };
-
-
-#if 0
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief 行数を得る．
-inline
-int
-ColCov::row_size() const
-{
-  return mRowSize;
-}
-
-// @brief 列数を得る．
-inline
-int
-ColCov::col_size() const
-{
-  return mColSize;
-}
-
-// @brief 行列の要素のリストを得る．
-inline
-const vector<pair<int, int>>&
-ColCov::elem_list() const
-{
-  return mElemList;
-}
-
-// @brief 衝突関係のリストを得る．
-inline
-const vector<pair<int, int>>&
-ColCov::conflict_list() const
-{
-  return mConflictList;
-}
-#endif
 
 END_NAMESPACE_DRUID
 

@@ -58,7 +58,7 @@ public:
   }
 
   /// @brief ノード番号の最大値を返す．
-  int
+  SizeType
   max_node_id() const
   {
     return mMaxId;
@@ -213,50 +213,17 @@ public:
   // SAT 問題を解く関数
   //////////////////////////////////////////////////////////////////////
 
-#if 0
   /// @brief チェックを行う．
-  SatBool3
-  check_sat(
-    vector<SatBool3>& sat_model  ///< [out] SATの場合の解
-  );
-#endif
-
-  /// @brief チェックを行う．
-  ///
-  /// こちらは結果のみを返す．
   SatBool3
   check_sat();
 
-#if 0
   /// @brief 割当リストのもとでチェックを行う．
-  SatBool3
-  check_sat(
-    const NodeValList& assign_list, ///< [in] 割当リスト
-    vector<SatBool3>& sat_model	    ///< [out] SATの場合の解
-  );
-#endif
-
-  /// @brief 割当リストのもとでチェックを行う．
-  ///
-  /// こちらは結果のみを返す．
   SatBool3
   check_sat(
     const NodeValList& assign_list  ///< [in] 割当リスト
   );
 
-#if 0
   /// @brief 割当リストのもとでチェックを行う．
-  SatBool3
-  check_sat(
-    const NodeValList& assign_list1, ///< [in] 割当リスト1
-    const NodeValList& assign_list2, ///< [in] 割当リスト2
-    vector<SatBool3>& sat_model	     ///< [out] SATの場合の解
-  );
-#endif
-
-  /// @brief 割当リストのもとでチェックを行う．
-  ///
-  /// こちらは結果のみを返す．
   SatBool3
   check_sat(
     const NodeValList& assign_list1, ///< [in] 割当リスト1
@@ -465,14 +432,6 @@ private:
     mMark[node->id()] |= (1U << 5);
   }
 
-#if 0
-  /// @brief SatModel の内容を取り出す．
-  void
-  _extract_model(
-    vector<SatBool3>& model
-  );
-#endif
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -489,7 +448,7 @@ private:
   SatSolver mSolver;
 
   // ノード番号の最大値
-  int mMaxId;
+  SizeType mMaxId;
 
   // 処理済みのノードの印
   // 0: gvar 割り当て済み
@@ -516,265 +475,6 @@ private:
   int mDebugFlag;
 
 };
-
-#if 0
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief SATソルバを返す．
-inline
-SatSolver&
-StructEnc::solver()
-{
-  return mSolver;
-}
-
-// @brief 故障の種類を返す．
-inline
-FaultType
-StructEnc::fault_type() const
-{
-  return mFaultType;
-}
-
-// @brief ノード番号の最大値を返す．
-inline
-int
-StructEnc::max_node_id() const
-{
-  return mMaxId;
-}
-
-// @brief ノードの値割り当てに対応するリテラルを返す．
-//< [in] nv ノードの値割り当て
-inline
-SatLiteral
-StructEnc::nv_to_lit(NodeVal nv)
-{
-  const TpgNode* node = nv.node();
-  // node およびその TFI に関する節を追加する．
-  // すでに節が作られていた場合にはなにもしない．
-  int time = nv.time();
-  return node_assign_to_lit(node, time, nv.val());
-}
-
-// @brief ノードの値割り当てに対応するリテラルを返す．
-//< [in] node ノード
-//< [in] time 時刻 (0 or 1)
-//< [in] val 値
-inline
-SatLiteral
-StructEnc::node_assign_to_lit(const TpgNode* node,
-			      int time,
-			      bool val)
-{
-  // node およびその TFI に関する節を追加する．
-  // すでに節が作られていた場合にはなにもしない．
-  make_tfi_cnf(node, time);
-  bool inv = !val;
-  return SatLiteral(var(node, time), inv);
-}
-
-// @brief 変数マップを得る．
-//< [in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
-inline
-const VidMap&
-StructEnc::var_map(int time) const
-{
-  return mVarMap[time & 1];
-}
-
-// @brief 変数マップを得る．
-//< [in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
-inline
-VidMap&
-StructEnc::var_map(int time)
-{
-  return mVarMap[time & 1];
-}
-
-// @brief 変数番号を得る．
-//< [in] node ノード
-//< [in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
-inline
-int
-StructEnc::var(const TpgNode* node,
-	       int time) const
-{
-  return var_map(time)(node);
-}
-
-// @brief ノードの変数が割り当てられているか調べる．
-//< [in] node ノード
-//< [in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
-inline
-bool
-StructEnc::var_mark(const TpgNode* node,
-		    int time) const
-{
-  int sft = time ? 0 : 1;
-  return static_cast<bool>((mMark[node->id()] >> sft) & 1U);
-}
-
-// @brief ノードに新しい変数番号を割り当てる．
-//< [in] node ノード
-//< [in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
-inline
-void
-StructEnc::set_new_var(const TpgNode* node,
-		       int time)
-{
-  auto var = mSolver.new_variable();
-  mSolver.freeze_literal(SatLiteral(var));
-  _set_var(node, time, var);
-}
-
-// @brief ノードに変数番号を割り当てる．
-//< [in] node ノード
-//< [in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
-inline
-void
-StructEnc::_set_var(const TpgNode* node,
-		    int time,
-		    SatVarId var)
-{
-  var_map(time).set_vid(node, var);
-  int sft = time ? 0 : 1;
-  mMark[node->id()] |= (1U << sft);
-}
-
-// @brief ノードの CNF が作成済みか調べる．
-//< [in] node ノード
-//< [in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
-inline
-bool
-StructEnc::cnf_mark(const TpgNode* node,
-		    int time) const
-{
-  int sft = time ? 2 : 3;
-  return static_cast<bool>((mMark[node->id()] >> sft) & 1U);
-}
-
-// @brief ノードに CNF マークをつける．
-//< [in] node ノード
-//< [in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
-inline
-void
-StructEnc::set_cnf_mark(const TpgNode* node,
-			int time)
-{
-  int sft = time ? 2 : 3;
-  mMark[node->id()] |= (1U << sft);
-}
-
-// @brief mCurNodeList に登録済みのマークを得る．
-//< [in] node ノード
-inline
-bool
-StructEnc::cur_mark(const TpgNode* node) const
-{
-  return static_cast<bool>((mMark[node->id()] >> 4) & 1U);
-}
-
-// @brief mCurNodeList に登録する．
-//< [in] node ノード
-inline
-void
-StructEnc::add_cur_node(const TpgNode* node)
-{
-  mCurNodeList.push_back(node);
-  mMark[node->id()] |= (1U << 4);
-}
-
-// @brief mPrevNodeList に登録する．
-//< [in] node ノード
-inline
-bool
-StructEnc::prev_mark(const TpgNode* node) const
-{
-  return static_cast<bool>((mMark[node->id()] >> 5) & 1U);
-}
-
-// @brief mPrevNodeList に登録する．
-//< [in] node ノード
-inline
-void
-StructEnc::add_prev_node(const TpgNode* node)
-{
-  mPrevNodeList.push_back(node);
-  mMark[node->id()] |= (1U << 5);
-}
-
-// @brief チェックを行う．
-//
-// こちらは結果のみを返す．
-inline
-SatBool3
-StructEnc::check_sat()
-{
-  vector<SatBool3> model;
-  return check_sat(model);
-}
-
-// @brief 割当リストのもとでチェックを行う．
-//< [in] assign_list 割当リスト
-//
-// こちらは結果のみを返す．
-inline
-SatBool3
-StructEnc::check_sat(const NodeValList& assign_list)
-{
-  vector<SatBool3> model;
-  return check_sat(assign_list, model);
-}
-
-// @brief 割当リストのもとでチェックを行う．
-//< [in] gval_cnf 正常回路用のデータ構造
-//< [in] assign_list1, assign_list2 割当リスト
-//
-// こちらは結果のみを返す．
-inline
-SatBool3
-StructEnc::check_sat(const NodeValList& assign_list1,
-		     const NodeValList& assign_list2)
-{
-  vector<SatBool3> model;
-  return check_sat(assign_list1, assign_list2, model);
-}
-
-// @brief デバッグ用のフラグをセットする．
-inline
-void
-StructEnc::set_debug(int bits)
-{
-  mDebugFlag = bits;
-}
-
-// @brief デバッグ用のフラグを得る．
-inline
-int
-StructEnc::debug() const
-{
-  return mDebugFlag;
-}
-#endif
 
 END_NAMESPACE_DRUID_STRUCTENC
 

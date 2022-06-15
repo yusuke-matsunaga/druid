@@ -3,9 +3,8 @@
 /// @brief TpgFault の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2007, 2012-2014, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgFault.h"
 #include "TpgFaultBase.h"
@@ -46,7 +45,7 @@ ffr_propagate_condition(
   // ブランチの故障の場合，ゲートの出力までの伝搬条件を作る．
   if ( fault->is_branch_fault() ) {
     const TpgNode* onode = fault->tpg_onode();
-    int fpos = fault->tpg_pos();
+    SizeType fpos = fault->tpg_pos();
     Val3 nval = onode->nval();
     if ( nval != Val3::_X ) {
       bool val = (nval == Val3::_1);
@@ -63,7 +62,7 @@ ffr_propagate_condition(
   for ( const TpgNode* node = fault->tpg_onode(); node->fanout_num() == 1;
 	node = node->fanout_list()[0]) {
     const TpgNode* fonode = node->fanout_list()[0];
-    int ni = fonode->fanin_num();
+    SizeType ni = fonode->fanin_num();
     if ( ni == 1 ) {
       continue;
     }
@@ -186,7 +185,7 @@ TpgStemFault::is_stem_fault() const
 }
 
 // @brief ブランチの入力位置を返す．
-int
+SizeType
 TpgStemFault::fault_pos() const
 {
   ASSERT_NOT_REACHED;
@@ -197,7 +196,7 @@ TpgStemFault::fault_pos() const
 // @brief tpg_inode 上の故障位置を返す．
 //
 // is_input_fault() == true の時のみ意味を持つ．
-int
+SizeType
 TpgStemFault::tpg_pos() const
 {
   ASSERT_NOT_REACHED;
@@ -231,9 +230,9 @@ TpgBranchFault::TpgBranchFault(
   int val,
   const TpgNode* onode,
   const string& name,
-  int pos,
+  SizeType pos,
   const TpgNode* inode,
-  int tpg_pos,
+  SizeType tpg_pos,
   TpgFault* rep_fault
 ) : TpgFaultBase{id, val, onode, name, rep_fault},
     mPos{pos},
@@ -273,7 +272,7 @@ TpgBranchFault::is_stem_fault() const
 // @brief ブランチの入力位置を返す．
 //
 // is_branch_fault() == true の時のみ意味を持つ．
-int
+SizeType
 TpgBranchFault::fault_pos() const
 {
   return mPos;
@@ -282,7 +281,7 @@ TpgBranchFault::fault_pos() const
 // @brief tpg_inode 上の故障位置を返す．
 //
 // is_branch_fault() == true の時のみ意味を持つ．
-int
+SizeType
 TpgBranchFault::tpg_pos() const
 {
   return mTpgPos;

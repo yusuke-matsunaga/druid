@@ -41,16 +41,17 @@ public:
 };
 
 /// @brief 'base' タイプを生成する．
-// @param[in] fsmgr 故障マネージャ
 UntestOp*
-new_UopBase(FaultStatusMgr& fmgr);
+new_UopBase(
+  FaultStatusMgr& fmgr ///< [in] 故障マネージャ
+);
 
 /// @brief 'skip' タイプを生成する．
-/// @param[in] threshold しきい値
-/// @param[in] max_fault_id 故障番号の最大値
 UntestOp*
-new_UopSkip(int threshold,
-	    int max_fault_id);
+new_UopSkip(
+  int threshold,   ///< [in] しきい値
+  int max_fault_id ///< [in] 故障番号の最大値
+);
 
 /// @brief 'dummy' タイプを生成する．
 UntestOp*
