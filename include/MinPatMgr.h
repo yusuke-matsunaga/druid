@@ -5,7 +5,7 @@
 /// @brief MinPatMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -40,29 +40,33 @@ public:
   /// @brief 故障リストを縮約する．
   static
   void
-  fault_reduction(vector<const TpgFault*>& fault_list,
-		  const TpgNetwork& network,
-		  FaultType fault_type,
-		  const string& algorithm,
-		  bool debug);
+  fault_reduction(
+    vector<const TpgFault*>& fault_list,
+    const TpgNetwork& network,
+    FaultType fault_type,
+    const string& algorithm,
+    bool debug
+  );
 
   /// @brief 極大両立集合を求める．
   static
   void
-  gen_mcsets(const vector<TestVector>& tv_list,
-	     vector<TestVector>& new_tv_list);
+  gen_mcsets(
+    const vector<TestVector>& tv_list,
+    vector<TestVector>& new_tv_list
+  );
 
   /// @brief 彩色問題でパタン圧縮を行う．
-  /// @param[in] tv_list 初期テストパタンのリスト
-  /// @param[out] new_tv_list 圧縮結果のテストパタンのリスト
   /// @return 結果のパタン数を返す．
   static
   int
-  coloring(const vector<const TpgFault*>& fault_list,
-	   const vector<TestVector>& tv_list,
-	   const TpgNetwork& network,
-	   FaultType fault_type,
-	   vector<TestVector>& new_tv_list);
+  coloring(
+    const vector<const TpgFault*>& fault_list,
+    const vector<TestVector>& tv_list,	       ///< [in] 初期テストパタンのリスト
+    const TpgNetwork& network,
+    FaultType fault_type,
+    vector<TestVector>& new_tv_list            ///< [out] 圧縮結果のテストパタンのリスト
+  );
 
 
 private:
@@ -71,47 +75,44 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 縮約を行う．
-  /// @param[in] matrix 対象の被覆行列
-  /// @param[in] graph 衝突グラフ
-  /// @param[in] selected_cols この縮約で選択された列のリスト
   static
   void
-  reduce(McMatrix& matrix,
-	 MpColGraph& graph,
-	 vector<int>& selected_cols);
+  reduce(
+    McMatrix& matrix,          ///< [in] 対象の被覆行列
+    MpColGraph& graph,	       ///< [in] 衝突グラフ
+    vector<int>& selected_cols ///< [in] この縮約で選択された列のリスト
+  );
 
   /// @brief ヒューリスティック1
   static
   void
-  heuristic1(McMatrix& matrix,
-	     MpColGraph& graph,
-	     vector<int>& selected_cols);
+  heuristic1(
+    McMatrix& matrix,
+    MpColGraph& graph,
+    vector<int>& selected_cols
+  );
 
   /// @brief 両立集合を取り出す．
-  /// @param[in] graph 衝突グラフ
-  /// @param[in] matrix 被覆行列
-  /// @param[in] selected_nodes 選択済みのノードリスト
-  /// @param[out] node_list 結果の両立集合を表すリスト
   ///
   /// * selected_nodes に含まれるノードは matrix からは削除されている．
   static
   void
-  get_compatible_nodes(const MpColGraph& graph,
-		       const McMatrix& matrix,
-		       const vector<int>& selected_nodes,
-		       vector<int>& node_list);
+  get_compatible_nodes(
+    const MpColGraph& graph,           ///< [in] 衝突グラフ
+    const McMatrix& matrix,	       ///< [in] 被覆行列
+    const vector<int>& selected_nodes, ///< [in] 選択済みのノードリスト
+    vector<int>& node_list	       ///< [out] 結果の両立集合を表すリスト
+  );
 
   /// @brief 彩色結果から新しいテストパタンのリストを生成する．
-  /// @param[in] tv_list テストパタンのリスト
-  /// @param[in] nc 彩色数
-  /// @param[in] color_map 彩色結果
-  /// @param[out] new_tv_list マージされたテストパタンのリスト
   static
   void
-  merge_tv_list(const vector<TestVector>& tv_list,
-		int nc,
-		const vector<int>& color_map,
-		vector<TestVector>& new_tv_list);
+  merge_tv_list(
+    const vector<TestVector>& tv_list, ///< [in] テストパタンのリスト
+    int nc,			       ///< [in] 彩色数
+    const vector<int>& color_map,      ///< [in] 彩色結果
+    vector<TestVector>& new_tv_list    ///< [out] マージされたテストパタンのリスト
+  );
 
 
 private:
@@ -120,11 +121,6 @@ private:
   //////////////////////////////////////////////////////////////////////
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
 
 END_NAMESPACE_DRUID
 

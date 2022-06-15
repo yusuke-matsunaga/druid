@@ -104,7 +104,7 @@ private:
   /// @param[in] val_map 割り当てマップ
   Expr
   _restrict_sub(const Expr& expr,
-		const HashMap<VarId, bool>& val_map);
+		const unordered_map<VarId, bool>& val_map);
 
 
 private:

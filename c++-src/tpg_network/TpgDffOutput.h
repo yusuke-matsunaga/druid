@@ -5,9 +5,8 @@
 /// @brief TpgDffOutput のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgPPI.h"
 
@@ -21,21 +20,19 @@ BEGIN_NAMESPACE_DRUID
 class TpgDffOutput :
   public TpgPPI
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] input_id 入力番号
-  /// @param[in] dff 接続しているDFF
-  TpgDffOutput(int id,
-	       int input_id,
-	       const TpgDff* dff);
+  TpgDffOutput(
+    int input_id,        ///< [in] 入力番号
+    SizeType fanout_num, ///< [in] ファンアウト数
+    const TpgDff* dff    ///< [in] 接続しているDFF
+  );
 
   /// @brief デストラクタ
-  virtual
-  ~TpgDffOutput();
+  ~TpgDffOutput() = default;
 
 
 public:
@@ -44,7 +41,6 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief DFF の出力に接続している外部入力タイプの時 true を返す．
-  virtual
   bool
   is_dff_output() const override;
 
@@ -52,15 +48,8 @@ public:
   ///
   /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
   /// の時に意味を持つ．
-  virtual
   const TpgDff*
   dff() const override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:

@@ -3,9 +3,8 @@
 /// @brief TpgLogicNAND[x] の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgLogicNAND.h"
 #include "GateType.h"
@@ -15,20 +14,13 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogicNAND2
+// クラス TpgLogicNAND
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
-TpgLogicNAND2::TpgLogicNAND2(int id,
-			     const vector<TpgNode*>& fanin_list) :
-  TpgLogic2(id, fanin_list)
-{
-}
-
-// @brief デストラクタ
-TpgLogicNAND2::~TpgLogicNAND2()
+TpgLogicNAND::TpgLogicNAND(
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -36,7 +28,7 @@ TpgLogicNAND2::~TpgLogicNAND2()
 //
 // is_logic() が false の場合の返り値は不定
 GateType
-TpgLogicNAND2::gate_type() const
+TpgLogicNAND::gate_type() const
 {
   return GateType::Nand;
 }
@@ -46,7 +38,7 @@ TpgLogicNAND2::gate_type() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicNAND2::cval() const
+TpgLogicNAND::cval() const
 {
   return Val3::_0;
 }
@@ -56,7 +48,7 @@ TpgLogicNAND2::cval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicNAND2::nval() const
+TpgLogicNAND::nval() const
 {
   return Val3::_1;
 }
@@ -66,7 +58,7 @@ TpgLogicNAND2::nval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicNAND2::coval() const
+TpgLogicNAND::coval() const
 {
   return Val3::_1;
 }
@@ -76,27 +68,20 @@ TpgLogicNAND2::coval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicNAND2::noval() const
+TpgLogicNAND::noval() const
 {
   return Val3::_0;
 }
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogicNAND3
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
-TpgLogicNAND3::TpgLogicNAND3(int id,
-			     const vector<TpgNode*>& fanin_list) :
-  TpgLogic3(id, fanin_list)
-{
-}
-
-// @brief デストラクタ
-TpgLogicNAND3::~TpgLogicNAND3()
+TpgLogicNAND3::TpgLogicNAND3(
+  const vector<TpgNode*>& fanin_list
+) : TpgLogic3{fanin_list}
 {
 }
 
@@ -155,16 +140,9 @@ TpgLogicNAND3::noval() const
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
-TpgLogicNAND4::TpgLogicNAND4(int id,
-			     const vector<TpgNode*>& fanin_list) :
-  TpgLogic4(id, fanin_list)
-{
-}
-
-// @brief デストラクタ
-TpgLogicNAND4::~TpgLogicNAND4()
+TpgLogicNAND4::TpgLogicNAND4(
+  const vector<TpgNode*>& fanin_list
+) : TpgLogic4{fanin_list}
 {
 }
 
@@ -223,14 +201,9 @@ TpgLogicNAND4::noval() const
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-TpgLogicNANDN::TpgLogicNANDN(int id) :
-  TpgLogicN(id)
-{
-}
-
-// @brief デストラクタ
-TpgLogicNANDN::~TpgLogicNANDN()
+TpgLogicNANDN::TpgLogicNANDN(
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogicN{fanin_list}
 {
 }
 
@@ -282,5 +255,6 @@ TpgLogicNANDN::noval() const
 {
   return Val3::_0;
 }
+#endif
 
 END_NAMESPACE_DRUID

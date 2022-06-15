@@ -5,9 +5,8 @@
 /// @brief InputVector のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "BitVector.h"
 
@@ -26,51 +25,46 @@ class InputVector :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] len ベクタ長
   ///
   /// 内容は X で初期化される．
   explicit
-  InputVector(int len = 0);
+  InputVector(
+    int len = 0  ///< [in] ベクタ長
+  ) : BitVector(len)
+  {
+  }
 
   /// @brief コピーコンストラクタ
-  /// @param[in] src コピー元のソース
-  InputVector(const InputVector& src);
+  InputVector(
+    const InputVector& src  ///< [in] コピー元のソース
+  ) : BitVector(src)
+  {
+  }
 
   /// @brief コピー代入演算子
-  /// @param[in] src コピー元のソース
   InputVector&
-  operator=(const InputVector& src);
+  operator=(
+    const InputVector& src  ///< [in] コピー元のソース
+  )
+  {
+    BitVector::operator=(src);
+
+    return *this;
+  }
 
   /// @brief デストラクタ
-  ~InputVector();
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
+  ~InputVector() = default;
 
 };
 
 
+#if 0
 //////////////////////////////////////////////////////////////////////
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] len ベクタ長
+//< [in] len ベクタ長
 inline
 InputVector::InputVector(int len) :
   BitVector(len)
@@ -78,7 +72,7 @@ InputVector::InputVector(int len) :
 }
 
 // @brief コピーコンストラクタ
-// @param[in] src コピー元のソース
+//< [in] src コピー元のソース
 inline
 InputVector::InputVector(const InputVector& src) :
   BitVector(src)
@@ -86,7 +80,7 @@ InputVector::InputVector(const InputVector& src) :
 }
 
 // @brief コピー代入演算子
-// @param[in] src コピー元のソース
+//< [in] src コピー元のソース
 inline
 InputVector&
 InputVector::operator=(const InputVector& src)
@@ -101,6 +95,7 @@ inline
 InputVector::~InputVector()
 {
 }
+#endif
 
 END_NAMESPACE_DRUID
 

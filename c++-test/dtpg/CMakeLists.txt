@@ -23,11 +23,11 @@ include_directories(
 ym_add_gtest ( druid_dtpg_test
   dtpg_test.cc
   DtpgTest.cc
-  $<TARGET_OBJECTS:druid_common_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_ad>
-  ${YM_SUBMODULE_OBJ_AD_LIST}
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DDATAPATH=\"${CMAKE_CURRENT_SOURCE_DIR}/data/\""
   )

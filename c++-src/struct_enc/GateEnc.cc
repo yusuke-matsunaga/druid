@@ -13,6 +13,7 @@
 #include "VidMap.h"
 
 #include "ym/SatSolver.h"
+#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -42,15 +43,13 @@ GateEnc::make_cnf(const TpgNode* node)
 }
 
 // @brief ノードの入出力の関係を表すCNF式を作る．
-// @param[in] node 対象のノード
-// @param[in] ovar 出力の変数
 void
 GateEnc::make_cnf(const TpgNode* node,
-		  SatVarId ovar)
+		  SatLiteral olit)
 {
-  SatLiteral olit(ovar);
   int ni = node->fanin_num();
-  Array<const TpgNode*> fanin_array = node->fanin_list();
+  const auto& fanin_array = node->fanin_list();
+  SatTseitinEnc enc{mSolver};
   switch ( node->gate_type() ) {
   case GateType::Const0:
     mSolver.add_clause(~olit);
@@ -67,14 +66,14 @@ GateEnc::make_cnf(const TpgNode* node,
   case GateType::Buff:
     {
       SatLiteral ilit = lit(fanin_array[0]);
-      mSolver.add_eq_rel( ilit,  olit);
+      enc.add_buffgate(ilit, olit);
     }
     break;
 
   case GateType::Not:
     {
       SatLiteral ilit = lit(fanin_array[0]);
-      mSolver.add_neq_rel( ilit, olit);
+      enc.add_notgate(ilit, olit);
     }
     break;
 
@@ -84,7 +83,7 @@ GateEnc::make_cnf(const TpgNode* node,
       {
 	SatLiteral ilit0 = lit(fanin_array[0]);
 	SatLiteral ilit1 = lit(fanin_array[1]);
-	mSolver.add_andgate_rel( olit, ilit0, ilit1);
+	enc.add_andgate(olit, ilit0, ilit1);
       }
       break;
 
@@ -93,7 +92,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	SatLiteral ilit0 = lit(fanin_array[0]);
 	SatLiteral ilit1 = lit(fanin_array[1]);
 	SatLiteral ilit2 = lit(fanin_array[2]);
-	mSolver.add_andgate_rel( olit, ilit0, ilit1, ilit2);
+	enc.add_andgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
@@ -103,7 +102,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	SatLiteral ilit1 = lit(fanin_array[1]);
 	SatLiteral ilit2 = lit(fanin_array[2]);
 	SatLiteral ilit3 = lit(fanin_array[3]);
-	mSolver.add_andgate_rel( olit, ilit0, ilit1, ilit2, ilit3);
+	enc.add_andgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
@@ -114,7 +113,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	for (int i = 0; i < ni; ++ i) {
 	  ilits[i] = lit(fanin_array[i]);
 	}
-	mSolver.add_andgate_rel( olit, ilits);
+	enc.add_andgate( olit, ilits);
       }
       break;
     }
@@ -126,7 +125,7 @@ GateEnc::make_cnf(const TpgNode* node,
       {
 	SatLiteral ilit0 = lit(fanin_array[0]);
 	SatLiteral ilit1 = lit(fanin_array[1]);
-	mSolver.add_nandgate_rel( olit, ilit0, ilit1);
+	enc.add_nandgate( olit, ilit0, ilit1);
       }
       break;
 
@@ -135,7 +134,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	SatLiteral ilit0 = lit(fanin_array[0]);
 	SatLiteral ilit1 = lit(fanin_array[1]);
 	SatLiteral ilit2 = lit(fanin_array[2]);
-	mSolver.add_nandgate_rel( olit, ilit0, ilit1, ilit2);
+	enc.add_nandgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
@@ -145,7 +144,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	SatLiteral ilit1 = lit(fanin_array[1]);
 	SatLiteral ilit2 = lit(fanin_array[2]);
 	SatLiteral ilit3 = lit(fanin_array[3]);
-	mSolver.add_nandgate_rel( olit, ilit0, ilit1, ilit2, ilit3);
+	enc.add_nandgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
@@ -156,7 +155,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	for (int i = 0; i < ni; ++ i) {
 	  ilits[i] = lit(fanin_array[i]);
 	}
-	mSolver.add_nandgate_rel( olit, ilits);
+	enc.add_nandgate( olit, ilits);
       }
       break;
     }
@@ -168,7 +167,7 @@ GateEnc::make_cnf(const TpgNode* node,
       {
 	SatLiteral ilit0 = lit(fanin_array[0]);
 	SatLiteral ilit1 = lit(fanin_array[1]);
-	mSolver.add_orgate_rel( olit, ilit0, ilit1);
+	enc.add_orgate( olit, ilit0, ilit1);
       }
       break;
 
@@ -177,7 +176,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	SatLiteral ilit0 = lit(fanin_array[0]);
 	SatLiteral ilit1 = lit(fanin_array[1]);
 	SatLiteral ilit2 = lit(fanin_array[2]);
-	mSolver.add_orgate_rel( olit, ilit0, ilit1, ilit2);
+	enc.add_orgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
@@ -187,7 +186,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	SatLiteral ilit1 = lit(fanin_array[1]);
 	SatLiteral ilit2 = lit(fanin_array[2]);
 	SatLiteral ilit3 = lit(fanin_array[3]);
-	mSolver.add_orgate_rel( olit, ilit0, ilit1, ilit2, ilit3);
+	enc.add_orgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
@@ -198,7 +197,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	for (int i = 0; i < ni; ++ i) {
 	  ilits[i] = lit(fanin_array[i]);
 	}
-	mSolver.add_orgate_rel( olit, ilits);
+	enc.add_orgate( olit, ilits);
       }
       break;
     }
@@ -210,7 +209,7 @@ GateEnc::make_cnf(const TpgNode* node,
       {
 	SatLiteral ilit0 = lit(fanin_array[0]);
 	SatLiteral ilit1 = lit(fanin_array[1]);
-	mSolver.add_norgate_rel( olit, ilit0, ilit1);
+	enc.add_norgate( olit, ilit0, ilit1);
       }
       break;
 
@@ -219,7 +218,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	SatLiteral ilit0 = lit(fanin_array[0]);
 	SatLiteral ilit1 = lit(fanin_array[1]);
 	SatLiteral ilit2 = lit(fanin_array[2]);
-	mSolver.add_norgate_rel( olit, ilit0, ilit1, ilit2);
+	enc.add_norgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
@@ -229,7 +228,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	SatLiteral ilit1 = lit(fanin_array[1]);
 	SatLiteral ilit2 = lit(fanin_array[2]);
 	SatLiteral ilit3 = lit(fanin_array[3]);
-	mSolver.add_norgate_rel( olit, ilit0, ilit1, ilit2, ilit3);
+	enc.add_norgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
@@ -240,7 +239,7 @@ GateEnc::make_cnf(const TpgNode* node,
 	for (int i = 0; i < ni; ++ i) {
 	  ilits[i] = lit(fanin_array[i]);
 	}
-	mSolver.add_norgate_rel( olit, ilits);
+	enc.add_norgate( olit, ilits);
       }
       break;
     }
@@ -251,7 +250,7 @@ GateEnc::make_cnf(const TpgNode* node,
     {
       SatLiteral ilit0 = lit(fanin_array[0]);
       SatLiteral ilit1 = lit(fanin_array[1]);
-      mSolver.add_xorgate_rel( olit, ilit0, ilit1);
+      enc.add_xorgate( olit, ilit0, ilit1);
     }
     break;
 
@@ -260,7 +259,7 @@ GateEnc::make_cnf(const TpgNode* node,
     {
       SatLiteral ilit0 = lit(fanin_array[0]);
       SatLiteral ilit1 = lit(fanin_array[1]);
-      mSolver.add_xnorgate_rel( olit, ilit0, ilit1);
+      enc.add_xnorgate( olit, ilit0, ilit1);
     }
     break;
 

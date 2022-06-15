@@ -6,10 +6,10 @@
 /// Copyright (C) 2016, 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgPPI.h"
+#include "TpgInput.h"
+#include "TpgDffOutput.h"
 #include "GateType.h"
-
 
 
 BEGIN_NAMESPACE_DRUID
@@ -19,17 +19,11 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] input_id 入力番号
-TpgPPI::TpgPPI(int id,
-	       int input_id) :
-  TpgNode(id),
-  mInputId(input_id)
-{
-}
-
-// @brief デストラクタ
-TpgPPI::~TpgPPI()
+TpgPPI::TpgPPI(
+  int input_id,
+  SizeType fanout_num
+) : TpgNode{{}, fanout_num},
+    mInputId{input_id}
 {
 }
 
@@ -65,27 +59,56 @@ TpgPPI::gate_type() const
   return GateType::Input;
 }
 
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgPPI::fanin_list() const
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgInput
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgInput::TpgInput(
+  int input_id,
+    SizeType fanout_num
+) : TpgPPI{input_id, fanout_num}
 {
-  return Array<const TpgNode*>(nullptr, 0, 0);
 }
 
-// @brief ファンイン数を得る．
-int
-TpgPPI::fanin_num() const
+// @brief 外部入力タイプの時 true を返す．
+bool
+TpgInput::is_primary_input() const
 {
-  return 0;
+  return true;
 }
 
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-TpgNode*
-TpgPPI::fanin(int pos) const
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgDffOutput
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgDffOutput::TpgDffOutput(
+  int input_id,
+  SizeType fanout_num,
+  const TpgDff* dff
+) : TpgPPI{input_id, fanout_num},
+    mDff{dff}
 {
-  ASSERT_NOT_REACHED;
-  return nullptr;
+}
+
+// @brief DFF の出力に接続している外部入力タイプの時 true を返す．
+bool
+TpgDffOutput::is_dff_output() const
+{
+  return true;
+}
+
+// @brief 接続している DFF を返す．
+//
+// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
+// の時に意味を持つ．
+const TpgDff*
+TpgDffOutput::dff() const
+{
+  return mDff;
 }
 
 END_NAMESPACE_DRUID

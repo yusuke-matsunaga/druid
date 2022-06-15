@@ -5,9 +5,8 @@
 /// @brief FaultStatusMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "FaultStatus.h"
@@ -24,8 +23,9 @@ class FaultStatusMgr
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] network 対象のネットワーク
-  FaultStatusMgr(const TpgNetwork& network);
+  FaultStatusMgr(
+    const TpgNetwork& network  ///< [in] 対象のネットワーク
+  );
 
   /// @brief デストラクタ
   ~FaultStatusMgr();
@@ -37,15 +37,17 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障の状態をセットする．
-  /// @param[in] fault 故障
-  /// @param[in] status 故障の状態
   void
-  set(const TpgFault* fault,
-      FaultStatus status);
+  set(
+    const TpgFault* fault, ///< [in] 故障
+    FaultStatus status	   ///< [in] 故障の状態
+  );
 
   /// @brief 故障の状態を得る．
   FaultStatus
-  get(const TpgFault* fault) const;
+  get(
+    const TpgFault* fault ///< [in] 故障
+  ) const;
 
 
 private:

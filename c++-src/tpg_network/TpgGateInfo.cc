@@ -43,8 +43,8 @@ extra_node_count(const Expr& expr,
   // まず入力部分に挿入されるノード数を数える．
   int n = 0;
   for ( int i: Range(ni) ) {
-    int p_num = expr.litnum(VarId(i), false);
-    int n_num = expr.litnum(VarId(i), true);
+    int p_num = expr.literal_num(VarId(i), false);
+    int n_num = expr.literal_num(VarId(i), true);
     ASSERT_COND( p_num > 0 || n_num > 0 );
     if ( n_num == 0 ) {
       if ( p_num > 1 ) {
@@ -238,7 +238,7 @@ Expr
 SimpleGateInfo::expr() const
 {
   // ダミー
-  return Expr::invalid();
+  return Expr::make_invalid();
 }
 
 // @brief 追加ノード数を返す．

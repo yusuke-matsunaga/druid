@@ -5,7 +5,7 @@
 /// @brief BitVectorRep のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -43,24 +43,26 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ベクタ長を指定してオブジェクトを作る．
-  /// @param[in] len ベクタ長
   ///
   /// 内容は X に初期化される．
   static
   BitVectorRep*
-  new_vector(int len);
+  new_vector(
+    int len  ///< [in] ベクタ長
+  );
 
   /// @brief 内容をコピーする．
-  /// @param[in] src コピー元のオブジェクト
   static
   BitVectorRep*
-  new_vector(const BitVectorRep& src);
+  new_vector(
+    const BitVectorRep& src  ///< [in] コピー元のオブジェクト
+  );
 
 
 public:
 
   /// @brief デストラクタ
-  ~BitVectorRep();
+  ~BitVectorRep() = default;
 
 
 public:
@@ -70,58 +72,78 @@ public:
 
   /// @brief ベクタ長を返す．
   int
-  len() const;
+  len() const
+  {
+    return mLength;
+  }
 
   /// @brief 値を得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < len() )
   Val3
-  val(int pos) const;
+  val(
+    int pos  ///< [in] 位置番号 ( 0 <= pos < len() )
+  ) const
+  {
+    ASSERT_COND( pos < len() );
+
+    int shift = shift_num(pos);
+    int block0 = block_idx(pos);
+    int block1 = block0 + 1;
+    int v0 = (mPat[block0] >> shift) & 1UL;
+    int v1 = (mPat[block1] >> shift) & 1UL;
+    int tmp = v0 + v0 + v1;
+    return static_cast<Val3>((v0 + v0 + v1) ^ 3);
+  }
 
   /// @brief X の個数を得る．
   int
   x_count() const;
 
   /// @brief 2つのビットベクタの等価比較を行う．
-  /// @param[in] bv1, bv2 対象のビットベクタ
   /// @return 2つのビットベクタが等しい時 true を返す．
   static
   bool
-  is_eq(const BitVectorRep& bv1,
-	const BitVectorRep& bv2);
+  is_eq(
+    const BitVectorRep& bv1, ///< [in] オペランド1
+    const BitVectorRep& bv2  ///< [in] オペランド2
+  );
 
   /// @brief 2つのビットベクタの包含関係を調べる．
-  /// @param[in] bv1, bv2 対象のビットベクタ
   /// @return bv1 が真に bv2 に含まれる時 true を返す．
   static
   bool
-  is_lt(const BitVectorRep& bv1,
-	const BitVectorRep& bv2);
+  is_lt(
+    const BitVectorRep& bv1, ///< [in] オペランド1
+    const BitVectorRep& bv2  ///< [in] オペランド2
+  );
 
   /// @brief 2つのビットベクタの包含関係を調べる．
-  /// @param[in] bv1, bv2 対象のビットベクタ
   /// @return bv1 が bv2 に含まれる時 true を返す．
   ///
   /// こちらは bv1 と bv2 が等しい場合も true を返す．
   static
   bool
-  is_le(const BitVectorRep& bv1,
-	const BitVectorRep& bv2);
+  is_le(
+    const BitVectorRep& bv1, ///< [in] オペランド1
+    const BitVectorRep& bv2  ///< [in] オペランド2
+  );
 
   /// @brief 2つのベクタが両立している時 true を返す．
-  /// @param[in] bv1, bv2 対象のビットベクタ
   ///
   /// 同じビット位置にそれぞれ 0 と 1 を持つ場合が両立しない場合．
   static
   bool
-  is_compat(const BitVectorRep& bv1,
-	    const BitVectorRep& bv2);
+  is_compat(
+    const BitVectorRep& bv1, ///< [in] オペランド1
+    const BitVectorRep& bv2  ///< [in] オペランド2
+  );
 
   /// @brief 内容を BIN 形式で表す．
   string
   bin_str() const;
 
   /// @brief 内容を HEX 形式で表す．
-  /// @note X を含む場合の出力は不定
+  ///
+  /// X を含む場合の出力は不定
   string
   hex_str() const;
 
@@ -136,14 +158,34 @@ public:
   init();
 
   /// @brief 値を設定する．
-  /// @param[in] pos 位置番号 ( 0 <= pos < len() )
-  /// @param[in] val 値
   void
-  set_val(int pos,
-	  Val3 val);
+  set_val(
+    int pos, ///< [in] 位置番号 ( 0 <= pos < len() )
+    Val3 val ///< [in] 値
+  )
+  {
+    ASSERT_COND( pos < len() );
+
+    int shift = shift_num(pos);
+    int block0 = block_idx(pos);
+    int block1 = block0 + 1;
+    PackedVal mask = 1UL << shift;
+    switch ( val ) {
+    case Val3::_0:
+      mPat[block0] |=  mask;
+      mPat[block1] &= ~mask;
+      break;
+    case Val3::_1:
+      mPat[block0] &= ~mask;
+      mPat[block1] |=  mask;
+      break;
+    case Val3::_X:
+      mPat[block0] |=  mask;
+      mPat[block1] |=  mask;
+    }
+  }
 
   /// @brief BIN文字列から内容を設定する．
-  /// @param[in] bin_string BIN文字列
   /// @retval true 適切に設定された．
   /// @retval false bin_string に不適切な文字が含まれていた．
   ///
@@ -151,10 +193,11 @@ public:
   /// - bin_string がベクタ長より長い時には余りは切り捨てられる．
   /// - 有効な文字は '0', '1', 'x', 'X'
   bool
-  set_from_bin(const string& bin_string);
+  set_from_bin(
+    const string& bin_string  ///< [in] BIN文字列
+  );
 
   /// @brief HEX文字列から内容を設定する．
-  /// @param[in] hex_string HEX 文字列
   /// @retval true 適切に設定された．
   /// @retval false hex_string に不適切な文字が含まれていた．
   ///
@@ -163,26 +206,69 @@ public:
   /// - 有効な文字は '0'〜'9', 'a'〜'f', 'A'〜'F'
   /// - この形式は X を扱えない．
   bool
-  set_from_hex(const string& hex_string);
+  set_from_hex(
+    const string& hex_string  ///< [in] HEX 文字列
+  );
 
   /// @brief 乱数パタンを設定する．
-  /// @param[in] randgen 乱数生成器
   ///
   /// - 結果はかならず 0 か 1 になる．(Xは含まれない)
   template<class URNG>
   void
-  set_from_random(URNG& randgen);
+  set_from_random(
+    URNG& randgen  ///< [in] 乱数生成器
+  )
+  {
+    std::uniform_int_distribution<PackedVal> rd;
+    int nb = block_num(len());
+    for ( int i = 0; i < nb; i += 2 ) {
+      PackedVal v = rd(randgen);
+      int i0 = i;
+      int i1 = i + 1;
+      if ( i == nb - 2 ) {
+	mPat[i0] = ~v & mMask;
+	mPat[i1] =  v & mMask;
+      }
+      else {
+	mPat[i0] = ~v;
+	mPat[i1] =  v;
+      }
+    }
+  }
 
   /// @brief X の部分を乱数で 0/1 に設定する．
-  /// @param[in] randgen 乱数生成器
   template<class URNG>
   void
-  fix_x_from_random(URNG& randgen);
+  fix_x_from_random(
+    URNG& randgen  ///< [in] 乱数生成器
+  )
+  {
+    std::uniform_int_distribution<PackedVal> rd;
+    int nb = block_num(len());
+    for ( int i = 0; i < nb; i += 2 ) {
+      int i0 = i;
+      int i1 = i + 1;
+      // X のビットマスク
+      PackedVal xmask = mPat[i0] & mPat[i1];
+      if ( i == nb - 2 ) {
+	xmask &= mMask;
+      }
+      if ( xmask == kPvAll0 ) {
+	continue;
+      }
+      PackedVal v = rd(randgen);
+      mPat[i0] &= ~(~v & xmask);
+      mPat[i1] &= ~( v & xmask);
+    }
+  }
 
   /// @breif ビットベクタをマージする．
-  /// @note X 以外で相異なるビットがあったら false を返す．
+  ///
+  /// X 以外で相異なるビットがあったら false を返す．
   bool
-  merge(const BitVectorRep& src);
+  merge(
+    const BitVectorRep& src ///< [in] オペランド
+  );
 
 
 private:
@@ -191,28 +277,44 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ブロック数を返す．
-  /// @param[in] length ベクタ長
   static
   int
-  block_num(int length);
+  block_num(
+    int length  ///< [in] ベクタ長
+  )
+  {
+    return ((length + kPvBitLen - 1) / kPvBitLen) * 2;
+  }
 
   /// @brief HEX文字列の長さを返す．
-  /// @param[in] length ベクタ長
   static
   int
-  hex_length(int length);
+  hex_length(
+    int length  ///< [in] ベクタ長
+  )
+  {
+    return (length + 3) / 4;
+  }
 
   // 位置からブロック番号を得る．
-  /// @param[in] pos 位置番号
   static
   int
-  block_idx(int pos);
+  block_idx(
+    int pos  ///< [in] 位置番号
+  )
+  {
+    return (pos / kPvBitLen) * 2;
+  }
 
   // 位置からシフト量を得る．
-  /// @param[in] pos 位置番号
   static
   int
-  shift_num(int pos);
+  shift_num(
+    int pos  ///< [in] 位置番号
+  )
+  {
+    return pos % kPvBitLen;
+  }
 
 
 private:
@@ -221,8 +323,9 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief コンストラクタ
-  /// @param[in] length ベクタ長
-  BitVectorRep(int length);
+  BitVectorRep(
+    int length  ///< [in] ベクタ長
+  );
 
 
 private:
@@ -253,20 +356,28 @@ private:
 
 /// @relates BitVectorRep
 /// @brief 内容を出力する．
-/// @param[in] s 出力先のストリーム
-/// @param[in] bv ビットベクタ
+inline
 ostream&
-operator<<(ostream& s,
-	   const BitVectorRep& bv);
+operator<<(
+  ostream& s,            ///< [in] 出力先のストリーム
+  const BitVectorRep& bv ///< [in] ビットベクタ
+)
+{
+  return s << bv.bin_str();
+}
 
 /// @brief 内容を出力する．
-/// @param[in] s 出力先のストリーム
-/// @param[in] bvp ビットベクタへのポインタ
+inline
 ostream&
-operator<<(ostream& s,
-	   const BitVectorRep* bvp);
+operator<<(
+  ostream& s,             ///< [in] 出力先のストリーム
+  const BitVectorRep* bvp ///< [in] ビットベクタへのポインタ
+)
+{
+  return s << bvp->bin_str();
+}
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
@@ -286,7 +397,7 @@ BitVectorRep::len() const
 }
 
 // @brief 値を得る．
-// @param[in] pos 位置番号 ( 0 <= pos < len() )
+//< [in] pos 位置番号 ( 0 <= pos < len() )
 inline
 Val3
 BitVectorRep::val(int pos) const
@@ -330,7 +441,7 @@ BitVectorRep::set_val(int pos,
 }
 
 // @brief 乱数パタンを設定する．
-// @param[in] randgen 乱数生成器
+//< [in] randgen 乱数生成器
 template<class URNG>
 inline
 void
@@ -354,7 +465,7 @@ BitVectorRep::set_from_random(URNG& randgen)
 }
 
 // @brief X の部分を乱数で 0/1 に設定する．
-// @param[in] randgen 乱数生成器
+//< [in] randgen 乱数生成器
 template<class URNG>
 inline
 void
@@ -428,6 +539,7 @@ operator<<(ostream& s,
 {
   return s << bvp->bin_str();
 }
+#endif
 
 END_NAMESPACE_DRUID
 

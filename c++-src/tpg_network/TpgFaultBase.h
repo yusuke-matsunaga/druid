@@ -25,16 +25,13 @@ class TpgFaultBase :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] name 故障位置のノード名
-  /// @param[in] val 故障値
-  /// @param[in] node 故障位置のノード
-  /// @param[in] rep_fault 代表故障
-  TpgFaultBase(int id,
-	       int val,
-	       const TpgNode* node,
-	       const char* name,
-	       TpgFault* rep_fault);
+  TpgFaultBase(
+    int id,              ///< [in] ID番号
+    int val,		 ///< [in] 故障位置のノード名
+    const TpgNode* node, ///< [in] 故障値
+    const string& name,	 ///< [in] 故障位置のノード
+    TpgFault* rep_fault	 ///< [in] 代表故障
+  );
 
   /// @brief デストラクタ
   ~TpgFaultBase();
@@ -67,9 +64,10 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 代表故障を設定する．
-  /// @param[in] rep 代表故障
   void
-  set_rep(const TpgFault* rep);
+  set_rep(
+    const TpgFault* rep  ///< [in] 代表故障
+  );
 
 
 protected:
@@ -79,11 +77,17 @@ protected:
 
   /// @brief ノードを返す．
   const TpgNode*
-  tpg_node() const;
+  tpg_node() const
+  {
+    return mTpgNode;
+  }
 
   /// @brief ノード名を返す．
-  const char*
-  node_name() const;
+  const string&
+  node_name() const
+  {
+    return mNodeName;
+  }
 
 
 private:
@@ -98,33 +102,12 @@ private:
   const TpgNode* mTpgNode;
 
   // ノード名
-  const char* mNodeName;
+  const string mNodeName;
 
   // 代表故障
   const TpgFault* mRepFault;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief ノードを返す．
-inline
-const TpgNode*
-TpgFaultBase::tpg_node() const
-{
-  return mTpgNode;
-}
-
-// @brief ノード名を返す．
-inline
-const char*
-TpgFaultBase::node_name() const
-{
-  return mNodeName;
-}
 
 END_NAMESPACE_DRUID
 

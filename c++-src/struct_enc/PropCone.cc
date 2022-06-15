@@ -21,7 +21,7 @@ NodeValList
 extract(const TpgNode*,
 	const VidMap&,
 	const VidMap&,
-	const vector<SatBool3>&);
+	const SatModel&);
 
 END_NAMESPACE_DRUID
 
@@ -107,13 +107,13 @@ PropCone::make_vars()
   // TFO のノードに変数を割り当てる．
   for (int i = 0; i < mNodeList.size(); ++ i) {
     const TpgNode* node = mNodeList[i];
-    SatVarId fvar = solver().new_variable();
+    auto fvar = solver().new_variable();
     set_fvar(node, fvar);
     if ( debug ) {
       cout << "fvar(Node#" << node->id() << ") = " << fvar << endl;
     }
     if ( mDetect ) {
-      SatVarId dvar = solver().new_variable();
+      auto dvar = solver().new_variable();
       set_dvar(node, dvar);
     }
 #if 0
@@ -192,12 +192,11 @@ PropCone::make_cnf()
 }
 
 // @brief 故障検出に必要な割り当てを求める．
-// @param[in] model SAT のモデル
-// @param[in] root 起点のノード
-// @param[out] 値の割り当て結果を入れるリスト
 NodeValList
-PropCone::extract(const vector<SatBool3>& model,
-		  const TpgNode* root)
+PropCone::extract(
+  const SatModel& model,
+  const TpgNode* root
+)
 {
   return nsYm::nsDruid::extract(root, gvar_map(), fvar_map(), model);
 }

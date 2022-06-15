@@ -14,6 +14,7 @@
 #include "VidMap.h"
 #include "NodeValList.h"
 #include "Val3.h"
+#include "ym/SatModel.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -30,7 +31,7 @@ public:
   /// @param[in] var_map 変数番号のマップ
   /// @param[in] model SATソルバの作ったモデル
   JustData(const VidMap& var_map,
-	   const vector<SatBool3>& model);
+	   const SatModel& model);
 
   /// @brief コンストラクタ(遷移故障用)
   /// @param[in] var1_map 1時刻目の変数番号のマップ
@@ -38,7 +39,7 @@ public:
   /// @param[in] model SATソルバの作ったモデル
   JustData(const VidMap& var1_map,
 	   const VidMap& var2_map,
-	   const vector<SatBool3>& model);
+	   const SatModel& model);
 
   /// @brief デストラクタ
   ~JustData();
@@ -81,7 +82,7 @@ private:
   const VidMap& mVar1Map;
 
   // SAT ソルバの解
-  const vector<SatBool3>& mSatModel;
+  const SatModel& mSatModel;
 
   // 遷移故障モード
   bool mTdMode;
@@ -98,7 +99,7 @@ private:
 // @param[in] model SATソルバの作ったモデル
 inline
 JustData::JustData(const VidMap& var_map,
-		   const vector<SatBool3>& model) :
+		   const SatModel& model) :
   mVar0Map(var_map),
   mVar1Map(var_map),
   mSatModel(model),
@@ -113,7 +114,7 @@ JustData::JustData(const VidMap& var_map,
 inline
 JustData::JustData(const VidMap& var0_map,
 		   const VidMap& var1_map,
-		   const vector<SatBool3>& model) :
+		   const SatModel& model) :
   mVar0Map(var0_map),
   mVar1Map(var1_map),
   mSatModel(model),
@@ -144,7 +145,7 @@ JustData::val(const TpgNode* node,
 	      int time) const
 {
   const VidMap& varmap = (time == 0) ? mVar0Map : mVar1Map;
-  return bool3_to_val3(mSatModel[varmap(node).val()]);
+  return bool3_to_val3(mSatModel[varmap(node)]);
 }
 
 // @brief 入力ノードの値を記録する．

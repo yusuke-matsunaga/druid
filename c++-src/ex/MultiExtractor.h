@@ -5,17 +5,16 @@
 /// @brief MultiExtractor のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2014, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2014, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "NodeValList.h"
 #include "VidMap.h"
 #include "Val3.h"
 #include "ym/Expr.h"
-#include "ym/HashSet.h"
 #include "ym/SatBool3.h"
+#include "ym/SatModel.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -39,12 +38,11 @@ class MultiExtractor
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] gvar_map 正常値の変数番号のマップ
-  /// @param[in] fvar_map 故障値の変数番号のマップ
-  /// @param[in] model SATソルバの作ったモデル
-  MultiExtractor(const VidMap& gvar_map,
-		 const VidMap& fvar_map,
-		 const vector<SatBool3>& model);
+  MultiExtractor(
+    const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
+    const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
+    const SatModel& model   ///< [in] SATソルバの作ったモデル
+  );
 
   /// @brief デストラクタ
   ~MultiExtractor();
@@ -56,10 +54,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 各出力へ故障伝搬する値割り当てを求める．
-  /// @param[in] root 起点となるノード
   /// @return 複数の値割り当てを表す論理式を返す．
   Expr
-  get_assignments(const TpgNode* root);
+  get_assignments(
+    const TpgNode* root  ///< [in] 起点となるノード
+  );
 
 
 private:
@@ -69,40 +68,61 @@ private:
 
   /// @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
   void
-  mark_tfo(const TpgNode* node);
+  mark_tfo(
+    const TpgNode* node
+  );
 
   /// @brief 故障の影響を伝搬する値割当を求める．
-  /// @param[in] node 対象のノード
   /// @return 値割り当てを表す論理式
   ///
   /// node は TFO 内のノードでかつ故障差が伝搬している．
   Expr
-  record_sensitized_node(const TpgNode* node);
+  record_sensitized_node(
+    const TpgNode* node  ///< [in] 対象のノード
+  );
 
   /// @brief 故障の影響の伝搬を阻害する値割当を求める．
-  /// @param[in] node 対象のノード
   /// @return 値割り当てを表す論理式
   ///
   /// node は TFO 内のノードかつ故障差が伝搬していない．
   Expr
-  record_masking_node(const TpgNode* node);
+  record_masking_node(
+    const TpgNode* node  ///< [in] 対象のノード
+  );
 
   /// @brief side input の値を記録する．
-  /// @param[in] node 対象のノード
   ///
   /// node は TFO 外のノード
   Expr
-  record_side_input(const TpgNode* node);
+  record_side_input(
+    const TpgNode* node  ///< [in] 対象のノード
+  )
+  {
+    ASSERT_COND( mFconeMark.count(node->id()) == 0 );
+
+    VarId var(node->id());
+    bool inv = (gval(node) == Val3::_0); // 0 の時に inv = true
+
+    return Expr::make_literal(var, inv);
+  }
 
   /// @brief 正常回路の値を返す．
-  /// @param[in] node ノード
   Val3
-  gval(const TpgNode* node);
+  gval(
+    const TpgNode* node ///< [in] 対象のノード
+  )
+  {
+    return bool3_to_val3(mSatModel[mGvarMap(node)]);
+  }
 
   /// @brief 故障回路の値を返す．
-  /// @param[in] node ノード
   Val3
-  fval(const TpgNode* node);
+  fval(
+    const TpgNode* node ///< [in] 対象のノード
+  )
+  {
+    return bool3_to_val3(mSatModel[mFvarMap(node)]);
+  }
 
 
 private:
@@ -117,55 +137,18 @@ private:
   const VidMap& mFvarMap;
 
   // SAT ソルバの解
-  const vector<SatBool3>& mSatModel;
+  const SatModel& mSatModel;
 
   // 故障の fanout cone のマーク
-  HashSet<int> mFconeMark;
+  unordered_set<int> mFconeMark;
 
   // 記録したノードの結果を格納するハッシュ表
-  HashMap<int, Expr> mExprMap;
+  unordered_map<int, Expr> mExprMap;
 
   // 故障差の伝搬している外部出力のリスト
   vector<const TpgNode*> mSpoList;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief side input の値を記録する．
-// @param[in] node 対象のノード
-inline
-Expr
-MultiExtractor::record_side_input(const TpgNode* node)
-{
-  ASSERT_COND( !mFconeMark.check(node->id()) );
-
-  VarId var(node->id());
-  bool inv = (gval(node) == Val3::_0); // 0 の時に inv = true
-
-  return Expr::literal(var, inv);
-}
-
-// @brief 正常回路の値を返す．
-// @param[in] node ノード
-inline
-Val3
-MultiExtractor::gval(const TpgNode* node)
-{
-  return bool3_to_val3(mSatModel[mGvarMap(node).val()]);
-}
-
-// @brief 故障回路の値を返す．
-// @param[in] node ノード
-inline
-Val3
-MultiExtractor::fval(const TpgNode* node)
-{
-  return bool3_to_val3(mSatModel[mFvarMap(node).val()]);
-}
 
 END_NAMESPACE_DRUID
 

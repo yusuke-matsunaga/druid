@@ -22,7 +22,7 @@
 #include "ym/SatBool3.h"
 #include "ym/SatLiteral.h"
 #include "ym/SatSolver.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 #include "VidMap.h"
 
@@ -80,7 +80,7 @@ public:
 		      vector<SatLiteral>& assumptions);
 
   /// @brief SATソルバに変数を割り当てる．
-  SatVarId
+  SatLiteral
   new_variable();
 
   /// @brief SATソルバに節を追加する．
@@ -94,8 +94,7 @@ public:
   ///
   /// mSolver.solve() を呼び出すだけだが統計情報の更新を行っている．
   SatBool3
-  solve(const vector<SatLiteral>& assumptions,
-	vector<SatBool3>& model);
+  solve(const vector<SatLiteral>& assumptions);
 
 
 protected:
@@ -124,7 +123,7 @@ protected:
   timer_start();
 
   /// @brief 時間計測を終了する．
-  USTime
+  double
   timer_stop();
 
   /// @brief SATソルバを返す．
@@ -133,23 +132,23 @@ protected:
 
   /// @brief 1時刻前の正常値の変数を返す．
   /// @param[in] node 対象のノード
-  SatVarId
+  SatLiteral
   hvar(const TpgNode* node);
 
   /// @brief 正常値の変数を返す．
   /// @param[in] node 対象のノード
-  SatVarId
+  SatLiteral
   gvar(const TpgNode* node);
 
   /// @brief 故障値の変数を返す．
   /// @param[in] node 対象のノード
-  SatVarId
+  SatLiteral
   fvar(const TpgNode* node,
        int pos);
 
   /// @brief 伝搬条件の変数を返す．
   /// @param[in] node 対象のノード
-  SatVarId
+  SatLiteral
   dvar(const TpgNode* node);
 
   /// @brief 1時刻前の正常値の変数を設定する．
@@ -157,21 +156,21 @@ protected:
   /// @param[in] var 設定する変数
   void
   set_hvar(const TpgNode* node,
-	   SatVarId var);
+	   SatLiteral var);
 
   /// @brief 正常値の変数を設定する．
   /// @param[in] node 対象のノード
   /// @param[in] var 設定する変数
   void
   set_gvar(const TpgNode* node,
-	   SatVarId var);
+	   SatLiteral var);
 
   /// @brief 故障値値の変数を設定する．
   /// @param[in] node 対象のノード
   /// @param[in] var 設定する変数
   void
   set_fvar(const TpgNode* node,
-	   SatVarId var,
+	   SatLiteral var,
 	   int pos);
 
   /// @brief 故障伝搬条件の変数を設定する．
@@ -179,7 +178,7 @@ protected:
   /// @param[in] var 設定する変数
   void
   set_dvar(const TpgNode* node,
-	   SatVarId var);
+	   SatLiteral var);
 
   /// @brief 1時刻前の正常値の変数マップを返す．
   const VidMap&
@@ -319,7 +318,7 @@ private:
   bool mTimerEnable;
 
   // 時間計測用のタイマー
-  StopWatch mTimer;
+  Timer mTimer;
 
 };
 
@@ -338,7 +337,7 @@ DomChecker::stats() const
 
 // @brief SATソルバに変数を割り当てる．
 inline
-SatVarId
+SatLiteral
 DomChecker::new_variable()
 {
   return solver().new_variable();
@@ -387,10 +386,10 @@ DomChecker::root_node(int pos) const
 // @brief 1時刻前の正常値の変数を返す．
 // @param[in] node 対象のノード
 inline
-SatVarId
+SatLiteral
 DomChecker::hvar(const TpgNode* node)
 {
-  ASSERT_COND( mHvarMap(node) != kSatVarIdIllegal );
+  ASSERT_COND( mHvarMap(node) != kSatLiteralX );
 
   return mHvarMap(node);
 }
@@ -398,7 +397,7 @@ DomChecker::hvar(const TpgNode* node)
 // @brief 正常値の変数を返す．
 // @param[in] node 対象のノード
 inline
-SatVarId
+SatLiteral
 DomChecker::gvar(const TpgNode* node)
 {
   return mGvarMap(node);
@@ -407,7 +406,7 @@ DomChecker::gvar(const TpgNode* node)
 // @brief 故障値の変数を返す．
 // @param[in] node 対象のノード
 inline
-SatVarId
+SatLiteral
 DomChecker::fvar(const TpgNode* node,
 		 int pos)
 {
@@ -417,7 +416,7 @@ DomChecker::fvar(const TpgNode* node,
 // @brief 伝搬条件の変数を返す．
 // @param[in] node 対象のノード
 inline
-SatVarId
+SatLiteral
 DomChecker::dvar(const TpgNode* node)
 {
   return mDvarMap(node);
@@ -429,7 +428,7 @@ DomChecker::dvar(const TpgNode* node)
 inline
 void
 DomChecker::set_hvar(const TpgNode* node,
-		     SatVarId var)
+		     SatLiteral var)
 {
   mHvarMap.set_vid(node, var);
 }
@@ -440,7 +439,7 @@ DomChecker::set_hvar(const TpgNode* node,
 inline
 void
 DomChecker::set_gvar(const TpgNode* node,
-		     SatVarId var)
+		     SatLiteral var)
 {
   mGvarMap.set_vid(node, var);
 }
@@ -451,7 +450,7 @@ DomChecker::set_gvar(const TpgNode* node,
 inline
 void
 DomChecker::set_fvar(const TpgNode* node,
-		     SatVarId var,
+		     SatLiteral var,
 		     int pos)
 {
   mFvarMap[pos].set_vid(node, var);
@@ -463,7 +462,7 @@ DomChecker::set_fvar(const TpgNode* node,
 inline
 void
 DomChecker::set_dvar(const TpgNode* node,
-		     SatVarId var)
+		     SatLiteral var)
 {
   mDvarMap.set_vid(node, var);
 }

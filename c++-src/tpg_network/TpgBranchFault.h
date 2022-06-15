@@ -23,22 +23,16 @@ class TpgBranchFault :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] val 故障値
-  /// @param[in] onode 出力側の TpgNode
-  /// @param[in] name ノード名
-  /// @param[in] pos 故障の入力位置
-  /// @param[in] inode 入力側の TpgNode
-  /// @param[in] tpg_pos onode 上の故障位置
-  /// @param[in] rep_fault 代表故障
-  TpgBranchFault(int id,
-		 int val,
-		 const TpgNode* onode,
-		 const char* name,
-		 int pos,
-		 const TpgNode* inode,
-		 int tpg_pos,
-		 TpgFault* rep_fault);
+  TpgBranchFault(
+    int id,               ///< [in] ID番号
+    int val,              ///< [in] 故障値
+    const TpgNode* onode, ///< [in] 出力側の TpgNode
+    const string& name,	  ///< [in] ノード名
+    int pos,		  ///< [in] 故障の入力位置
+    const TpgNode* inode, ///< [in] 入力側の TpgNode
+    int tpg_pos,	  ///< [in] onode 上の故障位置
+    TpgFault* rep_fault	  ///< [in] 代表故障
+  );
 
   /// @brief デストラクタ
   ~TpgBranchFault();

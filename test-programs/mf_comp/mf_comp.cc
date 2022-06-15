@@ -13,9 +13,7 @@
 #include "TpgFault.h"
 #include "TpgNode.h"
 #include "MF_FaultComp.h"
-#include "ym/HashSet.h"
 #include "ym/Range.h"
-#include "ym/StopWatch.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -32,7 +30,7 @@ ffr_decomp(const TpgNetwork& network,
   vector<const TpgNode*> node_stack;
   vector<const TpgNode*> node_list;
   vector<const TpgFault*> fault_list;
-  HashSet<int> node_mark;
+  unordered_set<int> node_mark;
 
   node_stack.push_back(root);
   while ( !node_stack.empty() ) {
@@ -50,7 +48,7 @@ ffr_decomp(const TpgNetwork& network,
       }
       node_stack.pop_back();
       node_list.push_back(node);
-      node_mark.add(node->id());
+      node_mark.emplace(node->id());
 
       for ( auto inode: node->fanin_list() ) {
 	if ( inode->ffr_root() != inode ) {
@@ -66,9 +64,9 @@ ffr_decomp(const TpgNetwork& network,
     }
     else {
       for ( auto inode: node1->fanin_list() ) {
-	if ( !node_mark.check(inode->id()) ) {
+	if ( node_mark.count(inode->id()) == 0 ) {
 	  input_list.push_back(inode);
-	  node_mark.add(inode->id());
+	  node_mark.emplace(inode->id());
 	}
       }
     }

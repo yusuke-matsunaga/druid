@@ -3,9 +3,8 @@
 /// @brief TpgLogicNOR[x] の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgLogicNOR.h"
 #include "GateType.h"
@@ -19,16 +18,9 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
-TpgLogicNOR2::TpgLogicNOR2(int id,
-			   const vector<TpgNode*>& fanin_list) :
-  TpgLogic2(id, fanin_list)
-{
-}
-
-// @brief デストラクタ
-TpgLogicNOR2::~TpgLogicNOR2()
+TpgLogicNOR::TpgLogicNOR(
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -36,7 +28,7 @@ TpgLogicNOR2::~TpgLogicNOR2()
 //
 // is_logic() が false の場合の返り値は不定
 GateType
-TpgLogicNOR2::gate_type() const
+TpgLogicNOR::gate_type() const
 {
   return GateType::Nor;
 }
@@ -46,7 +38,7 @@ TpgLogicNOR2::gate_type() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicNOR2::cval() const
+TpgLogicNOR::cval() const
 {
   return Val3::_1;
 }
@@ -56,7 +48,7 @@ TpgLogicNOR2::cval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicNOR2::nval() const
+TpgLogicNOR::nval() const
 {
   return Val3::_0;
 }
@@ -66,7 +58,7 @@ TpgLogicNOR2::nval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicNOR2::coval() const
+TpgLogicNOR::coval() const
 {
   return Val3::_0;
 }
@@ -76,12 +68,12 @@ TpgLogicNOR2::coval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicNOR2::noval() const
+TpgLogicNOR::noval() const
 {
   return Val3::_1;
 }
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogicNOR3
 //////////////////////////////////////////////////////////////////////
@@ -282,5 +274,6 @@ TpgLogicNORN::noval() const
 {
   return Val3::_1;
 }
+#endif
 
 END_NAMESPACE_DRUID

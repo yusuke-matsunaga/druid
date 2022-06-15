@@ -25,8 +25,10 @@ BEGIN_NAMESPACE_DRUID
 // @param[in] fault 故障
 // @param[in] fault_type 故障の種類
 NodeValList
-ffr_propagate_condition(const TpgFault* fault,
-			FaultType fault_type)
+ffr_propagate_condition(
+  const TpgFault* fault,
+  FaultType fault_type
+)
 {
   NodeValList assign_list;
 
@@ -86,19 +88,15 @@ ffr_propagate_condition(const TpgFault* fault,
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] val 故障値
-// @param[in] node 故障位置のノード
-// @param[in] name 故障位置のノード名
-// @param[in] rep_fault 代表故障
-TpgFaultBase::TpgFaultBase(int id,
-			   int val,
-			   const TpgNode* node,
-			   const char* name,
-			   TpgFault* rep_fault) :
-  mTpgNode(node),
-  mNodeName(name),
-  mRepFault(rep_fault)
+TpgFaultBase::TpgFaultBase(
+  int id,
+  int val,
+  const TpgNode* node,
+  const string& name,
+  TpgFault* rep_fault
+) : mTpgNode{node},
+    mNodeName{name},
+    mRepFault{rep_fault}
 {
   // val は 0 か 1 のはずだが念の為マスクしておく
   mIdVal = (id << 1) | static_cast<int>(val & 1);
@@ -135,7 +133,9 @@ TpgFaultBase::rep_fault() const
 // @brief 代表故障を設定する．
 // @param[in] rep 代表故障
 void
-TpgFaultBase::set_rep(const TpgFault* rep)
+TpgFaultBase::set_rep(
+  const TpgFault* rep
+)
 {
   mRepFault = rep;
 }
@@ -146,17 +146,13 @@ TpgFaultBase::set_rep(const TpgFault* rep)
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] val 故障値
-// @param[in] node 故障位置のノード
-// @param[in] name 故障位置のノード名
-// @param[in] rep_fault 代表故障
-TpgStemFault::TpgStemFault(int id,
-			   int val,
-			   const TpgNode* node,
-			   const char* name,
-			   TpgFault* rep_fault) :
-  TpgFaultBase(id, val, node, name, rep_fault)
+TpgStemFault::TpgStemFault(
+  int id,
+  int val,
+  const TpgNode* node,
+  const string& name,
+  TpgFault* rep_fault
+) : TpgFaultBase{id, val, node, name, rep_fault}
 {
   ASSERT_COND( tpg_inode() != nullptr );
 }
@@ -230,26 +226,19 @@ TpgStemFault::str() const
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] val 故障値
-// @param[in] onode 出力側の TpgNode
-// @param[in] name ノード名
-// @param[in] pos 故障の入力位置
-// @param[in] inode 入力側の TpgNode
-// @param[in] tpg_pos node 上の故障位置
-// @param[in] rep_fault 代表故障
-TpgBranchFault::TpgBranchFault(int id,
-			       int val,
-			       const TpgNode* onode,
-			       const char* name,
-			       int pos,
-			       const TpgNode* inode,
-			       int tpg_pos,
-			       TpgFault* rep_fault) :
-  TpgFaultBase(id, val, onode, name, rep_fault),
-  mPos(pos),
-  mInode(inode),
-  mTpgPos(tpg_pos)
+TpgBranchFault::TpgBranchFault(
+  int id,
+  int val,
+  const TpgNode* onode,
+  const string& name,
+  int pos,
+  const TpgNode* inode,
+  int tpg_pos,
+  TpgFault* rep_fault
+) : TpgFaultBase{id, val, onode, name, rep_fault},
+    mPos{pos},
+    mInode{inode},
+    mTpgPos{tpg_pos}
 {
   ASSERT_COND( tpg_onode() != nullptr );
   ASSERT_COND( tpg_inode() != nullptr );

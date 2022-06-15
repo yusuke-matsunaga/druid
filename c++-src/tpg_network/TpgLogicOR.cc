@@ -3,9 +3,8 @@
 /// @brief TpgLogicOR[x] の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgLogicOR.h"
 #include "GateType.h"
@@ -15,20 +14,13 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogicOR2
+// クラス TpgLogicOR
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
-TpgLogicOR2::TpgLogicOR2(int id,
-			 const vector<TpgNode*>& fanin_list) :
-  TpgLogic2(id, fanin_list)
-{
-}
-
-// @brief デストラクタ
-TpgLogicOR2::~TpgLogicOR2()
+TpgLogicOR::TpgLogicOR(
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -36,7 +28,7 @@ TpgLogicOR2::~TpgLogicOR2()
 //
 // is_logic() が false の場合の返り値は不定
 GateType
-TpgLogicOR2::gate_type() const
+TpgLogicOR::gate_type() const
 {
   return GateType::Or;
 }
@@ -46,7 +38,7 @@ TpgLogicOR2::gate_type() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicOR2::cval() const
+TpgLogicOR::cval() const
 {
   return Val3::_1;
 }
@@ -56,7 +48,7 @@ TpgLogicOR2::cval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicOR2::nval() const
+TpgLogicOR::nval() const
 {
   return Val3::_0;
 }
@@ -66,7 +58,7 @@ TpgLogicOR2::nval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicOR2::coval() const
+TpgLogicOR::coval() const
 {
   return Val3::_1;
 }
@@ -76,12 +68,12 @@ TpgLogicOR2::coval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicOR2::noval() const
+TpgLogicOR::noval() const
 {
   return Val3::_0;
 }
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogicOR3
 //////////////////////////////////////////////////////////////////////
@@ -282,5 +274,6 @@ TpgLogicORN::noval() const
 {
   return Val3::_0;
 }
+#endif
 
 END_NAMESPACE_DRUID

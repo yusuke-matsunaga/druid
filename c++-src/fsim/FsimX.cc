@@ -25,9 +25,7 @@
 #include "SimFFR.h"
 #include "InputVals.h"
 
-#include "ym/HashSet.h"
 #include "ym/Range.h"
-#include "ym/StopWatch.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM

@@ -38,7 +38,7 @@ JustImpl::~JustImpl()
 NodeValList
 JustImpl::justify(const NodeValList& assign_list,
 		  const VidMap& var_map,
-		  const vector<SatBool3>& model)
+		  const SatModel& model)
 {
   clear_mark();
 
@@ -68,7 +68,7 @@ NodeValList
 JustImpl::justify(const NodeValList& assign_list,
 		  const VidMap& var1_map,
 		  const VidMap& var2_map,
-		  const vector<SatBool3>& model)
+		  const SatModel& model)
 {
   clear_mark();
 

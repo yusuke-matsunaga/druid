@@ -5,7 +5,7 @@
 /// @brief FaultyGateEnc のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -23,12 +23,11 @@ class FaultyGateEnc
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] solver SATソルバ
-  /// @param[in] varmap 変数番号のマップ
-  /// @param[in] fault 対象の故障
-  FaultyGateEnc(SatSolver& solver,
-		const VidMap& varmap,
-		const TpgFault* fault);
+  FaultyGateEnc(
+    SatSolver& solver,    ///< [in] SATソルバ
+    const VidMap& varmap, ///< [in] 変数番号のマップ
+    const TpgFault* fault ///< [in] 対象の故障
+  );
 
   /// @brief デストラクタ
   ~FaultyGateEnc();
@@ -44,11 +43,12 @@ public:
   make_cnf();
 
   /// @brief ノードの入出力の関係を表すCNF式を作る．
-  /// @param[in] ovar 出力の変数番号
   ///
   /// 出力の変数番号のみ指定するバージョン
   void
-  make_cnf(SatVarId ovar);
+  make_cnf(
+    SatLiteral ovar  ///< [in] 出力の変数リテラル
+  );
 
 
 private:
@@ -58,7 +58,9 @@ private:
 
   /// @brief ノードに対応するリテラルを返す．
   SatLiteral
-  lit(const TpgNode* node);
+  lit(
+    const TpgNode* node ///< [in] ノード
+  );
 
 
 private:

@@ -12,7 +12,7 @@
 #include "TestVector.h"
 #include "Fsim.h"
 #include <random>
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -361,7 +361,7 @@ fsim2test(int argc,
   int dff_num = network.dff_num();
   randgen(rg, input_num, dff_num, fault_type, npat, tv_list);
 
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   pair<int, int> dpnum;
@@ -380,7 +380,7 @@ fsim2test(int argc,
   int nepat = dpnum.second;
 
   timer.stop();
-  USTime time = timer.time();
+  auto time = timer.get_time();
 
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl

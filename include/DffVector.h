@@ -5,9 +5,8 @@
 /// @brief DffVector のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "BitVector.h"
 
@@ -26,23 +25,33 @@ class DffVector :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] len ベクタ長
   ///
   /// 内容は X で初期化される．
   explicit
-  DffVector(int len = 0);
+  DffVector(
+    int len = 0  ///< [in] ベクタ長
+  ) : BitVector(len)
+  {
+  }
 
   /// @brief コピーコンストラクタ
-  /// @param[in] src コピー元のソース
-  DffVector(const DffVector& src);
+  DffVector(
+    const DffVector& src  ///< [in] コピー元のソース
+  );
 
   /// @brief コピー代入演算子
-  /// @param[in] src コピー元のソース
   DffVector&
-  operator=(const DffVector& src);
+  operator=(
+    const DffVector& src  ///< [in] コピー元のソース
+  )
+  {
+    BitVector::operator=(src);
+
+    return *this;
+  }
 
   /// @brief デストラクタ
-  ~DffVector();
+  ~DffVector() = default;
 
 
 public:
@@ -65,12 +74,13 @@ private:
 };
 
 
+#if 0
 //////////////////////////////////////////////////////////////////////
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] len ベクタ長
+//< [in] len ベクタ長
 inline
 DffVector::DffVector(int len) :
   BitVector(len)
@@ -78,7 +88,7 @@ DffVector::DffVector(int len) :
 }
 
 // @brief コピーコンストラクタ
-// @param[in] src コピー元のソース
+//< [in] src コピー元のソース
 inline
 DffVector::DffVector(const DffVector& src) :
   BitVector(src)
@@ -86,7 +96,7 @@ DffVector::DffVector(const DffVector& src) :
 }
 
 // @brief コピー代入演算子
-// @param[in] src コピー元のソース
+//< [in] src コピー元のソース
 inline
 DffVector&
 DffVector::operator=(const DffVector& src)
@@ -101,6 +111,7 @@ inline
 DffVector::~DffVector()
 {
 }
+#endif
 
 END_NAMESPACE_DRUID
 

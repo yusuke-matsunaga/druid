@@ -63,7 +63,7 @@ Justifier::~Justifier()
 TestVector
 Justifier::operator()(const NodeValList& assign_list,
 		      const VidMap& var_map,
-		      const vector<SatBool3>& model)
+		      const SatModel& model)
 {
   NodeValList pi_assign_list = mImpl->justify(assign_list, var_map, model);
   return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(),
@@ -80,7 +80,7 @@ TestVector
 Justifier::operator()(const NodeValList& assign_list,
 		      const VidMap& var1_map,
 		      const VidMap& var2_map,
-		      const vector<SatBool3>& model)
+		      const SatModel& model)
 {
   NodeValList pi_assign_list = mImpl->justify(assign_list, var1_map, var2_map, model);
   return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(),

@@ -16,6 +16,7 @@
 #include "NodeValList.h"
 
 #include "ym/Range.h"
+#include "ym/SatTseitinEnc.h"
 
 //#define DEBUG_DTPG
 
@@ -130,8 +131,7 @@ MF_Dtpg::gen_pattern(const vector<const TpgFault*>& fault_list)
       SatLiteral glit(gvar(inode));
       SatLiteral hlit(hvar(inode));
       SatLiteral dlit(dvar(root));
-      SatVarId xvar = solver().new_variable();
-      SatLiteral xlit(xvar);
+      auto xlit = solver().new_variable();
       solver().add_clause( glit,  hlit, ~xlit);
       solver().add_clause(~glit, ~hlit, ~xlit);
       solver().add_clause( dlit, ~xlit);
@@ -142,7 +142,7 @@ MF_Dtpg::gen_pattern(const vector<const TpgFault*>& fault_list)
 
   cnf_end();
 
-  SatBool3 sat_res = solve(vector<SatLiteral>());
+  SatBool3 sat_res = solve({});
   if ( sat_res == SatBool3::True ) {
     NodeValList suf_cond = get_sufficient_condition();
     TestVector testvect = backtrace(suf_cond);
@@ -167,7 +167,7 @@ MF_Dtpg::cnf_begin()
 void
 MF_Dtpg::cnf_end()
 {
-  USTime time = timer_stop();
+  double time = timer_stop();
   mStats.mCnfGenTime += time;
   ++ mStats.mCnfGenCount;
 }
@@ -183,15 +183,16 @@ MF_Dtpg::timer_start()
 }
 
 /// @brief 時間計測を終了する．
-USTime
+double
 MF_Dtpg::timer_stop()
 {
-  USTime time(0, 0, 0);
   if ( mTimerEnable ) {
     mTimer.stop();
-    time = mTimer.time();
+    return mTimer.get_time();
   }
-  return time;
+  else {
+    return 0.0;
+  }
 }
 
 // @brief 対象の部分回路の関係を表す変数を用意する．
@@ -246,12 +247,12 @@ MF_Dtpg::prepare_vars()
 
   // TFO の部分に変数を割り当てる．
   for ( auto node: mTfoList ) {
-    SatVarId gvar = mSolver.new_variable();
-    SatVarId fvar = mSolver.new_variable();
-    SatVarId dvar = mSolver.new_variable();
+    auto gvar = mSolver.new_variable();
+    auto fvar = mSolver.new_variable();
+    auto dvar = mSolver.new_variable();
 
-    mSolver.freeze_literal(SatLiteral(gvar));
-    mSolver.freeze_literal(SatLiteral(fvar));
+    mSolver.freeze_literal(gvar);
+    mSolver.freeze_literal(fvar);
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap.set_vid(node, fvar);
@@ -266,9 +267,9 @@ MF_Dtpg::prepare_vars()
 
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
-    SatVarId gvar = mSolver.new_variable();
+    auto gvar = mSolver.new_variable();
 
-    mSolver.freeze_literal(SatLiteral(gvar));
+    mSolver.freeze_literal(gvar);
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap.set_vid(node, gvar);
@@ -281,9 +282,9 @@ MF_Dtpg::prepare_vars()
 
   // TFI2 の部分に変数を割り当てる．
   for ( auto node: mTfi2List ) {
-    SatVarId hvar = mSolver.new_variable();
+    auto hvar = mSolver.new_variable();
 
-    mSolver.freeze_literal(SatLiteral(hvar));
+    mSolver.freeze_literal(hvar);
 
     mHvarMap.set_vid(node, hvar);
 
@@ -328,13 +329,14 @@ MF_Dtpg::gen_good_cnf()
     }
   }
 
+  SatTseitinEnc enc{mSolver};
   for ( auto dff: mDffList ) {
     const TpgNode* onode = dff->output();
     const TpgNode* inode = dff->input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
-    SatLiteral olit(gvar(onode));
-    SatLiteral ilit(hvar(inode));
-    mSolver.add_eq_rel(olit, ilit);
+    SatLiteral olit{gvar(onode)};
+    SatLiteral ilit{hvar(inode)};
+    enc.add_buffgate(olit, ilit);
   }
 
   GateEnc hval_enc(mSolver, mHvarMap);
@@ -468,7 +470,7 @@ MF_Dtpg::get_sufficient_condition()
   extract(const vector<const TpgNode*>& root_list,
 	  const VidMap& gvar_map,
 	  const VidMap& fvar_map,
-	  const vector<SatBool3>& model);
+	  const SatModel& model);
 
   NodeValList suf_cond = extract(mRootList, mGvarMap, mFvarMap, mSatModel);
 
@@ -509,7 +511,7 @@ MF_Dtpg::get_sufficient_condition()
 TestVector
 MF_Dtpg::backtrace(const NodeValList& suf_cond)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   // バックトレースを行う．
@@ -522,7 +524,7 @@ MF_Dtpg::backtrace(const NodeValList& suf_cond)
   }
 
   timer.stop();
-  mStats.mBackTraceTime += timer.time();
+  mStats.mBackTraceTime += timer.get_time();
 
   return testvect;
 }
@@ -533,16 +535,16 @@ MF_Dtpg::backtrace(const NodeValList& suf_cond)
 SatBool3
 MF_Dtpg::solve(const vector<SatLiteral>& assumptions)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   SatStats prev_stats;
   mSolver.get_stats(prev_stats);
 
-  SatBool3 ans = mSolver.solve(assumptions, mSatModel);
+  SatBool3 ans = mSolver.solve(assumptions);
 
   timer.stop();
-  USTime time = timer.time();
+  auto time = timer.get_time();
 
   SatStats sat_stats;
   mSolver.get_stats(sat_stats);
@@ -550,6 +552,7 @@ MF_Dtpg::solve(const vector<SatLiteral>& assumptions)
 
   if ( ans == SatBool3::True ) {
     // パタンが求まった．
+    mSatModel = mSolver.model();
     mStats.update_det(sat_stats, time);
   }
   else if ( ans == SatBool3::False ) {
@@ -572,17 +575,16 @@ MF_Dtpg::solve(const vector<SatLiteral>& assumptions)
 SatBool3
 MF_Dtpg::check(const vector<SatLiteral>& assumptions)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   SatStats prev_stats;
   mSolver.get_stats(prev_stats);
 
-  vector<SatBool3> dummy;
-  SatBool3 ans = mSolver.solve(assumptions, dummy);
+  SatBool3 ans = mSolver.solve(assumptions);
 
   timer.stop();
-  USTime time = timer.time();
+  auto time = timer.get_time();
 
   SatStats sat_stats;
   mSolver.get_stats(sat_stats);

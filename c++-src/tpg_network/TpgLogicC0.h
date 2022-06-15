@@ -5,9 +5,8 @@
 /// @brief TpgLogicC0 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgLogic.h"
 
@@ -21,17 +20,17 @@ BEGIN_NAMESPACE_DRUID
 class TpgLogicC0 :
   public TpgLogic0
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  TpgLogicC0(int id);
+  TpgLogicC0(
+    SizeType fanout_num ///< [in] ファンアウト数
+  );
 
   /// @brief デストラクタ
-  virtual
-  ~TpgLogicC0();
+  ~TpgLogicC0() = default;
 
 
 public:
@@ -42,22 +41,8 @@ public:
   /// @brief ゲートタイプを得る．
   ///
   /// is_logic() が false の場合の返り値は不定
-  virtual
   GateType
   gate_type() const override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
 
 };
 

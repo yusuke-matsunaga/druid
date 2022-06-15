@@ -3,9 +3,8 @@
 /// @brief TpgDffInput の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgDffInput.h"
 
@@ -17,21 +16,12 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] output_id 出力番号
-// @param[in] dff 接続しているDFF
-// @param[in] fanin ファンインのノード
-TpgDffInput::TpgDffInput(int id,
-			 int output_id,
-			 const TpgDff* dff,
-			 TpgNode* fanin) :
-  TpgPPO(id, output_id, fanin),
-  mDff(dff)
-{
-}
-
-// @brief デストラクタ
-TpgDffInput::~TpgDffInput()
+TpgDffInput::TpgDffInput(
+  int output_id,
+  const TpgDff* dff,
+  TpgNode* fanin
+) : TpgPPO{output_id, fanin},
+    mDff(dff)
 {
 }
 

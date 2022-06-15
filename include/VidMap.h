@@ -11,7 +11,7 @@
 
 #include "structenc_nsdef.h"
 #include "TpgNode.h"
-#include "ym/SatVarId.h"
+#include "ym/SatLiteral.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -28,11 +28,14 @@ class VidMap
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] max_id ノード番号の最大値
-  VidMap(int max_id = 0);
+  VidMap(
+    int max_id = 0 ///< [in] ノード番号の最大値
+  ) : mVidArray(max_id, kSatLiteralX)
+  {
+  }
 
   /// @brief デストラクタ
-  ~VidMap();
+  ~VidMap() = default;
 
 
 public:
@@ -40,22 +43,34 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief ノードに関連した変数番号を返す．
+  /// @brief ノードに関連した変数リテラルを返す．
   /// @param[in] node 対象のノード
-  SatVarId
-  operator()(const TpgNode* node) const;
+  SatLiteral
+  operator()(const TpgNode* node) const
+  {
+    ASSERT_COND( node->id() < mVidArray.size() );
+    return mVidArray[node->id()];
+  }
 
   /// @brief 初期化する．
   /// @param[in] max_id ノード番号の最大値
   void
-  init(int max_id);
+  init(int max_id)
+  {
+    mVidArray.clear();
+    mVidArray.resize(max_id);
+  }
 
   /// @brief ノードに関連した変数番号を設定する．
   /// @param[in] node 対象のノード
-  /// @param[in] vid 変数番号
+  /// @param[in] vid 変数リテラル
   void
   set_vid(const TpgNode* node,
-	  SatVarId vid);
+	  SatLiteral vid)
+  {
+    ASSERT_COND( node->id() < mVidArray.size() );
+    mVidArray[node->id()] = vid;
+  }
 
 
 private:
@@ -69,12 +84,13 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 変数番号を格納する配列
-  vector<SatVarId> mVidArray;
+  // 変数リテラルを格納する配列
+  vector<SatLiteral> mVidArray;
 
 };
 
 
+#if 0
 //////////////////////////////////////////////////////////////////////
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
@@ -83,7 +99,7 @@ private:
 // @param[in] max_id ノード番号の最大値
 inline
 VidMap::VidMap(int max_id) :
-  mVidArray(max_id, kSatVarIdIllegal)
+  mVidArray(max_id, -1)
 {
 }
 
@@ -96,7 +112,7 @@ VidMap::~VidMap()
 // @brief ノードに関連した変数番号を返す．
 // @param[in] node 対象のノード
 inline
-SatVarId
+int
 VidMap::operator()(const TpgNode* node) const
 {
   ASSERT_COND( node->id() < mVidArray.size() );
@@ -119,11 +135,12 @@ VidMap::init(int max_id)
 inline
 void
 VidMap::set_vid(const TpgNode* node,
-		SatVarId vid)
+		int vid)
 {
   ASSERT_COND( node->id() < mVidArray.size() );
   mVidArray[node->id()] = vid;
 }
+#endif
 
 END_NAMESPACE_DRUID
 

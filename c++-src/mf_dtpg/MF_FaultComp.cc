@@ -14,6 +14,7 @@
 #include "TpgFault.h"
 #include "ym/Range.h"
 #include "ym/SatSolver.h"
+#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -72,16 +73,15 @@ add_constraint(SatSolver& solver,
     }
   }
 
-  SatVarId fvar = solver.new_variable();
-  SatLiteral flit{fvar};
+  auto flit = solver.new_variable();
   MF_Enc::make_faulty_FFR(solver, network, input_list, root, flit, fault_list1);
 
   // 故障回路
-  SatVarId ovar = solver.new_variable();
-  SatLiteral olit{ovar};
+  auto olit = solver.new_variable();
   MF_Enc::make_faulty_FFR(solver, network, input_list, root, olit, fault_list);
 
-  solver.add_neq_rel(olit, flit);
+  SatTseitinEnc enc{solver};
+  enc.add_notgate(olit, flit);
 }
 
 void
@@ -144,8 +144,7 @@ MF_FaultComp::get_faults_list(const TpgNetwork& network,
 
   cout << "nf = " << nf << endl;
   for ( ; ; ) {
-    vector<SatBool3> model;
-    SatBool3 ans = solver.solve(model);
+    SatBool3 ans = solver.solve();
     if ( ans == SatBool3::False ) {
       // 新たな代表故障はなかった．
       break;
@@ -156,10 +155,11 @@ MF_FaultComp::get_faults_list(const TpgNetwork& network,
       break;
     }
     // fvec を作る．
+    const auto& model = solver.model();
     vector<bool> fvec(nf);
     for ( int i: Range(nf) ) {
-      SatVarId fvar = fault_list[i].second.varid();
-      SatBool3 val = model[fvar.val()];
+      auto fvar = fault_list[i].second;
+      SatBool3 val = model[fvar];
       if ( val == SatBool3::True ) {
 	fvec[i] = true;
       }

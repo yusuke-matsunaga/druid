@@ -41,7 +41,6 @@ include (YmUtils)
 
 ym_init ( "" )
 ym_init_python ( REQUIRED )
-ym_init_cython ()
 ym_init_doxygen ()
 ym_init_gperftools ()
 ym_init_ctest ()
@@ -115,8 +114,6 @@ endforeach ()
 
 add_subdirectory ( c++-src )
 add_subdirectory ( c++-test )
-add_subdirectory ( cython-src )
-add_subdirectory ( py-src )
 
 add_subdirectory ( test-programs )
 

@@ -5,12 +5,10 @@
 /// @brief TpgNodeFactory のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "druid.h"
-#include "ym/Alloc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -29,11 +27,10 @@ class TpgNodeFactory
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] alloc メモリアロケータ
-  TpgNodeFactory(Alloc& alloc);
+  TpgNodeFactory() = default;
 
   /// @brief デストラクタ
-  ~TpgNodeFactory();
+  ~TpgNodeFactory() = default;
 
 
 public:
@@ -42,105 +39,79 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 入力ノードを作る．
-  /// @param[in] id ノード番号
-  /// @param[in] iid 入力番号
-  /// @param[in] fanout_num ファンアウト数
   /// @return 作成したノードを返す．
   TpgNode*
-  make_input(int id,
-	     int iid,
-	     int fanout_num);
+  make_input(
+    int id,        ///< [in] ノード番号
+    int iid,       ///< [in] 入力番号
+    int fanout_num ///< [in] ファンアウト数
+  );
 
   /// @brief 出力ノードを作る．
-  /// @param[in] id ノード番号
-  /// @param[in] oid 出力番号
-  /// @param[in] inode 入力ノード
   /// @return 作成したノードを返す．
   TpgNode*
-  make_output(int id,
-	      int oid,
-	      TpgNode* inode);
+  make_output(
+    int id,        ///< [in] ノード番号
+    int oid,       ///< [in] 出力番号
+    TpgNode* inode ///< [in] 入力ノード
+  );
 
   /// @brief DFFの入力ノードを作る．
-  /// @param[in] id ノード番号
-  /// @param[in] oid 出力番号
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] inode 入力ノード
   /// @return 作成したノードを返す．
   TpgNode*
-  make_dff_input(int id,
-		 int oid,
-		 const TpgDff* dff,
-		 TpgNode* inode);
+  make_dff_input(
+    int id,            ///< [in] ノード番号
+    int oid,           ///< [in] 出力番号
+    const TpgDff* dff, ///< [in] 接続しているDFF
+    TpgNode* inode     ///< [in] 入力ノード
+  );
 
   /// @brief DFFの出力ノードを作る．
-  /// @param[in] id ノード番号
-  /// @param[in] iid 入力番号
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] fanout_num ファンアウト数
   /// @return 作成したノードを返す．
   TpgNode*
-  make_dff_output(int id,
-		  int iid,
-		  const TpgDff* dff,
-		  int fanout_num);
+  make_dff_output(
+    int id,            ///< [in] ノード番号
+    int iid,           ///< [in] 入力番号
+    const TpgDff* dff, ///< [in] 接続しているDFF
+    int fanout_num     ///< [in] ファンアウト数
+  );
 
   /// @brief DFFのクロック端子を作る．
-  /// @param[in] id ノード番号
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] inode 入力ノード
   /// @return 作成したノードを返す．
   TpgNode*
-  make_dff_clock(int id,
-		 const TpgDff* dff,
-		 TpgNode* inode);
+  make_dff_clock(
+    int id,            ///< [in] ノード番号
+    const TpgDff* dff, ///< [in] 接続しているDFF
+    TpgNode* inode     ///< [in] 入力ノード
+  );
 
   /// @brief DFFのクリア端子を作る．
-  /// @param[in] id ノード番号
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] inode 入力ノード
   /// @return 作成したノードを返す．
   TpgNode*
-  make_dff_clear(int id,
-		 const TpgDff* dff,
-		 TpgNode* inode);
+  make_dff_clear(
+    int id,            ///< [in] ノード番号
+    const TpgDff* dff, ///< [in] 接続しているDFF
+    TpgNode* inode     ///< [in] 入力ノード
+  );
 
   /// @brief DFFのプリセット端子を作る．
-  /// @param[in] id ノード番号
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] inode 入力ノード
   /// @return 作成したノードを返す．
   TpgNode*
-  make_dff_preset(int id,
-		  const TpgDff* dff,
-		  TpgNode* inode);
+  make_dff_preset(
+    int id,            ///< [in] ノード番号
+    const TpgDff* dff, ///< [in] 接続しているDFF
+    TpgNode* inode     ///< [in] 入力ノード
+  );
 
   /// @brief 論理ノードを作る．
-  /// @param[in] id ノード番号
-  /// @param[in] gate_type ゲートタイプ
-  /// @param[in] inode_list 入力ノードのリスト
-  /// @param[in] fanout_num ファンアウト数
   /// @return 作成したノードを返す．
   TpgNode*
-  make_logic(int id,
-	     GateType gate_type,
-	     const vector<TpgNode*>& inode_list,
-	     int fanout_num);
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // メモリアロケータ
-  Alloc& mAlloc;
+  make_logic(
+    int id,                             ///< [in] ノード番号
+    GateType gate_type,                 ///< [in] ゲートタイプ
+    const vector<TpgNode*>& inode_list, ///< [in] 入力ノードのリスト
+    int fanout_num                      ///< [in] ファンアウト数
+  );
 
 };
 

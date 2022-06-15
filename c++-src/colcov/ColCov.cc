@@ -171,7 +171,7 @@ ColCov::mincov_color(const string& option,
        << "# of conflicts = " << ne << endl;
 
   vector<int> _color_map;
-  int col_num = graph.coloring("isx", _color_map);
+  int col_num = graph.coloring(_color_map, "isx");
   color_map.clear();
   color_map.resize(col_size(), -1);
   for ( auto new_col: Range(new_col_size) ) {

@@ -19,7 +19,7 @@
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
-#include "ym/StopWatch.h"
+#include "ym/SatTseitinEnc.h"
 #include "ym/Range.h"
 
 //#define DEBUG_DTPG
@@ -122,8 +122,7 @@ DomChecker::check_detectable(const TpgFault* fault)
   vector<SatLiteral> assumptions;
   conv_to_assumptions(ffr_cond, assumptions);
 
-  vector<SatBool3> model;
-  SatBool3 res = solve(assumptions, model);
+  SatBool3 res = solve(assumptions);
 
   return res;
 }
@@ -139,7 +138,7 @@ DomChecker::cnf_begin()
 void
 DomChecker::cnf_end()
 {
-  USTime time = timer_stop();
+  auto time = timer_stop();
   mStats.mCnfGenTime += time;
   ++ mStats.mCnfGenCount;
 }
@@ -155,15 +154,16 @@ DomChecker::timer_start()
 }
 
 /// @brief 時間計測を終了する．
-USTime
+double
 DomChecker::timer_stop()
 {
-  USTime time(0, 0, 0);
   if ( mTimerEnable ) {
     mTimer.stop();
-    time = mTimer.time();
+    return mTimer.get_time();
   }
-  return time;
+  else {
+    return 0.0;
+  }
 }
 
 // @brief 対象の部分回路の関係を表す変数を用意する．
@@ -211,8 +211,8 @@ DomChecker::prepare_vars()
 
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
-    SatVarId gvar = mSolver.new_variable();
-    mSolver.freeze_literal(SatLiteral{gvar});
+    auto gvar = mSolver.new_variable();
+    mSolver.freeze_literal(gvar);
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap[0].set_vid(node, gvar);
@@ -228,12 +228,12 @@ DomChecker::prepare_vars()
   for ( int pos: { 0, 1 } ) {
     // TFO の部分に変数を割り当てる．
     for ( auto node: mTfoList[pos] ) {
-      SatVarId fvar = mSolver.new_variable();
-      mSolver.freeze_literal(SatLiteral{fvar});
+      auto fvar = mSolver.new_variable();
+      mSolver.freeze_literal(fvar);
 
       mFvarMap[pos].set_vid(node, fvar);
       if ( pos == 0 ) {
-	SatVarId dvar = mSolver.new_variable();
+	auto dvar = mSolver.new_variable();
 	mDvarMap.set_vid(node, dvar);
       }
 
@@ -255,8 +255,8 @@ DomChecker::prepare_vars()
 
   // prev TFI の部分に変数を割り当てる．
   for ( auto node: mPrevTfiList ) {
-    SatVarId hvar = mSolver.new_variable();
-    mSolver.freeze_literal(SatLiteral{hvar});
+    auto hvar = mSolver.new_variable();
+    mSolver.freeze_literal(hvar);
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {
@@ -290,13 +290,14 @@ DomChecker::gen_good_cnf()
     }
   }
 
+  SatTseitinEnc enc{mSolver};
   for ( auto dff: mDffList ) {
     const TpgNode* onode = dff->output();
     const TpgNode* inode = dff->input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
     SatLiteral olit(gvar(onode));
     SatLiteral ilit(hvar(inode));
-    mSolver.add_eq_rel(olit, ilit);
+    enc.add_buffgate(olit, ilit);
   }
 
   GateEnc hval_enc(mSolver, mHvarMap);
@@ -439,8 +440,11 @@ DomChecker::conv_to_literal(NodeVal node_val)
 {
   const TpgNode* node = node_val.node();
   bool inv = !node_val.val(); // 0 の時が inv = true
-  SatVarId vid = (node_val.time() == 0) ? hvar(node) : gvar(node);
-  return SatLiteral(vid, inv);
+  auto vid = (node_val.time() == 0) ? hvar(node) : gvar(node);
+  if ( inv ) {
+    vid = ~vid;
+  }
+  return vid;
 }
 
 // @brief 値割り当てをリテラルのリストに変換する．
@@ -464,19 +468,18 @@ DomChecker::conv_to_assumptions(const NodeValList& assign_list,
 // @param[out] model SAT モデル
 // @return 結果を返す．
 SatBool3
-DomChecker::solve(const vector<SatLiteral>& assumptions,
-		  vector<SatBool3>& model)
+DomChecker::solve(const vector<SatLiteral>& assumptions)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   SatStats prev_stats;
   mSolver.get_stats(prev_stats);
 
-  SatBool3 ans = mSolver.solve(assumptions, model);
+  SatBool3 ans = mSolver.solve(assumptions);
 
   timer.stop();
-  USTime time = timer.time();
+  auto time = timer.get_time();
 
   SatStats sat_stats;
   mSolver.get_stats(sat_stats);

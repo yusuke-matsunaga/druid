@@ -16,22 +16,26 @@
 BEGIN_NAMESPACE_DRUID
 
 NodeValList
-extract(const TpgNode* root,
-	const VidMap& gvar_map,
-	const VidMap& fvar_map,
-	const vector<SatBool3>& model)
+extract(
+  const TpgNode* root,
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+)
 {
-  Extractor extractor(gvar_map, fvar_map, model);
+  Extractor extractor{gvar_map, fvar_map, model};
   return extractor.get_assignment(vector<const TpgNode*>{root});
 }
 
 NodeValList
-extract(const vector<const TpgNode*>& root_list,
-	const VidMap& gvar_map,
-	const VidMap& fvar_map,
-	const vector<SatBool3>& model)
+extract(
+  const vector<const TpgNode*>& root_list,
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+)
 {
-  Extractor extractor(gvar_map, fvar_map, model);
+  Extractor extractor{gvar_map, fvar_map, model};
   return extractor.get_assignment(root_list);
 }
 
@@ -48,12 +52,13 @@ END_NONAMESPACE
 // @param[in] gvar_map 正常値の変数番号のマップ
 // @param[in] fvar_map 故障値の変数番号のマップ
 // @param[in] model SATソルバの作ったモデル
-Extractor::Extractor(const VidMap& gvar_map,
-		     const VidMap& fvar_map,
-		     const vector<SatBool3>& model) :
-  mGvarMap(gvar_map),
-  mFvarMap(fvar_map),
-  mSatModel(model)
+Extractor::Extractor(
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+) : mGvarMap{gvar_map},
+    mFvarMap{fvar_map},
+    mSatModel{model}
 {
 }
 
@@ -118,10 +123,10 @@ Extractor::get_assignment(const vector<const TpgNode*>& root_list)
 void
 Extractor::mark_tfo(const TpgNode* node)
 {
-  if ( mFconeMark.check(node->id()) ) {
+  if ( mFconeMark.count(node->id()) > 0 ) {
     return;
   }
-  mFconeMark.add(node->id());
+  mFconeMark.emplace(node->id());
 
   if ( node->is_ppo() ) {
     if ( gval(node) != fval(node) ) {
@@ -141,15 +146,15 @@ void
 Extractor::record_sensitized_node(const TpgNode* node,
 				  NodeValList& assign_list)
 {
-  if ( mRecorded.check(node->id()) ) {
+  if ( mRecorded.count(node->id()) > 0 ) {
     return;
   }
-  mRecorded.add(node->id());
+  mRecorded.emplace(node->id());
 
   ASSERT_COND( gval(node) != fval(node) );
 
   for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.check(inode->id()) ) {
+    if ( mFconeMark.count(inode->id()) > 0 ) {
       if ( gval(inode) != fval(inode) ) {
 	record_sensitized_node(inode, assign_list);
       }
@@ -170,10 +175,10 @@ void
 Extractor::record_masking_node(const TpgNode* node,
 			       NodeValList& assign_list)
 {
-  if ( mRecorded.check(node->id()) ) {
+  if ( mRecorded.count(node->id()) > 0 ) {
     return;
   }
-  mRecorded.add(node->id());
+  mRecorded.emplace(node->id());
 
   ASSERT_COND ( gval(node) == fval(node) );
 
@@ -183,7 +188,7 @@ Extractor::record_masking_node(const TpgNode* node,
   bool has_snode = false;
   const TpgNode* cnode = nullptr;
   for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.check(inode->id()) ) {
+    if ( mFconeMark.count(inode->id()) > 0 ) {
       if ( gval(inode) != fval(inode) ) {
 	// このノードには故障差が伝搬している．
 	has_snode = true;
@@ -209,7 +214,7 @@ Extractor::record_masking_node(const TpgNode* node,
   // 複数のファンインの故障差が打ち消し合っているのですべてのファンイン
   // に再帰する．
   for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.check(inode->id()) ) {
+    if ( mFconeMark.count(inode->id()) > 0 ) {
       if ( gval(inode) != fval(inode) ) {
 	record_sensitized_node(inode, assign_list);
       }

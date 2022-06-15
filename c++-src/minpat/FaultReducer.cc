@@ -223,7 +223,7 @@ FaultReducer::init(const vector<const TpgFault*>& fault_list,
   if ( mDebug ) {
     mTimer.stop();
     cout << "TestVector generation" << endl;
-    cout << "CPU time:                              " << mTimer.time() << endl;
+    cout << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
@@ -271,7 +271,7 @@ FaultReducer::make_dom_candidate(int loop_limit)
   if ( mDebug ) {
     mTimer.stop();
     cout << "Fault Simulation" << endl;
-    cout << "CPU time:                              " << mTimer.time() << endl;
+    cout << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
@@ -426,7 +426,7 @@ FaultReducer::ffr_reduction()
     mTimer.stop();
     int n = count_faults();
     cout << "after FFR dominance reduction:         " << n << endl;
-    cout << "CPU time:                              " << mTimer.time() << endl;
+    cout << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
@@ -491,7 +491,7 @@ FaultReducer::dom_reduction1(bool simple)
     cout << "after semi-global dominance reduction: " << n << endl
 	 << "    # of total checks:                 " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
-	 << "CPU time:                              " << mTimer.time() << endl;
+	 << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
@@ -564,7 +564,7 @@ FaultReducer::dom_reduction2()
     cout << "    # of total checkes:                " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "    # of DomCheckers:                  " << dom_num << endl
-	 << "CPU time:                              " << mTimer.time() << endl;
+	 << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
@@ -664,7 +664,7 @@ FaultReducer::dom_reduction3(bool simple)
 	 << "    # of total checkes(2):             " << u_check_num << endl
 	 << "    # of total successes(2):           " << u_success_num << endl
 	 << "    # of DomCheckers:                  " << dom_num << endl
-	 << "CPU time:                              " << mTimer.time() << endl;
+	 << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 

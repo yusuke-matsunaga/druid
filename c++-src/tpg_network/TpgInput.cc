@@ -17,16 +17,9 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] input_id 入力番号
-TpgInput::TpgInput(int id,
-		   int input_id) :
-  TpgPPI(id, input_id)
-{
-}
-
-// @brief デストラクタ
-TpgInput::~TpgInput()
+TpgInput::TpgInput(
+  int input_id
+) : TpgPPI{input_id}
 {
 }
 

@@ -5,7 +5,7 @@
 /// @brief ColCov のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -25,10 +25,10 @@ public:
   ColCov();
 
   /// @brief コンストラクタ
-  /// @param[in] row_size 行数
-  /// @param[in] col_size 列数
-  ColCov(int row_size,
-	 int col_size);
+  ColCov(
+    int row_size, ///< [in] 行数
+    int col_size  ///< [in] 列数
+  );
 
   /// @brief デストラクタ
   ~ColCov();
@@ -40,55 +40,67 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief サイズを設定する．
-  /// @param[in] row_size 行数
-  /// @param[in] col_size 列数
   ///
   /// 以前の内容は破棄される．
   void
-  resize(int row_size,
-	 int col_size);
+  resize(
+    int row_size, ///< [in] 行数
+    int col_size  ///< [in] 列数
+  );
 
   /// @brief 行列の要素を追加する．
-  /// @param[in] row_pos 行の位置 ( 0 <= row_pos < row_size() )
-  /// @param[in] col_pos 列の位置 ( 0 <= col_pos < col_size() )
   void
-  insert_elem(int row_pos,
-	      int col_pos);
+  insert_elem(
+    int row_pos, ///< [in] 行の位置 ( 0 <= row_pos < row_size() )
+    int col_pos	 ///< [in] 列の位置 ( 0 <= col_pos < col_size() )
+  );
 
   /// @brief 列の衝突関係を追加する．
-  /// @param[in] col_pos1, col_pos2 列の位置 ( 0 <= col_pos1, col_pos2 < col_size() )
   void
-  insert_conflict(int col_pos1,
-		  int col_pos2);
+  insert_conflict(
+    int col_pos1, ///< [in] 列1の位置 ( 0 <= col_pos1 < col_size() )
+    int col_pos2  ///< [in] 列2の位置 ( 0 <= col_pos2 < col_size() )
+  );
 
   /// @brief 行数を得る．
   int
-  row_size() const;
+  row_size() const
+  {
+    return mRowSize;
+  }
 
   /// @brief 列数を得る．
   int
-  col_size() const;
+  col_size() const
+  {
+    return mColSize;
+  }
 
   /// @brief 行列の要素のリストを得る．
   const vector<pair<int, int>>&
-  elem_list() const;
+  elem_list() const
+  {
+    return mElemList;
+  }
 
   /// @brief 衝突関係のリストを得る．
   const vector<pair<int, int>>&
-  conflict_list() const;
+  conflict_list() const
+  {
+    return mConflictList;
+  }
 
   /// @brief ヒューリスティックで解を求める．
-  /// @param[in] algorithm アルゴリズム名
-  /// @param[in] option オプション
-  /// @param[out] color_map 列の彩色結果
   /// @return 色数を返す．
   ///
   /// * color_map は列番号をキーにして色番号を返す．
   /// * 使用していない列の番号は -1 となる．
   int
-  heuristic(const string& algorithm,
-	    const string& option,
-	    vector<int>& color_map);
+  heuristic(
+    const string& algorithm, ///< [in] アルゴリズム名
+    const string& option,    ///< [in] オプション
+    vector<int>& color_map   ///< [out] 列の彩色結果
+  );
 
 
 private:
@@ -97,27 +109,28 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 最初に MinCov を行いその後で coloring を行う．
-  /// @param[in] option オプション
-  /// @param[out] color_map 列の彩色結果
   int
-  mincov_color(const string& option,
-	       vector<int>& color_map);
+  mincov_color(
+    const string& option,  ///< [in] オプション
+    vector<int>& color_map ///< [out] 列の彩色結果
+  );
 
   /// @brief 彩色結果が被覆解になっているか調べる．
-  /// @param[in] color_map 解
-  /// @param[out] uncov_list 被覆されていない行番号のリスト
   /// @retval true 被覆解になっている．
   /// @retval false 被覆されていない行がある．
   bool
-  check_cover(const vector<int>& color_map,
-	      vector<int>& uncov_list);
+  check_cover(
+    const vector<int>& color_map, ///< [in] 解
+    vector<int>& uncov_list	  ///< [out] 被覆されていない行番号のリスト
+  );
 
   /// @brief 彩色結果が両立解になっているか調べる．
-  /// @param[in] color_map 解
   /// @retval true 両立解になっている．
   /// @retval false 衝突している彩色結果があった．
   bool
-  check_conflict(const vector<int>& color_map);
+  check_conflict(
+    const vector<int>& color_map   ///< [in] 解
+  );
 
 
 private:
@@ -142,6 +155,7 @@ private:
 };
 
 
+#if 0
 //////////////////////////////////////////////////////////////////////
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
@@ -177,6 +191,7 @@ ColCov::conflict_list() const
 {
   return mConflictList;
 }
+#endif
 
 END_NAMESPACE_DRUID
 

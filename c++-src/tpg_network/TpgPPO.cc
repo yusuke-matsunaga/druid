@@ -3,11 +3,12 @@
 /// @brief TpgPPO の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgPPO.h"
+#include "TpgOutput.h"
+#include "TpgDffInput.h"
 #include "GateType.h"
 
 
@@ -18,22 +19,13 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] output_id 出力番号
-// @param[in] fanin ファンインのノード
-TpgPPO::TpgPPO(int id,
-	       int output_id,
-	       TpgNode* fanin) :
-  TpgNode(id),
-  mOutputId(output_id),
-  mFanin(fanin)
+TpgPPO::TpgPPO(
+  int output_id,
+  const TpgNode* fanin
+) : TpgNode{{fanin}, 0},
+    mOutputId{output_id}
 {
   mOutputId2 = 0;
-}
-
-// @brief デストラクタ
-TpgPPO::~TpgPPO()
-{
 }
 
 // @brief 出力タイプの時 true を返す．
@@ -72,30 +64,6 @@ TpgPPO::gate_type() const
   return GateType::Buff;
 }
 
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgPPO::fanin_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(&mFanin), 0, 1);
-}
-
-// @brief ファンイン数を得る．
-int
-TpgPPO::fanin_num() const
-{
-  return 1;
-}
-
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-TpgNode*
-TpgPPO::fanin(int pos) const
-{
-  ASSERT_COND( pos == 0 );
-
-  return mFanin;
-}
-
 // @brief 出力番号2をセットする．
 // @param[in] id セットする番号
 //
@@ -104,6 +72,58 @@ void
 TpgPPO::set_output_id2(int id)
 {
   mOutputId2 = id;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgOutput
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgOutput::TpgOutput(
+  int output_id,
+  const TpgNode* fanin
+) : TpgPPO{output_id, fanin}
+{
+}
+
+// @brief 外部出力タイプの時 true を返す．
+bool
+TpgOutput::is_primary_output() const
+{
+  return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgDffInput
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgDffInput::TpgDffInput(
+  int output_id,
+  const TpgDff* dff,
+  const TpgNode* fanin
+) : TpgPPO{output_id, fanin},
+    mDff(dff)
+{
+}
+
+// @brief DFF の入力に接続している外部出力タイプの時 true を返す．
+bool
+TpgDffInput::is_dff_input() const
+{
+  return true;
+}
+
+// @brief 接続している DFF を返す．
+//
+// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
+// の時に意味を持つ．
+const TpgDff*
+TpgDffInput::dff() const
+{
+  return mDff;
 }
 
 END_NAMESPACE_DRUID

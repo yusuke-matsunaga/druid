@@ -16,6 +16,7 @@
 #include "NodeValList.h"
 #include "GateEnc.h"
 #include "GateType.h"
+#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID_STRUCTENC
@@ -49,7 +50,7 @@ MffcPropCone::MffcPropCone(StructEnc& struct_sat,
     const TpgFFR* ffr = mffc.ffr(i);
     mElemArray[i] = ffr->root();
     ASSERT_COND( ffr->root() != nullptr );
-    mElemPosMap.add(ffr->root()->id(), i);
+    mElemPosMap.emplace(ffr->root()->id(), i);
   }
 }
 
@@ -84,16 +85,16 @@ MffcPropCone::make_cnf()
   // mElemArray[] に含まれるノードと root の間にあるノードを
   // 求め，同時に変数を割り当てる．
   vector<const TpgNode*> node_list;
-  HashMap<int, int> ffr_map;
+  unordered_map<int, int> ffr_map;
   for ( int i = 0; i < mElemArray.size(); ++ i ) {
     const TpgNode* node = mElemArray[i];
-    ffr_map.add(node->id(), i);
+    ffr_map.emplace(node->id(), i);
     if ( node == root_node() ) {
       continue;
     }
     for ( auto onode: node->fanout_list() ) {
       if ( fvar(onode) == gvar(onode) ) {
-	SatVarId var = solver().new_variable();
+	auto var = solver().new_variable();
 	set_fvar(onode, var);
 	node_list.push_back(onode);
 
@@ -110,7 +111,7 @@ MffcPropCone::make_cnf()
     }
     for ( auto onode: node->fanout_list() ) {
       if ( fvar(onode) == gvar(onode) ) {
-	SatVarId var = solver().new_variable();
+	auto var = solver().new_variable();
 	set_fvar(onode, var);
 	node_list.push_back(onode);
 
@@ -131,7 +132,7 @@ MffcPropCone::make_cnf()
       continue;
     }
 
-    SatVarId fvar = solver().new_variable();
+    auto fvar = solver().new_variable();
     set_fvar(node, fvar);
 
     inject_fault(i, gvar(node));
@@ -141,9 +142,10 @@ MffcPropCone::make_cnf()
   GateEnc gate_enc(solver(), fvar_map());
   for ( int rpos = 0; rpos < node_list.size(); ++ rpos ) {
     const TpgNode* node = node_list[rpos];
-    SatVarId ovar = fvar(node);
+    auto ovar = fvar(node);
     int ffr_pos;
-    if ( ffr_map.find(node->id(), ffr_pos) ) {
+    if ( ffr_map.count(node->id()) > 0 ) {
+      auto ffr_pos = ffr_map.at(node->id());
       // 実際のゲートの出力と ovar の間に XOR ゲートを挿入する．
       // XORの一方の入力は mElemVarArray[ffr_pos]
       ovar = solver().new_variable();
@@ -172,14 +174,15 @@ MffcPropCone::make_cnf()
 // @param[in] ovar ゲートの出力の変数
 void
 MffcPropCone::inject_fault(int ffr_pos,
-			   SatVarId ovar)
+			   SatLiteral ovar)
 {
   SatLiteral lit1(ovar);
   SatLiteral lit2(mElemVarArray[ffr_pos]);
   const TpgNode* node = mElemArray[ffr_pos];
   SatLiteral olit(fvar(node));
 
-  solver().add_xorgate_rel(lit1, lit2, olit);
+  SatTseitinEnc enc{solver()};
+  enc.add_xorgate(lit1, lit2, olit);
 
   if ( debug_mffccone ) {
     DEBUG_OUT << "inject fault: " << ovar << " -> " << fvar(node)
@@ -195,20 +198,19 @@ MffcPropCone::make_prop_condition(const TpgNode* root,
 				  vector<SatLiteral>& assumptions)
 {
   // root のある FFR を活性化する条件を作る．
-  int ffr_id;
-  bool stat = mElemPosMap.find(root->id(), ffr_id);
-  if ( !stat ) {
+  if  ( mElemPosMap.count(root->id()) == 0 ) {
     cerr << "Error[MffcPropCone::make_prop_condition()]: "
 	 << root->id() << " is not within the MFFC" << endl;
     return;
   }
 
+  int ffr_id = mElemPosMap.at(root->id());
   int ffr_num = mElemArray.size();
   if ( ffr_num > 1 ) {
     // FFR の根の出力に故障を挿入する．
     assumptions.reserve(assumptions.size() + ffr_num);
     for (int i = 0; i < ffr_num; ++ i) {
-      SatVarId evar = mElemVarArray[i];
+      auto evar = mElemVarArray[i];
       bool inv = (i != ffr_id);
       assumptions.push_back(SatLiteral(evar, inv));
     }

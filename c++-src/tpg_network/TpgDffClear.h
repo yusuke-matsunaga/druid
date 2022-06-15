@@ -5,9 +5,8 @@
 /// @brief TpgDffClear のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgDffControl.h"
 
@@ -21,21 +20,18 @@ BEGIN_NAMESPACE_DRUID
 class TpgDffClear :
   public TpgDffControl
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] fanin ファンインのノード
-  TpgDffClear(int id,
-	      const TpgDff* dff,
-	      TpgNode* fanin);
+  TpgDffClear(
+    const TpgDff* dff,   ///< [in] 接続しているDFF
+    const TpgNode* fanin ///< [in] ファンインのノード
+  );
 
   /// @brief デストラクタ
-  virtual
-  ~TpgDffClear();
+  ~TpgDffClear() = default;
 
 
 public:
@@ -44,21 +40,8 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief DFF のクリア端子に接続している力タイプの時 true を返す．
-  virtual
   bool
   is_dff_clear() const override;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
 
 };
 

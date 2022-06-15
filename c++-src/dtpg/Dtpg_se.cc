@@ -122,7 +122,7 @@ SatBool3
 Dtpg_se::dtpg(const TpgFault* fault,
 	      TestVector& testvect)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   SatStats prev_stats;
@@ -131,11 +131,11 @@ Dtpg_se::dtpg(const TpgFault* fault,
   vector<SatLiteral> assumptions;
   mStructEnc.make_fault_condition(fault, 0, assumptions);
 
-  vector<SatBool3> model;
-  SatBool3 ans = mStructEnc.solver().solve(assumptions, model);
+  auto ans = mStructEnc.solver().solve(assumptions);
+  const auto& model = mStructEnc.solver().model();
 
   timer.stop();
-  USTime time = timer.time();
+  auto time = timer.get_time();
 
   SatStats sat_stats;
   mStructEnc.solver().get_stats(sat_stats);
@@ -152,7 +152,7 @@ Dtpg_se::dtpg(const TpgFault* fault,
     mStructEnc.justify(model, assign_list, mJustifier, testvect);
 
     timer.stop();
-    mStats.mBackTraceTime += timer.time();
+    mStats.mBackTraceTime += timer.get_time();
     mStats.update_det(sat_stats, time);
   }
   else if ( ans == SatBool3::False ) {
@@ -185,7 +185,7 @@ Dtpg_se::cnf_begin()
 void
 Dtpg_se::cnf_end()
 {
-  USTime time = timer_stop();
+  auto time = timer_stop();
   mStats.mCnfGenTime += time;
   ++ mStats.mCnfGenCount;
 }
@@ -201,15 +201,16 @@ Dtpg_se::timer_start()
 }
 
 /// @brief 時間計測を終了する．
-USTime
+double
 Dtpg_se::timer_stop()
 {
-  USTime time(0, 0, 0);
   if ( mTimerEnable ) {
     mTimer.stop();
-    time = mTimer.time();
+    return mTimer.get_time();
   }
-  return time;
+  else {
+    return 0.0;
+  }
 }
 
 END_NAMESPACE_DRUID

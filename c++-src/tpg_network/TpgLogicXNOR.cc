@@ -3,9 +3,8 @@
 /// @brief TpgLogicXNOR[x] の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgLogicXNOR.h"
 #include "GateType.h"
@@ -19,16 +18,9 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
-TpgLogicXNOR2::TpgLogicXNOR2(int id,
-			     const vector<TpgNode*>& fanin_list) :
-  TpgLogic2(id, fanin_list)
-{
-}
-
-// @brief デストラクタ
-TpgLogicXNOR2::~TpgLogicXNOR2()
+TpgLogicXNOR2::TpgLogicXNOR2(
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 

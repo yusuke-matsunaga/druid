@@ -23,16 +23,13 @@ class TpgStemFault :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] val 故障値
-  /// @param[in] node 故障位置のノード
-  /// @param[in] name 故障位置のノード名
-  /// @param[in] rep_fault 代表故障
-  TpgStemFault(int id,
-	       int val,
-	       const TpgNode* node,
-	       const char* name,
-	       TpgFault* rep_fault);
+  TpgStemFault(
+    int id,              ///< [in] ID番号
+    int val,             ///< [in] 故障値
+    const TpgNode* node, ///< [in] 故障位置のノード
+    const string& name,  ///< [in] 故障位置のノード名
+    TpgFault* rep_fault  ///< [in] 代表故障
+  );
 
   /// @brief デストラクタ
   ~TpgStemFault();

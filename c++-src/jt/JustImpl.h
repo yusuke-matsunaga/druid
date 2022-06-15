@@ -48,7 +48,7 @@ public:
   NodeValList
   justify(const NodeValList& assign_list,
 	  const VidMap& var_map,
-	  const vector<SatBool3>& model);
+	  const SatModel& model);
 
   /// @brief 正当化に必要な割当を求める(遷移故障用)．
   /// @param[in] assign_list 値の割り当てリスト
@@ -60,7 +60,7 @@ public:
   justify(const NodeValList& assign_list,
 	  const VidMap& var1_map,
 	  const VidMap& var2_map,
-	  const vector<SatBool3>& model);
+	  const SatModel& model);
 
 
 private:

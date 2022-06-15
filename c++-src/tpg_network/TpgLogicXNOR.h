@@ -5,9 +5,8 @@
 /// @brief TpgLogicXNOR[x] のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgLogic.h"
 
@@ -19,21 +18,20 @@ BEGIN_NAMESPACE_DRUID
 /// @brief 2入力XNORを表すクラス
 //////////////////////////////////////////////////////////////////////
 class TpgLogicXNOR2 :
-  public TpgLogic2
+  public TpgLogic
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] fanin_list ファンインのリスト
-  TpgLogicXNOR2(int id,
-		const vector<TpgNode*>& fanin_list);
+  TpgLogicXNOR2(
+    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
+    SizeType fanout_num ///< [in] ファンアウト数
+  );
 
   /// @brief デストラクタ
-  virtual
-  ~TpgLogicXNOR2();
+  ~TpgLogicXNOR2() = default;
 
 
 public:
@@ -44,7 +42,6 @@ public:
   /// @brief ゲートタイプを得る．
   ///
   /// is_logic() が false の場合の返り値は不定
-  virtual
   GateType
   gate_type() const override;
 
@@ -52,7 +49,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   cval() const override;
 
@@ -60,7 +56,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   nval() const override;
 
@@ -68,7 +63,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   coval() const override;
 
@@ -76,7 +70,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   noval() const override;
 

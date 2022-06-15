@@ -5,16 +5,15 @@
 /// @brief Extractor のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2014, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2014, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "NodeValList.h"
 #include "VidMap.h"
 #include "Val3.h"
-#include "ym/HashSet.h"
 #include "ym/SatBool3.h"
+#include "ym/SatModel.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -38,12 +37,11 @@ class Extractor
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] gvar_map 正常値の変数番号のマップ
-  /// @param[in] fvar_map 故障値の変数番号のマップ
-  /// @param[in] model SATソルバの作ったモデル
-  Extractor(const VidMap& gvar_map,
-	    const VidMap& fvar_map,
-	    const vector<SatBool3>& model);
+  Extractor(
+    const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
+    const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
+    const SatModel& model   ///< [in] SATソルバの作ったモデル
+  );
 
   /// @brief デストラクタ
   ~Extractor();
@@ -55,10 +53,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 値割り当てを１つ求める．
-  /// @param[in] root_list 起点となるノードのリスト
   /// @return 値の割当リスト
   NodeValList
-  get_assignment(const vector<const TpgNode*>& root_list);
+  get_assignment(
+    const vector<const TpgNode*>& root_list ///< [in] 起点となるノードのリスト
+  );
 
 
 private:
@@ -68,44 +67,64 @@ private:
 
   /// @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
   void
-  mark_tfo(const TpgNode* node);
+  mark_tfo(
+    const TpgNode* node ///< [in] 対象のノード
+  );
 
   /// @brief 故障の影響の伝搬する値割当を記録する．
-  /// @param[in] node 対象のノード
-  /// @param[out] assign_list 値割当を記録するリスト
   ///
   /// node は TFO 内のノードでかつ故障差が伝搬している．
   void
-  record_sensitized_node(const TpgNode* node,
-			 NodeValList& assign_list);
+  record_sensitized_node(
+    const TpgNode* node,     ///< [in] 対象のノード
+    NodeValList& assign_list ///< [out] 値割当を記録するリスト
+  );
 
   /// @brief 故障の影響の伝搬を阻害する値割当を記録する．
-  /// @param[in] node 対象のノード
-  /// @param[out] assign_list 値割当を記録するリスト
   ///
   /// node は TFO 内のノードかつ故障差が伝搬していない．
   void
-  record_masking_node(const TpgNode* node,
-		      NodeValList& assign_list);
+  record_masking_node(
+    const TpgNode* node,     ///< [in] 対象のノード
+    NodeValList& assign_list ///< [out] 値割当を記録するリスト
+  );
 
   /// @brief side input の値を記録する．
-  /// @param[in] node 対象のノード
-  /// @param[out] assign_list 値割当を記録するリスト
   ///
   /// node は TFO 外のノード
   void
-  record_side_input(const TpgNode* node,
-		    NodeValList& assign_list);
+  record_side_input(
+    const TpgNode* node,     ///< [in] 対象のノード
+    NodeValList& assign_list ///< [out] 値割当を記録するリスト
+  )
+  {
+    ASSERT_COND( mFconeMark.count(node->id()) == 0 );
+
+    if ( mRecorded.count(node->id()) == 0 ) {
+      mRecorded.emplace(node->id());
+
+      bool val = (gval(node) == Val3::_1);
+      assign_list.add(node, 1, val);
+    }
+  }
 
   /// @brief 正常回路の値を返す．
-  /// @param[in] node ノード
   Val3
-  gval(const TpgNode* node);
+  gval(
+    const TpgNode* node ///< [in] 対象のノード
+  )
+  {
+    return bool3_to_val3(mSatModel[mGvarMap(node)]);
+  }
 
   /// @brief 故障回路の値を返す．
-  /// @param[in] node ノード
   Val3
-  fval(const TpgNode* node);
+  fval(
+    const TpgNode* node ///< [in] 対象のノード
+  )
+  {
+    return bool3_to_val3(mSatModel[mFvarMap(node)]);
+  }
 
 
 private:
@@ -120,59 +139,18 @@ private:
   const VidMap& mFvarMap;
 
   // SAT ソルバの解
-  const vector<SatBool3>& mSatModel;
+  const SatModel& mSatModel;
 
   // 故障の fanout cone のマーク
-  HashSet<int> mFconeMark;
+  unordered_set<int> mFconeMark;
 
   // 記録済みノードを保持するハッシュ表
-  HashSet<int> mRecorded;
+  unordered_set<int> mRecorded;
 
   // 故障差の伝搬している外部出力のリスト
   vector<const TpgNode*> mSpoList;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief side input の値を記録する．
-// @param[in] node 対象のノード
-// @param[out] assign_list 値割当を記録するリスト
-inline
-void
-Extractor::record_side_input(const TpgNode* node,
-			     NodeValList& assign_list)
-{
-  ASSERT_COND( !mFconeMark.check(node->id()) );
-
-  if ( !mRecorded.check(node->id()) ) {
-    mRecorded.add(node->id());
-
-    bool val = (gval(node) == Val3::_1);
-    assign_list.add(node, 1, val);
-  }
-}
-
-// @brief 正常回路の値を返す．
-// @param[in] node ノード
-inline
-Val3
-Extractor::gval(const TpgNode* node)
-{
-  return bool3_to_val3(mSatModel[mGvarMap(node).val()]);
-}
-
-// @brief 故障回路の値を返す．
-// @param[in] node ノード
-inline
-Val3
-Extractor::fval(const TpgNode* node)
-{
-  return bool3_to_val3(mSatModel[mFvarMap(node).val()]);
-}
 
 END_NAMESPACE_DRUID
 

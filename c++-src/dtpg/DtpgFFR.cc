@@ -134,8 +134,7 @@ DtpgFFR::gen_k_patterns(const TpgFault* fault,
 
     if ( k > 1 ) {
       // ここで追加するCNF式を制御する変数
-      SatVarId cvar = solver().new_variable();
-      SatLiteral clit(cvar);
+      auto clit = solver().new_variable();
 
       for ( auto i: Range(k - 1) ) {
 	// testvect の否定を表すCNF式を追加する．
@@ -201,14 +200,13 @@ DtpgFFR::gen_core_expr(const TpgFault* fault,
   vector<SatLiteral> assumptions;
   conv_to_assumptions(ffr_cond, assumptions);
 
-  Expr expr = Expr::zero();
+  Expr expr = Expr::make_zero();
 
   SatBool3 sat_res = solve(assumptions);
   if ( sat_res == SatBool3::True ) {
     NodeValList suf_cond = get_sufficient_condition();
     NodeValList mand_cond = get_mandatory_condition(ffr_cond, suf_cond);
-    SatVarId cvar = solver().new_variable();
-    SatLiteral clit(cvar);
+    auto clit = solver().new_variable();
     Expr expr1 = get_sufficient_conditions();
     expr |= expr1;
     for ( auto i: Range(k) ) {

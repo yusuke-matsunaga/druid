@@ -17,18 +17,10 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] dff 接続しているDFF
-// @param[in] fanin ファンインのノード
-TpgDffPreset::TpgDffPreset(int id,
-			   const TpgDff* dff,
-			   TpgNode* fanin) :
-  TpgDffControl(id, dff, fanin)
-{
-}
-
-// @brief デストラクタ
-TpgDffPreset::~TpgDffPreset()
+TpgDffPreset::TpgDffPreset(
+  const TpgDff* dff,
+  TpgNode* fanin
+) : TpgDffControl{dff, fanin}
 {
 }
 

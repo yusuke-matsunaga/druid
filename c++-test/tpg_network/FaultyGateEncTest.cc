@@ -99,7 +99,7 @@ FaultyGateEncTest::check_ofault(int input_num,
   TpgGateInfoMgr gimgr;
 
   // 入力ノードを作る．
-  vector<TpgNode*> input_list(input_num);
+  vector<const TpgNode*> input_list(input_num);
   for ( int i: Range(input_num) ) {
     TpgNode* inode = mNetworkImpl.make_input_node(i, string(), 1);
     input_list[i] = inode;
@@ -114,11 +114,11 @@ FaultyGateEncTest::check_ofault(int input_num,
   // 変数を割り当てる．
   VidMap varmap(mNetworkImpl.node_num());
   for ( int i: Range(input_num) ) {
-    SatVarId var = mSolver.new_variable();
+    auto var = mSolver.new_variable();
     varmap.set_vid(input_list[i], var);
   }
   {
-    SatVarId var = mSolver.new_variable();
+    auto var = mSolver.new_variable();
     varmap.set_vid(node, var);
   }
 
@@ -131,8 +131,7 @@ FaultyGateEncTest::check_ofault(int input_num,
   int ni_exp = 1 << input_num;
   for ( int p: Range(ni_exp) ) {
     for ( int i: Range(input_num) ) {
-      SatVarId var = varmap(input_list[i]);
-      SatLiteral lit(var);
+      auto lit = varmap(input_list[i]);
       if ( p & (1 << i) ) {
 	assumptions[i] = lit;
       }
@@ -140,8 +139,7 @@ FaultyGateEncTest::check_ofault(int input_num,
 	assumptions[i] = ~lit;
       }
     }
-    SatVarId ovar = varmap(node);
-    SatLiteral olit(ovar);
+    auto olit = varmap(node);
 
     // 正しい出力値を設定する．
     if ( vals[p] ) {
@@ -150,8 +148,7 @@ FaultyGateEncTest::check_ofault(int input_num,
     else {
       assumptions[input_num] = ~olit;
     }
-    vector<SatBool3> model1;
-    SatBool3 res1 = mSolver.solve(assumptions, model1);
+    SatBool3 res1 = mSolver.solve(assumptions);
     ASSERT_NE( SatBool3::X, res1 );
     EXPECT_EQ( SatBool3::True, res1 );
 
@@ -162,8 +159,7 @@ FaultyGateEncTest::check_ofault(int input_num,
     else {
       assumptions[input_num] = olit;
     }
-    vector<SatBool3> model2;
-    SatBool3 res2 = mSolver.solve(assumptions, model2);
+    SatBool3 res2 = mSolver.solve(assumptions);
     ASSERT_NE( SatBool3::X, res2 );
     EXPECT_EQ( SatBool3::False, res2 );
   }
@@ -182,7 +178,7 @@ FaultyGateEncTest::check_ifault(int input_num,
   TpgGateInfoMgr gimgr;
 
   // 入力ノードを作る．
-  vector<TpgNode*> input_list(input_num);
+  vector<const TpgNode*> input_list(input_num);
   for ( int i: Range(input_num) ) {
     TpgNode* inode = mNetworkImpl.make_input_node(i, string(), 1);
     input_list[i] = inode;
@@ -197,11 +193,11 @@ FaultyGateEncTest::check_ifault(int input_num,
   // 変数を割り当てる．
   VidMap varmap(mNetworkImpl.node_num());
   for ( int i: Range(input_num) ) {
-    SatVarId var = mSolver.new_variable();
+    auto var = mSolver.new_variable();
     varmap.set_vid(input_list[i], var);
   }
   {
-    SatVarId var = mSolver.new_variable();
+    auto var = mSolver.new_variable();
     varmap.set_vid(node, var);
   }
 
@@ -214,8 +210,7 @@ FaultyGateEncTest::check_ifault(int input_num,
   int ni_exp = 1 << input_num;
   for ( int p: Range(ni_exp) ) {
     for ( int i: Range(input_num) ) {
-      SatVarId var = varmap(input_list[i]);
-      SatLiteral lit(var);
+      auto lit = varmap(input_list[i]);
       if ( p & (1 << i) ) {
 	assumptions[i] = lit;
       }
@@ -223,8 +218,7 @@ FaultyGateEncTest::check_ifault(int input_num,
 	assumptions[i] = ~lit;
       }
     }
-    SatVarId ovar = varmap(node);
-    SatLiteral olit(ovar);
+    auto olit = varmap(node);
 
     // 正しい出力値を設定する．
     if ( vals[p] ) {
@@ -233,8 +227,7 @@ FaultyGateEncTest::check_ifault(int input_num,
     else {
       assumptions[input_num] = ~olit;
     }
-    vector<SatBool3> model1;
-    SatBool3 res1 = mSolver.solve(assumptions, model1);
+    SatBool3 res1 = mSolver.solve(assumptions);
     ASSERT_NE( SatBool3::X, res1 );
     EXPECT_EQ( SatBool3::True, res1 );
 
@@ -245,8 +238,7 @@ FaultyGateEncTest::check_ifault(int input_num,
     else {
       assumptions[input_num] = olit;
     }
-    vector<SatBool3> model2;
-    SatBool3 res2 = mSolver.solve(assumptions, model2);
+    SatBool3 res2 = mSolver.solve(assumptions);
     ASSERT_NE( SatBool3::X, res2 );
     EXPECT_EQ( SatBool3::False, res2 );
   }

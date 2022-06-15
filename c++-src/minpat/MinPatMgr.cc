@@ -16,9 +16,8 @@
 #include "FaultInfo.h"
 #include "TvMerger.h"
 #include "ym/McMatrix.h"
-#include "ym/HashSet.h"
 #include "ym/Range.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -314,7 +313,7 @@ MinPatMgr::reduce(McMatrix& matrix,
 		  MpColGraph& graph,
 		  vector<int>& selected_cols)
 {
-  StopWatch timer;
+  Timer timer;
 
   if ( 0 ) {
     timer.reset();
@@ -347,7 +346,7 @@ MinPatMgr::reduce(McMatrix& matrix,
 
   if ( 0 ) {
     timer.stop();
-    USTime time = timer.time();
+    auto time = timer.get_time();
     cout << " ==> "
 	 << matrix.active_row_num() << " x " << matrix.active_col_num()
 	 << ", # of selected_cols = " << selected_cols.size()

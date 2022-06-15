@@ -9,12 +9,8 @@
 /// All rights reserved.
 
 #include "druid.h"
-
-
 #include "TpgNetwork.h"
-
 #include "ym/sat.h"
-#include "ym/HashMap.h"
 
 
 BEGIN_NAMESPACE_DRUID

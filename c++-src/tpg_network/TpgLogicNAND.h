@@ -5,9 +5,8 @@
 /// @brief TpgLogicNAND[x] のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgLogic.h"
 
@@ -15,27 +14,24 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgLogicNAND2 TpgLogicNAND.h "TpgLogicNAND.h"
-/// @brief 2入力NANDを表すクラス
+/// @class TpgLogicNAND TpgLogicNAND.h "TpgLogicNAND.h"
+/// @brief NANDゲートを表すクラス
 //////////////////////////////////////////////////////////////////////
-class TpgLogicNAND2 :
-  public TpgLogic2
+class TpgLogicNAND :
+  public TpgLogic
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] fanin_list ファンインのリスト
-  ///
-  /// fanin_list.size() == 2 であることを仮定している．
-  TpgLogicNAND2(int id,
-		const vector<TpgNode*>& fanin_list);
+  TpgLogicNAND(
+    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
+    SizeType fanout_num ///< [in] ファンアウト数
+  );
 
   /// @brief デストラクタ
-  virtual
-  ~TpgLogicNAND2();
+  ~TpgLogicNAND() = default;
 
 
 public:
@@ -46,7 +42,6 @@ public:
   /// @brief ゲートタイプを得る．
   ///
   /// is_logic() が false の場合の返り値は不定
-  virtual
   GateType
   gate_type() const override;
 
@@ -54,7 +49,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   cval() const override;
 
@@ -62,7 +56,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   nval() const override;
 
@@ -70,7 +63,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   coval() const override;
 
@@ -78,13 +70,12 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   noval() const override;
 
 };
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////
 /// @class TpgLogicNAND3 TpgLogicNAND.h "TpgLogicNAND.h"
 /// @brief 3入力NANDを表すクラス
@@ -92,21 +83,19 @@ public:
 class TpgLogicNAND3 :
   public TpgLogic3
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] fanin_list ファンインのリスト
   ///
   /// fanin_list.size() == 3 であることを仮定している．
-  TpgLogicNAND3(int id,
-		const vector<TpgNode*>& fanin_list);
+  TpgLogicNAND3(
+    const vector<TpgNode*>& fanin_list ///< [in] ファンインのリスト
+  );
 
   /// @brief デストラクタ
-  virtual
-  ~TpgLogicNAND3();
+  ~TpgLogicNAND3() = default;
 
 
 public:
@@ -117,7 +106,6 @@ public:
   /// @brief ゲートタイプを得る．
   ///
   /// is_logic() が false の場合の返り値は不定
-  virtual
   GateType
   gate_type() const override;
 
@@ -125,7 +113,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   cval() const override;
 
@@ -133,7 +120,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   nval() const override;
 
@@ -141,7 +127,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   coval() const override;
 
@@ -149,7 +134,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   noval() const override;
 
@@ -163,21 +147,19 @@ public:
 class TpgLogicNAND4 :
   public TpgLogic4
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] fanin_list ファンインのリスト
   ///
   /// fanin_list.size() == 4 であることを仮定している．
-  TpgLogicNAND4(int id,
-		const vector<TpgNode*>& fanin_list);
+  TpgLogicNAND4(
+    const vector<TpgNode*>& fanin_list ///< [in] ファンインのリスト
+  );
 
   /// @brief デストラクタ
-  virtual
-  ~TpgLogicNAND4();
+  ~TpgLogicNAND4() = default;
 
 
 public:
@@ -188,7 +170,6 @@ public:
   /// @brief ゲートタイプを得る．
   ///
   /// is_logic() が false の場合の返り値は不定
-  virtual
   GateType
   gate_type() const override;
 
@@ -196,7 +177,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   cval() const override;
 
@@ -204,7 +184,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   nval() const override;
 
@@ -212,7 +191,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   coval() const override;
 
@@ -220,7 +198,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   noval() const override;
 
@@ -234,17 +211,17 @@ public:
 class TpgLogicNANDN :
   public TpgLogicN
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  TpgLogicNANDN(int id);
+  TpgLogicNANDN(
+    const vector<TpgNode*>& fanin_list ///< [in] ファンインのリスト
+  );
 
   /// @brief デストラクタ
-  virtual
-  ~TpgLogicNANDN();
+  ~TpgLogicNANDN() = default;
 
 
 public:
@@ -255,7 +232,6 @@ public:
   /// @brief ゲートタイプを得る．
   ///
   /// is_logic() が false の場合の返り値は不定
-  virtual
   GateType
   gate_type() const override;
 
@@ -263,7 +239,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   cval() const override;
 
@@ -271,7 +246,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   nval() const override;
 
@@ -279,7 +253,6 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   coval() const override;
 
@@ -287,12 +260,11 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ない場合は Val3::_X を返す．
-  virtual
   Val3
   noval() const override;
 
-
 };
+#endif
 
 END_NAMESPACE_DRUID
 

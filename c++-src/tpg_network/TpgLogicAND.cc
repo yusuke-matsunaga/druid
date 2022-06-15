@@ -3,9 +3,8 @@
 /// @brief TpgLogicAND[x] の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgLogicAND.h"
 #include "GateType.h"
@@ -14,22 +13,14 @@
 
 BEGIN_NAMESPACE_DRUID
 
-
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogicAND2
+// クラス TpgLogicAND
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
-TpgLogicAND2::TpgLogicAND2(int id,
-			   const vector<TpgNode*>& fanin_list) :
-  TpgLogic2(id, fanin_list)
-{
-}
-
-// @brief デストラクタ
-TpgLogicAND2::~TpgLogicAND2()
+TpgLogicAND::TpgLogicAND(
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -37,7 +28,7 @@ TpgLogicAND2::~TpgLogicAND2()
 //
 // is_logic() が false の場合の返り値は不定
 GateType
-TpgLogicAND2::gate_type() const
+TpgLogicAND::gate_type() const
 {
   return GateType::And;
 }
@@ -47,7 +38,7 @@ TpgLogicAND2::gate_type() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicAND2::cval() const
+TpgLogicAND::cval() const
 {
   return Val3::_0;
 }
@@ -57,7 +48,7 @@ TpgLogicAND2::cval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicAND2::nval() const
+TpgLogicAND::nval() const
 {
   return Val3::_1;
 }
@@ -67,7 +58,7 @@ TpgLogicAND2::nval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicAND2::coval() const
+TpgLogicAND::coval() const
 {
   return Val3::_0;
 }
@@ -77,12 +68,12 @@ TpgLogicAND2::coval() const
 // is_logic() が false の場合の返り値は不定
 // ない場合は Val3::_X を返す．
 Val3
-TpgLogicAND2::noval() const
+TpgLogicAND::noval() const
 {
   return Val3::_1;
 }
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogicAND3
 //////////////////////////////////////////////////////////////////////
@@ -283,5 +274,6 @@ TpgLogicANDN::noval() const
 {
   return Val3::_1;
 }
+#endif
 
 END_NAMESPACE_DRUID

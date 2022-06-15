@@ -5,7 +5,7 @@
 /// @brief TestVector のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -45,33 +45,33 @@ public:
   TestVector();
 
   /// @brief コンストラクタ(組み合わせ回路用)
-  /// @param[in] input_num 入力数
+  ///< [in] input_num 入力数
   ///
   /// 故障タイプは StuckAt
   TestVector(int input_num);
 
   /// @brief コンストラクタ(順序回路用)
-  /// @param[in] input_num 入力数
-  /// @param[in] dff_numr DFF数
-  /// @param[in] fault_type 故障の種類
+  ///< [in] input_num 入力数
+  ///< [in] dff_numr DFF数
+  ///< [in] fault_type 故障の種類
   TestVector(int input_num,
 	     int dff_num,
 	     FaultType fault_type);
 
   /// @brief コピーコンストラクタ
-  /// @param[in] src コピー元のソース
+  ///< [in] src コピー元のソース
   TestVector(const TestVector& src);
 
   /// @brief コピー代入演算子
-  /// @param[in] src コピー元のソース
+  ///< [in] src コピー元のソース
   TestVector&
   operator=(const TestVector& src);
 
   /// @brief 割当リストからTestVectorを作るクラスメソッド
-  /// @param[in] input_num 入力数
-  /// @param[in] dff_numr DFF数
-  /// @param[in] fault_type 故障の種類
-  /// @param[in] assign_list 割当リスト
+  ///< [in] input_num 入力数
+  ///< [in] dff_numr DFF数
+  ///< [in] fault_type 故障の種類
+  ///< [in] assign_list 割当リスト
   /// @return assign_list から変換したテストベクタ
   ///
   /// assign_list に外部入力とDFF以外の割当が含まれている場合無視する．
@@ -83,10 +83,10 @@ public:
 		       const NodeValList& assign_list);
 
   /// @brief HEX文字列からTestVectorを作るクラスメソッド
-  /// @param[in] input_num 入力数
-  /// @param[in] dff_numr DFF数
-  /// @param[in] fault_type 故障の種類
-  /// @param[in] hex_string HEX 文字列
+  ///< [in] input_num 入力数
+  ///< [in] dff_numr DFF数
+  ///< [in] fault_type 故障の種類
+  ///< [in] hex_string HEX 文字列
   /// @return 生成したテストベクタ
   ///
   /// 1時刻目の外部入力，１時刻目のDFF，２時刻目の外部入力の順にならんでいると仮定する．<br>
@@ -113,7 +113,7 @@ public:
   vector_size() const;
 
   /// @brief 値を得る．
-  /// @param[in] pos ビット位置 ( 0 <= pos < vector_size() )
+  ///< [in] pos ビット位置 ( 0 <= pos < vector_size() )
   Val3
   val(int pos) const;
 
@@ -140,12 +140,12 @@ public:
   fault_type() const;
 
   /// @brief PPIの値を得る．
-  /// @param[in] pos PPI の位置番号 ( 0 <= pos < ppi_num() )
+  ///< [in] pos PPI の位置番号 ( 0 <= pos < ppi_num() )
   Val3
   ppi_val(int pos) const;
 
   /// @brief 1時刻目の外部入力の値を得る．
-  /// @param[in] pos 入力の位置番号 ( 0 <= pos < input_num() )
+  ///< [in] pos 入力の位置番号 ( 0 <= pos < input_num() )
   ///
   /// is_td_mode() == true の時のみ有効<br>
   /// 実は ppi_val(pos) と同じ．
@@ -153,7 +153,7 @@ public:
   input_val(int pos) const;
 
   /// @brief 1時刻目のDFFの値を得る．
-  /// @param[in] pos DFFの位置番号 ( 0 <= pos < dff_num() )
+  ///< [in] pos DFFの位置番号 ( 0 <= pos < dff_num() )
   ///
   /// is_td_mode() == true の時のみ有効<br>
   /// 実は ppi_val(pos + input_num()) と同じ．
@@ -161,7 +161,7 @@ public:
   dff_val(int pos) const;
 
   /// @brief 2時刻目の外部入力の値を得る．
-  /// @param[in] pos 入力の位置番号 ( 0 <= pos < input_num() )
+  ///< [in] pos 入力の位置番号 ( 0 <= pos < input_num() )
   ///
   /// is_td_mode() == true の時のみ有効
   Val3
@@ -205,8 +205,8 @@ public:
   init();
 
   /// @brief PPIの値を設定する．
-  /// @param[in] pos PPIの位置番号 ( 0 <= pos < ppi_num() )
-  /// @param[in] val 値
+  ///< [in] pos PPIの位置番号 ( 0 <= pos < ppi_num() )
+  ///< [in] val 値
   ///
   /// is_sa_mode() == true の時のみ有効
   void
@@ -214,8 +214,8 @@ public:
 	      Val3 val);
 
   /// @breif 1時刻目の外部入力の値を設定する．
-  /// @param[in] pos 入力の位置番号 ( 0 <= pos < input_num() )
-  /// @param[in] val 値
+  ///< [in] pos 入力の位置番号 ( 0 <= pos < input_num() )
+  ///< [in] val 値
   ///
   /// is_td_mode() == true の時のみ有効
   void
@@ -223,8 +223,8 @@ public:
 		Val3 val);
 
   /// @breif 1時刻目のDFFの値を設定する．
-  /// @param[in] pos DFFの位置番号 ( 0 <= pos < dff_num() )
-  /// @param[in] val 値
+  ///< [in] pos DFFの位置番号 ( 0 <= pos < dff_num() )
+  ///< [in] val 値
   ///
   /// is_td_mode() == true の時のみ有効
   void
@@ -232,8 +232,8 @@ public:
 	      Val3 val);
 
   /// @breif 2時刻目の外部入力の値を設定する．
-  /// @param[in] pos 入力の位置番号 ( 0 <= pos < input_num() )
-  /// @param[in] val 値
+  ///< [in] pos 入力の位置番号 ( 0 <= pos < input_num() )
+  ///< [in] val 値
   ///
   /// is_td_mode() == true の時のみ意味を持つ．
   void
@@ -241,14 +241,14 @@ public:
 		    Val3 val);
 
   /// @brief 乱数パタンを設定する．
-  /// @param[in] randgen 乱数生成器
+  ///< [in] randgen 乱数生成器
   /// @note 結果はかならず 0 か 1 になる．(Xは含まれない)
   template<class URNG>
   void
   set_from_random(URNG& randgen);
 
   /// @brief X の部分を乱数で 0/1 に設定する．
-  /// @param[in] randgen 乱数生成器
+  ///< [in] randgen 乱数生成器
   template<class URNG>
   void
   fix_x_from_random(URNG& randgen);
@@ -260,7 +260,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 両立関係の比較を行う．
-  /// @param[in] left, right オペランド
+  ///< [in] left, right オペランド
   /// @return left と right が両立する時 true を返す．
   friend
   bool
@@ -268,7 +268,7 @@ public:
 	     const TestVector& right);
 
   /// @brief 等価関係の比較を行なう．
-  /// @param[in] left, right オペランド
+  ///< [in] left, right オペランド
   /// @return left と right が等しいとき true を返す．
   friend
   bool
@@ -276,7 +276,7 @@ public:
 	     const TestVector& right);
 
   /// @brief 包含関係の比較を行なう
-  /// @param[in] left, right オペランド
+  ///< [in] left, right オペランド
   /// @return minterm の集合として right が left を含んでいたら true を返す．
   ///
   /// - false だからといって逆に left が right を含むとは限らない．
@@ -286,7 +286,7 @@ public:
 	    const TestVector& right);
 
   /// @brief 包含関係の比較を行なう
-  /// @param[in] left, right オペランド
+  ///< [in] left, right オペランド
   /// @return minterm の集合として right が left を含んでいたら true を返す．
   ///
   /// - こちらは等しい場合も含む．
@@ -331,7 +331,7 @@ private:
 
 /// @relates TestVector
 /// @brief 2つのベクタが両立するとき true を返す．
-/// @param[in] tv1, tv2 対象のテストベクタ
+///< [in] tv1, tv2 対象のテストベクタ
 ///
 /// 同じビット位置にそれぞれ 0 と 1 を持つ場合が両立しない場合．
 bool
@@ -340,7 +340,7 @@ operator&&(const TestVector& tv1,
 
 /// @relates TestVector
 /// @brief operator&& の別名
-/// @param[in] tv1, tv2 対象のテストベクタ
+///< [in] tv1, tv2 対象のテストベクタ
 ///
 /// 同じビット位置にそれぞれ 0 と 1 を持つ場合が両立しない場合．
 bool
@@ -349,7 +349,7 @@ is_compatible(const TestVector& tv1,
 
 /// @relates TestVector
 /// @brief 等価関係の比較を行なう．
-/// @param[in] left, right オペランド
+///< [in] left, right オペランド
 /// @return left と right が等しいとき true を返す．
 bool
 operator==(const TestVector& left,
@@ -357,7 +357,7 @@ operator==(const TestVector& left,
 
 /// @relates TestVector
 /// @brief 等価関係の比較を行なう．
-/// @param[in] left, right オペランド
+///< [in] left, right オペランド
 /// @return left と right が等しいとき true を返す．
 bool
 is_equal(const TestVector& left,
@@ -365,7 +365,7 @@ is_equal(const TestVector& left,
 
 /// @relates TestVector
 /// @brief 等価関係の比較を行なう．
-/// @param[in] left, right オペランド
+///< [in] left, right オペランド
 /// @return left と right が等しくないとき true を返す．
 bool
 operator!=(const TestVector& left,
@@ -373,7 +373,7 @@ operator!=(const TestVector& left,
 
 /// @relates TestVector
 /// @brief 包含関係の比較を行なう
-/// @param[in] left, right オペランド
+///< [in] left, right オペランド
 /// @return minterm の集合として right が left を含んでいたら true を返す．
 ///
 /// - false だからといって逆に left が right を含むとは限らない．
@@ -383,7 +383,7 @@ operator<(const TestVector& left,
 
 /// @relates TestVector
 /// @brief 包含関係の比較を行なう．
-/// @param[in] left, right オペランド
+///< [in] left, right オペランド
 /// @return minterm の集合として left が right を含んでいたら true を返す．
 /// @note false だからといって逆に right が left を含むとは限らない．
 bool
@@ -392,7 +392,7 @@ operator>(const TestVector& left,
 
 /// @relates TestVector
 /// @brief 包含関係の比較を行なう
-/// @param[in] left, right オペランド
+///< [in] left, right オペランド
 /// @return minterm の集合として right が left を含んでいたら true を返す．
 ///
 /// - こちらは等しい場合も含む．
@@ -403,7 +403,7 @@ operator<=(const TestVector& left,
 
 /// @relates TestVector
 /// @brief 包含関係の比較を行なう
-/// @param[in] left, right オペランド
+///< [in] left, right オペランド
 /// @return minterm の集合として left が right を含んでいたら true を返す．
 /// @note こちらは等しい場合も含む．
 /// @note false だからといって逆に right が left を含むとは限らない．
@@ -412,7 +412,7 @@ operator>=(const TestVector& left,
 	   const TestVector& right);
 
 /// @brief マージする．
-/// @param[in] left, right オペランド
+///< [in] left, right オペランド
 /// @return マージ結果を返す．
 ///
 /// left と right がコンフリクトしている時の結果は不定
@@ -421,7 +421,7 @@ operator&(const TestVector& left,
 	  const TestVector& right);
 
 /// @brief 複数のテストベクタをマージする．
-/// @param[in] tv_list マージするテストベクタのリスト
+///< [in] tv_list マージするテストベクタのリスト
 /// @return マージ結果を返す．
 ///
 /// tv_list の要素が互いにコンフリクトしている時の結果は不定
@@ -429,8 +429,8 @@ TestVector
 merge(const vector<TestVector>& tv_list);
 
 /// @brief 内容を出力する．
-/// @param[in] s 出力先のストリーム
-/// @param[in] tv テストベクタ
+///< [in] s 出力先のストリーム
+///< [in] tv テストベクタ
 ostream&
 operator<<(ostream& s,
 	   const TestVector& tv);
@@ -460,7 +460,7 @@ TestVector::TestVector() :
 }
 
 // @brief コンストラクタ(組み合わせ回路用)
-// @param[in] input_num 入力数
+//< [in] input_num 入力数
 //
 // 故障タイプは StuckAt
 inline
@@ -473,9 +473,9 @@ TestVector::TestVector(int input_num) :
 }
 
 // @brief コンストラクタ(順序回路用)
-// @param[in] input_num 入力数
-// @param[in] dff_numr DFF数
-// @param[in] fault_type 故障の種類
+//< [in] input_num 入力数
+//< [in] dff_numr DFF数
+//< [in] fault_type 故障の種類
 inline
 TestVector::TestVector(int input_num,
 		       int dff_num,
@@ -488,7 +488,7 @@ TestVector::TestVector(int input_num,
 }
 
 // @brief コピーコンストラクタ
-// @param[in] src コピー元のソース
+//< [in] src コピー元のソース
 inline
 TestVector::TestVector(const TestVector& src) :
   mInputNum(src.mInputNum),
@@ -499,7 +499,7 @@ TestVector::TestVector(const TestVector& src) :
 }
 
 // @brief コピー代入演算子
-// @param[in] src コピー元のソース
+//< [in] src コピー元のソース
 inline
 TestVector&
 TestVector::operator=(const TestVector& src)
@@ -513,10 +513,10 @@ TestVector::operator=(const TestVector& src)
 }
 
 // @brief HEX文字列からTestVectorを作るクラスメソッド
-// @param[in] input_num 入力数
-// @param[in] dff_numr DFF数
-// @param[in] fault_type 故障の種類
-// @param[in] hex_string HEX 文字列
+//< [in] input_num 入力数
+//< [in] dff_numr DFF数
+//< [in] fault_type 故障の種類
+//< [in] hex_string HEX 文字列
 // @return 生成したテストベクタ
 //
 // 1時刻目の外部入力，１時刻目のDFF，２時刻目の外部入力の順にならんでいると仮定する．<br>
@@ -550,7 +550,7 @@ TestVector::vector_size() const
 }
 
 // @brief 値を得る．
-// @param[in] pos ビット位置 ( 0 <= pos < vector_size() )
+//< [in] pos ビット位置 ( 0 <= pos < vector_size() )
 inline
 Val3
 TestVector::val(int pos) const
@@ -601,7 +601,7 @@ TestVector::fault_type() const
 }
 
 // @brief PPIの値を得る．
-// @param[in] pos PPI の位置番号 ( 0 <= pos < ppi_num() )
+//< [in] pos PPI の位置番号 ( 0 <= pos < ppi_num() )
 inline
 Val3
 TestVector::ppi_val(int pos) const
@@ -610,7 +610,7 @@ TestVector::ppi_val(int pos) const
 }
 
 // @brief 1時刻目の外部入力の値を得る．
-// @param[in] pos 入力の位置番号 ( 0 <= pos < input_num() )
+//< [in] pos 入力の位置番号 ( 0 <= pos < input_num() )
 inline
 Val3
 TestVector::input_val(int pos) const
@@ -619,7 +619,7 @@ TestVector::input_val(int pos) const
 }
 
 // @brief 1時刻目のDFFの値を得る．
-// @param[in] pos DFFの位置番号 ( 0 <= pos < dff_num() )
+//< [in] pos DFFの位置番号 ( 0 <= pos < dff_num() )
 inline
 Val3
 TestVector::dff_val(int pos) const
@@ -628,7 +628,7 @@ TestVector::dff_val(int pos) const
 }
 
 // @brief 2時刻目の外部入力の値を得る．
-// @param[in] pos 入力の位置番号 ( 0 <= pos < input_num() )
+//< [in] pos 入力の位置番号 ( 0 <= pos < input_num() )
 inline
 Val3
 TestVector::aux_input_val(int pos) const
@@ -637,8 +637,8 @@ TestVector::aux_input_val(int pos) const
 }
 
 // @brief PPIの値を設定する．
-// @param[in] pos PPIの位置番号 ( 0 <= pos < ppi_num() )
-// @param[in] val 値
+//< [in] pos PPIの位置番号 ( 0 <= pos < ppi_num() )
+//< [in] val 値
 //
 // is_sa_mode() == true の時のみ有効
 inline
@@ -650,8 +650,8 @@ TestVector::set_ppi_val(int pos,
 }
 
 // @breif 1時刻目の外部入力の値を設定する．
-// @param[in] pos 入力の位置番号 ( 0 <= pos < input_num() )
-// @param[in] val 値
+//< [in] pos 入力の位置番号 ( 0 <= pos < input_num() )
+//< [in] val 値
 inline
 void
 TestVector::set_input_val(int pos,
@@ -661,8 +661,8 @@ TestVector::set_input_val(int pos,
 }
 
 // @breif 1時刻目のDFFの値を設定する．
-// @param[in] pos DFFの位置番号 ( 0 <= pos < dff_num() )
-// @param[in] val 値
+//< [in] pos DFFの位置番号 ( 0 <= pos < dff_num() )
+//< [in] val 値
 inline
 void
 TestVector::set_dff_val(int pos,
@@ -672,8 +672,8 @@ TestVector::set_dff_val(int pos,
 }
 
 // @breif 2時刻目の外部入力の値を設定する．
-// @param[in] pos 入力の位置番号 ( 0 <= pos < input_num() )
-// @param[in] val 値
+//< [in] pos 入力の位置番号 ( 0 <= pos < input_num() )
+//< [in] val 値
 inline
 void
 TestVector::set_aux_input_val(int pos,
@@ -709,7 +709,7 @@ operator&&(const TestVector& tv1,
 
 // @relates TestVector
 // @brief operator&& の別名
-// @param[in] tv1, tv2 対象のテストベクタ
+//< [in] tv1, tv2 対象のテストベクタ
 //
 // 同じビット位置にそれぞれ 0 と 1 を持つ場合が両立しない場合．
 inline
@@ -721,7 +721,7 @@ is_compatible(const TestVector& tv1,
 }
 
 // @brief 等価関係の比較を行なう．
-// @param[in] left, right オペランド
+//< [in] left, right オペランド
 // @return left と right が等しいとき true を返す．
 inline
 bool
@@ -733,7 +733,7 @@ operator==(const TestVector& left,
 
 // @relates TestVector
 // @brief 等価関係の比較を行なう．
-// @param[in] left, right オペランド
+//< [in] left, right オペランド
 // @return left と right が等しいとき true を返す．
 inline
 bool
@@ -744,7 +744,7 @@ is_equal(const TestVector& left,
 }
 
 // @brief 等価関係の比較を行なう．
-// @param[in] left, right オペランド
+//< [in] left, right オペランド
 // @return left と right が等しくないとき true を返す．
 inline
 bool
@@ -755,7 +755,7 @@ operator!=(const TestVector& left,
 }
 
 // @brief 包含関係の比較を行なう
-// @param[in] left, right オペランド
+//< [in] left, right オペランド
 // @return minterm の集合として right が left を含んでいたら true を返す．
 //
 // - false だからといって逆に left が right を含むとは限らない．
@@ -768,7 +768,7 @@ operator<(const TestVector& left,
 }
 
 // @brief 包含関係の比較を行なう．
-// @param[in] left, right オペランド
+//< [in] left, right オペランド
 // @return minterm の集合として left が right を含んでいたら true を返す．
 // @note false だからといって逆に right が left を含むとは限らない．
 inline
@@ -780,7 +780,7 @@ operator>(const TestVector& left,
 }
 
 // @brief 包含関係の比較を行なう
-// @param[in] left, right オペランド
+//< [in] left, right オペランド
 // @return minterm の集合として right が left を含んでいたら true を返す．
 //
 // - こちらは等しい場合も含む．
@@ -794,7 +794,7 @@ operator<=(const TestVector& left,
 }
 
 // @brief 包含関係の比較を行なう
-// @param[in] left, right オペランド
+//< [in] left, right オペランド
 // @return minterm の集合として left が right を含んでいたら true を返す．
 // @note こちらは等しい場合も含む．
 // @note false だからといって逆に right が left を含むとは限らない．
@@ -815,7 +815,7 @@ TestVector::init()
 }
 
 // @brief 乱数パタンを設定する．
-// @param[in] randgen 乱数生成器
+//< [in] randgen 乱数生成器
 template<class URNG>
 inline
 void
@@ -825,7 +825,7 @@ TestVector::set_from_random(URNG& randgen)
 }
 
 // @brief X の部分を乱数で 0/1 に設定する．
-// @param[in] randgen 乱数生成器
+//< [in] randgen 乱数生成器
 template<class URNG>
 inline
 void
@@ -851,7 +851,7 @@ TestVector::hex_str() const
 }
 
 // @brief マージする．
-// @param[in] left, right オペランド
+//< [in] left, right オペランド
 // @return マージ結果を返す．
 //
 // left と right がコンフリクトしている時の結果は不定

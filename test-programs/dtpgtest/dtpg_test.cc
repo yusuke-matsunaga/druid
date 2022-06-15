@@ -15,7 +15,6 @@
 #include "NodeValList.h"
 #include "Fsim.h"
 #include "DopVerifyResult.h"
-#include "ym/StopWatch.h"
 
 
 BEGIN_NAMESPACE_DRUID

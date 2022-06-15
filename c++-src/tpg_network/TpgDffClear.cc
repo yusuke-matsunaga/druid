@@ -17,18 +17,10 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] dff 接続しているDFF
-// @param[in] fanin ファンインのノード
-TpgDffClear::TpgDffClear(int id,
-			 const TpgDff* dff,
-			 TpgNode* fanin) :
-  TpgDffControl(id, dff, fanin)
-{
-}
-
-// @brief デストラクタ
-TpgDffClear::~TpgDffClear()
+TpgDffClear::TpgDffClear(
+  const TpgDff* dff,
+  TpgNode* fanin
+) : TpgDffControl{dff, fanin}
 {
 }
 

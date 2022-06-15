@@ -14,7 +14,7 @@
 #include "TestVector.h"
 #include "ym/McMatrix.h"
 #include "ym/SatSolverType.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -161,7 +161,7 @@ private:
   vector<TestVector> mTvList;
 
   // 計時を行うオブジェクト
-  StopWatch mTimer;
+  Timer mTimer;
 
 };
 

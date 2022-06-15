@@ -23,12 +23,12 @@ include_directories(
 
 ym_add_gtest ( SaFsim3SimNodeTest
   SimNodeTest.cc
-  $<TARGET_OBJECTS:druid_common_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_ad>
-  ${YM_SUBMODULE_OBJ_AD_LIST}
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
 target_compile_definitions ( SaFsim3SimNodeTest

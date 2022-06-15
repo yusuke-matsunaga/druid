@@ -5,13 +5,11 @@
 /// @brief AuxNodeInfo のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "TpgFaultBase.h"
-#include "ym/Alloc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -25,10 +23,19 @@ class AuxNodeInfo
 public:
 
   /// @brief コンストラクタ
-  AuxNodeInfo();
+  AuxNodeInfo() = default;
+
+  /// @brief コンストラクタ
+  AuxNodeInfo(
+    const string& name,  ///< [in] 名前
+    SizeType ni          ///< [in] ファンイン数
+  )
+  {
+    init(name, ni);
+  }
 
   /// @brief デストラクタ
-  ~AuxNodeInfo();
+  ~AuxNodeInfo() = default;
 
 
 public:
@@ -37,45 +44,80 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 名前を返す．
-  const char*
-  name() const;
+  const string&
+  name() const
+  {
+    return mName;
+  }
 
   /// @brief FFRの根の場合にFFRを返す．
   ///
   /// そうでなければ nullptr を返す．
   const TpgFFR*
-  ffr() const;
+  ffr() const
+  {
+    return mFfr;
+  }
 
   /// @brief MFFCの根の場合にMFFCを返す．
   ///
   /// そうでなければ nullptr を返す．
   const TpgMFFC*
-  mffc() const;
+  mffc() const
+  {
+    return mMffc;
+  }
 
   /// @brief このノードに含まれる代表故障の数を返す．
   int
-  fault_num() const;
+  fault_num() const
+  {
+    return mFaultList.size();
+  }
 
   /// @brief このノードに含まれる代表故障を返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < fault_num() )
   const TpgFault*
-  fault(int pos) const;
+  fault(
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < fault_num() )
+  ) const
+  {
+    ASSERT_COND( pos < fault_num() );
+
+    return mFaultList[pos];
+  }
 
   /// @brief このノードが持っている代表故障をリストに追加する．
   void
-  add_to_fault_list(vector<const TpgFault*>& fault_list);
+  add_to_fault_list(
+    vector<const TpgFault*>& fault_list ///< [out] 追加する故障リスト
+  )
+  {
+    fault_list.insert(fault_list.end(), mFaultList.begin(), mFaultList.end());
+  }
 
   /// @brief 出力の故障を返す．
-  /// @param[in] val 故障値 ( 0 / 1 )
   TpgFaultBase*
-  output_fault(int val) const;
+  output_fault(
+    int val ///< [in] 故障値 ( 0 / 1 )
+  ) const
+  {
+    ASSERT_COND( val == 0 || val == 1 );
+
+    return mOutputFaults[val];
+  }
 
   /// @brief 入力の故障を返す．
-  /// @param[in] pos 入力の位置番号
-  /// @param[in] val 故障値 ( 0 / 1 )
   TpgFaultBase*
-  input_fault(int pos,
-	      int val) const;
+  input_fault(
+    SizeType pos, ///< [in] 入力の位置番号
+    int val       ///< [in] 故障値 ( 0 / 1 )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < mFaninNum );
+    ASSERT_COND( val == 0 || val == 1 );
+
+    return mInputFaults[(pos * 2) + val];
+  }
 
 
 public:
@@ -84,50 +126,72 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 初期化する．
-  /// @param[in] name 名前
-  /// @param[in] ni ファンイン数
-  /// @param[in] alloc メモリアロケータ
   void
-  init(const string& name,
-       int ni,
-       Alloc& alloc);
+  init(
+    const string& name, ///< [in] 名前
+    SizeType ni         ///< [in] ファンイン数
+  )
+  {
+    mName = name;
+    mFaninNum = ni;
+
+    SizeType ni2 = ni * 2;
+    mInputFaults.clear();
+    mInputFaults.resize(ni2, nullptr);
+  }
 
   /// @brief FFR を設定する．
-  /// @param[in] ffr このノードを根とするFFR
   void
-  set_ffr(TpgFFR* ffr);
+  set_ffr(
+    TpgFFR* ffr ///< [in] このノードを根とするFFR
+  )
+  {
+    mFfr = ffr;
+  }
 
   /// @brief MFFC を設定する．
-  /// @param[in] mffc このノードを根とするMFFC
   void
-  set_mffc(const TpgMFFC* mffc);
+  set_mffc(
+    const TpgMFFC* mffc ///< [in] このノードを根とするMFFC
+  )
+  {
+    mMffc = mffc;
+  }
 
   /// @brief 故障リストを設定する．
   void
-  set_fault_list(int fault_num,
-		 const TpgFault** fault_list);
+  set_fault_list(
+    const vector<const TpgFault*>& fault_list ///< [in] 故障リスト
+  )
+  {
+    mFaultList = fault_list;
+  }
 
   /// @brief 出力の故障を設定する．
-  /// @param[in] val 故障値 ( 0 / 1 )
-  /// @param[in] f 故障
   void
-  set_output_fault(int val,
-		   TpgFaultBase* f);
+  set_output_fault(
+    int val,        ///< [in] 故障値 ( 0 / 1 )
+    TpgFaultBase* f ///< [in] 故障
+  )
+  {
+    ASSERT_COND( val == 0 || val == 1 );
+
+    mOutputFaults[val] = f;
+  }
 
   /// @brief 入力の故障を設定する．
-  /// @param[in] ipos 入力位置
-  /// @param[in] val 故障値 ( 0 / 1 )
-  /// @param[in] f 故障
   void
-  set_input_fault(int ipos,
-		  int val,
-		  TpgFaultBase* f);
+  set_input_fault(
+    SizeType ipos,   ///< [in] 入力位置
+    int val,         ///< [in] 故障値 ( 0 / 1 )
+    TpgFaultBase* f  ///< [in] 故障
+  )
+  {
+    ASSERT_COND( val == 0 || val == 1 );
+    ASSERT_COND( ipos >= 0 && ipos < mFaninNum );
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+    mInputFaults[(ipos * 2) + val] = f;
+  }
 
 
 private:
@@ -136,109 +200,29 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ノード名
-  char* mName;
+  string mName;
 
   /// @brief FFR
-  const TpgFFR* mFfr;
+  const TpgFFR* mFfr{nullptr};
 
   /// @brief MFFC
-  const TpgMFFC* mMffc;
-
-  /// @brief 代表故障数
-  int mFaultNum;
+  const TpgMFFC* mMffc{nullptr};
 
   /// @brief 代表故障のリスト
-  const TpgFault** mFaultList;
+  vector<const TpgFault*> mFaultList;
 
   /// @brief 出力の故障
-  TpgFaultBase* mOutputFaults[2];
+  TpgFaultBase* mOutputFaults[2]{nullptr, nullptr};
 
   /// @brief 入力数
-  int mFaninNum;
+  SizeType mFaninNum;
 
   /// @brief 入力の故障の配列
   ///
   /// サイズは mFaninNum * 2
-  TpgFaultBase** mInputFaults;
+  vector<TpgFaultBase*> mInputFaults;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief 名前を返す．
-inline
-const char*
-AuxNodeInfo::name() const
-{
-  return mName;
-}
-
-// @brief FFRの根の場合にFFRを返す．
-//
-// そうでなければ nullptr を返す．
-inline
-const TpgFFR*
-AuxNodeInfo::ffr() const
-{
-  return mFfr;
-}
-
-// @brief MFFCの根の場合にMFFCを返す．
-//
-// そうでなければ nullptr を返す．
-inline
-const TpgMFFC*
-AuxNodeInfo::mffc() const
-{
-  return mMffc;
-}
-
-// @brief このノードに含まれる代表故障の数を返す．
-inline
-int
-AuxNodeInfo::fault_num() const
-{
-  return mFaultNum;
-}
-
-// @brief このノードに含まれる代表故障を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < fault_num() )
-inline
-const TpgFault*
-AuxNodeInfo::fault(int pos) const
-{
-  ASSERT_COND( pos < fault_num() );
-
-  return mFaultList[pos];
-}
-
-// @brief 出力の故障を返す．
-// @param[in] val 故障値 ( 0 / 1 )
-inline
-TpgFaultBase*
-AuxNodeInfo::output_fault(int val) const
-{
-  ASSERT_COND( val == 0 || val == 1 );
-
-  return mOutputFaults[val];
-}
-
-// @brief 入力の故障を返す．
-// @param[in] pos 入力の位置番号
-// @param[in] val 故障値 ( 0 / 1 )
-inline
-TpgFaultBase*
-AuxNodeInfo::input_fault(int pos,
-			 int val) const
-{
-  ASSERT_COND( val == 0 || val == 1 );
-  ASSERT_COND( pos >= 0 && pos < mFaninNum );
-
-  return mInputFaults[(pos * 2) + val];
-}
 
 END_NAMESPACE_DRUID
 

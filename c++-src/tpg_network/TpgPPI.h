@@ -5,9 +5,8 @@
 /// @brief TpgPPI のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgNode.h"
 
@@ -24,14 +23,14 @@ class TpgPPI :
 protected:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] input_id 入力番号
-  TpgPPI(int id,
-	 int input_id);
+  TpgPPI(
+    int input_id,        ///< [in] 入力番号
+    SizeType fanout_num  ///< [in] ファンアウト数
+  );
 
   /// @brief デストラクタ
   virtual
-  ~TpgPPI();
+  ~TpgPPI() = default;
 
 
 public:
@@ -42,7 +41,6 @@ public:
   /// @brief 入力タイプの時 true を返す．
   ///
   /// 具体的には is_primary_input() || is_dff_output()
-  virtual
   bool
   is_ppi() const override;
 
@@ -51,7 +49,6 @@ public:
   /// node = TpgNetwork::input(node->input_id()
   /// の関係を満たす．
   /// is_input() が false の場合の返り値は不定
-  virtual
   int
   input_id() const override;
 
@@ -61,31 +58,8 @@ public:
   /// - is_ppi() が true の時は kGateINPUT を返す．
   /// - is_ppo() が true の時は kGateBUFF を返す．
   /// - それ以外の返り値は不定
-  virtual
   GateType
   gate_type() const override;
-
-  /// @brief ファンインのリストを得る．
-  virtual
-  Array<const TpgNode*>
-  fanin_list() const override;
-
-  /// @brief ファンイン数を得る．
-  virtual
-  int
-  fanin_num() const override;
-
-  /// @brief ファンインを得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-  virtual
-  TpgNode*
-  fanin(int pos) const override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:

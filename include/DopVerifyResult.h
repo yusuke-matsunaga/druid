@@ -5,9 +5,8 @@
 /// @brief DopVerifyResult のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "TestVector.h"
@@ -36,39 +35,43 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 成功結果を追加する．
-  /// @param[in] f 故障
   void
-  add_good(const TpgFault* f);
+  add_good(
+    const TpgFault* f ///< [in] 故障
+  );
 
   /// @brief エラー結果を追加する．
-  /// @param[in] f 故障
-  /// @param[in] tv テストベクタ
   void
-  add_error(const TpgFault* f,
-	    const TestVector& tv);
+  add_error(
+    const TpgFault* f,   ///< [in] 故障
+    const TestVector& tv ///< [in] テストベクタ
+  );
 
   /// @brief 成功回数を得る．
   int
   good_count() const;
 
   /// @brief 成功した故障を得る．
-  /// @param[in] pos 位置版号 ( 0 <= pos < good_count() )
   const TpgFault*
-  good_fault(int pos) const;
+  good_fault(
+    int pos  ///< [in] 位置版号 ( 0 <= pos < good_count() )
+  ) const;
 
   /// @brief エラー回数を得る．
   int
   error_count() const;
 
   /// @brief エラーの故障を得る．
-  /// @param[in] pos 位置版号 ( 0 <= pos < error_count() )
   const TpgFault*
-  error_fault(int pos) const;
+  error_fault(
+    int pos  ///< [in] 位置版号 ( 0 <= pos < error_count() )
+  ) const;
 
   /// @brief エラーとなったテストベクタを得る．
-  /// @param[in] pos 位置版号 ( 0 <= pos < error_count() )
   TestVector
-  error_testvector(int pos) const;
+  error_testvector(
+    int pos  ///< [in] 位置版号 ( 0 <= pos < error_count() )
+  ) const;
 
 
 private:
@@ -85,8 +88,10 @@ private:
   struct ErrorCase
   {
     // コンストラクタ
-    ErrorCase(const TpgFault* f,
-	      const TestVector& tv);
+    ErrorCase(
+      const TpgFault* f,
+      const TestVector& tv
+    );
 
     // 故障
     const TpgFault* mFault;

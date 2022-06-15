@@ -5,7 +5,7 @@
 /// @brief DtpgResult のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -32,34 +32,51 @@ public:
   /// @brief FaultStatus::Untestable の結果を生成するクラスメソッド
   static
   DtpgResult
-  make_untestable();
+  make_untestable()
+  {
+    return DtpgResult();
+  }
 
   /// @brief FaultStatus::Undetected の結果を生成するクラスメソッド
   static
   DtpgResult
-  make_undetected();
+  make_undetected()
+  {
+    return DtpgResult(0);
+  }
 
   /// @brief 空のコンストラクタ
   ///
   /// FaultStatus::Undetected となる．
-  DtpgResult();
+  DtpgResult(
+  ) : mStatus(FaultStatus::Undetected)
+  {
+  }
 
   /// @brief テストベクタを指定したコンストラクタ
-  /// @param[in] testvect テストベクタ
   ///
   /// もちろん結果は FaultStatus::Detected となる．
   explicit
-  DtpgResult(const TestVector& testvect);
+  DtpgResult(
+    const TestVector& testvect  ///< [in] testvect テストベクタ
+  ) : mStatus{FaultStatus::Detected},
+      mTestVector{testvect}
+  {
+  }
 
   /// @brief コピーコンストラクタ
-  DtpgResult(const DtpgResult& src) = default;
+  DtpgResult(
+    const DtpgResult& src
+  ) = default;
 
   /// @brief コピー代入演算子
   DtpgResult&
-  operator=(const DtpgResult& src) = default;
+  operator=(
+    const DtpgResult& src
+  ) = default;
 
   /// @brief デストラクタ
-  ~DtpgResult();
+  ~DtpgResult() = default;
 
 
 public:
@@ -69,11 +86,17 @@ public:
 
   /// @brief 結果を返す．
   FaultStatus
-  status() const;
+  status() const
+  {
+    return mStatus;
+  }
 
   /// @brief テストベクタを返す．
   const TestVector&
-  testvector() const;
+  testvector() const
+  {
+    return mTestVector;
+  }
 
 
 private:
@@ -82,10 +105,14 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief FaultStatus::Untestable を設定するコンストラクタ
-  /// @param[in] dummy ダミーの引数
+  ///< [in] dummy ダミーの引数
   ///
   /// dummy の値は用いられない．
-  DtpgResult(int dummy);
+  DtpgResult(
+    int dummy
+  ) : mStatus(FaultStatus::Untestable)
+  {
+  }
 
 
 private:
@@ -101,7 +128,7 @@ private:
 
 };
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////
 // インライン関数の定義
 //////////////////////////////////////////////////////////////////////
@@ -132,7 +159,7 @@ DtpgResult::DtpgResult() :
 }
 
 // @brief SatBool3::False を設定するコンストラクタ
-// @param[in] dummy ダミーの引数
+//< [in] dummy ダミーの引数
 //
 // dummy の値は用いられない．
 inline
@@ -142,7 +169,7 @@ DtpgResult::DtpgResult(int dummy) :
 }
 
 // @brief テストベクタを指定したコンストラクタ
-// @param[in] testvect テストベクタ
+//< [in] testvect テストベクタ
 inline
 DtpgResult::DtpgResult(const TestVector& testvect) :
   mStatus(FaultStatus::Detected),
@@ -171,6 +198,7 @@ DtpgResult::testvector() const
 {
   return mTestVector;
 }
+#endif
 
 END_NAMESPACE_DRUID
 

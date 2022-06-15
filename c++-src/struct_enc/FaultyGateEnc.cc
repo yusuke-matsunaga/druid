@@ -14,6 +14,7 @@
 #include "VidMap.h"
 #include "ym/Range.h"
 #include "ym/SatSolver.h"
+#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -48,10 +49,8 @@ FaultyGateEnc::make_cnf()
 // @brief ノードの入出力の関係を表すCNF式を作る．
 // @param[in] ovar 出力の変数
 void
-FaultyGateEnc::make_cnf(SatVarId ovar)
+FaultyGateEnc::make_cnf(SatLiteral olit)
 {
-  SatLiteral olit(ovar);
-
   int fval = mFault->val();
   if ( mFault->is_stem_fault() ) {
     // 出力の故障の場合，ゲートの種類は関係ない．
@@ -70,7 +69,7 @@ FaultyGateEnc::make_cnf(SatVarId ovar)
   // 該当の入力以外のファンインのリテラルのリストを作る．
   const TpgNode* node = mFault->tpg_onode();
   int ni = node->fanin_num();
-  Array<const TpgNode*> fanin_array = node->fanin_list();
+  const auto& fanin_array = node->fanin_list();
   vector<SatLiteral> ilits;
   ilits.reserve(ni - 1);
   int fpos = mFault->tpg_pos();
@@ -80,6 +79,7 @@ FaultyGateEnc::make_cnf(SatVarId ovar)
     }
   }
 
+  SatTseitinEnc enc{mSolver};
   switch ( node->gate_type() ) {
   case GateType::Const0:
   case GateType::Const1:
@@ -117,7 +117,7 @@ FaultyGateEnc::make_cnf(SatVarId ovar)
     else {
       // 入力の1縮退故障
       // ilits の要素数が 1 でも正しく動く．
-      mSolver.add_andgate_rel( olit, ilits);
+      enc.add_andgate( olit, ilits);
     }
     break;
 
@@ -129,7 +129,7 @@ FaultyGateEnc::make_cnf(SatVarId ovar)
     else {
       // 入力の1縮退故障
       // ilits の要素数が 1 でも正しく動く．
-      mSolver.add_nandgate_rel( olit, ilits);
+      enc.add_nandgate( olit, ilits);
     }
     break;
 
@@ -141,7 +141,7 @@ FaultyGateEnc::make_cnf(SatVarId ovar)
     else {
       // 入力の 0 縮退故障
       // ilits の要素数が 1 でも正しく動く．
-      mSolver.add_orgate_rel( olit, ilits );
+      enc.add_orgate( olit, ilits );
     }
     break;
 
@@ -152,27 +152,27 @@ FaultyGateEnc::make_cnf(SatVarId ovar)
     }
     else {
       // ilits の要素数が 1 でも正しく動く．
-      mSolver.add_norgate_rel( olit, ilits);
+      enc.add_norgate( olit, ilits);
     }
     break;
 
   case GateType::Xor:
     ASSERT_COND( ni == 2 );
     if ( fval ) {
-      mSolver.add_neq_rel( olit, ilits[0] );
+      enc.add_notgate( olit, ilits[0] );
     }
     else {
-      mSolver.add_eq_rel( olit, ilits[0] );
+      enc.add_buffgate( olit, ilits[0] );
     }
     break;
 
   case GateType::Xnor:
     ASSERT_COND( ni == 2 );
     if ( fval ) {
-      mSolver.add_eq_rel( olit, ilits[0] );
+      enc.add_buffgate( olit, ilits[0] );
     }
     else {
-      mSolver.add_neq_rel( olit, ilits[0] );
+      enc.add_notgate( olit, ilits[0] );
     }
     break;
 
@@ -186,7 +186,7 @@ FaultyGateEnc::make_cnf(SatVarId ovar)
 SatLiteral
 FaultyGateEnc::lit(const TpgNode* node)
 {
-  return SatLiteral(mVarMap(node));
+  return mVarMap(node);
 }
 
 END_NAMESPACE_DRUID

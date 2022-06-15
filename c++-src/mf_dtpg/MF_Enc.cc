@@ -11,9 +11,9 @@
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "GateType.h"
-#include "ym/HashSet.h"
 #include "ym/Range.h"
 #include "ym/SatSolver.h"
+#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -30,6 +30,7 @@ gate_enc(SatSolver& solver,
 	 const vector<SatLiteral>& ilit_list,
 	 SatLiteral olit)
 {
+  SatTseitinEnc enc{solver};
   int ni = ilit_list.size();
   switch ( gate_type ) {
   case GateType::Const0:
@@ -45,11 +46,11 @@ gate_enc(SatSolver& solver,
     break;
 
   case GateType::Buff:
-    solver.add_eq_rel( ilit_list[0],  olit);
+    enc.add_buffgate( ilit_list[0],  olit);
     break;
 
   case GateType::Not:
-    solver.add_neq_rel( ilit_list[0], olit);
+    enc.add_notgate( ilit_list[0], olit);
     break;
 
   case GateType::And:
@@ -58,7 +59,7 @@ gate_enc(SatSolver& solver,
       {
 	SatLiteral ilit0{ilit_list[0]};
 	SatLiteral ilit1{ilit_list[1]};
-	solver.add_andgate_rel( olit, ilit0, ilit1);
+	enc.add_andgate( olit, ilit0, ilit1);
       }
       break;
 
@@ -67,7 +68,7 @@ gate_enc(SatSolver& solver,
 	SatLiteral ilit0{ilit_list[0]};
 	SatLiteral ilit1{ilit_list[1]};
 	SatLiteral ilit2{ilit_list[2]};
-	solver.add_andgate_rel( olit, ilit0, ilit1, ilit2);
+	enc.add_andgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
@@ -77,13 +78,13 @@ gate_enc(SatSolver& solver,
 	SatLiteral ilit1{ilit_list[1]};
 	SatLiteral ilit2{ilit_list[2]};
 	SatLiteral ilit3{ilit_list[3]};
-	solver.add_andgate_rel( olit, ilit0, ilit1, ilit2, ilit3);
+	enc.add_andgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
     default:
       ASSERT_COND( ni > 4 );
-      solver.add_andgate_rel( olit, ilit_list);
+      enc.add_andgate( olit, ilit_list);
       break;
     }
     break;
@@ -94,7 +95,7 @@ gate_enc(SatSolver& solver,
       {
 	SatLiteral ilit0{ilit_list[0]};
 	SatLiteral ilit1{ilit_list[1]};
-	solver.add_nandgate_rel( olit, ilit0, ilit1);
+	enc.add_nandgate( olit, ilit0, ilit1);
       }
       break;
 
@@ -103,7 +104,7 @@ gate_enc(SatSolver& solver,
 	SatLiteral ilit0{ilit_list[0]};
 	SatLiteral ilit1{ilit_list[1]};
 	SatLiteral ilit2{ilit_list[2]};
-	solver.add_nandgate_rel( olit, ilit0, ilit1, ilit2);
+	enc.add_nandgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
@@ -113,13 +114,13 @@ gate_enc(SatSolver& solver,
 	SatLiteral ilit1{ilit_list[1]};
 	SatLiteral ilit2{ilit_list[2]};
 	SatLiteral ilit3{ilit_list[3]};
-	solver.add_nandgate_rel( olit, ilit0, ilit1, ilit2, ilit3);
+	enc.add_nandgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
     default:
       ASSERT_COND( ni > 4 );
-      solver.add_nandgate_rel( olit, ilit_list);
+      enc.add_nandgate( olit, ilit_list);
       break;
     }
     break;
@@ -130,7 +131,7 @@ gate_enc(SatSolver& solver,
       {
 	SatLiteral ilit0{ilit_list[0]};
 	SatLiteral ilit1{ilit_list[1]};
-	solver.add_orgate_rel( olit, ilit0, ilit1);
+	enc.add_orgate( olit, ilit0, ilit1);
       }
       break;
 
@@ -139,7 +140,7 @@ gate_enc(SatSolver& solver,
 	SatLiteral ilit0{ilit_list[0]};
 	SatLiteral ilit1{ilit_list[1]};
 	SatLiteral ilit2{ilit_list[2]};
-	solver.add_orgate_rel( olit, ilit0, ilit1, ilit2);
+	enc.add_orgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
@@ -149,13 +150,13 @@ gate_enc(SatSolver& solver,
 	SatLiteral ilit1{ilit_list[1]};
 	SatLiteral ilit2{ilit_list[2]};
 	SatLiteral ilit3{ilit_list[3]};
-	solver.add_orgate_rel( olit, ilit0, ilit1, ilit2, ilit3);
+	enc.add_orgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
     default:
       ASSERT_COND( ni > 4 );
-      solver.add_orgate_rel( olit, ilit_list);
+      enc.add_orgate( olit, ilit_list);
       break;
     }
     break;
@@ -166,7 +167,7 @@ gate_enc(SatSolver& solver,
       {
 	SatLiteral ilit0{ilit_list[0]};
 	SatLiteral ilit1{ilit_list[1]};
-	solver.add_norgate_rel( olit, ilit0, ilit1);
+	enc.add_norgate( olit, ilit0, ilit1);
       }
       break;
 
@@ -175,7 +176,7 @@ gate_enc(SatSolver& solver,
 	SatLiteral ilit0{ilit_list[0]};
 	SatLiteral ilit1{ilit_list[1]};
 	SatLiteral ilit2{ilit_list[2]};
-	solver.add_norgate_rel( olit, ilit0, ilit1, ilit2);
+	enc.add_norgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
@@ -185,13 +186,13 @@ gate_enc(SatSolver& solver,
 	SatLiteral ilit1{ilit_list[1]};
 	SatLiteral ilit2{ilit_list[2]};
 	SatLiteral ilit3{ilit_list[3]};
-	solver.add_norgate_rel( olit, ilit0, ilit1, ilit2, ilit3);
+	enc.add_norgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
     default:
       ASSERT_COND( ni > 4 );
-      solver.add_norgate_rel( olit, ilit_list);
+      enc.add_norgate( olit, ilit_list);
       break;
     }
     break;
@@ -201,7 +202,7 @@ gate_enc(SatSolver& solver,
     {
       SatLiteral ilit0{ilit_list[0]};
       SatLiteral ilit1{ilit_list[1]};
-      solver.add_xorgate_rel( olit, ilit0, ilit1);
+      enc.add_xorgate( olit, ilit0, ilit1);
     }
     break;
 
@@ -210,7 +211,7 @@ gate_enc(SatSolver& solver,
     {
       SatLiteral ilit0{ilit_list[0]};
       SatLiteral ilit1{ilit_list[1]};
-      solver.add_xnorgate_rel( olit, ilit0, ilit1);
+      enc.add_xnorgate( olit, ilit0, ilit1);
     }
     break;
 
@@ -224,26 +225,24 @@ void
 good_cnf_dfs(SatSolver& solver,
 	     const TpgNode* node,
 	     SatLiteral olit,
-	     const HashMap<int, SatLiteral>& input_varmap,
-	     HashSet<int>& dfs_mark)
+	     const unordered_map<int, SatLiteral>& input_varmap,
+	     unordered_set<int>& dfs_mark)
 {
-  if ( dfs_mark.check(node->id()) ) {
+  if ( dfs_mark.count(node->id()) > 0 ) {
     return;
   }
-  dfs_mark.add(node->id());
+  dfs_mark.emplace(node->id());
 
   // ファンインに再帰して入力側のCNF式を作っておく．
   int ni = node->fanin_num();
   vector<SatLiteral> ilit_list(ni);
   for ( int i: Range(ni) ) {
     auto inode = node->fanin(i);
-    SatLiteral ilit;
-    bool stat = input_varmap.find(inode->id(), ilit);
-    if ( !stat ) {
-      auto ivar = solver.new_variable();
-      ilit = SatLiteral{ivar};
+    if ( input_varmap.count(inode->id()) == 0 ) {
+      auto ilit = solver.new_variable();
       good_cnf_dfs(solver, inode, ilit, input_varmap, dfs_mark);
     }
+    auto ilit = input_varmap.at(inode->id());
     ilit_list[i] = ilit;
   }
 
@@ -256,65 +255,61 @@ faulty_cnf_dfs(SatSolver& solver,
 	       const TpgNetwork& network,
 	       const TpgNode* node,
 	       SatLiteral olit,
-	       const HashMap<int, SatLiteral>& input_varmap,
-	       const HashMap<int, SatLiteral>& fault_varmap,
-	       HashSet<int>& dfs_mark)
+	       const unordered_map<int, SatLiteral>& input_varmap,
+	       const unordered_map<int, SatLiteral>& fault_varmap,
+	       unordered_set<int>& dfs_mark)
 {
-  if ( dfs_mark.check(node->id()) ) {
+  if ( dfs_mark.count(node->id()) > 0 ) {
     return;
   }
-  dfs_mark.add(node->id());
+  dfs_mark.emplace(node->id());
 
   // ファンインに再帰して入力側のCNF式を作っておく．
   int ni = node->fanin_num();
   vector<SatLiteral> ilit_list(ni);
   for ( int i: Range(ni) ) {
     auto inode = node->fanin(i);
-    SatLiteral ilit;
-    bool stat = input_varmap.find(inode->id(), ilit);
-    if ( !stat ) {
-      auto ivar = solver.new_variable();
-      ilit = SatLiteral{ivar};
+    if ( input_varmap.count(inode->id()) == 0 ) {
+      auto ilit = solver.new_variable();
       faulty_cnf_dfs(solver, network, inode, ilit, input_varmap, fault_varmap, dfs_mark);
     }
+    SatLiteral ilit = input_varmap.at(inode->id());
     ilit_list[i] = ilit;
   }
 
+  SatTseitinEnc enc{solver};
   // 故障挿入回路を作る．
   int nf = network.node_rep_fault_num(node->id());
   for ( auto i: Range(nf) ) {
     auto f = network.node_rep_fault(node->id(), i);
-    SatLiteral flit;
-    bool stat = fault_varmap.find(f->id(), flit);
-    ASSERT_COND( stat );
+    ASSERT_COND( fault_varmap.count(f->id()) > 0 );
+    SatLiteral flit = fault_varmap.at(f->id());
     if ( f->is_branch_fault() ) {
       // ブランチの故障
       int pos = f->tpg_pos();
-      SatVarId ovar = solver.new_variable();
-      SatLiteral olit{ovar};
+      auto olit = solver.new_variable();
       SatLiteral ilit{ilit_list[pos]};
-          if ( f->val() == 0 ) {
+      if ( f->val() == 0 ) {
 	// 0縮退故障の挿入回路を追加する．
-	solver.add_andgate_rel(olit, ilit, ~flit);
+	enc.add_andgate(olit, ilit, ~flit);
       }
       else {
 	// 1縮退故障の挿入回路を追加する．
-	solver.add_orgate_rel(olit, ilit, flit);
+	enc.add_orgate(olit, ilit, flit);
       }
       // ovar を ilit_list[pos] に置き換える．
-      ilit_list[pos] = SatLiteral{ovar};
+      ilit_list[pos] = olit;
     }
     else {
       // ステムの故障
-      SatVarId tmp_var = solver.new_variable();
-      SatLiteral tmp_lit(tmp_var);
+      auto tmp_lit = solver.new_variable();
       if ( f->val() == 0 ) {
 	// 0縮退故障の挿入回路を追加する．
-	solver.add_andgate_rel(olit, tmp_lit, ~flit);
+	enc.add_andgate(olit, tmp_lit, ~flit);
       }
       else {
 	// 1縮退故障の挿入回路を追加する．
-	solver.add_orgate_rel(olit, tmp_lit, flit);
+	enc.add_orgate(olit, tmp_lit, flit);
       }
       olit = tmp_lit;
     }
@@ -336,14 +331,14 @@ MF_Enc::make_good_cnf(SatSolver& solver,
 		      const vector<pair<const TpgNode*, SatLiteral>>& output_list)
 {
   // ノード番号をキーにして対応するリテラルを保持するハッシュ表
-  HashMap<int, SatLiteral> input_varmap;
+  unordered_map<int, SatLiteral> input_varmap;
   for ( const auto& p: input_list ) {
     auto node = p.first;
     auto lit = p.second;
-    input_varmap.add(node->id(), lit);
+    input_varmap.emplace(node->id(), lit);
   }
 
-  HashSet<int> dfs_mark;
+  unordered_set<int> dfs_mark;
   for ( const auto& p: output_list ) {
     auto node = p.first;
     auto lit = p.second;
@@ -381,22 +376,22 @@ MF_Enc::make_faulty_cnf(SatSolver& solver,
 			const vector<pair<const TpgFault*, SatLiteral>>& fault_list)
 {
   // ノード番号をキーにして対応するリテラルを保持するハッシュ表
-  HashMap<int, SatLiteral> input_varmap;
+  unordered_map<int, SatLiteral> input_varmap;
   for ( const auto& p: input_list ) {
     auto node = p.first;
     auto lit = p.second;
-    input_varmap.add(node->id(), lit);
+    input_varmap.emplace(node->id(), lit);
   }
 
   // 故障番号をキーにして対応するリテラルを保持するハッシュ表
-  HashMap<int, SatLiteral> fault_varmap;
+  unordered_map<int, SatLiteral> fault_varmap;
   for ( const auto& p: fault_list ) {
     auto fault = p.first;
     auto lit = p.second;
-    fault_varmap.add(fault->id(), lit);
+    fault_varmap.emplace(fault->id(), lit);
   }
 
-  HashSet<int> dfs_mark;
+  unordered_set<int> dfs_mark;
   for ( const auto& p: output_list ) {
     auto node = p.first;
     auto lit = p.second;

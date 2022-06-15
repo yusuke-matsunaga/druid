@@ -3,9 +3,8 @@
 /// @brief TpgDffClock の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgDffClock.h"
 
@@ -17,18 +16,10 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] dff 接続しているDFF
-// @param[in] fanin ファンインのノード
-TpgDffClock::TpgDffClock(int id,
-			 const TpgDff* dff,
-			 TpgNode* fanin) :
-  TpgDffControl(id, dff, fanin)
-{
-}
-
-// @brief デストラクタ
-TpgDffClock::~TpgDffClock()
+TpgDffClock::TpgDffClock(
+  const TpgDff* dff,
+  TpgNode* fanin
+) : TpgDffControl{dff, fanin}
 {
 }
 

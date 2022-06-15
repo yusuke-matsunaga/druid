@@ -10,7 +10,6 @@
 
 #include "druid.h"
 #include "Val3.h"
-#include "ym/HashFunc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -182,17 +181,21 @@ operator<<(ostream& s,
 
 END_NAMESPACE_DRUID
 
-BEGIN_NAMESPACE_YM
+BEGIN_NAMESPACE_STD
+
 // TpgFault へのポインタをキーにしたハッシュ関数クラスの定義
 template <>
-struct HashFunc<DRUID_NAMESPACE::TpgFault*>
+struct hash<DRUID_NAMESPACE::TpgFault*>
 {
   SizeType
-  operator()(DRUID_NAMESPACE::TpgFault* fault) const
+  operator()(
+    DRUID_NAMESPACE::TpgFault* fault
+  ) const
   {
     return fault->id();
   }
 };
-END_NAMESPACE_YM
+
+END_NAMESPACE_STD
 
 #endif // TPGFAULT_H

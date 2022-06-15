@@ -5,9 +5,8 @@
 /// @brief TpgInput のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgPPI.h"
 
@@ -21,19 +20,19 @@ BEGIN_NAMESPACE_DRUID
 class TpgInput :
   public TpgPPI
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] input_id 入力番号
-  TpgInput(int id,
-	   int input_id);
+  TpgInput(
+    int input_id,       ///< [in] 入力番号
+    SizeType fanout_num ///< [in] ファンアウト数
+  );
 
   /// @brief デストラクタ
   virtual
-  ~TpgInput();
+  ~TpgInput() = default;
 
 
 public:
@@ -42,21 +41,8 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 外部入力タイプの時 true を返す．
-  virtual
   bool
   is_primary_input() const override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
 
 };
 

@@ -17,7 +17,6 @@
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "TestVector.h"
-#include "ym/StopWatch.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -262,7 +261,7 @@ void
 DtpgTest::print_stats(int detect_num,
 		      int untest_num)
 {
-  USTime time = mTimer.time();
+  auto time = mTimer.get_time();
 
   cout << "# of inputs             = " << mNetwork.input_num() << endl
        << "# of outputs            = " << mNetwork.output_num() << endl
@@ -281,21 +280,15 @@ DtpgTest::print_stats(int detect_num,
     cout << "CNF generation" << endl
 	 << "  " << setw(10) << mStats.mCnfGenCount
 	 << "  " << mStats.mCnfGenTime
-	 << "  " << setw(8) << mStats.mCnfGenTime.usr_time_usec() / mStats.mCnfGenCount
-	 << "u usec"
-	 << "  " << setw(8) << mStats.mCnfGenTime.sys_time_usec() / mStats.mCnfGenCount
-	 << "s usec" << endl;
+	 << "  " << setw(8) << mStats.mCnfGenTime / mStats.mCnfGenCount
+	 << "(s)" << endl;
   }
   if ( mStats.mDetCount > 0 ) {
     cout << endl
 	 << "*** SAT instances (" << mStats.mDetCount << ") ***" << endl
-	 << "Total CPU time  (s)            = " << setw(10) << mStats.mDetTime.usr_time() << "u"
-	 << " " << setw(8) << mStats.mDetTime.sys_time() << "s" << endl
-	 << "Ave. CPU time (usec)           = "
-	 << setw(10) << mStats.mDetTime.usr_time_usec() / mStats.mDetCount
-	 << "u"
-	 << " " << setw(8) << mStats.mDetTime.sys_time_usec() / mStats.mDetCount
-	 << "s" << endl
+	 << "Total CPU time  (s)            = " << setw(10) << mStats.mDetTime << endl
+	 << "Ave. CPU time (s)           = "
+	 << setw(10) << mStats.mDetTime / mStats.mDetCount << endl
 
 	 << "# of restarts (Ave./Max)       = "
 	 << setw(10) << (double) mStats.mDetStats.mRestart / mStats.mDetCount
@@ -316,13 +309,9 @@ DtpgTest::print_stats(int detect_num,
   if ( mStats.mRedCount > 0 ) {
     cout << endl
 	 << "*** UNSAT instances (" << mStats.mRedCount << ") ***" << endl
-	 << "Total CPU time  (s)            = " << setw(10) << mStats.mRedTime.usr_time() << "u"
-	 << " " << setw(8) << mStats.mRedTime.sys_time() << "s" << endl
-	 << "Ave. CPU time (usec)           = "
-	 << setw(10) << mStats.mRedTime.usr_time_usec() / mStats.mRedCount
-	 << "u"
-	 << " " << setw(8) << mStats.mRedTime.sys_time_usec() / mStats.mRedCount
-	 << "s" << endl
+	 << "Total CPU time  (s)            = " << setw(10) << mStats.mRedTime << endl
+	 << "Ave. CPU time (s)           = "
+	 << setw(10) << mStats.mRedTime / mStats.mRedCount << endl
 
 	 << "# of restarts (Ave./Max)       = "
 	 << setw(10) << (double) mStats.mRedStats.mRestart / mStats.mRedCount
@@ -345,18 +334,12 @@ DtpgTest::print_stats(int detect_num,
 	 << "*** ABORT instances ***" << endl
 	 << "  " << setw(10) << mStats.mAbortCount
 	 << "  " << mStats.mAbortTime
-	 << "  " << setw(8) << mStats.mAbortTime.usr_time_usec() / mStats.mAbortCount
-	 << "u usec"
-	 << "  " << setw(8) << mStats.mAbortTime.sys_time_usec() / mStats.mAbortCount
-	 << "s usec" << endl;
+	 << "  " << setw(8) << mStats.mAbortTime / mStats.mAbortCount << endl;
   }
   cout << endl
        << "*** backtrace time ***" << endl
        << "  " << mStats.mBackTraceTime
-       << "  " << setw(8) << mStats.mBackTraceTime.usr_time_usec() / mStats.mDetCount
-       << "u usec"
-       << "  " << setw(8) << mStats.mBackTraceTime.sys_time_usec() / mStats.mDetCount
-       << "s usec" << endl;
+       << "  " << setw(8) << mStats.mBackTraceTime / mStats.mDetCount << endl;
   cout.flags(save);
 }
 

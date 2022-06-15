@@ -17,19 +17,11 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] input_id 入力番号
-// @param[in] dff 接続しているDFF
-TpgDffOutput::TpgDffOutput(int id,
-			   int input_id,
-			   const TpgDff* dff) :
-  TpgPPI(id, input_id),
-  mDff(dff)
-{
-}
-
-// @brief デストラクタ
-TpgDffOutput::~TpgDffOutput()
+TpgDffOutput::TpgDffOutput(
+  int input_id,
+  const TpgDff* dff
+) : TpgPPI{input_id},
+    mDff{dff}
 {
 }
 

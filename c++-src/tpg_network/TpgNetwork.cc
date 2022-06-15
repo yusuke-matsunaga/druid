@@ -55,16 +55,17 @@ TpgNetwork::node(int id) const
 }
 
 // @brief 全ノードのリストを得る．
-Array<const TpgNode*>
+const vector<const TpgNode*>&
 TpgNetwork::node_list() const
 {
   return mImpl->node_list();
 }
 
 // @brief ノード名を得る．
-// @param[in] id ID番号 ( 0 <= id < node_num() )
-const char*
-TpgNetwork::node_name(int id) const
+const string&
+TpgNetwork::node_name(
+  int id
+) const
 {
   return mImpl->node_name(id);
 }
@@ -90,7 +91,7 @@ TpgNetwork::input(int pos) const
 }
 
 // @brief 外部入力ノードのリストを得る．
-Array<const TpgNode*>
+const vector<const TpgNode*>&
 TpgNetwork::input_list() const
 {
   return mImpl->input_list();
@@ -117,7 +118,7 @@ TpgNetwork::output(int pos) const
 }
 
 // @brief 外部出力ノードのリストを得る．
-Array<const TpgNode*>
+const vector<const TpgNode*>&
 TpgNetwork::output_list() const
 {
   return mImpl->output_list();
@@ -159,7 +160,7 @@ TpgNetwork::ppi(int pos) const
 }
 
 // @brief 擬似外部入力のリストを得る．
-Array<const TpgNode*>
+const vector<const TpgNode*>&
 TpgNetwork::ppi_list() const
 {
   return mImpl->ppi_list();
@@ -188,7 +189,7 @@ TpgNetwork::ppo(int pos) const
 }
 
 // @brief 擬似外部出力のリストを得る．
-Array<const TpgNode*>
+const vector<const TpgNode*>&
 TpgNetwork::ppo_list() const
 {
   return mImpl->ppo_list();
@@ -210,7 +211,7 @@ TpgNetwork::mffc(int pos) const
 }
 
 // @brief MFFC のリストを得る．
-Array<const TpgMFFC>
+const vector<TpgMFFC>&
 TpgNetwork::mffc_list() const
 {
   return mImpl->mffc_list();
@@ -232,7 +233,7 @@ TpgNetwork::ffr(int pos) const
 }
 
 // @brief FFR のリストを得る．
-Array<const TpgFFR>
+const vector<TpgFFR>&
 TpgNetwork::ffr_list() const
 {
   return mImpl->ffr_list();
@@ -254,7 +255,7 @@ TpgNetwork::dff(int pos) const
 }
 
 // @brief DFF のリストを得る．
-Array<const TpgDff>
+const vector<TpgDff>&
 TpgNetwork::dff_list() const
 {
   return mImpl->dff_list();
@@ -283,7 +284,7 @@ TpgNetwork::rep_fault(int pos) const
 }
 
 // @brief 代表故障のリストを返す．
-Array<const TpgFault*>
+const vector<const TpgFault*>&
 TpgNetwork::rep_fault_list() const
 {
   return mImpl->rep_fault_list();

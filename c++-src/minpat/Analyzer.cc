@@ -162,8 +162,7 @@ Analyzer::gen_fault_list(const vector<bool>& mark,
       const NodeValList& ffr_cond1 = fi1->mand_cond();
       // ffr_cond1 を否定した節を加える．
       // 制御変数は clit1
-      SatVarId cvar1 = dtpg.new_variable();
-      SatLiteral clit1(cvar1);
+      SatLiteral clit1 = dtpg.new_variable();
       vector<SatLiteral> tmp_lits;
       tmp_lits.reserve(ffr_cond1.size() + 1);
       tmp_lits.push_back(~clit1);
@@ -211,7 +210,7 @@ Analyzer::gen_fault_list(const vector<bool>& mark,
 void
 Analyzer::dom_reduction1(vector<FaultInfo*>& fi_list)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   int nf = fi_list.size();
@@ -295,7 +294,7 @@ Analyzer::dom_reduction1(vector<FaultInfo*>& fi_list)
     cout << "after semi-global dominance reduction: " << wpos << endl
 	 << "# of total checks:                     " << check_num << endl
 	 << "# of total successes:                  " << success_num << endl
-	 << "CPU time:                              " << timer.time() << endl;
+	 << "CPU time:                              " << timer.get_time() << endl;
   }
 }
 
@@ -303,7 +302,7 @@ Analyzer::dom_reduction1(vector<FaultInfo*>& fi_list)
 void
 Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   int nf = fi_list.size();
@@ -311,11 +310,11 @@ Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
   fault_list.reserve(nf);
   vector<TestVector> tv_list;
   tv_list.reserve(nf);
-  HashMap<int, int> fid_map;
+  unordered_map<int, int> fid_map;
   for ( auto fi: fi_list ) {
     int row = fault_list.size();
     auto fault = fi->fault();
-    fid_map.add(fault->id(), row);
+    fid_map.emplace(fault->id(), row);
     fault_list.push_back(fault);
     tv_list.push_back(fi->testvect());
   }
@@ -351,8 +350,7 @@ Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
 	}
 
 	bool not_covered = false;
-	int i2;
-	fid_map.find(fault2->id(), i2);
+	int i2 = fid_map.at(fault2->id());
 	for ( auto col: matrix.row_list(i2) ) {
 	  if ( !col_mark[col] ) {
 	    not_covered = true;
@@ -404,7 +402,7 @@ Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
     cout << "# of total checkes:   " << check_num << endl
 	 << "# of total successes: " << success_num << endl
 	 << "# of DomCheckers:     " << dom_num << endl
-	 << "CPU time:             " << timer.time() << endl;
+	 << "CPU time:             " << timer.get_time() << endl;
   }
 }
 
@@ -451,8 +449,7 @@ Analyzer::init(int loop_limit)
       const NodeValList& ffr_cond1 = ffr_cond_list[i1];
       // ffr_cond1 を否定した節を加える．
       // 制御変数は clit1
-      SatVarId cvar1 = dtpg.new_variable();
-      SatLiteral clit1(cvar1);
+      auto clit1 = dtpg.new_variable();
       vector<SatLiteral> tmp_lits;
       tmp_lits.reserve(ffr_cond1.size() + 1);
       tmp_lits.push_back(~clit1);
@@ -519,7 +516,7 @@ Analyzer::init(int loop_limit)
 	    bool out_of_range = false;
 	    for ( auto nv: mand_cond ) {
 	      auto node = nv.node();
-	      if ( undet_checker.gvar(node) == kSatVarIdIllegal ) {
+	      if ( undet_checker.gvar(node) == kSatLiteralX ) {
 		out_of_range = true;
 		break;
 	      }
@@ -724,8 +721,7 @@ Analyzer::analyze_fault(DtpgFFR& dtpg,
     bool exhausted = true;
     expr = restrict(expr, mand_cond);
     if ( !expr.is_constant() ) {
-      SatVarId cvar1 = dtpg.new_variable();
-      SatLiteral clit1(cvar1);
+      auto clit1 = dtpg.new_variable();
       // 別解を求める．
       exhausted = false;
       Expr expr1(expr);
@@ -806,11 +802,11 @@ Expr
 Analyzer::restrict(const Expr& expr,
 		   const NodeValList& mand_cond)
 {
-  HashMap<VarId, bool> val_map;
+  unordered_map<VarId, bool> val_map;
   for ( auto nv: mand_cond ) {
     const TpgNode* node = nv.node();
     bool val = nv.val();
-    val_map.add(VarId(node->id()), val);
+    val_map.emplace(VarId(node->id()), val);
   }
   return _restrict_sub(expr, val_map);
 }
@@ -820,19 +816,19 @@ Analyzer::restrict(const Expr& expr,
 // @param[in] val_map 割り当てマップ
 Expr
 Analyzer::_restrict_sub(const Expr& expr,
-			const HashMap<VarId, bool>& val_map)
+			const unordered_map<VarId, bool>& val_map)
 {
   ASSERT_COND( !expr.is_constant() );
 
   if ( expr.is_posi_literal() ) {
     VarId var = expr.varid();
-    bool val;
-    if ( val_map.find(var, val) ) {
+    if ( val_map.count(var) > 0 ) {
+      bool val = val_map.at(var);
       if ( val == false ) {
-	return Expr::zero();
+	return Expr::make_zero();
       }
       else if ( val == true ) {
-	return Expr::one();
+	return Expr::make_one();
       }
     }
     return expr;
@@ -840,12 +836,13 @@ Analyzer::_restrict_sub(const Expr& expr,
   else if ( expr.is_nega_literal() ) {
     VarId var = expr.varid();
     bool val;
-    if ( val_map.find(var, val) ) {
+    if ( val_map.count(var) > 0 ) {
+      bool val = val_map.at(var);
       if ( val == false ) {
-	return Expr::one();
+	return Expr::make_one();
       }
       else if ( val == true ) {
-	return Expr::zero();
+	return Expr::make_zero();
       }
     }
     return expr;
@@ -872,7 +869,7 @@ Analyzer::_restrict_sub(const Expr& expr,
     ASSERT_NOT_REACHED;
   }
 
-  return Expr::zero();
+  return Expr::make_zero();
 }
 
 END_NAMESPACE_DRUID

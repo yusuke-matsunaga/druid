@@ -18,7 +18,7 @@
 #include "DopVerifyResult.h"
 #include "DtpgStats.h"
 #include "ym/SatSolverType.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -138,7 +138,7 @@ private:
   DtpgStats mStats;
 
   // タイマー
-  StopWatch mTimer;
+  Timer mTimer;
 
 };
 

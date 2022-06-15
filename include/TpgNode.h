@@ -5,13 +5,10 @@
 /// @brief TpgNode のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "druid.h"
-#include "ym/Alloc.h"
-#include "ym/Array.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -33,14 +30,23 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class TpgNode
 {
+public:
+
+  /// @brief デストラクタ
+  virtual
+  ~TpgNode() = default;
+
+
 protected:
   //////////////////////////////////////////////////////////////////////
   // コンストラクタ/デストラクタ
   //////////////////////////////////////////////////////////////////////
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  TpgNode(int id);
+  TpgNode(
+    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインリスト
+    SizeType fanout_num                       ///< [in] ファンアウト数
+  );
 
   /// @brief コピーコンストラクタは禁止
   TpgNode(const TpgNode& src) = delete;
@@ -56,10 +62,6 @@ protected:
   TpgNode&
   operator=(TpgNode&& src) = delete;
 
-  /// @brief デストラクタ
-  virtual
-  ~TpgNode();
-
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -68,7 +70,10 @@ public:
 
   /// @brief ID番号を得る．
   int
-  id() const;
+  id() const
+  {
+    return mId;
+  }
 
   /// @brief 外部入力タイプの時 true を返す．
   virtual
@@ -203,51 +208,89 @@ public:
   noval() const;
 
   /// @brief ファンイン数を得る．
-  virtual
   int
-  fanin_num() const = 0;
+  fanin_num() const
+  {
+    return mFaninList.size();
+  }
 
   /// @brief ファンインを得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-  virtual
   const TpgNode*
-  fanin(int pos) const = 0;
+  fanin(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < fanin_num() )
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < fanin_num() );
+    return mFaninList[pos];
+  }
 
   /// @brief ファンインのリストを得る．
-  virtual
-  Array<const TpgNode*>
-  fanin_list() const = 0;
+  const vector<const TpgNode*>&
+  fanin_list() const
+  {
+    return mFaninList;
+  }
 
   /// @brief ファンアウト数を得る．
   int
-  fanout_num() const;
+  fanout_num() const
+  {
+    return mFanoutList.size();
+  }
 
   /// @brief ファンアウトを得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < fanout_num() )
   const TpgNode*
-  fanout(int pos) const;
+  fanout(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < fanout_num() )
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < fanout_num() );
+    return mFanoutList[pos];
+  }
 
   /// @brief ファンアウトのリストを得る．
-  Array<const TpgNode*>
-  fanout_list() const;
+  const vector<const TpgNode*>&
+  fanout_list() const
+  {
+    return mFanoutList;
+  }
 
   /// @brief FFR の根のノードを得る．
   ///
   /// 自分が根の場合には自分自身を返す．
   const TpgNode*
-  ffr_root() const;
+  ffr_root() const
+  {
+    if ( fanout_num() == 0 || fanout_num() > 1 ) {
+      return this;
+    }
+    else {
+      return fanout(0)->ffr_root();
+    }
+  }
 
   /// @brief MFFCの根のノードを得る．
   ///
   /// 自分が根の場合には自分自身を返す．
   const TpgNode*
-  mffc_root() const;
+  mffc_root() const
+  {
+    if ( imm_dom() == nullptr ) {
+      return this;
+    }
+    else {
+      return imm_dom()->mffc_root();
+    }
+  }
 
   /// @brief 直近の dominator を得る．
   ///
   /// これが nullptr の場合は MFFC の根のノードだということ．
   const TpgNode*
-  imm_dom() const;
+  imm_dom() const
+  {
+    return mImmDom;
+  }
 
 
 public:
@@ -255,50 +298,43 @@ public:
   // 内容を設定する関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @grief ID番号を設定する．
+  void
+  set_id(
+    int id
+  )
+  {
+    mId = id;
+  }
+
   /// @brief 出力番号2をセットする．
-  /// @param[in] id セットする番号
   ///
   /// 出力ノード以外では無効
   virtual
   void
-  set_output_id2(int id);
+  set_output_id2(
+    int id  ///< [in] セットする番号
+  );
 
   /// @brief ファンアウト数を設定する．
-  /// @param[in] fanout_num
-  /// @param[in] alloc メモリアロケータ
   ///
   /// 同時にファンアウト用の配列も確保する．
   void
-  set_fanout_num(int fanout_num,
-		 Alloc& alloc);
+  set_fanout_num(
+    SizeType fanout_num  ///< [in] ファンアウト数
+  );
 
   /// @brief ファンアウトを設定する．
-  /// @param[in] pos 位置番号 ( 0 <= pos < fanout_num() )
-  /// @param[in] fo_node ファンアウト先のノード
   void
-  set_fanout(int pos,
-	     const TpgNode* fo_node);
+  add_fanout(
+    const TpgNode* fo_node  ///< [in] ファンアウト先のノード
+  );
 
   /// @brief immediate dominator をセットする．
-  /// @param[in] dom dominator ノード
   void
-  set_imm_dom(const TpgNode* dom);
-
-  /// @brief ファンインを設定する．
-  /// @param[in] inode_list ファンインのリスト
-  ///
-  /// と同時にファンイン用の配列も確保する．
-  /// 多入力ゲートのみ意味を持つ仮想関数
-  virtual
-  void
-  set_fanin(const vector<TpgNode*>& inode_list,
-	    Alloc& alloc);
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  set_imm_dom(
+    const TpgNode* dom  ///< [in] dominator ノード
+  );
 
 
 private:
@@ -307,29 +343,30 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // ID 番号
-  int mId;
+  int mId{0};
 
-  // ファンアウト数
-  int mFanoutNum;
+  // ファンインの配列
+  vector<const TpgNode*> mFaninList;
 
   // ファンアウトの配列
-  const TpgNode** mFanoutList;
+  vector<const TpgNode*> mFanoutList;
 
   // immediate dominator
-  const TpgNode* mImmDom;
+  const TpgNode* mImmDom{nullptr};
 
 };
 
 /// @relates TpgNode
 /// @brief ノード名を出力する
-/// @param[in] s 出力先のストリーム
-/// @param[in] network 対象のネットワーク
-/// @param[in] node 対象のノード
 void
-print_node(ostream& s,
-	   const TpgNetwork& network,
-	   const TpgNode* node);
+print_node(
+  ostream& s,                ///< [in] 出力先のストリーム
+  const TpgNetwork& network, ///< [in] 対象のネットワーク
+  const TpgNode* node	     ///< [in] 対象のノード
+);
 
+
+#if 0
 
 //////////////////////////////////////////////////////////////////////
 // インライン関数の定義
@@ -360,7 +397,7 @@ TpgNode::fanout_num() const
 }
 
 // @brief ファンアウトを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanout_num() )
+//< [in] pos 位置番号 ( 0 <= pos < fanout_num() )
 inline
 const TpgNode*
 TpgNode::fanout(int pos) const
@@ -402,6 +439,8 @@ TpgNode::imm_dom() const
 {
   return mImmDom;
 }
+
+#endif
 
 END_NAMESPACE_DRUID
 

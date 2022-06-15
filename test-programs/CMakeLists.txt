@@ -28,12 +28,12 @@ set ( TpgNetworkTest_SOURCES
 
 add_executable ( TpgNetworkTest
   ${TpgNetworkTest_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_a>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_a>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_a>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_a>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_a>
-  ${YM_SUBMODULE_OBJ_A_LIST}
+  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  ${YM_SUBMODULE_OBJ_LIST}
   )
 
 target_compile_options ( TpgNetworkTest
@@ -57,12 +57,12 @@ endif ()
 
 add_executable ( TpgNetworkTest_d
   ${TpgNetworkTest_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_ad>
-  ${YM_SUBMODULE_OBJ_AD_LIST}
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
 target_compile_options ( TpgNetworkTest_d
@@ -90,12 +90,12 @@ set ( FsimTest_SOURCES
 
 add_executable ( FsimTest
   ${FsimTest_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_a>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_a>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_a>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_a>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_a>
-  ${YM_SUBMODULE_OBJ_A_LIST}
+  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  ${YM_SUBMODULE_OBJ_LIST}
   )
 
 target_compile_options ( FsimTest
@@ -119,12 +119,12 @@ endif ()
 
 add_executable ( FsimTest_d
   ${FsimTest_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_ad>
-  ${YM_SUBMODULE_OBJ_AD_LIST}
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
 target_compile_options ( FsimTest_d
@@ -153,12 +153,12 @@ set ( dtpg_test_SOURCES
 
 add_executable ( dtpg_test
   ${dtpg_test_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_a>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_a>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_a>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_a>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_a>
-  ${YM_SUBMODULE_OBJ_A_LIST}
+  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  ${YM_SUBMODULE_OBJ_LIST}
   )
 
 target_compile_options ( dtpg_test
@@ -182,12 +182,12 @@ endif ()
 
 add_executable ( dtpg_test_d
   ${dtpg_test_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_ad>
-  ${YM_SUBMODULE_OBJ_AD_LIST}
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
 target_compile_options ( dtpg_test_d
@@ -215,12 +215,12 @@ set ( mf_comp_SOURCES
 
 add_executable ( mf_comp
   ${mf_comp_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_a>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_a>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_a>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_a>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_a>
-  ${YM_SUBMODULE_OBJ_A_LIST}
+  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  ${YM_SUBMODULE_OBJ_LIST}
   )
 
 target_compile_options ( mf_comp
@@ -244,12 +244,12 @@ endif ()
 
 add_executable ( mf_comp_d
   ${mf_comp_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_ad>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_ad>
-  ${YM_SUBMODULE_OBJ_AD_LIST}
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
 target_compile_options ( mf_comp_d

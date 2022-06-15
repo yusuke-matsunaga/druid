@@ -9,7 +9,6 @@
 
 #include "TvMerger.h"
 #include "TestVector.h"
-#include "ym/HashSet.h"
 #include "ym/Range.h"
 
 
@@ -193,7 +192,7 @@ TvMerger::gen_mcset(vector<TestVector>& new_tv_list)
   // -1 が未選択，0/1 が選択されている値
   vector<int> signature(mBitLen, -1);
 
-  HashSet<string> tv_hash;
+  unordered_set<string> tv_hash;
 
   int limit = 10000;
   int tenure = 5;
@@ -203,8 +202,8 @@ TvMerger::gen_mcset(vector<TestVector>& new_tv_list)
     // 記録する．
     TestVector tv = gen_vector(signature);
     string tv_str = tv.bin_str();
-    if ( !tv_hash.check(tv_str) ) {
-      tv_hash.add(tv_str);
+    if ( tv_hash.count(tv_str) == 0 ) {
+      tv_hash.emplace(tv_str);
       new_tv_list.push_back(tv);
     }
 

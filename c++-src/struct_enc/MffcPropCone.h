@@ -11,7 +11,6 @@
 
 
 #include "PropCone.h"
-#include "ym/HashMap.h"
 
 
 BEGIN_NAMESPACE_DRUID_STRUCTENC
@@ -83,7 +82,7 @@ private:
   /// @param[in] ovar ゲートの出力の変数
   void
   inject_fault(int ffr_pos,
-	       SatVarId ovar);
+	       SatLiteral ovar);
 
 
 private:
@@ -97,17 +96,12 @@ private:
 
   // 各FFRの根に反転イベントを挿入するための変数
   // サイズは mElemArray.size()
-  vector<SatVarId> mElemVarArray;
+  vector<SatLiteral> mElemVarArray;
 
   // ノード番号をキーにしてFFR番号を入れる連想配列
-  HashMap<int, int> mElemPosMap;
+  unordered_map<int, int> mElemPosMap;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
 
 END_NAMESPACE_DRUID_STRUCTENC
 

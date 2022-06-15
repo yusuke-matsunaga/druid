@@ -6,7 +6,6 @@
 /// Copyright (C) 2016, 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgLogicNOT.h"
 #include "GateType.h"
 #include "Val3.h"
@@ -19,16 +18,10 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin ファンイン
-TpgLogicNOT::TpgLogicNOT(int id,
-			 TpgNode* fanin) :
-  TpgLogic1(id, fanin)
-{
-}
-
-// @brief デストラクタ
-TpgLogicNOT::~TpgLogicNOT()
+TpgLogicNOT::TpgLogicNOT(
+  const TpgNode* fanin,
+  SizeType fanout_num
+) : TpgLogic1{fanin, fanout_num}
 {
 }
 

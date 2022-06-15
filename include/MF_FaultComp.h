@@ -5,7 +5,7 @@
 /// @brief MF_FaultComp のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2019 Yusuke Matsunaga
+/// Copyright (C) 2019, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -30,18 +30,15 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief FFR 内の多重故障リストを求める．
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] root FFR の根のノード
-  /// @param[in] input_list FFR の葉のノードのリスト
-  /// @param[in] fault_list FFR内の代表故障のリスト
-  /// @param[in] solver_type SATソルバの実装タイプ
   static
   vector<vector<const TpgFault*>>
-  get_faults_list(const TpgNetwork& network,
-		  const TpgNode* root,
-		  const vector<const TpgNode*>& input_list,
-		  const vector<const TpgFault*>& fault_list,
-		  SatSolverType solver_type = SatSolverType());
+  get_faults_list(
+    const TpgNetwork& network,                  ///< [in] 対象のネットワーク
+    const TpgNode* root,			///< [in] FFR の根のノード
+    const vector<const TpgNode*>& input_list,	///< [in] FFR の葉のノードのリスト
+    const vector<const TpgFault*>& fault_list,	///< [in] FFR内の代表故障のリスト
+    SatSolverType solver_type = SatSolverType()	///< [in] SATソルバの実装タイプ
+  );
 
 
 private:

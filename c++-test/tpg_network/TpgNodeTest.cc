@@ -9,8 +9,7 @@
 
 #include "gtest/gtest.h"
 #include "TpgNode.h"
-#include "TpgNodeFactory.h"
-#include "ym/SimpleAlloc.h"
+#include "TpgNetworkImpl.h"
 #include "GateType.h"
 #include "Val3.h"
 
@@ -27,38 +26,40 @@ public:
 
   // cval, nval, coval, noval のテスト
   void
-  cval_test(TpgNode* node,
-	    Val3 exp_cval,
-	    Val3 exp_nval,
-	    Val3 exp_coval,
-	    Val3 exp_noval);
-
-  // メモリアロケータ
-  SimpleAlloc mAlloc;
+  cval_test(
+    TpgNode* node,
+    Val3 exp_cval,
+    Val3 exp_nval,
+    Val3 exp_coval,
+    Val3 exp_noval
+  );
 
   // ファクトリ
-  TpgNodeFactory mFactory;
+  TpgNetworkImpl mNetwork;
 
   // 入力ノード
   TpgNode* mInputNodeList[5];
 
 };
 
-TpgNodeTest::TpgNodeTest() :
-  mFactory(mAlloc)
+TpgNodeTest::TpgNodeTest()
 {
   for ( auto i: { 0, 1, 2, 3, 4 } ) {
-    mInputNodeList[i] = mFactory.make_input(i, i, 1);
+    ostringstream buf;
+    buf << "input" << i;
+    mInputNodeList[i] = mNetwork.make_input_node(i, buf.str(), 1);
   }
 }
 
 // cval, nval, coval, noval のテスト
 void
-TpgNodeTest::cval_test(TpgNode* node,
-		       Val3 exp_cval,
-		       Val3 exp_nval,
-		       Val3 exp_coval,
-		       Val3 exp_noval)
+TpgNodeTest::cval_test(
+  TpgNode* node,
+  Val3 exp_cval,
+  Val3 exp_nval,
+  Val3 exp_coval,
+  Val3 exp_noval
+)
 {
   EXPECT_EQ( exp_cval, node->cval() );
   EXPECT_EQ( exp_nval, node->nval() );
@@ -69,19 +70,17 @@ TpgNodeTest::cval_test(TpgNode* node,
 
 TEST_F(TpgNodeTest, input)
 {
-  int id = 10;
   int iid = 20;
   int fanout_num = 0;
-  auto node = mFactory.make_input(id, iid, fanout_num);
+  auto node = mNetwork.make_input_node(iid, "input", fanout_num);
 
   ASSERT_TRUE( node != nullptr );
 }
 
 TEST_F(TpgNodeTest, output)
 {
-  int id = 10;
   int oid = 20;
-  auto node = mFactory.make_output(id, oid, mInputNodeList[0]);
+  auto node = mNetwork.make_output_node(oid, "output", mInputNodeList[0]);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -90,24 +89,21 @@ TEST_F(TpgNodeTest, output)
 
 TEST_F(TpgNodeTest, CONST0)
 {
-  int id = 10;
-  auto node = mFactory.make_logic(id, GateType::Const0, vector<TpgNode*>(0), 0);
+  auto node = mNetwork.make_logic(GateType::Const0, {}, 0);
 
   ASSERT_TRUE( node != nullptr );
 }
 
 TEST_F(TpgNodeTest, CONST1)
 {
-  int id = 10;
-  auto node = mFactory.make_logic(id, GateType::Const1, vector<TpgNode*>(0), 0);
+  auto node = mNetwork.make_logic(GateType::Const1, {}, 0);
 
   ASSERT_TRUE( node != nullptr );
 }
 
 TEST_F(TpgNodeTest, BUFF)
 {
-  int id = 10;
-  auto node = mFactory.make_logic(id, GateType::Buff, vector<TpgNode*>(1, mInputNodeList[0]), 0);
+  auto node = mNetwork.make_logic(GateType::Buff, {mInputNodeList[0]}, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -116,8 +112,7 @@ TEST_F(TpgNodeTest, BUFF)
 
 TEST_F(TpgNodeTest, NOT)
 {
-  int id = 10;
-  auto node = mFactory.make_logic(id, GateType::Not, vector<TpgNode*>(1, mInputNodeList[0]), 0);
+  auto node = mNetwork.make_logic(GateType::Not, {mInputNodeList[0]}, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -126,13 +121,12 @@ TEST_F(TpgNodeTest, NOT)
 
 TEST_F(TpgNodeTest, AND2)
 {
-  int id = 10;
   int ni = 2;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::And, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::And, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -142,13 +136,12 @@ TEST_F(TpgNodeTest, AND2)
 
 TEST_F(TpgNodeTest, AND3)
 {
-  int id = 10;
   int ni = 3;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::And, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::And, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -158,13 +151,12 @@ TEST_F(TpgNodeTest, AND3)
 
 TEST_F(TpgNodeTest, AND4)
 {
-  int id = 10;
   int ni = 4;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::And, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::And, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -174,13 +166,12 @@ TEST_F(TpgNodeTest, AND4)
 
 TEST_F(TpgNodeTest, AND5)
 {
-  int id = 10;
   int ni = 5;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::And, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::And, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -190,13 +181,12 @@ TEST_F(TpgNodeTest, AND5)
 
 TEST_F(TpgNodeTest, NAND2)
 {
-  int id = 10;
   int ni = 2;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Nand, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nand, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -208,11 +198,11 @@ TEST_F(TpgNodeTest, NAND3)
 {
   int id = 10;
   int ni = 3;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Nand, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nand, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -223,11 +213,11 @@ TEST_F(TpgNodeTest, NAND4)
 {
   int id = 10;
   int ni = 4;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Nand, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nand, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -239,11 +229,11 @@ TEST_F(TpgNodeTest, NAND5)
 {
   int id = 10;
   int ni = 5;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Nand, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nand, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -255,11 +245,11 @@ TEST_F(TpgNodeTest, OR2)
 {
   int id = 10;
   int ni = 2;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Or, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Or, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -271,11 +261,11 @@ TEST_F(TpgNodeTest, OR3)
 {
   int id = 10;
   int ni = 3;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Or, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Or, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -287,11 +277,11 @@ TEST_F(TpgNodeTest, OR4)
 {
   int id = 10;
   int ni = 4;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Or, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Or, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -303,11 +293,11 @@ TEST_F(TpgNodeTest, OR5)
 {
   int id = 10;
   int ni = 5;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Or, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Or, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -319,11 +309,11 @@ TEST_F(TpgNodeTest, NOR2)
 {
   int id = 10;
   int ni = 2;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Nor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nor, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -335,11 +325,11 @@ TEST_F(TpgNodeTest, NOR3)
 {
   int id = 10;
   int ni = 3;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Nor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nor, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -351,11 +341,11 @@ TEST_F(TpgNodeTest, NOR4)
 {
   int id = 10;
   int ni = 4;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Nor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nor, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -367,11 +357,11 @@ TEST_F(TpgNodeTest, NOR5)
 {
   int id = 10;
   int ni = 5;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Nor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nor, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -383,11 +373,11 @@ TEST_F(TpgNodeTest, XOR2)
 {
   int id = 10;
   int ni = 2;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Xor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Xor, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -399,11 +389,11 @@ TEST_F(TpgNodeTest, XNOR2)
 {
   int id = 10;
   int ni = 2;
-  vector<TpgNode*> fanin_list(ni);
+  vector<const TpgNode*> fanin_list(ni);
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mFactory.make_logic(id, GateType::Xnor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Xnor, fanin_list, 0);
 
   ASSERT_TRUE( node != nullptr );
 
