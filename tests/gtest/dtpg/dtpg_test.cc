@@ -263,12 +263,12 @@ TEST_P(DtpgTestWithParam, test1)
   do_test();
 }
 
-INSTANTIATE_TEST_CASE_P(DtpgTest, DtpgTestWithParam,
-			::testing::Combine(::testing::ValuesIn(mydata),
-					   ::testing::Values("ffr",    "ffr_new",
-							     "mffc",   "mffc_new",
-							     "mf"),
-					   ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
-					   ::testing::Values("just1", "just2")));
+INSTANTIATE_TEST_SUITE_P(DtpgTest, DtpgTestWithParam,
+			 ::testing::Combine(::testing::ValuesIn(mydata),
+					    ::testing::Values("ffr",    "ffr_new",
+							      "mffc",   "mffc_new",
+							      "mf"),
+					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
+					    ::testing::Values("just1", "just2")));
 
 END_NAMESPACE_DRUID
