@@ -43,6 +43,8 @@ dtpg_test(int argc,
 
   bool ffr = false;
   bool mffc = false;
+  bool ffr_new = false;
+  bool mffc_new = false;
 
   bool dump = false;
 
@@ -60,6 +62,14 @@ dtpg_test(int argc,
 	  cerr << "--ffr  and --mffc are mutually exclusive" << endl;
 	  return -1;
 	}
+	if ( ffr_new ) {
+	  cerr << "--ffr  and --ffr-new are mutually exclusive" << endl;
+	  return -1;
+	}
+	if ( mffc_new ) {
+	  cerr << "--ffr  and --mffc-new are mutually exclusive" << endl;
+	  return -1;
+	}
 	ffr = true;
       }
       else if ( strcmp(argv[pos], "--mffc") == 0 ) {
@@ -67,7 +77,45 @@ dtpg_test(int argc,
 	  cerr << "--ffr and --mffc are mutually exclusive" << endl;
 	  return -1;
 	}
+	if ( ffr_new ) {
+	  cerr << "--mffc  and --ffr-new are mutually exclusive" << endl;
+	  return -1;
+	}
+	if ( mffc_new ) {
+	  cerr << "--mffc and --mffc-new are mutually exclusive" << endl;
+	  return -1;
+	}
 	mffc = true;
+      }
+      else if ( strcmp(argv[pos], "--ffr-new") == 0 ) {
+	if ( ffr ) {
+	  cerr << "--ffr  and --ffr-new are mutually exclusive" << endl;
+	  return -1;
+	}
+	if ( mffc ) {
+	  cerr << "--ffr-new  and --mffc are mutually exclusive" << endl;
+	  return -1;
+	}
+	if ( mffc_new ) {
+	  cerr << "--ffr-new  and --mffc-new are mutually exclusive" << endl;
+	  return -1;
+	}
+	ffr_new = true;
+      }
+      else if ( strcmp(argv[pos], "--mffc-new") == 0 ) {
+	if ( ffr ) {
+	  cerr << "--ffr and --mffc-new are mutually exclusive" << endl;
+	  return -1;
+	}
+	if ( ffr_new ) {
+	  cerr << "--mffc-new  and --mffc-new are mutually exclusive" << endl;
+	  return -1;
+	}
+	if ( mffc ) {
+	  cerr << "--mffc and --mffc-new are mutually exclusive" << endl;
+	  return -1;
+	}
+	mffc_new = true;
       }
       else if ( strcmp(argv[pos], "--blif") == 0 ) {
 	if ( iscas89 ) {
@@ -133,7 +181,7 @@ dtpg_test(int argc,
     return -1;
   }
 
-  if ( !ffr && !mffc ) {
+  if ( !ffr && !mffc && !ffr_new && !mffc_new ) {
     // ffr をデフォルトにする．
     ffr = true;
   }
@@ -186,6 +234,12 @@ dtpg_test(int argc,
   }
   else if ( mffc ) {
     num_pair = dtpgtest.mffc_test();
+  }
+  if ( ffr_new ) {
+    num_pair = dtpgtest.ffr_new_test();
+  }
+  else if ( mffc_new ) {
+    num_pair = dtpgtest.mffc_new_test();
   }
   else {
     ASSERT_NOT_REACHED;
