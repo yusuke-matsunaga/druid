@@ -3,9 +3,8 @@
 /// @brief Just2 の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Just2.h"
 #include "JustData.h"
@@ -25,11 +24,11 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] max_id ノード番号の最大値
-Just2::Just2(int max_id) :
-  JustImpl(max_id),
-  mWeightArray(max_id * 2, 0U),
-  mTmpArray(max_id * 2, 0.0)
+Just2::Just2(
+  SizeType max_id
+) : JustImpl{max_id},
+    mWeightArray(max_id * 2, 0U),
+    mTmpArray(max_id * 2, 0.0)
 {
   mNodeList[0].reserve(max_id);
   mNodeList[1].reserve(max_id);
@@ -41,11 +40,11 @@ Just2::~Just2()
 }
 
 // @brief 初期化処理
-// @param[in] assign_list 割当リスト
-// @param[in] jd justify 用のデータ
 void
-Just2::just_init(const NodeValList& assign_list,
-		 const JustData& jd)
+Just2::just_init(
+  const NodeValList& assign_list,
+  const JustData& jd
+)
 {
   // ヒューリスティックで用いる重みを計算する．
   for ( auto time: {0, 1} ) {
@@ -62,14 +61,12 @@ Just2::just_init(const NodeValList& assign_list,
 }
 
 // @brief 制御値を持つファンインを一つ選ぶ．
-// @param[in] jd justiry用のデータ
-// @param[in] node 対象のノード
-// @param[in] time 時刻 ( 0 or 1 )
-// @return 選んだファンインのノードを返す．
 const TpgNode*
-Just2::select_cval_node(const JustData& jd,
-			const TpgNode* node,
-			int time)
+Just2::select_cval_node(
+  const JustData& jd,
+  const TpgNode* node,
+  int time
+)
 {
   double min_val = DBL_MAX;
   const TpgNode* min_node = nullptr;
@@ -106,15 +103,14 @@ Just2::just_end()
 }
 
 // @brief 重みの計算を行う．
-// @param[in] node 対象のノード
-// @param[in] time タイムフレーム ( 0 or 1 )
 void
-Just2::add_weight(const JustData& jd,
-		  const TpgNode* node,
-		  int time)
+Just2::add_weight(
+  const JustData& jd,
+  const TpgNode* node,
+  int time
+)
 {
-  int index = node->id() * 2 + time;
-
+  SizeType index = node->id() * 2 + time;
   ++ mWeightArray[index];
   if ( mWeightArray[index] > 1 ) {
     return;
@@ -161,12 +157,12 @@ Just2::add_weight(const JustData& jd,
 }
 
 // @brief 見積もり値の計算を行う．
-// @param[in] node 対象のノード
-// @param[in] time タイムフレーム ( 0 or 1 )
 void
-Just2::calc_value(const JustData& jd,
-		  const TpgNode* node,
-		  int time)
+Just2::calc_value(
+  const JustData& jd,
+  const TpgNode* node,
+  int time
+)
 {
   if ( mTmpArray[node->id() * 2 + time] != 0.0 ) {
     return;

@@ -5,9 +5,8 @@
 /// @brief Just2 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "JustImpl.h"
 #include "TpgNode.h"
@@ -27,11 +26,11 @@ class Just2 :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] max_id ノード番号の最大値
-  Just2(int max_id);
+  Just2(
+    SizeType max_id ///< [in] ノード番号の最大値
+  );
 
   /// @brief デストラクタ
-  virtual
   ~Just2();
 
 
@@ -41,26 +40,22 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 初期化処理
-  /// @param[in] assign_list 割当リスト
-  /// @param[in] jd justify 用のデータ
-  virtual
   void
-  just_init(const NodeValList& assign_list,
-	    const JustData& jd) override;
+  just_init(
+    const NodeValList& assign_list, ///< [in] 割当リスト
+    const JustData& jd		    ///< [in] justify 用のデータ
+  ) override;
 
   /// @brief 制御値を持つファンインを一つ選ぶ．
-  /// @param[in] jd justiry用のデータ
-  /// @param[in] node 対象のノード
-  /// @param[in] time 時刻 ( 0 or 1 )
   /// @return 選んだファンインのノードを返す．
-  virtual
   const TpgNode*
-  select_cval_node(const JustData& jd,
-		   const TpgNode* node,
-		   int time) override;
+  select_cval_node(
+    const JustData& jd,  ///< [in] justiry用のデータ
+    const TpgNode* node, ///< [in] 対象のノード
+    int time		 ///< [in] 時刻 ( 0 or 1 )
+  ) override;
 
   /// @brief 終了処理
-  virtual
   void
   just_end() override;
 
@@ -71,27 +66,33 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 重みの計算を行う．
-  /// @param[in] node 対象のノード
-  /// @param[in] time タイムフレーム ( 0 or 1 )
   void
-  add_weight(const JustData& jd,
-	     const TpgNode* node,
-	     int time);
+  add_weight(
+    const JustData& jd,  ///< [in] 対象のノード
+    const TpgNode* node, ///< [in] タイムフレーム ( 0 or 1 )
+    int time
+  );
 
   /// @brief 見積もり値の計算を行う．
-  /// @param[in] node 対象のノード
-  /// @param[in] time タイムフレーム ( 0 or 1 )
   void
-  calc_value(const JustData& jd,
-	     const TpgNode* node,
-	     int time);
+  calc_value(
+    const JustData& jd,  ///< [in] 対象のノード
+    const TpgNode* node, ///< [in] タイムフレーム ( 0 or 1 )
+    int time
+  );
 
   /// @brief 重みを考えた価値を返す．
-  /// @param[in] node 対象のノード
-  /// @param[in] time タイムフレーム ( 0 or 1 )
   double
-  node_value(const TpgNode* node,
-	     int time) const;
+  node_value(
+    const TpgNode* node, ///< [in] 対象のノード
+    int time		 ///< [in] タイムフレーム ( 0 or 1 )
+  ) const
+  {
+    SizeType index = node->id() * 2 + time;
+    ASSERT_COND ( mWeightArray[index] > 0 );
+
+    return mTmpArray[index] / mWeightArray[index];
+  }
 
 
 private:
@@ -110,25 +111,6 @@ private:
   vector<double> mTmpArray;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief 重みを考えた価値を返す．
-// @param[in] node 対象のノード
-// @param[in] time タイムフレーム ( 0 or 1 )
-inline
-double
-Just2::node_value(const TpgNode* node,
-		  int time) const
-{
-  int index = node->id() * 2 + time;
-  ASSERT_COND ( mWeightArray[index] > 0 );
-
-  return mTmpArray[index] / mWeightArray[index];
-}
 
 END_NAMESPACE_DRUID
 
