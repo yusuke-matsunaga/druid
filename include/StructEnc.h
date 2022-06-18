@@ -31,7 +31,7 @@ public:
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,	     ///< [in] pe 故障の種類
     const SatSolverType& solver_type ///< [in] SATソルバの種類
-    = SatSolverType("ymsat2")
+    = SatSolverType{}
   );
 
   /// @brief デストラクタ
@@ -167,15 +167,6 @@ public:
     const NodeValList& assign_list ///< [in]  割当リスト
   );
 
-  /// @brief 割当リストを仮定のリテラルに追加する．
-  ///
-  /// 必要に応じて使われているリテラルに関するCNFを追加する．
-  void
-  add_to_assumptions(
-    const NodeValList& assign_list, ///< [in]  割当リスト
-    vector<SatLiteral>& assumptions ///< [out] 仮定を表すリテラルのリスト
-  );
-
   /// @brief 関係あるノードに変数を割り当てる．
   void
   make_vars();
@@ -248,12 +239,11 @@ public:
   ///
   /// このクラスでの仕事はValMapに関する適切なオブジェクトを生成して
   /// justifier を呼ぶこと．
-  void
+  TestVector
   justify(
     const SatModel& model,          ///< [in] SAT のモデル
     const NodeValList& assign_list, ///< [in] 値割り当てのリスト
-    Justifier& justifier,	    ///< [in] 正当化を行うファンクタ
-    TestVector& testvect	    ///< [out] テストベクタ
+    Justifier& justifier	    ///< [in] 正当化を行うファンクタ
   );
 
   /// @brief デバッグ用のフラグをセットする．
@@ -357,8 +347,8 @@ private:
   )
   {
     var_map(time).set_vid(node, var);
-    int sft = time ? 0 : 1;
-    mMark[node->id()] |= (1U << sft);
+    int pos = time ? 0 : 1;
+    mMark[node->id()][pos] = true;
   }
 
   /// @brief ノードの gvar が割り当てられているか調べる．
@@ -370,8 +360,8 @@ private:
     int time		 ///< [in] 時刻(0 or 1)
   ) const
   {
-    int sft = time ? 0 : 1;
-    return static_cast<bool>((mMark[node->id()] >> sft) & 1U);
+    int pos = time ? 0 : 1;
+    return mMark[node->id()][pos];
   }
 
   /// @brief ノードの CNF が作成済みか調べる．
@@ -383,8 +373,8 @@ private:
     int time		 ///< [in] 時刻(0 or 1)
   ) const
   {
-    int sft = time ? 2 : 3;
-    return static_cast<bool>((mMark[node->id()] >> sft) & 1U);
+    int pos = time ? 2 : 3;
+    return mMark[node->id()][pos];
   }
 
   /// @brief ノードに CNF マークをつける．
@@ -396,8 +386,8 @@ private:
     int time		 ///< [in] 時刻(0 or 1)
   )
   {
-    int sft = time ? 2 : 3;
-    mMark[node->id()] |= (1U << sft);
+    int pos = time ? 2 : 3;
+    mMark[node->id()][pos] = true;
   }
 
   /// @brief mCurNodeList に登録済みのマークを得る．
@@ -406,7 +396,7 @@ private:
     const TpgNode* node   ///< [in] ノード
   ) const
   {
-    return static_cast<bool>((mMark[node->id()] >> 4) & 1U);
+    return mMark[node->id()][4];
   }
 
   /// @brief mCurNodeList に登録する．
@@ -416,7 +406,7 @@ private:
   )
   {
     mCurNodeList.push_back(node);
-    mMark[node->id()] |= (1U << 4);
+    mMark[node->id()][4] = true;
   }
 
   /// @brief mPrevNodeList に登録する．
@@ -425,7 +415,7 @@ private:
     const TpgNode* node  ///< [in] ノード
   ) const
   {
-    return static_cast<bool>((mMark[node->id()] >> 5) & 1U);
+    return mMark[node->id()][5];
   }
 
   /// @brief mPrevNodeList に登録する．
@@ -435,7 +425,7 @@ private:
   )
   {
     mPrevNodeList.push_back(node);
-    mMark[node->id()] |= (1U << 5);
+    mMark[node->id()][5] = true;
   }
 
 
@@ -463,7 +453,7 @@ private:
   // 3: 1時刻前の CNF 作成済み
   // 4: mCurNodeList に登録済み
   // 5: mPrevNodeList に登録済み
-  vector<ymuint8> mMark;
+  vector<bitset<6>> mMark;
 
   // 関係するノードのリスト
   vector<const TpgNode*> mCurNodeList;

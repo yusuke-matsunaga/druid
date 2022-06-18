@@ -127,8 +127,7 @@ Dtpg_se::gen_pattern(
 
     // バックトレースを行う．
     NodeValList assign_list = mStructEnc.extract(model, fault, 0);
-    TestVector testvect;
-    mStructEnc.justify(model, assign_list, mJustifier, testvect);
+    auto testvect = mStructEnc.justify(model, assign_list, mJustifier);
 
     timer.stop();
     mStats.mBackTraceTime += timer.get_time();

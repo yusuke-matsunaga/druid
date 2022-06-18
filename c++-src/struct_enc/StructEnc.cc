@@ -50,7 +50,7 @@ StructEnc::StructEnc(
     mFaultType{fault_type},
     mSolver{solver_type},
     mMaxId{network.node_num()},
-    mMark(mMaxId, false)
+    mMark(mMaxId, 0)
 {
   for (int i = 0; i < 2; ++ i) {
     mVarMap[i].init(mMaxId);
@@ -148,7 +148,8 @@ StructEnc::make_fault_condition(
   auto assumptions = mConeList[cone_id]->make_prop_condition(ffr_root);
 
   // assign_list を変換して assumptions に追加する．
-  add_to_assumptions(assign_list, assumptions);
+  auto as2 = conv_to_literal_list(assign_list);
+  assumptions.insert(assumptions.end(), as2.begin(), as2.end());
   return assumptions;
 }
 
@@ -262,22 +263,12 @@ StructEnc::conv_to_literal_list(
 )
 {
   vector<SatLiteral> ans_list;
-  add_to_assumptions(assign_list, ans_list);
-  return ans_list;
-}
-
-// @brief 割当リストを仮定のリテラルに変換する．
-void
-StructEnc::add_to_assumptions(
-  const NodeValList& assign_list,
-  vector<SatLiteral>& assumptions
-)
-{
-  assumptions.reserve(assumptions.size() + assign_list.size());
+  ans_list.reserve(assign_list.size());
   for ( auto nv: assign_list ) {
     SatLiteral alit = nv_to_lit(nv);
-    assumptions.push_back(alit);
+    ans_list.push_back(alit);
   }
+  return ans_list;
 }
 
 // @brief 与えられたノード(のリスト)のTFIのリストを作る．
@@ -470,9 +461,9 @@ StructEnc::check_sat(
   const NodeValList& assign_list2  ///< [in] 割当リスト2
 )
 {
-  vector<SatLiteral> assumptions;
-  add_to_assumptions(assign_list1, assumptions);
-  add_to_assumptions(assign_list2, assumptions);
+  auto assumptions = conv_to_literal_list(assign_list1);
+  auto assumptions2 = conv_to_literal_list(assign_list2);
+  assumptions.insert(assumptions.end(), assumptions2.begin(), assumptions2.end());
   return mSolver.solve(assumptions);
 }
 
@@ -508,18 +499,19 @@ StructEnc::extract(
 }
 
 // @brief 外部入力の値割り当てを求める．
-void
+TestVector
 StructEnc::justify(
   const SatModel& model,
   const NodeValList& assign_list,
-  Justifier& justifier,
-  TestVector& testvect
+  Justifier& justifier
 )
 {
   if ( debug() & debug_justify ) {
     cout << endl
 	 << "StructEnc::justify(" << assign_list << ")" << endl;
   }
+
+  TestVector testvect;
 
   if ( mFaultType == FaultType::TransitionDelay ) {
     testvect = justifier(assign_list, var_map(0), var_map(1), model);
@@ -531,6 +523,8 @@ StructEnc::justify(
   if ( debug() & debug_justify ) {
     cout << " => " << testvect.bin_str() << endl;
   }
+
+  return testvect;
 }
 
 END_NAMESPACE_DRUID_STRUCTENC
