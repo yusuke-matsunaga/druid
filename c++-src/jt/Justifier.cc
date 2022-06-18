@@ -56,31 +56,30 @@ Justifier::~Justifier()
 {
 }
 
-// @brief 正当化に必要な割当を求める(縮退故障用)．
-TestVector
-Justifier::operator()(
-  const NodeValList& assign_list,
-  const VidMap& var_map,
-  const SatModel& model
-)
-{
-  NodeValList pi_assign_list = mImpl->justify(assign_list, var_map, model);
-  return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(),
-					  FaultType::StuckAt, pi_assign_list);
-}
-
 // @brief 正当化に必要な割当を求める(遷移故障用)．
 TestVector
 Justifier::operator()(
+  FaultType fault_type,
   const NodeValList& assign_list,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model
 )
 {
-  NodeValList pi_assign_list = mImpl->justify(assign_list, var1_map, var2_map, model);
-  return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(),
-					  FaultType::TransitionDelay, pi_assign_list);
+  if ( fault_type == FaultType::StuckAt ) {
+    auto pi_assign_list = mImpl->justify(assign_list, var2_map, model);
+    return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(),
+					    FaultType::StuckAt, pi_assign_list);
+  }
+  else if ( fault_type == FaultType::TransitionDelay ) {
+    auto pi_assign_list = mImpl->justify(assign_list, var1_map, var2_map, model);
+    return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(),
+					    FaultType::TransitionDelay, pi_assign_list);
+  }
+  else {
+    ASSERT_NOT_REACHED;
+  }
+  return TestVector{};
 }
 
 END_NAMESPACE_DRUID

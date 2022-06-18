@@ -10,6 +10,7 @@
 #include "TpgNetwork.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
+#include "TpgFault.h"
 #include "TestVector.h"
 
 
@@ -107,8 +108,21 @@ Dtpg_se::gen_pattern(
   SatStats prev_stats;
   mStructEnc.solver().get_stats(prev_stats);
 
-  auto assumptions = mStructEnc.make_fault_condition(fault, 0);
+  // 故障が属している FFR の根のノード
+  const TpgNode* ffr_root = fault->tpg_onode()->ffr_root();
 
+  // FFR より出力側の故障伝搬条件を assumptions に入れる．
+  auto assumptions = mStructEnc.make_prop_condition(ffr_root, 0);
+
+  // FFR 内の故障伝搬条件を assign_list に入れる．
+  NodeValList assign_list;
+  mStructEnc.add_ffr_condition(ffr_root, fault, assign_list);
+
+  // assign_list を変換して assumptions に追加する．
+  auto as2 = mStructEnc.conv_to_literal_list(assign_list);
+  assumptions.insert(assumptions.end(), as2.begin(), as2.end());
+
+  // SAT問題を解く
   auto ans = mStructEnc.solver().solve(assumptions);
   const auto& model = mStructEnc.solver().model();
 
@@ -125,8 +139,11 @@ Dtpg_se::gen_pattern(
     timer.reset();
     timer.start();
 
-    // バックトレースを行う．
-    NodeValList assign_list = mStructEnc.extract(model, fault, 0);
+    // ffr_root より先の伝搬条件を求める．
+    NodeValList assign_list2 = mStructEnc.extract_prop_condition(ffr_root, 0, model);
+    assign_list.merge(assign_list2);
+
+    // assign_list の条件を正当化する．
     auto testvect = mStructEnc.justify(model, assign_list, mJustifier);
 
     timer.stop();

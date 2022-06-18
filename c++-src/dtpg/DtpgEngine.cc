@@ -15,6 +15,7 @@
 #include "GateEnc.h"
 #include "Val3.h"
 #include "NodeValList.h"
+#include "Extractor.h"
 #include "Justifier.h"
 #include "TestVector.h"
 
@@ -28,7 +29,7 @@
 #define DEBUG_OUT cout
 BEGIN_NONAMESPACE
 #ifdef DEBUG_DTPG
-int debug_dtpg = 1;
+const int debug_dtpg = 1;
 #else
 const int debug_dtpg = 0;
 #endif
@@ -344,7 +345,6 @@ DtpgEngine::gen_undetect_cnf()
 #endif
 
 // @brief 故障伝搬条件を表すCNF式を生成する．
-// @param[in] node 対象のノード
 void
 DtpgEngine::make_dchain_cnf(
   const TpgNode* node
@@ -381,7 +381,7 @@ DtpgEngine::make_dchain_cnf(
     }
     int nfo = node->fanout_num();
     if ( nfo == 1 ) {
-      SatLiteral odlit(mDvarMap(node->fanout_list()[0]));
+      auto odlit = mDvarMap(node->fanout_list()[0]);
       mSolver.add_clause(~dlit, odlit);
 
       if ( debug_dtpg ) {
@@ -407,7 +407,7 @@ DtpgEngine::make_dchain_cnf(
 
       const TpgNode* imm_dom = node->imm_dom();
       if ( imm_dom != nullptr ) {
-	SatLiteral odlit(mDvarMap(imm_dom));
+	auto odlit = mDvarMap(imm_dom);
 	mSolver.add_clause(~dlit, odlit);
 
 	if ( debug_dtpg ) {
@@ -420,8 +420,6 @@ DtpgEngine::make_dchain_cnf(
 }
 
 // @brief バックトレースを行う．
-// @param[in] suf_cond 十分条件の割り当て
-// @return テストパタンを返す．
 TestVector
 DtpgEngine::backtrace(
   const NodeValList& suf_cond
@@ -431,13 +429,7 @@ DtpgEngine::backtrace(
   timer.start();
 
   // バックトレースを行う．
-  TestVector testvect;
-  if ( mFaultType == FaultType::TransitionDelay ) {
-    testvect = mJustifier(suf_cond, mHvarMap, mGvarMap, mSatModel);
-  }
-  else {
-    testvect = mJustifier(suf_cond, mGvarMap, mSatModel);
-  }
+  auto testvect = mJustifier(mFaultType, suf_cond, mHvarMap, mGvarMap, mSatModel);
 
   timer.stop();
   mStats.mBackTraceTime += timer.get_time();
@@ -572,14 +564,8 @@ DtpgEngine::get_tv()
 NodeValList
 DtpgEngine::get_sufficient_condition()
 {
-  extern NodeValList extract(
-    const TpgNode* root,
-    const VidMap& gvar_map,
-    const VidMap& fvar_map,
-    const SatModel& model
-  );
-
-  return extract(mRoot, mGvarMap, mFvarMap, mSatModel);
+  Extractor extractor{mGvarMap, mFvarMap, mSatModel};
+  return extractor.get_assignment({mRoot});
 }
 
 // @brief 複数の十分条件を取り出す．
@@ -675,34 +661,32 @@ DtpgEngine::_add_negation_sub(
   if ( expr.is_posi_literal() ) {
     int id = expr.varid().val();
     const TpgNode* node = mNetwork.node(id);
-    SatLiteral lit(gvar(node));
+    auto lit = gvar(node);
     return lit;
   }
   else if ( expr.is_nega_literal() ) {
     int id = expr.varid().val();
     const TpgNode* node = mNetwork.node(id);
-    SatLiteral lit(gvar(node));
+    auto lit = gvar(node);
     return ~lit;
   }
   else if ( expr.is_and() ) {
     int n = expr.child_num();
-    SatLiteral nvar = solver().new_variable();
-    SatLiteral nlit(nvar);
+    auto nlit = solver().new_variable();
     vector<SatLiteral> tmp_lits(n + 1);
     tmp_lits[0] = nlit;
     for ( int i: Range(n) ) {
-      SatLiteral lit1 = _add_negation_sub(expr.child(i));
+      auto lit1 = _add_negation_sub(expr.child(i));
       tmp_lits[i + 1] = ~lit1;
     }
     solver().add_clause(tmp_lits);
     return nlit;
   }
   else if ( expr.is_or() ) {
+    auto nlit = solver().new_variable();
     int n = expr.child_num();
-    SatLiteral nvar = solver().new_variable();
-    SatLiteral nlit(nvar);
     for ( int i: Range(n) ) {
-      SatLiteral lit1 = _add_negation_sub(expr.child(i));
+      auto lit1 = _add_negation_sub(expr.child(i));
       solver().add_clause(nlit, ~lit1);
     }
     return nlit;

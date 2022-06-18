@@ -8,23 +8,12 @@
 
 #include "PropCone.h"
 #include "StructEnc.h"
+#include "Extractor.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "NodeValList.h"
 #include "GateEnc.h"
 
-BEGIN_NAMESPACE_DRUID
-
-extern
-NodeValList
-extract(
-  const TpgNode*,
-  const VidMap&,
-  const VidMap&,
-  const SatModel&
-);
-
-END_NAMESPACE_DRUID
 
 BEGIN_NAMESPACE_DRUID_STRUCTENC
 
@@ -190,12 +179,13 @@ PropCone::make_cnf()
 
 // @brief 故障検出に必要な割り当てを求める．
 NodeValList
-PropCone::extract(
+PropCone::extract_condition(
   const SatModel& model,
   const TpgNode* root
 )
 {
-  return nsYm::nsDruid::extract(root, gvar_map(), fvar_map(), model);
+  Extractor extractor{gvar_map(), fvar_map(), model};
+  return extractor.get_assignment({root});
 }
 
 // @brief node に関する故障伝搬条件を作る．

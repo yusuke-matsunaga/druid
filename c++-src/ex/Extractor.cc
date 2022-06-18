@@ -3,9 +3,8 @@
 /// @brief Extractor の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2015, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Extractor.h"
 #include "TpgFault.h"
@@ -14,30 +13,6 @@
 
 
 BEGIN_NAMESPACE_DRUID
-
-NodeValList
-extract(
-  const TpgNode* root,
-  const VidMap& gvar_map,
-  const VidMap& fvar_map,
-  const SatModel& model
-)
-{
-  Extractor extractor{gvar_map, fvar_map, model};
-  return extractor.get_assignment(vector<const TpgNode*>{root});
-}
-
-NodeValList
-extract(
-  const vector<const TpgNode*>& root_list,
-  const VidMap& gvar_map,
-  const VidMap& fvar_map,
-  const SatModel& model
-)
-{
-  Extractor extractor{gvar_map, fvar_map, model};
-  return extractor.get_assignment(root_list);
-}
 
 BEGIN_NONAMESPACE
 
@@ -49,9 +24,6 @@ END_NONAMESPACE
 // クラス Extractor
 //////////////////////////////////////////////////////////////////////
 
-// @param[in] gvar_map 正常値の変数番号のマップ
-// @param[in] fvar_map 故障値の変数番号のマップ
-// @param[in] model SATソルバの作ったモデル
 Extractor::Extractor(
   const VidMap& gvar_map,
   const VidMap& fvar_map,
@@ -68,10 +40,10 @@ Extractor::~Extractor()
 }
 
 // @brief 値割り当てを１つ求める．
-// @param[in] root_list 起点となるノードのリスト
-// @return 値の割当リスト
 NodeValList
-Extractor::get_assignment(const vector<const TpgNode*>& root_list)
+Extractor::get_assignment(
+  const vector<const TpgNode*>& root_list
+)
 {
   // root の TFO (fault cone) に印をつける．
   // 同時に故障差の伝搬している外部出力のリストを作る．
@@ -121,7 +93,9 @@ Extractor::get_assignment(const vector<const TpgNode*>& root_list)
 
 // @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
 void
-Extractor::mark_tfo(const TpgNode* node)
+Extractor::mark_tfo(
+  const TpgNode* node
+)
 {
   if ( mFconeMark.count(node->id()) > 0 ) {
     return;
@@ -140,11 +114,11 @@ Extractor::mark_tfo(const TpgNode* node)
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
-// @param[in] node 対象のノード
-// @param[out] assign_list 値割当を記録するリスト
 void
-Extractor::record_sensitized_node(const TpgNode* node,
-				  NodeValList& assign_list)
+Extractor::record_sensitized_node(
+  const TpgNode* node,
+  NodeValList& assign_list
+)
 {
   if ( mRecorded.count(node->id()) > 0 ) {
     return;
@@ -169,11 +143,11 @@ Extractor::record_sensitized_node(const TpgNode* node,
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
-// @param[in] node 対象のノード
-// @param[out] assign_list 値割当を記録するリスト
 void
-Extractor::record_masking_node(const TpgNode* node,
-			       NodeValList& assign_list)
+Extractor::record_masking_node(
+  const TpgNode* node,
+  NodeValList& assign_list
+)
 {
   if ( mRecorded.count(node->id()) > 0 ) {
     return;

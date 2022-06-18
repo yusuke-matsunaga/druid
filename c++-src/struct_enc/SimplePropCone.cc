@@ -52,7 +52,7 @@ SimplePropCone::make_cnf()
 
 // @brief 故障の影響伝搬させる条件を作る．
 vector<SatLiteral>
-SimplePropCone::make_prop_condition(
+SimplePropCone::make_condition(
   const TpgNode* root
 )
 {

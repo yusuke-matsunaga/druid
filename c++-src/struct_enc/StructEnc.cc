@@ -66,19 +66,6 @@ StructEnc::StructEnc(
 // @brief デストラクタ
 StructEnc::~StructEnc()
 {
-  for ( auto cone: mConeList ) {
-    delete cone;
-  }
-}
-
-// @brief fault cone を追加する．
-int
-StructEnc::add_simple_cone(
-  const TpgNode* fnode,
-  bool detect
-)
-{
-  return add_simple_cone(fnode, nullptr, detect);
 }
 
 // @brief fault cone を追加する．
@@ -89,9 +76,9 @@ StructEnc::add_simple_cone(
   bool detect
 )
 {
-  auto focone = new SimplePropCone(*this, fnode, bnode, detect);
+  auto focone = new SimplePropCone{*this, fnode, bnode, detect};
   int cone_id = mConeList.size();
-  mConeList.push_back(focone);
+  mConeList.push_back(unique_ptr<PropCone>{focone});
 
   if ( fault_type() == FaultType::TransitionDelay ) {
     add_prev_node(fnode);
@@ -105,23 +92,13 @@ StructEnc::add_simple_cone(
 int
 StructEnc::add_mffc_cone(
   const TpgMFFC& mffc,
-  bool detect
-)
-{
-  return add_mffc_cone(mffc, nullptr, detect);
-}
-
-// @brief MFFC cone を追加する．
-int
-StructEnc::add_mffc_cone(
-  const TpgMFFC& mffc,
   const TpgNode* bnode,
   bool detect
 )
 {
-  auto mffccone = new MffcPropCone(*this, mffc, bnode, detect);
+  auto mffccone = new MffcPropCone{*this, mffc, bnode, detect};
   int cone_id = mConeList.size();
-  mConeList.push_back(mffccone);
+  mConeList.push_back(unique_ptr<PropCone>{mffccone});
 
   if ( fault_type() == FaultType::TransitionDelay ) {
     add_prev_node(mffc.root());
@@ -131,26 +108,16 @@ StructEnc::add_mffc_cone(
   return cone_id;
 }
 
-// @brief 故障を検出する条件を作る．
+/// @brief 故障の伝搬条件を求める．
 vector<SatLiteral>
-StructEnc::make_fault_condition(
-  const TpgFault* fault,
+StructEnc::make_prop_condition(
+  const TpgNode* ffr_root,
   int cone_id
 )
 {
-  // FFR 内の故障伝搬条件を assign_list に入れる．
-  NodeValList assign_list;
-  const TpgNode* ffr_root = fault->tpg_onode()->ffr_root();
-  add_ffr_condition(ffr_root, fault, assign_list);
-
   /// FFR より出力側の故障伝搬条件を assumptions に入れる．
   ASSERT_COND( cone_id < mConeList.size() );
-  auto assumptions = mConeList[cone_id]->make_prop_condition(ffr_root);
-
-  // assign_list を変換して assumptions に追加する．
-  auto as2 = conv_to_literal_list(assign_list);
-  assumptions.insert(assumptions.end(), as2.begin(), as2.end());
-  return assumptions;
+  return mConeList[cone_id]->make_condition(ffr_root);
 }
 
 // @brief 故障の検出条件を割当リストに追加する．
@@ -347,7 +314,7 @@ StructEnc::make_vars()
     }
   }
 
-  for ( auto focone: mConeList ) {
+  for ( auto& focone: mConeList ) {
     focone->make_vars();
   }
 }
@@ -372,7 +339,7 @@ StructEnc::make_cnf()
     }
   }
 
-  for ( auto focone: mConeList ) {
+  for ( auto& focone: mConeList ) {
     focone->make_cnf();
   }
 }
@@ -467,36 +434,17 @@ StructEnc::check_sat(
   return mSolver.solve(assumptions);
 }
 
-/// @brief 結果のなかで必要なものだけを取り出す．
+// @brief 伝搬条件を求める．
 NodeValList
-StructEnc::extract(
-  const SatModel& model,
-  const TpgFault* fault,
-  int cone_id
+StructEnc::extract_prop_condition(
+  const TpgNode* ffr_root,
+  int cone_id,
+  const SatModel& model
 )
 {
-  if ( debug() & debug_extract ) {
-    cout << endl
-	 << "StructEnc::extract(" << fault->str() << ")" << endl;
-  }
-
-  NodeValList assign_list;
-
-  // fault から FFR の根までの条件を求める．
-  const TpgNode* ffr_root = fault->tpg_onode()->ffr_root();
-  add_ffr_condition(ffr_root, fault, assign_list);
-
-  // ffr_root より先の条件を求める．
   ASSERT_COND( cone_id < mConeList.size() );
-  NodeValList assign_list2 = mConeList[cone_id]->extract(model, ffr_root);
-  assign_list.merge(assign_list2);
-
-  if ( debug() & debug_extract ) {
-    cout << "  result = " << assign_list << endl;
-  }
-
-  return assign_list;
-}
+  return mConeList[cone_id]->extract_condition(model, ffr_root);
+ }
 
 // @brief 外部入力の値割り当てを求める．
 TestVector
@@ -511,14 +459,7 @@ StructEnc::justify(
 	 << "StructEnc::justify(" << assign_list << ")" << endl;
   }
 
-  TestVector testvect;
-
-  if ( mFaultType == FaultType::TransitionDelay ) {
-    testvect = justifier(assign_list, var_map(0), var_map(1), model);
-  }
-  else {
-    testvect = justifier(assign_list, var_map(1), model);
-  }
+  auto testvect = justifier(mFaultType, assign_list, var_map(0), var_map(1), model);
 
   if ( debug() & debug_justify ) {
     cout << " => " << testvect.bin_str() << endl;

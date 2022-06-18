@@ -39,19 +39,11 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 正当化に必要な割当を求める(縮退故障用)．
-  /// @return テストベクタ
-  TestVector
-  operator()(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    const VidMap& var_map,	    ///< [in] 変数番号のマップ
-    const SatModel& model           ///< [in] SAT問題の解
-  );
-
   /// @brief 正当化に必要な割当を求める(遷移故障用)．
   /// @return テストベクタ
   TestVector
   operator()(
+    FaultType fault_type,           ///< [in] 故障タイプ
     const NodeValList& assign_list, ///< [in] 値の割り当てリスト
     const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
     const VidMap& var2_map,	    ///< [in] 2時刻目の変数番号のマップ

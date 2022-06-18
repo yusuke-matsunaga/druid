@@ -101,7 +101,10 @@ public:
   add_simple_cone(
     const TpgNode* fnode, ///< [in] 故障のあるノード
     bool detect		  ///< [in] 故障を検出する時に true にするフラグ
-  );
+  )
+  {
+    return add_simple_cone(fnode, nullptr, detect);
+  }
 
   /// @brief fault cone を追加する．
   /// @return 作成されたコーン番号を返す．
@@ -122,7 +125,10 @@ public:
   add_mffc_cone(
     const TpgMFFC& mffc, ///< [in] MFFC の情報
     bool detect		 ///< [in] 故障を検出する時に true にするフラグ
-  );
+  )
+  {
+    return add_mffc_cone(mffc, nullptr, detect);
+  }
 
   /// @brief MFFC cone を追加する．
   /// @return 作成されたコーン番号を返す．
@@ -135,11 +141,22 @@ public:
     bool detect		  ///< [in] 故障を検出する時に true にするフラグ
   );
 
-  /// @brief 故障を検出する条件を作る．
+  /// @brief 故障の伝搬条件を求める．
   vector<SatLiteral>
-  make_fault_condition(
-    const TpgFault* fault, ///< [in] 故障
-    int cone_id 	   ///< [in] コーン番号
+  make_prop_condition(
+    const TpgNode* ffr_root, ///< [in] FFR の根のノード
+    int cone_id 	     ///< [in] コーン番号
+  );
+
+  /// @brief FFR内の故障の伝搬条件を割当リストに追加する．
+  ///
+  /// * fault の影響が root_node の出力に伝搬する条件を assumptions に加える．
+  /// * 内部で add_fault_condition() を呼ぶ．
+  void
+  add_ffr_condition(
+    const TpgNode* root_node, ///< [in] FFRの根のノード
+    const TpgFault* fault,    ///< [in] 故障
+    NodeValList& assign_list  ///< [out] 条件を表す割当リスト
   );
 
   /// @brief 割当リストの内容を節に加える．
@@ -227,12 +244,22 @@ public:
     const NodeValList& assign_list2  ///< [in] 割当リスト2
   );
 
+#if 0
   /// @brief 結果のなかで必要なものだけを取り出す．
   NodeValList
   extract(
     const SatModel& model, ///< [in] SAT のモデル
     const TpgFault* fault, ///< [in] 対象の故障
     int cone_id		   ///< [in] コーン番号
+  );
+#endif
+
+  /// @brief 伝搬条件を求める．
+  NodeValList
+  extract_prop_condition(
+    const TpgNode* ffr_root, ///< [in] FFR の根のノード
+    int cone_id,	     ///< [in] コーン番号
+    const SatModel& model    ///< [in] SAT のモデル
   );
 
   /// @brief 外部入力の値割り当てを求める．
@@ -273,17 +300,6 @@ private:
   /// fault の影響がノードの出力に伝搬する条件を assumptions に加える．
   void
   add_fault_condition(
-    const TpgFault* fault,    ///< [in] 故障
-    NodeValList& assign_list  ///< [out] 条件を表す割当リスト
-  );
-
-  /// @brief FFR内の故障の伝搬条件を割当リストに追加する．
-  ///
-  /// * fault の影響が root_node の出力に伝搬する条件を assumptions に加える．
-  /// * 内部で add_fault_condition() を呼ぶ．
-  void
-  add_ffr_condition(
-    const TpgNode* root_node, ///< [in] FFRの根のノード
     const TpgFault* fault,    ///< [in] 故障
     NodeValList& assign_list  ///< [out] 条件を表す割当リスト
   );
@@ -465,7 +481,7 @@ private:
   VidMap mVarMap[2];
 
   // propagation cone のリスト
-  vector<PropCone*> mConeList;
+  vector<unique_ptr<PropCone>> mConeList;
 
   // デバッグ用のフラグ
   int mDebugFlag;

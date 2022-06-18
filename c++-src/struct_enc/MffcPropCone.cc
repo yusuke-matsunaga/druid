@@ -184,7 +184,7 @@ MffcPropCone::inject_fault(
 
 // @brief 故障の影響伝搬させる条件を作る．
 vector<SatLiteral>
-MffcPropCone::make_prop_condition(
+MffcPropCone::make_condition(
   const TpgNode* root
 )
 {

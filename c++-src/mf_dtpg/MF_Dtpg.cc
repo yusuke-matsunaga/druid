@@ -3,11 +3,11 @@
 /// @brief MF_Dtpg の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2019 Yusuke Matsunaga
+/// Copyright (C) 2019, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "MF_Dtpg.h"
+#include "Extractor.h"
 #include "TpgDff.h"
 #include "TpgFault.h"
 #include "GateType.h"
@@ -40,24 +40,21 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] just_type Justifier の種類を表す文字列
-// @param[in] solver_type SATソルバの実装タイプ
-MF_Dtpg::MF_Dtpg(const TpgNetwork& network,
-		 FaultType fault_type,
-		 const string& just_type,
-		 const SatSolverType& solver_type) :
-  mSolver(solver_type),
-  mNetwork(network),
-  mFaultType(fault_type),
-  mMarkArray(network.node_num(), 0U),
-  mHvarMap(network.node_num()),
-  mGvarMap(network.node_num()),
-  mFvarMap(network.node_num()),
-  mDvarMap(network.node_num()),
-  mJustifier(just_type, network),
-  mTimerEnable(true)
+MF_Dtpg::MF_Dtpg(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const string& just_type,
+  const SatSolverType& solver_type
+) : mSolver{solver_type},
+    mNetwork(network),
+    mFaultType(fault_type),
+    mMarkArray(network.node_num(), 0U),
+    mHvarMap(network.node_num()),
+    mGvarMap(network.node_num()),
+    mFvarMap(network.node_num()),
+    mDvarMap(network.node_num()),
+    mJustifier(just_type, network),
+    mTimerEnable(true)
 {
   mTfoList.reserve(network.node_num());
   mTfiList.reserve(network.node_num());
@@ -71,11 +68,10 @@ MF_Dtpg::~MF_Dtpg()
 }
 
 // @brief テスト生成を行なう．
-// @param[in] fault_list 対象の故障
-// @param[out] testvect テストパタンを格納する変数
-// @return 結果を返す．
 DtpgResult
-MF_Dtpg::gen_pattern(const vector<const TpgFault*>& fault_list)
+MF_Dtpg::gen_pattern(
+  const vector<const TpgFault*>& fault_list
+)
 {
   mFaultList = fault_list;
   mRootList.clear();
@@ -389,11 +385,13 @@ MF_Dtpg::gen_faulty_cnf()
 // @brief 故障伝搬条件を表すCNF式を生成する．
 // @param[in] node 対象のノード
 void
-MF_Dtpg::make_dchain_cnf(const TpgNode* node)
+MF_Dtpg::make_dchain_cnf(
+  const TpgNode* node
+)
 {
-  SatLiteral glit(mGvarMap(node));
-  SatLiteral flit(mFvarMap(node));
-  SatLiteral dlit(mDvarMap(node));
+  auto glit = mGvarMap(node);
+  auto flit = mFvarMap(node);
+  auto dlit = mDvarMap(node);
 
   // dlit -> XOR(glit, flit) を追加する．
   // 要するに正常回路と故障回路で異なっているとき dlit が 1 となる．
@@ -461,18 +459,11 @@ MF_Dtpg::make_dchain_cnf(const TpgNode* node)
 }
 
 // @brief 十分条件を取り出す．
-// @return 十分条件を表す割当リストを返す．
 NodeValList
 MF_Dtpg::get_sufficient_condition()
 {
-  extern
-  NodeValList
-  extract(const vector<const TpgNode*>& root_list,
-	  const VidMap& gvar_map,
-	  const VidMap& fvar_map,
-	  const SatModel& model);
-
-  NodeValList suf_cond = extract(mRootList, mGvarMap, mFvarMap, mSatModel);
+  Extractor extractor{mGvarMap, mFvarMap, mSatModel};
+  auto suf_cond = extractor.get_assignment(mRootList);
 
   for ( auto fault: mFaultList ) {
     auto onode = fault->tpg_onode();
@@ -506,8 +497,6 @@ MF_Dtpg::get_sufficient_condition()
 }
 
 // @brief バックトレースを行う．
-// @param[in] suf_cond 十分条件の割り当て
-// @return テストパタンを返す．
 TestVector
 MF_Dtpg::backtrace(const NodeValList& suf_cond)
 {
@@ -515,13 +504,7 @@ MF_Dtpg::backtrace(const NodeValList& suf_cond)
   timer.start();
 
   // バックトレースを行う．
-  TestVector testvect;
-  if ( mFaultType == FaultType::TransitionDelay ) {
-    testvect = mJustifier(suf_cond, mHvarMap, mGvarMap, mSatModel);
-  }
-  else {
-    testvect = mJustifier(suf_cond, mGvarMap, mSatModel);
-  }
+  auto testvect = mJustifier(mFaultType, suf_cond, mHvarMap, mGvarMap, mSatModel);
 
   timer.stop();
   mStats.mBackTraceTime += timer.get_time();
@@ -530,10 +513,10 @@ MF_Dtpg::backtrace(const NodeValList& suf_cond)
 }
 
 // @brief 一つの SAT問題を解く．
-// @param[in] assumptions 値の決まっている変数のリスト
-// @return 結果を返す．
 SatBool3
-MF_Dtpg::solve(const vector<SatLiteral>& assumptions)
+MF_Dtpg::solve(
+  const vector<SatLiteral>& assumptions
+)
 {
   Timer timer;
   timer.start();

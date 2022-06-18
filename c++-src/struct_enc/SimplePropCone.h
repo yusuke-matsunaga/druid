@@ -55,7 +55,7 @@ public:
 
   /// @brief 故障の影響伝搬させる条件を作る．
   vector<SatLiteral>
-  make_prop_condition(
+  make_condition(
     const TpgNode* root ///< [in] 起点となるノード
   ) override;
 

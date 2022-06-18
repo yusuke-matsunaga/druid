@@ -64,16 +64,16 @@ public:
   make_cnf() = 0;
 
   /// @brief 故障の影響伝搬させる条件を作る．
-    virtual
+  virtual
   vector<SatLiteral>
-  make_prop_condition(
+  make_condition(
     const TpgNode* root ///< [in] 起点となるノード
   ) = 0;
 
   /// @brief 故障検出に必要な割り当てを求める．
   virtual
   NodeValList
-  extract(
+  extract_condition(
     const SatModel& model, ///< [in] SAT のモデル
     const TpgNode* root	   ///< [in] 起点のノード
   );
