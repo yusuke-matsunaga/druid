@@ -132,13 +132,13 @@ ColCov::mincov_color(
   }
 
   // 列を選ぶ．
-  vector<int> sel_cols;
+  vector<SizeType> sel_cols;
   mincov.heuristic(sel_cols);
 
   // 選ばれた列を前に詰める．
-  int new_col_size = sel_cols.size();
-  vector<int> col_map(col_size(), -1);
-  vector<int> rcol_map(new_col_size);
+  SizeType new_col_size = sel_cols.size();
+  vector<SizeType> col_map(col_size(), -1);
+  vector<SizeType> rcol_map(new_col_size);
   for ( auto new_col: Range(new_col_size) ) {
     auto col = sel_cols[new_col];
     col_map[col] = new_col;
@@ -146,7 +146,7 @@ ColCov::mincov_color(
   }
 
 
-  int ne = 0;
+  SizeType ne = 0;
   UdGraph graph(new_col_size);
   for ( auto p: mConflictList ) {
     auto col1 = p.first;
@@ -163,8 +163,8 @@ ColCov::mincov_color(
        << "# of columns   = " << new_col_size << endl
        << "# of conflicts = " << ne << endl;
 
-  vector<int> _color_map;
-  int col_num = graph.coloring(_color_map, "isx");
+  vector<SizeType> _color_map;
+  SizeType col_num = graph.coloring(_color_map, "isx");
   color_map.clear();
   color_map.resize(col_size(), -1);
   for ( auto new_col: Range(new_col_size) ) {

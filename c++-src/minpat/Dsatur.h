@@ -5,9 +5,8 @@
 /// @brief Dsatur のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2013, 2015, 2018 Yusuke Matsunaga
+/// Copyright (C) 2013, 2015, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "MpColGraph.h"
@@ -24,8 +23,9 @@ class Dsatur
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] graph 対象のグラフ
-  Dsatur(MpColGraph& graph);
+  Dsatur(
+    MpColGraph& graph ///< [in] 対象のグラフ
+  );
 
   /// @brief デストラクタ
   ~Dsatur();
@@ -55,11 +55,11 @@ private:
   get_max_node();
 
   /// @brief node_id に color の色を割り当て情報を更新する．
-  /// @param[in] node_id ノード番号
-  /// @param[in] color 色
   void
-  update(int node_id,
-	 int color);
+  update(
+    int node_id, ///< [in] ノード番号
+    int color	 ///< [in] 色
+  );
 
 
 private:

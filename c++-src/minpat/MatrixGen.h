@@ -5,7 +5,7 @@
 /// @brief MatrixGen のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -24,14 +24,12 @@ class MatrixGen
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] fault_list 故障のリスト
-  /// @param[in] tv_list テストパタンのリスト
-  /// @param[in] network ネットワーク
-  /// @param[in] fault_type 故障の種類
-  MatrixGen(const vector<const TpgFault*>& fault_list,
-	    const vector<TestVector>& tv_list,
-	    const TpgNetwork& network,
-	    FaultType fault_type);
+  MatrixGen(
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
+    const vector<TestVector>& tv_list,	       ///< [in] テストパタンのリスト
+    const TpgNetwork& network,		       ///< [in] ネットワーク
+    FaultType fault_type		       ///< [in] 故障の種類
+  );
 
   /// @brief デストラクタ
   ~MatrixGen();
@@ -53,13 +51,12 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障シミュレーションを行い，被覆行列に要素を設定する．
-  /// @param[in] matrix 対象の行列
-  /// @param[in] tv_base テストベクタ番号の基点
-  /// @param[in] num セットしたパタン数
   void
-  do_fsim(McMatrix& matrix,
-	  int tv_base,
-	  int num);
+  do_fsim(
+    McMatrix& matrix, ///< [in] 対象の行列
+    int tv_base,      ///< [in] テストベクタ番号の基点
+    int num	      ///< [in] セットしたパタン数
+  );
 
 
 private:
@@ -81,11 +78,6 @@ private:
   Fsim mFsim;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
 
 END_NAMESPACE_DRUID
 

@@ -59,7 +59,7 @@ public:
   /// @brief 彩色問題でパタン圧縮を行う．
   /// @return 結果のパタン数を返す．
   static
-  int
+  SizeType
   coloring(
     const vector<const TpgFault*>& fault_list,
     const vector<TestVector>& tv_list,	       ///< [in] 初期テストパタンのリスト
@@ -80,7 +80,7 @@ private:
   reduce(
     McMatrix& matrix,          ///< [in] 対象の被覆行列
     MpColGraph& graph,	       ///< [in] 衝突グラフ
-    vector<int>& selected_cols ///< [in] この縮約で選択された列のリスト
+    vector<SizeType>& selected_cols ///< [in] この縮約で選択された列のリスト
   );
 
   /// @brief ヒューリスティック1
@@ -89,7 +89,7 @@ private:
   heuristic1(
     McMatrix& matrix,
     MpColGraph& graph,
-    vector<int>& selected_cols
+    vector<SizeType>& selected_cols
   );
 
   /// @brief 両立集合を取り出す．
@@ -100,8 +100,8 @@ private:
   get_compatible_nodes(
     const MpColGraph& graph,           ///< [in] 衝突グラフ
     const McMatrix& matrix,	       ///< [in] 被覆行列
-    const vector<int>& selected_nodes, ///< [in] 選択済みのノードリスト
-    vector<int>& node_list	       ///< [out] 結果の両立集合を表すリスト
+    const vector<SizeType>& selected_nodes, ///< [in] 選択済みのノードリスト
+    vector<SizeType>& node_list	       ///< [out] 結果の両立集合を表すリスト
   );
 
   /// @brief 彩色結果から新しいテストパタンのリストを生成する．
@@ -109,8 +109,8 @@ private:
   void
   merge_tv_list(
     const vector<TestVector>& tv_list, ///< [in] テストパタンのリスト
-    int nc,			       ///< [in] 彩色数
-    const vector<int>& color_map,      ///< [in] 彩色結果
+    SizeType nc,		       ///< [in] 彩色数
+    const vector<SizeType>& color_map, ///< [in] 彩色結果
     vector<TestVector>& new_tv_list    ///< [out] マージされたテストパタンのリスト
   );
 

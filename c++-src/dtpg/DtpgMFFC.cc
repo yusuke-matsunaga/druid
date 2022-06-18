@@ -131,20 +131,20 @@ DtpgMFFC::gen_pattern(const TpgFault* fault)
   NodeValList ffr_cond = ffr_propagate_condition(fault, fault_type());
 
   // ffr_cond の内容を assumptions に追加する．
-  conv_to_assumptions(ffr_cond, assumptions);
+  add_to_assumptions(ffr_cond, assumptions);
 
   SatBool3 sat_res = solve(assumptions);
   if ( sat_res == SatBool3::True ) {
     NodeValList suf_cond = get_sufficient_condition(ffr_root);
     suf_cond.merge(ffr_cond);
     TestVector testvect = backtrace(suf_cond);
-    return DtpgResult(testvect);
+    return DtpgResult{testvect};
   }
   else if ( sat_res == SatBool3::False ) {
-    return DtpgResult::make_untestable();
+    return DtpgResult{FaultStatus::Untestable};
   }
   else { // sat_res == SatBool3::X
-    return DtpgResult::make_undetected();
+    return DtpgResult{FaultStatus::Undetected};
   }
 }
 

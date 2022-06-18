@@ -146,13 +146,13 @@ MF_Dtpg::gen_pattern(const vector<const TpgFault*>& fault_list)
   if ( sat_res == SatBool3::True ) {
     NodeValList suf_cond = get_sufficient_condition();
     TestVector testvect = backtrace(suf_cond);
-    return DtpgResult(testvect);
+    return DtpgResult{testvect};
   }
   else if ( sat_res == SatBool3::False ) {
-    return DtpgResult::make_untestable();
+    return DtpgResult{FaultStatus::Untestable};
   }
   else { // sat_res == SatBool3::X
-    return DtpgResult::make_undetected();
+    return DtpgResult{FaultStatus::Undetected};
   }
 }
 

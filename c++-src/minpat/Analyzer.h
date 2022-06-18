@@ -5,11 +5,11 @@
 /// @brief Analyzer のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "DtpgEngine.h"
+//#include "DtpgEngine.h"
 #include "ym/Expr.h"
 
 
@@ -26,10 +26,10 @@ class Analyzer
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] fault_type 故障の種類
-  Analyzer(const TpgNetwork& network,
-	   FaultType fault_type);
+  Analyzer(
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    FaultType fault_type       ///< [in] 故障の種類
+  );
 
   /// @brief デストラクタ
   ~Analyzer();
@@ -41,32 +41,36 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障の支配関係を調べて故障リストを縮約する．
-  /// @param[inout] fault_list 対象の故障リスト
-  /// @param[in] algorithm アルゴリズム
   void
-  fault_reduction(vector<const TpgFault*>& fault_list,
-		  const string& algorithm);
+  fault_reduction(
+    vector<const TpgFault*>& fault_list, ///< [inout] 対象の故障リスト
+    const string& algorithm		 ///< [in] アルゴリズム
+  );
 
   /// @brief 検出可能故障リストを作る．
-  /// @param[out] fi_list 故障情報のリスト
   void
-  gen_fault_list(const vector<bool>& mark,
-		 vector<FaultInfo*>& fi_list);
+  gen_fault_list(
+    const vector<bool>& mark,
+    vector<FaultInfo*>& fi_list ///< [out] fi_list 故障情報のリスト
+  );
 
   /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
-  /// @param[inout] fi_list 故障情報のリスト
   void
-  dom_reduction1(vector<FaultInfo*>& fi_list);
+  dom_reduction1(
+    vector<FaultInfo*>& fi_list ///< [inout] 故障情報のリスト
+  );
 
   /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
-  /// @param[inout] fi_list 故障情報のリスト
   void
-  dom_reduction2(vector<FaultInfo*>& fi_list);
+  dom_reduction2(
+    vector<FaultInfo*>& fi_list ///< [inout] 故障情報のリスト
+  );
 
   /// @brief 初期化する
-  /// @param[in] loop_limit 反復回数の上限
   void
-  init(int loop_limit);
+  init(
+    int loop_limit ///< [in] 反復回数の上限
+  );
 
 
 private:
@@ -75,36 +79,36 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障の検出条件の解析を行う．
-  /// @param[in] dtpg DTPGエンジン
-  /// @param[in] fault 対象の故障
-  /// @param[in] loop_limit 反復回数の上限
   /// @return FaultInfo を返す．
   ///
   /// fault が検出不能の場合には nullptr を返す．
   FaultInfo*
-  analyze_fault(DtpgFFR& dtpg,
-		const TpgFault* fault,
-		int loop_limit);
+  analyze_fault(
+    DtpgFFR& dtpg,         ///< [in] DTPGエンジン
+    const TpgFault* fault, ///< [in] 対象の故障
+    int loop_limit	   ///< [in] 反復回数の上限
+  );
 
   /// @brief 論理式に含まれるキューブを求める．
-  /// @param[in] expr 論理式
   NodeValList
-  common_cube(const Expr& expr);
+  common_cube(
+    const Expr& expr ///< [in] 論理式
+  );
 
   /// @brief 必要割り当てに従って論理式を簡単化する．
-  /// @param[in] expr 論理式
-  /// @param[in] mand_cond 必要割り当て
   /// @return 簡単化した論理式を返す．
   Expr
-  restrict(const Expr& expr,
-	   const NodeValList& mand_cond);
+  restrict(
+    const Expr& expr,            ///< [in] 論理式
+    const NodeValList& mand_cond ///< [in] 必要割り当て
+  );
 
   /// @brief restrict の下請け関数
-  /// @param[in] expr 論理式
-  /// @param[in] val_map 割り当てマップ
   Expr
-  _restrict_sub(const Expr& expr,
-		const unordered_map<VarId, bool>& val_map);
+  _restrict_sub(
+    const Expr& expr,                         ///< [in] 論理式
+    const unordered_map<VarId, bool>& val_map ///< [in] 割り当てマップ
+  );
 
 
 private:

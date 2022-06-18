@@ -3,7 +3,7 @@
 /// @brief GateEnc の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "GateEnc.h"
@@ -19,12 +19,11 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-// @param[in] solver SATソルバ
-// @param[in] varmap 変数番号のマップ
-GateEnc::GateEnc(SatSolver& solver,
-		 const VidMap& varmap) :
-  mSolver(solver),
-  mVarMap(varmap)
+GateEnc::GateEnc(
+  SatSolver& solver,
+  const VidMap& varmap
+) : mSolver{solver},
+    mVarMap{varmap}
 {
 }
 
@@ -34,20 +33,22 @@ GateEnc::~GateEnc()
 }
 
 // @brief ノードの入出力の関係を表すCNF式を作る．
-// @param[in] node 対象のノード
-// @param[in] var_map 変数マップ
 void
-GateEnc::make_cnf(const TpgNode* node)
+GateEnc::make_cnf(
+  const TpgNode* node
+)
 {
   make_cnf(node, mVarMap(node));
 }
 
 // @brief ノードの入出力の関係を表すCNF式を作る．
 void
-GateEnc::make_cnf(const TpgNode* node,
-		  SatLiteral olit)
+GateEnc::make_cnf(
+  const TpgNode* node,
+  SatLiteral olit
+)
 {
-  int ni = node->fanin_num();
+  SizeType ni = node->fanin_num();
   const auto& fanin_array = node->fanin_list();
   SatTseitinEnc enc{mSolver};
   switch ( node->gate_type() ) {
@@ -271,9 +272,11 @@ GateEnc::make_cnf(const TpgNode* node,
 
 // @brief ノードに対応するリテラルを返す．
 SatLiteral
-GateEnc::lit(const TpgNode* node)
+GateEnc::lit(
+  const TpgNode* node
+)
 {
-  return SatLiteral(mVarMap(node));
+  return mVarMap(node);
 }
 
 END_NAMESPACE_DRUID

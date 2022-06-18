@@ -136,11 +136,10 @@ public:
   );
 
   /// @brief 故障を検出する条件を作る．
-  void
+  vector<SatLiteral>
   make_fault_condition(
-    const TpgFault* fault,          ///< [in] 故障
-    int cone_id,		    ///< [in] コーン番号
-    vector<SatLiteral>& assumptions ///< [out]条件を表す割当リスト
+    const TpgFault* fault, ///< [in] 故障
+    int cone_id 	   ///< [in] コーン番号
   );
 
   /// @brief 割当リストの内容を節に加える．
@@ -163,9 +162,16 @@ public:
 
   /// @brief 割当リストを仮定のリテラルに変換する．
   ///
+  vector<SatLiteral>
+  conv_to_literal_list(
+    const NodeValList& assign_list ///< [in]  割当リスト
+  );
+
+  /// @brief 割当リストを仮定のリテラルに追加する．
+  ///
   /// 必要に応じて使われているリテラルに関するCNFを追加する．
   void
-  conv_to_assumption(
+  add_to_assumptions(
     const NodeValList& assign_list, ///< [in]  割当リスト
     vector<SatLiteral>& assumptions ///< [out] 仮定を表すリテラルのリスト
   );

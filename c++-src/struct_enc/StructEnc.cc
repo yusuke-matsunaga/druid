@@ -132,11 +132,10 @@ StructEnc::add_mffc_cone(
 }
 
 // @brief 故障を検出する条件を作る．
-void
+vector<SatLiteral>
 StructEnc::make_fault_condition(
   const TpgFault* fault,
-  int cone_id,
-  vector<SatLiteral>& assumptions
+  int cone_id
 )
 {
   // FFR 内の故障伝搬条件を assign_list に入れる．
@@ -146,14 +145,11 @@ StructEnc::make_fault_condition(
 
   /// FFR より出力側の故障伝搬条件を assumptions に入れる．
   ASSERT_COND( cone_id < mConeList.size() );
-  mConeList[cone_id]->make_prop_condition(ffr_root, assumptions);
+  auto assumptions = mConeList[cone_id]->make_prop_condition(ffr_root);
 
   // assign_list を変換して assumptions に追加する．
-  assumptions.reserve(assumptions.size() + assign_list.size());
-  for ( auto nv: assign_list ) {
-    SatLiteral lit = nv_to_lit(nv);
-    assumptions.push_back(lit);
-  }
+  add_to_assumptions(assign_list, assumptions);
+  return assumptions;
 }
 
 // @brief 故障の検出条件を割当リストに追加する．
@@ -259,12 +255,25 @@ StructEnc::add_negation(
 }
 
 // @brief 割当リストを仮定のリテラルに変換する．
+//
+vector<SatLiteral>
+StructEnc::conv_to_literal_list(
+  const NodeValList& assign_list
+)
+{
+  vector<SatLiteral> ans_list;
+  add_to_assumptions(assign_list, ans_list);
+  return ans_list;
+}
+
+// @brief 割当リストを仮定のリテラルに変換する．
 void
-StructEnc::conv_to_assumption(
+StructEnc::add_to_assumptions(
   const NodeValList& assign_list,
   vector<SatLiteral>& assumptions
 )
 {
+  assumptions.reserve(assumptions.size() + assign_list.size());
   for ( auto nv: assign_list ) {
     SatLiteral alit = nv_to_lit(nv);
     assumptions.push_back(alit);
@@ -433,19 +442,6 @@ StructEnc::make_tfi_cnf(
   }
 }
 
-#if 0
-// @brief チェックを行う．
-SatBool3
-StructEnc::check_sat(
-  SatModel& sat_model
-)
-{
-  auto ans = check_sat();
-  _extract_model(sat_model);
-  return ans;
-}
-#endif
-
 // @brief チェックを行う．
 //
 // こちらは結果のみを返す．
@@ -455,20 +451,6 @@ StructEnc::check_sat()
   return mSolver.solve();
 }
 
-#if 0
-// @brief 割当リストのもとでチェックを行う．
-SatBool3
-StructEnc::check_sat(
-  const NodeValList& assign_list,
-  SatModel& sat_model
-)
-{
-  auto ans = check_sat(assign_list);
-  _extract_model(sat_model);
-  return ans;
-}
-#endif
-
 // @brief 割当リストのもとでチェックを行う．
 //
 // こちらは結果のみを返す．
@@ -477,26 +459,9 @@ StructEnc::check_sat(
   const NodeValList& assign_list  ///< [in] 割当リスト
 )
 {
-  vector<SatLiteral> assumptions;
-  conv_to_assumption(assign_list, assumptions);
-
+  auto assumptions = conv_to_literal_list(assign_list);
   return mSolver.solve(assumptions);
 }
-
-#if 0
-// @brief 割当リストのもとでチェックを行う．
-SatBool3
-StructEnc::check_sat(
-  const NodeValList& assign_list1,
-  const NodeValList& assign_list2,
-  SatModel& sat_model
-)
-{
-  auto ans = check_sat(assign_list1, assign_list2);
-  _extract_model(sat_model);
-  return ans;
-}
-#endif
 
 // @brief 割当リストのもとでチェックを行う．
 SatBool3
@@ -506,10 +471,8 @@ StructEnc::check_sat(
 )
 {
   vector<SatLiteral> assumptions;
-
-  conv_to_assumption(assign_list1, assumptions);
-  conv_to_assumption(assign_list2, assumptions);
-
+  add_to_assumptions(assign_list1, assumptions);
+  add_to_assumptions(assign_list2, assumptions);
   return mSolver.solve(assumptions);
 }
 

@@ -152,7 +152,8 @@ DtpgTestWithParam::SetUp()
   bool stat = mNetwork.read_blif(filename());
   ASSERT_COND( stat );
 
-  mDtpgTest = new DtpgTest(mNetwork, fault_type(), just_type(), mSolverType);
+  string mode = test_mode();
+  mDtpgTest = DtpgTest::new_test(mode, mNetwork, fault_type(), just_type(), mSolverType);
 }
 
 // @brief 終了処理を行う．
@@ -166,32 +167,13 @@ DtpgTestWithParam::TearDown()
 void
 DtpgTestWithParam::do_test()
 {
-  string mode = test_mode();
-  pair<int, int> num_pair;
-  if ( mode == "ffr" ) {
-    num_pair = mDtpgTest->ffr_test();
-  }
-  else if ( mode == "mffc" ) {
-    num_pair = mDtpgTest->mffc_test();
-  }
-  else if ( mode == "ffr_new" ) {
-    num_pair = mDtpgTest->ffr_new_test();
-  }
-  else if ( mode == "mffc_new" ) {
-    num_pair = mDtpgTest->mffc_new_test();
-  }
-  else if ( mode == "mf" ) {
-    num_pair = mDtpgTest->mf_test();
-  }
-  else {
-    ASSERT_NOT_REACHED;
-  }
+  auto count = mDtpgTest->do_test(false);
 
   EXPECT_EQ( total_fault_num(), mNetwork.rep_fault_num() );
-  EXPECT_EQ( detect_fault_num(), num_pair.first );
-  EXPECT_EQ( untest_fault_num(), num_pair.second );
+  EXPECT_EQ( detect_fault_num(), count.mDetCount );
+  EXPECT_EQ( untest_fault_num(), count.mUntestCount );
 
-  const DopVerifyResult& result = mDtpgTest->verify_result();
+  const auto& result = mDtpgTest->verify_result();
   EXPECT_EQ( 0, result.error_count() );
 }
 
@@ -266,8 +248,7 @@ TEST_P(DtpgTestWithParam, test1)
 INSTANTIATE_TEST_SUITE_P(DtpgTest, DtpgTestWithParam,
 			 ::testing::Combine(::testing::ValuesIn(mydata),
 					    ::testing::Values("ffr",    "ffr_new",
-							      "mffc",   "mffc_new",
-							      "mf"),
+							      "mffc",   "mffc_new"),
 					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
 					    ::testing::Values("just1", "just2")));
 

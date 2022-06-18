@@ -13,6 +13,7 @@
 
 #include "FaultType.h"
 #include "Justifier.h"
+#include "DtpgResult.h"
 #include "DtpgStats.h"
 #include "FaultStatus.h"
 #include "StructEnc.h"
@@ -74,10 +75,9 @@ public:
 
   /// @brief テスト生成を行なう．
   /// @return 結果を返す．
-  SatBool3
-  dtpg(
-    const TpgFault* fault, ///< [in] 対象の故障
-    TestVector& testvect   ///< [out] テストパタンを格納する変数
+  DtpgResult
+  gen_pattern(
+    const TpgFault* fault ///< [in] 対象の故障
   );
 
   /// @brief DTPG の統計情報を返す．

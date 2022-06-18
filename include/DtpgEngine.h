@@ -78,8 +78,14 @@ public:
   );
 
   /// @brief 値割り当てをリテラルのリストに変換する．
+  vector<SatLiteral>
+  conv_to_literal_list(
+    const NodeValList& assign_list ///< [in] 値の割り当てリスト
+  );
+
+  /// @brief 値割り当てをリテラルのリストに追加する．
   void
-  conv_to_assumptions(
+  add_to_assumptions(
     const NodeValList& assign_list, ///< [in] 値の割り当てリスト
     vector<SatLiteral>& assumptions ///< [out] 変換したリテラルを追加するリスト
   );

@@ -3,8 +3,6 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories(
-  ${YM_SUBMODULE_INCLUDE_LIST}
-  ${PROJECT_SOURCE_DIR}/c++-src/tpg_network
   )
 
 
@@ -36,6 +34,10 @@ add_executable ( TpgNetworkTest
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
+target_include_directories ( TpgNetworkTest
+  PRIVATE ${PROJECT_SOURCE_DIR}/c++-src/tpg_network
+  )
+
 target_compile_options ( TpgNetworkTest
   PRIVATE "-O3"
   )
@@ -63,6 +65,10 @@ add_executable ( TpgNetworkTest_d
   $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
   $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_include_directories ( TpgNetworkTest_d
+  PRIVATE ${PROJECT_SOURCE_DIR}/c++-src/tpg_network
   )
 
 target_compile_options ( TpgNetworkTest_d
@@ -148,17 +154,21 @@ endif ()
 
 set ( dtpg_test_SOURCES
   dtpgtest/dtpg_test.cc
-  dtpgtest/DtpgTest.cc
   )
 
 add_executable ( dtpg_test
   ${dtpg_test_SOURCES}
+  $<TARGET_OBJECTS:tests_common_obj>
   $<TARGET_OBJECTS:druid_common_obj>
   $<TARGET_OBJECTS:druid_fsimsa2_obj>
   $<TARGET_OBJECTS:druid_fsimsa3_obj>
   $<TARGET_OBJECTS:druid_fsimtd2_obj>
   $<TARGET_OBJECTS:druid_fsimtd3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
+  )
+
+target_include_directories ( dtpg_test
+  PRIVATE ../common
   )
 
 target_compile_options ( dtpg_test
@@ -182,12 +192,17 @@ endif ()
 
 add_executable ( dtpg_test_d
   ${dtpg_test_SOURCES}
+  $<TARGET_OBJECTS:tests_common_obj_d>
   $<TARGET_OBJECTS:druid_common_obj_d>
   $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
   $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
   $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
   $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_include_directories ( dtpg_test_d
+  PRIVATE ../common
   )
 
 target_compile_options ( dtpg_test_d

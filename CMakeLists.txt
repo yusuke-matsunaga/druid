@@ -101,6 +101,7 @@ ym_init_submodules (
 include_directories (
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BINARY_DIR}/include
+  ${YM_SUBMODULE_INCLUDE_LIST}
   )
 
 
@@ -113,6 +114,7 @@ foreach ( dir ${YM_SUBMODULE_LIST} )
 endforeach ()
 
 add_subdirectory ( c++-src )
+add_subdirectory ( tests/common )
 add_subdirectory ( tests/gtest )
 add_subdirectory ( tests/test-programs )
 

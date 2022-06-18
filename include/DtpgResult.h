@@ -29,28 +29,16 @@ class DtpgResult
 {
 public:
 
-  /// @brief FaultStatus::Untestable の結果を生成するクラスメソッド
-  static
-  DtpgResult
-  make_untestable()
-  {
-    return DtpgResult();
-  }
-
-  /// @brief FaultStatus::Undetected の結果を生成するクラスメソッド
-  static
-  DtpgResult
-  make_undetected()
-  {
-    return DtpgResult(0);
-  }
-
   /// @brief 空のコンストラクタ
   ///
-  /// FaultStatus::Undetected となる．
+  /// status が省略された場合は FaultStatus::Undetected となる．
+  /// status は FaultStatus::Detected 以外でなければならない．
+  explicit
   DtpgResult(
-  ) : mStatus(FaultStatus::Undetected)
+    FaultStatus status = FaultStatus::Undetected
+  ) : mStatus{status}
   {
+    ASSERT_COND( status != FaultStatus::Detected );
   }
 
   /// @brief テストベクタを指定したコンストラクタ
@@ -98,30 +86,13 @@ public:
     return mTestVector;
   }
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief FaultStatus::Untestable を設定するコンストラクタ
-  ///< [in] dummy ダミーの引数
-  ///
-  /// dummy の値は用いられない．
-  DtpgResult(
-    int dummy
-  ) : mStatus(FaultStatus::Untestable)
-  {
-  }
-
-
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
   // 結果
-  FaultStatus mStatus;
+  FaultStatus mStatus{FaultStatus::Undetected};
 
   // テストベクタ
   TestVector mTestVector;

@@ -39,11 +39,6 @@ END_NONAMESPACE
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] root 故障伝搬の起点となるノード
-// @param[in] just_type Justifier の種類を表す文字列
-// @param[in] solver_type SATソルバの実装タイプ
 DtpgEngine::DtpgEngine(
   const TpgNetwork& network,
   FaultType fault_type,
@@ -158,9 +153,9 @@ DtpgEngine::prepare_vars()
 
   // TFO の部分に変数を割り当てる．
   for ( auto node: mTfoList ) {
-    SatLiteral gvar = mSolver.new_variable();
-    SatLiteral fvar = mSolver.new_variable();
-    SatLiteral dvar = mSolver.new_variable();
+    auto gvar = mSolver.new_variable();
+    auto fvar = mSolver.new_variable();
+    auto dvar = mSolver.new_variable();
 
     mSolver.freeze_literal(gvar);
     mSolver.freeze_literal(fvar);
@@ -178,7 +173,7 @@ DtpgEngine::prepare_vars()
 
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
-    SatLiteral gvar = mSolver.new_variable();
+    auto gvar = mSolver.new_variable();
 
     mSolver.freeze_literal(gvar);
 
@@ -193,7 +188,7 @@ DtpgEngine::prepare_vars()
 
   // TFI2 の部分に変数を割り当てる．
   for ( auto node: mTfi2List ) {
-    SatLiteral hvar = mSolver.new_variable();
+    auto hvar = mSolver.new_variable();
 
     mSolver.freeze_literal(hvar);
 
@@ -212,7 +207,7 @@ DtpgEngine::gen_good_cnf()
   //////////////////////////////////////////////////////////////////////
   // 正常回路の CNF を生成
   //////////////////////////////////////////////////////////////////////
-  GateEnc gval_enc(mSolver, mGvarMap);
+  GateEnc gval_enc{mSolver, mGvarMap};
   for ( auto node: mTfoList ) {
     gval_enc.make_cnf(node);
 
@@ -245,12 +240,12 @@ DtpgEngine::gen_good_cnf()
     const TpgNode* onode = dff->output();
     const TpgNode* inode = dff->input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
-    SatLiteral olit(gvar(onode));
-    SatLiteral ilit(hvar(inode));
+    auto olit = gvar(onode);
+    auto ilit = hvar(inode);
     enc.add_buffgate(olit, ilit);
   }
 
-  GateEnc hval_enc(mSolver, mHvarMap);
+  GateEnc hval_enc{mSolver, mHvarMap};
   for ( auto node: mTfi2List ) {
     hval_enc.make_cnf(node);
 
@@ -273,7 +268,7 @@ DtpgEngine::gen_faulty_cnf()
   //////////////////////////////////////////////////////////////////////
   // 故障回路の CNF を生成
   //////////////////////////////////////////////////////////////////////
-  GateEnc fval_enc(mSolver, mFvarMap);
+  GateEnc fval_enc{mSolver, mFvarMap};
   for ( auto node: mTfoList ) {
     if ( node != mRoot ) {
       fval_enc.make_cnf(node);
@@ -459,14 +454,23 @@ DtpgEngine::conv_to_literal(
   const TpgNode* node = node_val.node();
   bool inv = !node_val.val(); // 0 の時が inv = true
   SatLiteral vid = (node_val.time() == 0) ? hvar(node) : gvar(node);
-  return SatLiteral(vid, inv);
+  return SatLiteral{vid, inv};
 }
 
 // @brief 値割り当てをリテラルのリストに変換する．
-// @param[in] assign_list 値の割り当てリスト
-// @param[out] assumptions 変換したリテラルを追加するリスト
+vector<SatLiteral>
+DtpgEngine::conv_to_literal_list(
+  const NodeValList& assign_list
+)
+{
+  vector<SatLiteral> ans_list;
+  add_to_assumptions(assign_list, ans_list);
+  return ans_list;
+}
+
+// @brief 値割り当てをリテラルのリストに変換する．
 void
-DtpgEngine::conv_to_assumptions(
+DtpgEngine::add_to_assumptions(
   const NodeValList& assign_list,
   vector<SatLiteral>& assumptions
 )
@@ -488,36 +492,11 @@ DtpgEngine::solve(
   const vector<SatLiteral>& assumptions
 )
 {
-  Timer timer;
-  timer.start();
-
-  SatStats prev_stats;
-  mSolver.get_stats(prev_stats);
-
-  SatBool3 ans = mSolver.solve(assumptions);
-  mSatModel = mSolver.model();
-
-  timer.stop();
-  auto time = timer.get_time();
-
-  SatStats sat_stats;
-  mSolver.get_stats(sat_stats);
-  //sat_stats -= prev_stats;
-
-  if ( ans == SatBool3::True ) {
-    // パタンが求まった．
-    mStats.update_det(sat_stats, time);
+  auto res = check(assumptions);
+  if ( res == SatBool3::True ) {
+    mSatModel = mSolver.model();
   }
-  else if ( ans == SatBool3::False ) {
-    // 検出不能と判定された．
-    mStats.update_red(sat_stats, time);
-  }
-  else {
-    // ans == SatBool3::X つまりアボート
-    mStats.update_abort(sat_stats, time);
-  }
-
-  return ans;
+  return res;
 }
 
 // @brief SAT問題が充足可能か調べる．
@@ -590,16 +569,15 @@ DtpgEngine::get_tv()
 }
 
 // @brief 十分条件を取り出す．
-// @return 十分条件を表す割当リストを返す．
 NodeValList
 DtpgEngine::get_sufficient_condition()
 {
-  extern
-  NodeValList
-  extract(const TpgNode* root,
-	  const VidMap& gvar_map,
-	  const VidMap& fvar_map,
-	  const SatModel& model);
+  extern NodeValList extract(
+    const TpgNode* root,
+    const VidMap& gvar_map,
+    const VidMap& fvar_map,
+    const SatModel& model
+  );
 
   return extract(mRoot, mGvarMap, mFvarMap, mSatModel);
 }
@@ -610,20 +588,17 @@ DtpgEngine::get_sufficient_condition()
 Expr
 DtpgEngine::get_sufficient_conditions()
 {
-  extern
-  Expr
-  extract_all(const TpgNode* root,
-	      const VidMap& gvar_map,
-	      const VidMap& fvar_map,
-	      const SatModel& model);
+  extern Expr extract_all(
+    const TpgNode* root,
+    const VidMap& gvar_map,
+    const VidMap& fvar_map,
+    const SatModel& model
+  );
 
   return extract_all(mRoot, mGvarMap, mFvarMap, mSatModel);
 }
 
 // @brief 必要条件を取り出す．
-// @param[in] ffr_cond FFR内の伝搬条件
-// @param[in] suf_cond 十分条件
-// @return 必要条件を返す．
 NodeValList
 DtpgEngine::get_mandatory_condition(
   const NodeValList& ffr_cond,
@@ -631,8 +606,7 @@ DtpgEngine::get_mandatory_condition(
 )
 {
   NodeValList mand_cond;
-  vector<SatLiteral> assumptions;
-  conv_to_assumptions(ffr_cond, assumptions);
+  auto assumptions = conv_to_literal_list(ffr_cond);
   for ( auto nv: suf_cond ) {
     SatLiteral lit = conv_to_literal(nv);
     vector<SatLiteral> assumptions1(assumptions);
@@ -650,11 +624,6 @@ DtpgEngine::get_mandatory_condition(
 }
 
 // @brief SATソルバに論理式の否定を追加する．
-// @param[in] expr 対象の論理式
-// @param[in] clit 制御用のリテラル
-//
-// clit が true の時に与えられた論理式が false となる条件を追加する．
-// 論理式の変数番号はノード番号に対応している．
 void
 DtpgEngine::add_negation(
   const Expr& expr,

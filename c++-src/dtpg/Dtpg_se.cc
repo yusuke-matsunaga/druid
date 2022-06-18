@@ -3,9 +3,8 @@
 /// @brief Dtpg_se の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Dtpg_se.h"
 #include "TpgNetwork.h"
@@ -17,20 +16,16 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ(ノードモード)
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] node 故障のあるノード
-// @param[in] just_type Justifier の種類を表す文字列
-// @param[in] solver_type SATソルバの実装タイプ
-Dtpg_se::Dtpg_se(const TpgNetwork& network,
-		 FaultType fault_type,
-		 const TpgNode* node,
-		 const string& just_type,
-		 const SatSolverType& solver_type) :
-  mStructEnc(network, fault_type, solver_type),
-  mFaultType(fault_type),
-  mJustifier(just_type, network),
-  mTimerEnable(true)
+Dtpg_se::Dtpg_se(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const TpgNode* node,
+  const string& just_type,
+  const SatSolverType& solver_type
+) : mStructEnc{network, fault_type, solver_type},
+    mFaultType{fault_type},
+    mJustifier{just_type, network},
+    mTimerEnable{true}
 {
   cnf_begin();
 
@@ -45,20 +40,16 @@ Dtpg_se::Dtpg_se(const TpgNetwork& network,
 
 
 // @brief コンストラクタ(ffrモード)
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] ffr 故障伝搬の起点となる FFR
-// @param[in] just_type Justifier の種類を表す文字列
-// @param[in] solver_type SATソルバの実装タイプ
-Dtpg_se::Dtpg_se(const TpgNetwork& network,
-		 FaultType fault_type,
-		 const TpgFFR& ffr,
-		 const string& just_type,
-		 const SatSolverType& solver_type) :
-  mStructEnc(network, fault_type, solver_type),
-  mFaultType(fault_type),
-  mJustifier(just_type, network),
-  mTimerEnable(true)
+Dtpg_se::Dtpg_se(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const TpgFFR& ffr,
+  const string& just_type,
+  const SatSolverType& solver_type
+) : mStructEnc{network, fault_type, solver_type},
+    mFaultType{fault_type},
+    mJustifier{just_type, network},
+    mTimerEnable{true}
 {
   cnf_begin();
 
@@ -72,23 +63,16 @@ Dtpg_se::Dtpg_se(const TpgNetwork& network,
 }
 
 // @brief コンストラクタ(mffcモード)
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] mffc 故障伝搬の起点となる MFFC
-// @param[in] just_type Justifier の種類を表す文字列
-// @param[in] solver_type SATソルバの実装タイプ
-//
-// この MFFC に含まれるすべての FFR が対象となる．
-// FFR と MFFC が一致している場合は ffr モードと同じことになる．
-Dtpg_se::Dtpg_se(const TpgNetwork& network,
-		 FaultType fault_type,
-		 const TpgMFFC& mffc,
-		 const string& just_type,
-		 const SatSolverType& solver_type) :
-  mStructEnc(network, fault_type, solver_type),
-  mFaultType(fault_type),
-  mJustifier(just_type, network),
-  mTimerEnable(true)
+Dtpg_se::Dtpg_se(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const TpgMFFC& mffc,
+  const string& just_type,
+  const SatSolverType& solver_type
+) : mStructEnc{network, fault_type, solver_type},
+    mFaultType{fault_type},
+    mJustifier{just_type, network},
+    mTimerEnable{true}
 {
   cnf_begin();
 
@@ -112,15 +96,10 @@ Dtpg_se::~Dtpg_se()
 }
 
 // @brief テスト生成を行なう．
-// @param[in] fault 対象の故障
-// @param[out] testvect テストパタンを格納する変数
-// @return 結果を返す．
-//
-// 直前にどちらのモードでCNFを作っていたかで動作は異なる．<br>
-// どちらの関数も呼んでいなければなにもしないで SatBool3::X を返す．
-SatBool3
-Dtpg_se::dtpg(const TpgFault* fault,
-	      TestVector& testvect)
+DtpgResult
+Dtpg_se::gen_pattern(
+  const TpgFault* fault
+)
 {
   Timer timer;
   timer.start();
@@ -128,8 +107,7 @@ Dtpg_se::dtpg(const TpgFault* fault,
   SatStats prev_stats;
   mStructEnc.solver().get_stats(prev_stats);
 
-  vector<SatLiteral> assumptions;
-  mStructEnc.make_fault_condition(fault, 0, assumptions);
+  auto assumptions = mStructEnc.make_fault_condition(fault, 0);
 
   auto ans = mStructEnc.solver().solve(assumptions);
   const auto& model = mStructEnc.solver().model();
@@ -149,22 +127,24 @@ Dtpg_se::dtpg(const TpgFault* fault,
 
     // バックトレースを行う．
     NodeValList assign_list = mStructEnc.extract(model, fault, 0);
+    TestVector testvect;
     mStructEnc.justify(model, assign_list, mJustifier, testvect);
 
     timer.stop();
     mStats.mBackTraceTime += timer.get_time();
     mStats.update_det(sat_stats, time);
+    return DtpgResult{testvect};
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
     mStats.update_red(sat_stats, time);
+    return DtpgResult{FaultStatus::Untestable};
   }
   else {
     // ans == SatBool3::X つまりアボート
     mStats.update_abort(sat_stats, time);
+    return DtpgResult{FaultStatus::Undetected};
   }
-
-  return ans;
 }
 
 // @brief DTPG の統計情報を返す．

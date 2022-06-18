@@ -3,7 +3,6 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories(
-  ${GTEST_INCLUDE_DIR}
   )
 
 
@@ -11,14 +10,19 @@ include_directories(
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( misc )
-add_subdirectory( testvector )
-add_subdirectory( tpg_network )
-add_subdirectory( sa_fsim2 )
-add_subdirectory( sa_fsim3 )
-add_subdirectory( dtpg )
-
 
 # ===================================================================
-# テストターゲットの定義
+#  ソースファイルの設定
 # ===================================================================
+
+set ( tests_common_SOURCES
+  DtpgTest.cc
+  DtpgTest_ffr.cc
+  DtpgTest_ffr_new.cc
+  DtpgTest_mffc.cc
+  DtpgTest_mffc_new.cc
+  )
+
+ym_add_object_library( tests_common
+  ${tests_common_SOURCES}
+  )

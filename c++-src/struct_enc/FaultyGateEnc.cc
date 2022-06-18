@@ -3,7 +3,7 @@
 /// @brief FaultyGateEnc の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "FaultyGateEnc.h"
@@ -20,15 +20,13 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-// @param[in] solver SATソルバ
-// @param[in] varmap 変数番号のマップ
-// @param[in] fault 対象の故障
-FaultyGateEnc::FaultyGateEnc(SatSolver& solver,
-			     const VidMap& varmap,
-			     const TpgFault* fault) :
-  mSolver(solver),
-  mVarMap(varmap),
-  mFault(fault)
+FaultyGateEnc::FaultyGateEnc(
+  SatSolver& solver,
+  const VidMap& varmap,
+  const TpgFault* fault
+) : mSolver{solver},
+    mVarMap{varmap},
+    mFault{fault}
 {
 }
 
@@ -38,7 +36,6 @@ FaultyGateEnc::~FaultyGateEnc()
 }
 
 // @brief ノードの入出力の関係を表すCNF式を作る．
-// @param[in] node 対象のノード
 void
 FaultyGateEnc::make_cnf()
 {
@@ -47,9 +44,10 @@ FaultyGateEnc::make_cnf()
 }
 
 // @brief ノードの入出力の関係を表すCNF式を作る．
-// @param[in] ovar 出力の変数
 void
-FaultyGateEnc::make_cnf(SatLiteral olit)
+FaultyGateEnc::make_cnf(
+  SatLiteral olit
+)
 {
   int fval = mFault->val();
   if ( mFault->is_stem_fault() ) {
@@ -68,11 +66,11 @@ FaultyGateEnc::make_cnf(SatLiteral olit)
   // 入力の故障の場合
   // 該当の入力以外のファンインのリテラルのリストを作る．
   const TpgNode* node = mFault->tpg_onode();
-  int ni = node->fanin_num();
+  SizeType ni = node->fanin_num();
   const auto& fanin_array = node->fanin_list();
   vector<SatLiteral> ilits;
   ilits.reserve(ni - 1);
-  int fpos = mFault->tpg_pos();
+  SizeType fpos = mFault->tpg_pos();
   for ( int i: Range(ni) ) {
     if ( i != fpos ) {
       ilits.push_back(lit(fanin_array[i]));
@@ -184,7 +182,9 @@ FaultyGateEnc::make_cnf(SatLiteral olit)
 
 // @brief ノードに対応するリテラルを返す．
 SatLiteral
-FaultyGateEnc::lit(const TpgNode* node)
+FaultyGateEnc::lit(
+  const TpgNode* node
+)
 {
   return mVarMap(node);
 }

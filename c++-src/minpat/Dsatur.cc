@@ -3,9 +3,8 @@
 /// @brief Dsatur の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2013, 2015, 2018 Yusuke Matsunaga
+/// Copyright (C) 2013, 2015, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Dsatur.h"
 #include "ym/Range.h"
@@ -18,9 +17,9 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] graph 対象のグラフ
-Dsatur::Dsatur(MpColGraph& graph) :
-  mGraph(graph)
+Dsatur::Dsatur(
+  MpColGraph& graph
+) : mGraph{graph}
 {
   init();
 }
@@ -29,7 +28,7 @@ Dsatur::Dsatur(MpColGraph& graph) :
 void
 Dsatur::init()
 {
-  int n = mGraph.node_num();
+  SizeType n = mGraph.node_num();
   mCandList.reserve(n);
   if ( n > 0 ) {
     mSatDegree = new int[n];
@@ -88,7 +87,6 @@ Dsatur::~Dsatur()
 }
 
 // @brief 彩色する．
-// @return 彩色数を返す．
 void
 Dsatur::coloring()
 {
@@ -228,11 +226,11 @@ Dsatur::get_max_node()
 }
 
 // @brief node_id に color の色を割り当て情報を更新する．
-// @param[in] node_id ノード番号
-// @param[in] color 色
 void
-Dsatur::update(int node_id,
-	       int color)
+Dsatur::update(
+  int node_id,
+  int color
+)
 {
   for ( auto node1_id: mGraph.adj_list(node_id) ) {
     bool already_colored = false;

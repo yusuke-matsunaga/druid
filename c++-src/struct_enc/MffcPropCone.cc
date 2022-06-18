@@ -3,9 +3,8 @@
 /// @brief MffcPropCone の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012-2014, 2017 Yusuke Matsunaga
+/// Copyright (C) 2005-2010, 2012-2014, 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "MffcPropCone.h"
 #include "StructEnc.h"
@@ -30,23 +29,16 @@ bool debug_mffccone = false;
 END_NONAMESPACE
 
 // @brief コンストラクタ
-// @param[in] struct_sat StructEnc ソルバ
-// @param[in] mffc MFFC の情報
-// @param[in] block_node ブロックノード
-// @param[in] detect 故障を検出する時に true にするフラグ
-//
-// ブロックノードより先のノードは含めない．
-// 通常 block_node は nullptr か root_node の dominator
-// となっているはず．
-MffcPropCone::MffcPropCone(StructEnc& struct_sat,
-			   const TpgMFFC& mffc,
-			   const TpgNode* block_node,
-			   bool detect) :
-  PropCone(struct_sat, mffc.root(), block_node, detect),
-  mElemArray(mffc.ffr_num()),
-  mElemVarArray(mffc.ffr_num())
+MffcPropCone::MffcPropCone(
+  StructEnc& struct_sat,
+  const TpgMFFC& mffc,
+  const TpgNode* block_node,
+  bool detect
+) : PropCone{struct_sat, mffc.root(), block_node, detect},
+    mElemArray(mffc.ffr_num()),
+    mElemVarArray(mffc.ffr_num())
 {
-  for (int i = 0; i < mffc.ffr_num(); ++ i ) {
+  for ( int i = 0; i < mffc.ffr_num(); ++ i ) {
     const TpgFFR* ffr = mffc.ffr(i);
     mElemArray[i] = ffr->root();
     ASSERT_COND( ffr->root() != nullptr );
@@ -170,16 +162,16 @@ MffcPropCone::make_cnf()
 }
 
 // @brief 故障挿入回路のCNFを作る．
-// @param[in] ffr_pos 要素番号
-// @param[in] ovar ゲートの出力の変数
 void
-MffcPropCone::inject_fault(int ffr_pos,
-			   SatLiteral ovar)
+MffcPropCone::inject_fault(
+  int ffr_pos,
+  SatLiteral ovar
+)
 {
-  SatLiteral lit1(ovar);
-  SatLiteral lit2(mElemVarArray[ffr_pos]);
+  auto lit1 = ovar;
+  auto lit2 = mElemVarArray[ffr_pos];
   const TpgNode* node = mElemArray[ffr_pos];
-  SatLiteral olit(fvar(node));
+  auto olit = fvar(node);
 
   SatTseitinEnc enc{solver()};
   enc.add_xorgate(lit1, lit2, olit);
@@ -191,29 +183,33 @@ MffcPropCone::inject_fault(int ffr_pos,
 }
 
 // @brief 故障の影響伝搬させる条件を作る．
-// @param[in] root 起点となるノード
-// @param[out] assumptions 結果の仮定を表すリテラルのリスト
-void
-MffcPropCone::make_prop_condition(const TpgNode* root,
-				  vector<SatLiteral>& assumptions)
+vector<SatLiteral>
+MffcPropCone::make_prop_condition(
+  const TpgNode* root
+)
 {
   // root のある FFR を活性化する条件を作る．
   if  ( mElemPosMap.count(root->id()) == 0 ) {
     cerr << "Error[MffcPropCone::make_prop_condition()]: "
 	 << root->id() << " is not within the MFFC" << endl;
-    return;
+    return {};
   }
 
-  int ffr_id = mElemPosMap.at(root->id());
-  int ffr_num = mElemArray.size();
+  SizeType ffr_num = mElemArray.size();
   if ( ffr_num > 1 ) {
     // FFR の根の出力に故障を挿入する．
-    assumptions.reserve(assumptions.size() + ffr_num);
-    for (int i = 0; i < ffr_num; ++ i) {
+    int ffr_id = mElemPosMap.at(root->id());
+    vector<SatLiteral> assumptions;
+    assumptions.reserve(ffr_num);
+    for ( int i = 0; i < ffr_num; ++ i ) {
       auto evar = mElemVarArray[i];
       bool inv = (i != ffr_id);
-      assumptions.push_back(SatLiteral(evar, inv));
+      assumptions.push_back(SatLiteral{evar, inv});
     }
+    return assumptions;
+  }
+  else {
+    return {};
   }
 }
 
