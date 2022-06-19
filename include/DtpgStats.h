@@ -50,6 +50,8 @@ struct DtpgStats
 
     mAbortCount = 0;
     mAbortTime = 0.0;
+
+    mBackTraceTime = 0.0;
   }
 
   /// @brief DetStats を更新する

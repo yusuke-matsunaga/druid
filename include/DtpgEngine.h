@@ -419,8 +419,9 @@ private:
   )
   {
     int id = node->id();
-    if ( ((mMarkArray[id] >> 0) & 1U) == 0U ) {
-      mMarkArray[id] |= 1U;
+    auto& bits = mMarkArray[id];
+    if ( !bits[0] ) {
+      bits[0] =true;
       mTfoList.push_back(node);
       if ( node->is_ppo() ) {
 	mOutputList.push_back(node);
@@ -447,8 +448,9 @@ private:
   )
   {
     int id = node->id();
-    if ( (mMarkArray[id] & 3U) == 0U ) {
-      mMarkArray[id] |= 2U;
+    auto& bits = mMarkArray[id];
+    if ( !bits[0] && !bits[1] ) {
+      bits[1] = true;
       mTfiList.push_back(node);
       if ( mFaultType == FaultType::TransitionDelay ) {
 	if ( node->is_dff_output() ) {
@@ -475,8 +477,9 @@ private:
   )
   {
     int id = node->id();
-    if ( ((mMarkArray[id] >> 2) & 1U) == 0U ) {
-      mMarkArray[id] |= 4U;
+    auto& bits = mMarkArray[id];
+    if ( !bits[2] ) {
+      bits[2] = true;
       mTfi2List.push_back(node);
       if ( node->is_ppi() ) {
 	mPPIList.push_back(node);
@@ -546,7 +549,10 @@ private:
 
   // 作業用のマークを入れておく配列
   // サイズは mMaxNodeId
-  vector<ymuint8> mMarkArray;
+  // 0: tfi
+  // 1: tfo
+  // 2: tfi2
+  vector<bitset<3>> mMarkArray;
 
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;

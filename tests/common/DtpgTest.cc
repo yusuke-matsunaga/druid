@@ -115,23 +115,24 @@ DtpgTest::print_stats(
        << "# of total faults       = " << mNetwork.rep_fault_num() << endl
        << "# of detected faults    = " << detect_num << endl
        << "# of untestable faults  = " << untest_num << endl
-       << "Total CPU time          = " << time << endl;
+       << "Total CPU time(s)       = " << (time / 1000.0) << endl;
 
   ios::fmtflags save = cout.flags();
   cout.setf(ios::fixed, ios::floatfield);
   if ( mStats.mCnfGenCount > 0 ) {
     cout << "CNF generation" << endl
 	 << "  " << setw(10) << mStats.mCnfGenCount
-	 << "  " << mStats.mCnfGenTime
+	 << "  " << (mStats.mCnfGenTime / 1000.0)
 	 << "  " << setw(8) << mStats.mCnfGenTime / mStats.mCnfGenCount
-	 << "(s)" << endl;
+	 <<  endl;
   }
   if ( mStats.mDetCount > 0 ) {
     cout << endl
 	 << "*** SAT instances (" << mStats.mDetCount << ") ***" << endl
-	 << "Total CPU time  (s)            = " << setw(10) << mStats.mDetTime << endl
-	 << "Ave. CPU time (s)           = "
-	 << setw(10) << mStats.mDetTime / mStats.mDetCount << endl
+	 << "Total CPU time  (s)            = "
+	 << setw(10) << (mStats.mDetTime / 1000.0) << endl
+	 << "Average CPU time (ms)          = "
+	 << setw(10) << (mStats.mDetTime / mStats.mDetCount) << endl
 
 	 << "# of restarts (Ave./Max)       = "
 	 << setw(10) << (double) mStats.mDetStats.mRestart / mStats.mDetCount
@@ -152,8 +153,9 @@ DtpgTest::print_stats(
   if ( mStats.mRedCount > 0 ) {
     cout << endl
 	 << "*** UNSAT instances (" << mStats.mRedCount << ") ***" << endl
-	 << "Total CPU time  (s)            = " << setw(10) << mStats.mRedTime << endl
-	 << "Ave. CPU time (s)           = "
+	 << "Total CPU time  (s)            = "
+	 << setw(10) << (mStats.mRedTime / 1000.0) << endl
+	 << "Average CPU time (ms)          = "
 	 << setw(10) << mStats.mRedTime / mStats.mRedCount << endl
 
 	 << "# of restarts (Ave./Max)       = "
@@ -181,7 +183,7 @@ DtpgTest::print_stats(
   }
   cout << endl
        << "*** backtrace time ***" << endl
-       << "  " << mStats.mBackTraceTime
+       << "  " << (mStats.mBackTraceTime / 1000.0)
        << "  " << setw(8) << mStats.mBackTraceTime / mStats.mDetCount << endl;
   cout.flags(save);
 }

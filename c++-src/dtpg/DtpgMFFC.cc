@@ -71,14 +71,14 @@ DtpgMFFC::DtpgMFFC(
     vector<SatLiteral> odiff;
     odiff.reserve(output_list().size());
     for ( auto node: output_list() ) {
-      SatLiteral dlit(dvar(node));
+      auto dlit = dvar(node);
       odiff.push_back(dlit);
     }
     solver().add_clause(odiff);
 
     if ( !root_node()->is_ppo() ) {
       // root_node() の dlit が1でなければならない．
-      SatLiteral dlit0(dvar(root_node()));
+      auto dlit0 = dvar(root_node());
       solver().add_clause(dlit0);
     }
   }
