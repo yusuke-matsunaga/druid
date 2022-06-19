@@ -117,7 +117,7 @@ DomChecker::~DomChecker()
 SatBool3
 DomChecker::check_detectable(const TpgFault* fault)
 {
-  NodeValList ffr_cond = ffr_propagate_condition(fault, mFaultType);
+  NodeValList ffr_cond = fault->ffr_propagate_condition(mFaultType);
 
   vector<SatLiteral> assumptions;
   conv_to_assumptions(ffr_cond, assumptions);

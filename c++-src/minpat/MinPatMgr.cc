@@ -228,14 +228,13 @@ MinPatMgr::fault_reduction(
 }
 
 // テストベクタをマージして極大集合を求める．
-void
+vector<TestVector>
 MinPatMgr::gen_mcsets(
-  const vector<TestVector>& tv_list,
-  vector<TestVector>& new_tv_list
+  const vector<TestVector>& tv_list
 )
 {
   TvMerger merger(tv_list);
-  merger.gen_mcset(new_tv_list);
+  return merger.gen_mcset();
 }
 
 // @brief 彩色問題でパタン圧縮を行う．

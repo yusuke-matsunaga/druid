@@ -44,13 +44,6 @@ public:
 
   /// @brief テスト生成を行なう．
   /// @return 結果を返す．
-  DtpgResult
-  gen_pattern(
-    const TpgFault* fault  ///< [in] 対象の故障
-  );
-
-  /// @brief テスト生成を行なう．
-  /// @return 結果を返す．
   ///
   /// * tv_list[0] は DtpgResult のベクタと同じ．
   /// * tv_list の要素数が k より少ない場合がある．

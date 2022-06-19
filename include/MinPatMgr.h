@@ -50,10 +50,9 @@ public:
 
   /// @brief 極大両立集合を求める．
   static
-  void
+  vector<TestVector>
   gen_mcsets(
-    const vector<TestVector>& tv_list,
-    vector<TestVector>& new_tv_list
+    const vector<TestVector>& tv_list
   );
 
   /// @brief 彩色問題でパタン圧縮を行う．

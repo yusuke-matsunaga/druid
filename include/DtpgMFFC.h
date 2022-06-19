@@ -37,67 +37,28 @@ public:
   ~DtpgMFFC();
 
 
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief テスト生成を行なう．
-  /// @return 結果を返す．
-  DtpgResult
-  gen_pattern(
-    const TpgFault* fault   ///< [in] 対象の故障
-  );
-
-  /// 使用禁止の宣言
-  /// @brief 十分条件を取り出す．
-  /// @return 十分条件を表す割当リストを返す．
-  ///
-  /// * FFR内の故障伝搬条件は含まない．
-  NodeValList
-  get_sufficient_condition() = delete;
-
-  /// 使用禁止の宣言
-  /// @brief 複数の十分条件を取り出す．
-  ///
-  /// * FFR内の故障伝搬条件は含まない．
-  Expr
-  get_sufficient_conditions() = delete;
-
-  /// @brief 十分条件を取り出す．
-  /// @return 十分条件を表す割当リストを返す．
-  ///
-  /// * root は MFFC モードの時 mRoot と異なる．
-  /// * FFR内の故障伝搬条件は含まない．
-  NodeValList
-  get_sufficient_condition(
-    const TpgNode* root  ///< [in] 対象の故障のあるFFRの根のノード
-  );
-
-  /// @brief 複数の十分条件を取り出す．
-  ///
-  /// * root は MFFC モードの時 mRoot と異なる．
-  /// * FFR内の故障伝搬条件は含まない．
-  Expr
-  get_sufficient_conditions(
-    const TpgNode* root  ///< [in] 対象の故障のあるFFRの根のノード
-  );
-
-
 protected:
   //////////////////////////////////////////////////////////////////////
   // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief mffc 内の影響が root まで伝搬する条件のCNF式を作る．
+  /// @brief make_cnf() の追加処理
   void
-  gen_mffc_cnf();
+  make_cnf_sub() override;
+
+  /// @brief gen_pattern() で用いる検出条件を作る．
+  ///
+  /// デフォルトでは空を返す．
+  vector<SatLiteral>
+  gen_assumptions(
+    const TpgFault* fault ///< [in] 対象の故障
+  ) override;
 
   /// @brief 故障挿入回路のCNFを作る．
   void
   inject_fault(
-    int elem_pos, ///< [in] 要素番号
-    SatLiteral ovar ///< [in] ゲートの出力の変数
+    SizeType ffr_id, ///< [in] FFR番号
+    SatLiteral ovar  ///< [in] ゲートの出力の変数
   );
 
 
@@ -106,16 +67,19 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
+  // MFFC の情報
+  const TpgMFFC& mMFFC;
+
   // FFR の根のリスト
   // [0] は MFFC の根でもある．
-  vector<const TpgNode*> mElemArray;
+  vector<const TpgNode*> mRootArray;
 
   // 各FFRの根に反転イベントを挿入するための変数
-  // サイズは mElemArray.size()
-  vector<SatLiteral> mElemVarArray;
+  // サイズは mRootArray.size()
+  vector<SatLiteral> mEvarArray;
 
   // ノード番号をキーにしてFFR番号を入れる連想配列
-  unordered_map<int, int> mElemPosMap;
+  unordered_map<SizeType, SizeType> mFfrIdMap;
 
 };
 

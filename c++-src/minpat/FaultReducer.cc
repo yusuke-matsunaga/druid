@@ -189,16 +189,16 @@ FaultReducer::init(
     for ( auto fault: ffr.fault_list() ) {
       auto& fi = mFaultInfoArray[fault->id()];
       if ( !fi.mDeleted ) {
-	fi.mFFRCond = ffr_propagate_condition(fault, mFaultType);
+	fi.mFFRCond = fault->ffr_propagate_condition(mFaultType);
 	auto assumptions = dtpg.conv_to_literal_list(fi.mFFRCond);
-	SatBool3 sat_res = dtpg.solve(assumptions);
+	SatBool3 sat_res = dtpg.check(assumptions);
 	ASSERT_COND( sat_res == SatBool3::True );
 	TestVector tv = dtpg.get_tv();
 	tv.fix_x_from_random(rg);
 	mTvList.push_back(tv);
 	if ( need_mand_cond ) {
 	  // 十分条件(の一つ)を求める．
-	  NodeValList suff_cond = dtpg.get_sufficient_condition();
+	  NodeValList suff_cond = dtpg.get_sufficient_condition(ffr.root());
 	  fi.mSuffCond = suff_cond;
 	  // 必要条件を求める．
 	  // 明らかに必要条件は十分条件の部分集合になっている．

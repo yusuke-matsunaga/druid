@@ -142,10 +142,10 @@ private:
   const SatModel& mSatModel;
 
   // 故障の fanout cone のマーク
-  unordered_set<int> mFconeMark;
+  unordered_set<SizeType> mFconeMark;
 
-  // 記録済みノードを保持するハッシュ表
-  unordered_set<int> mRecorded;
+  // 記録済みノード番号を保持するハッシュ表
+  unordered_set<SizeType> mRecorded;
 
   // 故障差の伝搬している外部出力のリスト
   vector<const TpgNode*> mSpoList;

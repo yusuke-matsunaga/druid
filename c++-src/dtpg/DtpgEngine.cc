@@ -16,6 +16,7 @@
 #include "Val3.h"
 #include "NodeValList.h"
 #include "Extractor.h"
+#include "MultiExtractor.h"
 #include "Justifier.h"
 #include "TestVector.h"
 
@@ -67,6 +68,45 @@ DtpgEngine::DtpgEngine(
 // @brief デストラクタ
 DtpgEngine::~DtpgEngine()
 {
+}
+
+// @brief CNF の生成を行う．
+void
+DtpgEngine::make_cnf()
+{
+  cnf_begin();
+
+  // 変数割り当て
+  prepare_vars();
+
+  // 正常回路の CNF を生成
+  gen_good_cnf();
+
+  // 故障回路の CNF を生成
+  gen_faulty_cnf();
+
+  //////////////////////////////////////////////////////////////////////
+  // 故障の検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
+  //////////////////////////////////////////////////////////////////////
+  {
+    vector<SatLiteral> odiff;
+    odiff.reserve(output_list().size());
+    for ( auto node: output_list() ) {
+      auto dlit = dvar(node);
+      odiff.push_back(dlit);
+    }
+    solver().add_clause(odiff);
+
+    if ( !root_node()->is_ppo() ) {
+      // root_node() の dlit が1でなければならない．
+      auto dlit0 = dvar(root_node());
+      solver().add_clause(dlit0);
+    }
+  }
+
+  make_cnf_sub();
+
+  cnf_end();
 }
 
 // @brief タイマーをスタートする．
@@ -344,6 +384,21 @@ DtpgEngine::gen_undetect_cnf()
 }
 #endif
 
+// @brief make_cnf() の追加処理
+void
+DtpgEngine::make_cnf_sub()
+{
+}
+
+// @brief gen_pattern() で用いる検出条件を作る．
+vector<SatLiteral>
+DtpgEngine::gen_assumptions(
+  const TpgFault*
+)
+{
+  return {};
+}
+
 // @brief 故障伝搬条件を表すCNF式を生成する．
 void
 DtpgEngine::make_dchain_cnf(
@@ -419,14 +474,46 @@ DtpgEngine::make_dchain_cnf(
   }
 }
 
+// @brief テストパタンを求める．
+DtpgResult
+DtpgEngine::gen_pattern(
+  const TpgFault* fault
+)
+{
+  // FFR 内の故障伝搬条件を ffr_cond に入れる．
+  NodeValList ffr_cond = fault->ffr_propagate_condition(fault_type());
+
+  // 追加の条件
+  auto assumptions = gen_assumptions(fault);
+
+  // ffr_cond の内容を assumptions に追加する．
+  add_to_assumptions(ffr_cond, assumptions);
+
+  SatBool3 sat_res = check(assumptions);
+  if ( sat_res == SatBool3::True ) {
+    auto testvect = backtrace(fault->tpg_onode()->ffr_root(), ffr_cond);
+    return DtpgResult{testvect};
+  }
+  else if ( sat_res == SatBool3::False ) {
+    return DtpgResult{FaultStatus::Untestable};
+  }
+  else { // sat_res == SatBool3::X
+    return DtpgResult{FaultStatus::Undetected};
+  }
+}
+
 // @brief バックトレースを行う．
 TestVector
 DtpgEngine::backtrace(
-  const NodeValList& suf_cond
+  const TpgNode* ffr_root,
+  const NodeValList& ffr_cond
 )
 {
   Timer timer;
   timer.start();
+
+  NodeValList suf_cond = get_sufficient_condition(ffr_root);
+  suf_cond.merge(ffr_cond);
 
   // バックトレースを行う．
   auto testvect = mJustifier(mFaultType, suf_cond, mHvarMap, mGvarMap, mSatModel);
@@ -476,21 +563,6 @@ DtpgEngine::add_to_assumptions(
   }
 }
 
-// @brief 一つの SAT問題を解く．
-// @param[in] assumptions 値の決まっている変数のリスト
-// @return 結果を返す．
-SatBool3
-DtpgEngine::solve(
-  const vector<SatLiteral>& assumptions
-)
-{
-  auto res = check(assumptions);
-  if ( res == SatBool3::True ) {
-    mSatModel = mSolver.model();
-  }
-  return res;
-}
-
 // @brief SAT問題が充足可能か調べる．
 // @param[in] assumptions 値の決まっている変数のリスト
 // @return 結果を返す．
@@ -518,6 +590,7 @@ DtpgEngine::check(
 
   if ( ans == SatBool3::True ) {
     // パタンが求まった．
+    mSatModel = mSolver.model();
     mStats.update_det(sat_stats, time);
   }
   else if ( ans == SatBool3::False ) {
@@ -562,26 +635,24 @@ DtpgEngine::get_tv()
 
 // @brief 十分条件を取り出す．
 NodeValList
-DtpgEngine::get_sufficient_condition()
+DtpgEngine::get_sufficient_condition(
+  const TpgNode* ffr_root
+)
 {
   Extractor extractor{mGvarMap, mFvarMap, mSatModel};
-  return extractor.get_assignment({mRoot});
+  return extractor.get_assignment({ffr_root});
 }
 
 // @brief 複数の十分条件を取り出す．
 //
 // FFR内の故障伝搬条件は含まない．
 Expr
-DtpgEngine::get_sufficient_conditions()
+DtpgEngine::get_sufficient_conditions(
+  const TpgNode* ffr_root
+)
 {
-  extern Expr extract_all(
-    const TpgNode* root,
-    const VidMap& gvar_map,
-    const VidMap& fvar_map,
-    const SatModel& model
-  );
-
-  return extract_all(mRoot, mGvarMap, mFvarMap, mSatModel);
+  MultiExtractor extractor{mGvarMap, mFvarMap, mSatModel};
+  return extractor.get_assignments(ffr_root);
 }
 
 // @brief 必要条件を取り出す．

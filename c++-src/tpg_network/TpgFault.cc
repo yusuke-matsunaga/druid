@@ -19,33 +19,33 @@
 
 BEGIN_NAMESPACE_DRUID
 
-// @relates TpgFault
+//////////////////////////////////////////////////////////////////////
+// クラス TpgFault
+//////////////////////////////////////////////////////////////////////
+
 // @brief 故障が励起してFFRの根まで伝搬する条件を求める．
-// @param[in] fault 故障
-// @param[in] fault_type 故障の種類
 NodeValList
-ffr_propagate_condition(
-  const TpgFault* fault,
+TpgFault::ffr_propagate_condition(
   FaultType fault_type
-)
+) const
 {
   NodeValList assign_list;
 
   // 故障の活性化条件を作る．
-  const TpgNode* inode = fault->tpg_inode();
+  auto inode = tpg_inode();
   // 0 縮退故障の時に 1 にする．
-  bool val = (fault->val() == 0);
-  assign_list.add(inode, 1, val);
+  bool is_0 = (val() == 0);
+  assign_list.add(inode, 1, is_0);
 
   if ( fault_type == FaultType::TransitionDelay ) {
     // 1時刻前の値が逆の値である条件を作る．
-    assign_list.add(inode, 0, !val);
+    assign_list.add(inode, 0, !is_0);
   }
 
   // ブランチの故障の場合，ゲートの出力までの伝搬条件を作る．
-  if ( fault->is_branch_fault() ) {
-    const TpgNode* onode = fault->tpg_onode();
-    SizeType fpos = fault->tpg_pos();
+  if ( is_branch_fault() ) {
+    auto onode = tpg_onode();
+    SizeType fpos = tpg_pos();
     Val3 nval = onode->nval();
     if ( nval != Val3::_X ) {
       bool val = (nval == Val3::_1);
@@ -59,9 +59,9 @@ ffr_propagate_condition(
   }
 
   // FFR の根までの伝搬条件を作る．
-  for ( const TpgNode* node = fault->tpg_onode(); node->fanout_num() == 1;
+  for ( auto node = tpg_onode(); node->fanout_num() == 1;
 	node = node->fanout_list()[0]) {
-    const TpgNode* fonode = node->fanout_list()[0];
+    auto fonode = node->fanout_list()[0];
     SizeType ni = fonode->fanin_num();
     if ( ni == 1 ) {
       continue;

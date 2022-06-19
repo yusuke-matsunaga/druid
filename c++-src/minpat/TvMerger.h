@@ -5,7 +5,7 @@
 /// @brief TvMerger のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -22,8 +22,9 @@ class TvMerger
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] tv_list 元のテストベクタのリスト
-  TvMerger(const vector<TestVector>& tv_list);
+  TvMerger(
+    const vector<TestVector>& tv_list ///< [in] 元のテストベクタのリスト
+  );
 
   /// @brief デストラクタ
   ~TvMerger();
@@ -35,9 +36,8 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 極大両立集合のリストを求める．
-  /// @param[out] new_tv_list マージして生成したテストベクタのリスト
-  void
-  gen_mcset(vector<TestVector>& new_tv_list);
+  vector<TestVector>
+  gen_mcset();
 
 
 private:
@@ -46,37 +46,54 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 極大集合を求める．
-  /// @param[inout] signature シグネチャ
   void
-  greedy_mcset(vector<int>& signature,
-	       int count);
+  greedy_mcset(
+    vector<int>& signature, ///< [inout] シグネチャ
+    int count
+  );
 
   /// @brief シグネチャから最も価値の低いビットを選ぶ．
   int
-  select_bit(const vector<int>& signature);
+  select_bit(
+    const vector<int>& signature ///< [in] シグネチャ
+  );
 
   /// @brief シグネチャからテストベクタを作る．
   TestVector
-  gen_vector(const vector<int>& signature);
+  gen_vector(
+    const vector<int>& signature ///< [in] シグネチャ
+  );
 
   /// @brief テストベクタとシグネチャが両立しているか調べる．
   bool
-  check_compatible(const TestVector& tv,
-		   const vector<int>& signature);
+  check_compatible(
+    const TestVector& tv,        ///< [in] テストベクタ
+    const vector<int>& signature ///< [in] シグネチャ
+  );
 
   /// @brief ブロックリストを得る．
-  /// @param[in] bit ビット位置
-  /// @param[in] val 値 ( 0 or 1 )
   const vector<int>&
-  block_list(int bit,
-	     int val) const;
+  block_list(
+    int bit, ///< [in] ビット位置
+    int val  ///< [in] 値 ( 0 or 1 )
+  ) const
+  {
+    ASSERT_COND( bit >= 0 && bit < mBitLen );
+
+    return mBlockListArray[bit * 2 + val];
+  }
 
   /// @brief ブロックリストを得る．
-  /// @param[in] bit ビット位置
-  /// @param[in] val 値 ( 0 or 1 )
   vector<int>&
-  _block_list(int bit,
-	      int val);
+  _block_list(
+    int bit, ///< [in] ビット位置
+    int val  ///< [in] 値 ( 0 or 1 )
+  )
+  {
+    ASSERT_COND( bit >= 0 && bit < mBitLen );
+
+    return mBlockListArray[bit * 2 + val];
+  }
 
 
 private:
@@ -88,7 +105,7 @@ private:
   vector<TestVector> mOrigTvList;
 
   // ビット長
-  int mBitLen;
+  SizeType mBitLen;
 
   // 各ビットのブロックリスト
   // ビット位置を b，値を v とすると
@@ -106,37 +123,6 @@ private:
   vector<int> mTabuList;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief ブロックリストを得る．
-// @param[in] bit ビット位置
-// @param[in] val 値 ( 0 or 1 )
-inline
-const vector<int>&
-TvMerger::block_list(int bit,
-		     int val) const
-{
-  ASSERT_COND( bit >= 0 && bit < mBitLen );
-
-  return mBlockListArray[bit * 2 + val];
-}
-
-// @brief ブロックリストを得る．
-// @param[in] bit ビット位置
-// @param[in] val 値 ( 0 or 1 )
-inline
-vector<int>&
-TvMerger::_block_list(int bit,
-		      int val)
-{
-  ASSERT_COND( bit >= 0 && bit < mBitLen );
-
-  return mBlockListArray[bit * 2 + val];
-}
 
 END_NAMESPACE_DRUID
 

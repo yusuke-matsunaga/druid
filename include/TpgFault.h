@@ -111,6 +111,12 @@ public:
     }
   }
 
+  /// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
+  NodeValList
+  ffr_propagate_condition(
+    FaultType fault_type   ///< [in] 故障の種類
+  ) const;
+
   /// @brief 故障の内容を表す文字列を返す．
   virtual
   string
@@ -131,14 +137,6 @@ public:
   rep_fault() const = 0;
 
 };
-
-/// @relates TpgFault
-/// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
-NodeValList
-ffr_propagate_condition(
-  const TpgFault* fault, ///< [in] 故障
-  FaultType fault_type   ///< [in] 故障の種類
-);
 
 /// @relates TpgFault
 /// @brief ストリーム出力演算子

@@ -48,10 +48,9 @@ public:
   );
 
   /// @brief 検出可能故障リストを作る．
-  void
+  vector<FaultInfo*>
   gen_fault_list(
-    const vector<bool>& mark,
-    vector<FaultInfo*>& fi_list ///< [out] fi_list 故障情報のリスト
+    const vector<bool>& mark
   );
 
   /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．

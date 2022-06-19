@@ -93,8 +93,7 @@ Analyzer::fault_reduction(
   for ( auto fault: fault_list ) {
     mark[fault->id()] = true;
   }
-  vector<FaultInfo*> fi_list;
-  gen_fault_list(mark, fi_list);
+  auto fi_list = gen_fault_list(mark);
 
   vector<pair<string, string>> opt_list;
   parse_option(algorithm, opt_list);
@@ -117,33 +116,33 @@ Analyzer::fault_reduction(
 }
 
 // @brief 検出可能故障リストを作る．
-void
+vector<FaultInfo*>
 Analyzer::gen_fault_list(
-  const vector<bool>& mark,
-  vector<FaultInfo*>& fi_list
+  const vector<bool>& mark
 )
 {
   string just_type;
+
+  vector<FaultInfo*> fi_list;
 
   std::mt19937 randgen;
   int n0 = 0;
   int n1 = 0;
   for ( auto& ffr: mNetwork.ffr_list() ) {
     // FFR ごとに検出可能な故障をもとめる．
-    DtpgFFR dtpg(mNetwork, mFaultType, ffr, just_type);
+    DtpgFFR dtpg{mNetwork, mFaultType, ffr, just_type};
     vector<FaultInfo*> tmp_fi_list;
     for ( auto fault: ffr.fault_list() ) {
       if ( !mark[fault->id()] ) {
 	continue;
       }
-      NodeValList ffr_cond = ffr_propagate_condition(fault, mFaultType);
+      auto ffr_cond = fault->ffr_propagate_condition(mFaultType);
       auto assumptions = dtpg.conv_to_literal_list(ffr_cond);
-      SatBool3 sat_res = dtpg.solve(assumptions);
+      SatBool3 sat_res = dtpg.check(assumptions);
       if ( sat_res == SatBool3::True ) {
-	NodeValList suf_cond = dtpg.get_sufficient_condition();
-	suf_cond.merge(ffr_cond);
-	TestVector testvect = dtpg.backtrace(suf_cond);
+	auto testvect = dtpg.backtrace(fault->tpg_onode()->ffr_root(), ffr_cond);
 	testvect.fix_x_from_random(randgen);
+	auto suf_cond = dtpg.get_sufficient_condition(fault->tpg_onode()->ffr_root());
 	FaultInfo* fi = new FaultInfo(fault, ffr_cond, suf_cond, testvect);
 	tmp_fi_list.push_back(fi);
 	++ n0;
@@ -202,6 +201,8 @@ Analyzer::gen_fault_list(
     cout << "# of initial faults: " << n0 << endl
 	 << "after FFR dominance reduction: " << n1 << endl;
   }
+
+  return fi_list;
 }
 
 // @brief 異なる FFR 間の支配故障の簡易チェックを行う．
@@ -213,7 +214,7 @@ Analyzer::dom_reduction1(
   Timer timer;
   timer.start();
 
-  int nf = fi_list.size();
+  SizeType nf = fi_list.size();
   vector<const TpgFault*> fault_list;
   fault_list.reserve(nf);
   vector<TestVector> tv_list;
@@ -265,7 +266,7 @@ Analyzer::dom_reduction1(
       }
 
       ++ check_num;
-      NodeValList ffr_cond = ffr_propagate_condition(fault2, mFaultType);
+      NodeValList ffr_cond = fault2->ffr_propagate_condition(mFaultType);
       SatBool3 res = undet_checker.check(ffr_cond);
       if ( res == SatBool3::False ) {
 	++ success_num;
@@ -428,21 +429,21 @@ Analyzer::init(
     vector<NodeValList> ffr_cond_list;
     vector<NodeValList> suf_cond_list;
     for ( auto fault: ffr.fault_list() ) {
-      NodeValList ffr_cond = ffr_propagate_condition(fault, mFaultType);
+      NodeValList ffr_cond = fault->ffr_propagate_condition(mFaultType);
       auto assumptions = dtpg.conv_to_literal_list(ffr_cond);
-      SatBool3 sat_res = dtpg.solve(assumptions);
+      SatBool3 sat_res = dtpg.check(assumptions);
       if ( sat_res == SatBool3::True ) {
 	fault_list.push_back(fault);
 	ffr_cond_list.push_back(ffr_cond);
 	ffr_cond_array[fault->id()] = ffr_cond;
-	NodeValList suf_cond = dtpg.get_sufficient_condition();
+	NodeValList suf_cond = dtpg.get_sufficient_condition(ffr.root());
 	suf_cond.merge(ffr_cond);
 	suf_cond_list.push_back(suf_cond);
 	mark[fault->id()] = true;
       }
     }
     // 支配関係を調べ，代表故障のみを残す．
-    int nf = fault_list.size();
+    SizeType nf = fault_list.size();
     for ( auto i1: Range(nf) ) {
       auto fault1 = fault_list[i1];
       if ( !mark[fault1->id()] ) {
@@ -525,7 +526,7 @@ Analyzer::init(
 	      continue;
 	    }
 	  }
-	  NodeValList ffr_cond = ffr_propagate_condition(fault2, mFaultType);
+	  NodeValList ffr_cond = fault2->ffr_propagate_condition(mFaultType);
 	  SatBool3 res = undet_checker.check(ffr_cond);
 	  if ( res == SatBool3::False ) {
 	    // fault2 が検出可能の条件のもとで fault が検出不能となることはない．
@@ -687,7 +688,7 @@ Analyzer::analyze_fault(
 {
 #if 0
   // FFR 内の伝搬条件をリテラルに変換して加えたSAT問題を解く．
-  NodeValList ffr_cond = ffr_propagate_condition(fault, mFaultType);
+  NodeValList ffr_cond = fault->ffr_propagate_condition(mFaultType);
   SatBool3 sat_res;
   vector<SatBool3> model;
   {

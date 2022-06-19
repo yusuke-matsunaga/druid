@@ -3,9 +3,8 @@
 /// @brief TvMerger の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TvMerger.h"
 #include "TestVector.h"
@@ -17,8 +16,10 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 inline
-int
-calc_nb(const vector<TestVector>& tv_list)
+SizeType
+calc_nb(
+  const vector<TestVector>& tv_list
+)
 {
   if ( tv_list.empty() ) {
     return 0;
@@ -29,8 +30,10 @@ calc_nb(const vector<TestVector>& tv_list)
 
 // リストのユニオンの要素数を数える．
 int
-count_union(const vector<int>& list1,
-	    const vector<int>& list2)
+count_union(
+  const vector<int>& list1,
+  const vector<int>& list2
+)
 {
   int rpos1 = 0;
   int rpos2 = 0;
@@ -62,8 +65,10 @@ count_union(const vector<int>& list1,
 
 // リストの差分の要素数を数える．
 int
-count_diff(const vector<int>& list1,
-	   const vector<int>& list2)
+count_diff(
+  const vector<int>& list1,
+  const vector<int>& list2
+)
 {
   int rpos1 = 0;
   int rpos2 = 0;
@@ -92,8 +97,10 @@ count_diff(const vector<int>& list1,
 
 // リストをマージする．
 void
-merge_list(vector<int>& list1,
-	   const vector<int>& list2)
+merge_list(
+  vector<int>& list1,
+  const vector<int>& list2
+)
 {
   vector<int> old_list1(list1);
   int rpos1 = 0;
@@ -134,12 +141,12 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] tv_list 元のテストベクタのリスト
-TvMerger::TvMerger(const vector<TestVector>& tv_list) :
-  mOrigTvList(tv_list),
-  mBitLen(calc_nb(mOrigTvList)),
-  mBlockListArray(mBitLen * 2),
-  mTabuList(mBitLen, -1)
+TvMerger::TvMerger(
+  const vector<TestVector>& tv_list
+) : mOrigTvList{tv_list},
+    mBitLen{calc_nb(mOrigTvList)},
+    mBlockListArray(mBitLen * 2),
+    mTabuList(mBitLen, -1)
 {
   for ( auto i: Range(mOrigTvList.size()) ) {
     auto tv = mOrigTvList[i];
@@ -182,11 +189,10 @@ TvMerger::~TvMerger()
 }
 
 // @brief 極大両立集合のリストを求める．
-// @param[out] new_tv_list マージして生成したテストベクタのリスト
-void
-TvMerger::gen_mcset(vector<TestVector>& new_tv_list)
+vector<TestVector>
+TvMerger::gen_mcset()
 {
-  new_tv_list.clear();
+  vector<TestVector> new_tv_list;
 
   // 現在選択されているシグネチャ
   // -1 が未選択，0/1 が選択されている値
@@ -214,13 +220,16 @@ TvMerger::gen_mcset(vector<TestVector>& new_tv_list)
     // bit をタブーリストに入れる．
     mTabuList[bit] = count + tenure;
   }
+
+  return new_tv_list;
 }
 
 // @brief 極大集合を1つ求める．
-// @param[inout] signature シグネチャ
 void
-TvMerger::greedy_mcset(vector<int>& signature,
-		       int count)
+TvMerger::greedy_mcset(
+  vector<int>& signature,
+  int count
+)
 {
   // 現在選択されている集合でブロックされている要素のリスト
   vector<int> cur_block_list;
@@ -279,7 +288,9 @@ TvMerger::greedy_mcset(vector<int>& signature,
 
 // @brief シグネチャから最も価値の低いビットを選ぶ．
 int
-TvMerger::select_bit(const vector<int>& signature)
+TvMerger::select_bit(
+  const vector<int>& signature
+)
 {
   // 値を持っているビット位置のリスト
   vector<int> bit_list;
@@ -331,7 +342,9 @@ TvMerger::select_bit(const vector<int>& signature)
 
 // @brief シグネチャからテストベクタを作る．
 TestVector
-TvMerger::gen_vector(const vector<int>& signature)
+TvMerger::gen_vector(
+  const vector<int>& signature
+)
 {
   vector<TestVector> tmp_list;
   tmp_list.reserve(mOrigTvList.size());
@@ -345,8 +358,10 @@ TvMerger::gen_vector(const vector<int>& signature)
 
 // @brief テストベクタとシグネチャが両立しているか調べる．
 bool
-TvMerger::check_compatible(const TestVector& tv,
-			   const vector<int>& signature)
+TvMerger::check_compatible(
+  const TestVector& tv,
+  const vector<int>& signature
+)
 {
   for ( auto bit: Range(mBitLen) ) {
     int s = signature[bit];

@@ -57,6 +57,16 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief CNF の生成を行う．
+  void
+  make_cnf();
+
+  /// @brief テストパタンを求める．
+  DtpgResult
+  gen_pattern(
+    const TpgFault* fault  ///< [in] 対象の故障
+  );
+
   /// @brief 統計情報を得る．
   const DtpgStats&
   stats() const
@@ -116,20 +126,8 @@ public:
     SatLiteral clit   ///< [in] 制御用のリテラル
   );
 
-  /// @brief 一つの SAT問題を解く．
-  /// @return 結果を返す．
-  ///
-  /// mSolver.solve() を呼び出すだけだが統計情報の更新を行っている．
-  /// SATだった場合のモデルは mSatModel に格納される．
-  SatBool3
-  solve(
-    const vector<SatLiteral>& assumptions  ///< [in] 値の決まっている変数のリスト
-  );
-
   /// @brief SAT問題が充足可能か調べる．
   /// @return 結果を返す．
-  ///
-  /// solve() との違いは結果のモデルを保持しない．
   SatBool3
   check(
     const vector<SatLiteral>& assumptions  ///< [in] 値の決まっている変数のリスト
@@ -147,13 +145,17 @@ public:
   ///
   /// * FFR内の故障伝搬条件は含まない．
   NodeValList
-  get_sufficient_condition();
+  get_sufficient_condition(
+    const TpgNode* ffr_root ///< [in] FFRの根のノード
+  );
 
   /// @brief 複数の十分条件を取り出す．
   ///
   /// * FFR内の故障伝搬条件は含まない．
   Expr
-  get_sufficient_conditions();
+  get_sufficient_conditions(
+    const TpgNode* ffr_root ///< [in] FFRの根のノード
+  );
 
   /// @brief 必要条件を取り出す．
   /// @return 必要条件を返す．
@@ -167,7 +169,8 @@ public:
   /// @return テストパタンを返す．
   TestVector
   backtrace(
-    const NodeValList& suf_cond  ///< [in] 十分条件の割り当て
+    const TpgNode* ffr_root,    ///< [in] FFRの根のノード
+    const NodeValList& ffr_cond ///< [in] FFR内の伝搬条件
   );
 
 
@@ -395,6 +398,22 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief make_cnf() の追加処理
+  ///
+  /// デフォルトではなにもしない．
+  virtual
+  void
+  make_cnf_sub();
+
+  /// @brief gen_pattern() で用いる検出条件を作る．
+  ///
+  /// デフォルトでは空を返す．
+  virtual
+  vector<SatLiteral>
+  gen_assumptions(
+    const TpgFault* fault ///< [in] 対象の故障
+  );
 
   /// @brief 故障伝搬条件を表すCNF式を生成する．
   void
