@@ -22,3 +22,6 @@
 [submodule "ym-combopt"]
 	path = ym-combopt
 	url = git@github.com:yusuke-matsunaga/ym-combopt
+[submodule "ym-luapp"]
+	path = ym-luapp
+	url = git@github.com:yusuke-matsunaga/ym-luapp.git
