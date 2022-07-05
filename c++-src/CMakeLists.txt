@@ -163,12 +163,12 @@ ym_add_object_library ( druid_common
 add_executable ( druid
   main/druid_lua.cc
   main/LuaDruid_TpgNetwork.cc
-  main/LuaDruid_Clib.cc
   $<TARGET_OBJECTS:druid_common_obj>
   $<TARGET_OBJECTS:druid_fsimsa2_obj>
   $<TARGET_OBJECTS:druid_fsimsa3_obj>
   $<TARGET_OBJECTS:druid_fsimtd2_obj>
   $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  $<TARGET_OBJECTS:ym_luaclib_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
