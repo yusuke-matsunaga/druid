@@ -181,6 +181,31 @@ target_link_libraries ( druid
   ${YM_LIB_DEPENDS}
   )
 
+add_executable ( druid_d
+  main/druid_lua.cc
+  main/LuaDruid_TpgNetwork.cc
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:ym_luaclib_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_compile_options ( druid_d
+  PRIVATE "-g"
+  )
+
+target_include_directories ( druid_d
+  PRIVATE
+  ${LUA_INCLUDE_DIR}
+  )
+
+target_link_libraries ( druid_d
+  ${YM_LIB_DEPENDS}
+  )
+
 
 # ===================================================================
 #  テストの設定

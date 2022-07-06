@@ -212,6 +212,7 @@ LuaDruid::init_TpgNetwork(
 {
   // メンバ関数(メソッド)テーブル
   static const struct luaL_Reg mt[] = {
+    {nullptr, nullptr}
   };
 
   // TpgNetwork に対応する Lua の metatable を作る．

@@ -14,10 +14,7 @@ main(
   char** argv
 )
 {
-  using namespace std;
-  using DRUID_NAMESPACE::LuaDruid;
-
-  LuaDruid lua;
+  DRUID_NAMESPACE::LuaDruid lua;
 
   lua.L_openlibs();
   lua.open_Druid();
