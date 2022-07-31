@@ -9,9 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "ym/LuaClib.h"
-#include "ym/bnet.h"
-#include "ym/clib.h"
+#include "ym/Luapp.h"
 
 
 
@@ -22,7 +20,7 @@ BEGIN_NAMESPACE_DRUID
 /// @brief Druid 用の Luapp 拡張
 //////////////////////////////////////////////////////////////////////
 class LuaDruid :
-  public LuaClib
+  public Luapp
 {
 public:
 
@@ -33,14 +31,14 @@ public:
   LuaDruid(
     lua_Alloc f, ///< [in] アロケーター
     void* ud      ///< [in] ユーザーデータ
-  ) : LuaClib{f, ud}
+  ) : Luapp{f, ud}
   {
   }
 
   /// @brief すでに生成済みのインタプリタを用いるコンストラクタ
   LuaDruid(
     lua_State* L ///< [in] lua インタープリタ
-  ) : LuaClib{L}
+  ) : Luapp{L}
   {
   }
 
@@ -57,13 +55,7 @@ public:
   ///
   /// この関数を呼ばないと Luapp と同等になる．
   void
-  open_Druid()
-  {
-    vector<struct luaL_Reg> mylib;
-    init_TpgNetwork(mylib);
-    init_Clib(mylib);
-    reg_module("druid", mylib);
-  }
+  open_Druid();
 
   /// @brief 対象が TpgNetwork の時 true を返す．
   bool

@@ -9,6 +9,7 @@
 #include "LuaDruid.h"
 #include "TpgNetwork.h"
 #include "ym/ClibCellLibrary.h"
+#include "ym/LuaClib.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -94,7 +95,7 @@ tpg_read_blif(
       ;
     }
     else {
-      auto lib = lua.to_clib(-1);
+      auto lib = LuaClib::to_clib(L, -1);
       if ( lib == nullptr ) {
 	return lua.error_end("Error in read_blif(): ClibCellLibrary required for 'cell_library' field.");
       }
@@ -183,6 +184,16 @@ tpg_read_iscas89(
 }
 
 END_NONAMESPACE
+
+// @brief Druid 拡張に関する初期化を行う．
+void
+LuaDruid::open_Druid()
+{
+  vector<struct luaL_Reg> mylib;
+  init_TpgNetwork(mylib);
+  LuaClib::init(lua_state(), mylib);
+  reg_module("druid", mylib);
+}
 
 // @brief 対象が TpgNetwork の時 true を返す．
 bool
