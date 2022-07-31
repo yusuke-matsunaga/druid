@@ -85,7 +85,6 @@ install ( PROGRAMS ${PROJECT_BINARY_DIR}/druid_python
 # ===================================================================
 
 ym_init_submodules (
-  ym-aig
   ym-base
   ym-bnet
   ym-cell
