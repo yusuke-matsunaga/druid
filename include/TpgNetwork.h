@@ -56,12 +56,16 @@ public:
   TpgNetwork&
   operator=(const TpgNetwork& src) = delete;
 
-  /// @brief ムーブコンストラクタは禁止
-  TpgNetwork(TpgNetwork&& src) = delete;
+  /// @brief ムーブコンストラクタ
+  TpgNetwork(
+    TpgNetwork&& src ///< [in] ムーブ元
+  );
 
-  /// @brief ムーブ代入演算子も禁止
+  /// @brief ムーブ代入演算子
   TpgNetwork&
-  operator=(TpgNetwork&& src) = delete;
+  operator=(
+    TpgNetwork&& src ///< [in] ムーブ元
+  );
 
   /// @brief デストラクタ
   ~TpgNetwork();
@@ -294,10 +298,11 @@ public:
   );
 
   /// @brief iscas89 形式のファイルを読み込む．
-  /// @param[in] filename ファイル名
   /// @return 読み込みが成功したら true を返す．
   bool
-  read_iscas89(const string& filename);
+  read_iscas89(
+    const string& filename ///< [in] ファイル名
+  );
 
 
 private:

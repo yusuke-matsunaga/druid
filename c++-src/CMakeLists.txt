@@ -140,6 +140,12 @@ set (td_SOURCES
   td/rtpg/RtpgP2.cc
   )
 
+set (lua_druid_SOURCES
+  lua_druid/lua_druid.cc
+  lua_druid/LuaDruid_TpgNetwork.cc
+  lua_druid/dtpg_cmd.cc
+  )
+
 
 # ===================================================================
 # ターゲットの設定
@@ -161,8 +167,7 @@ ym_add_object_library ( druid_common
   )
 
 add_executable ( druid
-  main/druid_lua.cc
-  main/LuaDruid_TpgNetwork.cc
+  ${lua_druid_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj>
   $<TARGET_OBJECTS:druid_fsimsa2_obj>
   $<TARGET_OBJECTS:druid_fsimsa3_obj>
@@ -182,8 +187,7 @@ target_link_libraries ( druid
   )
 
 add_executable ( druid_d
-  main/druid_lua.cc
-  main/LuaDruid_TpgNetwork.cc
+  ${lua_druid_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj_d>
   $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
   $<TARGET_OBJECTS:druid_fsimsa3_obj_d>

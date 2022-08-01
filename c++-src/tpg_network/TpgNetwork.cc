@@ -29,6 +29,23 @@ TpgNetwork::TpgNetwork() :
 {
 }
 
+// @brief ムーブコンストラクタ
+TpgNetwork::TpgNetwork(
+  TpgNetwork&& src
+) : mImpl{std::move(src.mImpl)}
+{
+}
+
+// @brief ムーブ代入演算子
+TpgNetwork&
+TpgNetwork::operator=(
+  TpgNetwork&& src
+)
+{
+  std::swap(Impl, src.mImpl);
+  return *this;
+}
+
 // @brief デストラクタ
 TpgNetwork::~TpgNetwork()
 {

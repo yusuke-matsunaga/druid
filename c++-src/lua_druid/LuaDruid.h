@@ -12,7 +12,6 @@
 #include "ym/Luapp.h"
 
 
-
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
@@ -30,7 +29,7 @@ public:
   /// @brief 通常のコンストラクタ
   LuaDruid(
     lua_Alloc f, ///< [in] アロケーター
-    void* ud      ///< [in] ユーザーデータ
+    void* ud     ///< [in] ユーザーデータ
   ) : Luapp{f, ud}
   {
   }
@@ -80,6 +79,12 @@ private:
   /// @brief TpgNetwork 関係の初期化を行う．
   void
   init_TpgNetwork(
+    vector<struct luaL_Reg>& mylib ///< [out] モジュールに登録する関数のリスト
+  );
+
+  /// @brief dtpg 関係の初期化を行う．
+  void
+  init_dtpg(
     vector<struct luaL_Reg>& mylib ///< [out] モジュールに登録する関数のリスト
   );
 

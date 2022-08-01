@@ -41,7 +41,7 @@ public:
 
   /// @brief デストラクタ
   virtual
-  ~TpgFault() { }
+  ~TpgFault() = default;
 
 
 public:
