@@ -5,7 +5,7 @@
 /// @brief MF_Enc のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2019 Yusuke Matsunaga
+/// Copyright (C) 2019, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -35,10 +35,12 @@ public:
   /// @param[in] olit 出力のノードに対応するSATのリテラル
   static
   void
-  make_good_FFR(SatSolver& solver,
-		const vector<pair<const TpgNode*, SatLiteral>>& input_list,
-		const TpgNode* onode,
-		SatLiteral olit);
+  make_good_FFR(
+    SatSolver& solver,
+    const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+    const TpgNode* onode,
+    SatLiteral olit
+  );
 
   /// @brief 部分回路に対する正常回路を作る．
   /// @param[in] solver SATソルバ
@@ -46,9 +48,11 @@ public:
   /// @param[in] output_list 出力のノードと対応するSATのリテラルのペアのリスト
   static
   void
-  make_good_cnf(SatSolver& solver,
-		const vector<pair<const TpgNode*, SatLiteral>>& input_list,
-		const vector<pair<const TpgNode*, SatLiteral>>& output_list);
+  make_good_cnf(
+    SatSolver& solver,
+    const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+    const vector<pair<const TpgNode*, SatLiteral>>& output_list
+  );
 
   /// @brief FFR に対する故障回路を作る．
   /// @param[in] solver SATソルバ
@@ -59,12 +63,14 @@ public:
   /// @param[in] fault_list 代表故障と対応するSATのリテラルのペアのリスト
   static
   void
-  make_faulty_FFR(SatSolver& solver,
-		  const TpgNetwork& network,
-		  const vector<pair<const TpgNode*, SatLiteral>>& input_list,
-		  const TpgNode* onode,
-		  SatLiteral olit,
-		  const vector<pair<const TpgFault*, SatLiteral>>& fault_list);
+  make_faulty_FFR(
+    SatSolver& solver,
+    const TpgNetwork& network,
+    const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+    const TpgNode* onode,
+    SatLiteral olit,
+    const vector<pair<const TpgFault*, SatLiteral>>& fault_list
+  );
 
   /// @brief 部分回路に対する故障回路を作る．
   /// @param[in] solver SATソルバ
@@ -74,24 +80,13 @@ public:
   /// @param[in] fault_list 代表故障と対応するSATのリテラルのペアのリスト
   static
   void
-  make_faulty_cnf(SatSolver& solver,
-		  const TpgNetwork& network,
-		  const vector<pair<const TpgNode*, SatLiteral>>& input_list,
-		  const vector<pair<const TpgNode*, SatLiteral>>& output_list,
-		  const vector<pair<const TpgFault*, SatLiteral>>& fault_list);
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
+  make_faulty_cnf(
+    SatSolver& solver,
+    const TpgNetwork& network,
+    const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+    const vector<pair<const TpgNode*, SatLiteral>>& output_list,
+    const vector<pair<const TpgFault*, SatLiteral>>& fault_list
+  );
 
 };
 

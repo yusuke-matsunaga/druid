@@ -3,9 +3,8 @@
 /// @brief NodeValList の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2019 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2019, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "NodeValList.h"
 #include "TpgNode.h"
@@ -14,18 +13,17 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief マージする．
-// @param[in] src_list マージするリスト
-//
-// 矛盾する割当があった場合の動作は不定
 void
-NodeValList::merge(const NodeValList& src_list)
+NodeValList::merge(
+  const NodeValList& src_list
+)
 {
   vector<NodeVal> tmp_list;
-  int n1 = mAsList.size();
-  int n2 = src_list.mAsList.size();
+  SizeType n1 = mAsList.size();
+  SizeType n2 = src_list.mAsList.size();
   tmp_list.reserve(n1 + n2);
-  int i1 = 0;
-  int i2 = 0;
+  SizeType i1 = 0;
+  SizeType i2 = 0;
   while ( i1 < n1 && i2 < n2 ) {
     NodeVal v1 = mAsList[i1];
     NodeVal v2 = src_list.mAsList[i2];
@@ -57,16 +55,17 @@ NodeValList::merge(const NodeValList& src_list)
 }
 
 // @brief 差分を計算する．
-// @param[in] src_list 差分の対象のリスト
 void
-NodeValList::diff(const NodeValList& src_list)
+NodeValList::diff(
+  const NodeValList& src_list
+)
 {
   vector<NodeVal> tmp_list;
-  int n1 = mAsList.size();
-  int n2 = src_list.mAsList.size();
+  SizeType n1 = mAsList.size();
+  SizeType n2 = src_list.mAsList.size();
   tmp_list.reserve(n1);
-  int i1 = 0;
-  int i2 = 0;
+  SizeType i1 = 0;
+  SizeType i2 = 0;
   while ( i1 < n1 && i2 < n2 ) {
     NodeVal v1 = mAsList[i1];
     NodeVal v2 = src_list.mAsList[i2];
@@ -92,14 +91,10 @@ NodeValList::diff(const NodeValList& src_list)
 }
 
 // @brief 矛盾した内容になっていないかチェックする．
-// @return 正しければ true を返す．
-//
-// 具体的には同じノードで異なる値がある場合にエラーとなる．
-// この関数はソートされている前提で動作する．
 bool
 NodeValList::sanity_check() const
 {
-  NodeVal prev(nullptr, 0, false);
+  NodeVal prev{nullptr, 0, false};
   for ( auto nv: mAsList ) {
     if ( prev.node_time() == nv.node_time() && prev.val() != nv.val() ) {
       return false;
@@ -110,19 +105,16 @@ NodeValList::sanity_check() const
 }
 
 // @brief 2つの割当リストを比較する．
-// @retval -1 矛盾した割当がある．
-// @retval  0 無関係
-// @retval  1 src_list1 が src_list2 を含む．
-// @retval  2 src_list2 が src_list1 を含む．
-// @retval  3 等しい
 int
-compare(const NodeValList& src_list1,
-	const NodeValList& src_list2)
+compare(
+  const NodeValList& src_list1,
+  const NodeValList& src_list2
+)
 {
-  int n1 = src_list1.size();
-  int n2 = src_list2.size();
-  int i1 = 0;
-  int i2 = 0;
+  SizeType n1 = src_list1.size();
+  SizeType n2 = src_list2.size();
+  SizeType i1 = 0;
+  SizeType i2 = 0;
   int ans = 3;
   while ( i1 < n1 && i2 < n2 ) {
     NodeVal nv1 = src_list1[i1];
@@ -162,8 +154,10 @@ compare(const NodeValList& src_list1,
 
 // @brief 割当の内容を出力する．
 ostream&
-operator<<(ostream& s,
-	   NodeVal nv)
+operator<<(
+  ostream& s,
+  NodeVal nv
+)
 {
   s << "Node#" << nv.node()->id()
     << "@" << nv.time()
@@ -173,10 +167,11 @@ operator<<(ostream& s,
 
 // @brief 割当リストの内容を出力する．
 ostream&
-operator<<(ostream& s,
-	   const NodeValList& src_list)
+operator<<(
+  ostream& s,
+  const NodeValList& src_list
+)
 {
-  int n = src_list.size();
   const char* comma = "";
   for ( auto nv: src_list ) {
     s << comma << nv;
@@ -187,11 +182,13 @@ operator<<(ostream& s,
 
 // @brief 大小関係の比較関数
 bool
-operator<(const NodeVal& left,
-	  const NodeVal& right)
+operator<(
+  const NodeVal& left,
+  const NodeVal& right
+)
 {
-  const TpgNode* node1 = left.node();
-  const TpgNode* node2 = right.node();
+  auto node1 = left.node();
+  auto node2 = right.node();
   if ( node1->id() < node2->id() ) {
     return true;
   }

@@ -9,7 +9,6 @@
 /// All rights reserved.
 
 #include "druid.h"
-
 #include "ym/bnet.h"
 #include "ym/clib.h"
 
@@ -98,7 +97,7 @@ public:
   /// @brief ノード名を得る．
   const string&
   node_name(
-    int id ///< [in] ID番号 ( 0 <= id < node_num() )
+    SizeType id ///< [in] ID番号 ( 0 <= id < node_num() )
   ) const;
 
   /// @brief 外部入力数を得る．

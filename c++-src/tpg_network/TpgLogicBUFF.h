@@ -18,7 +18,7 @@ BEGIN_NAMESPACE_DRUID
 /// @brief buffer を表すクラス
 //////////////////////////////////////////////////////////////////////
 class TpgLogicBUFF :
-  public TpgLogic1
+  public TpgLogic
 {
   friend class TpgNetworkImpl;
 

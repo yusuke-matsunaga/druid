@@ -21,18 +21,19 @@ struct TestData
   }
 
   // コンストラクタ
-  TestData(const string& filename,
-	   int total_num,
-	   int sa_detect_num,
-	   int td_detect_num,
-	   int sa_untest_num,
-	   int td_untest_num) :
-    mFileName(filename),
-    mTotalFaultNum(total_num),
-    mSaDetectFaultNum(sa_detect_num),
-    mTdDetectFaultNum(td_detect_num),
-    mSaUntestFaultNum(sa_untest_num),
-    mTdUntestFaultNum(td_untest_num)
+  TestData(
+    const string& filename,
+    int total_num,
+    int sa_detect_num,
+    int td_detect_num,
+    int sa_untest_num,
+    int td_untest_num
+  ) : mFileName{filename},
+      mTotalFaultNum{total_num},
+      mSaDetectFaultNum{sa_detect_num},
+      mTdDetectFaultNum{td_detect_num},
+      mSaUntestFaultNum{sa_untest_num},
+      mTdUntestFaultNum{td_untest_num}
   {
   };
 
@@ -57,21 +58,23 @@ struct TestData
 };
 
 ostream&
-operator<<(ostream& s,
-	   TestData tdata)
+operator<<(
+  ostream& s,
+  TestData tdata
+)
 {
   s << tdata.mFileName;
   return s;
 }
 
 TestData mydata[] = {
-  TestData("s27.blif",     32,   32,   32,  0,   0),
-  TestData("s1196.blif", 1242, 1242, 1241,  0,   1),
-  TestData("s5378.blif", 4603, 4563, 4253, 40, 350)
+  TestData{"s27.blif",     32,   32,   32,  0,   0},
+  TestData{"s1196.blif", 1242, 1242, 1241,  0,   1},
+  TestData{"s5378.blif", 4603, 4563, 4253, 40, 350}
 };
 
 class DtpgTestWithParam :
-public ::testing::TestWithParam<std::tuple<TestData, string, FaultType, string> >
+public ::testing::TestWithParam<std::tuple<TestData, string, FaultType, string>>
 {
 public:
 
@@ -140,8 +143,8 @@ private:
 
 
 DtpgTestWithParam::DtpgTestWithParam() :
-  mSolverType("ymsat2"),
-  mDtpgTest(nullptr)
+  mSolverType{"ymsat2"},
+  mDtpgTest{nullptr}
 {
 }
 

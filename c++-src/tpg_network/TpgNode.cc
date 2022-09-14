@@ -131,7 +131,7 @@ TpgNode::is_logic() const
 // node = TpgNetwork::ppi(node->input_id()
 // の関係を満たす．
 // is_ppi() が false の場合の返り値は不定
-int
+SizeType
 TpgNode::input_id() const
 {
   ASSERT_NOT_REACHED;
@@ -144,7 +144,7 @@ TpgNode::input_id() const
 // node = TpgNetwork::ppo(node->output_id())
 // の関係を満たす．
 // is_ppo() が false の場合の返り値は不定
-int
+SizeType
 TpgNode::output_id() const
 {
   ASSERT_NOT_REACHED;
@@ -153,7 +153,7 @@ TpgNode::output_id() const
 }
 
 // @brief TFIサイズの昇順に並べた時の出力番号を返す．
-int
+SizeType
 TpgNode::output_id2() const
 {
   ASSERT_NOT_REACHED;
@@ -230,7 +230,7 @@ TpgNode::noval() const
 // 出力ノード以外では無効
 void
 TpgNode::set_output_id2(
-  int id
+  SizeType id
 )
 {
   ASSERT_NOT_REACHED;

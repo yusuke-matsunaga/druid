@@ -5,7 +5,7 @@
 /// @brief TpgStemFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2007, 2012-2014, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgFaultBase.h"
@@ -24,8 +24,8 @@ public:
 
   /// @brief コンストラクタ
   TpgStemFault(
-    int id,              ///< [in] ID番号
-    int val,             ///< [in] 故障値
+    SizeType id,         ///< [in] ID番号
+    Fval2 val,           ///< [in] 故障値
     const TpgNode* node, ///< [in] 故障位置のノード
     const string& name,  ///< [in] 故障位置のノード名
     TpgFault* rep_fault  ///< [in] 代表故障

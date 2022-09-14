@@ -3,9 +3,8 @@
 /// @brief FsimX の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "FsimX.h"
 
@@ -35,7 +34,9 @@ BEGIN_NONAMESPACE
 // Val3 を PackedVal/PackedVal3 に変換する．
 inline
 FSIM_VALTYPE
-val3_to_packedval(Val3 val)
+val3_to_packedval(
+  Val3 val
+)
 {
 #if FSIM_VAL2
   // kValX は kVal0 とみなす．
@@ -53,7 +54,9 @@ val3_to_packedval(Val3 val)
 // 最下位ビットだけで判断する．
 inline
 Val3
-packedval_to_val3(FSIM_VALTYPE pval)
+packedval_to_val3(
+  FSIM_VALTYPE pval
+)
 {
 #if FSIM_VAL2
   return (pval & 1UL) ? Val3::_1 : Val3::_0;
@@ -73,7 +76,9 @@ packedval_to_val3(FSIM_VALTYPE pval)
 END_NONAMESPACE
 
 std::unique_ptr<FsimImpl>
-new_Fsim(const TpgNetwork& network)
+new_Fsim(
+  const TpgNetwork& network
+)
 {
   return static_cast<std::unique_ptr<FsimImpl>>(new FSIM_CLASSNAME(network));
 }
@@ -85,7 +90,9 @@ new_Fsim(const TpgNetwork& network)
 
 // @brief コンストラクタ
 // @param[in] network ネットワーク
-FSIM_CLASSNAME::FSIM_CLASSNAME(const TpgNetwork& network)
+FSIM_CLASSNAME::FSIM_CLASSNAME(
+  const TpgNetwork& network
+)
 {
   mPatMap = kPvAll0;
   mPPIArray = nullptr;
@@ -110,7 +117,9 @@ FSIM_CLASSNAME::~FSIM_CLASSNAME()
 // @brief ネットワークをセットする関数
 // @param[in] network ネットワーク
 void
-FSIM_CLASSNAME::set_network(const TpgNetwork& network)
+FSIM_CLASSNAME::set_network(
+  const TpgNetwork& network
+)
 {
   mInputNum = network.input_num();
   mOutputNum = network.output_num();
@@ -293,7 +302,9 @@ FSIM_CLASSNAME::set_skip_all()
 // @brief 故障にスキップマークをつける．
 // @param[in] f 対象の故障
 void
-FSIM_CLASSNAME::set_skip(const TpgFault* f)
+FSIM_CLASSNAME::set_skip(
+  const TpgFault* f
+)
 {
   mFaultArray[f->id()]->mSkip = true;
 }
@@ -310,7 +321,9 @@ FSIM_CLASSNAME::clear_skip_all()
 // @brief 故障のスキップマークを消す．
 // @param[in] f 対象の故障
 void
-FSIM_CLASSNAME::clear_skip(const TpgFault* f)
+FSIM_CLASSNAME::clear_skip(
+  const TpgFault* f
+)
 {
   mFaultArray[f->id()]->mSkip = false;
 }
@@ -321,8 +334,10 @@ FSIM_CLASSNAME::clear_skip(const TpgFault* f)
 // @retval true 故障の検出が行えた．
 // @retval false 故障の検出が行えなかった．
 bool
-FSIM_CLASSNAME::spsfp(const TestVector& tv,
-		      const TpgFault* f)
+FSIM_CLASSNAME::spsfp(
+  const TestVector& tv,
+  const TpgFault* f
+)
 {
   TvInputVals iv(tv);
 
@@ -339,8 +354,10 @@ FSIM_CLASSNAME::spsfp(const TestVector& tv,
 // @retval true 故障の検出が行えた．
 // @retval false 故障の検出が行えなかった．
 bool
-FSIM_CLASSNAME::spsfp(const NodeValList& assign_list,
-		      const TpgFault* f)
+FSIM_CLASSNAME::spsfp(
+  const NodeValList& assign_list,
+  const TpgFault* f
+)
 {
   NvlInputVals iv(assign_list);
 
@@ -356,8 +373,10 @@ FSIM_CLASSNAME::spsfp(const NodeValList& assign_list,
 // @return 検出された故障数を返す．
 //
 // 検出された故障は det_fault() で取得する．
-int
-FSIM_CLASSNAME::sppfp(const TestVector& tv)
+SizeType
+FSIM_CLASSNAME::sppfp(
+  const TestVector& tv
+)
 {
   TvInputVals iv(tv);
 
@@ -373,8 +392,10 @@ FSIM_CLASSNAME::sppfp(const TestVector& tv)
 // @return 検出された故障数を返す．
 //
 // 検出された故障は det_fault() で取得する．
-int
-FSIM_CLASSNAME::sppfp(const NodeValList& assign_list)
+SizeType
+FSIM_CLASSNAME::sppfp(
+  const NodeValList& assign_list
+)
 {
   NvlInputVals iv(assign_list);
 
@@ -390,7 +411,7 @@ FSIM_CLASSNAME::sppfp(const NodeValList& assign_list)
 //
 // 検出された故障は det_fault() で取得する．<br>
 // 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
-int
+SizeType
 FSIM_CLASSNAME::ppsfp()
 {
   if ( mPatMap == kPvAll0 ) {
@@ -420,8 +441,10 @@ FSIM_CLASSNAME::clear_patterns()
 // @param[in] pos 位置番号 ( 0 <= pos < kPvBitLen )
 // @param[in] tv テストベクタ
 void
-FSIM_CLASSNAME::set_pattern(int pos,
-			    const TestVector& tv)
+FSIM_CLASSNAME::set_pattern(
+  SizeType pos,
+  const TestVector& tv
+)
 {
   ASSERT_COND( pos >= 0 && pos < kPvBitLen );
 
@@ -436,7 +459,9 @@ FSIM_CLASSNAME::set_pattern(int pos,
 // @brief 設定した ppsfp 用のパタンを読み出す．
 // @param[in] pos 位置番号 ( 0 <= pos < kPvBitLen )
 TestVector
-FSIM_CLASSNAME::get_pattern(int pos)
+FSIM_CLASSNAME::get_pattern(
+  SizeType pos
+)
 {
   ASSERT_COND( pos >= 0 && pos < kPvBitLen );
   ASSERT_COND ( mPatMap & (1ULL << pos) );
@@ -449,7 +474,9 @@ FSIM_CLASSNAME::get_pattern(int pos)
 // @retval true 故障の検出が行えた．
 // @retval false 故障の検出が行えなかった．
 bool
-FSIM_CLASSNAME::_spsfp(const TpgFault* f)
+FSIM_CLASSNAME::_spsfp(
+  const TpgFault* f
+)
 {
   auto ff = mFaultArray[f->id()];
 
@@ -472,7 +499,7 @@ FSIM_CLASSNAME::_spsfp(const TpgFault* f)
 
 // @brief SPPFP故障シミュレーションの本体
 // @return 検出された故障数を返す．
-int
+SizeType
 FSIM_CLASSNAME::_sppfp()
 {
   const SimFFR* ffr_buff[kPvBitLen];
@@ -520,7 +547,7 @@ FSIM_CLASSNAME::_sppfp()
 //
 // 検出された故障は det_fault() で取得する．<br>
 // 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
-int
+SizeType
 FSIM_CLASSNAME::_ppsfp()
 {
   // FFR ごとに処理を行う．
@@ -550,8 +577,10 @@ FSIM_CLASSNAME::_ppsfp()
 // @param[in] i_vect 外部入力のビットベクタ
 // @param[in] f_vect FFの値のビットベクタ
 void
-FSIM_CLASSNAME::set_state(const InputVector& i_vect,
-			  const DffVector& f_vect)
+FSIM_CLASSNAME::set_state(
+  const InputVector& i_vect,
+  const DffVector& f_vect
+)
 {
   int i = 0;
   for ( auto simnode: input_list() ) {
@@ -589,10 +618,12 @@ FSIM_CLASSNAME::set_state(const InputVector& i_vect,
 // @param[in] i_vect 外部入力のビットベクタ
 // @param[in] f_vect FFの値のビットベクタ
 void
-FSIM_CLASSNAME::get_state(InputVector& i_vect,
-			  DffVector& f_vect)
+FSIM_CLASSNAME::get_state(
+  InputVector& i_vect,
+  DffVector& f_vect
+)
 {
-  int i = 0;
+  SizeType i = 0;
   for ( auto simnode: input_list() ) {
     auto val = packedval_to_val3(simnode->val());
     i_vect.set_val(i, val);
@@ -609,11 +640,13 @@ FSIM_CLASSNAME::get_state(InputVector& i_vect,
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
 // @param[in] i_vect 外部入力のビットベクタ
-int
-FSIM_CLASSNAME::calc_wsa(const InputVector& i_vect,
-			 bool weighted)
+SizeType
+FSIM_CLASSNAME::calc_wsa(
+  const InputVector& i_vect,
+  bool weighted
+)
 {
-  int i = 0;
+  SizeType i = 0;
   for ( auto simnode: input_list() ) {
     auto val3 = i_vect.val(i);
     simnode->set_val(val3_to_packedval(val3));
@@ -653,9 +686,11 @@ FSIM_CLASSNAME::calc_wsa(const InputVector& i_vect,
 // weightedの意味は以下の通り
 // - false: ゲートの出力の遷移回数の和
 // - true : ゲートの出力の遷移回数に(ファンアウト数＋１)を掛けたものの和
-int
-FSIM_CLASSNAME::calc_wsa(const TestVector& tv,
-			 bool weighted)
+SizeType
+FSIM_CLASSNAME::calc_wsa(
+  const TestVector& tv,
+  bool weighted
+)
 {
 #if 0
   set_state(tv.input_vector(), tv.dff_vector());
@@ -667,11 +702,13 @@ FSIM_CLASSNAME::calc_wsa(const TestVector& tv,
 }
 
 // @brief ノードの出力の(重み付き)信号遷移回数を求める．
-int
-FSIM_CLASSNAME::_calc_wsa(SimNode* node,
-			  bool weighted)
+SizeType
+FSIM_CLASSNAME::_calc_wsa(
+  SimNode* node,
+  bool weighted
+)
 {
-  int wsa = 0;
+  SizeType wsa = 0;
   if ( mPrevValArray[node->id()] != node->val() ) {
     wsa = 1;
     if ( weighted ) {
@@ -685,7 +722,9 @@ FSIM_CLASSNAME::_calc_wsa(SimNode* node,
 // @brief 正常値の計算を行う．(縮退故障用)
 // @param[in] input_vals 入力値
 void
-FSIM_CLASSNAME::_calc_gval(const InputVals& input_vals)
+FSIM_CLASSNAME::_calc_gval(
+  const InputVals& input_vals
+)
 {
   // 入力の設定を行う．
   input_vals.set_val(*this);
@@ -699,7 +738,9 @@ FSIM_CLASSNAME::_calc_gval(const InputVals& input_vals)
 // @brief 正常値の計算を行う．(遷移故障用)
 // @param[in] input_vals 入力値
 void
-FSIM_CLASSNAME::_calc_gval(const InputVals& input_vals)
+FSIM_CLASSNAME::_calc_gval(
+  const InputVals& input_vals
+)
 {
   // 1時刻目の入力を設定する．
   input_vals.set_val1(*this);
@@ -744,7 +785,9 @@ FSIM_CLASSNAME::_calc_val()
 // @param[in] fault_list 故障のリスト
 // @return 全ての故障の伝搬結果のORを返す．
 PackedVal
-FSIM_CLASSNAME::_foreach_faults(const vector<SimFault*>& fault_list)
+FSIM_CLASSNAME::_foreach_faults(
+  const vector<SimFault*>& fault_list
+)
 {
   auto ffr_req = kPvAll0;
   for ( auto ff: fault_list ) {
@@ -765,8 +808,10 @@ FSIM_CLASSNAME::_foreach_faults(const vector<SimFault*>& fault_list)
 // @param[in] ffr_buf FFR を入れた配列
 // @param[in] ffr_num FFR 数
 void
-FSIM_CLASSNAME::_do_simulation(const SimFFR* ffr_buff[],
-			       int ffr_num)
+FSIM_CLASSNAME::_do_simulation(
+  const SimFFR* ffr_buff[],
+  SizeType ffr_num
+)
 {
   auto obs = mEventQ.simulate();
   PackedVal mask = 1ULL;
@@ -780,7 +825,9 @@ FSIM_CLASSNAME::_do_simulation(const SimFFR* ffr_buff[],
 // @brief 故障をスキャンして結果をセットする(sppfp用)
 // @param[in] fault_list 故障のリスト
 void
-FSIM_CLASSNAME::_fault_sweep(const vector<SimFault*>& fault_list)
+FSIM_CLASSNAME::_fault_sweep(
+  const vector<SimFault*>& fault_list
+)
 {
   for ( auto ff: fault_list ) {
     if ( ff->mSkip || ff->mObsMask == kPvAll0 ) {
@@ -796,8 +843,10 @@ FSIM_CLASSNAME::_fault_sweep(const vector<SimFault*>& fault_list)
 // @param[in] fault_list 故障のリスト
 // @param[in] pat 検出パタン
 void
-FSIM_CLASSNAME::_fault_sweep(const vector<SimFault*>& fault_list,
-			     PackedVal mask)
+FSIM_CLASSNAME::_fault_sweep(
+  const vector<SimFault*>& fault_list,
+  PackedVal mask
+)
 {
   for ( auto ff: fault_list ) {
     if ( ff->mSkip ) {
@@ -850,8 +899,10 @@ FSIM_CLASSNAME::make_input()
 
 // @brief 単純な logic ノードを作る．
 SimNode*
-FSIM_CLASSNAME::make_gate(GateType type,
-			  const vector<SimNode*>& inputs)
+FSIM_CLASSNAME::make_gate(
+  GateType type,
+  const vector<SimNode*>& inputs
+)
 {
   auto id = mNodeArray.size();
   auto node = SimNode::new_gate(id, type, inputs);

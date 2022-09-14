@@ -5,7 +5,7 @@
 /// @brief TpgFaultBase のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgFault.h"
@@ -26,8 +26,8 @@ public:
 
   /// @brief コンストラクタ
   TpgFaultBase(
-    int id,              ///< [in] ID番号
-    int val,		 ///< [in] 故障位置のノード名
+    SizeType id,         ///< [in] ID番号
+    Fval2 val,		 ///< [in] 故障位置のノード名
     const TpgNode* node, ///< [in] 故障値
     const string& name,	 ///< [in] 故障位置のノード
     TpgFault* rep_fault	 ///< [in] 代表故障
@@ -43,12 +43,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ID番号を返す．
-  int
+  SizeType
   id() const override;
 
   /// @brief 故障値を返す．
-  /// @note 返す値は 0 か 1
-  int
+  Fval2
   val() const override;
 
   /// @brief 代表故障を返す．

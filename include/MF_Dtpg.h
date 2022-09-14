@@ -41,7 +41,7 @@ public:
     FaultType fault_type,	     ///< [in] 故障の種類
     const string& just_type,	     ///< [in] Justifier の種類を表す文字列
     const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
-    = SatSolverType()
+    = SatSolverType{}
   );
 
   /// @brief デストラクタ
@@ -142,7 +142,7 @@ private:
   }
 
   /// @brief ノード番号の最大値を返す．
-  int
+  SizeType
   max_node_id() const
   {
     return network().node_num();
@@ -357,7 +357,7 @@ private:
     const TpgNode* node  ///< [in] 対象のノード
   )
   {
-    int id = node->id();
+    SizeType id = node->id();
     if ( ((mMarkArray[id] >> 0) & 1U) == 0U ) {
       mMarkArray[id] |= 1U;
       mTfoList.push_back(node);
@@ -385,7 +385,7 @@ private:
     const TpgNode* node  ///< [in] 対象のノード
   )
   {
-    int id = node->id();
+    SizeType id = node->id();
     if ( (mMarkArray[id] & 3U) == 0U ) {
       mMarkArray[id] |= 2U;
       mTfiList.push_back(node);
@@ -413,7 +413,7 @@ private:
     const TpgNode* node  ///< [in] 対象のノード
   )
   {
-    int id = node->id();
+    SizeType id = node->id();
     if ( ((mMarkArray[id] >> 2) & 1U) == 0U ) {
       mMarkArray[id] |= 4U;
       mTfi2List.push_back(node);
@@ -429,7 +429,7 @@ private:
     const TpgNode* node  ///< [in] 対象のノード
   )
   {
-    int id = node->id();
+    SizeType id = node->id();
     mMarkArray[id] |= 8U;
   }
 
@@ -439,7 +439,7 @@ private:
     const TpgNode* node  ///< [in] 対象のノード
   )
   {
-    int id = node->id();
+    SizeType id = node->id();
     return static_cast<bool>((mMarkArray[id] >> 3) & 1U);
   }
 

@@ -69,7 +69,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ID番号を得る．
-  int
+  SizeType
   id() const
   {
     return mId;
@@ -139,7 +139,7 @@ public:
   /// の関係を満たす．
   /// is_ppi() が false の場合の返り値は不定
   virtual
-  int
+  SizeType
   input_id() const;
 
   /// @brief 外部出力タイプの時に出力番号を返す．
@@ -148,12 +148,12 @@ public:
   /// の関係を満たす．
   /// is_ppo() が false の場合の返り値は不定
   virtual
-  int
+  SizeType
   output_id() const;
 
   /// @brief TFIサイズの昇順に並べた時の出力番号を返す．
   virtual
-  int
+  SizeType
   output_id2() const;
 
   /// @brief 接続している DFF を返す．
@@ -208,7 +208,7 @@ public:
   noval() const;
 
   /// @brief ファンイン数を得る．
-  int
+  SizeType
   fanin_num() const
   {
     return mFaninList.size();
@@ -232,7 +232,7 @@ public:
   }
 
   /// @brief ファンアウト数を得る．
-  int
+  SizeType
   fanout_num() const
   {
     return mFanoutList.size();
@@ -301,7 +301,7 @@ public:
   /// @grief ID番号を設定する．
   void
   set_id(
-    int id
+    SizeType id
   )
   {
     mId = id;
@@ -313,7 +313,7 @@ public:
   virtual
   void
   set_output_id2(
-    int id  ///< [in] セットする番号
+    SizeType id  ///< [in] セットする番号
   );
 
   /// @brief ファンアウト数を設定する．
@@ -343,7 +343,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // ID 番号
-  int mId{0};
+  SizeType mId{0};
 
   // ファンインの配列
   vector<const TpgNode*> mFaninList;

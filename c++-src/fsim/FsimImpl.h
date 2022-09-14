@@ -6,9 +6,8 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "FaultType.h"
@@ -27,7 +26,7 @@ class FsimImpl
 public:
 
   virtual
-  ~FsimImpl() { }
+  ~FsimImpl() = default;
 
 
 public:
@@ -41,17 +40,19 @@ public:
   set_skip_all() = 0;
 
   /// @brief 故障にスキップマークをつける．
-  /// @param[in] f 対象の故障
   virtual
   void
-  set_skip(const TpgFault* f) = 0;
+  set_skip(
+    const TpgFault* f ///< [in] 対象の故障
+  ) = 0;
 
   /// @brief 複数の故障にスキップマークをつける．
-  /// @param[in] fault_list 故障のリスト
   ///
   /// fault_list に含まれない故障のスキップマークは消される．
   void
-  set_skip(const vector<const TpgFault*>& fault_list);
+  set_skip(
+    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
+  );
 
   /// @brief 全ての故障のスキップマークを消す．
   virtual
@@ -59,17 +60,19 @@ public:
   clear_skip_all() = 0;
 
   /// @brief 故障のスキップマークを消す．
-  /// @param[in] f 対象の故障
   virtual
   void
-  clear_skip(const TpgFault* f) = 0;
+  clear_skip(
+    const TpgFault* f ///< [in] 対象の故障
+  ) = 0;
 
   /// @brief 複数の故障のスキップマークを消す．
-  /// @param[in] fault_list 故障のリスト
   ///
   /// fault_list に含まれない故障のスキップマークは付けられる．
   void
-  clear_skip(const vector<const TpgFault*>& fault_list);
+  clear_skip(
+    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
+  );
 
 
 public:
@@ -78,42 +81,44 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief SPSFP故障シミュレーションを行う．
-  /// @param[in] tv テストベクタ
-  /// @param[in] f 対象の故障
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
   virtual
   bool
-  spsfp(const TestVector& tv,
-	const TpgFault* f) = 0;
+  spsfp(
+    const TestVector& tv, ///< [in] テストベクタ
+    const TpgFault* f     ///< [in] 対象の故障
+  ) = 0;
 
   /// @brief SPSFP故障シミュレーションを行う．
-  /// @param[in] assign_list 値の割当リスト
-  /// @param[in] f 対象の故障
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
   virtual
   bool
-  spsfp(const NodeValList& assign_list,
-	const TpgFault* f) = 0;
+  spsfp(
+    const NodeValList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault* f               ///< [in] 対象の故障
+  ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @param[in] tv テストベクタ
   /// @return 検出された故障数を返す．
   ///
   /// 検出された故障は det_fault() で取得する．
   virtual
-  int
-  sppfp(const TestVector& tv) = 0;
+  SizeType
+  sppfp(
+    const TestVector& tv ///< [in] テストベクタ
+  ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @param[in] assign_list 値の割当リスト
   /// @return 検出された故障数を返す．
   ///
   /// 検出された故障は det_fault() で取得する．
   virtual
-  int
-  sppfp(const NodeValList& assign_list) = 0;
+  SizeType
+  sppfp(
+    const NodeValList& assign_list ///< [in] 値の割当リスト
+  ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   /// @return 検出された故障数を返す．
@@ -121,7 +126,7 @@ public:
   /// 検出された故障は det_fault() で取得する．<br>
   /// 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
   virtual
-  int
+  SizeType
   ppsfp() = 0;
 
 
@@ -131,40 +136,47 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
-  /// @param[in] tv テストベクタ
+  /// @param[in] tv
   ///
-  /// - 外部入力以外は無視する．
-  /// - 時刻1の割り当ても無視する
   /// weightedの意味は以下の通り
-  /// - false: ゲートの出力の遷移回数の和
-  /// - true : ゲートの出力の遷移回数に(ファンアウト数＋１)を掛けたものの和
   virtual
-  int
-  calc_wsa(const TestVector& tv,
-	   bool weighted) = 0;
+  SizeType
+  calc_wsa(
+    const TestVector& tv, ///< [in] テストベクタ
+                          /// - 外部入力以外は無視する．
+                          /// - 時刻1の割り当ても無視する
+    bool weighted         ///< [in] 重みフラグ
+                          /// - false: ゲートの出力の遷移回数の和
+                          /// - true : ゲートの出力の遷移回数に(ファンアウト数＋１)
+                          ///          を掛けたものの和
+  ) = 0;
 
   /// @brief 状態を設定する．
-  /// @param[in] i_vect 外部入力のビットベクタ
-  /// @param[in] f_vect FFの値のビットベクタ
   virtual
   void
-  set_state(const InputVector& i_vect,
-	    const DffVector& f_vect) = 0;
+  set_state(
+    const InputVector& i_vect, ///< [in] 外部入力のビットベクタ
+    const DffVector& f_vect    ///< [in] FFの値のビットベクタ
+  ) = 0;
 
   /// @brief 状態を取得する．
-  /// @param[in] i_vect 外部入力のビットベクタ
-  /// @param[in] f_vect FFの値のビットベクタ
   virtual
   void
-  get_state(InputVector& i_vect,
-	    DffVector& f_vect) = 0;
+  get_state(
+    InputVector& i_vect, ///< [out] 外部入力のビットベクタ
+    DffVector& f_vect    ///< [out] FFの値のビットベクタ
+  ) = 0;
 
   /// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
-  /// @param[in] i_vect 外部入力のビットベクタ
   virtual
-  int
-  calc_wsa(const InputVector& i_vect,
-	   bool weighted) = 0;
+  SizeType
+  calc_wsa(
+    const InputVector& i_vect, ///< [in] 外部入力のビットベクタ
+    bool weighted              ///< [in] 重みフラグ
+                               /// - false: ゲートの出力の遷移回数の和
+                               /// - true : ゲートの出力の遷移回数に(ファンアウト数＋１)
+                               ///          を掛けたものの和
+  ) = 0;
 
 
 public:
@@ -178,18 +190,19 @@ public:
   clear_patterns() = 0;
 
   /// @brief ppsfp 用のパタンを設定する．
-  /// @param[in] pos 位置番号 ( 0 <= pos < kPvBitLen )
-  /// @param[in] tv テストベクタ
   virtual
   void
-  set_pattern(int pos,
-	      const TestVector& tv) = 0;
+  set_pattern(
+    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    const TestVector& tv ///< [in] テストベクタ
+  ) = 0;
 
   /// @brief 設定した ppsfp 用のパタンを読み出す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < kPvBitLen )
   virtual
   TestVector
-  get_pattern(int pos) = 0;
+  get_pattern(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+  ) = 0;
 
 
 public:
@@ -199,14 +212,15 @@ public:
 
   /// @brief 直前の sppfp/ppsfp で検出された故障数を返す．
   virtual
-  int
+  SizeType
   det_fault_num() = 0;
 
   /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < det_fault_num() )
   virtual
   const TpgFault*
-  det_fault(int pos) = 0;
+  det_fault(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
+  ) = 0;
 
   /// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
   virtual
@@ -214,10 +228,11 @@ public:
   det_fault_list() = 0;
 
   /// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < det_fault_num() )
   virtual
   PackedVal
-  det_fault_pat(int pos) = 0;
+  det_fault_pat(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
+  ) = 0;
 
   /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
   virtual

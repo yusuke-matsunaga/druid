@@ -762,25 +762,24 @@ Analyzer::common_cube(
   NodeValList cube;
   if ( expr.is_posi_literal() ) {
     int id = expr.varid().val();
-    const TpgNode* node = mNetwork.node(id);
+    auto node = mNetwork.node(id);
     cube.add(node, 1, true);
   }
   else if ( expr.is_nega_literal() ) {
     int id = expr.varid().val();
-    const TpgNode* node = mNetwork.node(id);
+    auto node = mNetwork.node(id);
     cube.add(node, 1, false);
   }
   else if ( expr.is_and() ) {
-    int n = expr.child_num();
-    for ( int i: Range(n) ) {
-      NodeValList cube1 = common_cube(expr.child(i));
+    for ( auto expr1: expr.operand_list() ) {
+      auto cube1 = common_cube(expr1);
       cube += cube1;
     }
   }
   else if ( expr.is_or() ) {
     // 最初のキューブだけを使う．
-    ASSERT_COND( expr.child_num() > 0 );
-    cube = common_cube(expr.child(0));
+    ASSERT_COND( expr.operand_num() > 0 );
+    cube = common_cube(expr.operand(0));
   }
   else if ( expr.is_xor() ) {
     ASSERT_NOT_REACHED;
@@ -798,7 +797,7 @@ Analyzer::restrict(
 {
   unordered_map<VarId, bool> val_map;
   for ( auto nv: mand_cond ) {
-    const TpgNode* node = nv.node();
+    auto node = nv.node();
     bool val = nv.val();
     val_map.emplace(VarId(node->id()), val);
   }
@@ -842,20 +841,20 @@ Analyzer::_restrict_sub(
     return expr;
   }
   else if ( expr.is_and() ) {
-    int n = expr.child_num();
+    SizeType n = expr.operand_num();
     ASSERT_COND( n > 0 );
-    Expr ans_expr = _restrict_sub(expr.child(0), val_map);
-    for ( int i: Range(1, n) ) {
-      ans_expr &= _restrict_sub(expr.child(i), val_map);
+    Expr ans_expr = _restrict_sub(expr.operand(0), val_map);
+    for ( SizeType i: Range(1, n) ) {
+      ans_expr &= _restrict_sub(expr.operand(i), val_map);
     }
     return ans_expr;
   }
   else if ( expr.is_or() ) {
-    int n = expr.child_num();
+    SizeType n = expr.operand_num();
     ASSERT_COND( n > 0 );
-    Expr ans_expr = _restrict_sub(expr.child(0), val_map);
-    for ( int i: Range(1, n) ) {
-      ans_expr |= _restrict_sub(expr.child(i), val_map);
+    Expr ans_expr = _restrict_sub(expr.operand(0), val_map);
+    for ( SizeType i: Range(1, n) ) {
+      ans_expr |= _restrict_sub(expr.operand(i), val_map);
     }
     return ans_expr;
   }

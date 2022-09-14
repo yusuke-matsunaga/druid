@@ -50,7 +50,7 @@ public:
 
   /// @brief 1セット(kPvBitLen個)のパタンで故障シミュレーションを行う．
   /// @return 新たに検出された故障数を返す．
-  int
+  SizeType
   do_fsim();
 
   /// @brief 検出された故障のリストを返す．

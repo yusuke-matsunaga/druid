@@ -24,12 +24,11 @@ protected:
 
   /// @brief コンストラクタ
   TpgPPO(
-    int output_id,       ///< [in] 出力番号
+    SizeType output_id,  ///< [in] 出力番号
     const TpgNode* fanin ///< [in] ファンインのノード
   );
 
   /// @brief デストラクタ
-  virtual
   ~TpgPPO() = default;
 
 
@@ -49,11 +48,11 @@ public:
   /// node = TpgNetwork::output(node->output_id())
   /// の関係を満たす．
   /// is_output() が false の場合の返り値は不定
-  int
+  SizeType
   output_id() const override;
 
   /// @brief TFIサイズの昇順に並べた時の出力番号を返す．
-  int
+  SizeType
   output_id2() const override;
 
   /// @brief ゲートタイプを得る．
@@ -74,7 +73,7 @@ public:
   /// 出力ノード以外では無効
   void
   set_output_id2(
-    int id ///< [in] セットする番号
+    SizeType id ///< [in] セットする番号
   ) override;
 
 
@@ -84,10 +83,10 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 出力番号
-  int mOutputId;
+  SizeType mOutputId;
 
   // 出力番号2
-  int mOutputId2;
+  SizeType mOutputId2;
 
 };
 

@@ -69,7 +69,7 @@ StructEnc::~StructEnc()
 }
 
 // @brief fault cone を追加する．
-int
+SizeType
 StructEnc::add_simple_cone(
   const TpgNode* fnode,
   const TpgNode* bnode,
@@ -77,7 +77,7 @@ StructEnc::add_simple_cone(
 )
 {
   auto focone = new SimplePropCone{*this, fnode, bnode, detect};
-  int cone_id = mConeList.size();
+  SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{focone});
 
   if ( fault_type() == FaultType::TransitionDelay ) {
@@ -89,7 +89,7 @@ StructEnc::add_simple_cone(
 }
 
 // @brief MFFC cone を追加する．
-int
+SizeType
 StructEnc::add_mffc_cone(
   const TpgMFFC& mffc,
   const TpgNode* bnode,
@@ -97,7 +97,7 @@ StructEnc::add_mffc_cone(
 )
 {
   auto mffccone = new MffcPropCone{*this, mffc, bnode, detect};
-  int cone_id = mConeList.size();
+  SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{mffccone});
 
   if ( fault_type() == FaultType::TransitionDelay ) {
@@ -112,7 +112,7 @@ StructEnc::add_mffc_cone(
 vector<SatLiteral>
 StructEnc::make_prop_condition(
   const TpgNode* ffr_root,
-  int cone_id
+  SizeType cone_id
 )
 {
   /// FFR より出力側の故障伝搬条件を assumptions に入れる．
@@ -130,7 +130,7 @@ StructEnc::add_fault_condition(
   // 故障の活性化条件
   const TpgNode* inode = fault->tpg_inode();
   // 0縮退故障の時 1にする．
-  bool val = (fault->val() == 0);
+  bool val = (fault->val() == Fval2::zero);
   assign_list.add(inode, 1, val);
 
   if ( fault_type() == FaultType::TransitionDelay ) {
@@ -438,7 +438,7 @@ StructEnc::check_sat(
 NodeValList
 StructEnc::extract_prop_condition(
   const TpgNode* ffr_root,
-  int cone_id,
+  SizeType cone_id,
   const SatModel& model
 )
 {

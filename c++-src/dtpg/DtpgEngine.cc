@@ -689,31 +689,31 @@ DtpgEngine::add_negation(
 {
   if ( expr.is_posi_literal() ) {
     int id = expr.varid().val();
-    const TpgNode* node = mNetwork.node(id);
+    auto node = mNetwork.node(id);
     SatLiteral lit(gvar(node));
     solver().add_clause(~clit, ~lit);
   }
   else if ( expr.is_nega_literal() ) {
     int id = expr.varid().val();
-    const TpgNode* node = mNetwork.node(id);
+    auto node = mNetwork.node(id);
     SatLiteral lit(gvar(node));
     solver().add_clause(~clit,  lit);
   }
   else if ( expr.is_and() ) {
-    int n = expr.child_num();
+    SizeType n = expr.operand_num();
     ASSERT_COND( n > 0 );
-    vector<SatLiteral> tmp_lits(n + 1);
-    tmp_lits[0] = ~clit;
-    for ( int i: Range(n) ) {
-      SatLiteral lit1 = _add_negation_sub(expr.child(i));
-      tmp_lits[i + 1] = ~lit1;
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(n + 1);
+    tmp_lits.push_back(~clit);
+    for ( auto expr1: expr.operand_list() ) {
+      SatLiteral lit1 = _add_negation_sub(expr1);
+      tmp_lits.push_back(~lit1);
     }
     solver().add_clause(tmp_lits);
   }
   else if ( expr.is_or() ) {
-    int n = expr.child_num();
-    for ( int i: Range(n) ) {
-      SatLiteral lit1 = _add_negation_sub(expr.child(i));
+    for ( auto expr1: expr.operand_list() ) {
+      SatLiteral lit1 = _add_negation_sub(expr1);
       solver().add_clause(~clit, ~lit1);
     }
   }
@@ -723,7 +723,6 @@ DtpgEngine::add_negation(
 }
 
 // @brief add_negation の下請け関数
-// @param[in] expr 論理式
 SatLiteral
 DtpgEngine::_add_negation_sub(
   const Expr& expr
@@ -731,33 +730,33 @@ DtpgEngine::_add_negation_sub(
 {
   if ( expr.is_posi_literal() ) {
     int id = expr.varid().val();
-    const TpgNode* node = mNetwork.node(id);
+    auto node = mNetwork.node(id);
     auto lit = gvar(node);
     return lit;
   }
   else if ( expr.is_nega_literal() ) {
     int id = expr.varid().val();
-    const TpgNode* node = mNetwork.node(id);
+    auto node = mNetwork.node(id);
     auto lit = gvar(node);
     return ~lit;
   }
   else if ( expr.is_and() ) {
-    int n = expr.child_num();
+    SizeType n = expr.operand_num();
     auto nlit = solver().new_variable();
-    vector<SatLiteral> tmp_lits(n + 1);
-    tmp_lits[0] = nlit;
-    for ( int i: Range(n) ) {
-      auto lit1 = _add_negation_sub(expr.child(i));
-      tmp_lits[i + 1] = ~lit1;
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(n + 1);
+    tmp_lits.push_back(nlit);
+    for ( auto expr1: expr.operand_list() ) {
+      auto lit1 = _add_negation_sub(expr1);
+      tmp_lits.push_back(~lit1);
     }
     solver().add_clause(tmp_lits);
     return nlit;
   }
   else if ( expr.is_or() ) {
     auto nlit = solver().new_variable();
-    int n = expr.child_num();
-    for ( int i: Range(n) ) {
-      auto lit1 = _add_negation_sub(expr.child(i));
+    for ( auto expr1: expr.operand_list() ) {
+      auto lit1 = _add_negation_sub(expr1);
       solver().add_clause(nlit, ~lit1);
     }
     return nlit;

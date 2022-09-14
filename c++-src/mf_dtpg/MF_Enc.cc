@@ -6,7 +6,6 @@
 /// Copyright (C) 2019 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "MF_Enc.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
@@ -25,13 +24,15 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 void
-gate_enc(SatSolver& solver,
-	 GateType gate_type,
-	 const vector<SatLiteral>& ilit_list,
-	 SatLiteral olit)
+gate_enc(
+  SatSolver& solver,
+  GateType gate_type,
+  const vector<SatLiteral>& ilit_list,
+  SatLiteral olit
+)
 {
   SatTseitinEnc enc{solver};
-  int ni = ilit_list.size();
+  SizeType ni = ilit_list.size();
   switch ( gate_type ) {
   case GateType::Const0:
     solver.add_clause(~olit);
@@ -222,11 +223,13 @@ gate_enc(SatSolver& solver,
 }
 
 void
-good_cnf_dfs(SatSolver& solver,
-	     const TpgNode* node,
-	     SatLiteral olit,
-	     const unordered_map<int, SatLiteral>& input_varmap,
-	     unordered_set<int>& dfs_mark)
+good_cnf_dfs(
+  SatSolver& solver,
+  const TpgNode* node,
+  SatLiteral olit,
+  const unordered_map<SizeType, SatLiteral>& input_varmap,
+  unordered_set<SizeType>& dfs_mark
+)
 {
   if ( dfs_mark.count(node->id()) > 0 ) {
     return;
@@ -234,9 +237,9 @@ good_cnf_dfs(SatSolver& solver,
   dfs_mark.emplace(node->id());
 
   // ファンインに再帰して入力側のCNF式を作っておく．
-  int ni = node->fanin_num();
+  SizeType ni = node->fanin_num();
   vector<SatLiteral> ilit_list(ni);
-  for ( int i: Range(ni) ) {
+  for ( SizeType i: Range(ni) ) {
     auto inode = node->fanin(i);
     if ( input_varmap.count(inode->id()) == 0 ) {
       auto ilit = solver.new_variable();
@@ -251,13 +254,15 @@ good_cnf_dfs(SatSolver& solver,
 }
 
 void
-faulty_cnf_dfs(SatSolver& solver,
-	       const TpgNetwork& network,
-	       const TpgNode* node,
-	       SatLiteral olit,
-	       const unordered_map<int, SatLiteral>& input_varmap,
-	       const unordered_map<int, SatLiteral>& fault_varmap,
-	       unordered_set<int>& dfs_mark)
+faulty_cnf_dfs(
+  SatSolver& solver,
+  const TpgNetwork& network,
+  const TpgNode* node,
+  SatLiteral olit,
+  const unordered_map<SizeType, SatLiteral>& input_varmap,
+  const unordered_map<SizeType, SatLiteral>& fault_varmap,
+  unordered_set<SizeType>& dfs_mark
+)
 {
   if ( dfs_mark.count(node->id()) > 0 ) {
     return;
@@ -265,9 +270,9 @@ faulty_cnf_dfs(SatSolver& solver,
   dfs_mark.emplace(node->id());
 
   // ファンインに再帰して入力側のCNF式を作っておく．
-  int ni = node->fanin_num();
+  SizeType ni = node->fanin_num();
   vector<SatLiteral> ilit_list(ni);
-  for ( int i: Range(ni) ) {
+  for ( SizeType i: Range(ni) ) {
     auto inode = node->fanin(i);
     if ( input_varmap.count(inode->id()) == 0 ) {
       auto ilit = solver.new_variable();
@@ -279,23 +284,25 @@ faulty_cnf_dfs(SatSolver& solver,
 
   SatTseitinEnc enc{solver};
   // 故障挿入回路を作る．
-  int nf = network.node_rep_fault_num(node->id());
+  SizeType nf = network.node_rep_fault_num(node->id());
   for ( auto i: Range(nf) ) {
     auto f = network.node_rep_fault(node->id(), i);
     ASSERT_COND( fault_varmap.count(f->id()) > 0 );
     SatLiteral flit = fault_varmap.at(f->id());
     if ( f->is_branch_fault() ) {
       // ブランチの故障
-      int pos = f->tpg_pos();
+      SizeType pos = f->tpg_pos();
       auto olit = solver.new_variable();
       SatLiteral ilit{ilit_list[pos]};
-      if ( f->val() == 0 ) {
+      switch ( f->val() ) {
+      case Fval2::zero:
 	// 0縮退故障の挿入回路を追加する．
 	enc.add_andgate(olit, ilit, ~flit);
-      }
-      else {
+	break;
+      case Fval2::one:
 	// 1縮退故障の挿入回路を追加する．
 	enc.add_orgate(olit, ilit, flit);
+	break;
       }
       // ovar を ilit_list[pos] に置き換える．
       ilit_list[pos] = olit;
@@ -303,13 +310,15 @@ faulty_cnf_dfs(SatSolver& solver,
     else {
       // ステムの故障
       auto tmp_lit = solver.new_variable();
-      if ( f->val() == 0 ) {
+      switch ( f->val() ) {
+      case Fval2::zero:
 	// 0縮退故障の挿入回路を追加する．
 	enc.add_andgate(olit, tmp_lit, ~flit);
-      }
-      else {
+	break;
+      case Fval2::one:
 	// 1縮退故障の挿入回路を追加する．
 	enc.add_orgate(olit, tmp_lit, flit);
+	break;
       }
       olit = tmp_lit;
     }
@@ -326,19 +335,21 @@ END_NONAMESPACE
 // @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
 // @param[in] output_list 出力のノードと対応するSATのリテラルのペアのリスト
 void
-MF_Enc::make_good_cnf(SatSolver& solver,
-		      const vector<pair<const TpgNode*, SatLiteral>>& input_list,
-		      const vector<pair<const TpgNode*, SatLiteral>>& output_list)
+MF_Enc::make_good_cnf(
+  SatSolver& solver,
+  const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+  const vector<pair<const TpgNode*, SatLiteral>>& output_list
+)
 {
   // ノード番号をキーにして対応するリテラルを保持するハッシュ表
-  unordered_map<int, SatLiteral> input_varmap;
+  unordered_map<SizeType, SatLiteral> input_varmap;
   for ( const auto& p: input_list ) {
     auto node = p.first;
     auto lit = p.second;
     input_varmap.emplace(node->id(), lit);
   }
 
-  unordered_set<int> dfs_mark;
+  unordered_set<SizeType> dfs_mark;
   for ( const auto& p: output_list ) {
     auto node = p.first;
     auto lit = p.second;
@@ -354,12 +365,15 @@ MF_Enc::make_good_cnf(SatSolver& solver,
 //
 // * input_vars の順番は ffr.input_list() の順番と同じ
 void
-MF_Enc::make_good_FFR(SatSolver& solver,
-		      const vector<pair<const TpgNode*, SatLiteral>>& input_list,
-		      const TpgNode* onode,
-		      SatLiteral olit)
+MF_Enc::make_good_FFR(
+  SatSolver& solver,
+  const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+  const TpgNode* onode,
+  SatLiteral olit
+)
 {
-  make_good_cnf(solver, input_list, vector<pair<const TpgNode*, SatLiteral>>{make_pair(onode, olit)});
+  make_good_cnf(solver, input_list,
+		vector<pair<const TpgNode*, SatLiteral>>{{onode, olit}});
 }
 
 // @brief 部分回路に対する故障回路を作る．
@@ -369,14 +383,16 @@ MF_Enc::make_good_FFR(SatSolver& solver,
 // @param[in] output_list 出力のノードと対応するSATのリテラルのペアのリスト
 // @param[in] fault_list 代表故障と対応するSATのリテラルのペアのリスト
 void
-MF_Enc::make_faulty_cnf(SatSolver& solver,
-			const TpgNetwork& network,
-			const vector<pair<const TpgNode*, SatLiteral>>& input_list,
-			const vector<pair<const TpgNode*, SatLiteral>>& output_list,
-			const vector<pair<const TpgFault*, SatLiteral>>& fault_list)
+MF_Enc::make_faulty_cnf(
+  SatSolver& solver,
+  const TpgNetwork& network,
+  const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+  const vector<pair<const TpgNode*, SatLiteral>>& output_list,
+  const vector<pair<const TpgFault*, SatLiteral>>& fault_list
+)
 {
   // ノード番号をキーにして対応するリテラルを保持するハッシュ表
-  unordered_map<int, SatLiteral> input_varmap;
+  unordered_map<SizeType, SatLiteral> input_varmap;
   for ( const auto& p: input_list ) {
     auto node = p.first;
     auto lit = p.second;
@@ -384,14 +400,14 @@ MF_Enc::make_faulty_cnf(SatSolver& solver,
   }
 
   // 故障番号をキーにして対応するリテラルを保持するハッシュ表
-  unordered_map<int, SatLiteral> fault_varmap;
+  unordered_map<SizeType, SatLiteral> fault_varmap;
   for ( const auto& p: fault_list ) {
     auto fault = p.first;
     auto lit = p.second;
     fault_varmap.emplace(fault->id(), lit);
   }
 
-  unordered_set<int> dfs_mark;
+  unordered_set<SizeType> dfs_mark;
   for ( const auto& p: output_list ) {
     auto node = p.first;
     auto lit = p.second;
@@ -407,12 +423,14 @@ MF_Enc::make_faulty_cnf(SatSolver& solver,
 // @param[in] olit 出力のノードに対応するSATのリテラル
 // @param[in] fault_list 代表故障と対応するSATのリテラルのペアのリスト
 void
-MF_Enc::make_faulty_FFR(SatSolver& solver,
-			const TpgNetwork& network,
-			const vector<pair<const TpgNode*, SatLiteral>>& input_list,
-			const TpgNode* onode,
-			SatLiteral olit,
-			const vector<pair<const TpgFault*, SatLiteral>>& fault_list)
+MF_Enc::make_faulty_FFR(
+  SatSolver& solver,
+  const TpgNetwork& network,
+  const vector<pair<const TpgNode*, SatLiteral>>& input_list,
+  const TpgNode* onode,
+  SatLiteral olit,
+  const vector<pair<const TpgFault*, SatLiteral>>& fault_list
+)
 {
   make_faulty_cnf(solver, network, input_list,
 		  vector<pair<const TpgNode*, SatLiteral>>{make_pair(onode, olit)},

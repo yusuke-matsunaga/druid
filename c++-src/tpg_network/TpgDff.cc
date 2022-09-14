@@ -3,7 +3,7 @@
 /// @brief TpgDff の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgDff.h"
@@ -31,7 +31,7 @@ TpgDff::~TpgDff()
 }
 
 // @brief ID番号を返す．
-int
+SizeType
 TpgDff::id() const
 {
   return mId;

@@ -5,10 +5,11 @@
 /// @brief TpgFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
+#include "Fval2.h"
 #include "Val3.h"
 
 
@@ -51,7 +52,7 @@ public:
 
   /// @brief ID番号を返す．
   virtual
-  int
+  SizeType
   id() const = 0;
 
   /// @brief 故障の入力側の TpgNode を返す．
@@ -94,21 +95,20 @@ public:
   tpg_pos() const = 0;
 
   /// @brief 故障値を返す．
-  /// @note 返す値は 0 か 1
   virtual
-  int
+  Fval2
   val() const = 0;
 
   /// @brief 故障値を3値型で返す．
   Val3
   val3() const
   {
-    if ( val() ) {
-      return Val3::_1;
+    switch ( val() ) {
+    case Fval2::zero: return Val3::_0;
+    case Fval2::one:  return Val3::_1;
     }
-    else {
-      return Val3::_0;
-    }
+    ASSERT_NOT_REACHED;
+    return Val3::_0;
   }
 
   /// @brief 故障が励起してFFRの根まで伝搬する条件を求める．

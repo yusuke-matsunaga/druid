@@ -58,8 +58,8 @@ new_DopDrop(
 /// @brief 'tvlist' タイプを生成する．
 DetectOp*
 new_DopTvList(
-  int input_num,             ///< [in] 入力数
-  int dff_num,               ///< [in] DFF数
+  SizeType input_num,        ///< [in] 入力数
+  SizeType dff_num,          ///< [in] DFF数
   FaultType fault_type,      ///< [in] 故障タイプ
   vector<TestVector>& tvlist ///< [in] テストベクタのリスト
 );

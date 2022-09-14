@@ -3,9 +3,8 @@
 /// @brief TpgNetwork の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2014, 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2014, 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
@@ -25,7 +24,7 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 TpgNetwork::TpgNetwork() :
-  mImpl(new TpgNetworkImpl)
+  mImpl{new TpgNetworkImpl}
 {
 }
 
@@ -42,7 +41,7 @@ TpgNetwork::operator=(
   TpgNetwork&& src
 )
 {
-  std::swap(Impl, src.mImpl);
+  std::swap(mImpl, src.mImpl);
   return *this;
 }
 
@@ -77,7 +76,7 @@ TpgNetwork::node_list() const
 // @brief ノード名を得る．
 const string&
 TpgNetwork::node_name(
-  int id
+  SizeType id
 ) const
 {
   return mImpl->node_name(id);

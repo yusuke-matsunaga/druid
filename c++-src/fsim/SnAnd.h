@@ -5,11 +5,11 @@
 /// @brief SnAnd のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "SnGate.h"
+#include "ym/Range.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -24,18 +24,20 @@ class SnAnd :
 public:
 
   /// @brief コンストラクタ
-  SnAnd(int id,
-	const vector<SimNode*>& inputs);
+  SnAnd(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnGate{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnAnd();
+  ~SnAnd() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -46,14 +48,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
-  virtual
   PackedVal
-  _calc_gobs(int ipos) override;
+  _calc_gobs(
+    SizeType ipos
+  ) override;
 
 
 protected:
@@ -63,7 +65,14 @@ protected:
 
   /// @brief ファンインの値のANDを計算する．
   FSIM_VALTYPE
-  _calc_and();
+  _calc_and()
+  {
+    auto val = _fanin(0)->val();
+    for ( auto i: Range(1, _fanin_num()) ) {
+      val &= _fanin(i)->val();
+    }
+  return val;
+  }
 
 };
 
@@ -78,18 +87,20 @@ class SnAnd2 :
 public:
 
   /// @brief コンストラクタ
-  SnAnd2(int id,
-	 const vector<SimNode*>& inputs);
+  SnAnd2(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnGate2{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnAnd2();
+  ~SnAnd2() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -100,14 +111,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
-  virtual
   PackedVal
-  _calc_gobs(int ipos) override;
+  _calc_gobs(
+    SizeType ipos
+  ) override;
 
 
 protected:
@@ -117,7 +128,12 @@ protected:
 
   /// @brief ファンインの値のANDを計算する．
   FSIM_VALTYPE
-  _calc_and();
+  _calc_and()
+  {
+    auto val0 = _fanin(0)->val();
+    auto val1 = _fanin(1)->val();
+    return val0 & val1;
+  }
 
 };
 
@@ -132,18 +148,20 @@ class SnAnd3 :
 public:
 
   /// @brief コンストラクタ
-  SnAnd3(int id,
-	 const vector<SimNode*>& inputs);
+  SnAnd3(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnGate3{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnAnd3();
+  ~SnAnd3() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -154,14 +172,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
-  virtual
   PackedVal
-  _calc_gobs(int ipos) override;
+  _calc_gobs(
+    SizeType ipos
+  ) override;
 
 
 protected:
@@ -171,7 +189,13 @@ protected:
 
   /// @brief ファンインの値のANDを計算する．
   FSIM_VALTYPE
-  _calc_and();
+  _calc_and()
+  {
+    auto val0 = _fanin(0)->val();
+    auto val1 = _fanin(1)->val();
+    auto val2 = _fanin(2)->val();
+    return val0 & val1 & val2;
+  }
 
 };
 
@@ -186,18 +210,20 @@ class SnAnd4 :
 public:
 
   /// @brief コンストラクタ
-  SnAnd4(int id,
-	 const vector<SimNode*>& inputs);
+  SnAnd4(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnGate4{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnAnd4();
+  ~SnAnd4() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -208,14 +234,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
-  virtual
   PackedVal
-  _calc_gobs(int ipos) override;
+  _calc_gobs(
+    SizeType ipos
+  ) override;
 
 
 protected:
@@ -225,7 +251,14 @@ protected:
 
   /// @brief ファンインの値のANDを計算する．
   FSIM_VALTYPE
-  _calc_and();
+  _calc_and()
+  {
+    auto val0 = _fanin(0)->val();
+    auto val1 = _fanin(1)->val();
+    auto val2 = _fanin(2)->val();
+    auto val3 = _fanin(3)->val();
+    return val0 & val1 & val2 & val3;
+  }
 
 };
 
@@ -240,18 +273,20 @@ class SnNand :
 public:
 
   /// @brief コンストラクタ
-  SnNand(int id,
-	 const vector<SimNode*>& inputs);
+  SnNand(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnAnd{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnNand();
+  ~SnNand() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -262,7 +297,6 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 
@@ -279,18 +313,20 @@ class SnNand2 :
 public:
 
   /// @brief コンストラクタ
-  SnNand2(int id,
-	  const vector<SimNode*>& inputs);
+  SnNand2(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnAnd2{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnNand2();
+  ~SnNand2() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -301,7 +337,6 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 
@@ -318,18 +353,20 @@ class SnNand3 :
 public:
 
   /// @brief コンストラクタ
-  SnNand3(int id,
-	  const vector<SimNode*>& inputs);
+  SnNand3(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnAnd3{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnNand3();
+  ~SnNand3() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -340,7 +377,6 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 
@@ -357,18 +393,20 @@ class SnNand4 :
 public:
 
   /// @brief コンストラクタ
-  SnNand4(int id,
-	  const vector<SimNode*>& inputs);
+  SnNand4(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnAnd4{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnNand4();
+  ~SnNand4() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -379,7 +417,6 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 

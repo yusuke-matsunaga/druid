@@ -69,7 +69,7 @@ public:
   }
 
   /// @brief このノードに含まれる代表故障の数を返す．
-  int
+  SizeType
   fault_num() const
   {
     return mFaultList.size();
@@ -98,25 +98,22 @@ public:
   /// @brief 出力の故障を返す．
   TpgFaultBase*
   output_fault(
-    int val ///< [in] 故障値 ( 0 / 1 )
+    Fval2 val ///< [in] 故障値 ( 0 / 1 )
   ) const
   {
-    ASSERT_COND( val == 0 || val == 1 );
-
-    return mOutputFaults[val];
+    return mOutputFaults[_index(val)];
   }
 
   /// @brief 入力の故障を返す．
   TpgFaultBase*
   input_fault(
     SizeType pos, ///< [in] 入力の位置番号
-    int val       ///< [in] 故障値 ( 0 / 1 )
+    Fval2 val     ///< [in] 故障値 ( 0 / 1 )
   ) const
   {
     ASSERT_COND( pos >= 0 && pos < mFaninNum );
-    ASSERT_COND( val == 0 || val == 1 );
 
-    return mInputFaults[(pos * 2) + val];
+    return mInputFaults[_index(pos, val)];
   }
 
 
@@ -170,27 +167,54 @@ public:
   /// @brief 出力の故障を設定する．
   void
   set_output_fault(
-    int val,        ///< [in] 故障値 ( 0 / 1 )
+    Fval2 val,      ///< [in] 故障値 ( 0 / 1 )
     TpgFaultBase* f ///< [in] 故障
   )
   {
-    ASSERT_COND( val == 0 || val == 1 );
-
-    mOutputFaults[val] = f;
+    mOutputFaults[_index(val)] = f;
   }
 
   /// @brief 入力の故障を設定する．
   void
   set_input_fault(
     SizeType ipos,   ///< [in] 入力位置
-    int val,         ///< [in] 故障値 ( 0 / 1 )
+    Fval2 val,       ///< [in] 故障値 ( 0 / 1 )
     TpgFaultBase* f  ///< [in] 故障
   )
   {
-    ASSERT_COND( val == 0 || val == 1 );
     ASSERT_COND( ipos >= 0 && ipos < mFaninNum );
 
-    mInputFaults[(ipos * 2) + val] = f;
+    mInputFaults[_index(ipos, val)] = f;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  static
+  SizeType
+  _index(
+    Fval2 val
+  )
+  {
+    switch ( val ) {
+    case Fval2::zero: return 0;
+    case Fval2::one:  return 1;
+    }
+    ASSERT_NOT_REACHED;
+    return 0;
+  }
+
+  static
+  SizeType
+  _index(
+    SizeType pos,
+    Fval2 val
+  )
+  {
+    return (pos * 2) + _index(val);
   }
 
 

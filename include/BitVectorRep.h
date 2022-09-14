@@ -85,13 +85,13 @@ public:
   {
     ASSERT_COND( pos < len() );
 
-    int shift = shift_num(pos);
-    int block0 = block_idx(pos);
-    int block1 = block0 + 1;
+    SizeType shift = shift_num(pos);
+    SizeType block0 = block_idx(pos);
+    SizeType block1 = block0 + 1;
     int v0 = (mPat[block0] >> shift) & 1UL;
     int v1 = (mPat[block1] >> shift) & 1UL;
     int tmp = v0 + v0 + v1;
-    return static_cast<Val3>((v0 + v0 + v1) ^ 3);
+    return static_cast<Val3>(tmp ^ 3);
   }
 
   /// @brief X の個数を得る．
@@ -166,9 +166,9 @@ public:
   {
     ASSERT_COND( pos < len() );
 
-    int shift = shift_num(pos);
-    int block0 = block_idx(pos);
-    int block1 = block0 + 1;
+    SizeType shift = shift_num(pos);
+    SizeType block0 = block_idx(pos);
+    SizeType block1 = block0 + 1;
     PackedVal mask = 1UL << shift;
     switch ( val ) {
     case Val3::_0:
@@ -182,6 +182,7 @@ public:
     case Val3::_X:
       mPat[block0] |=  mask;
       mPat[block1] |=  mask;
+      break;
     }
   }
 
@@ -220,11 +221,11 @@ public:
   )
   {
     std::uniform_int_distribution<PackedVal> rd;
-    int nb = block_num(len());
-    for ( int i = 0; i < nb; i += 2 ) {
+    SizeType nb = block_num(len());
+    for ( SizeType i = 0; i < nb; i += 2 ) {
       PackedVal v = rd(randgen);
-      int i0 = i;
-      int i1 = i + 1;
+      SizeType i0 = i;
+      SizeType i1 = i + 1;
       if ( i == nb - 2 ) {
 	mPat[i0] = ~v & mMask;
 	mPat[i1] =  v & mMask;
@@ -244,10 +245,10 @@ public:
   )
   {
     std::uniform_int_distribution<PackedVal> rd;
-    int nb = block_num(len());
-    for ( int i = 0; i < nb; i += 2 ) {
-      int i0 = i;
-      int i1 = i + 1;
+    SizeType nb = block_num(len());
+    for ( SizeType i = 0; i < nb; i += 2 ) {
+      SizeType i0 = i;
+      SizeType i1 = i + 1;
       // X のビットマスク
       PackedVal xmask = mPat[i0] & mPat[i1];
       if ( i == nb - 2 ) {

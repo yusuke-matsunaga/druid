@@ -6,7 +6,6 @@
 /// Copyright (C) 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "gtest/gtest.h"
 #include "GateEnc.h"
 #include "GateType.h"
@@ -37,15 +36,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 設定された CNF が vals[] で示された真理値表と等しいか調べる．
-  /// @param[in] input_num 入力数
-  /// @param[in] gate_type ゲートの種類
-  /// @param[in] vals 真理値表を表す配列
   ///
   /// 入力数は make_inputs() で設定した入力数を用いる．
   void
-  check(int input_num,
-	GateType gate_type,
-	int vals[]);
+  check(
+    SizeType input_num, ///< [in] 入力数
+    GateType gate_type, ///< [in] ゲートの種類
+    int vals[]          ///< [in] 真理値表を表す配列
+  );
 
 
 private:
@@ -71,9 +69,11 @@ GateEncTest::~GateEncTest()
 
 // @brief 設定された CNF が vals[] で示された真理値表と等しいか調べる．
 void
-GateEncTest::check(int input_num,
-		   GateType gate_type,
-		   int vals[])
+GateEncTest::check(
+  SizeType input_num,
+  GateType gate_type,
+  int vals[]
+)
 {
   mNetworkImpl.set_size(input_num, 0, 0, input_num + 1);
 
@@ -86,7 +86,7 @@ GateEncTest::check(int input_num,
     input_list[i] = inode;
   }
   // ゲートを作る．
-  vector<pair<int, int>> connection_list;
+  vector<pair<SizeType, SizeType>> connection_list;
   TpgNode* node = mNetworkImpl.make_logic_node(string(), gimgr.simple_type(gate_type),
 					       input_list, 0, connection_list);
 

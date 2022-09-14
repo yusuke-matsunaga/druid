@@ -18,7 +18,7 @@ BEGIN_NAMESPACE_DRUID
 /// @brief inverter を表すクラス
 //////////////////////////////////////////////////////////////////////
 class TpgLogicNOT :
-  public TpgLogic1
+  public TpgLogic
 {
   friend class TpgNetworkImpl;
 

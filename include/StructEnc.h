@@ -97,7 +97,7 @@ public:
   /// @return 作成されたコーン番号を返す．
   ///
   /// fnode から到達可能な外部出力までの故障伝搬条件を考える．
-  int
+  SizeType
   add_simple_cone(
     const TpgNode* fnode, ///< [in] 故障のあるノード
     bool detect		  ///< [in] 故障を検出する時に true にするフラグ
@@ -110,7 +110,7 @@ public:
   /// @return 作成されたコーン番号を返す．
   ///
   /// bnode までの故障伝搬条件を考える．
-  int
+  SizeType
   add_simple_cone(
     const TpgNode* fnode, ///< [in] 故障のあるノード
     const TpgNode* bnode, ///< [in] ブロックノード
@@ -121,7 +121,7 @@ public:
   /// @return 作成されたコーン番号を返す．
   ///
   /// fnode から到達可能な外部出力までの故障伝搬条件を考える．
-  int
+  SizeType
   add_mffc_cone(
     const TpgMFFC& mffc, ///< [in] MFFC の情報
     bool detect		 ///< [in] 故障を検出する時に true にするフラグ
@@ -134,7 +134,7 @@ public:
   /// @return 作成されたコーン番号を返す．
   ///
   /// bnode までの故障伝搬条件を考える．
-  int
+  SizeType
   add_mffc_cone(
     const TpgMFFC& mffc,  ///< [in] MFFC の情報
     const TpgNode* bnode, ///< [in] ブロックノード
@@ -145,7 +145,7 @@ public:
   vector<SatLiteral>
   make_prop_condition(
     const TpgNode* ffr_root, ///< [in] FFR の根のノード
-    int cone_id 	     ///< [in] コーン番号
+    SizeType cone_id 	     ///< [in] コーン番号
   );
 
   /// @brief FFR内の故障の伝搬条件を割当リストに追加する．
@@ -250,7 +250,7 @@ public:
   extract(
     const SatModel& model, ///< [in] SAT のモデル
     const TpgFault* fault, ///< [in] 対象の故障
-    int cone_id		   ///< [in] コーン番号
+    SizeType cone_id		   ///< [in] コーン番号
   );
 #endif
 
@@ -258,7 +258,7 @@ public:
   NodeValList
   extract_prop_condition(
     const TpgNode* ffr_root, ///< [in] FFR の根のノード
-    int cone_id,	     ///< [in] コーン番号
+    SizeType cone_id,	     ///< [in] コーン番号
     const SatModel& model    ///< [in] SAT のモデル
   );
 
@@ -276,14 +276,14 @@ public:
   /// @brief デバッグ用のフラグをセットする．
   void
   set_debug(
-    int bits
+    ymuint bits
   )
   {
     mDebugFlag = bits;
   }
 
   /// @brief デバッグ用のフラグを得る．
-  int
+  ymuint
   debug() const
   {
     return mDebugFlag;
@@ -484,7 +484,7 @@ private:
   vector<unique_ptr<PropCone>> mConeList;
 
   // デバッグ用のフラグ
-  int mDebugFlag;
+  ymuint mDebugFlag;
 
 };
 

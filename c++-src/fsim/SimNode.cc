@@ -3,9 +3,8 @@
 /// @brief SimNode の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "SimNode.h"
 #include "SnInput.h"
@@ -24,11 +23,12 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 
 // コンストラクタ
-SimNode::SimNode(int id) :
-  mId(id),
-  mFanoutNum(0),
-  mFanoutTop(nullptr),
-  mLevel(0)
+SimNode::SimNode(
+  SizeType id
+) : mId{id},
+    mFanoutNum{0},
+    mFanoutTop{nullptr},
+    mLevel{0}
 {
 }
 
@@ -43,16 +43,20 @@ SimNode::~SimNode()
 
 // @brief 入力ノードを生成するクラスメソッド
 SimNode*
-SimNode::new_input(int id)
+SimNode::new_input(
+  SizeType id
+)
 {
   return new SnInput(id);
 }
 
 // @brief ゲートを生成するクラスメソッド
 SimNode*
-SimNode::new_gate(int id,
-		  GateType type,
-		  const vector<SimNode*>& inputs)
+SimNode::new_gate(
+  SizeType id,
+  GateType type,
+  const vector<SimNode*>& inputs
+)
 {
   SimNode* node = nullptr;
   auto ni = inputs.size();
@@ -127,15 +131,19 @@ SimNode::new_gate(int id,
 
 // @brief レベルを設定する．
 void
-SimNode::set_level(int level)
+SimNode::set_level(
+  SizeType level
+)
 {
   mLevel = level;
 }
 
 // @brief ファンアウトリストを作成する．
 void
-SimNode::set_fanout_list(const vector<SimNode*>& fo_list,
-			 int ipos)
+SimNode::set_fanout_list(
+  const vector<SimNode*>& fo_list,
+  SizeType ipos
+)
 {
   auto nfo = fo_list.size();
   if ( nfo > 0 ) {

@@ -20,7 +20,7 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 TpgPPO::TpgPPO(
-  int output_id,
+  SizeType output_id,
   const TpgNode* fanin
 ) : TpgNode{{fanin}, 0},
     mOutputId{output_id}
@@ -42,14 +42,14 @@ TpgPPO::is_ppo() const
 // node = TpgNetwork::output(node->output_id())
 // の関係を満たす．
 // is_output() が false の場合の返り値は不定
-int
+SizeType
 TpgPPO::output_id() const
 {
   return mOutputId;
 }
 
 // @brief TFIサイズの昇順に並べた時の出力番号を返す．
-int
+SizeType
 TpgPPO::output_id2() const
 {
   return mOutputId2;
@@ -69,7 +69,9 @@ TpgPPO::gate_type() const
 //
 // 出力ノード以外では無効
 void
-TpgPPO::set_output_id2(int id)
+TpgPPO::set_output_id2(
+  SizeType id
+)
 {
   mOutputId2 = id;
 }
@@ -81,7 +83,7 @@ TpgPPO::set_output_id2(int id)
 
 // @brief コンストラクタ
 TpgOutput::TpgOutput(
-  int output_id,
+  SizeType output_id,
   const TpgNode* fanin
 ) : TpgPPO{output_id, fanin}
 {
@@ -101,7 +103,7 @@ TpgOutput::is_primary_output() const
 
 // @brief コンストラクタ
 TpgDffInput::TpgDffInput(
-  int output_id,
+  SizeType output_id,
   const TpgDff* dff,
   const TpgNode* fanin
 ) : TpgPPO{output_id, fanin},

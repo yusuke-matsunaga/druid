@@ -48,11 +48,11 @@ Fsim::~Fsim()
 }
 
 // @brief 2値の故障シミュレータとして初期化する．
-// @param[in] network ネットワーク
-// @param[in] fault_type 故障の型
 void
-Fsim::init_fsim2(const TpgNetwork& network,
-		 FaultType fault_type)
+Fsim::init_fsim2(
+  const TpgNetwork& network,
+  FaultType fault_type
+)
 {
   if ( fault_type == FaultType::StuckAt ) {
     mImpl = nsFsimSa2::new_Fsim(network);
@@ -66,11 +66,11 @@ Fsim::init_fsim2(const TpgNetwork& network,
 }
 
 // @brief 3値の故障シミュレータとして初期化する．
-// @param[in] network ネットワーク
-// @param[in] fault_type 故障の型
 void
-Fsim::init_fsim3(const TpgNetwork& network,
-		 FaultType fault_type)
+Fsim::init_fsim3(
+  const TpgNetwork& network,
+  FaultType fault_type
+)
 {
   if ( fault_type == FaultType::StuckAt ) {
     mImpl = nsFsimSa3::new_Fsim(network);
@@ -93,9 +93,10 @@ Fsim::set_skip_all()
 }
 
 // @brief 故障にスキップマークをつける．
-// @param[in] f 対象の故障
 void
-Fsim::set_skip(const TpgFault* f)
+Fsim::set_skip(
+  const TpgFault* f
+)
 {
   if ( mImpl ) {
     mImpl->set_skip(f);
@@ -103,11 +104,10 @@ Fsim::set_skip(const TpgFault* f)
 }
 
 // @brief 複数の故障にスキップマークをつける．
-// @param[in] fault_list 故障のリスト
-//
-// fault_list に含まれない故障のスキップマークは消される．
 void
-Fsim::set_skip(const vector<const TpgFault*>& fault_list)
+Fsim::set_skip(
+  const vector<const TpgFault*>& fault_list
+)
 {
   clear_skip_all();
   for ( auto f: fault_list ) {
@@ -125,9 +125,10 @@ Fsim::clear_skip_all()
 }
 
 // @brief 故障のスキップマークを消す．
-// @param[in] f 対象の故障
 void
-Fsim::clear_skip(const TpgFault* f)
+Fsim::clear_skip(
+  const TpgFault* f
+)
 {
   if ( mImpl ) {
     mImpl->clear_skip(f);
@@ -135,11 +136,10 @@ Fsim::clear_skip(const TpgFault* f)
 }
 
 // @brief 複数の故障のスキップマークを消す．
-// @param[in] fault_list 故障のリスト
-//
-// fault_list に含まれない故障のスキップマークは付けられる．
 void
-Fsim::clear_skip(const vector<const TpgFault*>& fault_list)
+Fsim::clear_skip(
+  const vector<const TpgFault*>& fault_list
+)
 {
   set_skip_all();
   for ( auto f: fault_list ) {
@@ -148,13 +148,11 @@ Fsim::clear_skip(const vector<const TpgFault*>& fault_list)
 }
 
 // @brief SPSFP故障シミュレーションを行う．
-// @param[in] tv テストベクタ
-// @param[in] f 対象の故障
-// @retval true 故障の検出が行えた．
-// @retval false 故障の検出が行えなかった．
 bool
-Fsim::spsfp(const TestVector& tv,
-	    const TpgFault* f)
+Fsim::spsfp(
+  const TestVector& tv,
+  const TpgFault* f
+)
 {
   if ( mImpl ) {
     return mImpl->spsfp(tv, f);
@@ -165,13 +163,11 @@ Fsim::spsfp(const TestVector& tv,
 }
 
 // @brief SPSFP故障シミュレーションを行う．
-// @param[in] assign_list 値の割当リスト
-// @param[in] f 対象の故障
-// @retval true 故障の検出が行えた．
-// @retval false 故障の検出が行えなかった．
 bool
-Fsim::spsfp(const NodeValList& assign_list,
-	    const TpgFault* f)
+Fsim::spsfp(
+  const NodeValList& assign_list,
+  const TpgFault* f
+)
 {
   if ( mImpl ) {
     return mImpl->spsfp(assign_list, f);
@@ -182,12 +178,10 @@ Fsim::spsfp(const NodeValList& assign_list,
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-// @param[in] tv テストベクタ
-// @return 検出された故障数を返す．
-//
-// 検出された故障は det_fault() で取得する．
-int
-Fsim::sppfp(const TestVector& tv)
+SizeType
+Fsim::sppfp(
+  const TestVector& tv
+)
 {
   if ( mImpl ) {
     return mImpl->sppfp(tv);
@@ -198,12 +192,10 @@ Fsim::sppfp(const TestVector& tv)
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-// @param[in] assign_list 値の割当リスト
-// @return 検出された故障数を返す．
-//
-// 検出された故障は det_fault() で取得する．
-int
-Fsim::sppfp(const NodeValList& assign_list)
+SizeType
+Fsim::sppfp(
+  const NodeValList& assign_list
+)
 {
   if ( mImpl ) {
     return mImpl->sppfp(assign_list);
@@ -214,11 +206,7 @@ Fsim::sppfp(const NodeValList& assign_list)
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-// @return 検出された故障数を返す．
-//
-// 検出された故障は det_fault() で取得する．<br>
-// 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
-int
+SizeType
 Fsim::ppsfp()
 {
   if ( mImpl ) {
@@ -230,16 +218,11 @@ Fsim::ppsfp()
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
-// @param[in] tv テストベクタ
-//
-// - 外部入力以外は無視する．
-// - 時刻1の割り当ても無視する
-// weightedの意味は以下の通り
-// - false: ゲートの出力の遷移回数の和
-// - true : ゲートの出力の遷移回数に(ファンアウト数＋１)を掛けたものの和
-int
-Fsim::calc_wsa(const TestVector& tv,
-	       bool weighted)
+SizeType
+Fsim::calc_wsa(
+  const TestVector& tv,
+  bool weighted
+)
 {
   if ( mImpl ) {
     return mImpl->calc_wsa(tv, weighted);
@@ -250,11 +233,11 @@ Fsim::calc_wsa(const TestVector& tv,
 }
 
 // @brief 状態を設定する．
-// @param[in] i_vect 外部入力のビットベクタ
-// @param[in] f_vect FFの値のビットベクタ
 void
-Fsim::set_state(const InputVector& i_vect,
-		const DffVector& f_vect)
+Fsim::set_state(
+  const InputVector& i_vect,
+  const DffVector& f_vect
+)
 {
   if ( mImpl ) {
     mImpl->set_state(i_vect, f_vect);
@@ -262,11 +245,11 @@ Fsim::set_state(const InputVector& i_vect,
 }
 
 // @brief 状態を取得する．
-// @param[in] i_vect 外部入力のビットベクタ
-// @param[in] f_vect FFの値のビットベクタ
 void
-Fsim::get_state(InputVector& i_vect,
-		DffVector& f_vect)
+Fsim::get_state(
+  InputVector& i_vect,
+  DffVector& f_vect
+)
 {
   if ( mImpl ) {
     mImpl->get_state(i_vect, f_vect);
@@ -274,10 +257,11 @@ Fsim::get_state(InputVector& i_vect,
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
-// @param[in] i_vect 外部入力のビットベクタ
-int
-Fsim::calc_wsa(const InputVector& i_vect,
-	       bool weighted)
+SizeType
+Fsim::calc_wsa(
+  const InputVector& i_vect,
+  bool weighted
+)
 {
   if ( mImpl ) {
     return mImpl->calc_wsa(i_vect, weighted);
@@ -323,7 +307,7 @@ Fsim::get_pattern(
 }
 
 // @brief 直前の sppfp/ppsfp で検出された故障数を返す．
-int
+SizeType
 Fsim::det_fault_num()
 {
   if ( mImpl ) {

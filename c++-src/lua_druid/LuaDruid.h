@@ -78,15 +78,11 @@ private:
 
   /// @brief TpgNetwork 関係の初期化を行う．
   void
-  init_TpgNetwork(
-    vector<struct luaL_Reg>& mylib ///< [out] モジュールに登録する関数のリスト
-  );
+  init_TpgNetwork();
 
   /// @brief dtpg 関係の初期化を行う．
   void
-  init_dtpg(
-    vector<struct luaL_Reg>& mylib ///< [out] モジュールに登録する関数のリスト
-  );
+  init_dtpg();
 
 };
 

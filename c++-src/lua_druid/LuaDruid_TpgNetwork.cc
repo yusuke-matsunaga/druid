@@ -189,10 +189,9 @@ END_NONAMESPACE
 void
 LuaDruid::open_Druid()
 {
-  vector<struct luaL_Reg> mylib;
-  init_TpgNetwork(mylib);
-  LuaClib::init(lua_state(), mylib);
-  reg_module("druid", mylib);
+  reg_module("druid", {});
+  LuaClib::init(lua_state(), "druid", "clib");
+  init_TpgNetwork();
 }
 
 // @brief 対象が TpgNetwork の時 true を返す．
@@ -217,9 +216,7 @@ LuaDruid::to_tpgnetwork(
 
 // @brief TpgNetwork 関係の初期化を行う．
 void
-LuaDruid::init_TpgNetwork(
-  vector<struct luaL_Reg>& mylib
-)
+LuaDruid::init_TpgNetwork()
 {
   // メンバ関数(メソッド)テーブル
   static const struct luaL_Reg mt[] = {
@@ -241,8 +238,8 @@ LuaDruid::init_TpgNetwork(
   L_setfuncs(mt, 0);
 
   // 生成関数を登録する．
-  mylib.push_back({"read_blif", tpg_read_blif});
-  mylib.push_back({"read_iscas89", tpg_read_iscas89});
+  reg_cfunction("druid", "read_blif", tpg_read_blif);
+  reg_cfunction("druid", "read_iscas89", tpg_read_iscas89);
 }
 
 END_NAMESPACE_DRUID

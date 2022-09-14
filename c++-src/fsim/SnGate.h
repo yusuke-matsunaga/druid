@@ -5,9 +5,8 @@
 /// @brief SnGate のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "SimNode.h"
 
@@ -24,11 +23,12 @@ class SnGate :
 protected:
 
   /// @brief コンストラクタ
-  SnGate(int id,
-	 const vector<SimNode*>& inputs);
+  SnGate(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  );
 
   /// @brief デストラクタ
-  virtual
   ~SnGate();
 
 
@@ -38,19 +38,20 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ファンイン数を得る．
-  virtual
-  int
+  SizeType
   fanin_num() const override;
 
   /// @brief pos 番めのファンインを得る．
-  virtual
   SimNode*
-  fanin(int pos) const override;
+  fanin(
+    SizeType pos
+  ) const override;
 
   /// @brief 内容をダンプする．
-  virtual
   void
-  dump(ostream& s) const override;
+  dump(
+    ostream& s
+  ) const override;
 
 
 protected:
@@ -59,12 +60,20 @@ protected:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ファンイン数を得る．
-  int
-  _fanin_num() const;
+  SizeType
+  _fanin_num() const
+  {
+    return mFaninNum;
+  }
 
   /// @brief pos 番めのファンインを得る．
   SimNode*
-  _fanin(int pos) const;
+  _fanin(
+    SizeType pos
+  ) const
+  {
+    return mFanins[pos];
+  }
 
 
 private:
@@ -73,7 +82,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 入力数
-  int mFaninNum;
+  SizeType mFaninNum;
 
   // ファンインの配列
   SimNode** mFanins;
@@ -91,30 +100,32 @@ class SnGate1 :
 protected:
 
   /// @brief コンストラクタ
-  SnGate1(int id,
-	  const vector<SimNode*>& inputs);
+  SnGate1(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  );
 
   /// @brief デストラクタ
-  virtual
   ~SnGate1();
 
 
 public:
 
   /// @brief ファンイン数を得る．
-  virtual
-  int
+  SizeType
   fanin_num() const override;
 
   /// @brief pos 番めのファンインを得る．
-  virtual
   SimNode*
-  fanin(int pos) const override;
+  fanin(
+    SizeType pos
+  ) const override;
 
   /// @brief 内容をダンプする．
-  virtual
   void
-  dump(ostream& s) const override;
+  dump(
+    ostream& s
+  ) const override;
 
 
 protected:
@@ -124,7 +135,10 @@ protected:
 
   /// @brief ファンインを得る．
   SimNode*
-  _fanin() const;
+  _fanin() const
+  {
+    return mFanin;
+  }
 
 
 private:
@@ -148,30 +162,32 @@ class SnGate2 :
 protected:
 
   /// @brief コンストラクタ
-  SnGate2(int id,
-	  const vector<SimNode*>& inputs);
+  SnGate2(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  );
 
   /// @brief デストラクタ
-  virtual
   ~SnGate2();
 
 
 public:
 
   /// @brief ファンイン数を得る．
-  virtual
-  int
+  SizeType
   fanin_num() const override;
 
   /// @brief pos 番めのファンインを得る．
-  virtual
   SimNode*
-  fanin(int pos) const override;
+  fanin(
+    SizeType pos
+  ) const override;
 
   /// @brief 内容をダンプする．
-  virtual
   void
-  dump(ostream& s) const override;
+  dump(
+    ostream& s
+  ) const override;
 
 
 protected:
@@ -181,7 +197,22 @@ protected:
 
   /// @brief pos 番めのファンインを得る．
   SimNode*
-  _fanin(int pos) const;
+  _fanin(
+    SizeType pos
+  ) const
+  {
+    return mFanins[pos];
+  }
+
+  /// @brief _calc_gobs の下請け関数
+  FSIM_VALTYPE
+  _get_sideval(
+    SizeType pos ///< [in] 対象の入力位置
+  )
+  {
+    SizeType pos0 = pos ^ 1;
+    return _fanin(pos0)->val();
+  }
 
 
 private:
@@ -205,30 +236,32 @@ class SnGate3 :
 protected:
 
   /// @brief コンストラクタ
-  SnGate3(int id,
-	  const vector<SimNode*>& inputs);
+  SnGate3(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  );
 
   /// @brief デストラクタ
-  virtual
   ~SnGate3();
 
 
 public:
 
   /// @brief ファンイン数を得る．
-  virtual
-  int
+  SizeType
   fanin_num() const override;
 
   /// @brief pos 番めのファンインを得る．
-  virtual
   SimNode*
-  fanin(int pos) const override;
+  fanin(
+    SizeType pos
+  ) const override;
 
   /// @brief 内容をダンプする．
-  virtual
   void
-  dump(ostream& s) const override;
+  dump(
+    ostream& s
+  ) const override;
 
 
 protected:
@@ -238,7 +271,32 @@ protected:
 
   /// @brief pos 番めのファンインを得る．
   SimNode*
-  _fanin(int pos) const;
+  _fanin(
+    SizeType pos
+  ) const
+  {
+    return mFanins[pos];
+  }
+
+  /// @brief _calc_gobs のための下請け関数
+  void
+  _get_sideval(
+    SizeType pos,       ///< [in] 対象の入力位置
+    FSIM_VALTYPE& val0, ///< [out] それ以外の入力値0
+    FSIM_VALTYPE& val1  ///< [out] それ以外の入力値1
+  )
+  {
+    SizeType pos0;
+    SizeType pos1;
+    switch ( pos ) {
+    case 0: pos0 = 1; pos1 = 2; break;
+    case 1: pos0 = 0; pos1 = 2; break;
+    case 2: pos0 = 0; pos1 = 1; break;
+    default: ASSERT_NOT_REACHED; break;
+    }
+    val0 = _fanin(pos0)->val();
+    val1 = _fanin(pos1)->val();
+  }
 
 
 private:
@@ -262,30 +320,32 @@ class SnGate4 :
 protected:
 
   /// @brief コンストラクタ
-  SnGate4(int id,
-	  const vector<SimNode*>& inputs);
+  SnGate4(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  );
 
   /// @brief デストラクタ
-  virtual
   ~SnGate4();
 
 
 public:
 
   /// @brief ファンイン数を得る．
-  virtual
-  int
+  SizeType
   fanin_num() const override;
 
   /// @brief pos 番めのファンインを得る．
-  virtual
   SimNode*
-  fanin(int pos) const override;
+  fanin(
+    SizeType pos
+  ) const override;
 
   /// @brief 内容をダンプする．
-  virtual
   void
-  dump(ostream& s) const override;
+  dump(
+    ostream& s
+  ) const override;
 
 
 protected:
@@ -295,7 +355,36 @@ protected:
 
   /// @brief pos 番めのファンインを得る．
   SimNode*
-  _fanin(int pos) const;
+  _fanin(
+    SizeType pos
+  ) const
+  {
+    return mFanins[pos];
+  }
+
+  /// @brief _calc_gobs のための下請け関数
+  void
+  _get_sideval(
+    SizeType pos,       ///< [in] 対象の入力位置
+    FSIM_VALTYPE& val0, ///< [out] それ以外の入力値0
+    FSIM_VALTYPE& val1, ///< [out] それ以外の入力値1
+    FSIM_VALTYPE& val2  ///< [out] それ以外の入力値2
+  )
+  {
+    SizeType pos0;
+    SizeType pos1;
+    SizeType pos2;
+    switch ( pos ) {
+    case 0: pos0 = 1; pos1 = 2; pos2 = 3; break;
+    case 1: pos0 = 0; pos1 = 2; pos2 = 3; break;
+    case 2: pos0 = 0; pos1 = 1; pos2 = 3; break;
+    case 3: pos0 = 0; pos1 = 1; pos2 = 2; break;
+    default: ASSERT_NOT_REACHED; break;
+    }
+    val0 = _fanin(pos0)->val();
+    val1 = _fanin(pos1)->val();
+    val2 = _fanin(pos2)->val();
+  }
 
 
 private:
@@ -307,59 +396,6 @@ private:
   SimNode* mFanins[4];
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief ファンイン数を得る．
-inline
-int
-SnGate::_fanin_num() const
-{
-  return mFaninNum;
-}
-
-// @brief pos 番めのファンインを得る．
-inline
-SimNode*
-SnGate::_fanin(int pos) const
-{
-  return mFanins[pos];
-}
-
-// @brief ファンインを得る．
-inline
-SimNode*
-SnGate1::_fanin() const
-{
-  return mFanin;
-}
-
-// @brief pos 番めのファンインを得る．
-inline
-SimNode*
-SnGate2::_fanin(int pos) const
-{
-  return mFanins[pos];
-}
-
-// @brief pos 番めのファンインを得る．
-inline
-SimNode*
-SnGate3::_fanin(int pos) const
-{
-  return mFanins[pos];
-}
-
-// @brief pos 番めのファンインを得る．
-inline
-SimNode*
-SnGate4::_fanin(int pos) const
-{
-  return mFanins[pos];
-}
 
 END_NAMESPACE_DRUID_FSIM
 

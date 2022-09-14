@@ -26,12 +26,11 @@ private:
 
   /// @brief コンストラクタ
   TpgInput(
-    int input_id,       ///< [in] 入力番号
+    SizeType input_id,       ///< [in] 入力番号
     SizeType fanout_num ///< [in] ファンアウト数
   );
 
   /// @brief デストラクタ
-  virtual
   ~TpgInput() = default;
 
 

@@ -34,7 +34,7 @@ TpgFault::ffr_propagate_condition(
   // 故障の活性化条件を作る．
   auto inode = tpg_inode();
   // 0 縮退故障の時に 1 にする．
-  bool is_0 = (val() == 0);
+  bool is_0 = (val() == Fval2::zero);
   assign_list.add(inode, 1, is_0);
 
   if ( fault_type == FaultType::TransitionDelay ) {
@@ -88,8 +88,8 @@ TpgFault::ffr_propagate_condition(
 
 // @brief コンストラクタ
 TpgFaultBase::TpgFaultBase(
-  int id,
-  int val,
+  SizeType id,
+  Fval2 val,
   const TpgNode* node,
   const string& name,
   TpgFault* rep_fault
@@ -97,8 +97,7 @@ TpgFaultBase::TpgFaultBase(
     mNodeName{name},
     mRepFault{rep_fault}
 {
-  // val は 0 か 1 のはずだが念の為マスクしておく
-  mIdVal = (id << 1) | static_cast<int>(val & 1);
+  mIdVal = (id << 1) | static_cast<SizeType>(val);
 }
 
 // @brief デストラクタ
@@ -107,22 +106,25 @@ TpgFaultBase::~TpgFaultBase()
 }
 
 // @brief ID番号を返す．
-int
+SizeType
 TpgFaultBase::id() const
 {
   return static_cast<int>(mIdVal >> 1);
 }
 
 // @brief 故障値を返す．
-// @note 返す値は 0 か 1
-int
+Fval2
 TpgFaultBase::val() const
 {
-  return static_cast<int>(mIdVal & 1UL);
+  if ( mIdVal & 1 ) {
+    return Fval2::one;
+  }
+  else {
+    return Fval2::zero;
+  }
 }
 
 // @brief 代表故障を返す．
-// @note 代表故障の時は自分自身を返す．
 const TpgFault*
 TpgFaultBase::rep_fault() const
 {
@@ -130,7 +132,6 @@ TpgFaultBase::rep_fault() const
 }
 
 // @brief 代表故障を設定する．
-// @param[in] rep 代表故障
 void
 TpgFaultBase::set_rep(
   const TpgFault* rep
@@ -146,8 +147,8 @@ TpgFaultBase::set_rep(
 
 // @brief コンストラクタ
 TpgStemFault::TpgStemFault(
-  int id,
-  int val,
+  SizeType id,
+  Fval2 val,
   const TpgNode* node,
   const string& name,
   TpgFault* rep_fault
@@ -209,13 +210,7 @@ string
 TpgStemFault::str() const
 {
   ostringstream ans;
-  ans << node_name() << ":O:";
-  if ( val() ) {
-    ans <<"1";
-  }
-  else {
-    ans <<"0";
-  }
+  ans << node_name() << ":O:" << val();
   return ans.str();
 }
 
@@ -226,8 +221,8 @@ TpgStemFault::str() const
 
 // @brief コンストラクタ
 TpgBranchFault::TpgBranchFault(
-  int id,
-  int val,
+  SizeType id,
+  Fval2 val,
   const TpgNode* onode,
   const string& name,
   SizeType pos,
@@ -292,13 +287,7 @@ string
 TpgBranchFault::str() const
 {
   ostringstream ans;
-  ans << node_name() << ":I" << fault_pos() << ":";
-  if ( val() ) {
-    ans <<"1";
-  }
-  else {
-    ans <<"0";
-  }
+  ans << node_name() << ":I" << fault_pos() << ":" << val();
   return ans.str();
 }
 

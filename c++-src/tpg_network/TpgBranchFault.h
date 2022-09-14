@@ -5,7 +5,7 @@
 /// @brief TpgBranchFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2007, 2012-2014, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgFaultBase.h"
@@ -24,8 +24,8 @@ public:
 
   /// @brief コンストラクタ
   TpgBranchFault(
-    int id,               ///< [in] ID番号
-    int val,              ///< [in] 故障値
+    SizeType id,          ///< [in] ID番号
+    Fval2 val,            ///< [in] 故障値(0/1)
     const TpgNode* onode, ///< [in] 出力側の TpgNode
     const string& name,	  ///< [in] ノード名
     SizeType pos,	  ///< [in] 故障の入力位置

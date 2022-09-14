@@ -24,12 +24,11 @@ protected:
 
   /// @brief コンストラクタ
   TpgPPI(
-    int input_id,        ///< [in] 入力番号
+    SizeType input_id,   ///< [in] 入力番号
     SizeType fanout_num  ///< [in] ファンアウト数
   );
 
   /// @brief デストラクタ
-  virtual
   ~TpgPPI() = default;
 
 
@@ -49,7 +48,7 @@ public:
   /// node = TpgNetwork::input(node->input_id()
   /// の関係を満たす．
   /// is_input() が false の場合の返り値は不定
-  int
+  SizeType
   input_id() const override;
 
   /// @brief ゲートタイプを得る．
@@ -68,7 +67,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 入力番号
-  int mInputId;
+  SizeType mInputId;
 
 };
 

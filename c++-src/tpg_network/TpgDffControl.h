@@ -29,7 +29,6 @@ protected:
   );
 
   /// @brief デストラクタ
-  virtual
   ~TpgDffControl() = default;
 
 

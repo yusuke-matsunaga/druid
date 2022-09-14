@@ -3,7 +3,7 @@
 /// @brief TpgPPI の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgPPI.h"
@@ -20,7 +20,7 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 TpgPPI::TpgPPI(
-  int input_id,
+  SizeType input_id,
   SizeType fanout_num
 ) : TpgNode{{}, fanout_num},
     mInputId{input_id}
@@ -41,7 +41,7 @@ TpgPPI::is_ppi() const
 // node = TpgNetwork::input(node->input_id()
 // の関係を満たす．
 // is_input() が false の場合の返り値は不定
-int
+SizeType
 TpgPPI::input_id() const
 {
   return mInputId;
@@ -66,8 +66,8 @@ TpgPPI::gate_type() const
 
 // @brief コンストラクタ
 TpgInput::TpgInput(
-  int input_id,
-    SizeType fanout_num
+  SizeType input_id,
+  SizeType fanout_num
 ) : TpgPPI{input_id, fanout_num}
 {
 }
@@ -86,7 +86,7 @@ TpgInput::is_primary_input() const
 
 // @brief コンストラクタ
 TpgDffOutput::TpgDffOutput(
-  int input_id,
+  SizeType input_id,
   SizeType fanout_num,
   const TpgDff* dff
 ) : TpgPPI{input_id, fanout_num},

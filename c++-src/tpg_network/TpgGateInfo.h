@@ -5,9 +5,8 @@
 /// @brief TpgGateInfo のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "ym/logic.h"
@@ -68,15 +67,15 @@ public:
 
   /// @brief 追加ノード数を返す．
   virtual
-  int
+  SizeType
   extra_node_num() const = 0;
 
   /// @brief 制御値を返す．
   virtual
   Val3
   cval(
-    int pos, ///< [in] 入力位置
-    Val3 val ///< [in] 値
+    SizeType pos, ///< [in] 入力位置
+    Val3 val      ///< [in] 値
   ) const = 0;
 
 };
@@ -111,15 +110,9 @@ public:
   /// @brief 複合型のオブジェクトを返す．
   const TpgGateInfo*
   complex_type(
-    int ni,          ///< [in] 入力数
+    SizeType ni,     ///< [in] 入力数
     const Expr& expr ///< [in] 論理式
   );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:

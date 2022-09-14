@@ -194,7 +194,7 @@ protected:
   }
 
   /// @brief ノード番号の最大値を返す．
-  int
+  SizeType
   max_node_id() const
   {
     return network().node_num();
@@ -437,7 +437,7 @@ private:
     const TpgNode* node  ///< [in] 対象のノード
   )
   {
-    int id = node->id();
+    SizeType id = node->id();
     auto& bits = mMarkArray[id];
     if ( !bits[0] ) {
       bits[0] =true;
@@ -466,7 +466,7 @@ private:
     const TpgNode* node  ///< [in] 対象のノード
   )
   {
-    int id = node->id();
+    SizeType id = node->id();
     auto& bits = mMarkArray[id];
     if ( !bits[0] && !bits[1] ) {
       bits[1] = true;
@@ -495,7 +495,7 @@ private:
     const TpgNode* node  ///< [in] 対象のノード
   )
   {
-    int id = node->id();
+    SizeType id = node->id();
     auto& bits = mMarkArray[id];
     if ( !bits[2] ) {
       bits[2] = true;

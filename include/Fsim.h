@@ -148,7 +148,7 @@ public:
   /// @return 検出された故障数を返す．
   ///
   /// 検出された故障は det_fault() で取得する．
-  int
+  SizeType
   sppfp(
     const TestVector& tv  ///< [in] テストベクタ
   );
@@ -157,7 +157,7 @@ public:
   /// @return 検出された故障数を返す．
   ///
   /// 検出された故障は det_fault() で取得する．
-  int
+  SizeType
   sppfp(
     const NodeValList& assign_list  ///< [in] 値の割当リスト
   );
@@ -167,7 +167,7 @@ public:
   ///
   /// 検出された故障は det_fault() で取得する．<br>
   /// 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
-  int
+  SizeType
   ppsfp();
 
 
@@ -180,7 +180,7 @@ public:
   ///
   /// - 外部入力以外は無視する．
   /// - 時刻1の割り当ても無視する
-  int
+  SizeType
   calc_wsa(
     const TestVector& tv,  ///< [in] テストベクタ
     bool weighted          ///< [in] 重みフラグ
@@ -204,7 +204,7 @@ public:
   );
 
   /// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
-  int
+  SizeType
   calc_wsa(
     const InputVector& i_vect,  ///< [in] 外部入力のビットベクタ
     bool weighted               ///< [in] テストベクタ
@@ -244,7 +244,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 直前の sppfp/ppsfp で検出された故障数を返す．
-  int
+  SizeType
   det_fault_num();
 
   /// @brief 直前の sppfp/ppsfp で検出された故障を返す．

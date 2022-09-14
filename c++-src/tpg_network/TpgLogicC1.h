@@ -18,7 +18,7 @@ BEGIN_NAMESPACE_DRUID
 /// @brief constant-1 を表すクラス
 //////////////////////////////////////////////////////////////////////
 class TpgLogicC1 :
-  public TpgLogic0
+  public TpgLogic
 {
   friend class TpgNetworkImpl;
 

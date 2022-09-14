@@ -36,8 +36,8 @@ public:
   /// @brief 登録する．
   void
   reg(
-    int bnnode_id,   ///< [in] BnNode のID番号
-    TpgNode* tpgnode ///< [in] TpgNode
+    SizeType bnnode_id, ///< [in] BnNode のID番号
+    TpgNode* tpgnode    ///< [in] TpgNode
   )
   {
     ASSERT_COND( mNodeMap.count(bnnode_id) == 0 );
@@ -47,7 +47,7 @@ public:
   /// @brief 対応するノードを得る．
   TpgNode*
   get(
-    int bnnode_id ///< [in] BnNode のID番号
+    SizeType bnnode_id ///< [in] BnNode のID番号
   ) const
   {
     if ( mNodeMap.count(bnnode_id) > 0 ) {

@@ -45,25 +45,13 @@ TpgLogic::is_logic() const
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogic0
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-TpgLogic0::TpgLogic0(
-  SizeType fanout_num
-) : TpgLogic{{}, fanout_num}
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////
 // クラス TpgLogcC0
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
 TpgLogicC0::TpgLogicC0(
   SizeType fanout_num
-) : TpgLogic0{fanout_num}
+) : TpgLogic{{}, fanout_num}
 {
 }
 
@@ -84,7 +72,7 @@ TpgLogicC0::gate_type() const
 // @brief コンストラクタ
 TpgLogicC1::TpgLogicC1(
   SizeType fanout_num
-) : TpgLogic0{fanout_num}
+) : TpgLogic{{}, fanout_num}
 {
 }
 
@@ -99,19 +87,6 @@ TpgLogicC1::gate_type() const
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogic1
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-TpgLogic1::TpgLogic1(
-  const TpgNode* fanin,
-  SizeType fanout_num
-) : TpgLogic{{fanin}, fanout_num}
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////
 // クラス TpgLogicBUFF
 //////////////////////////////////////////////////////////////////////
 
@@ -119,7 +94,7 @@ TpgLogic1::TpgLogic1(
 TpgLogicBUFF::TpgLogicBUFF(
   const TpgNode* fanin,
   SizeType fanout_num
-) : TpgLogic1{fanin, fanout_num}
+) : TpgLogic{{fanin}, fanout_num}
 {
 }
 
@@ -181,7 +156,7 @@ TpgLogicBUFF::noval() const
 TpgLogicNOT::TpgLogicNOT(
   const TpgNode* fanin,
   SizeType fanout_num
-) : TpgLogic1{fanin, fanout_num}
+) : TpgLogic{{fanin}, fanout_num}
 {
 }
 

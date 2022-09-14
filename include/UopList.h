@@ -30,7 +30,6 @@ public:
   /// @brief デストラクタ
   ///
   /// ここに登録された UntestOp も破棄される．
-  virtual
   ~UopList();
 
 
@@ -47,11 +46,10 @@ public:
 
   /// @brief テスト不能故障と判定された時の処理
   /// @param[in] f 故障
-  virtual
   void
   operator()(
     const TpgFault* f
-  );
+  ) override;
 
 
 private:

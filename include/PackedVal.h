@@ -45,7 +45,7 @@ diff(
 /// @brief word 中の1のビット数を数える．
 /// @return word 中の1のビット数
 inline
-int
+SizeType
 count_ones(
   PackedVal word /// @param[in] 対象のワード
 )

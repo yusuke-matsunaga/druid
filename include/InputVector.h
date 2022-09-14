@@ -29,7 +29,7 @@ public:
   /// 内容は X で初期化される．
   explicit
   InputVector(
-    int len = 0  ///< [in] ベクタ長
+    SizeType len = 0  ///< [in] ベクタ長
   ) : BitVector(len)
   {
   }
@@ -37,7 +37,7 @@ public:
   /// @brief コピーコンストラクタ
   InputVector(
     const InputVector& src  ///< [in] コピー元のソース
-  ) : BitVector(src)
+  ) : BitVector{src}
   {
   }
 

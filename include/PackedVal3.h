@@ -26,8 +26,8 @@ public:
   ///
   /// 不定値になる．
   PackedVal3(
-  ) : mVal0(kPvAll0),
-      mVal1(kPvAll0)
+  ) : mVal0{kPvAll0},
+      mVal1{kPvAll0}
   {
   }
 
@@ -49,8 +49,8 @@ public:
   explicit
   PackedVal3(
     PackedVal val  ///< [in] 値
-  ) : mVal0(~val),
-      mVal1( val)
+  ) : mVal0{~val},
+      mVal1{ val}
   {
   }
 

@@ -26,7 +26,7 @@ private:
 
   /// @brief コンストラクタ
   TpgDffInput(
-    int output_id,       ///< [in] 出力番号
+    SizeType output_id,  ///< [in] 出力番号
     const TpgDff* dff,   ///< [in] 接続しているDFF
     const TpgNode* fanin ///< [in] ファンインのノード
   );

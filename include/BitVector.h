@@ -8,6 +8,7 @@
 /// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
+#include "druid.h"
 #include "BitVectorRep.h"
 #include <random>
 
@@ -245,49 +246,100 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // friend 関数の定義(publicに意味はない)
+  // 2高演算
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 両立関係の比較を行う．
   /// @return left と right が両立する時 true を返す．
-  friend
   bool
   operator&&(
-    const BitVector& left,  ///< [in] オペランド1
     const BitVector& right  ///< [in] オペランド2
-  );
+  ) const
+  {
+    return BitVectorRep::is_compat(*mPtr, *right.mPtr);
+  }
 
   /// @brief 等価関係の比較を行なう．
   /// @return left と right が等しいとき true を返す．
-  friend
   bool
   operator==(
-    const BitVector& left, ///< [in] オペランド1
     const BitVector& right ///< [in] オペランド2
-  );
+  ) const
+  {
+    return BitVectorRep::is_eq(*mPtr, *right.mPtr);
+  }
+
+  /// @brief 等価関係の比較を行なう．
+  /// @return left と right が等しくないとき true を返す．
+  bool
+  operator!=(
+    const BitVector& right ///< [in] オペランド2
+  ) const
+  {
+    return !operator==(right);
+  }
 
   /// @brief 包含関係の比較を行なう
   /// @return minterm の集合として right が left を含んでいたら true を返す．
   ///
   /// - false だからといって逆に left が right を含むとは限らない．
-  friend
   bool
   operator<(
-    const BitVector& left, ///< [in] オペランド1
     const BitVector& right ///< [in] オペランド2
-  );
+  ) const
+  {
+    return BitVectorRep::is_lt(*mPtr, *right.mPtr);
+  }
+
+  /// @brief 包含関係の比較を行なう．
+  /// @return minterm の集合として left が right を含んでいたら true を返す．
+  ///
+  /// - false だからといって逆に right が left を含むとは限らない．
+  bool
+  operator>(
+    const BitVector& right ///< [in] オペランド2
+  ) const
+  {
+    return right.operator<(*this);
+  }
 
   /// @brief 包含関係の比較を行なう
   /// @return minterm の集合として right が left を含んでいたら true を返す．
   ///
   /// - こちらは等しい場合も含む．
   /// - false だからといって逆に left が right を含むとは限らない．
-  friend
   bool
   operator<=(
-    const BitVector& left, ///< [in] オペランド1
     const BitVector& right ///< [in] オペランド2
-  );
+  ) const
+  {
+    return BitVectorRep::is_le(*mPtr, *right.mPtr);
+  }
+
+  /// @brief 包含関係の比較を行なう
+  /// @return minterm の集合として left が right を含んでいたら true を返す．
+  ///
+  /// - こちらは等しい場合も含む．
+  /// - false だからといって逆に right が left を含むとは限らない．
+  bool
+  operator>=(
+    const BitVector& right ///< [in] オペランド2
+  ) const
+  {
+    return right.operator<=(*this);
+  }
+
+  /// @brief マージする．
+  /// @return マージ結果を返す．
+  ///
+  /// left と right がコンフリクトしている時の結果は不定
+  BitVector
+  operator&(
+    const BitVector& right ///< [in] オペランド2
+  ) const
+  {
+    return BitVector(*this).operator&=(right);
+  }
 
 
 private:
@@ -318,7 +370,7 @@ private:
 
 };
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////
 // BitVector の演算
 //////////////////////////////////////////////////////////////////////
@@ -439,6 +491,7 @@ operator&(
 {
   return BitVector(left).operator&=(right);
 }
+#endif
 
 END_NAMESPACE_DRUID
 
