@@ -107,7 +107,7 @@ public:
   SizeType
   fanout_num() const
   {
-    return static_cast<SizeType>(mFanoutNum >> 16);
+    return static_cast<SizeType>(mFanoutNum >> 8);
   }
 
   /// @brief ファンアウトの先頭のノードを得る．
@@ -121,7 +121,7 @@ public:
   SizeType
   fanout_ipos() const
   {
-    return static_cast<SizeType>((mFanoutNum >> 4) & 0x0FFFU);
+    return static_cast<SizeType>(mFanoutNum & 0xFFU);
   }
 
   /// @brief pos 番目のファンアウトを得る．
@@ -140,7 +140,7 @@ public:
   bool
   is_ffr_root() const
   {
-    return static_cast<bool>((mFanoutNum >> 1) & 1U);
+    return mFlags.test(FFR_ROOT);
   }
 
   /// @brief FFR の根のノードを返す．
@@ -166,7 +166,7 @@ public:
   bool
   is_output() const
   {
-    return static_cast<bool>((mFanoutNum >> 0) & 1U);
+    return mFlags.test(OUTPUT);
   }
 
   /// @brief 内容をダンプする．
@@ -186,7 +186,7 @@ public:
   void
   set_output()
   {
-    mFanoutNum |= 1U;
+    mFlags.set(OUTPUT);
   }
 
   /// @brief ファンアウトリストを作成する．
@@ -200,7 +200,7 @@ public:
   void
   set_ffr_root()
   {
-    mFanoutNum |= 2U;
+    mFlags.set(FFR_ROOT);
   }
 
 
@@ -299,42 +299,42 @@ private:
   bool
   in_queue() const
   {
-    return static_cast<bool>((mFanoutNum >> 2) & 1U);
+    return mFlags.test(IN_Q);
   }
 
   /// @brief キューフラグをセットする．
   void
   set_queue()
   {
-    mFanoutNum |= 1U << 2;
+    mFlags.set(IN_Q);
   }
 
   /// @brief キューフラグをクリアする．
   void
   clear_queue()
   {
-    mFanoutNum &= ~(1U << 2);
+    mFlags.reset(IN_Q);
   }
 
   /// @brief 反転マスクを持っていたら true を返す．
   bool
   has_flip_mask() const
   {
-    return static_cast<bool>((mFanoutNum >> 3) & 1U);
+    return mFlags.test(FLIP);
   }
 
   /// @brief 反転フラグをセットする．
   void
   set_flip()
   {
-    mFanoutNum |= 1U << 3;
+    mFlags.set(FLIP);
   }
 
   /// @brief 反転フラグをクリアする．
   void
   clear_flip()
   {
-    mFanoutNum &= ~(1U << 3);
+    mFlags.reset(FLIP);
   }
 
 
@@ -346,15 +346,20 @@ private:
   // ID 番号
   SizeType mId;
 
+  // フラグのビット位置を表す定数
+  static const int OUTPUT = 0;
+  static const int FFR_ROOT = 1;
+  static const int IN_Q = 2;
+  static const int FLIP = 3;
+  static const int NFLAGS = 4;
+
+  // 種々のフラグ
+  bitset<NFLAGS> mFlags;
+
   // ファンアウトリストの要素数
-  // その他以下の情報もパックして持つ．
-  // - 0      : 出力のマーク
-  // - 1      : FFRの根のマーク
-  // - 2      : EventQ に入っているかどうかを示すマーク
-  // - 3      : 反転フラグ
-  // - 4 - 15 : 最初のファンアウトの入力位置(FFR内のノードのみ意味を持つ)
-  // - 16 -   : ファンアウト数
-  unsigned int mFanoutNum;
+  // - 0 - 7 : 最初のファンアウトの入力位置(FFR内のノードのみ意味を持つ)
+  // - 8 -   : ファンアウト数
+  ymuint32 mFanoutNum;
 
   // ファンアウトの先頭のノード
   SimNode* mFanoutTop;

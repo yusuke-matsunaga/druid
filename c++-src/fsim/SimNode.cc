@@ -26,6 +26,7 @@ BEGIN_NAMESPACE_DRUID_FSIM
 SimNode::SimNode(
   SizeType id
 ) : mId{id},
+    mFlags{0},
     mFanoutNum{0},
     mFanoutTop{nullptr},
     mLevel{0}
@@ -159,7 +160,7 @@ SimNode::set_fanout_list(
     }
   }
 
-  mFanoutNum |= (nfo << 16) | (ipos << 4);
+  mFanoutNum = (nfo << 8) | ipos;
 }
 
 END_NAMESPACE_DRUID_FSIM
