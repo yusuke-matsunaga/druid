@@ -3,9 +3,8 @@
 /// @brief Rtpg の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Rtpg.h"
 #include "ym/Range.h"
@@ -18,14 +17,12 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] network 対象のネットワーク
-// @param[in] tvmgr TvMgr
-// @param[in] fault_type 故障の種類
-Rtpg::Rtpg(const TpgNetwork& network,
-	   TvMgr& tvmgr,
-	   FaultType fault_type) :
-  mFaultType(fault_type),
-  mTvMgr(tvmgr)
+Rtpg::Rtpg(
+  const TpgNetwork& network,
+  TvMgr& tvmgr,
+  FaultType fault_type
+) : mFaultType{fault_type},
+    mTvMgr{tvmgr}
 {
   mFsim = Fsim::new_Fsim2(network, fault_type);
 
@@ -48,16 +45,17 @@ Rtpg::~Rtpg()
 }
 
 // @brief 乱数生成器を初期化する．
-// @param[in] seed 乱数の種
 void
-Rtpg::randgen_init(ymuint32 seed)
+Rtpg::randgen_init(
+  ymuint32 seed
+)
 {
   mRandGen.init(seed);
 }
 
 // @brief 1セット(kPvBitLen個)のパタンで故障シミュレーションを行う．
 // @return 新たに検出された故障数を返す．
-int
+SizeType
 Rtpg::do_fsim()
 {
 }

@@ -91,13 +91,18 @@ public:
   vector<SatLiteral>
   conv_to_literal_list(
     const NodeValList& assign_list ///< [in] 値の割り当てリスト
-  );
+  )
+  {
+    vector<SatLiteral> ans_list;
+    add_to_literal_list(assign_list, ans_list);
+    return ans_list;
+  }
 
   /// @brief 値割り当てをリテラルのリストに追加する．
   void
-  add_to_assumptions(
+  add_to_literal_list(
     const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    vector<SatLiteral>& assumptions ///< [out] 変換したリテラルを追加するリスト
+    vector<SatLiteral>& lit_list    ///< [out] 変換したリテラルを追加するリスト
   );
 
   /// @brief SATソルバに変数を割り当てる．

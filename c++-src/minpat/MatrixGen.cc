@@ -24,9 +24,9 @@ MatrixGen::MatrixGen(
   FaultType fault_type
 ) : mFaultList{fault_list},
     mTvList{tv_list},
-    mRowIdMap(network.max_fault_id(), -1)
+    mRowIdMap(network.max_fault_id(), -1),
+    mFsim{network, fault_type, true}
 {
-  mFsim.init_fsim3(network, fault_type);
   mFsim.clear_patterns();
   mFsim.set_skip_all();
   for ( auto row_id: Range(mFaultList.size()) ) {

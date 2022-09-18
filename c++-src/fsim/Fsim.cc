@@ -30,15 +30,51 @@ namespace nsFsimTd3 {
   std::unique_ptr<FsimImpl> new_Fsim(const TpgNetwork& network);
 }
 
+BEGIN_NONAMESPACE
+
+inline
+std::unique_ptr<FsimImpl>
+new_impl(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  bool has_x
+)
+{
+  if ( has_x ) {
+    // 3値バージョン
+    if ( fault_type == FaultType::StuckAt ) {
+      return nsFsimSa3::new_Fsim(network);
+    }
+    if ( fault_type == FaultType::TransitionDelay ) {
+      return nsFsimTd3::new_Fsim(network);
+    }
+  }
+  else {
+    // 2値バージョン
+    if ( fault_type == FaultType::StuckAt ) {
+      return nsFsimSa2::new_Fsim(network);
+    }
+    if ( fault_type == FaultType::TransitionDelay ) {
+      return nsFsimTd2::new_Fsim(network);
+    }
+  }
+  ASSERT_NOT_REACHED;
+  return nullptr;
+}
+
+END_NONAMESPACE
+
 
 //////////////////////////////////////////////////////////////////////
 // Fsim の実装コード
 //////////////////////////////////////////////////////////////////////
 
-// @brief 空のコンストラクタ
-//
-// 内容は不定
-Fsim::Fsim()
+// @brief コンストラクタ
+Fsim::Fsim(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  bool has_x
+) : mImpl{new_impl(network, fault_type, has_x)}
 {
 }
 
@@ -47,49 +83,11 @@ Fsim::~Fsim()
 {
 }
 
-// @brief 2値の故障シミュレータとして初期化する．
-void
-Fsim::init_fsim2(
-  const TpgNetwork& network,
-  FaultType fault_type
-)
-{
-  if ( fault_type == FaultType::StuckAt ) {
-    mImpl = nsFsimSa2::new_Fsim(network);
-  }
-  else if ( fault_type == FaultType::TransitionDelay ) {
-    mImpl = nsFsimTd2::new_Fsim(network);
-  }
-  else {
-    ASSERT_NOT_REACHED;
-  }
-}
-
-// @brief 3値の故障シミュレータとして初期化する．
-void
-Fsim::init_fsim3(
-  const TpgNetwork& network,
-  FaultType fault_type
-)
-{
-  if ( fault_type == FaultType::StuckAt ) {
-    mImpl = nsFsimSa3::new_Fsim(network);
-  }
-  else if ( fault_type == FaultType::TransitionDelay ) {
-    mImpl = nsFsimTd3::new_Fsim(network);
-  }
-  else {
-    ASSERT_NOT_REACHED;
-  }
-}
-
 // @brief 全ての故障にスキップマークをつける．
 void
 Fsim::set_skip_all()
 {
-  if ( mImpl ) {
-    mImpl->set_skip_all();
-  }
+  mImpl->set_skip_all();
 }
 
 // @brief 故障にスキップマークをつける．
@@ -98,9 +96,7 @@ Fsim::set_skip(
   const TpgFault* f
 )
 {
-  if ( mImpl ) {
-    mImpl->set_skip(f);
-  }
+  mImpl->set_skip(f);
 }
 
 // @brief 複数の故障にスキップマークをつける．
@@ -119,9 +115,7 @@ Fsim::set_skip(
 void
 Fsim::clear_skip_all()
 {
-  if ( mImpl ) {
-    mImpl->clear_skip_all();
-  }
+  mImpl->clear_skip_all();
 }
 
 // @brief 故障のスキップマークを消す．
@@ -130,9 +124,7 @@ Fsim::clear_skip(
   const TpgFault* f
 )
 {
-  if ( mImpl ) {
-    mImpl->clear_skip(f);
-  }
+  mImpl->clear_skip(f);
 }
 
 // @brief 複数の故障のスキップマークを消す．
@@ -154,12 +146,7 @@ Fsim::spsfp(
   const TpgFault* f
 )
 {
-  if ( mImpl ) {
-    return mImpl->spsfp(tv, f);
-  }
-  else {
-    return false;
-  }
+  return mImpl->spsfp(tv, f);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -169,12 +156,7 @@ Fsim::spsfp(
   const TpgFault* f
 )
 {
-  if ( mImpl ) {
-    return mImpl->spsfp(assign_list, f);
-  }
-  else {
-    return false;
-  }
+  return mImpl->spsfp(assign_list, f);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -183,12 +165,7 @@ Fsim::sppfp(
   const TestVector& tv
 )
 {
-  if ( mImpl ) {
-    return mImpl->sppfp(tv);
-  }
-  else {
-    return 0;
-  }
+  return mImpl->sppfp(tv);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -197,24 +174,14 @@ Fsim::sppfp(
   const NodeValList& assign_list
 )
 {
-  if ( mImpl ) {
-    return mImpl->sppfp(assign_list);
-  }
-  else {
-    return 0;
-  }
+  return mImpl->sppfp(assign_list);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
 SizeType
 Fsim::ppsfp()
 {
-  if ( mImpl ) {
-    return mImpl->ppsfp();
-  }
-  else {
-    return 0;
-  }
+  return mImpl->ppsfp();
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
@@ -224,12 +191,7 @@ Fsim::calc_wsa(
   bool weighted
 )
 {
-  if ( mImpl ) {
-    return mImpl->calc_wsa(tv, weighted);
-  }
-  else {
-    return 0;
-  }
+  return mImpl->calc_wsa(tv, weighted);
 }
 
 // @brief 状態を設定する．
@@ -239,9 +201,7 @@ Fsim::set_state(
   const DffVector& f_vect
 )
 {
-  if ( mImpl ) {
-    mImpl->set_state(i_vect, f_vect);
-  }
+  mImpl->set_state(i_vect, f_vect);
 }
 
 // @brief 状態を取得する．
@@ -251,9 +211,7 @@ Fsim::get_state(
   DffVector& f_vect
 )
 {
-  if ( mImpl ) {
-    mImpl->get_state(i_vect, f_vect);
-  }
+  mImpl->get_state(i_vect, f_vect);
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
@@ -263,21 +221,14 @@ Fsim::calc_wsa(
   bool weighted
 )
 {
-  if ( mImpl ) {
-    return mImpl->calc_wsa(i_vect, weighted);
-  }
-  else {
-    return 0;
-  }
+  return mImpl->calc_wsa(i_vect, weighted);
 }
 
 // @brief ppsfp 用のパタンバッファをクリアする．
 void
 Fsim::clear_patterns()
 {
-  if ( mImpl ) {
-    mImpl->clear_patterns();
-  }
+  mImpl->clear_patterns();
 }
 
 // @brief ppsfp 用のパタンを設定する．
@@ -287,9 +238,7 @@ Fsim::set_pattern(
   const TestVector& tv
 )
 {
-  if ( mImpl ) {
-    mImpl->set_pattern(pos, tv);
-  }
+  mImpl->set_pattern(pos, tv);
 }
 
 // @brief 設定した ppsfp 用のパタンを読み出す．
@@ -298,24 +247,14 @@ Fsim::get_pattern(
   SizeType pos
 )
 {
-  if ( mImpl ) {
-    return mImpl->get_pattern(pos);
-  }
-  else {
-    return TestVector();
-  }
+  return mImpl->get_pattern(pos);
 }
 
 // @brief 直前の sppfp/ppsfp で検出された故障数を返す．
 SizeType
 Fsim::det_fault_num()
 {
-  if ( mImpl ) {
-    return mImpl->det_fault_num();
-  }
-  else {
-    return 0;
-  }
+  return mImpl->det_fault_num();
 }
 
 // @brief 直前の sppfp/ppsfp で検出された故障を返す．
@@ -325,24 +264,14 @@ Fsim::det_fault(
   SizeType pos
 )
 {
-  if ( mImpl ) {
-    return mImpl->det_fault(pos);
-  }
-  else {
-    return nullptr;
-  }
+  return mImpl->det_fault(pos);
 }
 
 // @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
 Array<const TpgFault*>
 Fsim::det_fault_list()
 {
-  if ( mImpl ) {
-    return mImpl->det_fault_list();
-  }
-  else {
-    return Array<const TpgFault*>(nullptr, 0, 0);
-  }
+  return mImpl->det_fault_list();
 }
 
 // @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
@@ -352,24 +281,14 @@ Fsim::det_fault_pat(
   SizeType pos
 )
 {
-  if ( mImpl ) {
-    return mImpl->det_fault_pat(pos);
-  }
-  else {
-    return 0UL;
-  }
+  return mImpl->det_fault_pat(pos);
 }
 
 // @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
 Array<PackedVal>
 Fsim::det_fault_pat_list()
 {
-  if ( mImpl ) {
-    return mImpl->det_fault_pat_list();
-  }
-  else {
-    return Array<PackedVal>(nullptr, 0, 0);
-  }
+  return mImpl->det_fault_pat_list();
 }
 
 END_NAMESPACE_DRUID

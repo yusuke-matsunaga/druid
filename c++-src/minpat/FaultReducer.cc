@@ -67,9 +67,9 @@ FaultReducer::FaultReducer(
   FaultType fault_type
 ) : mNetwork{network},
     mFaultType{fault_type},
+    mFsim{network, mFaultType, true},
     mDebug{false}
 {
-  mFsim.init_fsim3(mNetwork, mFaultType);
 }
 
 // @brief デストラクタ

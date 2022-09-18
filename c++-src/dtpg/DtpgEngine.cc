@@ -480,14 +480,14 @@ DtpgEngine::gen_pattern(
   const TpgFault* fault
 )
 {
-  // FFR 内の故障伝搬条件を ffr_cond に入れる．
-  NodeValList ffr_cond = fault->ffr_propagate_condition(fault_type());
-
   // 追加の条件
   auto assumptions = gen_assumptions(fault);
 
+  // FFR 内の故障伝搬条件を ffr_cond に入れる．
+  auto ffr_cond = fault->ffr_propagate_condition(fault_type());
+
   // ffr_cond の内容を assumptions に追加する．
-  add_to_assumptions(ffr_cond, assumptions);
+  add_to_literal_list(ffr_cond, assumptions);
 
   SatBool3 sat_res = check(assumptions);
   if ( sat_res == SatBool3::True ) {
@@ -512,7 +512,7 @@ DtpgEngine::backtrace(
   Timer timer;
   timer.start();
 
-  NodeValList suf_cond = get_sufficient_condition(ffr_root);
+  auto suf_cond = get_sufficient_condition(ffr_root);
   suf_cond.merge(ffr_cond);
 
   // バックトレースを行う．
@@ -530,44 +530,29 @@ DtpgEngine::conv_to_literal(
   NodeVal node_val
 )
 {
-  const TpgNode* node = node_val.node();
+  auto node = node_val.node();
   bool inv = !node_val.val(); // 0 の時が inv = true
-  SatLiteral vid = (node_val.time() == 0) ? hvar(node) : gvar(node);
-  return SatLiteral{vid, inv};
-}
-
-// @brief 値割り当てをリテラルのリストに変換する．
-vector<SatLiteral>
-DtpgEngine::conv_to_literal_list(
-  const NodeValList& assign_list
-)
-{
-  vector<SatLiteral> ans_list;
-  add_to_assumptions(assign_list, ans_list);
-  return ans_list;
+  auto vid = (node_val.time() == 0) ? hvar(node) : gvar(node);
+  return vid * inv;
 }
 
 // @brief 値割り当てをリテラルのリストに変換する．
 void
-DtpgEngine::add_to_assumptions(
+DtpgEngine::add_to_literal_list(
   const NodeValList& assign_list,
-  vector<SatLiteral>& assumptions
+  vector<SatLiteral>& lit_list
 )
 {
-  int n0 = assumptions.size();
-  int n = assign_list.size();
-  assumptions.reserve(n + n0);
+  SizeType n0 = lit_list.size();
+  SizeType n = assign_list.size();
+  lit_list.reserve(n + n0);
   for ( auto nv: assign_list ) {
     auto lit = conv_to_literal(nv);
-    assumptions.push_back(lit);
+    lit_list.push_back(lit);
   }
 }
 
 // @brief SAT問題が充足可能か調べる．
-// @param[in] assumptions 値の決まっている変数のリスト
-// @return 結果を返す．
-//
-// solve() との違いは結果のモデルを保持しない．
 SatBool3
 DtpgEngine::check(
   const vector<SatLiteral>& assumptions
@@ -666,7 +651,7 @@ DtpgEngine::get_mandatory_condition(
   auto assumptions = conv_to_literal_list(ffr_cond);
   for ( auto nv: suf_cond ) {
     SatLiteral lit = conv_to_literal(nv);
-    vector<SatLiteral> assumptions1(assumptions);
+    vector<SatLiteral> assumptions1{assumptions};
     assumptions1.push_back(~lit);
     SatBool3 tmp_res = check(assumptions1);
     if ( tmp_res == SatBool3::False ) {

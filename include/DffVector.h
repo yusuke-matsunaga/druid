@@ -37,7 +37,9 @@ public:
   /// @brief コピーコンストラクタ
   DffVector(
     const DffVector& src  ///< [in] コピー元のソース
-  );
+  ) : BitVector{src}
+  {
+  }
 
   /// @brief コピー代入演算子
   DffVector&

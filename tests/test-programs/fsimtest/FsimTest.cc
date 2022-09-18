@@ -32,9 +32,11 @@ print_fault(const TpgFault* f,
 
 // SPSFP のテスト
 pair<int, int>
-spsfp_test(const TpgNetwork& network,
-	   Fsim& fsim,
-	   const vector<TestVector>& tv_list)
+spsfp_test(
+  const TpgNetwork& network,
+  Fsim& fsim,
+  const vector<TestVector>& tv_list
+)
 {
   vector<bool> mark(network.max_fault_id(), false);
   int det_num = 0;
@@ -64,8 +66,10 @@ spsfp_test(const TpgNetwork& network,
 
 // SPPFP のテスト
 pair<int, int>
-sppfp_test(Fsim& fsim,
-	   const vector<TestVector>& tv_list)
+sppfp_test(
+  Fsim& fsim,
+  const vector<TestVector>& tv_list
+)
 {
   int det_num = 0;
   int nepat = 0;
@@ -88,8 +92,10 @@ sppfp_test(Fsim& fsim,
 
 // PPSFP のテスト
 pair<int, int>
-ppsfp_test(Fsim& fsim,
-	   const vector<TestVector>& tv_list)
+ppsfp_test(
+  Fsim& fsim,
+  const vector<TestVector>& tv_list
+)
 {
   int nv = tv_list.size();
 
@@ -168,12 +174,14 @@ ppsfp_test(Fsim& fsim,
 // @param[out] tv_list 生成されたパタンを格納するベクタ
 template<class URNG>
 void
-randgen(URNG& rg,
-	int input_num,
-	int dff_num,
-	FaultType fault_type,
-	int nv,
-	vector<TestVector>& tv_list)
+randgen(
+  URNG& rg,
+  int input_num,
+  int dff_num,
+  FaultType fault_type,
+  int nv,
+  vector<TestVector>& tv_list
+)
 {
   tv_list.clear();
   tv_list.reserve(nv);
@@ -191,8 +199,10 @@ usage()
 }
 
 int
-fsim2test(int argc,
-	  char** argv)
+fsim2test(
+  int argc,
+  char** argv
+)
 {
   int npat = 0;
   bool blif = false;
@@ -343,16 +353,7 @@ fsim2test(int argc,
   }
   FaultType fault_type = sa_mode ? FaultType::StuckAt : FaultType::TransitionDelay;
 
-  Fsim fsim;
-  if ( fsim2 ) {
-    fsim.init_fsim2(network, fault_type);
-  }
-  else if ( fsim3 ) {
-    fsim.init_fsim3(network, fault_type);
-  }
-  else {
-    ASSERT_NOT_REACHED;
-  }
+  Fsim fsim{network, fault_type, fsim3};
 
   std::mt19937 rg;
   vector<TestVector> tv_list;

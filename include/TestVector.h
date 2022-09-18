@@ -266,22 +266,6 @@ public:
   // TestVector の演算
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief マージして代入する．
-  TestVector&
-  operator&=(const TestVector& right)
-  {
-    mVector &= right.mVector;
-
-    return *this;
-  }
-
-  /// @brief マージして代入する．
-  void
-  merge(const TestVector& right)
-  {
-    operator&=(right);
-  }
-
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -369,49 +353,85 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // friend 関数の定義(publicに意味はない)
+  // 二項演算
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief マージする．
+  /// @return マージ結果を返す．
+  ///
+  /// right がコンフリクトしている時の結果は不定
+  TestVector
+  operator&(
+    const TestVector& right ///< [in] オペランド2
+  ) const
+  {
+    return TestVector(*this).operator&=(right);
+  }
+
+  /// @brief マージして代入する．
+  TestVector&
+  operator&=(
+    const TestVector& right ///< [in] オペランド
+  )
+  {
+    mVector &= right.mVector;
+
+    return *this;
+  }
+
+  /// @brief マージして代入する(operator&=の別名)．
+  void
+  merge(
+    const TestVector& right ///< [in] オペランド
+  )
+  {
+    operator&=(right);
+  }
+
   /// @brief 両立関係の比較を行う．
-  /// @return left と right が両立する時 true を返す．
-  friend
+  /// @return right が両立する時 true を返す．
   bool
   operator&&(
-    const TestVector& left, ///< [in] オペランド1
     const TestVector& right ///< [in] オペランド2
-  );
+  ) const
+  {
+    return mVector && right.mVector;
+  }
 
   /// @brief 等価関係の比較を行なう．
-  /// @return left と right が等しいとき true を返す．
-  friend
+  /// @return right が等しいとき true を返す．
   bool
   operator==(
-    const TestVector& left, ///< [in] オペランド1
     const TestVector& right ///< [in] オペランド2
-  );
+  ) const
+  {
+    return mVector == right.mVector;
+  }
 
   /// @brief 包含関係の比較を行なう
   /// @return minterm の集合として right が left を含んでいたら true を返す．
   ///
   /// - false だからといって逆に left が right を含むとは限らない．
-  friend
   bool
   operator<(
-    const TestVector& left, ///< [in] オペランド1
     const TestVector& right ///< [in] オペランド2
-  );
+  ) const
+  {
+    return mVector < right.mVector;
+  }
 
   /// @brief 包含関係の比較を行なう
   /// @return minterm の集合として right が left を含んでいたら true を返す．
   ///
   /// - こちらは等しい場合も含む．
   /// - false だからといって逆に left が right を含むとは限らない．
-  friend
   bool
   operator<=(
-    const TestVector& left, ///< [in] オペランド1
     const TestVector& right ///< [in] オペランド2
-  );
+  ) const
+  {
+    return mVector <= right.mVector;
+  }
 
 
 private:
@@ -451,20 +471,6 @@ private:
 };
 
 /// @relates TestVector
-/// @brief 2つのベクタが両立するとき true を返す．
-///
-/// 同じビット位置にそれぞれ 0 と 1 を持つ場合が両立しない場合．
-inline
-bool
-operator&&(
-  const TestVector& tv1, ///< [in] オペランド1
-  const TestVector& tv2	 ///< [in] オペランド2
-)
-{
-  return tv1.mVector && tv2.mVector;
-}
-
-/// @relates TestVector
 /// @brief operator&& の別名
 ///
 /// 同じビット位置にそれぞれ 0 と 1 を持つ場合が両立しない場合．
@@ -476,19 +482,6 @@ is_compatible(
 )
 {
   return tv1 && tv2;
-}
-
-/// @relates TestVector
-/// @brief 等価関係の比較を行なう．
-/// @return left と right が等しいとき true を返す．
-inline
-bool
-operator==(
-  const TestVector& left, ///< [in] オペランド1
-  const TestVector& right ///< [in] オペランド2
-)
-{
-  return left.mVector == right.mVector;
 }
 
 /// @relates TestVector
@@ -514,22 +507,7 @@ operator!=(
   const TestVector& right ///< [in] オペランド2
 )
 {
-  return !operator==(left, right);
-}
-
-/// @relates TestVector
-/// @brief 包含関係の比較を行なう
-/// @return minterm の集合として right が left を含んでいたら true を返す．
-///
-/// - false だからといって逆に left が right を含むとは限らない．
-inline
-bool
-operator<(
-  const TestVector& left, ///< [in] オペランド1
-  const TestVector& right ///< [in] オペランド2
-)
-{
-  return left.mVector < right.mVector;
+  return !left.operator==(right);
 }
 
 /// @relates TestVector
@@ -544,23 +522,7 @@ operator>(
   const TestVector& right ///< [in] オペランド2
 )
 {
-  return operator<(right, left);
-}
-
-/// @relates TestVector
-/// @brief 包含関係の比較を行なう
-/// @return minterm の集合として right が left を含んでいたら true を返す．
-///
-/// - こちらは等しい場合も含む．
-/// - false だからといって逆に left が right を含むとは限らない．
-inline
-bool
-operator<=(
-  const TestVector& left, ///< [in] オペランド1
-  const TestVector& right ///< [in] オペランド2
-)
-{
-  return left.mVector <= right.mVector;
+  return right.operator<(left);
 }
 
 /// @relates TestVector
@@ -576,21 +538,7 @@ operator>=(
   const TestVector& right ///< [in] オペランド2
 )
 {
-  return operator<=(right, left);
-}
-
-/// @brief マージする．
-/// @return マージ結果を返す．
-///
-/// left と right がコンフリクトしている時の結果は不定
-inline
-TestVector
-operator&(
-  const TestVector& left, ///< [in] オペランド1
-  const TestVector& right ///< [in] オペランド2
-)
-{
-  return TestVector(left).operator&=(right);
+  return right.operator<=(left);
 }
 
 /// @brief 複数のテストベクタをマージする．

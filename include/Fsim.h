@@ -35,10 +35,12 @@ class Fsim
 {
 public:
 
-  /// @brief 空のコンストラクタ
-  ///
-  /// 内容は不定
-  Fsim();
+  /// @brief コンストラクタ
+  Fsim(
+    const TpgNetwork& network, ///< [in] ネットワーク
+    FaultType fault_type,      ///< [in] 故障の型
+    bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
+  );
 
   /// @brief コピーコンストラクタは禁止
   Fsim(const Fsim& src) = delete;
@@ -56,26 +58,6 @@ public:
 
   /// @brief デストラクタ
   ~Fsim();
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 初期化を行う．
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 2値の故障シミュレータとして初期化する．
-  void
-  init_fsim2(
-    const TpgNetwork& network, ///< [in] ネットワーク
-    FaultType fault_type       ///< [in] 故障の型
-  );
-
-  /// @brief 3値の故障シミュレータとして初期化する．
-  void
-  init_fsim3(
-    const TpgNetwork& network, ///< [in] ネットワーク
-    FaultType fault_type       ///< [in] 故障の型
-  );
 
 
 public:
@@ -199,16 +181,15 @@ public:
   /// @brief 状態を取得する．
   void
   get_state(
-    InputVector& i_vect, ///< [in] 外部入力のビットベクタ
-    DffVector& f_vect	 ///< [in] FFの値のビットベクタ
+    InputVector& i_vect, ///< [out] 外部入力のビットベクタ
+    DffVector& f_vect	 ///< [out] FFの値のビットベクタ
   );
 
   /// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
   SizeType
   calc_wsa(
     const InputVector& i_vect,  ///< [in] 外部入力のビットベクタ
-    bool weighted               ///< [in] テストベクタ
-				///< [in] 重みフラグ
+    bool weighted               ///< [in] 重みフラグ
 				///< - false: ゲートの出力の遷移回数の和
 				///< - true : ゲートの出力の遷移回数に
 				///<          (ファンアウト数＋１)を掛けたものの和

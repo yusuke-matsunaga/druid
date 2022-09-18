@@ -27,9 +27,9 @@ DtpgTest::DtpgTest(
     mNetwork{network},
     mFaultType{fault_type},
     mJustType{just_type},
-    mFaultMgr{network}
+    mFaultMgr{network},
+    mFsim{network, fault_type, true}
 {
-  mFsim.init_fsim3(network, fault_type);
   mDop.add(new_DopVerify(mFsim, mVerifyResult));
 }
 
