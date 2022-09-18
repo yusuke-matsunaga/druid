@@ -14,6 +14,7 @@ include_directories (
 # ===================================================================
 
 add_subdirectory ( fsim )
+add_subdirectory ( lua_druid )
 
 
 # ===================================================================
@@ -140,12 +141,6 @@ set (td_SOURCES
   td/rtpg/RtpgP2.cc
   )
 
-set (lua_druid_SOURCES
-  lua_druid/lua_druid.cc
-  lua_druid/LuaDruid_TpgNetwork.cc
-  lua_druid/dtpg_cmd.cc
-  )
-
 
 # ===================================================================
 # ターゲットの設定
@@ -164,50 +159,6 @@ ym_add_object_library ( druid_common
   ${mf_SOURCES}
 #  ${sa_SOURCES}
 #  ${td_SOURCES}
-  )
-
-add_executable ( druid
-  ${lua_druid_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj>
-  $<TARGET_OBJECTS:ym_luaclib_obj>
-  ${YM_SUBMODULE_OBJ_LIST}
-  )
-
-target_include_directories ( druid
-  PRIVATE
-  ${LUA_INCLUDE_DIR}
-  )
-
-target_link_libraries ( druid
-  ${YM_LIB_DEPENDS}
-  )
-
-add_executable ( druid_d
-  ${lua_druid_SOURCES}
-  $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
-  $<TARGET_OBJECTS:ym_luaclib_obj_d>
-  ${YM_SUBMODULE_OBJ_D_LIST}
-  )
-
-target_compile_options ( druid_d
-  PRIVATE "-g"
-  )
-
-target_include_directories ( druid_d
-  PRIVATE
-  ${LUA_INCLUDE_DIR}
-  )
-
-target_link_libraries ( druid_d
-  ${YM_LIB_DEPENDS}
   )
 
 
