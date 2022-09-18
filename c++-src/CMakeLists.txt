@@ -15,6 +15,7 @@ include_directories (
 
 add_subdirectory ( fsim )
 add_subdirectory ( lua_druid )
+add_subdirectory ( py_druid )
 
 
 # ===================================================================
