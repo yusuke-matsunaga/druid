@@ -3,9 +3,8 @@
 /// @brief TpgFault の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2007, 2012-2014, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgFault.h"
 #include "TpgFaultBase.h"
@@ -20,31 +19,33 @@
 
 BEGIN_NAMESPACE_DRUID
 
-// @relates TpgFault
+//////////////////////////////////////////////////////////////////////
+// クラス TpgFault
+//////////////////////////////////////////////////////////////////////
+
 // @brief 故障が励起してFFRの根まで伝搬する条件を求める．
-// @param[in] fault 故障
-// @param[in] fault_type 故障の種類
 NodeValList
-ffr_propagate_condition(const TpgFault* fault,
-			FaultType fault_type)
+TpgFault::ffr_propagate_condition(
+  FaultType fault_type
+) const
 {
   NodeValList assign_list;
 
   // 故障の活性化条件を作る．
-  const TpgNode* inode = fault->tpg_inode();
+  auto inode = tpg_inode();
   // 0 縮退故障の時に 1 にする．
-  bool val = (fault->val() == 0);
-  assign_list.add(inode, 1, val);
+  bool is_0 = (val() == Fval2::zero);
+  assign_list.add(inode, 1, is_0);
 
   if ( fault_type == FaultType::TransitionDelay ) {
     // 1時刻前の値が逆の値である条件を作る．
-    assign_list.add(inode, 0, !val);
+    assign_list.add(inode, 0, !is_0);
   }
 
   // ブランチの故障の場合，ゲートの出力までの伝搬条件を作る．
-  if ( fault->is_branch_fault() ) {
-    const TpgNode* onode = fault->tpg_onode();
-    int fpos = fault->tpg_pos();
+  if ( is_branch_fault() ) {
+    auto onode = tpg_onode();
+    SizeType fpos = tpg_pos();
     Val3 nval = onode->nval();
     if ( nval != Val3::_X ) {
       bool val = (nval == Val3::_1);
@@ -58,10 +59,10 @@ ffr_propagate_condition(const TpgFault* fault,
   }
 
   // FFR の根までの伝搬条件を作る．
-  for ( const TpgNode* node = fault->tpg_onode(); node->fanout_num() == 1;
+  for ( auto node = tpg_onode(); node->fanout_num() == 1;
 	node = node->fanout_list()[0]) {
-    const TpgNode* fonode = node->fanout_list()[0];
-    int ni = fonode->fanin_num();
+    auto fonode = node->fanout_list()[0];
+    SizeType ni = fonode->fanin_num();
     if ( ni == 1 ) {
       continue;
     }
@@ -86,22 +87,17 @@ ffr_propagate_condition(const TpgFault* fault,
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] val 故障値
-// @param[in] node 故障位置のノード
-// @param[in] name 故障位置のノード名
-// @param[in] rep_fault 代表故障
-TpgFaultBase::TpgFaultBase(int id,
-			   int val,
-			   const TpgNode* node,
-			   const char* name,
-			   TpgFault* rep_fault) :
-  mTpgNode(node),
-  mNodeName(name),
-  mRepFault(rep_fault)
+TpgFaultBase::TpgFaultBase(
+  SizeType id,
+  Fval2 val,
+  const TpgNode* node,
+  const string& name,
+  TpgFault* rep_fault
+) : mTpgNode{node},
+    mNodeName{name},
+    mRepFault{rep_fault}
 {
-  // val は 0 か 1 のはずだが念の為マスクしておく
-  mIdVal = (id << 1) | static_cast<int>(val & 1);
+  mIdVal = (id << 1) | static_cast<SizeType>(val);
 }
 
 // @brief デストラクタ
@@ -110,22 +106,25 @@ TpgFaultBase::~TpgFaultBase()
 }
 
 // @brief ID番号を返す．
-int
+SizeType
 TpgFaultBase::id() const
 {
   return static_cast<int>(mIdVal >> 1);
 }
 
 // @brief 故障値を返す．
-// @note 返す値は 0 か 1
-int
+Fval2
 TpgFaultBase::val() const
 {
-  return static_cast<int>(mIdVal & 1UL);
+  if ( mIdVal & 1 ) {
+    return Fval2::one;
+  }
+  else {
+    return Fval2::zero;
+  }
 }
 
 // @brief 代表故障を返す．
-// @note 代表故障の時は自分自身を返す．
 const TpgFault*
 TpgFaultBase::rep_fault() const
 {
@@ -133,9 +132,10 @@ TpgFaultBase::rep_fault() const
 }
 
 // @brief 代表故障を設定する．
-// @param[in] rep 代表故障
 void
-TpgFaultBase::set_rep(const TpgFault* rep)
+TpgFaultBase::set_rep(
+  const TpgFault* rep
+)
 {
   mRepFault = rep;
 }
@@ -146,17 +146,13 @@ TpgFaultBase::set_rep(const TpgFault* rep)
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] val 故障値
-// @param[in] node 故障位置のノード
-// @param[in] name 故障位置のノード名
-// @param[in] rep_fault 代表故障
-TpgStemFault::TpgStemFault(int id,
-			   int val,
-			   const TpgNode* node,
-			   const char* name,
-			   TpgFault* rep_fault) :
-  TpgFaultBase(id, val, node, name, rep_fault)
+TpgStemFault::TpgStemFault(
+  SizeType id,
+  Fval2 val,
+  const TpgNode* node,
+  const string& name,
+  TpgFault* rep_fault
+) : TpgFaultBase{id, val, node, name, rep_fault}
 {
   ASSERT_COND( tpg_inode() != nullptr );
 }
@@ -190,7 +186,7 @@ TpgStemFault::is_stem_fault() const
 }
 
 // @brief ブランチの入力位置を返す．
-int
+SizeType
 TpgStemFault::fault_pos() const
 {
   ASSERT_NOT_REACHED;
@@ -201,7 +197,7 @@ TpgStemFault::fault_pos() const
 // @brief tpg_inode 上の故障位置を返す．
 //
 // is_input_fault() == true の時のみ意味を持つ．
-int
+SizeType
 TpgStemFault::tpg_pos() const
 {
   ASSERT_NOT_REACHED;
@@ -214,13 +210,7 @@ string
 TpgStemFault::str() const
 {
   ostringstream ans;
-  ans << node_name() << ":O:";
-  if ( val() ) {
-    ans <<"1";
-  }
-  else {
-    ans <<"0";
-  }
+  ans << node_name() << ":O:" << val();
   return ans.str();
 }
 
@@ -230,26 +220,19 @@ TpgStemFault::str() const
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] val 故障値
-// @param[in] onode 出力側の TpgNode
-// @param[in] name ノード名
-// @param[in] pos 故障の入力位置
-// @param[in] inode 入力側の TpgNode
-// @param[in] tpg_pos node 上の故障位置
-// @param[in] rep_fault 代表故障
-TpgBranchFault::TpgBranchFault(int id,
-			       int val,
-			       const TpgNode* onode,
-			       const char* name,
-			       int pos,
-			       const TpgNode* inode,
-			       int tpg_pos,
-			       TpgFault* rep_fault) :
-  TpgFaultBase(id, val, onode, name, rep_fault),
-  mPos(pos),
-  mInode(inode),
-  mTpgPos(tpg_pos)
+TpgBranchFault::TpgBranchFault(
+  SizeType id,
+  Fval2 val,
+  const TpgNode* onode,
+  const string& name,
+  SizeType pos,
+  const TpgNode* inode,
+  SizeType tpg_pos,
+  TpgFault* rep_fault
+) : TpgFaultBase{id, val, onode, name, rep_fault},
+    mPos{pos},
+    mInode{inode},
+    mTpgPos{tpg_pos}
 {
   ASSERT_COND( tpg_onode() != nullptr );
   ASSERT_COND( tpg_inode() != nullptr );
@@ -284,7 +267,7 @@ TpgBranchFault::is_stem_fault() const
 // @brief ブランチの入力位置を返す．
 //
 // is_branch_fault() == true の時のみ意味を持つ．
-int
+SizeType
 TpgBranchFault::fault_pos() const
 {
   return mPos;
@@ -293,7 +276,7 @@ TpgBranchFault::fault_pos() const
 // @brief tpg_inode 上の故障位置を返す．
 //
 // is_branch_fault() == true の時のみ意味を持つ．
-int
+SizeType
 TpgBranchFault::tpg_pos() const
 {
   return mTpgPos;
@@ -304,13 +287,7 @@ string
 TpgBranchFault::str() const
 {
   ostringstream ans;
-  ans << node_name() << ":I" << fault_pos() << ":";
-  if ( val() ) {
-    ans <<"1";
-  }
-  else {
-    ans <<"0";
-  }
+  ans << node_name() << ":I" << fault_pos() << ":" << val();
   return ans.str();
 }
 

@@ -5,7 +5,7 @@
 /// @brief TpgFFR のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -34,24 +34,10 @@ class TpgFFR
 public:
 
   /// @brief コンストラクタ
-  TpgFFR();
-
-  /// @brief コピーコンストラクタは禁止
-  TpgFFR(const TpgFFR& src) = delete;
-
-  /// @brief コピー代入演算子も禁止
-  TpgFFR&
-  operator=(const TpgFFR& src) = delete;
-
-  /// @brief ムーブコンストラクタは禁止
-  TpgFFR(TpgFFR&& src) = delete;
-
-  /// @brief ムーブ代入演算子も禁止
-  TpgFFR&
-  operator=(TpgFFR&& src) = delete;
+  TpgFFR() = default;
 
   /// @brief デストラクタ
-  ~TpgFFR();
+  ~TpgFFR() = default;
 
 
 public:
@@ -61,20 +47,60 @@ public:
 
   /// @brief 根のノードを返す．
   const TpgNode*
-  root() const;
+  root() const
+  {
+    return mRoot;
+  }
+
+  /// @brief 葉(FFRの入力)の数を返す．
+  SizeType
+  input_num() const
+  {
+    return mInputList.size();
+  }
+
+  /// @brief 葉(FFRの入力)を返す．
+  const TpgNode*
+  input(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < input_num() )
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < input_num() );
+
+    return mInputList[pos];
+  }
+
+  /// @brief 葉(FFRの入力)のリストを返す．
+  const vector<const TpgNode*>&
+  input_list() const
+  {
+    return mInputList;
+  }
 
   /// @brief このFFRに含まれる代表故障の数を返す．
-  int
-  fault_num() const;
+  SizeType
+  fault_num() const
+  {
+    return mFaultList.size();
+  }
 
   /// @brief このFFRに含まれる代表故障を返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < fault_num() )
   const TpgFault*
-  fault(int pos) const;
+  fault(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < fault_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < fault_num() );
+
+    return mFaultList[pos];
+  }
 
   /// @brief このFFRに含まれる代表故障のリストを返す．
-  Array<const TpgFault*>
-  fault_list() const;
+  const vector<const TpgFault*>&
+  fault_list() const
+  {
+    return mFaultList;
+  }
 
 
 public:
@@ -83,19 +109,20 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 内容を設定する．
-  /// @param[in] root 根のノード
-  /// @param[in] fault_num  故障数
-  /// @param[in] fault_list 故障のリスト(配列)
+  ///
+  /// input_list, fault_list の所有権は移譲しない．
+  /// 生成/解放の責任は親の TpgNetwork にある．
   void
-  set(const TpgNode* root,
-      int fault_num,
-      const TpgFault** fault_list);
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  set(
+    const TpgNode* root,                      ///< [in] 根のノード
+    const vector<const TpgNode*>& input_list, ///< [in] 入力のノードのリスト(配列)
+    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト(配列)
+  )
+  {
+    mRoot = root;
+    mInputList = input_list;
+    mFaultList = fault_list;
+  }
 
 
 private:
@@ -106,83 +133,13 @@ private:
   // 根のノード
   const TpgNode* mRoot;
 
-  // 故障数
-  int mFaultNum;
+  // 葉のノードの配列
+  vector<const TpgNode*> mInputList;
 
   // 故障の配列
-  const TpgFault** mFaultList;
+  vector<const TpgFault*> mFaultList;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-inline
-TpgFFR::TpgFFR()
-{
-  mRoot = nullptr;
-  mFaultNum = 0;
-  mFaultList = nullptr;
-}
-
-// @brief デストラクタ
-inline
-TpgFFR::~TpgFFR()
-{
-}
-
-// @brief 根のノードを返す．
-inline
-const TpgNode*
-TpgFFR::root() const
-{
-  return mRoot;
-}
-
-// @brief このFFRに含まれる代表故障の数を返す．
-inline
-int
-TpgFFR::fault_num() const
-{
-  return mFaultNum;
-}
-
-// @brief このFFRに含まれる代表故障を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < fault_num() )
-inline
-const TpgFault*
-TpgFFR::fault(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < fault_num() );
-
-  return mFaultList[pos];
-}
-
-// @brief このFFRに含まれる代表故障のリストを返す．
-inline
-Array<const TpgFault*>
-TpgFFR::fault_list() const
-{
-  return Array<const TpgFault*>(mFaultList, 0, fault_num());
-}
-
-// @brief 内容を設定する．
-// @param[in] root 根のノード
-// @param[in] fault_num  故障数
-// @param[in] fault_list 故障のリスト(配列)
-inline
-void
-TpgFFR::set(const TpgNode* root,
-	    int fault_num,
-	    const TpgFault** fault_list)
-{
-  mRoot = root;
-  mFaultNum = fault_num;
-  mFaultList = fault_list;
-}
 
 END_NAMESPACE_DRUID
 

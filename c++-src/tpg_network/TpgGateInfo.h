@@ -5,13 +5,11 @@
 /// @brief TpgGateInfo のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "ym/logic.h"
-#include "ym/HashMap.h"
 #include "ym/TvFunc.h"
 
 
@@ -31,7 +29,7 @@ public:
 
   /// @brief デストラクタ
   virtual
-  ~TpgGateInfo() { }
+  ~TpgGateInfo() = default;
 
 
 public:
@@ -69,16 +67,16 @@ public:
 
   /// @brief 追加ノード数を返す．
   virtual
-  int
+  SizeType
   extra_node_num() const = 0;
 
   /// @brief 制御値を返す．
-  /// @param[in] pos 入力位置
-  /// @param[in] val 値
   virtual
   Val3
-  cval(int pos,
-       Val3 val) const = 0;
+  cval(
+    SizeType pos, ///< [in] 入力位置
+    Val3 val      ///< [in] 値
+  ) const = 0;
 
 };
 
@@ -104,22 +102,17 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 組み込み型のオブジェクトを返す．
-  /// @param[in] gate_type ゲートタイプ
   const TpgGateInfo*
-  simple_type(GateType gate_type);
+  simple_type(
+    GateType gate_type ///< [in] ゲートタイプ
+  );
 
   /// @brief 複合型のオブジェクトを返す．
-  /// @param[in] ni 入力数
-  /// @param[in] expr 論理式
   const TpgGateInfo*
-  complex_type(int ni,
-	       const Expr& expr);
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  complex_type(
+    SizeType ni,     ///< [in] 入力数
+    const Expr& expr ///< [in] 論理式
+  );
 
 
 private:

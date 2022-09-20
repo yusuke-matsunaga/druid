@@ -6,12 +6,10 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "DtpgEngine.h"
-#include "ym/HashMap.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -28,20 +26,15 @@ class DtpgFFR2 :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] sat_type SATソルバの種類を表す文字列
-  /// @param[in] sat_option SATソルバに渡すオプション文字列
-  /// @param[in] sat_outp SATソルバ用の出力ストリーム
-  /// @param[in] fault_type 故障の種類
-  /// @param[in] just_type Justifier の種類を表す文字列
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] ffr 故障伝搬の起点となる FFR
-  DtpgFFR2(const string& sat_type,
-	  const string& sat_option,
-	  ostream* sat_outp,
-	  FaultType fault_type,
-	  const string& just_type,
-	  const TpgNetwork& network,
-	  const TpgFFR& ffr);
+  DtpgFFR2(
+    const string& sat_type,    ///< [in] SATソルバの種類を表す文字列
+    const string& sat_option,  ///< [in] SATソルバに渡すオプション文字列
+    ostream* sat_outp,	       ///< [in] SATソルバ用の出力ストリーム
+    FaultType fault_type,      ///< [in] 故障の種類
+    const string& just_type,   ///< [in] Justifier の種類を表す文字列
+    const TpgNetwork& network, ///< [in] 象のネットワーク
+    const TpgFFR& ffr	       ///< [in] 故障伝搬の起点となる FFR
+  );
 
   /// @brief デストラクタ
   ~DtpgFFR2();
@@ -53,18 +46,13 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief fault が検出不能か調べる．
-  /// @param[in] fault 対象の故障
-  /// @param[in] condition 制約条件
   /// @return 結果を返す．
   SatBool3
-  check_untestable(const TpgFault* fault,
-		   const NodeValList& condition);
+  check_untestable(
+    const TpgFault* fault,       ///< [in] 対象の故障
+    const NodeValList& condition ///< [in] 制約条件
+  );
 
-
-protected:
-  //////////////////////////////////////////////////////////////////////
-  // 継承クラスから用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -77,7 +65,9 @@ private:
 
   /// @brief node の plit を得る．
   SatLiteral
-  get_plit(const TpgNode* node);
+  get_plit(
+    const TpgNode* node
+  );
 
 
 private:
@@ -85,15 +75,9 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  HashMap<int, SatLiteral> mPvarMap;
+  unordered_map<int, SatLiteral> mPvarMap;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
 
 END_NAMESPACE_DRUID
 

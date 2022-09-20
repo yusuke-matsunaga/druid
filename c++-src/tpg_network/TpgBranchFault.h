@@ -5,7 +5,7 @@
 /// @brief TpgBranchFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2007, 2012-2014, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgFaultBase.h"
@@ -23,22 +23,16 @@ class TpgBranchFault :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] val 故障値
-  /// @param[in] onode 出力側の TpgNode
-  /// @param[in] name ノード名
-  /// @param[in] pos 故障の入力位置
-  /// @param[in] inode 入力側の TpgNode
-  /// @param[in] tpg_pos onode 上の故障位置
-  /// @param[in] rep_fault 代表故障
-  TpgBranchFault(int id,
-		 int val,
-		 const TpgNode* onode,
-		 const char* name,
-		 int pos,
-		 const TpgNode* inode,
-		 int tpg_pos,
-		 TpgFault* rep_fault);
+  TpgBranchFault(
+    SizeType id,          ///< [in] ID番号
+    Fval2 val,            ///< [in] 故障値(0/1)
+    const TpgNode* onode, ///< [in] 出力側の TpgNode
+    const string& name,	  ///< [in] ノード名
+    SizeType pos,	  ///< [in] 故障の入力位置
+    const TpgNode* inode, ///< [in] 入力側の TpgNode
+    SizeType tpg_pos,	  ///< [in] onode 上の故障位置
+    TpgFault* rep_fault	  ///< [in] 代表故障
+  );
 
   /// @brief デストラクタ
   ~TpgBranchFault();
@@ -64,13 +58,13 @@ public:
   /// @brief ブランチの入力位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
-  int
+  SizeType
   fault_pos() const override;
 
   /// @brief tpg_inode 上の故障位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
-  int
+  SizeType
   tpg_pos() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -85,13 +79,13 @@ private:
 
   // 故障の入力位置
   // もとの BnNode に対するもの
-  int mPos;
+  SizeType mPos;
 
   // 入力側の TpgNode
   const TpgNode* mInode;
 
   // mInode 上の入力位置
-  int mTpgPos;
+  SizeType mTpgPos;
 
 };
 

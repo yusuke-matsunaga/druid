@@ -6,19 +6,19 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 
 #include "FaultType.h"
 #include "Justifier.h"
+#include "DtpgResult.h"
 #include "DtpgStats.h"
 #include "FaultStatus.h"
 #include "StructEnc.h"
 #include "ym/SatBool3.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -32,43 +32,37 @@ class Dtpg_se
 public:
 
   /// @brief コンストラクタ(ノードモード)
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] fault_type 故障の種類
-  /// @param[in] node 故障のあるノード
-  /// @param[in] just_type Justifier の種類を表す文字列
-  /// @param[in] solver_type SATソルバの実装タイプ
-  Dtpg_se(const TpgNetwork& network,
-	  FaultType fault_type,
-	  const TpgNode* node,
-	  const string& just_type,
-	  const SatSolverType& solver_type = SatSolverType());
+  Dtpg_se(
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    FaultType fault_type,	     ///< [in] 故障の種類
+    const TpgNode* node,	     ///< [in] 故障のあるノード
+    const string& just_type,	     ///< [in] Justifier の種類を表す文字列
+    const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
+    = SatSolverType()
+  );
 
   /// @brief コンストラクタ(ffrモード)
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] fault_type 故障の種類
-  /// @param[in] ffr 故障伝搬の起点となる FFR
-  /// @param[in] just_type Justifier の種類を表す文字列
-  /// @param[in] solver_type SATソルバの実装タイプ
-  Dtpg_se(const TpgNetwork& network,
-	  FaultType fault_type,
-	  const TpgFFR& ffr,
-	  const string& just_type,
-	  const SatSolverType& solver_type = SatSolverType());
+  Dtpg_se(
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    FaultType fault_type,	     ///< [in] 故障の種類
+    const TpgFFR& ffr,		     ///< [in] 故障伝搬の起点となる FFR
+    const string& just_type,	     ///< [in] Justifier の種類を表す文字列
+    const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
+    = SatSolverType()
+  );
 
   /// @brief コンストラクタ(mffcモード)
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] fault_type 故障の種類
-  /// @param[in] mffc 故障伝搬の起点となる MFFC
-  /// @param[in] just_type Justifier の種類を表す文字列
-  /// @param[in] solver_type SATソルバの実装タイプ
   ///
   /// この MFFC に含まれるすべての FFR が対象となる．
   /// FFR と MFFC が一致している場合は ffr モードと同じことになる．
-  Dtpg_se(const TpgNetwork& network,
-	  FaultType fault_type,
-	  const TpgMFFC& mffc,
-	  const string& just_type,
-	  const SatSolverType& solver_type = SatSolverType());
+  Dtpg_se(
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    FaultType fault_type,	     ///< [in] 故障の種類
+    const TpgMFFC& mffc,	     ///< [in] 故障伝搬の起点となる MFFC
+    const string& just_type,	     ///< [in] Justifier の種類を表す文字列
+    const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
+    = SatSolverType()
+  );
 
   /// @brief デストラクタ
   ~Dtpg_se();
@@ -80,12 +74,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テスト生成を行なう．
-  /// @param[in] fault 対象の故障
-  /// @param[out] testvect テストパタンを格納する変数
   /// @return 結果を返す．
-  SatBool3
-  dtpg(const TpgFault* fault,
-       TestVector& testvect);
+  DtpgResult
+  gen_pattern(
+    const TpgFault* fault ///< [in] 対象の故障
+  );
 
   /// @brief DTPG の統計情報を返す．
   const DtpgStats&
@@ -110,7 +103,7 @@ private:
   timer_start();
 
   /// @brief 時間計測を終了する．
-  USTime
+  double
   timer_stop();
 
 
@@ -135,7 +128,7 @@ private:
   bool mTimerEnable;
 
   // 時間計測用のタイマー
-  StopWatch mTimer;
+  Timer mTimer;
 
 };
 

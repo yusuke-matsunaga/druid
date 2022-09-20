@@ -5,9 +5,8 @@
 /// @brief Justifier のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "ym/SatBool3.h"
@@ -26,10 +25,10 @@ class Justifier
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] type 種類を表す文字列
-  /// @param[in] network 対象のネットワーク
-  Justifier(const string& type,
-	    const TpgNetwork& network);
+  Justifier(
+    const string& type,       ///< [in] 種類を表す文字列
+    const TpgNetwork& network ///< [in] 対象のネットワーク
+  );
 
   /// @brief デストラクタ
   ~Justifier();
@@ -40,27 +39,16 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 正当化に必要な割当を求める(縮退故障用)．
-  /// @param[in] assign_list 値の割り当てリスト
-  /// @param[in] var_map 変数番号のマップ
-  /// @param[in] model SAT問題の解
-  /// @return テストベクタ
-  TestVector
-  operator()(const NodeValList& assign_list,
-	     const VidMap& var_map,
-	     const vector<SatBool3>& model);
-
   /// @brief 正当化に必要な割当を求める(遷移故障用)．
-  /// @param[in] assign_list 値の割り当てリスト
-  /// @param[in] var1_map 1時刻目の変数番号のマップ
-  /// @param[in] var2_map 2時刻目の変数番号のマップ
-  /// @param[in] model SAT問題の解
   /// @return テストベクタ
   TestVector
-  operator()(const NodeValList& assign_list,
-	     const VidMap& var1_map,
-	     const VidMap& var2_map,
-	     const vector<SatBool3>& model);
+  operator()(
+    FaultType fault_type,           ///< [in] 故障タイプ
+    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
+    const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
+    const VidMap& var2_map,	    ///< [in] 2時刻目の変数番号のマップ
+    const SatModel& model           ///< [in] SAT問題の解
+  );
 
 
 private:

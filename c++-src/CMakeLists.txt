@@ -14,6 +14,8 @@ include_directories (
 # ===================================================================
 
 add_subdirectory ( fsim )
+add_subdirectory ( lua_druid )
+add_subdirectory ( py_druid )
 
 
 # ===================================================================
@@ -21,44 +23,23 @@ add_subdirectory ( fsim )
 # ===================================================================
 
 set (tpg_network_SOURCES
-  tpg_network/AuxNodeInfo.cc
+  tpg_network/NodeValList.cc
   tpg_network/TpgNetwork.cc
   tpg_network/TpgNetworkImpl.cc
   tpg_network/TpgNetworkImpl_make_node.cc
   tpg_network/TpgDff.cc
   tpg_network/TpgGateInfo.cc
   tpg_network/TpgNode.cc
-  tpg_network/TpgNodeFactory.cc
-  tpg_network/NodeMap.cc
   tpg_network/TpgPPI.cc
   tpg_network/TpgPPO.cc
-  tpg_network/TpgInput.cc
-  tpg_network/TpgOutput.cc
-  tpg_network/TpgDffInput.cc
-  tpg_network/TpgDffOutput.cc
   tpg_network/TpgDffControl.cc
-  tpg_network/TpgDffClock.cc
-  tpg_network/TpgDffClear.cc
-  tpg_network/TpgDffPreset.cc
   tpg_network/TpgLogic.cc
-  tpg_network/TpgLogicC0.cc
-  tpg_network/TpgLogicC1.cc
-  tpg_network/TpgLogicBUFF.cc
-  tpg_network/TpgLogicNOT.cc
-  tpg_network/TpgLogicAND.cc
-  tpg_network/TpgLogicNAND.cc
-  tpg_network/TpgLogicOR.cc
-  tpg_network/TpgLogicNOR.cc
-  tpg_network/TpgLogicXOR.cc
-  tpg_network/TpgLogicXNOR.cc
-
   tpg_network/TpgFault.cc
   tpg_network/FaultStatusMgr.cc
 
   tvect/BitVectorRep.cc
   tvect/TestVector.cc
 
-  tpg_network/NodeValList.cc
   )
 
 set (fsim_SOURCES
@@ -125,6 +106,12 @@ set (minpat_SOURCES
   minpat/TvMerger.cc
   )
 
+set (mf_SOURCES
+  mf_dtpg/MF_Dtpg.cc
+  mf_dtpg/MF_Enc.cc
+  mf_dtpg/MF_FaultComp.cc
+  )
+
 set (sa_SOURCES
 
   sa/minpat/Verifier.cc
@@ -170,6 +157,7 @@ ym_add_object_library ( druid_common
   ${jt_SOURCES}
   ${colcov_SOURCES}
   ${minpat_SOURCES}
+  ${mf_SOURCES}
 #  ${sa_SOURCES}
 #  ${td_SOURCES}
   )

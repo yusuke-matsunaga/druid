@@ -5,9 +5,8 @@
 /// @brief DopList のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "DetectOp.h"
 
@@ -31,7 +30,6 @@ public:
   /// @brief デストラクタ
   ///
   /// ここに登録された DetectOp も破棄される．
-  virtual
   ~DopList();
 
 
@@ -42,14 +40,16 @@ public:
 
   /// @brief dop を追加する．
   void
-  add(DetectOp* dop);
+  add(
+    DetectOp* dop
+  );
 
   /// @brief テストパタンが見つかった時の処理
-  /// @param[in] f 故障
-  /// @param[in] tv テストベクタ
   void
-  operator()(const TpgFault* f,
-	     const TestVector& tv) override;
+  operator()(
+    const TpgFault* f,   ///< [in] 故障
+    const TestVector& tv ///< [in] テストベクタ
+  ) override;
 
 
 private:

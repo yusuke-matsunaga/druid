@@ -40,11 +40,11 @@ set_source_files_properties (
 
 cython_add_module ( druid_core
   ${CYTHON_SOURCES}
-  $<TARGET_OBJECTS:druid_common>
-  $<TARGET_OBJECTS:druid_fsimsa2>
-  $<TARGET_OBJECTS:druid_fsimsa3>
-  $<TARGET_OBJECTS:druid_fsimtd2>
-  $<TARGET_OBJECTS:druid_fsimtd3>
+  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -63,11 +63,11 @@ target_link_libraries ( druid_core
 
 cython_add_module ( druid_core_d
   ${CYTHON_SOURCES}
-  $<TARGET_OBJECTS:druid_common_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_d>
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 

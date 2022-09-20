@@ -5,7 +5,7 @@
 /// @brief FaultReducer のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -14,24 +14,24 @@
 #include "TestVector.h"
 #include "ym/McMatrix.h"
 #include "ym/SatSolverType.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class FaultReducer FaultReducer.h "FaultReducer.h"
-/// @brief 支配故障を求めるクラスn
+/// @brief 支配故障を求めるクラス
 //////////////////////////////////////////////////////////////////////
 class FaultReducer
 {
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] fault_type 故障の種類
-  FaultReducer(const TpgNetwork& network,
-	       FaultType fault_type);
+  FaultReducer(
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    FaultType fault_type       ///< [in] 故障の種類
+  );
 
   /// @brief デストラクタ
   ~FaultReducer();
@@ -43,21 +43,23 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @breif 内部で用いる SAT ソルバのタイプの設定を行う．
-  /// @param[in] solver_type SATソルバのタイプ
   void
-  set_solver_type(const SatSolverType& solver_type);
+  set_solver_type(
+    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
+  );
 
   /// @brief デバッグフラグをセットする．
-  /// @param[in] debug 設定する値 (true/false)
   void
-  set_debug(bool debug);
+  set_debug(
+    bool debug ///< [in] 設定する値 (true/false)
+  );
 
   /// @brief 故障の支配関係を調べて故障リストを縮約する．
-  /// @param[inout] fault_list 対象の故障リスト
-  /// @param[in] algorithm アルゴリズム
   void
-  fault_reduction(vector<const TpgFault*>& fault_list,
-		  const string& algorithm);
+  fault_reduction(
+    vector<const TpgFault*>& fault_list, ///< [inout] 対象の故障リスト
+    const string& algorithm ///< [in] アルゴリズム
+  );
 
 
 private:
@@ -66,15 +68,17 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 内部のデータ構造を初期化する．
-  /// @param[in] fi_list 故障情報のリスト
   void
-  init(const vector<const TpgFault*>& fault_list,
-       bool need_mand_cond);
+  init(
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障情報のリスト
+    bool need_mand_cond
+  );
 
   /// @brief 故障シミュレーションを行って支配故障の候補を作る．
-  /// @param[in] loop_limit 変化がなくなってから繰り返すループ数
   void
-  make_dom_candidate(int loop_limit);
+  make_dom_candidate(
+    int loop_limit ///< [in] 変化がなくなってから繰り返すループ数
+  );
 
   /// @brief 一回の故障シミュレーションを行う．
   /// @retval true 支配故障のリストに変化があった．
@@ -88,17 +92,19 @@ private:
 
   /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
   void
-  dom_reduction1(bool simple);
+  dom_reduction1(
+    bool simple
+  );
 
   /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
-  /// @param[inout] fi_list 故障情報のリスト
   void
   dom_reduction2();
 
-  /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
-  /// @param[inout] fi_list 故障情報のリスト
+  ///< [inout] fi_list 故障情報のリスト
   void
-  dom_reduction3(bool simple);
+  dom_reduction3(
+    bool simple
+  );
 
   /// @brief mFaultList 中の mDeleted マークが付いていない故障数を数える．
   int
@@ -161,7 +167,7 @@ private:
   vector<TestVector> mTvList;
 
   // 計時を行うオブジェクト
-  StopWatch mTimer;
+  Timer mTimer;
 
 };
 

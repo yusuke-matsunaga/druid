@@ -3,9 +3,8 @@
 /// @brief StructEnc の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2017 Yusuke Matsunaga
+/// Copyright (C) 2015, 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "StructEnc.h"
 #include "SimplePropCone.h"
@@ -43,19 +42,15 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] sat_type SATソルバの種類を表す文字列
-// @param[in] sat_option SATソルバに渡すオプション文字列
-// @param[in] sat_outp SATソルバ用の出力ストリーム
-StructEnc::StructEnc(const TpgNetwork& network,
-		     FaultType fault_type,
-		     const SatSolverType& solver_type) :
-  mNetwork(network),
-  mFaultType(fault_type),
-  mSolver(solver_type),
-  mMaxId(network.node_num()),
-  mMark(mMaxId, false)
+StructEnc::StructEnc(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const SatSolverType& solver_type
+) : mNetwork{network},
+    mFaultType{fault_type},
+    mSolver{solver_type},
+    mMaxId{network.node_num()},
+    mMark(mMaxId, 0)
 {
   for (int i = 0; i < 2; ++ i) {
     mVarMap[i].init(mMaxId);
@@ -71,40 +66,19 @@ StructEnc::StructEnc(const TpgNetwork& network,
 // @brief デストラクタ
 StructEnc::~StructEnc()
 {
-  for (int i = 0; i < mConeList.size(); ++ i) {
-    PropCone* cone = mConeList[i];
-    delete cone;
-  }
 }
 
 // @brief fault cone を追加する．
-// @param[in] fnode 故障のあるノード
-// @param[in] detect 故障を検出する時に true にするフラグ
-// @return 作成されたコーン番号を返す．
-//
-// fnode から到達可能な外部出力までの故障伝搬条件を考える．
-int
-StructEnc::add_simple_cone(const TpgNode* fnode,
-			   bool detect)
+SizeType
+StructEnc::add_simple_cone(
+  const TpgNode* fnode,
+  const TpgNode* bnode,
+  bool detect
+)
 {
-  return add_simple_cone(fnode, nullptr, detect);
-}
-
-// @brief fault cone を追加する．
-// @param[in] fnode 故障のあるノード
-// @param[in] bnode ブロックノード
-// @param[in] detect 故障を検出する時に true にするフラグ
-// @return 作成されたコーン番号を返す．
-//
-// bnode までの故障伝搬条件を考える．
-int
-StructEnc::add_simple_cone(const TpgNode* fnode,
-			   const TpgNode* bnode,
-			   bool detect)
-{
-  PropCone* focone = new SimplePropCone(*this, fnode, bnode, detect);
-  int cone_id = mConeList.size();
-  mConeList.push_back(focone);
+  auto focone = new SimplePropCone{*this, fnode, bnode, detect};
+  SizeType cone_id = mConeList.size();
+  mConeList.push_back(unique_ptr<PropCone>{focone});
 
   if ( fault_type() == FaultType::TransitionDelay ) {
     add_prev_node(fnode);
@@ -115,33 +89,16 @@ StructEnc::add_simple_cone(const TpgNode* fnode,
 }
 
 // @brief MFFC cone を追加する．
-// @param[in] mffc MFFC の情報
-// @param[in] detect 故障を検出する時に true にするフラグ
-// @return 作成されたコーン番号を返す．
-//
-// fnode から到達可能な外部出力までの故障伝搬条件を考える．
-int
-StructEnc::add_mffc_cone(const TpgMFFC& mffc,
-			 bool detect)
+SizeType
+StructEnc::add_mffc_cone(
+  const TpgMFFC& mffc,
+  const TpgNode* bnode,
+  bool detect
+)
 {
-  return add_mffc_cone(mffc, nullptr, detect);
-}
-
-// @brief MFFC cone を追加する．
-// @param[in] mffc MFFC の情報
-// @param[in] bnode ブロックノード
-// @param[in] detect 故障を検出する時に true にするフラグ
-// @return 作成されたコーン番号を返す．
-//
-// bnode までの故障伝搬条件を考える．
-int
-StructEnc::add_mffc_cone(const TpgMFFC& mffc,
-			 const TpgNode* bnode,
-			 bool detect)
-{
-  PropCone* mffccone = new MffcPropCone(*this, mffc, bnode, detect);
-  int cone_id = mConeList.size();
-  mConeList.push_back(mffccone);
+  auto mffccone = new MffcPropCone{*this, mffc, bnode, detect};
+  SizeType cone_id = mConeList.size();
+  mConeList.push_back(unique_ptr<PropCone>{mffccone});
 
   if ( fault_type() == FaultType::TransitionDelay ) {
     add_prev_node(mffc.root());
@@ -151,44 +108,29 @@ StructEnc::add_mffc_cone(const TpgMFFC& mffc,
   return cone_id;
 }
 
-// @brief 故障を検出する条件を作る．
-// @param[in] fault 故障
-// @param[in] cone_id コーン番号
-// @param[out] assumptions 結果の仮定を表すリテラルのリスト
-void
-StructEnc::make_fault_condition(const TpgFault* fault,
-				int cone_id,
-				vector<SatLiteral>& assumptions)
+/// @brief 故障の伝搬条件を求める．
+vector<SatLiteral>
+StructEnc::make_prop_condition(
+  const TpgNode* ffr_root,
+  SizeType cone_id
+)
 {
-  // FFR 内の故障伝搬条件を assign_list に入れる．
-  NodeValList assign_list;
-  const TpgNode* ffr_root = fault->tpg_onode()->ffr_root();
-  add_ffr_condition(ffr_root, fault, assign_list);
-
   /// FFR より出力側の故障伝搬条件を assumptions に入れる．
   ASSERT_COND( cone_id < mConeList.size() );
-  mConeList[cone_id]->make_prop_condition(ffr_root, assumptions);
-
-  // assign_list を変換して assumptions に追加する．
-  assumptions.reserve(assumptions.size() + assign_list.size());
-  for (int i = 0; i < assign_list.size(); ++ i) {
-    NodeVal nv = assign_list[i];
-    SatLiteral lit = nv_to_lit(nv);
-    assumptions.push_back(lit);
-  }
+  return mConeList[cone_id]->make_condition(ffr_root);
 }
 
 // @brief 故障の検出条件を割当リストに追加する．
-// @param[in] fault 故障
-// @param[out] assign_list 条件を表す割当リスト
 void
-StructEnc::add_fault_condition(const TpgFault* fault,
-			       NodeValList& assign_list)
+StructEnc::add_fault_condition(
+  const TpgFault* fault,
+  NodeValList& assign_list
+)
 {
   // 故障の活性化条件
   const TpgNode* inode = fault->tpg_inode();
   // 0縮退故障の時 1にする．
-  bool val = (fault->val() == 0);
+  bool val = (fault->val() == Fval2::zero);
   assign_list.add(inode, 1, val);
 
   if ( fault_type() == FaultType::TransitionDelay ) {
@@ -215,13 +157,12 @@ StructEnc::add_fault_condition(const TpgFault* fault,
 }
 
 // @brief FFR内の故障の伝搬条件を割当リストに追加する．
-// @param[in] root_node FFRの根のノード
-// @param[in] fault 故障
-// @param[out] assign_list 条件を表す割当リスト
 void
-StructEnc::add_ffr_condition(const TpgNode* root_node,
-			     const TpgFault* fault,
-			     NodeValList& assign_list)
+StructEnc::add_ffr_condition(
+  const TpgNode* root_node,
+  const TpgFault* fault,
+  NodeValList& assign_list
+)
 {
   // ノードに対する故障の伝搬条件
   add_fault_condition(fault, assign_list);
@@ -255,63 +196,61 @@ StructEnc::add_ffr_condition(const TpgNode* root_node,
 }
 
 // @brief 割当リストに従って値を固定する．
-// @param[in] assignment 割当リスト
 void
-StructEnc::add_assignments(const NodeValList& assignment)
+StructEnc::add_assignments(
+  const NodeValList& assignment
+)
 {
-  int n = assignment.size();
-  for (int i = 0; i < n; ++ i) {
-    NodeVal nv = assignment[i];
+  for ( auto nv: assignment ) {
     SatLiteral alit = nv_to_lit(nv);
     mSolver.add_clause(alit);
   }
 }
 
 // @brief 割当リストの否定の節を加える．
-// @param[in] assignment 割当リスト
 void
-StructEnc::add_negation(const NodeValList& assignment)
+StructEnc::add_negation(
+  const NodeValList& assignment
+)
 {
-  int n = assignment.size();
-  vector<SatLiteral> tmp_lits(n);
-  for (int i = 0; i < n; ++ i) {
-    NodeVal nv = assignment[i];
+  vector<SatLiteral> tmp_lits;
+  tmp_lits.reserve(assignment.size());
+  for ( auto nv: assignment ) {
     SatLiteral alit = nv_to_lit(nv);
-    tmp_lits[i] = ~alit;
+    tmp_lits.push_back(~alit);
   }
   mSolver.add_clause(tmp_lits);
 }
 
 // @brief 割当リストを仮定のリテラルに変換する．
-// @param[in] assign_list 割当リスト
-// @param[out] assumptions 仮定を表すリテラルのリスト
 //
-// 必要に応じて使われているリテラルに関するCNFを追加する．
-void
-StructEnc::conv_to_assumption(const NodeValList& assign_list,
-			      vector<SatLiteral>& assumptions)
+vector<SatLiteral>
+StructEnc::conv_to_literal_list(
+  const NodeValList& assign_list
+)
 {
-  int n = assign_list.size();
-  for (int i = 0; i < n; ++ i) {
-    NodeVal nv = assign_list[i];
+  vector<SatLiteral> ans_list;
+  ans_list.reserve(assign_list.size());
+  for ( auto nv: assign_list ) {
     SatLiteral alit = nv_to_lit(nv);
-    assumptions.push_back(alit);
+    ans_list.push_back(alit);
   }
+  return ans_list;
 }
 
 // @brief 与えられたノード(のリスト)のTFIのリストを作る．
-// @param[in] node_list ノードのリスト
 void
-StructEnc::make_tfi_list(const vector<const TpgNode*>& node_list)
+StructEnc::make_tfi_list(
+  const vector<const TpgNode*>& node_list
+)
 {
   // node_list を mCurNodeList に入れる．
-  for (int i = 0; i < node_list.size(); ++ i) {
-    const TpgNode* node = node_list[i];
+  for ( auto node: node_list ) {
     if ( !cur_mark(node) ) {
       add_cur_node(node);
     }
   }
-  for (int rpos = 0; rpos < mCurNodeList.size(); ++ rpos) {
+  for ( int rpos = 0; rpos < mCurNodeList.size(); ++ rpos ) {
     const TpgNode* node = mCurNodeList[rpos];
 
     // node のファンインを mCurNodeList に追加する．
@@ -328,7 +267,7 @@ StructEnc::make_tfi_list(const vector<const TpgNode*>& node_list)
     }
   }
 
-  for (int rpos = 0; rpos < mPrevNodeList.size(); ++ rpos) {
+  for ( int rpos = 0; rpos < mPrevNodeList.size(); ++ rpos ) {
     const TpgNode* node = mPrevNodeList[rpos];
 
     // node のファンインを mCurNodeList に追加する．
@@ -344,7 +283,7 @@ StructEnc::make_tfi_list(const vector<const TpgNode*>& node_list)
 void
 StructEnc::make_vars()
 {
-  for (int i = 0; i < mCurNodeList.size(); ++ i) {
+  for ( int i = 0; i < mCurNodeList.size(); ++ i ) {
     const TpgNode* node = mCurNodeList[i];
     if ( !var_mark(node, 1) ) {
       set_new_var(node, 1);
@@ -353,8 +292,7 @@ StructEnc::make_vars()
       }
     }
   }
-  for (int i = 0; i < mPrevNodeList.size(); ++ i) {
-    const TpgNode* node = mPrevNodeList[i];
+  for ( auto node: mPrevNodeList ) {
     if ( !var_mark(node, 0) ) {
       // FF の入力の場合は1時刻後の出力の変数を用いる．
       if ( node->is_dff_input() ) {
@@ -376,8 +314,7 @@ StructEnc::make_vars()
     }
   }
 
-  for (int i = 0; i < mConeList.size(); ++ i) {
-    PropCone* focone = mConeList[i];
+  for ( auto& focone: mConeList ) {
     focone->make_vars();
   }
 }
@@ -387,8 +324,7 @@ void
 StructEnc::make_cnf()
 {
   GateEnc gate_enc1(mSolver, var_map(1));
-  for (int i = 0; i < mCurNodeList.size(); ++ i) {
-    const TpgNode* node = mCurNodeList[i];
+  for ( auto node: mCurNodeList ) {
     if ( !cnf_mark(node, 1) ) {
       set_cnf_mark(node, 1);
       gate_enc1.make_cnf(node);
@@ -396,28 +332,24 @@ StructEnc::make_cnf()
   }
 
   GateEnc gate_enc0(mSolver, var_map(0));
-  for (int i = 0; i < mPrevNodeList.size(); ++ i) {
-    const TpgNode* node = mPrevNodeList[i];
+  for ( auto node: mPrevNodeList ) {
     if ( !cnf_mark(node, 0) ) {
       set_cnf_mark(node, 0);
       gate_enc0.make_cnf(node);
     }
   }
 
-  for (int i = 0; i < mConeList.size(); ++ i) {
-    PropCone* focone = mConeList[i];
+  for ( auto& focone: mConeList ) {
     focone->make_cnf();
   }
 }
 
 // @brief node の TFI の部分に変数を割り当てる．
-// @param[in] node 対象のノード
-// @param[in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
 void
-StructEnc::make_tfi_var(const TpgNode* node,
-			int time)
+StructEnc::make_tfi_var(
+  const TpgNode* node,
+  int time
+)
 {
   if ( var_mark(node, time) ) {
     return;
@@ -438,13 +370,11 @@ StructEnc::make_tfi_var(const TpgNode* node,
 }
 
 // @brief node の TFI の CNF を作る．
-// @param[in] node 対象のノード
-// @param[in] time 時刻(0 or 1)
-//
-// 縮退故障モードの場合の時刻は 1
 void
-StructEnc::make_tfi_cnf(const TpgNode* node,
-			int time)
+StructEnc::make_tfi_cnf(
+  const TpgNode* node,
+  int time
+)
 {
   if ( cnf_mark(node, time) ) {
     return;
@@ -471,104 +401,71 @@ StructEnc::make_tfi_cnf(const TpgNode* node,
 }
 
 // @brief チェックを行う．
-// @param[out] sat_model SATの場合の解
+//
+// こちらは結果のみを返す．
 SatBool3
-StructEnc::check_sat(vector<SatBool3>& sat_model)
+StructEnc::check_sat()
 {
-  return mSolver.solve(sat_model);
+  return mSolver.solve();
 }
 
 // @brief 割当リストのもとでチェックを行う．
-// @param[in] assign_list 割当リスト
-// @param[out] sat_model SATの場合の解
+//
+// こちらは結果のみを返す．
 SatBool3
-StructEnc::check_sat(const NodeValList& assign_list,
-		     vector<SatBool3>& sat_model)
+StructEnc::check_sat(
+  const NodeValList& assign_list  ///< [in] 割当リスト
+)
 {
-  vector<SatLiteral> assumptions;
-  conv_to_assumption(assign_list, assumptions);
-
-  return mSolver.solve(assumptions, sat_model);
+  auto assumptions = conv_to_literal_list(assign_list);
+  return mSolver.solve(assumptions);
 }
 
 // @brief 割当リストのもとでチェックを行う．
-// @param[in] assign_list1, assign_list2 割当リスト
-// @param[out] sat_model SATの場合の解
 SatBool3
-StructEnc::check_sat(const NodeValList& assign_list1,
-		     const NodeValList& assign_list2,
-		     vector<SatBool3>& sat_model)
+StructEnc::check_sat(
+  const NodeValList& assign_list1, ///< [in] 割当リスト1
+  const NodeValList& assign_list2  ///< [in] 割当リスト2
+)
 {
-  vector<SatLiteral> assumptions;
-
-  conv_to_assumption(assign_list1, assumptions);
-  conv_to_assumption(assign_list2, assumptions);
-
-  return mSolver.solve(assumptions, sat_model);
+  auto assumptions = conv_to_literal_list(assign_list1);
+  auto assumptions2 = conv_to_literal_list(assign_list2);
+  assumptions.insert(assumptions.end(), assumptions2.begin(), assumptions2.end());
+  return mSolver.solve(assumptions);
 }
 
-/// @brief 結果のなかで必要なものだけを取り出す．
-// @param[in] model SAT のモデル
-// @param[in] fault 対象の故障
-// @param[in] cone_id コーン番号
-// @param[out] 値の割り当て結果を入れるリスト
+// @brief 伝搬条件を求める．
 NodeValList
-StructEnc::extract(const vector<SatBool3>& model,
-		   const TpgFault* fault,
-		   int cone_id)
+StructEnc::extract_prop_condition(
+  const TpgNode* ffr_root,
+  SizeType cone_id,
+  const SatModel& model
+)
 {
-  if ( debug() & debug_extract ) {
-    cout << endl
-	 << "StructEnc::extract(" << fault->str() << ")" << endl;
-  }
-
-  NodeValList assign_list;
-
-  // fault から FFR の根までの条件を求める．
-  const TpgNode* ffr_root = fault->tpg_onode()->ffr_root();
-  add_ffr_condition(ffr_root, fault, assign_list);
-
-  // ffr_root より先の条件を求める．
   ASSERT_COND( cone_id < mConeList.size() );
-  NodeValList assign_list2 = mConeList[cone_id]->extract(model, ffr_root);
-  assign_list.merge(assign_list2);
-
-  if ( debug() & debug_extract ) {
-    cout << "  result = " << assign_list << endl;
-  }
-
-  return assign_list;
-}
+  return mConeList[cone_id]->extract_condition(model, ffr_root);
+ }
 
 // @brief 外部入力の値割り当てを求める．
-// @param[in] model SAT のモデル
-// @param[in] assign_list 値割り当てのリスト
-// @param[in] justifier 正当化を行うファンクタ
-// @param[out] testvect テストベクタ
-//
-// このクラスでの仕事はValMapに関する適切なオブジェクトを生成して
-// justifier を呼ぶこと．
-void
-StructEnc::justify(const vector<SatBool3>& model,
-		   const NodeValList& assign_list,
-		   Justifier& justifier,
-		   TestVector& testvect)
+TestVector
+StructEnc::justify(
+  const SatModel& model,
+  const NodeValList& assign_list,
+  Justifier& justifier
+)
 {
   if ( debug() & debug_justify ) {
     cout << endl
 	 << "StructEnc::justify(" << assign_list << ")" << endl;
   }
 
-  if ( mFaultType == FaultType::TransitionDelay ) {
-    testvect = justifier(assign_list, var_map(0), var_map(1), model);
-  }
-  else {
-    testvect = justifier(assign_list, var_map(1), model);
-  }
+  auto testvect = justifier(mFaultType, assign_list, var_map(0), var_map(1), model);
 
   if ( debug() & debug_justify ) {
     cout << " => " << testvect.bin_str() << endl;
   }
+
+  return testvect;
 }
 
 END_NAMESPACE_DRUID_STRUCTENC

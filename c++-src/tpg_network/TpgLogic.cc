@@ -3,12 +3,23 @@
 /// @brief TpgLogic の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgLogic.h"
-#include "ym/Range.h"
+#include "TpgLogicC0.h"
+#include "TpgLogicC1.h"
+#include "TpgLogicBUFF.h"
+#include "TpgLogicNOT.h"
+#include "TpgLogicAND.h"
+#include "TpgLogicNAND.h"
+#include "TpgLogicOR.h"
+#include "TpgLogicNOR.h"
+#include "TpgLogicXOR.h"
+#include "TpgLogicXNOR.h"
+
+#include "GateType.h"
+#include "Val3.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -18,14 +29,10 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-TpgLogic::TpgLogic(int id) :
-  TpgNode(id)
-{
-}
-
-// @brief デストラクタ
-TpgLogic::~TpgLogic()
+TpgLogic::TpgLogic(
+  const vector<const TpgNode*>& fanin_list,
+  SizeType fanout_num
+) : TpgNode{fanin_list, fanout_num}
 {
 }
 
@@ -38,297 +45,540 @@ TpgLogic::is_logic() const
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogic0
+// クラス TpgLogcC0
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-TpgLogic0::TpgLogic0(int id) :
-  TpgLogic(id)
+TpgLogicC0::TpgLogicC0(
+  SizeType fanout_num
+) : TpgLogic{{}, fanout_num}
 {
 }
 
-// @brief デストラクタ
-TpgLogic0::~TpgLogic0()
-{
-}
-
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgLogic0::fanin_list() const
-{
-  return Array<const TpgNode*>(nullptr, 0, 0);
-}
-
-// @brief ファンイン数を得る．
-int
-TpgLogic0::fanin_num() const
-{
-  return 0;
-}
-
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-const TpgNode*
-TpgLogic0::fanin(int pos) const
-{
-  ASSERT_NOT_REACHED;
-
-  return nullptr;
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス TpgLogic1
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin ファンイン
-TpgLogic1::TpgLogic1(int id,
-		     TpgNode* fanin) :
-  TpgLogic(id),
-  mFanin(fanin)
-{
-}
-
-// @brief デストラクタ
-TpgLogic1::~TpgLogic1()
-{
-}
-
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgLogic1::fanin_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(&mFanin), 0, 1);
-}
-
-// @brief ファンイン数を得る．
-int
-TpgLogic1::fanin_num() const
-{
-  return 1;
-}
-
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-const TpgNode*
-TpgLogic1::fanin(int pos) const
-{
-  ASSERT_COND( pos == 0 );
-
-  return mFanin;
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス TpgLogic2
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
+// @brief ゲートタイプを得る．
 //
-// fanin_list.size() == 2 であることを仮定している．
-TpgLogic2::TpgLogic2(int id,
-		     const vector<TpgNode*>& fanin_list) :
-  TpgLogic(id)
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicC0::gate_type() const
 {
-  ASSERT_COND( fanin_list.size() == 2 );
-
-  mFanins[0] = fanin_list[0];
-  mFanins[1] = fanin_list[1];
-}
-
-// @brief デストラクタ
-TpgLogic2::~TpgLogic2()
-{
-}
-
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgLogic2::fanin_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(mFanins), 0, 2);
-}
-
-// @brief ファンイン数を得る．
-int
-TpgLogic2::fanin_num() const
-{
-  return 2;
-}
-
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-const TpgNode*
-TpgLogic2::fanin(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < 2 );
-
-  return mFanins[pos];
+  return GateType::Const0;
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogic3
+// クラス TpgLogcC1
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
+TpgLogicC1::TpgLogicC1(
+  SizeType fanout_num
+) : TpgLogic{{}, fanout_num}
+{
+}
+
+// @brief ゲートタイプを得る．
 //
-// fanin_list.size() == 3 であることを仮定している．
-TpgLogic3::TpgLogic3(int id,
-		     const vector<TpgNode*>& fanin_list) :
-  TpgLogic(id)
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicC1::gate_type() const
 {
-  ASSERT_COND( fanin_list.size() == 3 );
-
-  mFanins[0] = fanin_list[0];
-  mFanins[1] = fanin_list[1];
-  mFanins[2] = fanin_list[2];
-}
-
-// @brief デストラクタ
-TpgLogic3::~TpgLogic3()
-{
-}
-
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgLogic3::fanin_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(mFanins), 0, 3);
-}
-
-// @brief ファンイン数を得る．
-int
-TpgLogic3::fanin_num() const
-{
-  return 3;
-}
-
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-const TpgNode*
-TpgLogic3::fanin(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < 3 );
-
-  return mFanins[pos];
+  return GateType::Const1;
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogic4
+// クラス TpgLogicBUFF
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] fanin_list ファンインのリスト
+TpgLogicBUFF::TpgLogicBUFF(
+  const TpgNode* fanin,
+  SizeType fanout_num
+) : TpgLogic{{fanin}, fanout_num}
+{
+}
+
+// @brief ゲートタイプを得る．
 //
-// fanin_list.size() == 4 であることを仮定している．
-TpgLogic4::TpgLogic4(int id,
-		     const vector<TpgNode*>& fanin_list) :
-  TpgLogic(id)
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicBUFF::gate_type() const
 {
-  ASSERT_COND( fanin_list.size() == 4 );
-
-  mFanins[0] = fanin_list[0];
-  mFanins[1] = fanin_list[1];
-  mFanins[2] = fanin_list[2];
-  mFanins[3] = fanin_list[3];
+  return GateType::Buff;
 }
 
-// @brief デストラクタ
-TpgLogic4::~TpgLogic4()
+// @brief controling value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicBUFF::cval() const
 {
+  return Val3::_X;
 }
 
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgLogic4::fanin_list() const
+// @brief noncontroling valueを得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicBUFF::nval() const
 {
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(mFanins), 0, 4);
+  return Val3::_X;
 }
 
-// @brief ファンイン数を得る．
-int
-TpgLogic4::fanin_num() const
+// @brief controling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicBUFF::coval() const
 {
-  return 4;
+  return Val3::_X;
 }
 
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-const TpgNode*
-TpgLogic4::fanin(int pos) const
+// @brief noncontroling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicBUFF::noval() const
 {
-  ASSERT_COND( pos >= 0 && pos < 4 );
-
-  return mFanins[pos];
+  return Val3::_X;
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogicN
+// クラス TpgLogicNOT
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-TpgLogicN::TpgLogicN(int id) :
-  TpgLogic(id),
-  mFaninNum(0),
-  mFanins(nullptr)
-{
-  // mFaninNum と mFanins は後で設定する．
-}
-
-// @brief デストラクタ
-TpgLogicN::~TpgLogicN()
+TpgLogicNOT::TpgLogicNOT(
+  const TpgNode* fanin,
+  SizeType fanout_num
+) : TpgLogic{{fanin}, fanout_num}
 {
 }
 
-// @brief ファンイン数を得る．
-int
-TpgLogicN::fanin_num() const
-{
-  return mFaninNum;
-}
-
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgLogicN::fanin_list() const
-{
-  return Array<const TpgNode*>(mFanins, 0, mFaninNum);
-}
-
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-const TpgNode*
-TpgLogicN::fanin(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < fanin_num() );
-
-  return mFanins[pos];
-}
-
-// @brief ファンインを設定する．
-// @param[in] inode_list ファンインのリスト
+// @brief ゲートタイプを得る．
 //
-// と同時にファンイン用の配列も確保する．
-// 多入力ゲートのみ意味を持つ仮想関数
-void
-TpgLogicN::set_fanin(const vector<TpgNode*>& inode_list,
-		     Alloc& alloc)
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicNOT::gate_type() const
 {
-  mFaninNum = inode_list.size();
-  mFanins = alloc.get_array<const TpgNode*>(mFaninNum);
-  for ( auto i: Range(mFaninNum) ) {
-    mFanins[i] = inode_list[i];
-  }
+  return GateType::Not;
+}
+
+// @brief controling value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNOT::cval() const
+{
+  return Val3::_X;
+}
+
+// @brief noncontroling valueを得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNOT::nval() const
+{
+  return Val3::_X;
+}
+
+// @brief controling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNOT::coval() const
+{
+  return Val3::_X;
+}
+
+// @brief noncontroling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNOT::noval() const
+{
+  return Val3::_X;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgLogicAND
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgLogicAND::TpgLogicAND(
+  const vector<const TpgNode*>& fanin_list,
+  SizeType fanout_num
+) : TpgLogic{fanin_list, fanout_num}
+{
+}
+
+// @brief ゲートタイプを得る．
+//
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicAND::gate_type() const
+{
+  return GateType::And;
+}
+
+// @brief controling value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicAND::cval() const
+{
+  return Val3::_0;
+}
+
+// @brief noncontroling valueを得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicAND::nval() const
+{
+  return Val3::_1;
+}
+
+// @brief controling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicAND::coval() const
+{
+  return Val3::_0;
+}
+
+// @brief noncontroling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicAND::noval() const
+{
+  return Val3::_1;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgLogicNAND
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgLogicNAND::TpgLogicNAND(
+  const vector<const TpgNode*>& fanin_list,
+  SizeType fanout_num
+) : TpgLogic{fanin_list, fanout_num}
+{
+}
+
+// @brief ゲートタイプを得る．
+//
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicNAND::gate_type() const
+{
+  return GateType::Nand;
+}
+
+// @brief controling value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNAND::cval() const
+{
+  return Val3::_0;
+}
+
+// @brief noncontroling valueを得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNAND::nval() const
+{
+  return Val3::_1;
+}
+
+// @brief controling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNAND::coval() const
+{
+  return Val3::_1;
+}
+
+// @brief noncontroling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNAND::noval() const
+{
+  return Val3::_0;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgLogicOR
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgLogicOR::TpgLogicOR(
+  const vector<const TpgNode*>& fanin_list,
+  SizeType fanout_num
+) : TpgLogic{fanin_list, fanout_num}
+{
+}
+
+// @brief ゲートタイプを得る．
+//
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicOR::gate_type() const
+{
+  return GateType::Or;
+}
+
+// @brief controling value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicOR::cval() const
+{
+  return Val3::_1;
+}
+
+// @brief noncontroling valueを得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicOR::nval() const
+{
+  return Val3::_0;
+}
+
+// @brief controling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicOR::coval() const
+{
+  return Val3::_1;
+}
+
+// @brief noncontroling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicOR::noval() const
+{
+  return Val3::_0;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgLogicNOR2
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgLogicNOR::TpgLogicNOR(
+  const vector<const TpgNode*>& fanin_list,
+  SizeType fanout_num
+) : TpgLogic{fanin_list, fanout_num}
+{
+}
+
+// @brief ゲートタイプを得る．
+//
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicNOR::gate_type() const
+{
+  return GateType::Nor;
+}
+
+// @brief controling value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNOR::cval() const
+{
+  return Val3::_1;
+}
+
+// @brief noncontroling valueを得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNOR::nval() const
+{
+  return Val3::_0;
+}
+
+// @brief controling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNOR::coval() const
+{
+  return Val3::_0;
+}
+
+// @brief noncontroling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicNOR::noval() const
+{
+  return Val3::_1;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgLogicXOR2
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgLogicXOR2::TpgLogicXOR2(
+  const vector<const TpgNode*>& fanin_list,
+  SizeType fanout_num
+) : TpgLogic{fanin_list, fanout_num}
+{
+}
+
+// @brief ゲートタイプを得る．
+//
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicXOR2::gate_type() const
+{
+  return GateType::Xor;
+}
+
+// @brief controling value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicXOR2::cval() const
+{
+  return Val3::_X;
+}
+
+// @brief noncontroling valueを得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicXOR2::nval() const
+{
+  return Val3::_X;
+}
+
+// @brief controling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicXOR2::coval() const
+{
+  return Val3::_X;
+}
+
+// @brief noncontroling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicXOR2::noval() const
+{
+  return Val3::_X;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgLogicXNOR2
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgLogicXNOR2::TpgLogicXNOR2(
+  const vector<const TpgNode*>& fanin_list,
+  SizeType fanout_num
+) : TpgLogic{fanin_list, fanout_num}
+{
+}
+
+// @brief ゲートタイプを得る．
+//
+// is_logic() が false の場合の返り値は不定
+GateType
+TpgLogicXNOR2::gate_type() const
+{
+  return GateType::Xnor;
+}
+
+// @brief controling value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicXNOR2::cval() const
+{
+  return Val3::_X;
+}
+
+// @brief noncontroling valueを得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicXNOR2::nval() const
+{
+  return Val3::_X;
+}
+
+// @brief controling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicXNOR2::coval() const
+{
+  return Val3::_X;
+}
+
+// @brief noncontroling output value を得る．
+//
+// is_logic() が false の場合の返り値は不定
+// ない場合は Val3::_X を返す．
+Val3
+TpgLogicXNOR2::noval() const
+{
+  return Val3::_X;
 }
 
 END_NAMESPACE_DRUID

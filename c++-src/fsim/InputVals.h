@@ -5,9 +5,8 @@
 /// @brief InputVals のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "fsim_nsdef.h"
 
@@ -27,7 +26,7 @@ public:
 
   /// @brief デストラクタ
   virtual
-  ~InputVals() { }
+  ~InputVals() = default;
 
 
 public:
@@ -36,34 +35,25 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 値を設定する．(縮退故障用)
-  /// @param[in] fsim 故障シミュレータ
   virtual
   void
-  set_val(FSIM_CLASSNAME& fsim) const = 0;
+  set_val(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const = 0;
 
   /// @brief 1時刻目の値を設定する．(遷移故障用)
-  /// @param[in] fsim 故障シミュレータ
   virtual
   void
-  set_val1(FSIM_CLASSNAME& fsim) const = 0;
+  set_val1(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const = 0;
 
   /// @brief 2時刻目の値を設定する．(遷移故障用)
-  /// @param[in] fsim 故障シミュレータ
   virtual
   void
-  set_val2(FSIM_CLASSNAME& fsim) const = 0;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
+  set_val2(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const = 0;
 
 };
 
@@ -78,11 +68,11 @@ class TvInputVals :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] testvector テストベクタ
-  TvInputVals(const TestVector& testvector);
+  TvInputVals(
+    const TestVector& testvector ///< [in] テストベクタ
+  );
 
   /// @brief デストラクタ
-  virtual
   ~TvInputVals();
 
 
@@ -92,28 +82,22 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 値を設定する．(縮退故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val(FSIM_CLASSNAME& fsim) const;
+  set_val(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
   /// @brief 1時刻目の値を設定する．(遷移故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val1(FSIM_CLASSNAME& fsim) const;
+  set_val1(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
   /// @brief 2時刻目の値を設定する．(遷移故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val2(FSIM_CLASSNAME& fsim) const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  set_val2(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
 
 private:
@@ -137,13 +121,12 @@ class Tv2InputVals :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] pat_map パタンのセットされているビットに1を立てたビットマップ
-  /// @param[in] pat_array パタンの配列(サイズは kPvBitLen の固定長)
-  Tv2InputVals(PackedVal pat_map,
-	       TestVector pat_array[]);
+  Tv2InputVals(
+    PackedVal pat_map,     ///< [in] パタンのセットされているビットに1を立てたビットマップ
+    TestVector pat_array[] ///< [in] パタンの配列(サイズは kPvBitLen の固定長)
+  );
 
   /// @brief デストラクタ
-  virtual
   ~Tv2InputVals();
 
 
@@ -153,28 +136,22 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 値を設定する．(縮退故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val(FSIM_CLASSNAME& fsim) const;
+  set_val(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
   /// @brief 1時刻目の値を設定する．(遷移故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val1(FSIM_CLASSNAME& fsim) const;
+  set_val1(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
   /// @brief 2時刻目の値を設定する．(遷移故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val2(FSIM_CLASSNAME& fsim) const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  set_val2(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
 
 private:
@@ -187,7 +164,7 @@ private:
 
   // mPatMap の最初の1のビット位置
   // 全て０の場合には kPvBitLen が入る．
-  int mPatFirstBit;
+  SizeType mPatFirstBit;
 
   // テストベクタの配列
   TestVector mPatArray[kPvBitLen];
@@ -205,8 +182,9 @@ class NvlInputVals :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] assign_list 値の割り当てリスト
-  NvlInputVals(const NodeValList& assign_list);
+  NvlInputVals(
+    const NodeValList& assign_list ///< [in] 値の割り当てリスト
+  );
 
   /// @brief デストラクタ
   ~NvlInputVals();
@@ -218,28 +196,22 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 値を設定する．(縮退故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val(FSIM_CLASSNAME& fsim) const;
+  set_val(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
   /// @brief 1時刻目の値を設定する．(遷移故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val1(FSIM_CLASSNAME& fsim) const;
+  set_val1(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
   /// @brief 2時刻目の値を設定する．(遷移故障用)
-  /// @param[in] fsim 故障シミュレータ
-  virtual
   void
-  set_val2(FSIM_CLASSNAME& fsim) const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  set_val2(
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+  ) const override;
 
 
 private:

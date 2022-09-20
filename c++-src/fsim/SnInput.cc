@@ -3,12 +3,10 @@
 /// @brief SnInput の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "SnInput.h"
-
 #include "GateType.h"
 
 
@@ -19,8 +17,9 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-SnInput::SnInput(int id) :
-  SimNode(id)
+SnInput::SnInput(
+  SizeType id
+) : SimNode{id}
 {
   set_level(0);
 }
@@ -31,8 +30,6 @@ SnInput::~SnInput()
 }
 
 // @brief ゲートタイプを返す．
-//
-// ここでは GateType::BUFF を返す．
 GateType
 SnInput::gate_type() const
 {
@@ -40,7 +37,7 @@ SnInput::gate_type() const
 }
 
 // @brief ファンイン数を得る．
-int
+SizeType
 SnInput::fanin_num() const
 {
   return 0;
@@ -48,7 +45,9 @@ SnInput::fanin_num() const
 
 // @brief pos 番めのファンインを得る．
 SimNode*
-SnInput::fanin(int pos) const
+SnInput::fanin(
+  SizeType pos
+) const
 {
   ASSERT_NOT_REACHED;
   return nullptr;
@@ -56,7 +55,9 @@ SnInput::fanin(int pos) const
 
 // @brief 内容をダンプする．
 void
-SnInput::dump(ostream& s) const
+SnInput::dump(
+  ostream& s
+) const
 {
   s << "INPUT" << endl;
 }
@@ -71,7 +72,9 @@ SnInput::_calc_val()
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
-SnInput::_calc_gobs(int ipos)
+SnInput::_calc_gobs(
+  SizeType ipos
+)
 {
   ASSERT_NOT_REACHED;
   return kPvAll0;

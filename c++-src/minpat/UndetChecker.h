@@ -6,9 +6,8 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 
@@ -23,7 +22,7 @@
 #include "ym/SatBool3.h"
 #include "ym/SatLiteral.h"
 #include "ym/SatSolver.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 #include "VidMap.h"
 
@@ -83,27 +82,29 @@ public:
 
   /// @brief 一つの SAT問題を解く．
   /// @param[in] assumptions 値の決まっている変数のリスト
-  /// @param[out] model SAT モデル
   /// @return 結果を返す．
   ///
   /// mSolver.solve() を呼び出すだけだが統計情報の更新を行っている．
   SatBool3
-  solve(const vector<SatLiteral>& assumptions,
-	vector<SatBool3>& model);
+  solve(const vector<SatLiteral>& assumptions);
+
+  /// @brief 直前の solve() の解を返す．
+  const SatModel&
+  model();
 
   /// @brief 1時刻前の正常値の変数を返す．
   /// @param[in] node 対象のノード
-  SatVarId
+  SatLiteral
   hvar(const TpgNode* node);
 
   /// @brief 正常値の変数を返す．
   /// @param[in] node 対象のノード
-  SatVarId
+  SatLiteral
   gvar(const TpgNode* node);
 
   /// @brief 故障値の変数を返す．
   /// @param[in] node 対象のノード
-  SatVarId
+  SatLiteral
   fvar(const TpgNode* node);
 
   /// @brief gvar が割り当てられている時に true を返す．
@@ -141,7 +142,7 @@ protected:
   timer_start();
 
   /// @brief 時間計測を終了する．
-  USTime
+  double
   timer_stop();
 
   /// @brief SATソルバを返す．
@@ -153,21 +154,21 @@ protected:
   /// @param[in] var 設定する変数
   void
   set_hvar(const TpgNode* node,
-	   SatVarId var);
+	   SatLiteral var);
 
   /// @brief 正常値の変数を設定する．
   /// @param[in] node 対象のノード
   /// @param[in] var 設定する変数
   void
   set_gvar(const TpgNode* node,
-	   SatVarId var);
+	   SatLiteral var);
 
   /// @brief 故障値値の変数を設定する．
   /// @param[in] node 対象のノード
   /// @param[in] var 設定する変数
   void
   set_fvar(const TpgNode* node,
-	   SatVarId var);
+	   SatLiteral var);
 
   /// @brief 1時刻前の正常値の変数マップを返す．
   const VidMap&
@@ -320,7 +321,7 @@ private:
   bool mTimerEnable;
 
   // 時間計測用のタイマー
-  StopWatch mTimer;
+  Timer mTimer;
 
 };
 
@@ -372,10 +373,10 @@ UndetChecker::root_node() const
 // @brief 1時刻前の正常値の変数を返す．
 // @param[in] node 対象のノード
 inline
-SatVarId
+SatLiteral
 UndetChecker::hvar(const TpgNode* node)
 {
-  ASSERT_COND( mHvarMap(node) != kSatVarIdIllegal );
+  ASSERT_COND( mHvarMap(node) != kSatLiteralX );
 
   return mHvarMap(node);
 }
@@ -383,7 +384,7 @@ UndetChecker::hvar(const TpgNode* node)
 // @brief 正常値の変数を返す．
 // @param[in] node 対象のノード
 inline
-SatVarId
+SatLiteral
 UndetChecker::gvar(const TpgNode* node)
 {
   return mGvarMap(node);
@@ -392,7 +393,7 @@ UndetChecker::gvar(const TpgNode* node)
 // @brief 故障値の変数を返す．
 // @param[in] node 対象のノード
 inline
-SatVarId
+SatLiteral
 UndetChecker::fvar(const TpgNode* node)
 {
   return mFvarMap(node);
@@ -404,7 +405,7 @@ UndetChecker::fvar(const TpgNode* node)
 inline
 void
 UndetChecker::set_hvar(const TpgNode* node,
-		       SatVarId var)
+		       SatLiteral var)
 {
   mHvarMap.set_vid(node, var);
   mMarkArray[node->id()] |= 16U;
@@ -429,7 +430,7 @@ UndetChecker::has_hvar(const TpgNode* node) const
 inline
 void
 UndetChecker::set_gvar(const TpgNode* node,
-		       SatVarId var)
+		       SatLiteral var)
 {
   mGvarMap.set_vid(node, var);
   mFvarMap.set_vid(node, var);
@@ -455,7 +456,7 @@ UndetChecker::has_gvar(const TpgNode* node) const
 inline
 void
 UndetChecker::set_fvar(const TpgNode* node,
-		       SatVarId var)
+		       SatLiteral var)
 {
   mFvarMap.set_vid(node, var);
 }

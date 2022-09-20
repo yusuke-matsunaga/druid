@@ -5,7 +5,7 @@
 /// @brief GateEnc のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -23,10 +23,10 @@ class GateEnc
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] solver SATソルバ
-  /// @param[in] varmap 変数番号のマップ
-  GateEnc(SatSolver& solver,
-	  const VidMap& varmap);
+  GateEnc(
+    SatSolver& solver,   ///< [in] SATソルバ
+    const VidMap& varmap ///< [in] 変数番号のマップ
+  );
 
   /// @brief デストラクタ
   ~GateEnc();
@@ -38,18 +38,19 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ノードの入出力の関係を表すCNF式を作る．
-  /// @param[in] node 対象のノード
   void
-  make_cnf(const TpgNode* node);
+  make_cnf(
+    const TpgNode* node  ///< [in] 対象のノード
+  );
 
   /// @brief ノードの入出力の関係を表すCNF式を作る．
-  /// @param[in] node 対象のノード
-  /// @param[in] ovar 出力の変数番号
   ///
   /// 出力の変数番号のみ指定するバージョン
   void
-  make_cnf(const TpgNode* node,
-	   SatVarId ovar);
+  make_cnf(
+    const TpgNode* node, ///< [in] 対象のノード
+    SatLiteral ovar	 ///< [in] 出力の変数リテラル
+  );
 
 
 private:
@@ -59,7 +60,9 @@ private:
 
   /// @brief ノードに対応するリテラルを返す．
   SatLiteral
-  lit(const TpgNode* node);
+  lit(
+    const TpgNode* node ///< [in] ノード
+  );
 
 
 private:

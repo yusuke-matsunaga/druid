@@ -3,9 +3,8 @@
 /// @brief SnGate の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "SnGate.h"
 #include "GateType.h"
@@ -20,20 +19,21 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-SnGate::SnGate(int id,
-	       const vector<SimNode*>& inputs) :
-  SimNode(id),
-  mFaninNum(inputs.size()),
-  mFanins(new SimNode*[mFaninNum])
+SnGate::SnGate(
+  SizeType id,
+  const vector<SimNode*>& inputs
+) : SimNode{id},
+    mFaninNum{inputs.size()},
+    mFanins{new SimNode*[mFaninNum]}
 {
   // ファンインをセットしつつ
   // ファンインのレベルの最大値を求める．
-  int max_level = 0;
+  SizeType max_level = 0;
   for ( auto i: Range(0, mFaninNum) ) {
-    SimNode* input = inputs[i];
+    auto input = inputs[i];
     ASSERT_COND( input != nullptr );
     mFanins[i] = input;
-    int level = input->level();
+    SizeType level = input->level();
     if ( max_level < level ) {
       max_level = level;
     }
@@ -48,7 +48,7 @@ SnGate::~SnGate()
 }
 
 // @brief ファンイン数を得る．
-int
+SizeType
 SnGate::fanin_num() const
 {
   return _fanin_num();
@@ -56,7 +56,9 @@ SnGate::fanin_num() const
 
 // @brief pos 番めのファンインを得る．
 SimNode*
-SnGate::fanin(int pos) const
+SnGate::fanin(
+  SizeType pos
+) const
 {
   ASSERT_COND( pos >= 0 && pos < _fanin_num() );
 
@@ -65,7 +67,9 @@ SnGate::fanin(int pos) const
 
 // @brief 内容をダンプする．
 void
-SnGate::dump(ostream& s) const
+SnGate::dump(
+  ostream& s
+) const
 {
   s <<  gate_type()
     << "(" << _fanin(0)->id();
@@ -82,9 +86,10 @@ SnGate::dump(ostream& s) const
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-SnGate1::SnGate1(int id,
-		 const vector<SimNode*>& inputs) :
-  SimNode(id)
+SnGate1::SnGate1(
+  SizeType id,
+  const vector<SimNode*>& inputs
+) : SimNode{id}
 {
   ASSERT_COND( inputs.size() == 1 );
   ASSERT_COND( inputs[0] != nullptr );
@@ -99,7 +104,7 @@ SnGate1::~SnGate1()
 }
 
 // @brief ファンイン数を得る．
-int
+SizeType
 SnGate1::fanin_num() const
 {
   return 1;
@@ -107,14 +112,18 @@ SnGate1::fanin_num() const
 
 // @brief pos 番めのファンインを得る．
 SimNode*
-SnGate1::fanin(int pos) const
+SnGate1::fanin(
+  SizeType pos
+) const
 {
   return mFanin;
 }
 
 // @brief 内容をダンプする．
 void
-SnGate1::dump(ostream& s) const
+SnGate1::dump(
+  ostream& s
+) const
 {
   s <<  gate_type()
     << "(" << _fanin()->id() << ")" << endl;
@@ -127,9 +136,10 @@ SnGate1::dump(ostream& s) const
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-SnGate2::SnGate2(int id,
-		 const vector<SimNode*>& inputs) :
-  SimNode(id)
+SnGate2::SnGate2(
+  SizeType id,
+  const vector<SimNode*>& inputs
+) : SimNode{id}
 {
   ASSERT_COND( inputs.size() == 2 );
   ASSERT_COND( inputs[0] != nullptr );
@@ -150,7 +160,7 @@ SnGate2::~SnGate2()
 }
 
 // @brief ファンイン数を得る．
-int
+SizeType
 SnGate2::fanin_num() const
 {
   return 2;
@@ -158,14 +168,18 @@ SnGate2::fanin_num() const
 
 // @brief pos 番めのファンインを得る．
 SimNode*
-SnGate2::fanin(int pos) const
+SnGate2::fanin(
+  SizeType pos
+) const
 {
   return mFanins[pos];
 }
 
 // @brief 内容をダンプする．
 void
-SnGate2::dump(ostream& s) const
+SnGate2::dump(
+  ostream& s
+) const
 {
   s << gate_type()
     << "2(" << _fanin(0)->id()
@@ -180,9 +194,10 @@ SnGate2::dump(ostream& s) const
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-SnGate3::SnGate3(int id,
-		 const vector<SimNode*>& inputs) :
-  SimNode(id)
+SnGate3::SnGate3(
+  SizeType id,
+  const vector<SimNode*>& inputs
+) : SimNode{id}
 {
   ASSERT_COND( inputs.size() == 3 );
   ASSERT_COND( inputs[0] != nullptr );
@@ -208,7 +223,7 @@ SnGate3::~SnGate3()
 }
 
 // @brief ファンイン数を得る．
-int
+SizeType
 SnGate3::fanin_num() const
 {
   return 3;
@@ -216,14 +231,18 @@ SnGate3::fanin_num() const
 
 // @brief pos 番めのファンインを得る．
 SimNode*
-SnGate3::fanin(int pos) const
+SnGate3::fanin(
+  SizeType pos
+) const
 {
   return mFanins[pos];
 }
 
 // @brief 内容をダンプする．
 void
-SnGate3::dump(ostream& s) const
+SnGate3::dump(
+  ostream& s
+) const
 {
   s << gate_type()
     << "3(" << _fanin(0)->id()
@@ -239,9 +258,10 @@ SnGate3::dump(ostream& s) const
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-SnGate4::SnGate4(int id,
-		 const vector<SimNode*>& inputs) :
-  SimNode(id)
+SnGate4::SnGate4(
+  SizeType id,
+  const vector<SimNode*>& inputs
+) : SimNode{id}
 {
   ASSERT_COND( inputs.size() == 4 );
   ASSERT_COND( inputs[0] != nullptr );
@@ -272,7 +292,7 @@ SnGate4::~SnGate4()
 }
 
 // @brief ファンイン数を得る．
-int
+SizeType
 SnGate4::fanin_num() const
 {
   return 4;
@@ -280,14 +300,18 @@ SnGate4::fanin_num() const
 
 // @brief pos 番めのファンインを得る．
 SimNode*
-SnGate4::fanin(int pos) const
+SnGate4::fanin(
+  SizeType pos
+) const
 {
   return mFanins[pos];
 }
 
 // @brief 内容をダンプする．
 void
-SnGate4::dump(ostream& s) const
+SnGate4::dump(
+  ostream& s
+) const
 {
   s << gate_type()
     << "4(" << _fanin(0)->id()

@@ -3,9 +3,8 @@
 /// @brief FaultReducer の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "FaultReducer.h"
 #include "DtpgFFR.h"
@@ -30,8 +29,10 @@ BEGIN_NONAMESPACE
 // * 空白の除去は行わない．単純に ',' と ':' のみで区切る．
 // * 結果を opt_list に格納する．
 void
-parse_option(const string& option_str,
-	     vector<pair<string, string>>& opt_list)
+parse_option(
+  const string& option_str,
+  vector<pair<string, string>>& opt_list
+)
 {
   // ',' で区切る
   string tmp_str(option_str);
@@ -61,15 +62,14 @@ parse_option(const string& option_str,
 END_NONAMESPACE
 
 // @brief コンストラクタ
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-FaultReducer::FaultReducer(const TpgNetwork& network,
-			   FaultType fault_type) :
-  mNetwork(network),
-  mFaultType(fault_type),
-  mDebug(false)
+FaultReducer::FaultReducer(
+  const TpgNetwork& network,
+  FaultType fault_type
+) : mNetwork{network},
+    mFaultType{fault_type},
+    mFsim{network, mFaultType, true},
+    mDebug{false}
 {
-  mFsim.init_fsim3(mNetwork, mFaultType);
 }
 
 // @brief デストラクタ
@@ -78,27 +78,29 @@ FaultReducer::~FaultReducer()
 }
 
 // @breif 内部で用いる SAT ソルバのタイプの設定を行う．
-// @param[in] solver_type SATソルバのタイプ
 void
-FaultReducer::set_solver_type(const SatSolverType& solver_type)
+FaultReducer::set_solver_type(
+  const SatSolverType& solver_type
+)
 {
   mSolverType = solver_type;
 }
 
 // @brief デバッグフラグをセットする．
-// @param[in] debug 設定する値 (true/false)
 void
-FaultReducer::set_debug(bool debug)
+FaultReducer::set_debug(
+  bool debug
+)
 {
   mDebug = debug;
 }
 
 // @brief 故障の支配関係を調べて故障リストを縮約する．
-// @param[inout] fault_list 対象の故障リスト
-// @param[in] algorithm アルゴリズム
 void
-FaultReducer::fault_reduction(vector<const TpgFault*>& fault_list,
-			      const string& algorithm)
+FaultReducer::fault_reduction(
+  vector<const TpgFault*>& fault_list,
+  const string& algorithm
+)
 {
   // algorithm を解析する．
   vector<pair<string, string>> opt_list;
@@ -147,10 +149,11 @@ FaultReducer::fault_reduction(vector<const TpgFault*>& fault_list,
 }
 
 // @brief 内部のデータ構造を初期化する．
-// @param[in] fi_list 故障情報のリスト
 void
-FaultReducer::init(const vector<const TpgFault*>& fault_list,
-		   bool need_mand_cond)
+FaultReducer::init(
+  const vector<const TpgFault*>& fault_list,
+  bool need_mand_cond
+)
 {
   if ( mDebug ) {
     mTimer.reset();
@@ -186,17 +189,16 @@ FaultReducer::init(const vector<const TpgFault*>& fault_list,
     for ( auto fault: ffr.fault_list() ) {
       auto& fi = mFaultInfoArray[fault->id()];
       if ( !fi.mDeleted ) {
-	fi.mFFRCond = ffr_propagate_condition(fault, mFaultType);
-	vector<SatLiteral> assumptions;
-	dtpg.conv_to_assumptions(fi.mFFRCond, assumptions);
-	SatBool3 sat_res = dtpg.solve(assumptions);
+	fi.mFFRCond = fault->ffr_propagate_condition(mFaultType);
+	auto assumptions = dtpg.conv_to_literal_list(fi.mFFRCond);
+	SatBool3 sat_res = dtpg.check(assumptions);
 	ASSERT_COND( sat_res == SatBool3::True );
 	TestVector tv = dtpg.get_tv();
 	tv.fix_x_from_random(rg);
 	mTvList.push_back(tv);
 	if ( need_mand_cond ) {
 	  // 十分条件(の一つ)を求める．
-	  NodeValList suff_cond = dtpg.get_sufficient_condition();
+	  NodeValList suff_cond = dtpg.get_sufficient_condition(ffr.root());
 	  fi.mSuffCond = suff_cond;
 	  // 必要条件を求める．
 	  // 明らかに必要条件は十分条件の部分集合になっている．
@@ -223,13 +225,15 @@ FaultReducer::init(const vector<const TpgFault*>& fault_list,
   if ( mDebug ) {
     mTimer.stop();
     cout << "TestVector generation" << endl;
-    cout << "CPU time:                              " << mTimer.time() << endl;
+    cout << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
 // @brief 故障シミュレーションを行って支配故障の候補を作る．
 void
-FaultReducer::make_dom_candidate(int loop_limit)
+FaultReducer::make_dom_candidate(
+  int loop_limit
+)
 {
   if ( mDebug ) {
     mTimer.reset();
@@ -271,7 +275,7 @@ FaultReducer::make_dom_candidate(int loop_limit)
   if ( mDebug ) {
     mTimer.stop();
     cout << "Fault Simulation" << endl;
-    cout << "CPU time:                              " << mTimer.time() << endl;
+    cout << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
@@ -387,8 +391,7 @@ FaultReducer::ffr_reduction()
       if ( fi1.mDeleted ) {
 	continue;
       }
-      vector<SatLiteral> assumptions;
-      dtpg.conv_to_assumptions(fi1.mFFRCond, assumptions);
+      auto assumptions = dtpg.conv_to_literal_list(fi1.mFFRCond);
       for ( auto fault2: fi1.mDomCandList ) {
 	if ( fault2->tpg_onode()->ffr_root() != fault1->tpg_onode()->ffr_root() ) {
 	  continue;
@@ -426,13 +429,15 @@ FaultReducer::ffr_reduction()
     mTimer.stop();
     int n = count_faults();
     cout << "after FFR dominance reduction:         " << n << endl;
-    cout << "CPU time:                              " << mTimer.time() << endl;
+    cout << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
 // @brief 異なる FFR 間の支配故障の簡易チェックを行う．
 void
-FaultReducer::dom_reduction1(bool simple)
+FaultReducer::dom_reduction1(
+  bool simple
+)
 {
   if ( mDebug ) {
     mTimer.reset();
@@ -491,7 +496,7 @@ FaultReducer::dom_reduction1(bool simple)
     cout << "after semi-global dominance reduction: " << n << endl
 	 << "    # of total checks:                 " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
-	 << "CPU time:                              " << mTimer.time() << endl;
+	 << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
@@ -564,13 +569,15 @@ FaultReducer::dom_reduction2()
     cout << "    # of total checkes:                " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "    # of DomCheckers:                  " << dom_num << endl
-	 << "CPU time:                              " << mTimer.time() << endl;
+	 << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 
 // @brief 異なる FFR 間の支配故障の簡易チェックを行う．
 void
-FaultReducer::dom_reduction3(bool simple)
+FaultReducer::dom_reduction3(
+  bool simple
+)
 {
   if ( mDebug ) {
     mTimer.reset();
@@ -664,7 +671,7 @@ FaultReducer::dom_reduction3(bool simple)
 	 << "    # of total checkes(2):             " << u_check_num << endl
 	 << "    # of total successes(2):           " << u_success_num << endl
 	 << "    # of DomCheckers:                  " << dom_num << endl
-	 << "CPU time:                              " << mTimer.time() << endl;
+	 << "CPU time:                              " << mTimer.get_time() << endl;
   }
 }
 

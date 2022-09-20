@@ -3,9 +3,8 @@
 /// @brief Just1 の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Just1.h"
 #include "JustData.h"
@@ -25,9 +24,9 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] max_id ノード番号の最大値
-Just1::Just1(int max_id) :
-  JustImpl(max_id)
+Just1::Just1(
+  SizeType max_id
+) : JustImpl{max_id}
 {
 }
 
@@ -37,24 +36,22 @@ Just1::~Just1()
 }
 
 // @brief 初期化処理
-// @param[in] assign_list 割当リスト
-// @param[in] jd justify 用のデータ
 void
-Just1::just_init(const NodeValList& assign_list,
-		 const JustData& jd)
+Just1::just_init(
+  const NodeValList& assign_list,
+  const JustData& jd
+)
 {
   // なにもしない．
 }
 
 // @brief 制御値を持つファンインを一つ選ぶ．
-// @param[in] jd justiry用のデータ
-// @param[in] node 対象のノード
-// @param[in] time 時刻 ( 0 or 1 )
-// @return 選んだファンインのノードを返す．
 const TpgNode*
-Just1::select_cval_node(const JustData& jd,
-			const TpgNode* node,
-			int time)
+Just1::select_cval_node(
+  const JustData& jd,
+  const TpgNode* node,
+  int time
+)
 {
   // cval を持つ最初のファンインをたどる．
   Val3 cval = node->cval();

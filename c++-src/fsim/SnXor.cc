@@ -3,9 +3,8 @@
 /// @brief SnXor の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "SnXor.h"
 #include "GateType.h"
@@ -18,35 +17,11 @@ BEGIN_NAMESPACE_DRUID_FSIM
 // SnXor
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-SnXor::SnXor(int id,
-	     const vector<SimNode*>& inputs) :
-  SnGate(id, inputs)
-{
-}
-
-// @brief デストラクタ
-SnXor::~SnXor()
-{
-}
-
 // @brief ゲートタイプを返す．
 GateType
 SnXor::gate_type() const
 {
   return GateType::Xor;
-}
-
-// @brief ファンインの値のXORを計算する．
-inline
-FSIM_VALTYPE
-SnXor::_calc_xor()
-{
-  auto val = _fanin(0)->val();
-  for ( auto i: Range(1, _fanin_num()) ) {
-    val ^= _fanin(i)->val();
-  }
-  return val;
 }
 
 // @brief 出力値の計算を行う．
@@ -58,7 +33,9 @@ SnXor::_calc_val()
 
 // @brief ゲートの入力から出力までの可観測性を計算する．(3値版)
 PackedVal
-SnXor::_calc_gobs(int ipos)
+SnXor::_calc_gobs(
+  SizeType ipos
+)
 {
 #if FSIM_VAL2
   // 2値なら常に観測可能
@@ -84,33 +61,11 @@ SnXor::_calc_gobs(int ipos)
 // SnXor2
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-SnXor2::SnXor2(int id,
-	       const vector<SimNode*>& inputs) :
-  SnGate2(id, inputs)
-{
-}
-
-// @brief デストラクタ
-SnXor2::~SnXor2()
-{
-}
-
 // @brief ゲートタイプを返す．
 GateType
 SnXor2::gate_type() const
 {
   return GateType::Xor;
-}
-
-// @brief ファンインの値のXORを計算する．
-inline
-FSIM_VALTYPE
-SnXor2::_calc_xor()
-{
-  auto val0 = _fanin(0)->val();
-  auto val1 = _fanin(1)->val();
-  return val0 ^ val1;
 }
 
 // @brief 出力値の計算を行う．
@@ -122,7 +77,9 @@ SnXor2::_calc_val()
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
-SnXor2::_calc_gobs(int ipos)
+SnXor2::_calc_gobs(
+  SizeType ipos
+)
 {
 #if FSIM_VAL2
   // 2値なら常に観測可能
@@ -139,18 +96,6 @@ SnXor2::_calc_gobs(int ipos)
 //////////////////////////////////////////////////////////////////////
 // SnXnor
 //////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-SnXnor::SnXnor(int id,
-	       const vector<SimNode*>& inputs) :
-  SnXor(id, inputs)
-{
-}
-
-// @brief デストラクタ
-SnXnor::~SnXnor()
-{
-}
 
 // @brief ゲートタイプを返す．
 GateType
@@ -170,18 +115,6 @@ SnXnor::_calc_val()
 //////////////////////////////////////////////////////////////////////
 // SnXnor2
 //////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-SnXnor2::SnXnor2(int id,
-		 const vector<SimNode*>& inputs) :
-  SnXor2(id, inputs)
-{
-}
-
-// @brief デストラクタ
-SnXnor2::~SnXnor2()
-{
-}
 
 // @brief ゲートタイプを返す．
 GateType

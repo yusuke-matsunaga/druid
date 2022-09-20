@@ -5,9 +5,8 @@
 /// @brief 3値を表す型の定義ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012-2014, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2010, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "ym/SatBool3.h"
@@ -18,23 +17,21 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @brief 3値を表す列挙型
 //////////////////////////////////////////////////////////////////////
-enum class Val3 {
-  /// @brief 未定
-  _X = 0,
-  /// @brief 0
-  _0 = 1,
-  /// @brief 1
-  _1 = 2
+enum class Val3 : ymuint8 {
+  _X = 0, ///< 未定
+  _0 = 1, ///< 0
+  _1 = 2  ///< 1
 };
 
 /// @relates Val3
 /// @brief 否定演算子
-/// @param[in] val 値
 ///
 /// Val3::_X の場合には変化しない
 inline
 Val3
-operator~(Val3 val)
+operator~(
+  Val3 val ///< [in] 値
+)
 {
   // val | ~val
   // ----+-----
@@ -49,11 +46,12 @@ operator~(Val3 val)
 
 /// @relates Val3
 /// @brief AND 演算子
-/// @param[in] val1, val2 値
 inline
 Val3
-operator&(Val3 val1,
-	  Val3 val2)
+operator&(
+  Val3 val1, ///< [in] 値1
+  Val3 val2  ///< [in] 値2
+)
 {
   //      |        val1
   // val2 |   0      1      2
@@ -71,11 +69,12 @@ operator&(Val3 val1,
 
 /// @relates Val3
 /// @brief OR 演算子
-/// @param[in] val1, val2 値
 inline
 Val3
-operator|(Val3 val1,
-	  Val3 val2)
+operator|(
+  Val3 val1, ///< [in] 値1
+  Val3 val2  ///< [in] 値2
+)
 {
   //      |        val1
   // val2 |   0      1      2
@@ -93,11 +92,12 @@ operator|(Val3 val1,
 
 /// @relates Val3
 /// @brief XOR 演算子
-/// @param[in] val1, val2 値
 inline
 Val3
-operator^(Val3 val1,
-	  Val3 val2)
+operator^(
+  Val3 val1, ///< [in] 値1
+  Val3 val2  ///< [in] 値2
+)
 {
   //      |        val1
   // val2 |   0      1      2
@@ -114,11 +114,12 @@ operator^(Val3 val1,
 }
 
 /// @relates Val3
-/// @param[in] val 値
 /// @brief 値を表す文字を返す．
 inline
 char
-value_name1(Val3 val)
+value_name1(
+  Val3 val ///< [in] 値
+)
 {
   switch ( val ) {
   case Val3::_X: return 'X';
@@ -130,12 +131,12 @@ value_name1(Val3 val)
 
 /// @relates Val3
 /// @brief 正常値/故障値の組の値を表す文字列を返す．
-/// @param[in] gval 正常値
-/// @param[in] fval 故障値
 inline
 const char*
-value_name(Val3 gval,
-	   Val3 fval)
+value_name(
+  Val3 gval, ///< [in] 正常値
+  Val3 fval  ///< [in] 故障値
+)
 {
   switch ( gval ) {
   case Val3::_X :
@@ -165,12 +166,12 @@ value_name(Val3 gval,
 
 /// @relates Val3
 /// @brief ストリーム出力演算子
-/// @param[in] s 出力先のストリーム
-/// @param[in] val 値
 inline
 ostream&
-operator<<(ostream& s,
-	   Val3 val)
+operator<<(
+  ostream& s, ///< [in] 出力先のストリーム
+  Val3 val    ///< [in] 値
+)
 {
   return s << value_name1(val);
 }
@@ -178,7 +179,9 @@ operator<<(ostream& s,
 /// @brief SatBool3 から Val3 への変換
 inline
 Val3
-bool3_to_val3(SatBool3 bval)
+bool3_to_val3(
+  SatBool3 bval
+)
 {
   switch ( bval ) {
   case SatBool3::True:  return Val3::_1;

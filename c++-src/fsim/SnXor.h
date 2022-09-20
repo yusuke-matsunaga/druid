@@ -5,11 +5,11 @@
 /// @brief SnXor のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "SnGate.h"
+#include "ym/Range.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -24,20 +24,22 @@ class SnXor :
 public:
 
   /// @brief コンストラクタ
-  SnXor(int id,
-	const vector<SimNode*>& inputs);
+  SnXor(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnGate{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnXor();
+  ~SnXor() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
-  gate_type() const;
+  gate_type() const override;
 
 
 public:
@@ -46,14 +48,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
-  _calc_val();
+  _calc_val() override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
-  virtual
   PackedVal
-  _calc_gobs(int ipos);
+  _calc_gobs(
+    SizeType ipos
+  ) override;
 
 
 protected:
@@ -63,7 +65,14 @@ protected:
 
   /// @brief ファンインの値のXORを計算する．
   FSIM_VALTYPE
-  _calc_xor();
+  _calc_xor()
+  {
+    auto val = _fanin(0)->val();
+    for ( auto i: Range(1, _fanin_num()) ) {
+      val ^= _fanin(i)->val();
+    }
+    return val;
+  }
 
 };
 
@@ -78,20 +87,22 @@ class SnXor2 :
 public:
 
   /// @brief コンストラクタ
-  SnXor2(int id,
-	 const vector<SimNode*>& inputs);
+  SnXor2(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnGate2{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnXor2();
+  ~SnXor2() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
-  gate_type() const;
+  gate_type() const override;
 
 
 public:
@@ -100,14 +111,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
-  _calc_val();
+  _calc_val() override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
-  virtual
   PackedVal
-  _calc_gobs(int ipos);
+  _calc_gobs(
+    SizeType ipos
+  ) override;
 
 
 protected:
@@ -117,7 +128,12 @@ protected:
 
   /// @brief ファンインの値のXORを計算する．
   FSIM_VALTYPE
-  _calc_xor();
+  _calc_xor()
+  {
+    auto val0 = _fanin(0)->val();
+    auto val1 = _fanin(1)->val();
+    return val0 ^ val1;
+  }
 
 };
 
@@ -132,20 +148,22 @@ class SnXnor :
 public:
 
   /// @brief コンストラクタ
-  SnXnor(int id,
-	 const vector<SimNode*>& inputs);
+  SnXnor(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnXor{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnXnor();
+  ~SnXnor() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
-  gate_type() const;
+  gate_type() const override;
 
 
 public:
@@ -154,9 +172,8 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
-  _calc_val();
+  _calc_val() override;
 
 };
 
@@ -171,20 +188,22 @@ class SnXnor2 :
 public:
 
   /// @brief コンストラクタ
-  SnXnor2(int id,
-	  const vector<SimNode*>& inputs);
+  SnXnor2(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnXor2{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnXnor2();
+  ~SnXnor2() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
-  gate_type() const;
+  gate_type() const override;
 
 
 public:
@@ -193,9 +212,8 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．(2値版)
-  virtual
   FSIM_VALTYPE
-  _calc_val();
+  _calc_val() override;
 
 };
 

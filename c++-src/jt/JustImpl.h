@@ -5,9 +5,8 @@
 /// @brief JustImpl のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "TpgNode.h"
@@ -27,8 +26,9 @@ class JustImpl
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] max_id ID番号の最大値
-  JustImpl(int max_id);
+  JustImpl(
+    SizeType max_id ///< [in] ID番号の最大値
+  );
 
   /// @brief デストラクタ
   virtual
@@ -41,26 +41,23 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 正当化に必要な割当を求める(縮退故障用)．
-  /// @param[in] assign_list 値の割り当てリスト
-  /// @param[in] var_map 変数番号のマップ
-  /// @param[in] model SAT問題の解
   /// @return 外部入力上の値の割当リスト
   NodeValList
-  justify(const NodeValList& assign_list,
-	  const VidMap& var_map,
-	  const vector<SatBool3>& model);
+  justify(
+    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
+    const VidMap& var_map,	    ///< [in] 変数番号のマップ
+    const SatModel& model	    ///< [in] SAT問題の解
+  );
 
   /// @brief 正当化に必要な割当を求める(遷移故障用)．
-  /// @param[in] assign_list 値の割り当てリスト
-  /// @param[in] var1_map 1時刻目の変数番号のマップ
-  /// @param[in] var2_map 2時刻目の変数番号のマップ
-  /// @param[in] model SAT問題の解
   /// @return 外部入力上の値の割当リスト
   NodeValList
-  justify(const NodeValList& assign_list,
-	  const VidMap& var1_map,
-	  const VidMap& var2_map,
-	  const vector<SatBool3>& model);
+  justify(
+    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
+    const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
+    const VidMap& var2_map,	    ///< [in] 2時刻目の変数番号のマップ
+    const SatModel& model	    ///< [in] SAT問題の解
+  );
 
 
 private:
@@ -69,34 +66,31 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 初期化処理
-  /// @param[in] assign_list 割当リスト
-  /// @param[in] jd justify 用のデータ
   virtual
   void
-  just_init(const NodeValList& assign_list,
-	    const JustData& jd) = 0;
+  just_init(
+    const NodeValList& assign_list, ///< [in] 割当リスト
+    const JustData& jd		    ///< [in] justify 用のデータ
+  ) = 0;
 
   /// @brief 正当化処理
-  /// @param[in] jd justiry用のデータ
-  /// @param[in] node 対象のノード
-  /// @param[in] time 時刻 ( 0 or 1 )
-  /// @param[in] pi_assign_list 結果の割当を保持するリスト
   void
-  just_main(const JustData& jd,
-	    const TpgNode* node,
-	    int time,
-	    NodeValList& pi_assign_list);
+  just_main(
+    const JustData& jd,         ///< [in] justiry用のデータ
+    const TpgNode* node,	///< [in] 対象のノード
+    int time,			///< [in] 時刻 ( 0 or 1 )
+    NodeValList& pi_assign_list	///< [in] 結果の割当を保持するリスト
+  );
 
   /// @brief 制御値を持つファンインを一つ選ぶ．
-  /// @param[in] jd justiry用のデータ
-  /// @param[in] node 対象のノード
-  /// @param[in] time 時刻 ( 0 or 1 )
   /// @return 選んだファンインのノードを返す．
   virtual
   const TpgNode*
-  select_cval_node(const JustData& jd,
-		   const TpgNode* node,
-		   int time) = 0;
+  select_cval_node(
+    const JustData& jd,  ///< [in] justiry用のデータ
+    const TpgNode* node, ///< [in] 対象のノード
+    int time		 ///< [in] 時刻 ( 0 or 1 )
+  ) = 0;
 
   /// @brief 終了処理
   virtual
@@ -109,19 +103,29 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-   /// @brief justified マークをつけ，mJustifiedNodeList に加える．
-  /// @param[in] node 対象のノード
-  /// @param[in] time タイムフレーム ( 0 or 1 )
+  /// @brief justified マークをつけ，mJustifiedNodeList に加える．
   void
-  set_mark(const TpgNode* node,
-	   int time);
+  set_mark(
+    const TpgNode* node, ///< [in] 対象のノード
+    int time		 ///< [in] タイムフレーム ( 0 or 1 )
+  )
+  {
+    // 念のため time の最下位ビットだけ使う．
+    time &= 1;
+    mMarkArray[node->id()][time] = true;
+  }
 
   /// @brief justified マークを読む．
-  /// @param[in] node 対象のノード
-  /// @param[in] time タイムフレーム ( 0 or 1 )
   bool
-  mark(const TpgNode* node,
-       int time) const;
+  mark(
+    const TpgNode* node, ///< [in] 対象のノード
+    int time		 ///< [in] タイムフレーム ( 0 or 1 )
+  ) const
+  {
+    // 念のため time の最下位ビットだけ使う．
+    time &= 1;
+    return mMarkArray[node->id()][time];
+  }
 
   /// @brief 全てのマークを消す．
   void
@@ -134,40 +138,9 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 個々のノードのマークを表す配列
-  vector<ymuint8> mMarkArray;
+  vector<bitset<2>> mMarkArray;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief justified マークをつける．
-// @param[in] node 対象のノード
-// @param[in] time タイムフレーム ( 0 or 1 )
-inline
-void
-JustImpl::set_mark(const TpgNode* node,
-		   int time)
-{
-  // 念のため time の最下位ビットだけ使う．
-  time &= 1;
-  mMarkArray[node->id()] |= (1U << time);
-}
-
-// @brief justified マークを読む．
-// @param[in] node 対象のノード
-// @param[in] time タイムフレーム ( 0 or 1 )
-inline
-bool
-JustImpl::mark(const TpgNode* node,
-	       int time) const
-{
-  // 念のため time の最下位ビットだけ使う．
-  time &= 1;
-  return static_cast<bool>((mMarkArray[node->id()] >> time) & 1U);
-}
 
 END_NAMESPACE_DRUID
 

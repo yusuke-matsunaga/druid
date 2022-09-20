@@ -3,9 +3,8 @@
 /// @brief JustImpl の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "JustImpl.h"
 #include "JustData.h"
@@ -19,9 +18,9 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] max_id ID番号の最大値
-JustImpl::JustImpl(int max_id) :
-  mMarkArray(max_id, 0U)
+JustImpl::JustImpl(
+  SizeType max_id
+) : mMarkArray(max_id, 0U)
 {
 }
 
@@ -31,18 +30,16 @@ JustImpl::~JustImpl()
 }
 
 // @brief 正当化に必要な割当を求める(縮退故障用)．
-// @param[in] assign_list 値の割り当てリスト
-// @param[in] var_map 変数番号のマップ
-// @param[in] model SAT問題の解
-// @return 外部入力上の値の割当リスト
 NodeValList
-JustImpl::justify(const NodeValList& assign_list,
-		  const VidMap& var_map,
-		  const vector<SatBool3>& model)
+JustImpl::justify(
+  const NodeValList& assign_list,
+  const VidMap& var_map,
+  const SatModel& model
+)
 {
   clear_mark();
 
-  JustData jd(var_map, model);
+  JustData jd{var_map, model};
 
   just_init(assign_list, jd);
 
@@ -59,20 +56,17 @@ JustImpl::justify(const NodeValList& assign_list,
 }
 
 // @brief 正当化に必要な割当を求める(遷移故障用)．
-// @param[in] assign_list 値の割り当てリスト
-// @param[in] var1_map 1時刻目の変数番号のマップ
-// @param[in] var2_map 2時刻目の変数番号のマップ
-// @param[in] model SAT問題の解
-// @return 外部入力上の値の割当リスト
 NodeValList
-JustImpl::justify(const NodeValList& assign_list,
-		  const VidMap& var1_map,
-		  const VidMap& var2_map,
-		  const vector<SatBool3>& model)
+JustImpl::justify(
+  const NodeValList& assign_list,
+  const VidMap& var1_map,
+  const VidMap& var2_map,
+  const SatModel& model
+)
 {
   clear_mark();
 
-  JustData jd(var1_map, var2_map, model);
+  JustData jd{var1_map, var2_map, model};
 
   just_init(assign_list, jd);
 
@@ -89,14 +83,13 @@ JustImpl::justify(const NodeValList& assign_list,
 }
 
 // @brief 正当化に必要な割当を求める．
-// @param[in] node 対象のノード
-// @param[in] time タイムフレーム ( 0 or 1 )
-// @param[out] pi_assign_list 外部入力上の値の割当リスト
 void
-JustImpl::just_main(const JustData& jd,
-		    const TpgNode* node,
-		    int time,
-		    NodeValList& pi_assign_list)
+JustImpl::just_main(
+  const JustData& jd,
+  const TpgNode* node,
+  int time,
+  NodeValList& pi_assign_list
+)
 {
   if ( mark(node, time) ) {
     // 処理済みならなにもしない．
@@ -144,9 +137,8 @@ JustImpl::just_main(const JustData& jd,
 void
 JustImpl::clear_mark()
 {
-  for ( vector<ymuint8>::iterator p = mMarkArray.begin();
-	p != mMarkArray.end(); ++ p ) {
-    *p = 0U;
+  for ( auto& m: mMarkArray ) {
+    m = 0U;
   }
 }
 

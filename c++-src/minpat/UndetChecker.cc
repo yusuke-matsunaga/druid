@@ -18,7 +18,7 @@
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
-#include "ym/StopWatch.h"
+#include "ym/SatTseitinEnc.h"
 #include "ym/Range.h"
 
 //#define DEBUG_DTPG
@@ -102,8 +102,7 @@ UndetChecker::check(const NodeValList& cond)
     return SatBool3::X;
   }
 
-  vector<SatBool3> model;
-  SatBool3 res = solve(assumptions, model);
+  SatBool3 res = solve(assumptions);
 
   return res;
 }
@@ -119,7 +118,7 @@ UndetChecker::cnf_begin()
 void
 UndetChecker::cnf_end()
 {
-  USTime time = timer_stop();
+  auto time = timer_stop();
   mStats.mCnfGenTime += time;
   ++ mStats.mCnfGenCount;
 }
@@ -135,15 +134,16 @@ UndetChecker::timer_start()
 }
 
 /// @brief 時間計測を終了する．
-USTime
+double
 UndetChecker::timer_stop()
 {
-  USTime time(0, 0, 0);
   if ( mTimerEnable ) {
     mTimer.stop();
-    time = mTimer.time();
+    return mTimer.get_time();
   }
-  return time;
+  else {
+    return 0.0;
+  }
 }
 
 // @brief 対象の部分回路の関係を表す変数を用意する．
@@ -186,7 +186,8 @@ UndetChecker::prepare_vars()
 
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
-    SatVarId gvar = mSolver.new_variable();
+    auto gvar = mSolver.new_variable();
+    mSolver.freeze_literal(gvar);
 
     set_gvar(node, gvar);
 
@@ -197,8 +198,10 @@ UndetChecker::prepare_vars()
 
   // TFO の部分に変数を割り当てる．
   for ( auto node: mTfoList ) {
-    SatVarId gvar = mSolver.new_variable();
-    SatVarId fvar = mSolver.new_variable();
+    auto gvar = mSolver.new_variable();
+    auto fvar = mSolver.new_variable();
+    mSolver.freeze_literal(gvar);
+    mSolver.freeze_literal(fvar);
 
     set_gvar(node, gvar);
     set_fvar(node, fvar);
@@ -212,7 +215,8 @@ UndetChecker::prepare_vars()
 
   // prev TFI の部分に変数を割り当てる．
   for ( auto node: mPrevTfiList ) {
-    SatVarId hvar = mSolver.new_variable();
+    auto hvar = mSolver.new_variable();
+    mSolver.freeze_literal(hvar);
 
     set_hvar(node, hvar);
 
@@ -243,13 +247,14 @@ UndetChecker::gen_good_cnf()
     }
   }
 
+  SatTseitinEnc enc{mSolver};
   for ( auto dff: mDffList ) {
     const TpgNode* onode = dff->output();
     const TpgNode* inode = dff->input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
-    SatLiteral olit(gvar(onode));
-    SatLiteral ilit(hvar(inode));
-    mSolver.add_eq_rel(olit, ilit);
+    SatLiteral olit{gvar(onode)};
+    SatLiteral ilit{hvar(inode)};
+    enc.add_buffgate(olit, ilit);
   }
 
   for ( auto node: mPrevTfiList ) {
@@ -301,7 +306,7 @@ UndetChecker::conv_to_literal(NodeVal node_val)
 {
   const TpgNode* node = node_val.node();
   bool inv = !node_val.val(); // 0 の時が inv = true
-  SatVarId vid;
+  SatLiteral vid;
   if ( node_val.time() == 0 ) {
     if ( !has_hvar(node) ) {
 #if 0
@@ -322,7 +327,10 @@ UndetChecker::conv_to_literal(NodeVal node_val)
     }
     vid = gvar(node);
   }
-  return SatLiteral(vid, inv);
+  if ( inv ) {
+    vid = ~vid;
+  }
+  return vid;
 }
 
 // @brief 値割り当てをリテラルのリストに変換する．
@@ -351,22 +359,20 @@ UndetChecker::conv_to_assumptions(const NodeValList& assign_list,
 
 // @brief 一つの SAT問題を解く．
 // @param[in] assumptions 値の決まっている変数のリスト
-// @param[out] model SAT モデル
 // @return 結果を返す．
 SatBool3
-UndetChecker::solve(const vector<SatLiteral>& assumptions,
-		    vector<SatBool3>& model)
+UndetChecker::solve(const vector<SatLiteral>& assumptions)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   SatStats prev_stats;
   mSolver.get_stats(prev_stats);
 
-  SatBool3 ans = mSolver.solve(assumptions, model);
+  SatBool3 ans = mSolver.solve(assumptions);
 
   timer.stop();
-  USTime time = timer.time();
+  auto time = timer.get_time();
 
   SatStats sat_stats;
   mSolver.get_stats(sat_stats);
@@ -388,6 +394,13 @@ UndetChecker::solve(const vector<SatLiteral>& assumptions,
   return ans;
 }
 
+// @brief 直前の solve() の解を返す．
+const SatModel&
+UndetChecker::model()
+{
+  return mSolver.model();
+}
+
 // @brief 正常回路の CNF を作る．
 void
 UndetChecker::make_good_cnf(const TpgNode* node)
@@ -395,7 +408,8 @@ UndetChecker::make_good_cnf(const TpgNode* node)
   if ( has_gvar(node) ) {
     return;
   }
-  SatVarId var = mSolver.new_variable();
+  auto var = mSolver.new_variable();
+  mSolver.freeze_literal(var);
   set_gvar(node, var);
 
   for ( auto inode: node->fanin_list() ) {
@@ -412,7 +426,8 @@ UndetChecker::make_prev_cnf(const TpgNode* node)
   if ( has_hvar(node) ) {
     return;
   }
-  SatVarId var = mSolver.new_variable();
+  auto var = mSolver.new_variable();
+  mSolver.freeze_literal(var);
   set_hvar(node, var);
 
   for ( auto inode: node->fanin_list() ) {

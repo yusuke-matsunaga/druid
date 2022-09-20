@@ -40,8 +40,7 @@ list ( APPEND CMAKE_MODULE_PATH
 include (YmUtils)
 
 ym_init ( "" )
-ym_init_python ()
-ym_init_cython ()
+ym_init_python ( REQUIRED )
 ym_init_doxygen ()
 ym_init_gperftools ()
 ym_init_ctest ()
@@ -70,17 +69,15 @@ configure_file(
 # スクリプトファイルの生成
 # ===================================================================
 
-if ( PYTHONINTERP_FOUND )
-  configure_file(
-    "${PROJECT_SOURCE_DIR}/etc/ym_python.in"
-    "${PROJECT_BINARY_DIR}/ym_python"
-    @ONLY
-    )
+configure_file(
+  "${PROJECT_SOURCE_DIR}/etc/druid_python.in"
+  "${PROJECT_BINARY_DIR}/druid_python"
+  @ONLY
+  )
 
-  install ( PROGRAMS ${PROJECT_BINARY_DIR}/ym_python
-    DESTINATION bin
-    )
-endif ()
+install ( PROGRAMS ${PROJECT_BINARY_DIR}/druid_python
+  DESTINATION bin
+  )
 
 
 # ===================================================================
@@ -95,6 +92,7 @@ ym_init_submodules (
   ym-common
   ym-logic
   ym-sat
+  ym-luapp
   )
 
 
@@ -104,6 +102,7 @@ ym_init_submodules (
 include_directories (
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BINARY_DIR}/include
+  ${YM_SUBMODULE_INCLUDE_LIST}
   )
 
 
@@ -116,11 +115,9 @@ foreach ( dir ${YM_SUBMODULE_LIST} )
 endforeach ()
 
 add_subdirectory ( c++-src )
-add_subdirectory ( c++-test )
-add_subdirectory ( cython-src )
-add_subdirectory ( py-src )
-
-add_subdirectory ( tests )
+add_subdirectory ( tests/common )
+add_subdirectory ( tests/gtest )
+add_subdirectory ( tests/test-programs )
 
 if ( DOXYGEN_FOUND )
   # doxygen の対象となるヘッダファイル(のパタン)を YM_DOXY_SRCS に入れる．

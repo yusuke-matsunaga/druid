@@ -5,7 +5,7 @@
 /// @brief 1ワードにパックしたビットベクタ型の定義ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012, 2014 Yusuke Matsunaga
+/// Copyright (C) 2005-2010, 2012, 2014, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -29,24 +29,26 @@ const int kPvBitLen = 64;
 
 
 /// @brief 2つのビットベクタの差分を求める．
-/// @param[in] left, right オペランド
 ///
 /// 異なっているビットに1を立てた2値のビットベクタを返す．
 inline
 PackedVal
-diff(PackedVal left,
-     PackedVal right)
+diff(
+  PackedVal left, ///< [in] オペランド1
+  PackedVal right ///< [in] オペランド2
+)
 {
   // って中身はただの XOR 演算
   return left ^ right;
 }
 
 /// @brief word 中の1のビット数を数える．
-/// @param[in] word 対象のワード
 /// @return word 中の1のビット数
 inline
-int
-count_ones(PackedVal word)
+SizeType
+count_ones(
+  PackedVal word /// @param[in] 対象のワード
+)
 {
   const PackedVal mask1  = 0x5555555555555555UL;
   const PackedVal mask2  = 0x3333333333333333UL;

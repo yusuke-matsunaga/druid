@@ -5,9 +5,8 @@
 /// @brief Just1 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "JustImpl.h"
 
@@ -26,8 +25,9 @@ class Just1 :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] max_id ノード番号の最大値
-  Just1(int max_id);
+  Just1(
+    SizeType max_id ///< [in] ノード番号の最大値
+  );
 
   /// @brief デストラクタ
   ~Just1();
@@ -39,38 +39,26 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 初期化処理
-  /// @param[in] assign_list 割当リスト
-  /// @param[in] jd justify 用のデータ
   void
-  just_init(const NodeValList& assign_list,
-	    const JustData& jd) override;
+  just_init(
+    const NodeValList& assign_list, ///< [in] 割当リスト
+    const JustData& jd		    ///< [in] justify 用のデータ
+  ) override;
 
   /// @brief 制御値を持つファンインを一つ選ぶ．
-  /// @param[in] jd justiry用のデータ
-  /// @param[in] node 対象のノード
-  /// @param[in] time 時刻 ( 0 or 1 )
   /// @return 選んだファンインのノードを返す．
   const TpgNode*
-  select_cval_node(const JustData& jd,
-		   const TpgNode* node,
-		   int time) override;
+  select_cval_node(
+    const JustData& jd,  ///< [in] justiry用のデータ
+    const TpgNode* node, ///< [in] 対象のノード
+    int time		 ///< [in] 時刻 ( 0 or 1 )
+  ) override;
 
   /// @brief 終了処理
   void
   just_end() override;
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
 
 END_NAMESPACE_DRUID
 

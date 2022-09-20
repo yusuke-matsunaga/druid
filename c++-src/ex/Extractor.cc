@@ -3,9 +3,8 @@
 /// @brief Extractor の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2015, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Extractor.h"
 #include "TpgFault.h"
@@ -14,16 +13,6 @@
 
 
 BEGIN_NAMESPACE_DRUID
-
-NodeValList
-extract(const TpgNode* root,
-	const VidMap& gvar_map,
-	const VidMap& fvar_map,
-	const vector<SatBool3>& model)
-{
-  Extractor extractor(gvar_map, fvar_map, model);
-  return extractor.get_assignment(root);
-}
 
 BEGIN_NONAMESPACE
 
@@ -35,15 +24,13 @@ END_NONAMESPACE
 // クラス Extractor
 //////////////////////////////////////////////////////////////////////
 
-// @param[in] gvar_map 正常値の変数番号のマップ
-// @param[in] fvar_map 故障値の変数番号のマップ
-// @param[in] model SATソルバの作ったモデル
-Extractor::Extractor(const VidMap& gvar_map,
-		     const VidMap& fvar_map,
-		     const vector<SatBool3>& model) :
-  mGvarMap(gvar_map),
-  mFvarMap(fvar_map),
-  mSatModel(model)
+Extractor::Extractor(
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+) : mGvarMap{gvar_map},
+    mFvarMap{fvar_map},
+    mSatModel{model}
 {
 }
 
@@ -52,16 +39,18 @@ Extractor::~Extractor()
 {
 }
 
-// @brief 値割当を求める．
-// @param[in] root 起点となるノード
-// @param[out] assign_list 値の割当リスト
+// @brief 値割り当てを１つ求める．
 NodeValList
-Extractor::get_assignment(const TpgNode* root)
+Extractor::get_assignment(
+  const vector<const TpgNode*>& root_list
+)
 {
   // root の TFO (fault cone) に印をつける．
   // 同時に故障差の伝搬している外部出力のリストを作る．
   mFconeMark.clear();
-  mark_tfo(root);
+  for ( auto root: root_list ) {
+    mark_tfo(root);
+  }
 
   // 故障差の伝搬している経路を探す．
   ASSERT_COND( mSpoList.size() > 0 );
@@ -76,8 +65,14 @@ Extractor::get_assignment(const TpgNode* root)
 
   if ( debug ) {
     ostream& dbg_out = cout;
-    dbg_out << "Extract at Node#" << root->id() << endl;
+    dbg_out << "Extract at ";
     const char* comma = "";
+    for ( auto root: root_list ) {
+      dbg_out << comma << "Node#" << root->id();
+      comma = ", ";
+    }
+    dbg_out << endl;
+    comma = "";
     for ( auto nv: assign_list ) {
       const TpgNode* node = nv.node();
       dbg_out << comma << "Node#" << node->id()
@@ -98,12 +93,14 @@ Extractor::get_assignment(const TpgNode* root)
 
 // @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
 void
-Extractor::mark_tfo(const TpgNode* node)
+Extractor::mark_tfo(
+  const TpgNode* node
+)
 {
-  if ( mFconeMark.check(node->id()) ) {
+  if ( mFconeMark.count(node->id()) > 0 ) {
     return;
   }
-  mFconeMark.add(node->id());
+  mFconeMark.emplace(node->id());
 
   if ( node->is_ppo() ) {
     if ( gval(node) != fval(node) ) {
@@ -117,21 +114,21 @@ Extractor::mark_tfo(const TpgNode* node)
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
-// @param[in] node 対象のノード
-// @param[out] assign_list 値割当を記録するリスト
 void
-Extractor::record_sensitized_node(const TpgNode* node,
-				  NodeValList& assign_list)
+Extractor::record_sensitized_node(
+  const TpgNode* node,
+  NodeValList& assign_list
+)
 {
-  if ( mRecorded.check(node->id()) ) {
+  if ( mRecorded.count(node->id()) > 0 ) {
     return;
   }
-  mRecorded.add(node->id());
+  mRecorded.emplace(node->id());
 
   ASSERT_COND( gval(node) != fval(node) );
 
   for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.check(inode->id()) ) {
+    if ( mFconeMark.count(inode->id()) > 0 ) {
       if ( gval(inode) != fval(inode) ) {
 	record_sensitized_node(inode, assign_list);
       }
@@ -146,16 +143,16 @@ Extractor::record_sensitized_node(const TpgNode* node,
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
-// @param[in] node 対象のノード
-// @param[out] assign_list 値割当を記録するリスト
 void
-Extractor::record_masking_node(const TpgNode* node,
-			       NodeValList& assign_list)
+Extractor::record_masking_node(
+  const TpgNode* node,
+  NodeValList& assign_list
+)
 {
-  if ( mRecorded.check(node->id()) ) {
+  if ( mRecorded.count(node->id()) > 0 ) {
     return;
   }
-  mRecorded.add(node->id());
+  mRecorded.emplace(node->id());
 
   ASSERT_COND ( gval(node) == fval(node) );
 
@@ -165,7 +162,7 @@ Extractor::record_masking_node(const TpgNode* node,
   bool has_snode = false;
   const TpgNode* cnode = nullptr;
   for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.check(inode->id()) ) {
+    if ( mFconeMark.count(inode->id()) > 0 ) {
       if ( gval(inode) != fval(inode) ) {
 	// このノードには故障差が伝搬している．
 	has_snode = true;
@@ -191,7 +188,7 @@ Extractor::record_masking_node(const TpgNode* node,
   // 複数のファンインの故障差が打ち消し合っているのですべてのファンイン
   // に再帰する．
   for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.check(inode->id()) ) {
+    if ( mFconeMark.count(inode->id()) > 0 ) {
       if ( gval(inode) != fval(inode) ) {
 	record_sensitized_node(inode, assign_list);
       }

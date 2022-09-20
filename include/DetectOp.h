@@ -5,9 +5,8 @@
 /// @brief DetectOp のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "FaultType.h"
@@ -34,41 +33,43 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テストパタンが見つかった時の処理
-  /// @param[in] f 故障
-  /// @param[in] tv テストベクタ
   virtual
   void
-  operator()(const TpgFault* f,
-	     const TestVector& tv) = 0;
+  operator()(
+    const TpgFault* f,   ///< [in] 故障
+    const TestVector& tv ///< [in] テストベクタ
+  ) = 0;
 
 };
 
 /// @brief 'base' タイプを生成する．
-/// @param[in] fsmgr 故障マネージャ
 DetectOp*
-new_DopBase(FaultStatusMgr& fmgr);
+new_DopBase(
+  FaultStatusMgr& fmgr ///< [in] 故障マネージャ
+);
 
 /// @brief 'drop' タイプを生成する．
-/// @param[in] fsmgr 故障マネージャ
-/// @param[in] fsim 故障シミュレータ
 DetectOp*
-new_DopDrop(FaultStatusMgr& fmgr,
-	    Fsim& fsim);
+new_DopDrop(
+  FaultStatusMgr& fmgr, ///< [in] 故障マネージャ
+  Fsim& fsim		///< [in] 故障シミュレータ
+);
 
 /// @brief 'tvlist' タイプを生成する．
-/// @param[in] tvlist テストベクタのリスト
 DetectOp*
-new_DopTvList(int input_num,
-	      int dff_num,
-	      FaultType fault_type,
-	      vector<TestVector>& tvlist);
+new_DopTvList(
+  SizeType input_num,        ///< [in] 入力数
+  SizeType dff_num,          ///< [in] DFF数
+  FaultType fault_type,      ///< [in] 故障タイプ
+  vector<TestVector>& tvlist ///< [in] テストベクタのリスト
+);
 
 /// @brief 'verify' タイプを生成する．
-/// @param[in] fsim 故障シミュレータ
-/// @param[in] result 結果を格納するオブジェクト
 DetectOp*
-new_DopVerify(Fsim& fsim,
-	      DopVerifyResult& result);
+new_DopVerify(
+  Fsim& fsim,             ///< [in] 故障シミュレータ
+  DopVerifyResult& result ///< [in] 結果を格納するオブジェクト
+);
 
 /// @brief 'dummy' タイプを生成する．
 DetectOp*

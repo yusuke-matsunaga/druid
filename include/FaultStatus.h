@@ -5,7 +5,7 @@
 /// @brief FaultStatus のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2007, 2012-2014, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -29,7 +29,9 @@ enum class FaultStatus {
 /// @brief 内容を表す文字列を返す．
 inline
 const char*
-str(FaultStatus fault_status)
+str(
+  FaultStatus fault_status
+)
 {
   switch ( fault_status ) {
   case FaultStatus::Undetected: return "undetected";
@@ -49,7 +51,9 @@ str(FaultStatus fault_status)
 /// @brief FaultStatus を整数に変換する
 inline
 int
-__fault_status_to_int(FaultStatus status)
+__fault_status_to_int(
+  FaultStatus status
+)
 {
   switch ( status ) {
   case FaultStatus::Undetected: return 0;
@@ -63,7 +67,9 @@ __fault_status_to_int(FaultStatus status)
 /// @brief 整数を FaultStatus に変換する
 inline
 FaultStatus
-__int_to_fault_status(int val)
+__int_to_fault_status(
+  int val
+)
 {
   switch ( val ) {
   case 0: return FaultStatus::Undetected;

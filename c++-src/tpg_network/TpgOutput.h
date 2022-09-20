@@ -5,9 +5,8 @@
 /// @brief TpgOutput のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgPPO.h"
 
@@ -21,20 +20,18 @@ BEGIN_NAMESPACE_DRUID
 class TpgOutput :
   public TpgPPO
 {
-  friend class TpgNodeFactory;
+  friend class TpgNetworkImpl;
 
 private:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] output_id 出力番号
-  /// @param[in] fanin ファンインのノード
-  TpgOutput(int id,
-	    int output_id,
-	    TpgNode* fanin);
+  TpgOutput(
+    SizeType output_id,  ///< [in] 出力番号
+    const TpgNode* fanin ///< [in] ファンインのノード
+  );
 
   /// @brief デストラクタ
-  ~TpgOutput();
+  ~TpgOutput() = default;
 
 
 public:
@@ -43,21 +40,8 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 外部出力タイプの時 true を返す．
-  virtual
   bool
   is_primary_output() const override;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
 
 };
 

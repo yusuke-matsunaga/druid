@@ -5,9 +5,8 @@
 /// @brief UopList のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "UntestOp.h"
 
@@ -31,7 +30,6 @@ public:
   /// @brief デストラクタ
   ///
   /// ここに登録された UntestOp も破棄される．
-  virtual
   ~UopList();
 
 
@@ -42,13 +40,16 @@ public:
 
   /// @brief uop を追加する．
   void
-  add(UntestOp* uop);
+  add(
+    UntestOp* uop
+  );
 
   /// @brief テスト不能故障と判定された時の処理
   /// @param[in] f 故障
-  virtual
   void
-  operator()(const TpgFault* f);
+  operator()(
+    const TpgFault* f
+  ) override;
 
 
 private:

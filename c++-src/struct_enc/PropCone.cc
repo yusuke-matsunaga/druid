@@ -3,27 +3,17 @@
 /// @brief PropCone の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012-2014, 2017 Yusuke Matsunaga
+/// Copyright (C) 2005-2010, 2012-2014, 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "PropCone.h"
 #include "StructEnc.h"
+#include "Extractor.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "NodeValList.h"
 #include "GateEnc.h"
 
-BEGIN_NAMESPACE_DRUID
-
-extern
-NodeValList
-extract(const TpgNode*,
-	const VidMap&,
-	const VidMap&,
-	const vector<SatBool3>&);
-
-END_NAMESPACE_DRUID
 
 BEGIN_NAMESPACE_DRUID_STRUCTENC
 
@@ -35,8 +25,10 @@ bool debug = false;
 struct Lt
 {
   bool
-  operator()(const TpgNode* left,
-	     const TpgNode* right)
+  operator()(
+    const TpgNode* left,
+    const TpgNode* right
+  )
   {
     return left->output_id2() < right->output_id2();
   }
@@ -45,24 +37,17 @@ struct Lt
 END_NONAMESPACE
 
 // @brief コンストラクタ
-// @param[in] struct_sat StructEnc ソルバ
-// @param[in] root_node FFRの根のノード
-// @param[in] block_node ブロックノード
-// @param[in] detect 故障を検出する時に true にするフラグ
-//
-// ブロックノードより先のノードは含めない．
-// 通常 block_node は nullptr か root_node の dominator
-// となっているはず．
-PropCone::PropCone(StructEnc& struct_sat,
-		   const TpgNode* root_node,
-		   const TpgNode* block_node,
-		   bool detect) :
-  mStructEnc(struct_sat),
-  mDetect(detect),
-  mMaxNodeId(struct_sat.max_node_id()),
-  mMarkArray(max_id()),
-  mFvarMap(max_id()),
-  mDvarMap(max_id())
+PropCone::PropCone(
+  StructEnc& struct_enc,
+  const TpgNode* root_node,
+  const TpgNode* block_node,
+  bool detect
+) : mStructEnc{struct_enc},
+    mDetect{detect},
+    mMaxNodeId{struct_enc.max_node_id()},
+    mMarkArray(max_id()),
+    mFvarMap(max_id()),
+    mDvarMap(max_id())
 {
   if ( block_node != nullptr ) {
     set_end_mark(block_node);
@@ -78,9 +63,10 @@ PropCone::~PropCone()
 }
 
 // @brief 指定されたノードの TFO に印をつける．
-// @param[in] node 起点となるノード
 void
-PropCone::mark_tfo(const TpgNode* node)
+PropCone::mark_tfo(
+  const TpgNode* node
+)
 {
   set_tfo_mark(node);
 
@@ -107,13 +93,13 @@ PropCone::make_vars()
   // TFO のノードに変数を割り当てる．
   for (int i = 0; i < mNodeList.size(); ++ i) {
     const TpgNode* node = mNodeList[i];
-    SatVarId fvar = solver().new_variable();
+    auto fvar = solver().new_variable();
     set_fvar(node, fvar);
     if ( debug ) {
       cout << "fvar(Node#" << node->id() << ") = " << fvar << endl;
     }
     if ( mDetect ) {
-      SatVarId dvar = solver().new_variable();
+      auto dvar = solver().new_variable();
       set_dvar(node, dvar);
     }
 #if 0
@@ -192,23 +178,25 @@ PropCone::make_cnf()
 }
 
 // @brief 故障検出に必要な割り当てを求める．
-// @param[in] model SAT のモデル
-// @param[in] root 起点のノード
-// @param[out] 値の割り当て結果を入れるリスト
 NodeValList
-PropCone::extract(const vector<SatBool3>& model,
-		  const TpgNode* root)
+PropCone::extract_condition(
+  const SatModel& model,
+  const TpgNode* root
+)
 {
-  return nsYm::nsDruid::extract(root, gvar_map(), fvar_map(), model);
+  Extractor extractor{gvar_map(), fvar_map(), model};
+  return extractor.get_assignment({root});
 }
 
 // @brief node に関する故障伝搬条件を作る．
 void
-PropCone::make_dchain_cnf(const TpgNode* node)
+PropCone::make_dchain_cnf(
+  const TpgNode* node
+)
 {
-  SatLiteral glit(gvar(node), false);
-  SatLiteral flit(fvar(node), false);
-  SatLiteral dlit(dvar(node), false);
+  auto glit = gvar(node);
+  auto flit = fvar(node);
+  auto dlit = dvar(node);
 
   // dlit -> XOR(glit, flit) を追加する．
   // 要するに dlit が 1 の時，正常回路と故障回路で異なっていなければならない．
@@ -222,7 +210,7 @@ PropCone::make_dchain_cnf(const TpgNode* node)
   }
   else {
     // dlit が 1 の時，ファンアウトの dlit が最低1つは 1 でなければならない．
-    int nfo = node->fanout_num();
+    SizeType nfo = node->fanout_num();
     vector<SatLiteral> tmp_lits;
     tmp_lits.reserve(nfo + 1);
     tmp_lits.push_back(~dlit);

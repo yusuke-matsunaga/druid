@@ -5,7 +5,7 @@
 /// @brief TpgMFFC のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -33,24 +33,10 @@ class TpgMFFC
 public:
 
   /// @brief コンストラクタ
-  TpgMFFC();
-
-  /// @brief コピーコンストラクタは禁止
-  TpgMFFC(const TpgMFFC& src) = delete;
-
-  /// @brief コピー代入演算子も禁止
-  TpgMFFC&
-  operator=(const TpgMFFC& src) = delete;
-
-  /// @brief ムーブコンストラクタは禁止
-  TpgMFFC(TpgMFFC&& src) = delete;
-
-  /// @brief ムーブ代入演算子も禁止
-  TpgMFFC&
-  operator=(TpgMFFC&& src) = delete;
+  TpgMFFC() = default;
 
   /// @brief デストラクタ
-  ~TpgMFFC();
+  ~TpgMFFC() = default;
 
 
 public:
@@ -60,33 +46,60 @@ public:
 
   /// @brief 根のノードを返す．
   const TpgNode*
-  root() const;
+  root() const
+  {
+    return mRoot;
+  }
 
   /// @brief このMFFCに含まれるFFR数を返す．
-  int
-  ffr_num() const;
+  SizeType
+  ffr_num() const
+  {
+    return mFfrList.size();
+  }
 
   /// @brief このMFFCに含まれるFFRを返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < ffr_num() )
   const TpgFFR*
-  ffr(int pos) const;
+  ffr(
+    SizeType pos /// [in] 位置番号 ( 0 <= pos < ffr_num() )
+  ) const
+  {
+    ASSERT_COND( pos < ffr_num() );
+
+    return mFfrList[pos];
+  }
 
   /// @brief このMFFCに含まれるFFRのリストを返す．
-  Array<const TpgFFR*>
-  ffr_list() const;
+  const vector<const TpgFFR*>&
+  ffr_list() const
+  {
+    return mFfrList;
+  }
 
   /// @brief このMFFCに含まれる代表故障の数を返す．
-  int
-  fault_num() const;
+  SizeType
+  fault_num() const
+  {
+    return mFaultList.size();
+  }
 
   /// @brief このFFRに含まれる代表故障を返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < fault_num() )
   const TpgFault*
-  fault(int pos) const;
+  fault(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < fault_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < fault_num() );
+
+    return mFaultList[pos];
+  }
 
   /// @brief このFFRに含まれる代表故障のリストを返す．
-  Array<const TpgFault*>
-  fault_list() const;
+  const vector<const TpgFault*>&
+  fault_list() const
+  {
+    return mFaultList;
+  }
 
 
 public:
@@ -95,23 +108,17 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 内容を設定する．
-  /// @param[in] root 根のノード
-  /// @param[in] ffr_num このMFFCに含まれるFFR数
-  /// @param[in] ffr_list このMFFCに含まれるFFRのリスト
-  /// @param[in] fault_num このMFFCに含まれる故障数
-  /// @param[in] fault_list このMFFCに含まれる故障のリスト
   void
-  set(const TpgNode* root,
-      int ffr_num,
-      const TpgFFR** ffr_list,
-      int fault_num,
-      const TpgFault** fault_list);
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  set(
+    const TpgNode* root,                      ///< [in] 根のノード
+    const vector<const TpgFFR*>& ffr_list,    ///< [in]	このMFFCに含まれるFFRのリスト
+    const vector<const TpgFault*>& fault_list ///< [in] このMFFCに含まれる故障のリスト
+  )
+  {
+    mRoot = root;
+    mFfrList = ffr_list;
+    mFaultList = fault_list;
+  }
 
 
 private:
@@ -120,126 +127,15 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 根のノード
-  const TpgNode* mRoot;
-
-  // FFR数
-  int mFfrNum;
+  const TpgNode* mRoot{nullptr};
 
   // FFRの配列
-  const TpgFFR** mFfrList;
-
-  // 故障数
-  int mFaultNum;
+  vector<const TpgFFR*> mFfrList;
 
   // 故障の配列
-  const TpgFault** mFaultList;
+  vector<const TpgFault*> mFaultList;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-inline
-TpgMFFC::TpgMFFC()
-{
-  mRoot = nullptr;
-  mFfrNum = 0;
-  mFfrList = nullptr;
-  mFaultNum = 0;
-  mFaultList = nullptr;
-}
-
-// @brief デストラクタ
-inline
-TpgMFFC::~TpgMFFC()
-{
-}
-
-// @brief 根のノードを返す．
-inline
-const TpgNode*
-TpgMFFC::root() const
-{
-  return mRoot;
-}
-
-// @brief このMFFCに含まれるFFR数を返す．
-inline
-int
-TpgMFFC::ffr_num() const
-{
-  return mFfrNum;
-}
-
-// @brief このMFFCに含まれるFFRを返す．
-// @param[in] pos 位置番号 ( 0 <= pos < ffr_num() )
-inline
-const TpgFFR*
-TpgMFFC::ffr(int pos) const
-{
-  ASSERT_COND( pos < ffr_num() );
-
-  return mFfrList[pos];
-}
-
-// @brief このMFFCに含まれるFFRのリストを返す．
-inline
-Array<const TpgFFR*>
-TpgMFFC::ffr_list() const
-{
-  return Array<const TpgFFR*>(mFfrList, 0, ffr_num());
-}
-
-// @brief このFFRに含まれる代表故障の数を返す．
-inline
-int
-TpgMFFC::fault_num() const
-{
-  return mFaultNum;
-}
-
-// @brief このFFRに含まれる代表故障を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < fault_num() )
-inline
-const TpgFault*
-TpgMFFC::fault(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < fault_num() );
-
-  return mFaultList[pos];
-}
-
-// @brief このFFRに含まれる代表故障のリストを返す．
-inline
-Array<const TpgFault*>
-TpgMFFC::fault_list() const
-{
-  return Array<const TpgFault*>(mFaultList, 0, fault_num());
-}
-
-// @brief 内容を設定する．
-// @param[in] root 根のノード
-// @param[in] ffr_num このMFFCに含まれるFFR数
-// @param[in] ffr_list このMFFCに含まれるFFRのリスト
-// @param[in] fault_num このMFFCに含まれる故障数
-// @param[in] fault_list このMFFCに含まれる故障のリスト
-inline
-void
-TpgMFFC::set(const TpgNode* root,
-	     int ffr_num,
-	     const TpgFFR** ffr_list,
-	     int fault_num,
-	     const TpgFault** fault_list)
-{
-  mRoot = root;
-  mFfrNum = ffr_num;
-  mFfrList = ffr_list;
-  mFaultNum = fault_num;
-  mFaultList = fault_list;
-}
 
 END_NAMESPACE_DRUID
 

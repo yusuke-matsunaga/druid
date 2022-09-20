@@ -3,11 +3,13 @@
 /// @brief TpgDffControl の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgDffControl.h"
+#include "TpgDffClock.h"
+#include "TpgDffClear.h"
+#include "TpgDffPreset.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -17,44 +19,12 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] id ID番号
-// @param[in] dff 接続しているDFF
-TpgDffControl::TpgDffControl(int id,
-			     const TpgDff* dff,
-			     TpgNode* fanin) :
-  TpgNode(id),
-  mFanin(fanin),
-  mDff(dff)
+TpgDffControl::TpgDffControl(
+  const TpgDff* dff,
+  const TpgNode* fanin
+) : TpgNode{{fanin}, 0},
+    mDff{dff}
 {
-}
-
-// @brief デストラクタ
-TpgDffControl::~TpgDffControl()
-{
-}
-
-// @brief ファンインのリストを得る．
-Array<const TpgNode*>
-TpgDffControl::fanin_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(&mFanin), 0, 1);
-}
-
-// @brief ファンイン数を得る．
-int
-TpgDffControl::fanin_num() const
-{
-  return 1;
-}
-
-// @brief ファンインを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < fanin_num() )
-const TpgNode*
-TpgDffControl::fanin(int pos) const
-{
-  ASSERT_COND( pos == 0 );
-
-  return mFanin;
 }
 
 // @brief 接続している DFF を返す．
@@ -65,6 +35,66 @@ const TpgDff*
 TpgDffControl::dff() const
 {
   return mDff;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgDffClock
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgDffClock::TpgDffClock(
+  const TpgDff* dff,
+  const TpgNode* fanin
+) : TpgDffControl{dff, fanin}
+{
+}
+
+// @brief DFF のクロック端子に接続している出力タイプの時 true を返す．
+bool
+TpgDffClock::is_dff_clock() const
+{
+  return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgDffClear
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgDffClear::TpgDffClear(
+  const TpgDff* dff,
+  const TpgNode* fanin
+) : TpgDffControl{dff, fanin}
+{
+}
+
+// @brief DFF のクリア端子に接続している力タイプの時 true を返す．
+bool
+TpgDffClear::is_dff_clear() const
+{
+  return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgDffPreset
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgDffPreset::TpgDffPreset(
+  const TpgDff* dff,
+  const TpgNode* fanin
+) : TpgDffControl{dff, fanin}
+{
+}
+
+// @brief DFF のプリセット端子に接続している力タイプの時 true を返す．
+bool
+TpgDffPreset::is_dff_preset() const
+{
+  return true;
 }
 
 END_NAMESPACE_DRUID

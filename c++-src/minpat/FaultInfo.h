@@ -5,11 +5,12 @@
 /// @brief FaultInfo のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "NodeValList.h"
+#include "TestVector.h"
 #include "ym/Expr.h"
 
 
@@ -24,14 +25,12 @@ class FaultInfo
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] fault 対象の故障
-  /// @param[in] mand_cond 必要条件
-  /// @param[in] suff_cond 十分条件
-  /// @param[in] testvect テストベクタ
-  FaultInfo(const TpgFault* fault,
-	    const NodeValList& mand_cond,
-	    const NodeValList& suff_cond,
-	    const TestVector& testvect);
+  FaultInfo(
+    const TpgFault* fault,        ///< [in] 対象の故障
+    const NodeValList& mand_cond, ///< [in] 必要条件
+    const NodeValList& suff_cond, ///< [in] 十分条件
+    const TestVector& testvect	  ///< [in] テストベクタ
+  );
 
   /// @brief デストラクタ
   ~FaultInfo();
@@ -57,12 +56,6 @@ public:
   /// @brief テストベクタを返す．
   const TestVector&
   testvect() const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:

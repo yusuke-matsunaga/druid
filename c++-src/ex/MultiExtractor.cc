@@ -3,9 +3,8 @@
 /// @brief MultiExtractor の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2015, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "MultiExtractor.h"
 #include "TpgFault.h"
@@ -16,12 +15,14 @@
 BEGIN_NAMESPACE_DRUID
 
 Expr
-extract_all(const TpgNode* root,
-	    const VidMap& gvar_map,
-	    const VidMap& fvar_map,
-	    const vector<SatBool3>& model)
+extract_all(
+  const TpgNode* root,
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+)
 {
-  MultiExtractor extractor(gvar_map, fvar_map, model);
+  MultiExtractor extractor{gvar_map, fvar_map, model};
   return extractor.get_assignments(root);
 }
 
@@ -35,15 +36,13 @@ END_NONAMESPACE
 // クラス MultiExtractor
 //////////////////////////////////////////////////////////////////////
 
-// @param[in] gvar_map 正常値の変数番号のマップ
-// @param[in] fvar_map 故障値の変数番号のマップ
-// @param[in] model SATソルバの作ったモデル
-MultiExtractor::MultiExtractor(const VidMap& gvar_map,
-			       const VidMap& fvar_map,
-			       const vector<SatBool3>& model) :
-  mGvarMap(gvar_map),
-  mFvarMap(fvar_map),
-  mSatModel(model)
+MultiExtractor::MultiExtractor(
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+) : mGvarMap{gvar_map},
+    mFvarMap{fvar_map},
+    mSatModel{model}
 {
 }
 
@@ -53,10 +52,10 @@ MultiExtractor::~MultiExtractor()
 }
 
 // @brief 各出力へ故障伝搬する値割り当てを求める．
-// @param[in] root 起点となるノード
-// @return 複数の値割り当てを表す論理式を返す．
 Expr
-MultiExtractor::get_assignments(const TpgNode* root)
+MultiExtractor::get_assignments(
+  const TpgNode* root
+)
 {
   // root の TFO (fault cone) に印をつける．
   // 同時に故障差の伝搬している外部出力のリストを作る．
@@ -67,7 +66,7 @@ MultiExtractor::get_assignments(const TpgNode* root)
   mExprMap.clear();
 
   // 故障差の伝搬している経路を探す．
-  Expr expr = Expr::zero();
+  Expr expr = Expr::make_zero();
   for ( auto spo: mSpoList ) {
     // spo に到達する故障伝搬経路の
     // side input の値を記録する．
@@ -102,12 +101,14 @@ MultiExtractor::get_assignments(const TpgNode* root)
 
 // @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
 void
-MultiExtractor::mark_tfo(const TpgNode* node)
+MultiExtractor::mark_tfo(
+  const TpgNode* node
+)
 {
-  if ( mFconeMark.check(node->id()) ) {
+  if ( mFconeMark.count(node->id()) > 0 ) {
     return;
   }
-  mFconeMark.add(node->id());
+  mFconeMark.emplace(node->id());
 
   if ( node->is_ppo() ) {
     if ( gval(node) != fval(node) ) {
@@ -121,21 +122,21 @@ MultiExtractor::mark_tfo(const TpgNode* node)
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
-// @param[in] node 対象のノード
 Expr
-MultiExtractor::record_sensitized_node(const TpgNode* node)
+MultiExtractor::record_sensitized_node(
+  const TpgNode* node
+)
 {
   ASSERT_COND( gval(node) != fval(node) );
 
-  Expr expr;
-  if ( !mExprMap.find(node->id(), expr) ) {
+  if ( mExprMap.count(node->id()) == 0 ) {
     // * 故障差の伝搬しているファンインには record_sensitized_node() を呼ぶ．
     // * そうでない fault-cone 内のファンインには record_masking_node() を呼ぶ．
     // * それ以外のファンインには record_side_input() を呼ぶ．
-    expr = Expr::one();
+    auto expr = Expr::make_one();
     for ( auto inode: node->fanin_list() ) {
       Expr expr1;
-      if ( mFconeMark.check(inode->id()) ) {
+      if ( mFconeMark.count(inode->id()) > 0 ) {
 	// fault-cone 内部のノード
 	if ( gval(inode) != fval(inode) ) {
 	  expr1 = record_sensitized_node(inode);
@@ -150,16 +151,17 @@ MultiExtractor::record_sensitized_node(const TpgNode* node)
       }
       expr &= expr1;
     }
-    mExprMap.add(node->id(), expr);
+    mExprMap.emplace(node->id(), expr);
   }
 
-  return expr;
+  return mExprMap.at(node->id());
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
-// @param[in] node 対象のノード
 Expr
-MultiExtractor::record_masking_node(const TpgNode* node)
+MultiExtractor::record_masking_node(
+  const TpgNode* node
+)
 {
   ASSERT_COND ( gval(node) == fval(node) );
 
@@ -167,13 +169,12 @@ MultiExtractor::record_masking_node(const TpgNode* node)
   // * [case1] fault-cone 内で制御値をもったファンインがある．
   // * [case2] fault-cone 以外で制御値を持ったファンインがある．
   // * [case3] 故障差の伝搬しているファンインが複数あって打ち消し合っている．
-  Expr expr;
-  if ( !mExprMap.find(node->id(), expr) ) {
+  if ( mExprMap.count(node->id()) == 0 ) {
     bool has_cnode = false;
     vector<const TpgNode*> c1node_list;
     vector<const TpgNode*> c2node_list;
     for ( auto inode: node->fanin_list() ) {
-      if ( mFconeMark.check(inode->id()) ) {
+      if ( mFconeMark.count(inode->id()) > 0 ) {
 	if ( gval(inode) == fval(inode) && gval(inode) == node->cval() ) {
 	  has_cnode = true;
 	  c1node_list.push_back(inode);
@@ -184,9 +185,10 @@ MultiExtractor::record_masking_node(const TpgNode* node)
 	c2node_list.push_back(inode);
       }
     }
+    Expr expr;
     if ( has_cnode ) {
       // 制御値を持つノードの値を確定させる．
-      expr = Expr::zero();
+      expr = Expr::make_zero();
       for ( auto cnode: c1node_list ) {
 	expr |= record_masking_node(cnode);
       }
@@ -198,9 +200,9 @@ MultiExtractor::record_masking_node(const TpgNode* node)
       // ここに来たということは全てのファンインに故障差が伝搬していないか
       // 複数のファンインの故障差が打ち消し合っているのですべてのファンイン
       // に再帰する．
-      expr = Expr::one();
+      expr = Expr::make_one();
       for ( auto inode: node->fanin_list() ) {
-	if ( mFconeMark.check(inode->id()) ) {
+	if ( mFconeMark.count(inode->id()) > 0 ) {
 	  if ( gval(inode) != fval(inode) ) {
 	    expr &= record_sensitized_node(inode);
 	  }
@@ -213,10 +215,10 @@ MultiExtractor::record_masking_node(const TpgNode* node)
 	}
       }
     }
-    mExprMap.add(node->id(), expr);
+    mExprMap.emplace(node->id(), expr);
   }
 
-  return expr;
+  return mExprMap.at(node->id());
 }
 
 END_NAMESPACE_DRUID

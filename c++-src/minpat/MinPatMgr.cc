@@ -3,9 +3,8 @@
 /// @brief MinPatMgr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "MinPatMgr.h"
 #include "TestVector.h"
@@ -16,9 +15,8 @@
 #include "FaultInfo.h"
 #include "TvMerger.h"
 #include "ym/McMatrix.h"
-#include "ym/HashSet.h"
 #include "ym/Range.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -33,14 +31,18 @@ class MpComp :
 public:
 
   /// @brief コンストラクタ
-  MpComp(const MpColGraph& graph);
+  MpComp(
+    const MpColGraph& graph
+  );
 
   /// @brief 比較関数
   ///
   /// col1 の代わりに col2 を使ってもコストが上がらない時に true を返す．
   bool
-  operator()(int col1,
-	     int col2) const override;
+  operator()(
+    SizeType col1,
+    SizeType col2
+  ) const override;
 
 
 private:
@@ -52,37 +54,43 @@ private:
 
 };
 
-MpComp::MpComp(const MpColGraph& graph) :
-  mGraph(graph)
+MpComp::MpComp(
+  const MpColGraph& graph
+) :
+  mGraph{graph}
 {
 }
 
 // @brief 比較関数
 bool
-MpComp::operator()(int col1,
-		   int col2) const
+MpComp::operator()(
+  SizeType col1,
+  SizeType col2
+) const
 {
   bool ans = mGraph.containment_check(col2, col1);
   return ans;
 }
 
-int
-select_Naive(const McMatrix& matrix,
-	     const MpColGraph& graph)
+SizeType
+select_Naive(
+  const McMatrix& matrix,
+  const MpColGraph& graph
+)
 {
   // matrix のアクティブな列から要素数の最も多い列を選ぶ．
-  int max_n = 0;
-  int min_c = matrix.col_size() + 1;
-  int max_col = -1;
+  SizeType max_n = 0;
+  SizeType min_c = matrix.col_size() + 1;
+  SizeType max_col = 0;
   for ( auto col: matrix.col_head_list() ) {
-    int n = matrix.col_elem_num(col);
+    SizeType n = matrix.col_elem_num(col);
     if ( max_n < n ) {
       max_n = n;
       min_c = graph.conflict_num(col);
       max_col = col;
     }
     else if ( max_n == n ) {
-      int c = graph.conflict_num(col);
+      SizeType c = graph.conflict_num(col);
       if ( min_c > c ) {
 	min_c = c;
 	max_col = col;
@@ -92,13 +100,15 @@ select_Naive(const McMatrix& matrix,
   return max_col;
 }
 
-int
-select_Simple(const McMatrix& matrix)
+SizeType
+select_Simple(
+  const McMatrix& matrix
+)
 {
   // 各行にカバーしている列数に応じた重みをつけ，
   // その重みの和が最大となる列を選ぶ．
   double max_weight = 0.0;
-  int max_col = 0;
+  SizeType max_col = 0;
   for ( auto col_pos: matrix.col_head_list() ) {
     double weight = 0.0;
     for ( auto row_pos: matrix.col_list(col_pos) ) {
@@ -115,12 +125,14 @@ select_Simple(const McMatrix& matrix)
   return max_col;
 }
 
-int
-select_CS(const McMatrix& matrix)
+SizeType
+select_CS(
+  const McMatrix& matrix
+)
 {
   // 各行にカバーしている列数に応じた重みをつけ，
   // その重みの和が最大となる列を選ぶ．
-  int nr = matrix.row_size();
+  SizeType nr = matrix.row_size();
   vector<double> row_weights(nr);
   for ( auto row_pos: matrix.row_head_list() ) {
     double min_cost = DBL_MAX;
@@ -134,13 +146,13 @@ select_CS(const McMatrix& matrix)
   }
 
   double min_delta = DBL_MAX;
-  int min_col = 0;
+  SizeType min_col = 0;
 
   for ( auto col_pos: matrix.col_head_list() ) {
     double col_cost = matrix.col_cost(col_pos);
 
     vector<int> col_delta(matrix.col_size(), 0);
-    vector<int> col_list;
+    vector<SizeType> col_list;
     for ( auto row_pos: matrix.col_list(col_pos) ) {
       for ( auto col_pos1: matrix.row_list(row_pos) ) {
 	if ( col_delta[col_pos1] == 0 ) {
@@ -151,10 +163,10 @@ select_CS(const McMatrix& matrix)
     }
 
     vector<bool> row_mark(matrix.row_size(), false);
-    vector<int> row_list;
+    vector<SizeType> row_list;
     for ( auto col_pos1: col_list ) {
       double cost1 = matrix.col_cost(col_pos1);
-      int num = matrix.col_elem_num(col_pos1);
+      SizeType num = matrix.col_elem_num(col_pos1);
       cost1 /= num;
       for ( auto row_pos: matrix.col_list(col_pos) ) {
 	if ( row_weights[row_pos] < cost1 ) {
@@ -198,23 +210,15 @@ END_NONAMESPACE
 // クラス MinPatMgr
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-MinPatMgr::MinPatMgr()
-{
-}
-
-// @brief デストラクタ
-MinPatMgr::~MinPatMgr()
-{
-}
-
 // @brief 故障リストを縮約する．
 void
-MinPatMgr::fault_reduction(vector<const TpgFault*>& fault_list,
-			   const TpgNetwork& network,
-			   FaultType fault_type,
-			   const string& algorithm,
-			   bool debug)
+MinPatMgr::fault_reduction(
+  vector<const TpgFault*>& fault_list,
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const string& algorithm,
+  bool debug
+)
 {
   if ( algorithm != string() ) {
     FaultReducer reducer(network, fault_type);
@@ -224,27 +228,27 @@ MinPatMgr::fault_reduction(vector<const TpgFault*>& fault_list,
 }
 
 // テストベクタをマージして極大集合を求める．
-void
-MinPatMgr::gen_mcsets(const vector<TestVector>& tv_list,
-		      vector<TestVector>& new_tv_list)
+vector<TestVector>
+MinPatMgr::gen_mcsets(
+  const vector<TestVector>& tv_list
+)
 {
   TvMerger merger(tv_list);
-  merger.gen_mcset(new_tv_list);
+  return merger.gen_mcset();
 }
 
 // @brief 彩色問題でパタン圧縮を行う．
-// @param[in] tv_list 初期テストパタンのリストnn
-// @param[out] new_tv_list 圧縮結果のテストパタンのリスト
-// @return 結果のパタン数を返す．
-int
-MinPatMgr::coloring(const vector<const TpgFault*>& fault_list,
-		    const vector<TestVector>& tv_list,
-		    const TpgNetwork& network,
-		    FaultType fault_type,
-		    vector<TestVector>& new_tv_list)
+SizeType
+MinPatMgr::coloring(
+  const vector<const TpgFault*>& fault_list,
+  const vector<TestVector>& tv_list,
+  const TpgNetwork& network,
+  FaultType fault_type,
+  vector<TestVector>& new_tv_list
+)
 {
   new_tv_list.clear();
-  int nv = tv_list.size();
+  SizeType nv = tv_list.size();
   if ( nv == 0 ) {
     return 0;
   }
@@ -259,12 +263,12 @@ MinPatMgr::coloring(const vector<const TpgFault*>& fault_list,
   //cout << " McMatrix generated" << endl;
 
   if ( debug ) {
-    int nf = matrix.active_row_num();
+    SizeType nf = matrix.active_row_num();
     cout << "# of faults: " << nf << endl;
-    int n_sum = 0;
-    int n_max = 0;
+    SizeType n_sum = 0;
+    SizeType n_max = 0;
     for ( auto row: matrix.row_head_list() ) {
-      int n = matrix.row_elem_num(row);
+      SizeType n = matrix.row_elem_num(row);
       n_sum += n;
       if ( n_max < n ) {
 	n_max = n;
@@ -275,16 +279,16 @@ MinPatMgr::coloring(const vector<const TpgFault*>& fault_list,
   }
 
   // 被覆行列の縮約を行う．
-  vector<int> selected_cols;
+  vector<SizeType> selected_cols;
   reduce(matrix, graph, selected_cols);
 
   if ( debug ) {
-    int nf = matrix.active_row_num();
+    SizeType nf = matrix.active_row_num();
     cout << "# of reduced faults: " << nf << endl;
-    int n_sum = 0;
-    int n_max = 0;
+    SizeType n_sum = 0;
+    SizeType n_max = 0;
     for ( auto row: matrix.row_head_list() ) {
-      int n = matrix.row_elem_num(row);
+      SizeType n = matrix.row_elem_num(row);
       n_sum += n;
       if ( n_max < n ) {
 	n_max = n;
@@ -296,8 +300,8 @@ MinPatMgr::coloring(const vector<const TpgFault*>& fault_list,
 
   heuristic1(matrix, graph, selected_cols);
 
-  vector<int> color_map;
-  int nc = graph.get_color_map(color_map);
+  vector<SizeType> color_map;
+  SizeType nc = graph.get_color_map(color_map);
   merge_tv_list(tv_list, nc, color_map, new_tv_list);
 
   // cout << "# of reduced patterns: " << nc << endl;
@@ -306,15 +310,14 @@ MinPatMgr::coloring(const vector<const TpgFault*>& fault_list,
 }
 
 // @brief 縮約を行う．
-// @param[in] matrix 対象の被覆行列
-// @param[in] graph 衝突グラフ
-// @param[in] selected_cols この縮約で選択された列のリスト
 void
-MinPatMgr::reduce(McMatrix& matrix,
-		  MpColGraph& graph,
-		  vector<int>& selected_cols)
+MinPatMgr::reduce(
+  McMatrix& matrix,
+  MpColGraph& graph,
+  vector<SizeType>& selected_cols
+)
 {
-  StopWatch timer;
+  Timer timer;
 
   if ( 0 ) {
     timer.reset();
@@ -326,7 +329,7 @@ MinPatMgr::reduce(McMatrix& matrix,
 
   for ( ; ; ) {
     MpComp comp(graph);
-    vector<int> deleted_cols;
+    vector<SizeType> deleted_cols;
     if ( !matrix.reduce(selected_cols, deleted_cols, comp) ) {
       break;
     }
@@ -338,7 +341,7 @@ MinPatMgr::reduce(McMatrix& matrix,
     }
 
     // 衝突グラフの変更を被覆行列に伝搬する．
-    vector<int> conflict_list;
+    vector<SizeType> conflict_list;
     graph.get_conflict_list(deleted_cols, conflict_list);
     for ( auto col1: conflict_list ) {
       matrix.set_col_dirty(col1);
@@ -347,7 +350,7 @@ MinPatMgr::reduce(McMatrix& matrix,
 
   if ( 0 ) {
     timer.stop();
-    USTime time = timer.time();
+    auto time = timer.get_time();
     cout << " ==> "
 	 << matrix.active_row_num() << " x " << matrix.active_col_num()
 	 << ", # of selected_cols = " << selected_cols.size()
@@ -357,9 +360,11 @@ MinPatMgr::reduce(McMatrix& matrix,
 
 // @brief ヒューリスティック1
 void
-MinPatMgr::heuristic1(McMatrix& matrix,
-		      MpColGraph& graph,
-		      vector<int>& selected_cols)
+MinPatMgr::heuristic1(
+  McMatrix& matrix,
+  MpColGraph& graph,
+  vector<SizeType>& selected_cols
+)
 {
   while ( !selected_cols.empty() || matrix.active_row_num() > 0 ) {
 
@@ -371,7 +376,7 @@ MinPatMgr::heuristic1(McMatrix& matrix,
     }
 
     // 両立集合を1つ選ぶ．
-    vector<int> node_list;
+    vector<SizeType> node_list;
     get_compatible_nodes(graph, matrix, selected_cols, node_list);
     ASSERT_COND( !node_list.empty() );
 
@@ -380,7 +385,7 @@ MinPatMgr::heuristic1(McMatrix& matrix,
     }
 
     // 選ばれた両立集合に彩色を行う．
-    int color = graph.new_color();
+    SizeType color = graph.new_color();
     graph.set_color(node_list, color);
 
     // 被覆行列の更新を行う．
@@ -396,9 +401,9 @@ MinPatMgr::heuristic1(McMatrix& matrix,
       for ( auto col: node_list ) {
 	mark[col] = true;
       }
-      int rpos = 0;
-      int wpos = 0;
-      int n = selected_cols.size();
+      SizeType rpos = 0;
+      SizeType wpos = 0;
+      SizeType n = selected_cols.size();
       for ( ; rpos < n; ++ rpos ) {
 	auto col = selected_cols[rpos];
 	if ( !mark[col] ) {
@@ -420,26 +425,22 @@ MinPatMgr::heuristic1(McMatrix& matrix,
 }
 
 // @brief 両立集合を取り出す．
-// @param[in] graph 衝突グラフ
-// @param[in] matrix 被覆行列
-// @param[in] selected_nodes 選択済みのノードリスト
-// @param[out] node_list 結果の両立集合を表すリスト
-//
-// * selected_nodes に含まれるノードは matrix からは削除されている．
 void
-MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
-				const McMatrix& matrix,
-				const vector<int>& selected_nodes,
-				vector<int>& node_list)
+MinPatMgr::get_compatible_nodes(
+  const MpColGraph& graph,
+  const McMatrix& matrix,
+  const vector<SizeType>& selected_nodes,
+  vector<SizeType>& node_list
+)
 {
   vector<bool> col_mark(graph.node_num(), false);
   vector<bool> row_mark(matrix.row_size(), false);
   node_list.clear();
   if ( selected_nodes.empty() ) {
 #if 0
-    int max_col = select_Naive(matrix, graph);
+    SizeType max_col = select_Naive(matrix, graph);
 #else
-    int max_col = select_Simple(matrix);
+    SizeType max_col = select_Simple(matrix);
 #endif
     node_list.push_back(max_col);
     col_mark[max_col] = true;
@@ -449,10 +450,10 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
   }
   else {
     // 衝突数の最も少ないノードを選ぶ．
-    int min_c = graph.node_num() + 1;
-    int min_id = -1;
+    SizeType min_c = graph.node_num() + 1;
+    SizeType min_id = 0;
     for ( auto id: selected_nodes ) {
-      int c = graph.conflict_num(id);
+      SizeType c = graph.conflict_num(id);
       if ( min_c > c ) {
 	min_c = c;
 	min_id = id;
@@ -462,8 +463,8 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
     col_mark[min_id] = true;
 
     // min_id に両立するノードを cand_list に入れる．
-    vector<int> cand_list;
-    vector<int> cnum_array(graph.node_num(), 0);
+    vector<SizeType> cand_list;
+    vector<SizeType> cnum_array(graph.node_num(), 0);
     cand_list.reserve(selected_nodes.size());
     for ( auto id: selected_nodes ) {
       if ( !col_mark[id] && graph.compatible_check(id, min_id) ) {
@@ -471,7 +472,7 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
       }
     }
     if ( !cand_list.empty() ) {
-      int n = cand_list.size();
+      SizeType n = cand_list.size();
       for ( auto pos1: Range(n - 1) ) {
 	auto id1 = cand_list[pos1];
 	for ( auto pos2: Range(pos1 + 1, n) ) {
@@ -486,10 +487,10 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
     while ( !cand_list.empty() ) {
       // selected_nodes の中で node_list に両立するものを
       // 衝突数の少ない順に加える．
-      int min_c = graph.node_num() + 1;
-      int min_id = -1;
+      SizeType min_c = graph.node_num() + 1;
+      SizeType min_id = 0;
       for ( auto id: cand_list ) {
-	int c = cnum_array[id];
+	SizeType c = cnum_array[id];
 	if ( min_c > c ) {
 	  min_c = c;
 	  min_id = id;
@@ -498,10 +499,10 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
       node_list.push_back(min_id);
       col_mark[min_id] = true;
       // min_id と衝突するノードを cand_list から除外する．
-      int rpos = 0;
-      int wpos = 0;
-      int n = cand_list.size();
-      vector<int> del_nodes;
+      SizeType rpos = 0;
+      SizeType wpos = 0;
+      SizeType n = cand_list.size();
+      vector<SizeType> del_nodes;
       del_nodes.reserve(n);
       for ( ; rpos < n; ++ rpos ) {
 	auto id = cand_list[rpos];
@@ -529,7 +530,7 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
   }
 
   // node_list に両立するノードを cand_list に入れる．
-  vector<int> cand_list;
+  vector<SizeType> cand_list;
   cand_list.reserve(matrix.active_col_num());
   for ( auto col: matrix.col_head_list() ) {
     if ( !col_mark[col] && graph.compatible_check(col, node_list) ) {
@@ -538,10 +539,10 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
   }
   for ( ; ; ) {
     // cand_list の中で新たに被覆する行の最も多いものを選ぶ．
-    int max_num = 0;
-    int max_col = -1;
+    SizeType max_num = 0;
+    SizeType max_col = 0;
     for ( auto col: cand_list ) {
-      int num = 0;
+      SizeType num = 0;
       for ( auto row: matrix.col_list(col) ) {
 	if ( !row_mark[row] ) {
 	  ++ num;
@@ -564,9 +565,9 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
     }
 
     // max_col と衝突するノードを cand_list から除外する．
-    int rpos = 0;
-    int wpos = 0;
-    int n = cand_list.size();
+    SizeType rpos = 0;
+    SizeType wpos = 0;
+    SizeType n = cand_list.size();
     for ( ; rpos < n; ++ rpos ) {
       auto col = cand_list[rpos];
       if ( col != max_col && graph.compatible_check(col, max_col) ) {
@@ -580,20 +581,18 @@ MinPatMgr::get_compatible_nodes(const MpColGraph& graph,
 }
 
 // @brief 彩色結果から新しいテストパタンのリストを生成する．
-// @param[in] tv_list テストパタンのリスト
-// @param[in] nc 彩色数
-// @param[in] color_map 彩色結果
-// @param[out] new_tv_list マージされたテストパタンのリスト
 void
-MinPatMgr::merge_tv_list(const vector<TestVector>& tv_list,
-			 int nc,
-			 const vector<int>& color_map,
-			 vector<TestVector>& new_tv_list)
+MinPatMgr::merge_tv_list(
+  const vector<TestVector>& tv_list,
+  SizeType nc,
+  const vector<SizeType>& color_map,
+  vector<TestVector>& new_tv_list
+)
 {
-  int nv = tv_list.size();
-  vector<vector<int>> tvgroup_list(nc);
+  SizeType nv = tv_list.size();
+  vector<vector<SizeType>> tvgroup_list(nc);
   for ( auto tvid: Range(nv) ) {
-    int c = color_map[tvid];
+    SizeType c = color_map[tvid];
     if ( c > 0 ) {
       tvgroup_list[c - 1].push_back(tvid);
     }
@@ -601,7 +600,7 @@ MinPatMgr::merge_tv_list(const vector<TestVector>& tv_list,
 
   new_tv_list.clear();
   for ( auto new_id: Range(nc) ) {
-    const vector<int>& id_list = tvgroup_list[new_id];
+    const vector<SizeType>& id_list = tvgroup_list[new_id];
     ASSERT_COND( id_list.size() > 0 );
     TestVector tv = tv_list[id_list[0]];
     for ( auto i: Range(1, id_list.size()) ) {

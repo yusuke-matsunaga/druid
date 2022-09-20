@@ -5,7 +5,7 @@
 /// @brief SimFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
@@ -40,16 +40,15 @@ public:
 public:
 
   /// @brief 内容を設定する便利関数
-  /// @param[in] f オリジナルの故障
-  /// @param[in] node 対応する SimNode
-  /// @param[in] ipos 入力番号
-  /// @param[in] inode 入力に対応する SimNode
-  /// @note ipos と inode は f が入力の故障の時のみ意味を持つ．
+  ///
+  /// ipos と inode は f が入力の故障の時のみ意味を持つ．
   void
-  set(const TpgFault* f,
-      SimNode* node,
-      int ipos,
-      SimNode* inode)
+  set(
+    const TpgFault* f, ///< [in] オリジナルの故障
+    SimNode* node,     ///< [in] 対応する SimNode
+    SizeType ipos,     ///< [in] 入力番号
+    SimNode* inode     ///< [in] 入力に対応する SimNode
+  )
   {
     mOrigF = f;
     mNode = node;
@@ -71,7 +70,7 @@ public:
   SimNode* mNode;
 
   // 入力の故障の場合の入力位置
-  int mIpos;
+  SizeType mIpos;
 
   // 入力の故障の場合の入力のゲート
   SimNode* mInode;

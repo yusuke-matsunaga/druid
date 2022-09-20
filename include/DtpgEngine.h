@@ -6,9 +6,8 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 
@@ -24,7 +23,7 @@
 #include "ym/SatBool3.h"
 #include "ym/SatLiteral.h"
 #include "ym/SatSolver.h"
-#include "ym/StopWatch.h"
+#include "ym/Timer.h"
 
 #include "VidMap.h"
 
@@ -40,16 +39,14 @@ class DtpgEngine
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] fault_type 故障の種類
-  /// @param[in] root 故障伝搬の起点となるノード
-  /// @param[in] just_type Justifier の種類を表す文字列
-  /// @param[in] solver_type SATソルバの実装タイプ
-  DtpgEngine(const TpgNetwork& network,
-	     FaultType fault_type,
-	     const TpgNode* root,
-	     const string& just_type,
-	     const SatSolverType& solver_type = SatSolverType("ymsat2"));
+  DtpgEngine(
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    FaultType fault_type,	     ///< [in] 故障の種類
+    const TpgNode* root,	     ///< [in] 故障伝搬の起点となるノード
+    const string& just_type,	     ///< [in] justifier の種類を表す文字列
+    const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
+    = SatSolverType("ymsat2")
+  );
 
   /// @brief デストラクタ
   ~DtpgEngine();
@@ -60,61 +57,86 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief CNF の生成を行う．
+  void
+  make_cnf();
+
+  /// @brief テストパタンを求める．
+  DtpgResult
+  gen_pattern(
+    const TpgFault* fault  ///< [in] 対象の故障
+  );
+
   /// @brief 統計情報を得る．
   const DtpgStats&
-  stats() const;
+  stats() const
+  {
+    return mStats;
+  }
 
   /// @brief 故障の影響がFFRの根のノードまで伝搬する条件を作る．
-  /// @param[in] fault 対象の故障
-  /// @param[out] assign_list 結果の値割り当てリスト
+  /// @return 結果の値割り当てリスト
   NodeValList
-  make_ffr_condition(const TpgFault* fault);
+  make_ffr_condition(
+    const TpgFault* fault  ///< [in] 対象の故障
+  );
 
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
-  conv_to_literal(NodeVal node_val);
+  conv_to_literal(
+    NodeVal node_val ///< [in] 値割当リスト
+  );
 
   /// @brief 値割り当てをリテラルのリストに変換する．
-  /// @param[in] assign_list 値の割り当てリスト
-  /// @param[out] assumptions 変換したリテラルを追加するリスト
+  vector<SatLiteral>
+  conv_to_literal_list(
+    const NodeValList& assign_list ///< [in] 値の割り当てリスト
+  )
+  {
+    vector<SatLiteral> ans_list;
+    add_to_literal_list(assign_list, ans_list);
+    return ans_list;
+  }
+
+  /// @brief 値割り当てをリテラルのリストに追加する．
   void
-  conv_to_assumptions(const NodeValList& assign_list,
-		      vector<SatLiteral>& assumptions);
+  add_to_literal_list(
+    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
+    vector<SatLiteral>& lit_list    ///< [out] 変換したリテラルを追加するリスト
+  );
 
   /// @brief SATソルバに変数を割り当てる．
-  SatVarId
-  new_variable();
+  SatLiteral
+  new_variable()
+  {
+    return solver().new_variable();
+  }
 
   /// @brief SATソルバに節を追加する．
   void
-  add_clause(const vector<SatLiteral>& lits);
+  add_clause(
+    const vector<SatLiteral>& lits ///< [in] 節を構成するリテラルのリスト
+  )
+  {
+    solver().add_clause(lits);
+  }
 
   /// @brief SATソルバに論理式の否定を追加する．
-  /// @param[in] expr 対象の論理式
-  /// @param[in] clit 制御用のリテラル
   ///
   /// clit が true の時に与えられた論理式が false となる条件を追加する．
   /// 論理式の変数番号はノード番号に対応している．
   void
-  add_negation(const Expr& expr,
-	       SatLiteral clit);
-
-  /// @brief 一つの SAT問題を解く．
-  /// @param[in] assumptions 値の決まっている変数のリスト
-  /// @return 結果を返す．
-  ///
-  /// mSolver.solve() を呼び出すだけだが統計情報の更新を行っている．
-  /// SATだった場合のモデルは mSatModel に格納される．
-  SatBool3
-  solve(const vector<SatLiteral>& assumptions);
+  add_negation(
+    const Expr& expr, ///< [in] 対象の論理式
+    SatLiteral clit   ///< [in] 制御用のリテラル
+  );
 
   /// @brief SAT問題が充足可能か調べる．
-  /// @param[in] assumptions 値の決まっている変数のリスト
   /// @return 結果を返す．
-  ///
-  /// solve() との違いは結果のモデルを保持しない．
   SatBool3
-  check(const vector<SatLiteral>& assumptions);
+  check(
+    const vector<SatLiteral>& assumptions  ///< [in] 値の決まっている変数のリスト
+  );
 
   /// @brief 直前の solve() の結果からテストベクタを作る．
   /// @return 作成したテストベクタを返す．
@@ -128,29 +150,33 @@ public:
   ///
   /// * FFR内の故障伝搬条件は含まない．
   NodeValList
-  get_sufficient_condition();
+  get_sufficient_condition(
+    const TpgNode* ffr_root ///< [in] FFRの根のノード
+  );
 
   /// @brief 複数の十分条件を取り出す．
   ///
   /// * FFR内の故障伝搬条件は含まない．
   Expr
-  get_sufficient_conditions();
+  get_sufficient_conditions(
+    const TpgNode* ffr_root ///< [in] FFRの根のノード
+  );
 
   /// @brief 必要条件を取り出す．
-  /// @param[in] ffr_cond FFR内の伝搬条件
-  /// @param[in] suf_cond 十分条件
   /// @return 必要条件を返す．
   NodeValList
-  get_mandatory_condition(const NodeValList& ffr_cond,
-			  const NodeValList& suf_cond);
+  get_mandatory_condition(
+    const NodeValList& ffr_cond, ///< [in] FFR内の伝搬条件
+    const NodeValList& suf_cond	 ///< [in] 十分条件
+  );
 
   /// @brief バックトレースを行う．
-  /// @param[in] fault 故障
-  /// @param[in] suf_cond 十分条件の割り当て
   /// @return テストパタンを返す．
   TestVector
-  backtrace(const TpgFault* fault,
-	    const NodeValList& suf_cond);
+  backtrace(
+    const TpgNode* ffr_root,    ///< [in] FFRの根のノード
+    const NodeValList& ffr_cond ///< [in] FFR内の伝搬条件
+  );
 
 
 protected:
@@ -160,15 +186,24 @@ protected:
 
   /// @brief 対象のネットワークを返す．
   const TpgNetwork&
-  network() const;
+  network() const
+  {
+    return mNetwork;
+  }
 
   /// @brief 故障の種類を返す．
   FaultType
-  fault_type() const;
+  fault_type() const
+  {
+    return mFaultType;
+  }
 
   /// @brief ノード番号の最大値を返す．
-  int
-  max_node_id() const;
+  SizeType
+  max_node_id() const
+  {
+    return network().node_num();
+  }
 
   /// @brief CNF 作成を開始する．
   void
@@ -183,99 +218,165 @@ protected:
   timer_start();
 
   /// @brief 時間計測を終了する．
-  USTime
+  double
   timer_stop();
 
   /// @brief SATソルバを返す．
   SatSolver&
-  solver();
+  solver()
+  {
+    return mSolver;
+  }
 
   /// @brief 1時刻前の正常値の変数を返す．
-  /// @param[in] node 対象のノード
-  SatVarId
-  hvar(const TpgNode* node) const;
+  SatLiteral
+  hvar(
+    const TpgNode* node  ///< [in] 対象のノード
+  ) const
+  {
+    ASSERT_COND( mHvarMap(node) != kSatLiteralX );
+
+    return mHvarMap(node);
+  }
 
   /// @brief 正常値の変数を返す．
-  /// @param[in] node 対象のノード
-  SatVarId
-  gvar(const TpgNode* node) const;
+  SatLiteral
+  gvar(
+    const TpgNode* node  ///< [in] 対象のノード
+  ) const
+  {
+    return mGvarMap(node);
+  }
 
   /// @brief 故障値の変数を返す．
-  /// @param[in] node 対象のノード
-  SatVarId
-  fvar(const TpgNode* node) const;
+  SatLiteral
+  fvar(
+    const TpgNode* node  ///< [in] 対象のノード
+  ) const
+  {
+    return mFvarMap(node);
+  }
 
   /// @brief 伝搬条件の変数を返す．
-  /// @param[in] node 対象のノード
-  SatVarId
-  dvar(const TpgNode* node) const;
+  SatLiteral
+  dvar(
+    const TpgNode* node  ///< [in] 対象のノード
+  ) const
+  {
+    return mDvarMap(node);
+  }
 
   /// @brief 1時刻前の正常値の変数を設定する．
-  /// @param[in] node 対象のノード
-  /// @param[in] var 設定する変数
   void
-  set_hvar(const TpgNode* node,
-	   SatVarId var);
+  set_hvar(
+    const TpgNode* node, ///< [in] 対象のノード
+    SatLiteral var	 ///< [in] 設定する変数
+  )
+  {
+    mHvarMap.set_vid(node, var);
+  }
 
   /// @brief 正常値の変数を設定する．
-  /// @param[in] node 対象のノード
-  /// @param[in] var 設定する変数
   void
-  set_gvar(const TpgNode* node,
-	   SatVarId var);
+  set_gvar(
+    const TpgNode* node, ///< [in] 対象のノード
+    SatLiteral var	 ///< [in] 設定する変数
+  )
+  {
+    mGvarMap.set_vid(node, var);
+  }
 
   /// @brief 故障値値の変数を設定する．
-  /// @param[in] node 対象のノード
-  /// @param[in] var 設定する変数
   void
-  set_fvar(const TpgNode* node,
-	   SatVarId var);
+  set_fvar(
+    const TpgNode* node, ///< [in] 対象のノード
+    SatLiteral var	 ///< [in] 設定する変数
+  )
+  {
+    mFvarMap.set_vid(node, var);
+  }
 
   /// @brief 故障伝搬条件の変数を設定する．
-  /// @param[in] node 対象のノード
-  /// @param[in] var 設定する変数
   void
-  set_dvar(const TpgNode* node,
-	   SatVarId var);
+  set_dvar(
+    const TpgNode* node, ///< [in] 対象のノード
+    SatLiteral var	 ///< [in] 設定する変数
+  )
+  {
+    mDvarMap.set_vid(node, var);
+  }
 
   /// @brief 1時刻前の正常値の変数マップを返す．
   const VidMap&
-  hvar_map() const;
+  hvar_map() const
+  {
+    return mHvarMap;
+  }
 
   /// @brief 正常値の変数マップを返す．
   const VidMap&
-  gvar_map() const;
+  gvar_map() const
+  {
+    return mGvarMap;
+  }
 
   /// @brief 故障値の変数マップを返す．
   const VidMap&
-  fvar_map() const;
+  fvar_map() const
+  {
+    return mFvarMap;
+  }
 
   /// @brief 1時刻前の正常値を得る．
-  /// @param[in] node 対象のノード
   Val3
-  hval(const TpgNode* node) const;
+  hval(
+    const TpgNode* node  ///< [in] 対象のノード
+  ) const
+  {
+    SatLiteral var = hvar(node);
+    return get_val(var);
+  }
 
   /// @brief 正常値を得る．
-  /// @param[in] node 対象のノード
   Val3
-  gval(const TpgNode* node) const;
+  gval(
+    const TpgNode* node  ///< [in] 対象のノード
+  ) const
+  {
+    SatLiteral var = gvar(node);
+    return get_val(var);
+  }
 
   /// @brief 故障値を得る．
-  /// @param[in] node 対象のノード
   Val3
-  fval(const TpgNode* node) const;
+  fval(
+    const TpgNode* node  ///< [in] 対象のノード
+  ) const
+  {
+    SatLiteral var = fvar(node);
+    return get_val(var);
+  }
 
   /// @brief 直前の solve() の解を返す．
-  const vector<SatBool3>&
-  sat_model() const;
+  const SatModel&
+  sat_model() const
+  {
+    return mSatModel;
+  }
 
   /// @brief 起点となるノードを返す．
   const TpgNode*
-  root_node() const;
+  root_node() const
+  {
+    return mRoot;
+  }
 
   /// @brief root_node() の TFO に含まれる出力のノードのリストを返す．
   const vector<const TpgNode*>&
-  output_list() const;
+  output_list() const
+  {
+    return mOutputList;
+  }
 
   /// @brief 関係するノードのリストを返す．
   const vector<const TpgNode*>&
@@ -303,43 +404,130 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障伝搬条件を表すCNF式を生成する．
-  /// @param[in] node 対象のノード
+  /// @brief make_cnf() の追加処理
+  ///
+  /// デフォルトではなにもしない．
+  virtual
   void
-  make_dchain_cnf(const TpgNode* node);
+  make_cnf_sub();
+
+  /// @brief gen_pattern() で用いる検出条件を作る．
+  ///
+  /// デフォルトでは空を返す．
+  virtual
+  vector<SatLiteral>
+  gen_assumptions(
+    const TpgFault* fault ///< [in] 対象の故障
+  );
+
+  /// @brief 故障伝搬条件を表すCNF式を生成する．
+  void
+  make_dchain_cnf(
+    const TpgNode* node  ///< [in] 対象のノード
+  );
 
   /// @brief add_negation の下請け関数
-  /// @param[in] expr 論理式
   SatLiteral
-  _add_negation_sub(const Expr& expr);
+  _add_negation_sub(
+    const Expr& expr  ///< [in] 論理式
+  );
 
   /// @brief TFO マークをつける．
-  /// @param[in] node 対象のノード
   ///
   /// と同時に mTfoList に入れる．<br>
   /// 出力ノードの場合は mOutputList にも入れる．<br>
   /// すでにマークされていたら何もしない．
   void
-  set_tfo_mark(const TpgNode* node);
+  set_tfo_mark(
+    const TpgNode* node  ///< [in] 対象のノード
+  )
+  {
+    SizeType id = node->id();
+    auto& bits = mMarkArray[id];
+    if ( !bits[0] ) {
+      bits[0] =true;
+      mTfoList.push_back(node);
+      if ( node->is_ppo() ) {
+	mOutputList.push_back(node);
+      }
+      if ( mFaultType == FaultType::TransitionDelay ) {
+	if ( node->is_primary_input() ) {
+	  mAuxInputList.push_back(node);
+	}
+      }
+      else {
+	if ( node->is_ppi() ) {
+	  mPPIList.push_back(node);
+	}
+      }
+    }
+  }
 
   /// @brief TFI マークをつける．
-  /// @param[in] node 対象のノード
   ///
   /// と同時に mTfiList に入れる．
   void
-  set_tfi_mark(const TpgNode* node);
+  set_tfi_mark(
+    const TpgNode* node  ///< [in] 対象のノード
+  )
+  {
+    SizeType id = node->id();
+    auto& bits = mMarkArray[id];
+    if ( !bits[0] && !bits[1] ) {
+      bits[1] = true;
+      mTfiList.push_back(node);
+      if ( mFaultType == FaultType::TransitionDelay ) {
+	if ( node->is_dff_output() ) {
+	  mDffList.push_back(node->dff());
+	}
+	else if ( node->is_primary_input() ) {
+	  mAuxInputList.push_back(node);
+	}
+      }
+      else {
+	if ( node->is_ppi() ) {
+	  mPPIList.push_back(node);
+	}
+      }
+    }
+  }
 
   /// @brief TFI2 マークをつける．
-  /// @param[in] node 対象のノード
   ///
   /// と同時に mTfi2List に入れる．
   void
-  set_tfi2_mark(const TpgNode* node);
+  set_tfi2_mark(
+    const TpgNode* node  ///< [in] 対象のノード
+  )
+  {
+    SizeType id = node->id();
+    auto& bits = mMarkArray[id];
+    if ( !bits[2] ) {
+      bits[2] = true;
+      mTfi2List.push_back(node);
+      if ( node->is_ppi() ) {
+	mPPIList.push_back(node);
+      }
+    }
+  }
 
   /// @brief SATモデルから値を取り出す．
-  /// @param[in] var 変数番号
   Val3
-  get_val(SatVarId var) const;
+  get_val(
+    SatLiteral var  ///< [in] 変数番号
+  ) const
+  {
+    SatBool3 sat_val = mSatModel[var];
+    if ( sat_val == SatBool3::True ) {
+      return Val3::_1;
+    }
+    else if ( sat_val == SatBool3::False ) {
+      return Val3::_0;
+    }
+    else {
+      return Val3::_X;
+    }
+  }
 
 
 private:
@@ -385,7 +573,10 @@ private:
 
   // 作業用のマークを入れておく配列
   // サイズは mMaxNodeId
-  vector<ymuint8> mMarkArray;
+  // 0: tfi
+  // 1: tfo
+  // 2: tfi2
+  vector<bitset<3>> mMarkArray;
 
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;
@@ -400,7 +591,7 @@ private:
   VidMap mDvarMap;
 
   // SATの解を保持する配列
-  vector<SatBool3> mSatModel;
+  SatModel mSatModel;
 
   // バックトレーサー
   Justifier mJustifier;
@@ -409,313 +600,9 @@ private:
   bool mTimerEnable;
 
   // 時間計測用のタイマー
-  StopWatch mTimer;
+  Timer mTimer;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief 統計情報を得る．
-inline
-const DtpgStats&
-DtpgEngine::stats() const
-{
-  return mStats;
-}
-
-// @brief SATソルバに変数を割り当てる．
-inline
-SatVarId
-DtpgEngine::new_variable()
-{
-  return solver().new_variable();
-}
-
-// @brief SATソルバに節を追加する．
-inline
-void
-DtpgEngine::add_clause(const vector<SatLiteral>& lits)
-{
-  solver().add_clause(lits);
-}
-
-// @brief SATソルバを返す．
-inline
-SatSolver&
-DtpgEngine::solver()
-{
-  return mSolver;
-}
-
-// @brief 対象のネットワークを返す．
-inline
-const TpgNetwork&
-DtpgEngine::network() const
-{
-  return mNetwork;
-}
-
-// @brief 故障の種類を返す．
-inline
-FaultType
-DtpgEngine::fault_type() const
-{
-  return mFaultType;
-}
-
-// @brief ノード番号の最大値を返す．
-inline
-int
-DtpgEngine::max_node_id() const
-{
-  return network().node_num();
-}
-
-// @brief 起点となるノードを返す．
-inline
-const TpgNode*
-DtpgEngine::root_node() const
-{
-  return mRoot;
-}
-
-// @brief root_node() の TFO に含まれる出力のノードのリストを返す．
-inline
-const vector<const TpgNode*>&
-DtpgEngine::output_list() const
-{
-  return mOutputList;
-}
-
-// @brief 1時刻前の正常値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatVarId
-DtpgEngine::hvar(const TpgNode* node) const
-{
-  ASSERT_COND( mHvarMap(node) != kSatVarIdIllegal );
-
-  return mHvarMap(node);
-}
-
-// @brief 正常値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatVarId
-DtpgEngine::gvar(const TpgNode* node) const
-{
-  return mGvarMap(node);
-}
-
-// @brief 故障値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatVarId
-DtpgEngine::fvar(const TpgNode* node) const
-{
-  return mFvarMap(node);
-}
-
-// @brief 伝搬条件の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatVarId
-DtpgEngine::dvar(const TpgNode* node) const
-{
-  return mDvarMap(node);
-}
-
-// @brief 1時刻前の正常値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-DtpgEngine::set_hvar(const TpgNode* node,
-		     SatVarId var)
-{
-  mHvarMap.set_vid(node, var);
-}
-
-// @brief 正常値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-DtpgEngine::set_gvar(const TpgNode* node,
-		     SatVarId var)
-{
-  mGvarMap.set_vid(node, var);
-}
-
-// @brief 故障値値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-DtpgEngine::set_fvar(const TpgNode* node,
-		     SatVarId var)
-{
-  mFvarMap.set_vid(node, var);
-}
-
-// @brief 故障伝搬条件の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-DtpgEngine::set_dvar(const TpgNode* node,
-		     SatVarId var)
-{
-  mDvarMap.set_vid(node, var);
-}
-
-// @brief 1時刻前の正常値の変数マップを返す．
-inline
-const VidMap&
-DtpgEngine::hvar_map() const
-{
-  return mHvarMap;
-}
-
-// @brief 正常値の変数マップを返す．
-inline
-const VidMap&
-DtpgEngine::gvar_map() const
-{
-  return mGvarMap;
-}
-
-// @brief 故障値の変数マップを返す．
-inline
-const VidMap&
-DtpgEngine::fvar_map() const
-{
-  return mFvarMap;
-}
-
-// @brief 1時刻前の正常値を得る．
-// @param[in] node 対象のノード
-inline
-Val3
-DtpgEngine::hval(const TpgNode* node) const
-{
-  SatVarId var = hvar(node);
-  return get_val(var);
-}
-
-// @brief 正常値を得る．
-// @param[in] node 対象のノード
-inline
-Val3
-DtpgEngine::gval(const TpgNode* node) const
-{
-  SatVarId var = gvar(node);
-  return get_val(var);
-}
-
-// @brief 故障値を得る．
-// @param[in] node 対象のノード
-inline
-Val3
-DtpgEngine::fval(const TpgNode* node) const
-{
-  SatVarId var = fvar(node);
-  return get_val(var);
-}
-
-// @brief 直前の solve() の解を返す．
-inline
-const vector<SatBool3>&
-DtpgEngine::sat_model() const
-{
-  return mSatModel;
-}
-
-// @brief SATモデルから値を取り出す．
-// @param[in] var 変数番号
-inline
-Val3
-DtpgEngine::get_val(SatVarId var) const
-{
-  SatBool3 sat_val = mSatModel[var.val()];
-  if ( sat_val == SatBool3::True ) {
-    return Val3::_1;
-  }
-  else if ( sat_val == SatBool3::False ) {
-    return Val3::_0;
-  }
-  else {
-    return Val3::_X;
-  }
-}
-
-// @brief TFO マークをつける．
-inline
-void
-DtpgEngine::set_tfo_mark(const TpgNode* node)
-{
-  int id = node->id();
-  if ( ((mMarkArray[id] >> 0) & 1U) == 0U ) {
-    mMarkArray[id] |= 1U;
-    mTfoList.push_back(node);
-    if ( node->is_ppo() ) {
-      mOutputList.push_back(node);
-    }
-    if ( mFaultType == FaultType::TransitionDelay ) {
-      if ( node->is_primary_input() ) {
-	mAuxInputList.push_back(node);
-      }
-    }
-    else {
-      if ( node->is_ppi() ) {
-	mPPIList.push_back(node);
-      }
-    }
-  }
-}
-
-// @brief TFI マークをつける．
-inline
-void
-DtpgEngine::set_tfi_mark(const TpgNode* node)
-{
-  int id = node->id();
-  if ( (mMarkArray[id] & 3U) == 0U ) {
-    mMarkArray[id] |= 2U;
-    mTfiList.push_back(node);
-    if ( mFaultType == FaultType::TransitionDelay ) {
-      if ( node->is_dff_output() ) {
-	mDffList.push_back(node->dff());
-      }
-      else if ( node->is_primary_input() ) {
-	mAuxInputList.push_back(node);
-      }
-    }
-    else {
-      if ( node->is_ppi() ) {
-	mPPIList.push_back(node);
-      }
-    }
-  }
-}
-
-// @brief TFI2 マークをつける．
-inline
-void
-DtpgEngine::set_tfi2_mark(const TpgNode* node)
-{
-  int id = node->id();
-  if ( ((mMarkArray[id] >> 2) & 1U) == 0U ) {
-    mMarkArray[id] |= 4U;
-    mTfi2List.push_back(node);
-    if ( node->is_ppi() ) {
-      mPPIList.push_back(node);
-    }
-  }
-}
 
 END_NAMESPACE_DRUID
 

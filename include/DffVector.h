@@ -5,9 +5,8 @@
 /// @brief DffVector のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "BitVector.h"
 
@@ -26,81 +25,37 @@ class DffVector :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] len ベクタ長
   ///
   /// 内容は X で初期化される．
   explicit
-  DffVector(int len = 0);
+  DffVector(
+    SizeType len = 0  ///< [in] ベクタ長
+  ) : BitVector{len}
+  {
+  }
 
   /// @brief コピーコンストラクタ
-  /// @param[in] src コピー元のソース
-  DffVector(const DffVector& src);
+  DffVector(
+    const DffVector& src  ///< [in] コピー元のソース
+  ) : BitVector{src}
+  {
+  }
 
   /// @brief コピー代入演算子
-  /// @param[in] src コピー元のソース
   DffVector&
-  operator=(const DffVector& src);
+  operator=(
+    const DffVector& src  ///< [in] コピー元のソース
+  )
+  {
+    BitVector::operator=(src);
+
+    return *this;
+  }
 
   /// @brief デストラクタ
-  ~DffVector();
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
+  ~DffVector() = default;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-// @param[in] len ベクタ長
-inline
-DffVector::DffVector(int len) :
-  BitVector(len)
-{
-}
-
-// @brief コピーコンストラクタ
-// @param[in] src コピー元のソース
-inline
-DffVector::DffVector(const DffVector& src) :
-  BitVector(src)
-{
-}
-
-// @brief コピー代入演算子
-// @param[in] src コピー元のソース
-inline
-DffVector&
-DffVector::operator=(const DffVector& src)
-{
-  BitVector::operator=(src);
-
-  return *this;
-}
-
-// @brief デストラクタ
-inline
-DffVector::~DffVector()
-{
-}
 
 END_NAMESPACE_DRUID
 

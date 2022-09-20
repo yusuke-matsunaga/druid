@@ -3,9 +3,8 @@
 /// @brief Analyzer の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Analyzer.h"
 #include "FaultInfo.h"
@@ -34,8 +33,10 @@ bool debug = false;
 // * 空白の除去は行わない．単純に ',' と ':' のみで区切る．
 // * 結果を opt_list に格納する．
 void
-parse_option(const string& option_str,
-	     vector<pair<string, string>>& opt_list)
+parse_option(
+  const string& option_str,
+  vector<pair<string, string>>& opt_list
+)
 {
   // ',' で区切る
   string tmp_str(option_str);
@@ -65,12 +66,11 @@ parse_option(const string& option_str,
 END_NONAMESPACE
 
 // @brief コンストラクタ
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-Analyzer::Analyzer(const TpgNetwork& network,
-		   FaultType fault_type) :
-  mNetwork(network),
-  mFaultType(fault_type)
+Analyzer::Analyzer(
+  const TpgNetwork& network,
+  FaultType fault_type
+) : mNetwork{network},
+    mFaultType{fault_type}
 {
 }
 
@@ -82,19 +82,18 @@ Analyzer::~Analyzer()
 }
 
 // @brief 故障の支配関係を調べて故障リストを縮約する．
-// @param[inout] fault_list 対象の故障リスト
-// @param[in] algorithm アルゴリズム
 void
-Analyzer::fault_reduction(vector<const TpgFault*>& fault_list,
-			  const string& algorithm)
+Analyzer::fault_reduction(
+  vector<const TpgFault*>& fault_list,
+  const string& algorithm
+)
 {
   // 実は fault_list は参考程度にしか使わない．
   vector<bool> mark(mNetwork.max_fault_id(), false);
   for ( auto fault: fault_list ) {
     mark[fault->id()] = true;
   }
-  vector<FaultInfo*> fi_list;
-  gen_fault_list(mark, fi_list);
+  auto fi_list = gen_fault_list(mark);
 
   vector<pair<string, string>> opt_list;
   parse_option(algorithm, opt_list);
@@ -117,33 +116,33 @@ Analyzer::fault_reduction(vector<const TpgFault*>& fault_list,
 }
 
 // @brief 検出可能故障リストを作る．
-// @param[out] fi_list 故障情報のリスト
-void
-Analyzer::gen_fault_list(const vector<bool>& mark,
-			 vector<FaultInfo*>& fi_list)
+vector<FaultInfo*>
+Analyzer::gen_fault_list(
+  const vector<bool>& mark
+)
 {
   string just_type;
+
+  vector<FaultInfo*> fi_list;
 
   std::mt19937 randgen;
   int n0 = 0;
   int n1 = 0;
   for ( auto& ffr: mNetwork.ffr_list() ) {
     // FFR ごとに検出可能な故障をもとめる．
-    DtpgFFR dtpg(mNetwork, mFaultType, ffr, just_type);
+    DtpgFFR dtpg{mNetwork, mFaultType, ffr, just_type};
     vector<FaultInfo*> tmp_fi_list;
     for ( auto fault: ffr.fault_list() ) {
       if ( !mark[fault->id()] ) {
 	continue;
       }
-      NodeValList ffr_cond = ffr_propagate_condition(fault, mFaultType);
-      vector<SatLiteral> assumptions;
-      dtpg.conv_to_assumptions(ffr_cond, assumptions);
-      SatBool3 sat_res = dtpg.solve(assumptions);
+      auto ffr_cond = fault->ffr_propagate_condition(mFaultType);
+      auto assumptions = dtpg.conv_to_literal_list(ffr_cond);
+      SatBool3 sat_res = dtpg.check(assumptions);
       if ( sat_res == SatBool3::True ) {
-	NodeValList suf_cond = dtpg.get_sufficient_condition();
-	suf_cond.merge(ffr_cond);
-	TestVector testvect = dtpg.backtrace(fault, suf_cond);
+	auto testvect = dtpg.backtrace(fault->tpg_onode()->ffr_root(), ffr_cond);
 	testvect.fix_x_from_random(randgen);
+	auto suf_cond = dtpg.get_sufficient_condition(fault->tpg_onode()->ffr_root());
 	FaultInfo* fi = new FaultInfo(fault, ffr_cond, suf_cond, testvect);
 	tmp_fi_list.push_back(fi);
 	++ n0;
@@ -151,7 +150,7 @@ Analyzer::gen_fault_list(const vector<bool>& mark,
     }
 
     // 支配関係を調べ，代表故障のみを残す．
-    int nf = tmp_fi_list.size();
+    SizeType nf = tmp_fi_list.size();
     vector<bool> mark(nf, true);
     for ( auto i1: Range(nf) ) {
       if ( !mark[i1] ) {
@@ -162,8 +161,7 @@ Analyzer::gen_fault_list(const vector<bool>& mark,
       const NodeValList& ffr_cond1 = fi1->mand_cond();
       // ffr_cond1 を否定した節を加える．
       // 制御変数は clit1
-      SatVarId cvar1 = dtpg.new_variable();
-      SatLiteral clit1(cvar1);
+      SatLiteral clit1 = dtpg.new_variable();
       vector<SatLiteral> tmp_lits;
       tmp_lits.reserve(ffr_cond1.size() + 1);
       tmp_lits.push_back(~clit1);
@@ -180,9 +178,7 @@ Analyzer::gen_fault_list(const vector<bool>& mark,
 	auto fi2 = tmp_fi_list[i2];
 	auto fault2 = fi2->fault();
 	const NodeValList& ffr_cond2 = fi2->mand_cond();
-	vector<SatLiteral> assumptions;
-	assumptions.reserve(ffr_cond2.size() + 1);
-	dtpg.conv_to_assumptions(ffr_cond2, assumptions);
+	auto assumptions = dtpg.conv_to_literal_list(ffr_cond2);
 	assumptions.push_back(clit1);
 	SatBool3 sat_res = dtpg.check(assumptions);
 	if ( sat_res == SatBool3::False ) {
@@ -205,16 +201,20 @@ Analyzer::gen_fault_list(const vector<bool>& mark,
     cout << "# of initial faults: " << n0 << endl
 	 << "after FFR dominance reduction: " << n1 << endl;
   }
+
+  return fi_list;
 }
 
 // @brief 異なる FFR 間の支配故障の簡易チェックを行う．
 void
-Analyzer::dom_reduction1(vector<FaultInfo*>& fi_list)
+Analyzer::dom_reduction1(
+  vector<FaultInfo*>& fi_list
+)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
-  int nf = fi_list.size();
+  SizeType nf = fi_list.size();
   vector<const TpgFault*> fault_list;
   fault_list.reserve(nf);
   vector<TestVector> tv_list;
@@ -233,7 +233,7 @@ Analyzer::dom_reduction1(vector<FaultInfo*>& fi_list)
   //int checker_num = 0;
 
   vector<bool> mark(nf, false);
-  for ( int i1 = 0; i1 < nf; ++ i1 ) {
+  for ( int i1: Range(0, nf) ) {
     auto fi1 = fi_list[i1];
     auto fault1 = fi1->fault();
     UndetChecker undet_checker(mNetwork, mFaultType, fault1);
@@ -266,7 +266,7 @@ Analyzer::dom_reduction1(vector<FaultInfo*>& fi_list)
       }
 
       ++ check_num;
-      NodeValList ffr_cond = ffr_propagate_condition(fault2, mFaultType);
+      NodeValList ffr_cond = fault2->ffr_propagate_condition(mFaultType);
       SatBool3 res = undet_checker.check(ffr_cond);
       if ( res == SatBool3::False ) {
 	++ success_num;
@@ -295,15 +295,17 @@ Analyzer::dom_reduction1(vector<FaultInfo*>& fi_list)
     cout << "after semi-global dominance reduction: " << wpos << endl
 	 << "# of total checks:                     " << check_num << endl
 	 << "# of total successes:                  " << success_num << endl
-	 << "CPU time:                              " << timer.time() << endl;
+	 << "CPU time:                              " << timer.get_time() << endl;
   }
 }
 
 // @brief 異なる FFR 間の支配故障の簡易チェックを行う．
 void
-Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
+Analyzer::dom_reduction2(
+  vector<FaultInfo*>& fi_list
+)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   int nf = fi_list.size();
@@ -311,11 +313,11 @@ Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
   fault_list.reserve(nf);
   vector<TestVector> tv_list;
   tv_list.reserve(nf);
-  HashMap<int, int> fid_map;
+  unordered_map<int, int> fid_map;
   for ( auto fi: fi_list ) {
     int row = fault_list.size();
     auto fault = fi->fault();
-    fid_map.add(fault->id(), row);
+    fid_map.emplace(fault->id(), row);
     fault_list.push_back(fault);
     tv_list.push_back(fi->testvect());
   }
@@ -327,12 +329,11 @@ Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
   int success_num = 0;
   int n = fi_list.size();
   vector<bool> mark(mNetwork.max_fault_id(), false);
-  for ( int i1 = 0; i1 < n; ++ i1 ) {
-    auto fi1 = fi_list[i1];
-    auto fault1 = fi1->fault();
-    mark[fault1->id()] = true;
+  for ( auto fi: fi_list ) {
+    auto fault = fi->fault();
+    mark[fault->id()] = true;
   }
-  for ( int i1 = 0; i1 < n; ++ i1 ) {
+  for ( int i1: Range(0, n) ) {
     auto fi1 = fi_list[i1];
     auto fault1 = fi1->fault();
     // fault2 が fault1 を支配している時
@@ -352,8 +353,7 @@ Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
 	}
 
 	bool not_covered = false;
-	int i2;
-	fid_map.find(fault2->id(), i2);
+	int i2 = fid_map.at(fault2->id());
 	for ( auto col: matrix.row_list(i2) ) {
 	  if ( !col_mark[col] ) {
 	    not_covered = true;
@@ -405,14 +405,15 @@ Analyzer::dom_reduction2(vector<FaultInfo*>& fi_list)
     cout << "# of total checkes:   " << check_num << endl
 	 << "# of total successes: " << success_num << endl
 	 << "# of DomCheckers:     " << dom_num << endl
-	 << "CPU time:             " << timer.time() << endl;
+	 << "CPU time:             " << timer.get_time() << endl;
   }
 }
 
 // @brief 初期化する
-// @param[in] loop_limit 反復回数の上限
 void
-Analyzer::init(int loop_limit)
+Analyzer::init(
+  int loop_limit
+)
 {
   string just_type;
 
@@ -428,22 +429,21 @@ Analyzer::init(int loop_limit)
     vector<NodeValList> ffr_cond_list;
     vector<NodeValList> suf_cond_list;
     for ( auto fault: ffr.fault_list() ) {
-      NodeValList ffr_cond = ffr_propagate_condition(fault, mFaultType);
-      vector<SatLiteral> assumptions;
-      dtpg.conv_to_assumptions(ffr_cond, assumptions);
-      SatBool3 sat_res = dtpg.solve(assumptions);
+      NodeValList ffr_cond = fault->ffr_propagate_condition(mFaultType);
+      auto assumptions = dtpg.conv_to_literal_list(ffr_cond);
+      SatBool3 sat_res = dtpg.check(assumptions);
       if ( sat_res == SatBool3::True ) {
 	fault_list.push_back(fault);
 	ffr_cond_list.push_back(ffr_cond);
 	ffr_cond_array[fault->id()] = ffr_cond;
-	NodeValList suf_cond = dtpg.get_sufficient_condition();
+	NodeValList suf_cond = dtpg.get_sufficient_condition(ffr.root());
 	suf_cond.merge(ffr_cond);
 	suf_cond_list.push_back(suf_cond);
 	mark[fault->id()] = true;
       }
     }
     // 支配関係を調べ，代表故障のみを残す．
-    int nf = fault_list.size();
+    SizeType nf = fault_list.size();
     for ( auto i1: Range(nf) ) {
       auto fault1 = fault_list[i1];
       if ( !mark[fault1->id()] ) {
@@ -452,8 +452,7 @@ Analyzer::init(int loop_limit)
       const NodeValList& ffr_cond1 = ffr_cond_list[i1];
       // ffr_cond1 を否定した節を加える．
       // 制御変数は clit1
-      SatVarId cvar1 = dtpg.new_variable();
-      SatLiteral clit1(cvar1);
+      auto clit1 = dtpg.new_variable();
       vector<SatLiteral> tmp_lits;
       tmp_lits.reserve(ffr_cond1.size() + 1);
       tmp_lits.push_back(~clit1);
@@ -471,9 +470,7 @@ Analyzer::init(int loop_limit)
 	  continue;
 	}
 	const NodeValList& ffr_cond2 = ffr_cond_list[i2];
-	vector<SatLiteral> assumptions;
-	assumptions.reserve(ffr_cond2.size() + 1);
-	dtpg.conv_to_assumptions(ffr_cond2, assumptions);
+	auto assumptions = dtpg.conv_to_literal_list(ffr_cond2);
 	assumptions.push_back(clit1);
 	SatBool3 sat_res = dtpg.check(assumptions);
 	if ( sat_res == SatBool3::False ) {
@@ -520,7 +517,7 @@ Analyzer::init(int loop_limit)
 	    bool out_of_range = false;
 	    for ( auto nv: mand_cond ) {
 	      auto node = nv.node();
-	      if ( undet_checker.gvar(node) == kSatVarIdIllegal ) {
+	      if ( undet_checker.gvar(node) == kSatLiteralX ) {
 		out_of_range = true;
 		break;
 	      }
@@ -529,7 +526,7 @@ Analyzer::init(int loop_limit)
 	      continue;
 	    }
 	  }
-	  NodeValList ffr_cond = ffr_propagate_condition(fault2, mFaultType);
+	  NodeValList ffr_cond = fault2->ffr_propagate_condition(mFaultType);
 	  SatBool3 res = undet_checker.check(ffr_cond);
 	  if ( res == SatBool3::False ) {
 	    // fault2 が検出可能の条件のもとで fault が検出不能となることはない．
@@ -662,8 +659,8 @@ Analyzer::init(int loop_limit)
     auto suff_cond1 = fi1->sufficient_cond();
     auto suff_cond2 = fi2->sufficient_cond();
     vector<SatLiteral> assumptions;
-    dtpg.conv_to_assumptions(suff_cond1, assumptions);
-    dtpg.conv_to_assumptions(suff_cond2, assumptions);
+    dtpg.add_to_assumptions(suff_cond1, assumptions);
+    dtpg.add_to_assumptions(suff_cond2, assumptions);
     SatBool3 sat_res = dtpg.check(assumptions);
     if ( sat_res == SatBool3::True ) {
       // 両立している．
@@ -682,23 +679,20 @@ Analyzer::init(int loop_limit)
 }
 
 // @brief 故障の検出条件の解析を行う．
-// @param[in] dtpg DTPGエンジン
-// @param[in] fault 対象の故障
-// @param[in] loop_limit 反復回数の上限
-// @return FaultInfo を返す．
 FaultInfo*
-Analyzer::analyze_fault(DtpgFFR& dtpg,
-			const TpgFault* fault,
-			int loop_limit)
+Analyzer::analyze_fault(
+  DtpgFFR& dtpg,
+  const TpgFault* fault,
+  int loop_limit
+)
 {
 #if 0
   // FFR 内の伝搬条件をリテラルに変換して加えたSAT問題を解く．
-  NodeValList ffr_cond = ffr_propagate_condition(fault, mFaultType);
+  NodeValList ffr_cond = fault->ffr_propagate_condition(mFaultType);
   SatBool3 sat_res;
   vector<SatBool3> model;
   {
-    vector<SatLiteral> assumptions;
-    dtpg.conv_to_assumptions(ffr_cond, assumptions);
+    auto assumptions = dtpg.conv_to_literal_list(ffr_cond, assumptions);
     sat_res = dtpg.solve(assumptions, model);
   }
   if ( sat_res == SatBool3::True ) {
@@ -711,12 +705,10 @@ Analyzer::analyze_fault(DtpgFFR& dtpg,
     NodeValList mand_cond(ffr_cond);
     for ( auto nv: tmp_cond ) {
       // nv を否定した条件を加えて解があるか調べる．
-      vector<SatLiteral> assumptions;
-      dtpg.conv_to_assumptions(mand_cond, assumptions);
+      auto assumptions = dtpg.conv_to_literal_list(mand_cond, assumptions);
       SatLiteral lit1 = dtpg.conv_to_literal(nv);
       assumptions.push_back(~lit1);
-      vector<SatBool3> dummy;
-      if ( dtpg.solve(assumptions, dummy) == SatBool3::False ) {
+      if ( dtpg.check(assumptions) == SatBool3::False ) {
 	// 充足不能なので nv は必要割当
 	mand_cond.add(nv);
       }
@@ -725,20 +717,17 @@ Analyzer::analyze_fault(DtpgFFR& dtpg,
     bool exhausted = true;
     expr = restrict(expr, mand_cond);
     if ( !expr.is_constant() ) {
-      SatVarId cvar1 = dtpg.new_variable();
-      SatLiteral clit1(cvar1);
+      auto clit1 = dtpg.new_variable();
       // 別解を求める．
       exhausted = false;
       Expr expr1(expr);
       for ( int i = 0; i < loop_limit; ++ i ) {
 	// expr1 を否定した節を追加する．
 	dtpg.add_negation(expr1, clit1);
-	vector<SatLiteral> assumptions;
-	dtpg.conv_to_assumptions(mand_cond, assumptions);
+	auto assumptions = dtpg.conv_to_literal_list(mand_cond);
 	assumptions.push_back(clit1);
-	vector<SatBool3> model;
-	if ( dtpg.solve(assumptions, model) == SatBool3::True ) {
-	  expr1 = dtpg.get_sufficient_conditions(fault, model);
+	if ( dtpg.solve(assumptions) == SatBool3::True ) {
+	  expr1 = dtpg.get_sufficient_conditions(fault, dtpg.model());
 	  expr |= expr1;
 	}
 	else {
@@ -763,34 +752,34 @@ Analyzer::analyze_fault(DtpgFFR& dtpg,
 }
 
 // @brief 論理式に含まれるキューブを求める．
-// @param[in] expr 論理式
 NodeValList
-Analyzer::common_cube(const Expr& expr)
+Analyzer::common_cube(
+  const Expr& expr
+)
 {
   ASSERT_COND( !expr.is_constant() );
 
   NodeValList cube;
   if ( expr.is_posi_literal() ) {
     int id = expr.varid().val();
-    const TpgNode* node = mNetwork.node(id);
+    auto node = mNetwork.node(id);
     cube.add(node, 1, true);
   }
   else if ( expr.is_nega_literal() ) {
     int id = expr.varid().val();
-    const TpgNode* node = mNetwork.node(id);
+    auto node = mNetwork.node(id);
     cube.add(node, 1, false);
   }
   else if ( expr.is_and() ) {
-    int n = expr.child_num();
-    for ( int i: Range(n) ) {
-      NodeValList cube1 = common_cube(expr.child(i));
+    for ( auto expr1: expr.operand_list() ) {
+      auto cube1 = common_cube(expr1);
       cube += cube1;
     }
   }
   else if ( expr.is_or() ) {
     // 最初のキューブだけを使う．
-    ASSERT_COND( expr.child_num() > 0 );
-    cube = common_cube(expr.child(0));
+    ASSERT_COND( expr.operand_num() > 0 );
+    cube = common_cube(expr.operand(0));
   }
   else if ( expr.is_xor() ) {
     ASSERT_NOT_REACHED;
@@ -800,40 +789,39 @@ Analyzer::common_cube(const Expr& expr)
 }
 
 // @brief 必要割り当てに従って論理式を簡単化する．
-// @param[in] expr 論理式
-// @param[in] mand_cond 必要割り当て
-// @return 簡単化した論理式を返す．
 Expr
-Analyzer::restrict(const Expr& expr,
-		   const NodeValList& mand_cond)
+Analyzer::restrict(
+  const Expr& expr,
+  const NodeValList& mand_cond
+)
 {
-  HashMap<VarId, bool> val_map;
+  unordered_map<VarId, bool> val_map;
   for ( auto nv: mand_cond ) {
-    const TpgNode* node = nv.node();
+    auto node = nv.node();
     bool val = nv.val();
-    val_map.add(VarId(node->id()), val);
+    val_map.emplace(VarId(node->id()), val);
   }
   return _restrict_sub(expr, val_map);
 }
 
 // @brief restrict の下請け関数
-// @param[in] expr 論理式
-// @param[in] val_map 割り当てマップ
 Expr
-Analyzer::_restrict_sub(const Expr& expr,
-			const HashMap<VarId, bool>& val_map)
+Analyzer::_restrict_sub(
+  const Expr& expr,
+  const unordered_map<VarId, bool>& val_map
+)
 {
   ASSERT_COND( !expr.is_constant() );
 
   if ( expr.is_posi_literal() ) {
     VarId var = expr.varid();
-    bool val;
-    if ( val_map.find(var, val) ) {
+    if ( val_map.count(var) > 0 ) {
+      bool val = val_map.at(var);
       if ( val == false ) {
-	return Expr::zero();
+	return Expr::make_zero();
       }
       else if ( val == true ) {
-	return Expr::one();
+	return Expr::make_one();
       }
     }
     return expr;
@@ -841,31 +829,32 @@ Analyzer::_restrict_sub(const Expr& expr,
   else if ( expr.is_nega_literal() ) {
     VarId var = expr.varid();
     bool val;
-    if ( val_map.find(var, val) ) {
+    if ( val_map.count(var) > 0 ) {
+      bool val = val_map.at(var);
       if ( val == false ) {
-	return Expr::one();
+	return Expr::make_one();
       }
       else if ( val == true ) {
-	return Expr::zero();
+	return Expr::make_zero();
       }
     }
     return expr;
   }
   else if ( expr.is_and() ) {
-    int n = expr.child_num();
+    SizeType n = expr.operand_num();
     ASSERT_COND( n > 0 );
-    Expr ans_expr = _restrict_sub(expr.child(0), val_map);
-    for ( int i: Range(1, n) ) {
-      ans_expr &= _restrict_sub(expr.child(i), val_map);
+    Expr ans_expr = _restrict_sub(expr.operand(0), val_map);
+    for ( SizeType i: Range(1, n) ) {
+      ans_expr &= _restrict_sub(expr.operand(i), val_map);
     }
     return ans_expr;
   }
   else if ( expr.is_or() ) {
-    int n = expr.child_num();
+    SizeType n = expr.operand_num();
     ASSERT_COND( n > 0 );
-    Expr ans_expr = _restrict_sub(expr.child(0), val_map);
-    for ( int i: Range(1, n) ) {
-      ans_expr |= _restrict_sub(expr.child(i), val_map);
+    Expr ans_expr = _restrict_sub(expr.operand(0), val_map);
+    for ( SizeType i: Range(1, n) ) {
+      ans_expr |= _restrict_sub(expr.operand(i), val_map);
     }
     return ans_expr;
   }
@@ -873,7 +862,7 @@ Analyzer::_restrict_sub(const Expr& expr,
     ASSERT_NOT_REACHED;
   }
 
-  return Expr::zero();
+  return Expr::make_zero();
 }
 
 END_NAMESPACE_DRUID

@@ -5,12 +5,12 @@
 /// @brief TpgFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
+#include "Fval2.h"
 #include "Val3.h"
-#include "ym/HashFunc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -42,7 +42,7 @@ public:
 
   /// @brief デストラクタ
   virtual
-  ~TpgFault() { }
+  ~TpgFault() = default;
 
 
 public:
@@ -52,7 +52,7 @@ public:
 
   /// @brief ID番号を返す．
   virtual
-  int
+  SizeType
   id() const = 0;
 
   /// @brief 故障の入力側の TpgNode を返す．
@@ -74,13 +74,16 @@ public:
 
   /// @brief ブランチの故障の時 true を返す．
   bool
-  is_branch_fault() const;
+  is_branch_fault() const
+  {
+    return !is_stem_fault();
+  }
 
   /// @brief ブランチの入力位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
   virtual
-  int
+  SizeType
   fault_pos() const = 0;
 
   /// @brief tpg_onode 上の故障位置を返す．
@@ -88,18 +91,31 @@ public:
   /// is_branch_fault() == true の時のみ意味を持つ．
   /// tpg_onode()->fanin(tpg_pos()) == tpg_inode() が成り立つ．
   virtual
-  int
+  SizeType
   tpg_pos() const = 0;
 
   /// @brief 故障値を返す．
-  /// @note 返す値は 0 か 1
   virtual
-  int
+  Fval2
   val() const = 0;
 
   /// @brief 故障値を3値型で返す．
   Val3
-  val3() const;
+  val3() const
+  {
+    switch ( val() ) {
+    case Fval2::zero: return Val3::_0;
+    case Fval2::one:  return Val3::_1;
+    }
+    ASSERT_NOT_REACHED;
+    return Val3::_0;
+  }
+
+  /// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
+  NodeValList
+  ffr_propagate_condition(
+    FaultType fault_type   ///< [in] 故障の種類
+  ) const;
 
   /// @brief 故障の内容を表す文字列を返す．
   virtual
@@ -108,7 +124,10 @@ public:
 
   /// @brief 代表故障の時 true を返す．
   bool
-  is_rep() const;
+  is_rep() const
+  {
+    return rep_fault() == this;
+  }
 
   /// @brief 代表故障を返す．
   ///
@@ -120,79 +139,34 @@ public:
 };
 
 /// @relates TpgFault
-/// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
-/// @param[in] fault 故障
-/// @param[in] fault_type 故障の種類
-NodeValList
-ffr_propagate_condition(const TpgFault* fault,
-			FaultType fault_type);
-
-/// @relates TpgFault
 /// @brief ストリーム出力演算子
-/// @param[in] s 出力先のストリーム
-/// @param[in] f 故障
-ostream&
-operator<<(ostream& s,
-	   const TpgFault* f);
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief ブランチの故障の時 true を返す．
-inline
-bool
-TpgFault::is_branch_fault() const
-{
-  return !is_stem_fault();
-}
-
-// @brief 代表故障の時 true を返す．
-inline
-bool
-TpgFault::is_rep() const
-{
-  return rep_fault() == this;
-}
-
-// @brief 故障値を3値型で返す．
-inline
-Val3
-TpgFault::val3() const
-{
-  if ( val() ) {
-    return Val3::_1;
-  }
-  else {
-    return Val3::_0;
-  }
-}
-
-// @brief ストリーム出力演算子
-// @param[in] s 出力先のストリーム
-// @param[in] f 故障
 inline
 ostream&
-operator<<(ostream& s,
-	   const TpgFault* f)
+operator<<(
+  ostream& s,       ///< [in] 出力先のストリーム
+  const TpgFault* f ///< [in] 故障
+)
 {
   return s << f->str();
 }
 
 END_NAMESPACE_DRUID
 
-BEGIN_NAMESPACE_YM
+BEGIN_NAMESPACE_STD
+
 // TpgFault へのポインタをキーにしたハッシュ関数クラスの定義
 template <>
-struct HashFunc<DRUID_NAMESPACE::TpgFault*>
+struct hash<DRUID_NAMESPACE::TpgFault*>
 {
   SizeType
-  operator()(DRUID_NAMESPACE::TpgFault* fault) const
+  operator()(
+    DRUID_NAMESPACE::TpgFault* fault
+  ) const
   {
     return fault->id();
   }
 };
-END_NAMESPACE_YM
+
+END_NAMESPACE_STD
 
 #endif // TPGFAULT_H

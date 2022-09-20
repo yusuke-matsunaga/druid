@@ -3,9 +3,8 @@
 /// @brief MatrixGen の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "MatrixGen.h"
 #include "TpgNetwork.h"
@@ -18,19 +17,16 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-// @param[in] fault_list 故障のリスト
-// @param[in] tv_list テストパタンのリスト
-// @param[in] network ネットワーク
-// @param[in] fault_type 故障の種類
-MatrixGen::MatrixGen(const vector<const TpgFault*>& fault_list,
-		     const vector<TestVector>& tv_list,
-		     const TpgNetwork& network,
-		     FaultType fault_type) :
-  mFaultList(fault_list),
-  mTvList(tv_list),
-  mRowIdMap(network.max_fault_id(), -1)
+MatrixGen::MatrixGen(
+  const vector<const TpgFault*>& fault_list,
+  const vector<TestVector>& tv_list,
+  const TpgNetwork& network,
+  FaultType fault_type
+) : mFaultList{fault_list},
+    mTvList{tv_list},
+    mRowIdMap(network.max_fault_id(), -1),
+    mFsim{network, fault_type, true}
 {
-  mFsim.init_fsim3(network, fault_type);
   mFsim.clear_patterns();
   mFsim.set_skip_all();
   for ( auto row_id: Range(mFaultList.size()) ) {
@@ -49,7 +45,7 @@ MatrixGen::~MatrixGen()
 McMatrix
 MatrixGen::generate()
 {
-  McMatrix matrix(mFaultList.size(), mTvList.size());
+  McMatrix matrix{mFaultList.size(), mTvList.size()};
 
   int wpos = 0;
   int tv_base = 0;
@@ -72,9 +68,11 @@ MatrixGen::generate()
 
 // @brief 故障シミュレーションを行う．
 void
-MatrixGen::do_fsim(McMatrix& matrix,
-		   int tv_base,
-		   int num)
+MatrixGen::do_fsim(
+  McMatrix& matrix,
+  int tv_base,
+  int num
+)
 {
   int ndet = mFsim.ppsfp();
   vector<int> det_list[kPvBitLen];

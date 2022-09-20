@@ -5,9 +5,8 @@
 /// @brief SimFFR のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "fsim_nsdef.h"
 
@@ -26,7 +25,7 @@ class SimFFR
 public:
 
   /// @brief コンストラクタ
-  SimFFR();
+  SimFFR() = default;
 
   /// @brief コピーコンストラクタは禁止
   SimFFR(const SimFFR& src) = delete;
@@ -36,26 +35,42 @@ public:
   operator=(const SimFFR& src) = delete;
 
   /// @brief デストラクタ
-  ~SimFFR();
+  ~SimFFR() = default;
 
 
 public:
 
   /// @brief 根のノードをセットする．
   void
-  set_root(SimNode* root);
+  set_root(
+    SimNode* root
+  )
+  {
+    mRoot = root;
+  }
 
   /// @brief 根のノードを得る．
   SimNode*
-  root() const;
+  root() const
+  {
+    return mRoot;
+  }
 
   /// @brief このFFRの故障リストに故障を追加する．
   void
-  add_fault(SimFault* f);
+  add_fault(
+    SimFault* f
+  )
+  {
+    mFaultList.push_back(f);
+  }
 
   /// @brief このFFRに属する故障リストを得る．
   const vector<SimFault*>&
-  fault_list() const;
+  fault_list() const
+  {
+    return mFaultList;
+  }
 
 
 private:
@@ -64,61 +79,12 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 根のノード
-  SimNode* mRoot;
+  SimNode* mRoot{nullptr};
 
   // この FFR に属する故障のリスト
   vector<SimFault*> mFaultList;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-inline
-SimFFR::SimFFR()
-{
-}
-
-// @brief デストラクタ
-inline
-SimFFR::~SimFFR()
-{
-}
-
-// @brief 根のノードをセットする．
-inline
-void
-SimFFR::set_root(SimNode* root)
-{
-  mRoot = root;
-}
-
-// @brief 根のノードを得る．
-inline
-SimNode*
-SimFFR::root() const
-{
-  return mRoot;
-}
-
-// @brief このFFRの故障リストに故障を追加する．
-inline
-void
-SimFFR::add_fault(SimFault* f)
-{
-  mFaultList.push_back(f);
-}
-
-// @brief このFFRに属する故障リストを得る．
-inline
-const vector<SimFault*>&
-SimFFR::fault_list() const
-{
-  return mFaultList;
-}
 
 END_NAMESPACE_DRUID_FSIM
 

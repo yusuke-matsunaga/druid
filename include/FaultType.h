@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -17,20 +17,19 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @brief 故障の種類を表す列挙型
 //////////////////////////////////////////////////////////////////////
-enum class FaultType {
-  /// @brief 不正な値
-  None,
-  /// @brief 縮退故障
-  StuckAt,
-  /// @brief 遷移故障
-  TransitionDelay,
+enum class FaultType : ymuint8 {
+  None,           ///< 不正な値
+  StuckAt,        ///< 縮退故障
+  TransitionDelay ///< 遷移故障
 };
 
 /// @brief FaultType のストリーム出力演算子
 inline
 ostream&
-operator<<(ostream& s,
-	   FaultType ftype)
+operator<<(
+  ostream& s,
+  FaultType ftype
+)
 {
   switch ( ftype ) {
   case FaultType::None:             s << "NONE"; break;

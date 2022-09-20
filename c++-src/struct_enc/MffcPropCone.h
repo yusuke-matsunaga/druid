@@ -6,12 +6,10 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "PropCone.h"
-#include "ym/HashMap.h"
 
 
 BEGIN_NAMESPACE_DRUID_STRUCTENC
@@ -26,21 +24,18 @@ class MffcPropCone :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] struct_sat StructEnc ソルバ
-  /// @param[in] mffc MFFC の情報
-  /// @param[in] block_node ブロックノード
-  /// @param[in] detect 故障を検出する時に true にするフラグ
   ///
   /// ブロックノードより先のノードは含めeない．
   /// 通常 block_node は nullptr か root_node の dominator
   /// となっているはず．
-  MffcPropCone(StructEnc& struct_sat,
-	   const TpgMFFC& mffc,
-	   const TpgNode* block_node,
-	   bool detect);
+  MffcPropCone(
+    StructEnc& struct_enc,     ///< [in] StructEnc
+    const TpgMFFC& mffc,       ///< [in] MFFC の情報
+    const TpgNode* block_node, ///< [in] ブロックノード
+    bool detect		       ///< [in] 故障を検出する時に true にするフラグ
+  );
 
   /// @brief デストラクタ
-  virtual
   ~MffcPropCone();
 
 
@@ -50,22 +45,18 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 関係するノードの変数を作る．
-  virtual
   void
-  make_vars();
+  make_vars() override;
 
   /// @brief 関係するノードの入出力の関係を表すCNFを作る．
-  virtual
   void
-  make_cnf();
+  make_cnf() override;
 
   /// @brief 故障の影響伝搬させる条件を作る．
-  /// @param[in] root 起点となるノード
-  /// @param[out] assumptions 結果の仮定を表すリテラルのリスト
-  virtual
-  void
-  make_prop_condition(const TpgNode* root,
-		      vector<SatLiteral>& assumptions);
+  vector<SatLiteral>
+  make_condition(
+    const TpgNode* root ///< [in] 起点となるノード
+  ) override;
 
 
 private:
@@ -74,16 +65,17 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief node に関する故障伝搬条件を作る．
-  /// @param[in] node 対象のノード
   void
-  make_dchain_cnf(const TpgNode* node);
+  make_dchain_cnf(
+    const TpgNode* node ///< [in] 対象のノード
+  );
 
   /// @brief 故障挿入回路のCNFを作る．
-  /// @param[in] ffr_pos 要素番号
-  /// @param[in] ovar ゲートの出力の変数
   void
-  inject_fault(int ffr_pos,
-	       SatVarId ovar);
+  inject_fault(
+    int ffr_pos,    ///< [in] 要素番号
+    SatLiteral ovar ///< [in] ゲートの出力の変数
+  );
 
 
 private:
@@ -97,17 +89,12 @@ private:
 
   // 各FFRの根に反転イベントを挿入するための変数
   // サイズは mElemArray.size()
-  vector<SatVarId> mElemVarArray;
+  vector<SatLiteral> mElemVarArray;
 
   // ノード番号をキーにしてFFR番号を入れる連想配列
-  HashMap<int, int> mElemPosMap;
+  unordered_map<int, int> mElemPosMap;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
 
 END_NAMESPACE_DRUID_STRUCTENC
 

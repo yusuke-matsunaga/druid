@@ -3,9 +3,8 @@
 /// @brief TpgGateInfo の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "TpgGateInfo.h"
 #include "SimpleGateInfo.h"
@@ -20,31 +19,34 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 // 論理式中の演算子の数を数える．
-int
-count_expr(const Expr& expr)
+SizeType
+count_expr(
+  const Expr& expr
+)
 {
   if ( !expr.is_op() ) {
     return 0;
   }
 
-  int n = 1;
-  int nc = expr.child_num();
-  for ( int i: Range(nc) ) {
-    n += count_expr(expr.child(i));
+  SizeType n = 1;
+  for ( auto subexpr: expr.operand_list() ) {
+    n += count_expr(subexpr);
   }
   return n;
 }
 
 // 追加で必要なノード数を数える．
-int
-extra_node_count(const Expr& expr,
-		 int ni)
+SizeType
+extra_node_count(
+  SizeType ni,
+  const Expr& expr
+)
 {
   // まず入力部分に挿入されるノード数を数える．
-  int n = 0;
-  for ( int i: Range(ni) ) {
-    int p_num = expr.litnum(VarId(i), false);
-    int n_num = expr.litnum(VarId(i), true);
+  SizeType n = 0;
+  for ( SizeType i: Range(ni) ) {
+    SizeType p_num = expr.literal_num(VarId(i), false);
+    SizeType n_num = expr.literal_num(VarId(i), true);
     ASSERT_COND( p_num > 0 || n_num > 0 );
     if ( n_num == 0 ) {
       if ( p_num > 1 ) {
@@ -70,8 +72,10 @@ extra_node_count(const Expr& expr,
 
 // calc_c_val の下請け関数
 Val3
-ccv_sub(const Expr& expr,
-	const vector<Val3>& ivals)
+ccv_sub(
+  const Expr& expr,
+  const vector<Val3>& ivals
+)
 {
   if ( expr.is_zero() ) {
     return Val3::_0;
@@ -84,15 +88,14 @@ ccv_sub(const Expr& expr,
     return ivals[iid];
   }
   if ( expr.is_nega_literal() ) {
-    int iid = expr.varid().val();
+    SizeType iid = expr.varid().val();
     return ~ivals[iid];
   }
 
-  int nc = expr.child_num();
   if ( expr.is_and() ) {
     bool has_x = false;
-    for ( int i: Range(nc) ) {
-      Val3 ival = ccv_sub(expr.child(i), ivals);
+    for ( auto expr1: expr.operand_list() ) {
+      Val3 ival = ccv_sub(expr1, ivals);
       if ( ival == Val3::_0 ) {
 	return Val3::_0;
       }
@@ -108,8 +111,8 @@ ccv_sub(const Expr& expr,
 
   if ( expr.is_or() ) {
     bool has_x = false;
-    for ( int i: Range(nc) ) {
-      Val3 ival = ccv_sub(expr.child(i), ivals);
+    for ( auto expr1: expr.operand_list() ) {
+      Val3 ival = ccv_sub(expr1, ivals);
       if ( ival == Val3::_1 ) {
 	return Val3::_1;
       }
@@ -125,8 +128,8 @@ ccv_sub(const Expr& expr,
 
   if ( expr.is_xor() ) {
     Val3 val = Val3::_0;
-    for ( int i: Range(nc) ) {
-      Val3 ival = ccv_sub(expr.child(i), ivals);
+    for ( auto expr1: expr.operand_list() ) {
+      Val3 ival = ccv_sub(expr1, ivals);
       if ( ival == Val3::_X ) {
 	return Val3::_X;
       }
@@ -141,10 +144,12 @@ ccv_sub(const Expr& expr,
 
 // 制御値の計算を行う．
 Val3
-calc_c_val(const Expr& expr,
-	   int ni,
-	   int ipos,
-	   Val3 val)
+calc_c_val(
+  SizeType ni,
+  const Expr& expr,
+  SizeType ipos,
+  Val3 val
+)
 {
   vector<Val3> ivals(ni, Val3::_X);
   ivals[ipos] = val;
@@ -153,8 +158,10 @@ calc_c_val(const Expr& expr,
 
 // 制御値の計算を行う．
 Val3
-c_val(GateType gate_type,
-      Val3 ival)
+c_val(
+  GateType gate_type,
+  Val3 ival
+)
 {
   switch ( gate_type ) {
   case GateType::Const0:
@@ -206,9 +213,9 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] gate_type ゲートタイプ
-SimpleGateInfo::SimpleGateInfo(GateType gate_type) :
-  mGateType(gate_type)
+SimpleGateInfo::SimpleGateInfo(
+  GateType gate_type
+) : mGateType{gate_type}
 {
   mCVal[0] = c_val(gate_type, Val3::_0);
   mCVal[1] = c_val(gate_type, Val3::_1);
@@ -238,22 +245,22 @@ Expr
 SimpleGateInfo::expr() const
 {
   // ダミー
-  return Expr::invalid();
+  return Expr::make_invalid();
 }
 
 // @brief 追加ノード数を返す．
-int
+SizeType
 SimpleGateInfo::extra_node_num() const
 {
   return 0;
 }
 
 // @brief 制御値を返す．
-// @param[in] pos 入力位置
-// @param[in] val 値
 Val3
-SimpleGateInfo::cval(int pos,
-		     Val3 val) const
+SimpleGateInfo::cval(
+  SizeType pos,
+  Val3 val
+) const
 {
   int bval = (val == Val3::_0) ? 0 : 1;
   return mCVal[bval];
@@ -265,16 +272,16 @@ SimpleGateInfo::cval(int pos,
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] expr 論理式
-CplxGateInfo::CplxGateInfo(int ni,
-			   const Expr& expr) :
-  mExpr(expr),
-  mCVal(ni * 2)
+CplxGateInfo::CplxGateInfo(
+  SizeType ni,
+  const Expr& expr
+) : mExpr{expr},
+    mCVal(ni * 2)
 {
-  mExtraNodeNum = extra_node_count(expr, ni);
-  for ( int i: Range(ni) ) {
-    mCVal[i * 2 + 0] = calc_c_val(expr, ni, i, Val3::_0);
-    mCVal[i * 2 + 1] = calc_c_val(expr, ni, i, Val3::_1);
+  mExtraNodeNum = extra_node_count(ni, expr);
+  for ( SizeType i: Range(ni) ) {
+    mCVal[i * 2 + 0] = calc_c_val(ni, expr, i, Val3::_0);
+    mCVal[i * 2 + 1] = calc_c_val(ni, expr, i, Val3::_1);
   }
 }
 
@@ -306,18 +313,18 @@ CplxGateInfo::expr() const
 }
 
 // @brief 追加ノード数を返す．
-int
+SizeType
 CplxGateInfo::extra_node_num() const
 {
   return mExtraNodeNum;
 }
 
 // @brief 制御値を返す．
-// @param[in] pos 入力位置
-// @param[in] val 値
 Val3
-CplxGateInfo::cval(int pos,
-		   Val3 val) const
+CplxGateInfo::cval(
+  SizeType pos,
+  Val3 val
+) const
 {
   int bval = (val == Val3::_0) ? 0 : 1;
   return mCVal[pos * 2 + bval];
@@ -355,9 +362,10 @@ TpgGateInfoMgr::~TpgGateInfoMgr()
 }
 
 // @brief 組み込み型のオブジェクトを返す．
-// @param[in] gate_type ゲートタイプ
 const TpgGateInfo*
-TpgGateInfoMgr::simple_type(GateType gate_type)
+TpgGateInfoMgr::simple_type(
+  GateType gate_type
+)
 {
   switch ( gate_type ) {
   case GateType::Const0: return mSimpleType[0];
@@ -377,13 +385,13 @@ TpgGateInfoMgr::simple_type(GateType gate_type)
 }
 
 // @brief 複合型のオブジェクトを返す．
-// @param[in] ni 入力数
-// @param[in] expr 論理式
 const TpgGateInfo*
-TpgGateInfoMgr::complex_type(int ni,
-			     const Expr& expr)
+TpgGateInfoMgr::complex_type(
+  SizeType ni,
+  const Expr& expr
+)
 {
-  TpgGateInfo* node_info = new CplxGateInfo(ni, expr);
+  auto node_info = new CplxGateInfo(ni, expr);
   mList.push_back(node_info);
   return node_info;
 }

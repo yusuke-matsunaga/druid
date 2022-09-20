@@ -5,7 +5,7 @@
 /// @brief TpgStemFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2007, 2012-2014, 2018 Yusuke Matsunaga
+/// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgFaultBase.h"
@@ -23,16 +23,13 @@ class TpgStemFault :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] id ID番号
-  /// @param[in] val 故障値
-  /// @param[in] node 故障位置のノード
-  /// @param[in] name 故障位置のノード名
-  /// @param[in] rep_fault 代表故障
-  TpgStemFault(int id,
-	       int val,
-	       const TpgNode* node,
-	       const char* name,
-	       TpgFault* rep_fault);
+  TpgStemFault(
+    SizeType id,         ///< [in] ID番号
+    Fval2 val,           ///< [in] 故障値
+    const TpgNode* node, ///< [in] 故障位置のノード
+    const string& name,  ///< [in] 故障位置のノード名
+    TpgFault* rep_fault  ///< [in] 代表故障
+  );
 
   /// @brief デストラクタ
   ~TpgStemFault();
@@ -60,13 +57,13 @@ public:
   /// @brief ブランチの入力位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
-  int
+  SizeType
   fault_pos() const override;
 
   /// @brief tpg_onode 上の故障位置を返す．
   ///
   /// is_branch_fault() == true の時のみ意味を持つ．
-  int
+  SizeType
   tpg_pos() const override;
 
   /// @brief 故障の内容を表す文字列を返す．

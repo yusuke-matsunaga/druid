@@ -5,12 +5,10 @@
 /// @brief NodeMap のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "druid.h"
-#include "ym/HashMap.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,10 +22,10 @@ class NodeMap
 public:
 
   /// @brief コンストラクタ
-  NodeMap();
+  NodeMap() = default;
 
   /// @brief デストラクタ
-  ~NodeMap();
+  ~NodeMap() = default;
 
 
 public:
@@ -36,21 +34,27 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 登録する．
-  /// @param[in] bnnode_id BnNode のID番号
-  /// @param[in] tpgnode TpgNode
   void
-  reg(int bnnode_id,
-      TpgNode* tpgnode);
+  reg(
+    SizeType bnnode_id, ///< [in] BnNode のID番号
+    TpgNode* tpgnode    ///< [in] TpgNode
+  )
+  {
+    ASSERT_COND( mNodeMap.count(bnnode_id) == 0 );
+    mNodeMap.emplace(bnnode_id, tpgnode);
+  }
 
   /// @brief 対応するノードを得る．
   TpgNode*
-  get(int bnnode_id) const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  get(
+    SizeType bnnode_id ///< [in] BnNode のID番号
+  ) const
+  {
+    if ( mNodeMap.count(bnnode_id) > 0 ) {
+      return mNodeMap.at(bnnode_id);
+    }
+    return nullptr;
+}
 
 
 private:
@@ -59,7 +63,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // BnNode::id() をキーにした配列
-  HashMap<int, TpgNode*> mNodeMap;
+  unordered_map<int, TpgNode*> mNodeMap;
 
 };
 

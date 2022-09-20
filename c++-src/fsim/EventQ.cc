@@ -3,9 +3,8 @@
 /// @brief EventQ の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "EventQ.h"
 #include "SimNode.h"
@@ -19,15 +18,15 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-EventQ::EventQ() :
-  mArraySize(0),
-  mArray(nullptr),
-  mNum(0),
-  mClearArraySize(0),
-  mClearArray(nullptr),
-  mClearPos(0),
-  mFlipMaskArray(nullptr),
-  mMaskPos(0)
+EventQ::EventQ(
+) : mArraySize{0},
+    mArray{nullptr},
+    mNum{0},
+    mClearArraySize{0},
+    mClearArray{nullptr},
+    mClearPos{0},
+    mFlipMaskArray{nullptr},
+    mMaskPos{0}
 {
 }
 
@@ -40,11 +39,11 @@ EventQ::~EventQ()
 }
 
 // @brief 初期化を行う．
-// @param[in] max_level 最大レベル
-// @param[in] node_num ノード数
 void
-EventQ::init(int max_level,
-	     int node_num)
+EventQ::init(
+  SizeType max_level,
+  SizeType node_num
+)
 {
   if ( max_level >= mArraySize ) {
     delete [] mArray;
@@ -67,12 +66,12 @@ EventQ::init(int max_level,
 }
 
 // @brief 初期イベントを追加する．
-// @param[in] node 対象のノード
-// @param[in] valmask 反転マスク
 void
-EventQ::put_trigger(SimNode* node,
-		    PackedVal valmask,
-		    bool immediate)
+EventQ::put_trigger(
+  SimNode* node,
+  PackedVal valmask,
+  bool immediate
+)
 {
   if ( immediate || node->gate_type() == GateType::Input ) {
     // 入力の場合，他のイベントの干渉は受けないので
@@ -93,14 +92,10 @@ EventQ::put_trigger(SimNode* node,
 }
 
 // @brief イベントドリブンシミュレーションを行う．
-// @param[in] target 目標のノード
-// @retval 出力における変化ビットを返す．
-//
-// target が nullptr でない時にはイベントが target まで到達したら
-// シミュレーションを終える．
-// target が nullptr の時には出力ノードまでイベントを伝える．
 PackedVal
-EventQ::simulate(SimNode* target)
+EventQ::simulate(
+  SimNode* target
+)
 {
   // どこかの外部出力で検出されたことを表すビット
   auto obs = kPvAll0;

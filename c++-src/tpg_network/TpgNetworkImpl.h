@@ -5,9 +5,8 @@
 /// @brief TpgNetworkImpl のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 
@@ -15,8 +14,10 @@
 #include "ym/clib.h"
 #include "ym/logic.h"
 #include "ym/Array.h"
-#include "ym/SimpleAlloc.h"
 
+#include "TpgDff.h"
+#include "TpgMFFC.h"
+#include "TpgFFR.h"
 
 BEGIN_NAMESPACE_DRUID
 
@@ -49,186 +50,281 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ノード数を得る．
-  int
-  node_num() const;
+  SizeType
+  node_num() const
+  {
+    return mNodeArray.size();
+  }
 
   /// @brief ノードを得る．
-  /// @param[in] id ID番号 ( 0 <= id < node_num() )
   ///
   /// @code
   /// node = network.node(node->id())
   /// @endcode
   /// の関係が成り立つ．
   const TpgNode*
-  node(int id) const;
+  node(
+    SizeType id ///< [in] ID番号 ( 0 <= id < node_num() )
+  ) const
+  {
+    ASSERT_COND( id >= 0 && id < node_num() );
+
+    return mNodeArray[id];
+  }
 
   /// @brief 全ノードのリストを得る．
-  Array<const TpgNode*>
-  node_list() const;
+  const vector<const TpgNode*>&
+  node_list() const
+  {
+    return mNodeArray;
+  }
 
   /// @brief ノード名を得る．
-  /// @param[in] id ID番号 ( 0 <= id < node_num() )
-  const char*
-  node_name(int id) const;
+  const string&
+  node_name(
+    SizeType id ///< [in] ID番号 ( 0 <= id < node_num() )
+  ) const;
 
   /// @brief 外部入力数を得る．
-  int
-  input_num() const;
+  SizeType
+  input_num() const
+  {
+    return mInputNum;
+  }
 
   /// @brief 外部入力ノードを得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < input_num() )
   ///
   /// @code
   /// node = network.input(node->input_id())
   /// @endcode
   /// の関係が成り立つ．
   const TpgNode*
-  input(int pos) const;
+  input(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < input_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < input_num() );
+
+    return mPPIArray[pos];
+  }
 
   /// @brief 外部入力ノードのリストを得る．
-  Array<const TpgNode*>
-  input_list() const;
+  const vector<const TpgNode*>&
+  input_list() const
+  {
+    return mPPIArray;
+  }
 
   /// @brief 外部出力数を得る．
-  int
-  output_num() const;
+  SizeType
+  output_num() const
+  {
+    return mOutputNum;
+  }
 
   /// @brief 外部出力ノードを得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < output_num() )
   ///
   /// @code
   /// node = network.output(node->output_id())
   /// @endcode
   /// の関係が成り立つ．
   const TpgNode*
-  output(int pos) const;
+  output(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < output_num() );
+
+    return mPPOArray[pos];
+  }
 
   /// @brief 外部出力ノードのリストを得る．
-  Array<const TpgNode*>
-  output_list() const;
+  const vector<const TpgNode*>&
+  output_list() const
+  {
+    return mPPOArray;
+  }
 
   /// @brief TFIサイズの降順で整列した順番で外部出力ノードを取り出す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < output_num() )
   ///
   /// @code
   /// node = network.output2(node->output_id2())
   /// @endcode
   /// の関係が成り立つ．
   const TpgNode*
-  output2(int pos) const;
+  output2(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < output_num() );
+
+    return mPPOArray2[pos];
+  }
 
   /// @brief スキャン方式の擬似外部入力数を得る．
   ///
   /// = input_num() + dff_num()
-  int
-  ppi_num() const;
+  SizeType
+  ppi_num() const
+  {
+    return input_num() + dff_num();
+  }
 
   /// @brief スキャン方式の擬似外部入力を得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < ppi_num() )
   ///
   /// @code
   /// node = network.ppi(node->input_id())
   /// @endcode
   /// の関係が成り立つ．
   const TpgNode*
-  ppi(int pos) const;
+  ppi(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ppi_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < ppi_num() );
+
+    return mPPIArray[pos];
+  }
 
   /// @brief 擬似外部入力のリストを得る．
-  Array<const TpgNode*>
-  ppi_list() const;
+  const vector<const TpgNode*>&
+  ppi_list() const
+  {
+    return mPPIArray;
+  }
 
   /// @brief スキャン方式の擬似外部出力数を得る．
   ///
   /// = output_num() + dff_num()
-  int
-  ppo_num() const;
+  SizeType
+  ppo_num() const
+  {
+    return output_num() + dff_num();
+  }
 
   /// @brief スキャン方式の擬似外部出力を得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < ppo_num() )
   ///
   /// @code
   /// node = network.ppo(node->output_id())
   /// @endcode
   /// の関係が成り立つ．
   const TpgNode*
-  ppo(int pos) const;
+  ppo(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ppo_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < ppo_num() );
+
+    return mPPOArray[pos];
+  }
 
   /// @brief 擬似外部出力のリストを得る．
-  Array<const TpgNode*>
-  ppo_list() const;
+  const vector<const TpgNode*>&
+  ppo_list() const
+  {
+    return mPPOArray;
+  }
 
   /// @brief MFFC 数を返す．
-  int
-  mffc_num() const;
+  SizeType
+  mffc_num() const
+  {
+    return mMffcArray.size();
+  }
 
   /// @brief MFFC を返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < mffc_num() )
   const TpgMFFC&
-  mffc(int pos) const;
+  mffc(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
+  ) const;
 
   /// @brief MFFC のリストを得る．
-  Array<const TpgMFFC>
+  const vector<TpgMFFC>&
   mffc_list() const;
 
   /// @brief FFR 数を返す．
-  int
-  ffr_num() const;
+  SizeType
+  ffr_num() const
+  {
+    return mFfrArray.size();
+  }
 
   /// @brief FFR を返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < ffr_num() )
   const TpgFFR&
-  ffr(int pos) const;
+  ffr(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
+  ) const;
 
   /// @brief FFR のリストを得る．
-  Array<const TpgFFR>
+  const vector<TpgFFR>&
   ffr_list() const;
 
   /// @brief DFF数を得る．
-  int
-  dff_num() const;
+  SizeType
+  dff_num() const
+  {
+    return mDffArray.size();
+  }
 
   /// @brief DFF を得る．
-  /// @param[in] pos 位置番号 ( 0 <= pos < dff_num() )
   ///
   /// @code
   /// dff = network.dff(dff->id())
   /// @endcode
   /// の関係が成り立つ．
   const TpgDff&
-  dff(int pos) const;
+  dff(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
+  ) const;
 
   /// @brief DFF のリストを得る．
-  Array<const TpgDff>
+  const vector<TpgDff>&
   dff_list() const;
 
   /// @brief 故障IDの最大値+1を返す．
-  int
-  max_fault_id() const;
+  SizeType
+  max_fault_id() const
+  {
+    return mFaultNum;
+  }
 
   /// @brief 全代表故障数を返す．
-  int
-  rep_fault_num() const;
+  SizeType
+  rep_fault_num() const
+  {
+    return mRepFaultArray.size();
+  }
 
   /// @brief 代表故障を返す．
-  /// @param[in] pos 位置番号 ( 0 <= pos < rep_fault_num() )
   const TpgFault*
-  rep_fault(int pos) const;
+  rep_fault(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < rep_fault_num() )
+  ) const
+  {
+    ASSERT_COND( pos >= 0 && pos < rep_fault_num() );
+
+    return mRepFaultArray[pos];
+  }
 
   /// @brief 代表故障のリストを返す．
-  Array<const TpgFault*>
-  rep_fault_list() const;
+  const vector<const TpgFault*>&
+  rep_fault_list() const
+  {
+    return mRepFaultArray;
+  }
 
   /// @brief ノードに関係した代表故障数を返す．
-  /// @param[in] id ID番号 ( 0 <= id < node_num() )
-  int
-  node_rep_fault_num(int id) const;
+  SizeType
+  node_rep_fault_num(
+    SizeType id ///< [in] ID番号 ( 0 <= id < node_num() )
+  ) const;
 
   /// @brief ノードに関係した代表故障を返す．
-  /// @param[in] id ID番号 ( 0 <= id < node_num() )
-  /// @param[in] pos 位置番号 ( 0 <= pos < node_rep_fault_num(id) )
   const TpgFault*
-  node_rep_fault(int id,
-		 int pos) const;
+  node_rep_fault(
+    SizeType id,  ///< [in] ID番号 ( 0 <= id < node_num() )
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < node_rep_fault_num(id) )
+  ) const;
 
 
 public:
@@ -237,16 +333,19 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief BnNetwork から内容を設定する．
-  /// @param[in] network 設定元のネットワーク
   void
-  set(const BnNetwork& network);
+  set(
+    const BnNetwork& network ///< [in] 設定元のネットワーク
+  );
 
   /// @brief サイズを設定する．
   void
-  set_size(int input_num,
-	   int output_num,
-	   int dff_num,
-	   int node_num);
+  set_size(
+    SizeType input_num,
+    SizeType output_num,
+    SizeType dff_num,
+    SizeType node_num
+  );
 
 
 private:
@@ -260,23 +359,26 @@ private:
   /// 対応しているかを表す．
   struct InodeInfo
   {
-    InodeInfo(TpgNode* node = nullptr,
-	      int pos = 0) :
-      mNode(node),
-      mPos(pos)
+    InodeInfo(
+      const TpgNode* node = nullptr,
+      SizeType pos = 0
+    ) : mNode{node},
+	mPos{pos}
     {
     }
 
     void
-    set(TpgNode* node,
-	int pos)
+    set(
+      const TpgNode* node,
+      SizeType pos
+    )
     {
       mNode = node;
       mPos = pos;
     }
 
-    TpgNode* mNode;
-    int mPos;
+    const TpgNode* mNode;
+    SizeType mPos;
   };
 
 
@@ -290,214 +392,199 @@ public:
   clear();
 
   /// @brief 入力ノードを生成する．
-  /// @param[in] iid 入力の番号
-  /// @param[in] name ノード名
-  /// @param[in] fanout_num ファンアウト数
   /// @return 生成したノードを返す．
   TpgNode*
-  make_input_node(int iid,
-		  const string& name,
-		  int fanout_num);
+  make_input_node(
+    SizeType iid,       ///< [in] 入力の番号
+    const string& name, ///< [in] ノード名
+    SizeType fanout_num ///< [in] ファンアウト数
+  );
 
   /// @brief 出力ノードを生成する．
-  /// @param[in] oid 出力の番号
-  /// @param[in] name ノード名
-  /// @param[in] inode 入力のノード
   /// @return 生成したノードを返す．
   TpgNode*
-  make_output_node(int oid,
-		   const string& name,
-		   TpgNode* inode);
+  make_output_node(
+    SizeType oid,        ///< [in] 出力の番号
+    const string& name,  ///< [in] ノード名
+    const TpgNode* inode ///< [in] 入力のノード
+  );
 
   /// @brief DFFの入力ノードを生成する．
-  /// @param[in] oid 出力の番号
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] name ノード名
-  /// @param[in] inode 入力のノード
   /// @return 生成したノードを返す．
   TpgNode*
-  make_dff_input_node(int oid,
-		      const TpgDff* dff,
-		      const string& name,
-		      TpgNode* inode);
+  make_dff_input_node(
+    SizeType oid,        ///< [in] 出力の番号
+    const TpgDff* dff,   ///< [in] 接続しているDFF
+    const string& name,  ///< [in] ノード名
+    const TpgNode* inode ///< [in] 入力のノード
+  );
 
   /// @brief DFFの出力ノードを生成する．
-  /// @param[in] iid 入力の番号
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] name ノード名
-  /// @param[in] fanout_num ファンアウト数
   /// @return 生成したノードを返す．
   TpgNode*
-  make_dff_output_node(int iid,
-		       const TpgDff* dff,
-		       const string& name,
-		       int fanout_num);
+  make_dff_output_node(
+    SizeType iid,        ///< [in] 入力の番号
+    const TpgDff* dff,   ///< [in] 接続しているDFF
+    const string& name,  ///< [in] ノード名
+    SizeType fanout_num  ///< [in] ファンアウト数
+  );
 
   /// @brief DFFのクロック端子を生成する．
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] name ノード名
-  /// @param[in] inode 入力のノード
   /// @return 生成したノードを返す．
   TpgNode*
-  make_dff_clock_node(const TpgDff* dff,
-		      const string& name,
-		      TpgNode* inode);
+  make_dff_clock_node(
+    const TpgDff* dff,   ///< [in] 接続しているDFF
+    const string& name,  ///< [in] ノード名
+    const TpgNode* inode ///< [in] 入力のノード
+  );
 
   /// @brief DFFのクリア端子を生成する．
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] name ノード名
-  /// @param[in] inode 入力のノード
   /// @return 生成したノードを返す．
   TpgNode*
-  make_dff_clear_node(const TpgDff* dff,
-		      const string& name,
-		      TpgNode* inode);
+  make_dff_clear_node(
+    const TpgDff* dff,   ///< [in] 接続しているDFF
+    const string& name,  ///< [in] ノード名
+    const TpgNode* inode ///< [in] 入力のノード
+  );
 
   /// @brief DFFのプリセット端子を生成する．
-  /// @param[in] dff 接続しているDFF
-  /// @param[in] name ノード名
-  /// @param[in] inode 入力のノード
   /// @return 生成したノードを返す．
   TpgNode*
-  make_dff_preset_node(const TpgDff* dff,
-		       const string& name,
-		       TpgNode* inode);
+  make_dff_preset_node(
+    const TpgDff* dff,   ///< [in] 接続しているDFF
+    const string& name,  ///< [in] ノード名
+    const TpgNode* inode ///< [in] 入力のノード
+  );
 
   /// @brief 論理ノードを生成する．
-  /// @param[in] name ノード名
-  /// @param[in] node_info 論理関数の情報
-  /// @param[in] fanin_list ファンインのリスト
-  /// @param[in] fanout_num ファンアウト数
-  /// @param[out] connection_list 接続リスト
   /// @return 生成したノードを返す．
   TpgNode*
-  make_logic_node(const string& name,
-		  const TpgGateInfo* node_info,
-		  const vector<TpgNode*>& fanin_list,
-		  int fanout_num,
-		  vector<pair<int, int>>& connection_list);
+  make_logic_node(
+    const string& name,                       ///< [in] ノード名
+    const TpgGateInfo* node_info,             ///< [in] 論理関数の情報
+    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
+    SizeType fanout_num,                      ///< [in] ファンアウト数
+    vector<pair<SizeType, SizeType>>& connection_list   ///< [in] 接続リスト
+  );
 
   /// @brief 論理式から TpgNode の木を生成する．
-  /// @param[in] name ノード名
-  /// @param[in] expr 式
-  /// @param[in] leaf_nodes 式のリテラルに対応するノードの配列
-  /// @param[in] inode_array ファンインの対応関係を収める配列
-  /// @param[in] fanout_num ファンアウト数
-  /// @param[out] connection_list 接続リスト
-  /// @return 生成したノードを返す．
   ///
   /// leaf_nodes は 変数番号 * 2 + (0/1) に
   /// 該当する変数の肯定/否定のリテラルが入っている．
   TpgNode*
-  make_cplx_node(const string& name,
-		 const Expr& expr,
-		 const vector<TpgNode*>& leaf_nodes,
-		 vector<InodeInfo>& inode_array,
-		 int fanout_num,
-		 vector<pair<int, int>>& connection_list);
-
-  /// @brief 組み込み型の論理ゲートを生成する．
-  /// @param[in] name ノード名
-  /// @param[in] type ゲートの型
-  /// @param[in] fanin_list ファンインのリスト
-  /// @param[in] fanout_num ファンアウト数
-  /// @param[out] connection_list 接続リスト
-  /// @return 生成したノードを返す．
-  TpgNode*
-  make_prim_node(const string& name,
-		 GateType type,
-		 const vector<TpgNode*>& fanin_list,
-		 int fanout_num,
-		 vector<pair<int, int>>& connection_list);
+  make_cplx_node(
+    const string& name,                       ///< [in] ノード名
+    const Expr& expr,			      ///< [in] 式
+    const vector<const TpgNode*>& leaf_nodes, ///< [in] 式のリテラルに対応するノードの配列
+    vector<InodeInfo>& inode_array,	      ///< [in] ファンインの対応関係を収める配列
+    SizeType fanout_num,		      ///< [in] ファンアウト数
+    vector<pair<SizeType, SizeType>>& connection_list   ///< [out] 接続リスト
+  );
 
   /// @brief バッファを生成する．
-  /// @param[in] name ノード名
-  /// @param[in] fanin ファンインのノード
-  /// @param[in] fanout_num ファンアウト数
-  /// @param[out] connection_list 接続リスト
   /// @return 生成したノードを返す．
   TpgNode*
-  make_buff_node(const string& name,
-		 TpgNode* fanin,
-		 int fanout_num,
-		 vector<pair<int, int>>& connection_list);
+  make_buff_node(
+    const string& name,                     ///< [in] ノード名
+    const TpgNode* fanin,		    ///< [in] ファンインのノード
+    SizeType fanout_num,		    ///< [in] ファンアウト数
+    vector<pair<SizeType, SizeType>>& connection_list ///< [out] 接続リスト
+  );
 
   /// @brief インバーターを生成する．
-  /// @param[in] name ノード名
-  /// @param[in] fanin ファンインのノード
-  /// @param[in] fanout_num ファンアウト数
-  /// @param[out] connection_list 接続リスト
   /// @return 生成したノードを返す．
   TpgNode*
-  make_not_node(const string& name,
-		TpgNode* fanin,
-		int fanout_num,
-		vector<pair<int, int>>& connection_list);
+  make_not_node(
+    const string& name,                     ///< [in] ノード名
+    const TpgNode* fanin,		    ///< [in] ファンインのノード
+    SizeType fanout_num,		    ///< [in] ファンアウト数
+    vector<pair<SizeType, SizeType>>& connection_list ///< [out] 接続リスト
+  );
+
+  /// @brief 組み込み型の論理ゲートを生成する．
+  /// @return 生成したノードを返す．
+  TpgNode*
+  make_prim_node(
+    const string& name,                       ///< [in] ノード名
+    GateType type,			      ///< [in] ゲートの型
+    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
+    SizeType fanout_num,                      ///< [in] ファンアウト数
+    vector<pair<SizeType, SizeType>>& connection_list ///< [out] 接続リスト
+  );
+
+  /// @brief 論理ノードを作る．
+  /// @return 作成したノードを返す．
+  TpgNode*
+  make_logic(
+    GateType gate_type,                       ///< [in] ゲートタイプ
+    const vector<const TpgNode*>& inode_list, ///< [in] 入力ノードのリスト
+    SizeType fanout_num                       ///< [in] ファンアウト数
+  );
+
+  /// @brief make_XXX_node の共通処理
+  void
+  make_node_common(
+    TpgNode* node,      ///< [in] ノード
+    const string& name, ///< [in] ノード名
+    SizeType ni         ///< [in] ファンイン数
+  );
 
   /// @brief 出力の故障を作る．
-  /// @param[in] name 故障位置のノード名
-  /// @param[in] val 故障値 ( 0 / 1 )
-  /// @param[in] node 故障位置のノード
   void
-  new_ofault(const char* name,
-	     int val,
-	     const TpgNode* node);
+  new_ofault(
+    const string& name, ///< [in] 故障位置のノード名
+    Fval2 val,		///< [in] 故障値 ( 0 / 1 )
+    const TpgNode* node	///< [in] 故障位置のノード
+  );
 
   /// @brief 入力の故障を作る．
-  /// @param[in] name 故障位置のノード名
-  /// @param[in] ipos 故障位置のファンイン番号
-  /// @param[in] val 故障値 ( 0 / 1 )
-  /// @param[in] inode_info TpgNode 上のノードの情報
-  /// @param[in] rep 代表故障
   ///
   /// プリミティブ型の場合は ipos と inode_pos は同一だが
   /// 複合型の場合には異なる．
   void
-  new_ifault(const char* name,
-	     int ipos,
-	     int val,
-	     const InodeInfo& inode_info,
-	     TpgFault* rep);
+  new_ifault(
+    const string& name,          ///< [in] 故障位置のノード名
+    SizeType ipos,		 ///< [in] 故障位置のファンイン番号
+    Fval2 val,			 ///< [in] 故障値 ( 0 / 1 )
+    const InodeInfo& inode_info, ///< [in] TpgNode 上のノードの情報
+    TpgFault* rep		 ///< [in] 代表故障
+  );
 
   /// @brief 出力の故障を得る．
-  /// @param[in] id ノードID ( 0 <= id < node_num() )
-  /// @param[in] val 故障値 ( 0 / 1 )
   TpgFaultBase*
-  _node_output_fault(int id,
-		     int val);
+  _node_output_fault(
+    SizeType id, ///< [in] ノードID ( 0 <= id < node_num() )
+    Fval2 val    ///< [in] 故障値 ( 0 / 1 )
+  );
 
   /// @brief 入力の故障を得る．
-  /// @param[in] id ノードID ( 0 <= id < node_num() )
-  /// @param[in] val 故障値 ( 0 / 1 )
-  /// @param[in] pos 入力の位置番号
   TpgFaultBase*
-  _node_input_fault(int id,
-		    int val,
-		    int pos);
+  _node_input_fault(
+    SizeType id,  ///< [in] id ノードID ( 0 <= id < node_num() )
+    Fval2 val,    ///< [in] val 故障値 ( 0 / 1 )
+    SizeType pos  ///< [in] pos 入力の位置番号
+  );
 
 
   /// @brief 代表故障を設定する．
-  /// @param[in] node 対象のノード
-  int
-  set_rep_faults(const TpgNode* node);
+  SizeType
+  set_rep_faults(
+    const TpgNode* node ///< [in] 対象のノード
+  );
 
   /// @brief FFR の情報を設定する．
-  /// @param[in] root FFR の根のノード
-  /// @param[in] ffr 対象の FFR
   void
-  set_ffr(const TpgNode* root,
-	  TpgFFR* ffr);
+  set_ffr(
+    const TpgNode* root, ///< [in] FFR の根のノード
+    TpgFFR* ffr		 ///< [in] 対象の FFR
+  );
 
   /// @brief MFFC の情報を設定する．
-  /// @param[in] root MFFCの根のノード
-  /// @param[in] mffc 対象のMFFC
   void
-  set_mffc(const TpgNode* root,
-	   TpgMFFC* mffc);
-
-  /// @brief 故障リストから故障の配列を作る．
-  const TpgFault**
-  make_fault_array(const vector<const TpgFault*>& fault_list);
+  set_mffc(
+    const TpgNode* root, ///< [in] root MFFCの根のノード
+    TpgMFFC* mffc	 ///< [in] mffc 対象のMFFC
+  );
 
 
 private:
@@ -505,273 +592,43 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // TpgNetwork 関係のメモリ確保を行なうオブジェクト
-  SimpleAlloc mAlloc;
+  // 入力数
+  SizeType mInputNum{0};
 
-  // 外部入力数
-  int mInputNum;
-
-  // 外部出力数
-  int mOutputNum;
-
-  // DFF数
-  int mDffNum;
+  // 出力数
+  SizeType mOutputNum{0};
 
   // DFFの実体の配列
-  TpgDff* mDffArray;
+  vector<TpgDff> mDffArray;
 
-  // ノード数(mNodeArrayの要素数)
-  int mNodeNum;
-
-  // ノードの配列
-  TpgNode** mNodeArray;
+  // ノードのポインタ配列
+  vector<const TpgNode*> mNodeArray;
 
   // ノードの付加情報の配列
-  AuxNodeInfo* mAuxInfoArray;
+  vector<AuxNodeInfo> mAuxInfoArray;
 
   // PPIノードの配列
-  TpgNode** mPPIArray;
+  vector<const TpgNode*> mPPIArray;
 
   // PPOノードの配列
-  TpgNode** mPPOArray;
+  vector<const TpgNode*> mPPOArray;
 
   // TFI サイズの降順に整列したPPOノードの配列
-  TpgNode** mPPOArray2;
-
-  // MFFC 数
-  int mMffcNum;
+  vector<const TpgNode*> mPPOArray2;
 
   // MFFC の本体の配列
-  TpgMFFC* mMffcArray;
-
-  // FFR 数
-  int mFfrNum;
+  vector<TpgMFFC> mMffcArray;
 
   // FFR の本体の配列
-  TpgFFR* mFfrArray;
+  vector<TpgFFR> mFfrArray;
 
   // 全故障数
-  int mFaultNum;
+  SizeType mFaultNum{0};
 
-  // 全代表故障数
-  int mRepFaultNum;
-
-  // 代表故障の配列
-  const TpgFault** mRepFaultArray;
+  // 代表故障のポインタ配列
+  vector<const TpgFault*> mRepFaultArray;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief ノード数を得る．
-inline
-int
-TpgNetworkImpl::node_num() const
-{
-  return mNodeNum;
-}
-
-// @brief ノードを得る．
-inline
-const TpgNode*
-TpgNetworkImpl::node(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < mNodeNum );
-
-  return mNodeArray[pos];
-}
-
-// @brief 全ノードのリストを得る．
-inline
-Array<const TpgNode*>
-TpgNetworkImpl::node_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(mNodeArray), 0, mNodeNum);
-}
-
-// @brief 外部入力数を得る．
-inline
-int
-TpgNetworkImpl::input_num() const
-{
-  return mInputNum;
-}
-
-// @brief 外部入力ノードを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < input_num() )
-inline
-const TpgNode*
-TpgNetworkImpl::input(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < input_num() );
-
-  return mPPIArray[pos];
-}
-
-// @brief 外部入力ノードのリストを得る．
-inline
-Array<const TpgNode*>
-TpgNetworkImpl::input_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(mPPIArray), 0, mInputNum);
-}
-
-// @brief 外部出力数を得る．
-inline
-int
-TpgNetworkImpl::output_num() const
-{
-  return mOutputNum;
-}
-
-// @brief 外部出力ノードを得る．
-// @param[in] pos 位置番号 ( 0 <= pos < output_num() )
-inline
-const TpgNode*
-TpgNetworkImpl::output(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < output_num() );
-
-  return mPPIArray[pos];
-}
-
-// @brief 外部出力ノードのリストを得る．
-inline
-Array<const TpgNode*>
-TpgNetworkImpl::output_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(mPPOArray), 0, mOutputNum);
-}
-
-// @brief サイズの降順で整列した順番で外部出力ノードを取り出す．
-inline
-const TpgNode*
-TpgNetworkImpl::output2(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < output_num() );
-
-  return mPPOArray2[pos];
-}
-
-// @brief DFF数を得る．
-inline
-int
-TpgNetworkImpl::dff_num() const
-{
-  return mDffNum;
-}
-
-// @brief スキャン方式の擬似外部入力数を得る．
-//
-// = input_num() + dff_num()
-inline
-int
-TpgNetworkImpl::ppi_num() const
-{
-  return mInputNum + mDffNum;
-}
-
-// @brief スキャン方式の擬似外部入力を得る．
-// @param[in] pos 位置番号 ( 0 <= pos < ppi_num() )
-inline
-const TpgNode*
-TpgNetworkImpl::ppi(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < ppi_num() );
-
-  return mPPIArray[pos];
-}
-
-// @brief 擬似外部入力のリストを得る．
-inline
-Array<const TpgNode*>
-TpgNetworkImpl::ppi_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(mPPIArray), 0, ppi_num());
-}
-
-// @brief スキャン方式の擬似外部出力数を得る．
-//
-// = output_num() + dff_num()
-inline
-int
-TpgNetworkImpl::ppo_num() const
-{
-  return mOutputNum + mDffNum;
-}
-
-// @brief スキャン方式の擬似外部出力を得る．
-// @param[in] pos 位置番号 ( 0 <= pos < ppo_num() )
-inline
-const TpgNode*
-TpgNetworkImpl::ppo(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < ppo_num() );
-
-  return mPPOArray[pos];
-}
-
-// @brief 擬似外部出力のリストを得る．
-inline
-Array<const TpgNode*>
-TpgNetworkImpl::ppo_list() const
-{
-  return Array<const TpgNode*>(const_cast<const TpgNode**>(mPPOArray), 0, ppo_num());
-}
-
-// @brief 故障IDの最大値+1を返す．
-inline
-int
-TpgNetworkImpl::max_fault_id() const
-{
-  return mFaultNum;
-}
-
-// @brief MFFC 数を返す．
-inline
-int
-TpgNetworkImpl::mffc_num() const
-{
-  return mMffcNum;
-}
-
-// @brief FFR 数を返す．
-inline
-int
-TpgNetworkImpl::ffr_num() const
-{
-  return mFfrNum;
-}
-
-// @brief 全代表故障数を返す．
-inline
-int
-TpgNetworkImpl::rep_fault_num() const
-{
-  return mRepFaultNum;
-}
-
-// @brief 代表故障を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < rep_fault_num() )
-inline
-const TpgFault*
-TpgNetworkImpl::rep_fault(int pos) const
-{
-  ASSERT_COND( pos >= 0 && pos < rep_fault_num() );
-
-  return mRepFaultArray[pos];
-}
-
-// @brief 代表故障のリストを返す．
-inline
-Array<const TpgFault*>
-TpgNetworkImpl::rep_fault_list() const
-{
-  return Array<const TpgFault*>(mRepFaultArray, 0, rep_fault_num());
-}
 
 END_NAMESPACE_DRUID
 

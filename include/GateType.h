@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -17,45 +17,26 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @brief 論理ゲートの種類を表す列挙型
 //////////////////////////////////////////////////////////////////////
-enum class GateType {
-  /// @brief 定数0
-  Const0 = 0,
-
-  /// @brief 定数1
-  Const1 = 1,
-
-  /// @brief 入力
-  Input  = 2,
-
-  /// @brief バッファ
-  Buff   = 3,
-
-  /// @brief Not
-  Not    = 4,
-
-  /// @brief And
-  And    = 5,
-
-  /// @brief Nand
-  Nand   = 6,
-
-  /// @brief Or
-  Or     = 7,
-
-  /// @brief Nor
-  Nor    = 8,
-
-  /// @brief Xor
-  Xor    = 9,
-
-  /// @brief Xnor
-  Xnor   = 10,
+enum class GateType : ymuint8 {
+  Const0 = 0, ///< 定数0
+  Const1 = 1, ///< 定数1
+  Input  = 2, ///< 入力
+  Buff   = 3, ///< バッファ
+  Not    = 4, ///< Not
+  And    = 5, ///< And
+  Nand   = 6, ///< Nand
+  Or     = 7, ///< Or
+  Nor    = 8, ///< Nor
+  Xor    = 9, ///< Xor
+  Xnor   = 10, ///< Xnor
 };
 
 /// @brief GateType のストリーム演算子
 ostream&
-operator<<(ostream& s,
-	   GateType gate_type);
+operator<<(
+  ostream& s,
+  GateType gate_type
+);
 
 
 //////////////////////////////////////////////////////////////////////

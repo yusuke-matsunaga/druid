@@ -5,9 +5,8 @@
 /// @brief Rtpg のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 #include "ym/RandGen.h"
@@ -24,12 +23,11 @@ class Rtpg
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] network 対象のネットワーク
-  /// @param[in] tvmgr TvMgr
-  /// @param[in] fault_type 故障の種類
-  Rtpg(const TpgNetwork& network,
-       TvMgr& tvmgr,
-       FaultType fault_type);
+  Rtpg(
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    TvMgr& tvmgr,	       ///< [in] TvMgr
+    FaultType fault_type       ///< [in] 故障の種類
+  );
 
   /// @brief デストラクタ
   ~Rtpg();
@@ -45,13 +43,14 @@ public:
   fault_type() const;
 
   /// @brief 乱数生成器を初期化する．
-  /// @param[in] seed 乱数の種
   void
-  randgen_init(ymuint32 seed);
+  randgen_init(
+    ymuint32 seed  ///< [in] 乱数の種
+  );
 
   /// @brief 1セット(kPvBitLen個)のパタンで故障シミュレーションを行う．
   /// @return 新たに検出された故障数を返す．
-  int
+  SizeType
   do_fsim();
 
   /// @brief 検出された故障のリストを返す．
@@ -61,12 +60,6 @@ public:
   /// @brief 故障を検出したパタンのリストを返す．
   const vector<const TestVector*>&
   pattern_list() const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:

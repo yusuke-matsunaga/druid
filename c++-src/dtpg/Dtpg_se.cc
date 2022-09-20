@@ -3,34 +3,30 @@
 /// @brief Dtpg_se の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Dtpg_se.h"
 #include "TpgNetwork.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
+#include "TpgFault.h"
 #include "TestVector.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ(ノードモード)
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] node 故障のあるノード
-// @param[in] just_type Justifier の種類を表す文字列
-// @param[in] solver_type SATソルバの実装タイプ
-Dtpg_se::Dtpg_se(const TpgNetwork& network,
-		 FaultType fault_type,
-		 const TpgNode* node,
-		 const string& just_type,
-		 const SatSolverType& solver_type) :
-  mStructEnc(network, fault_type, solver_type),
-  mFaultType(fault_type),
-  mJustifier(just_type, network),
-  mTimerEnable(true)
+Dtpg_se::Dtpg_se(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const TpgNode* node,
+  const string& just_type,
+  const SatSolverType& solver_type
+) : mStructEnc{network, fault_type, solver_type},
+    mFaultType{fault_type},
+    mJustifier{just_type, network},
+    mTimerEnable{true}
 {
   cnf_begin();
 
@@ -45,20 +41,16 @@ Dtpg_se::Dtpg_se(const TpgNetwork& network,
 
 
 // @brief コンストラクタ(ffrモード)
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] ffr 故障伝搬の起点となる FFR
-// @param[in] just_type Justifier の種類を表す文字列
-// @param[in] solver_type SATソルバの実装タイプ
-Dtpg_se::Dtpg_se(const TpgNetwork& network,
-		 FaultType fault_type,
-		 const TpgFFR& ffr,
-		 const string& just_type,
-		 const SatSolverType& solver_type) :
-  mStructEnc(network, fault_type, solver_type),
-  mFaultType(fault_type),
-  mJustifier(just_type, network),
-  mTimerEnable(true)
+Dtpg_se::Dtpg_se(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const TpgFFR& ffr,
+  const string& just_type,
+  const SatSolverType& solver_type
+) : mStructEnc{network, fault_type, solver_type},
+    mFaultType{fault_type},
+    mJustifier{just_type, network},
+    mTimerEnable{true}
 {
   cnf_begin();
 
@@ -72,23 +64,16 @@ Dtpg_se::Dtpg_se(const TpgNetwork& network,
 }
 
 // @brief コンストラクタ(mffcモード)
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] mffc 故障伝搬の起点となる MFFC
-// @param[in] just_type Justifier の種類を表す文字列
-// @param[in] solver_type SATソルバの実装タイプ
-//
-// この MFFC に含まれるすべての FFR が対象となる．
-// FFR と MFFC が一致している場合は ffr モードと同じことになる．
-Dtpg_se::Dtpg_se(const TpgNetwork& network,
-		 FaultType fault_type,
-		 const TpgMFFC& mffc,
-		 const string& just_type,
-		 const SatSolverType& solver_type) :
-  mStructEnc(network, fault_type, solver_type),
-  mFaultType(fault_type),
-  mJustifier(just_type, network),
-  mTimerEnable(true)
+Dtpg_se::Dtpg_se(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const TpgMFFC& mffc,
+  const string& just_type,
+  const SatSolverType& solver_type
+) : mStructEnc{network, fault_type, solver_type},
+    mFaultType{fault_type},
+    mJustifier{just_type, network},
+    mTimerEnable{true}
 {
   cnf_begin();
 
@@ -112,30 +97,37 @@ Dtpg_se::~Dtpg_se()
 }
 
 // @brief テスト生成を行なう．
-// @param[in] fault 対象の故障
-// @param[out] testvect テストパタンを格納する変数
-// @return 結果を返す．
-//
-// 直前にどちらのモードでCNFを作っていたかで動作は異なる．<br>
-// どちらの関数も呼んでいなければなにもしないで SatBool3::X を返す．
-SatBool3
-Dtpg_se::dtpg(const TpgFault* fault,
-	      TestVector& testvect)
+DtpgResult
+Dtpg_se::gen_pattern(
+  const TpgFault* fault
+)
 {
-  StopWatch timer;
+  Timer timer;
   timer.start();
 
   SatStats prev_stats;
   mStructEnc.solver().get_stats(prev_stats);
 
-  vector<SatLiteral> assumptions;
-  mStructEnc.make_fault_condition(fault, 0, assumptions);
+  // 故障が属している FFR の根のノード
+  const TpgNode* ffr_root = fault->tpg_onode()->ffr_root();
 
-  vector<SatBool3> model;
-  SatBool3 ans = mStructEnc.solver().solve(assumptions, model);
+  // FFR より出力側の故障伝搬条件を assumptions に入れる．
+  auto assumptions = mStructEnc.make_prop_condition(ffr_root, 0);
+
+  // FFR 内の故障伝搬条件を assign_list に入れる．
+  NodeValList assign_list;
+  mStructEnc.add_ffr_condition(ffr_root, fault, assign_list);
+
+  // assign_list を変換して assumptions に追加する．
+  auto as2 = mStructEnc.conv_to_literal_list(assign_list);
+  assumptions.insert(assumptions.end(), as2.begin(), as2.end());
+
+  // SAT問題を解く
+  auto ans = mStructEnc.solver().solve(assumptions);
+  const auto& model = mStructEnc.solver().model();
 
   timer.stop();
-  USTime time = timer.time();
+  auto time = timer.get_time();
 
   SatStats sat_stats;
   mStructEnc.solver().get_stats(sat_stats);
@@ -147,24 +139,28 @@ Dtpg_se::dtpg(const TpgFault* fault,
     timer.reset();
     timer.start();
 
-    // バックトレースを行う．
-    NodeValList assign_list = mStructEnc.extract(model, fault, 0);
-    mStructEnc.justify(model, assign_list, mJustifier, testvect);
+    // ffr_root より先の伝搬条件を求める．
+    NodeValList assign_list2 = mStructEnc.extract_prop_condition(ffr_root, 0, model);
+    assign_list.merge(assign_list2);
+
+    // assign_list の条件を正当化する．
+    auto testvect = mStructEnc.justify(model, assign_list, mJustifier);
 
     timer.stop();
-    mStats.mBackTraceTime += timer.time();
+    mStats.mBackTraceTime += timer.get_time();
     mStats.update_det(sat_stats, time);
+    return DtpgResult{testvect};
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
     mStats.update_red(sat_stats, time);
+    return DtpgResult{FaultStatus::Untestable};
   }
   else {
     // ans == SatBool3::X つまりアボート
     mStats.update_abort(sat_stats, time);
+    return DtpgResult{FaultStatus::Undetected};
   }
-
-  return ans;
 }
 
 // @brief DTPG の統計情報を返す．
@@ -185,7 +181,7 @@ Dtpg_se::cnf_begin()
 void
 Dtpg_se::cnf_end()
 {
-  USTime time = timer_stop();
+  auto time = timer_stop();
   mStats.mCnfGenTime += time;
   ++ mStats.mCnfGenCount;
 }
@@ -201,15 +197,16 @@ Dtpg_se::timer_start()
 }
 
 /// @brief 時間計測を終了する．
-USTime
+double
 Dtpg_se::timer_stop()
 {
-  USTime time(0, 0, 0);
   if ( mTimerEnable ) {
     mTimer.stop();
-    time = mTimer.time();
+    return mTimer.get_time();
   }
-  return time;
+  else {
+    return 0.0;
+  }
 }
 
 END_NAMESPACE_DRUID

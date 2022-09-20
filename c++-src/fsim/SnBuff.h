@@ -5,9 +5,8 @@
 /// @brief SnBuff のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "SnGate.h"
 
@@ -24,18 +23,20 @@ class SnBuff :
 public:
 
   /// @brief コンストラクタ
-  SnBuff(int id,
-	 const vector<SimNode*>& inputs);
+  SnBuff(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnGate1{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnBuff();
+  ~SnBuff() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -46,14 +47,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
-  virtual
   PackedVal
-  _calc_gobs(int ipos) override;
+  _calc_gobs(
+    SizeType ipos
+  ) override;
 
 };
 
@@ -68,18 +69,20 @@ class SnNot :
 public:
 
   /// @brief コンストラクタ
-  SnNot(int id,
-	const vector<SimNode*>& inputs);
+  SnNot(
+    SizeType id,
+    const vector<SimNode*>& inputs
+  ) : SnBuff{id, inputs}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
-  ~SnNot();
+  ~SnNot() = default;
 
 
 public:
 
   /// @brief ゲートタイプを返す．
-  virtual
   GateType
   gate_type() const override;
 
@@ -90,7 +93,6 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 出力値の計算を行う．
-  virtual
   FSIM_VALTYPE
   _calc_val() override;
 

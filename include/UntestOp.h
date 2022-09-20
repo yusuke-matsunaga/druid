@@ -5,9 +5,8 @@
 /// @brief UntestOp のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "druid.h"
 
@@ -33,24 +32,26 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テスト不能故障と判定された時の処理
-  /// @param[in] f 故障
   virtual
   void
-  operator()(const TpgFault* f) = 0;
+  operator()(
+    const TpgFault* f ///< [in] 故障
+  ) = 0;
 
 };
 
 /// @brief 'base' タイプを生成する．
-// @param[in] fsmgr 故障マネージャ
 UntestOp*
-new_UopBase(FaultStatusMgr& fmgr);
+new_UopBase(
+  FaultStatusMgr& fmgr ///< [in] 故障マネージャ
+);
 
 /// @brief 'skip' タイプを生成する．
-/// @param[in] threshold しきい値
-/// @param[in] max_fault_id 故障番号の最大値
 UntestOp*
-new_UopSkip(int threshold,
-	    int max_fault_id);
+new_UopSkip(
+  SizeType threshold,   ///< [in] しきい値
+  SizeType max_fault_id ///< [in] 故障番号の最大値
+);
 
 /// @brief 'dummy' タイプを生成する．
 UntestOp*

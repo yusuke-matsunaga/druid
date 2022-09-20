@@ -3,28 +3,26 @@
 /// @brief MpColGraph の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "MpColGraph.h"
 #include "TestVector.h"
-#include "ym/HashSet.h"
 #include "ym/Range.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-// @param[in] tv_list テストパタンのリスト
-MpColGraph::MpColGraph(const vector<TestVector>& tv_list) :
-  mTvList(tv_list),
-  mNodeNum(mTvList.size()),
-  mVectorSize(0),
-  mOidListArray(mNodeNum),
-  mColNum(0),
-  mColorMap(mNodeNum, 0),
-  mTmpMark(mNodeNum, 0)
+MpColGraph::MpColGraph(
+  const vector<TestVector>& tv_list
+) : mTvList{tv_list},
+    mNodeNum{mTvList.size()},
+    mVectorSize{0},
+    mOidListArray(mNodeNum),
+    mColNum{0},
+    mColorMap(mNodeNum, 0),
+    mTmpMark(mNodeNum, 0)
 {
   if ( mNodeNum > 0 ) {
     TestVector tv0 = mTvList[0];
@@ -47,10 +45,10 @@ void
 MpColGraph::gen_conflict_list()
 {
   for ( auto bit: Range(mVectorSize) ) {
-    int oid0 = bit * 2 + 0;
-    int oid1 = bit * 2 + 1;
-    vector<int>& list0 = mNodeListArray[oid0];
-    vector<int>& list1 = mNodeListArray[oid1];
+    SizeType oid0 = bit * 2 + 0;
+    SizeType oid1 = bit * 2 + 1;
+    vector<SizeType>& list0 = mNodeListArray[oid0];
+    vector<SizeType>& list1 = mNodeListArray[oid1];
     for ( auto id: Range(mNodeNum) ) {
       const TestVector& tv = mTvList[id];
       Val3 val = tv.val(bit);
@@ -72,23 +70,24 @@ MpColGraph::gen_conflict_list()
   }
 
   for ( auto id: Range(mNodeNum) ) {
-    vector<int>& list = mOidListArray[id];
+    auto& list = mOidListArray[id];
     sort(list.begin(), list.end());
   }
 }
 
 // @brief ノードを削除する．
-// @param[in] node 削除するノード番号
 void
-MpColGraph::delete_node(int node)
+MpColGraph::delete_node(
+  SizeType node
+)
 {
   ASSERT_COND( node >= 0 && node < node_num() );
 
   for ( auto oid: mOidListArray[node] ) {
-    vector<int>& list = mNodeListArray[oid ^ 1];
+    vector<SizeType>& list = mNodeListArray[oid ^ 1];
     // list から node を削除する．
-    int rpos = 0;
-    int n = list.size();
+    SizeType rpos = 0;
+    SizeType n = list.size();
     for ( ; rpos < n; ++ rpos ) {
       if ( list[rpos] == node ) {
 	break;
@@ -96,7 +95,7 @@ MpColGraph::delete_node(int node)
     }
     ASSERT_COND( rpos < n );
 
-    int wpos = rpos;
+    SizeType wpos = rpos;
     for ( ++ rpos; rpos < n; ++ rpos, ++ wpos ) {
       list[wpos] = list[rpos];
     }
@@ -105,11 +104,11 @@ MpColGraph::delete_node(int node)
 }
 
 // @brief node が node_list のノード集合と両立する時 true を返す．
-// @param[in] node ノード番号
-// @param[in] node_list ノード番号のリスト
 bool
-MpColGraph::compatible_check(int node,
-			     const vector<int>& node_list) const
+MpColGraph::compatible_check(
+  SizeType node,
+  const vector<SizeType>& node_list
+) const
 {
   vector<bool> mark(mVectorSize * 2, false);
   for ( auto node1: node_list ) {
@@ -128,22 +127,24 @@ MpColGraph::compatible_check(int node,
 
 // @brief node1 の衝突集合が node2 の衝突集合に含まれていたら true を返す．
 bool
-MpColGraph::containment_check(int node1,
-			      int node2) const
+MpColGraph::containment_check(
+  SizeType node1,
+  SizeType node2
+) const
 {
   // まず mOidListArray[node1] と mOidListArray[node2] を比較する．
   // 共通に含まれる oid は削除する．
-  const vector<int>& src_list1 = mOidListArray[node1];
-  const vector<int>& src_list2 = mOidListArray[node2];
-  vector<int> tmp_list1; tmp_list1.reserve(src_list1.size());
-  vector<int> tmp_list2; tmp_list2.reserve(src_list2.size());
-  int rpos1 = 0;
-  int rpos2 = 0;
-  int n1 = src_list1.size();
-  int n2 = src_list2.size();
+  const vector<SizeType>& src_list1 = mOidListArray[node1];
+  const vector<SizeType>& src_list2 = mOidListArray[node2];
+  vector<SizeType> tmp_list1; tmp_list1.reserve(src_list1.size());
+  vector<SizeType> tmp_list2; tmp_list2.reserve(src_list2.size());
+  SizeType rpos1 = 0;
+  SizeType rpos2 = 0;
+  SizeType n1 = src_list1.size();
+  SizeType n2 = src_list2.size();
   while ( rpos1 < n1 && rpos2 < n2 ) {
-    int oid1 = src_list1[rpos1];
-    int oid2 = src_list2[rpos2];
+    SizeType oid1 = src_list1[rpos1];
+    SizeType oid2 = src_list2[rpos2];
     if ( oid1 < oid2 ) {
       tmp_list1.push_back(oid1);
       ++ rpos1;
@@ -158,11 +159,11 @@ MpColGraph::containment_check(int node1,
     }
   }
   for ( ; rpos1 < n1; ++ rpos1 ) {
-    int oid1 = src_list1[rpos1];
+    SizeType oid1 = src_list1[rpos1];
     tmp_list1.push_back(oid1);
   }
   for ( ; rpos2 < n2; ++ rpos2 ) {
-    int oid2 = src_list2[rpos2];
+    SizeType oid2 = src_list2[rpos2];
     tmp_list2.push_back(oid2);
   }
   // tmp_list1 に含まれる oid の要素が tmp_list2 に含まれているか調べる．
@@ -195,46 +196,24 @@ MpColGraph::containment_check(int node1,
 }
 
 // @brief ノードの衝突数を返す．
-// @param[in] node ノード番号
-//
-// 削除されたノードはカウントしない．
-int
-MpColGraph::conflict_num(int node) const
+SizeType
+MpColGraph::conflict_num(
+  SizeType node
+) const
 {
   get_conflict_list(node, mTmpList);
-  int n = mTmpList.size();
+  SizeType n = mTmpList.size();
   mTmpList.clear();
 
   return n;
 }
 
 // @brief ノードの衝突リストを返す．
-// @param[in] node ノード番号
-// @param[out] conflict_list node に衝突するノードのリスト
 void
-MpColGraph::get_conflict_list(int node,
-			      vector<int>& conflict_list) const
-{
-  conflict_list.clear();
-  for ( auto oid: mOidListArray[node] ) {
-    for ( auto id: mNodeListArray[oid] ) {
-      if ( mTmpMark[id] == 0 ) {
-	mTmpMark[id] = 1;
-	conflict_list.push_back(id);
-      }
-    }
-  }
-  for ( auto id: conflict_list ) {
-    mTmpMark[id] = 0;
-  }
-}
-
-// @brief ノードの衝突リストを返す．
-// @param[in] node_list ノード番号のリスト
-// @param[out] conflict_list node に衝突するノードのリスト
-void
-MpColGraph::get_conflict_list(const vector<int>& node_list,
-			      vector<int>& conflict_list) const
+MpColGraph::get_conflict_list(
+  const vector<SizeType>& node_list,
+  vector<SizeType>& conflict_list
+) const
 {
   conflict_list.clear();
   for ( auto node: node_list ) {
@@ -253,13 +232,15 @@ MpColGraph::get_conflict_list(const vector<int>& node_list,
 }
 
 // @brief color_map を作る．
-int
-MpColGraph::get_color_map(vector<int>& color_map) const
+SizeType
+MpColGraph::get_color_map(
+  vector<SizeType>& color_map
+) const
 {
   color_map.clear();
   color_map.resize(node_num());
-  for ( auto node_id: Range(node_num()) ) {
-    color_map[node_id] = mColorMap[node_id];
+  for ( auto node: Range(node_num()) ) {
+    color_map[node] = mColorMap[node];
   }
   return color_num();
 }
