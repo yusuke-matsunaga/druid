@@ -213,14 +213,14 @@ public:
   /// @brief ppsfp 用のパタンを設定する．
   void
   set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
   /// @brief 設定した ppsfp 用のパタンを読み出す．
   TestVector
   get_pattern(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
   ) override;
 
 
@@ -395,7 +395,7 @@ private:
   {
     if ( root->is_output() ) {
       // 外部出力の場合は無条件で伝搬している．
-      return kPvAll1;
+      return PV_ALL1;
     }
 
     // それ以外はイベントドリヴンシミュレーションを行う．
@@ -411,7 +411,7 @@ private:
     SimFault* fault ///< [in] 対象の故障
   )
   {
-    auto lobs = kPvAll1;
+    auto lobs = PV_ALL1;
 
     auto f_node = fault->mNode;
     for ( auto node = f_node; !node->is_ffr_root(); ) {
@@ -579,11 +579,11 @@ private:
   PackedVal mPatMap;
 
   // mPatMap の最初の1のビット位置
-  // 全て０の場合には kPvBitLen が入る．
+  // 全て０の場合には PV_BITLEN が入る．
   SizeType mPatFirstBit;
 
   // パタンバッファ
-  TestVector mPatBuff[kPvBitLen];
+  TestVector mPatBuff[PV_BITLEN];
 
   // イベントキュー
   EventQ mEventQ;

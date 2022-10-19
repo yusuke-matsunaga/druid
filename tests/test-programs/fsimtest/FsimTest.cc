@@ -106,7 +106,7 @@ ppsfp_test(
   for ( auto tv: tv_list ) {
     fsim.set_pattern(wpos, tv);
     ++ wpos;
-    if ( wpos == kPvBitLen ) {
+    if ( wpos == PV_BITLEN ) {
       int n = fsim.ppsfp();
 
       int nb = wpos;

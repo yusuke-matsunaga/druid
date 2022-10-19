@@ -55,7 +55,7 @@ SnOr::_calc_gobs(
   SizeType ipos
 )
 {
-  auto obs = kPvAll1;
+  auto obs = PV_ALL1;
   for ( auto i: Range(0, ipos) ) {
     obs &= _obs_val(_fanin(i)->val());
   }

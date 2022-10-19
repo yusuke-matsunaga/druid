@@ -15,19 +15,20 @@ BEGIN_NAMESPACE_DRUID
 
 TEST(GateTypeTest, gate_type_to_int)
 {
-  EXPECT_EQ( 0, __gate_type_to_int(GateType::Const0) );
-  EXPECT_EQ( 1, __gate_type_to_int(GateType::Const1) );
-  EXPECT_EQ( 2, __gate_type_to_int(GateType::Input) );
-  EXPECT_EQ( 3, __gate_type_to_int(GateType::Buff) );
-  EXPECT_EQ( 4, __gate_type_to_int(GateType::Not) );
-  EXPECT_EQ( 5, __gate_type_to_int(GateType::And) );
-  EXPECT_EQ( 6, __gate_type_to_int(GateType::Nand) );
-  EXPECT_EQ( 7, __gate_type_to_int(GateType::Or) );
-  EXPECT_EQ( 8, __gate_type_to_int(GateType::Nor) );
-  EXPECT_EQ( 9, __gate_type_to_int(GateType::Xor) );
-  EXPECT_EQ(10, __gate_type_to_int(GateType::Xnor) );
+  EXPECT_EQ( 0, static_cast<int>(GateType::Const0) );
+  EXPECT_EQ( 1, static_cast<int>(GateType::Const1) );
+  EXPECT_EQ( 2, static_cast<int>(GateType::Input) );
+  EXPECT_EQ( 3, static_cast<int>(GateType::Buff) );
+  EXPECT_EQ( 4, static_cast<int>(GateType::Not) );
+  EXPECT_EQ( 5, static_cast<int>(GateType::And) );
+  EXPECT_EQ( 6, static_cast<int>(GateType::Nand) );
+  EXPECT_EQ( 7, static_cast<int>(GateType::Or) );
+  EXPECT_EQ( 8, static_cast<int>(GateType::Nor) );
+  EXPECT_EQ( 9, static_cast<int>(GateType::Xor) );
+  EXPECT_EQ(10, static_cast<int>(GateType::Xnor) );
 }
 
+#if 0
 TEST(GateTypeTest, int_to_gate_type)
 {
   EXPECT_EQ( GateType::Const0, __int_to_gate_type(0) );
@@ -46,8 +47,9 @@ TEST(GateTypeTest, int_to_gate_type)
 TEST(GateTypeTest, loop)
 {
   for ( auto i: { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } ) {
-    EXPECT_EQ( i, __gate_type_to_int(__int_to_gate_type(i)) );
+    EXPECT_EQ( i, static_cast<int>(__int_to_gate_type(i)) );
   }
 }
+#endif
 
 END_NAMESPACE_DRUID

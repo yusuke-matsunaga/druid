@@ -61,12 +61,12 @@ SimNodeTest::test_input()
   SimNode* node = SimNode::new_input(0);
 
   // val の書き込み読み出しテスト
-  init_val(node, kPvAll1);
+  init_val(node, PV_ALL1);
 
-  test_val(node, kPvAll1);
+  test_val(node, PV_ALL1);
   test_val(node, 0x5555555555555555UL);
   test_val(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_val(node, kPvAll0);
+  test_val(node, PV_ALL0);
 
   delete node;
 }
@@ -88,61 +88,61 @@ SimNodeTest::test_gate(int ni,
   SimNode* node = SimNode::new_gate(ni, gate_type, inputs);
 
   // val の書き込み読み出しテスト
-  init_val(node, kPvAll1);
+  init_val(node, PV_ALL1);
 
-  test_val(node, kPvAll1);
+  test_val(node, PV_ALL1);
   test_val(node, 0x5555555555555555UL);
   test_val(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_val(node, kPvAll0);
+  test_val(node, PV_ALL0);
 
   // _calc_val() のテスト
-  init_val(node, kPvAll0);
+  init_val(node, PV_ALL0);
   for (int i = 0; i < ni; ++ i) {
-    init_val(inputs[i], kPvAll0);
+    init_val(inputs[i], PV_ALL0);
   }
 
   for (int p = 0; p < np; ++ p) {
     for (int i = 0; i < ni; ++ i) {
       if ( p & (1 << i) ) {
-	inputs[i]->set_val(kPvAll1);
+	inputs[i]->set_val(PV_ALL1);
       }
       else {
-	inputs[i]->set_val(kPvAll0);
+	inputs[i]->set_val(PV_ALL0);
       }
     }
     PackedVal val = node->_calc_val();
     if ( vals[p] ) {
-      EXPECT_EQ( kPvAll1, val );
+      EXPECT_EQ( PV_ALL1, val );
     }
     else {
-      EXPECT_EQ( kPvAll0, val );
+      EXPECT_EQ( PV_ALL0, val );
     }
   }
 
   // calc_gobs() のテスト
   for (int ipos = 0; ipos < ni; ++ ipos) {
     // ここで書き込む値に対して意味はない．
-    init_val(node, kPvAll0);
+    init_val(node, PV_ALL0);
     for (int i = 0; i < ni; ++ i) {
-      init_val(inputs[i], kPvAll0);
+      init_val(inputs[i], PV_ALL0);
     }
 
     for (int p = 0; p < np; ++ p) {
       for (int i = 0; i < ni; ++ i) {
 	if ( p & (1 << i) ) {
-	  inputs[i]->set_val(kPvAll1);
+	  inputs[i]->set_val(PV_ALL1);
 	}
 	else {
-	  inputs[i]->set_val(kPvAll0);
+	  inputs[i]->set_val(PV_ALL0);
 	}
       }
       PackedVal val = node->_calc_gobs(ipos);
       int q = p ^ (1 << ipos);
       if ( vals[p] != vals[q] ) {
-	EXPECT_EQ( kPvAll1, val );
+	EXPECT_EQ( PV_ALL1, val );
       }
       else {
-	EXPECT_EQ( kPvAll0, val );
+	EXPECT_EQ( PV_ALL0, val );
       }
     }
   }

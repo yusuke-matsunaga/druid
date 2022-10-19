@@ -98,7 +98,7 @@ EventQ::simulate(
 )
 {
   // どこかの外部出力で検出されたことを表すビット
-  auto obs = kPvAll0;
+  auto obs = PV_ALL0;
   for ( ; ; ) {
     auto node = get();
     // イベントが残っていなければ終わる．

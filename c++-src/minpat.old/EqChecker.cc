@@ -192,7 +192,7 @@ EqChecker::do_fsim(const vector<ymuint>& fid_list)
       TestVector* tv = fi.testvector();
       mFsim.set_pattern(wpos, tv);
       ++ wpos;
-      if ( wpos < kPvBitLen ) {
+      if ( wpos < PV_BITLEN ) {
 	continue;
       }
     }
@@ -211,15 +211,15 @@ EqChecker::do_fsim(const vector<ymuint>& fid_list)
   }
   ymuint npat = nf;
 
-  TestVector* cur_array[kPvBitLen];
-  for (ymuint i = 0; i < kPvBitLen; ++ i) {
+  TestVector* cur_array[PV_BITLEN];
+  for (ymuint i = 0; i < PV_BITLEN; ++ i) {
     TestVector* tv = mTvMgr.new_vector();
     cur_array[i] = tv;
   }
 
   for ( ; ; ) {
     mFsim.clear_patterns();
-    for (ymuint i = 0; i < kPvBitLen; ++ i) {
+    for (ymuint i = 0; i < PV_BITLEN; ++ i) {
       cur_array[i]->set_from_random(mRandGen);
       mFsim.set_pattern(i, cur_array[i]);
     }
@@ -229,7 +229,7 @@ EqChecker::do_fsim(const vector<ymuint>& fid_list)
       cout.flush();
     }
     mFsim.ppsfp();
-    npat += kPvBitLen;
+    npat += PV_BITLEN;
     ymuint nchg = 0;
     if ( mEqSet.multi_refinement(mFsim) ) {
       ++ nchg;
@@ -244,7 +244,7 @@ EqChecker::do_fsim(const vector<ymuint>& fid_list)
   }
 
   // 乱数パタンは削除しておく．
-  for (ymuint i = 0; i < kPvBitLen; ++ i) {
+  for (ymuint i = 0; i < PV_BITLEN; ++ i) {
     mTvMgr.delete_vector(cur_array[i]);
   }
 

@@ -76,11 +76,11 @@ SimNodeTest::test_input()
   SimNode* node = SimNode::new_input(0);
 
   // val の書き込み読み出しテスト
-  init_val(node, kPvAll1, kPvAll1);
+  init_val(node, PV_ALL1, PV_ALL1);
 
   test_val(node,
-	   kPvAll1,              kPvAll0,
-	   kPvAll1,              kPvAll0);
+	   PV_ALL1,              PV_ALL0,
+	   PV_ALL1,              PV_ALL0);
   test_val(node,
 	   0x5555555555555555UL, 0x5555555555555555UL,
 	   0x0000000000000000UL, 0x0000000000000000UL);
@@ -88,8 +88,8 @@ SimNodeTest::test_input()
 	   0xaaaaaaaaaaaaaaaaUL, 0xaaaaaaaaaaaaaaaaUL,
 	   0x0000000000000000UL, 0x0000000000000000UL);
   test_val(node,
-	   kPvAll0,              kPvAll1,
-	   kPvAll0,              kPvAll1);
+	   PV_ALL0,              PV_ALL1,
+	   PV_ALL0,              PV_ALL1);
 
   delete node;
 }
@@ -110,11 +110,11 @@ SimNodeTest::test_gate(int ni,
   SimNode* node = SimNode::new_gate(ni, gate_type, inputs);
 
   // val の書き込み読み出しテスト
-  init_val(node, kPvAll1, kPvAll1);
+  init_val(node, PV_ALL1, PV_ALL1);
 
   test_val(node,
-	   kPvAll1,              kPvAll0,
-	   kPvAll1,              kPvAll0);
+	   PV_ALL1,              PV_ALL0,
+	   PV_ALL1,              PV_ALL0);
   test_val(node,
 	   0x5555555555555555UL, 0x5555555555555555UL,
 	   0x0000000000000000UL, 0x0000000000000000UL);
@@ -122,8 +122,8 @@ SimNodeTest::test_gate(int ni,
 	   0xaaaaaaaaaaaaaaaaUL, 0xaaaaaaaaaaaaaaaaUL,
 	   0x0000000000000000UL, 0x0000000000000000UL);
   test_val(node,
-	   kPvAll0,              kPvAll1,
-	   kPvAll0,              kPvAll1);
+	   PV_ALL0,              PV_ALL1,
+	   PV_ALL0,              PV_ALL1);
 
   int np = 1;
   for (int i = 0; i < ni; ++ i) {
@@ -131,9 +131,9 @@ SimNodeTest::test_gate(int ni,
   }
   // _calc_val() のテスト
   // ここで書き込む値に対して意味はない．
-  init_val(node, kPvAll1, kPvAll1);
+  init_val(node, PV_ALL1, PV_ALL1);
   for (int i = 0; i < ni; ++ i) {
-    init_val(inputs[i], kPvAll1, kPvAll1);
+    init_val(inputs[i], PV_ALL1, PV_ALL1);
   }
 
   for (int p = 0; p < np; ++ p) {
@@ -144,9 +144,9 @@ SimNodeTest::test_gate(int ni,
       PackedVal val0;
       PackedVal val1;
       switch ( y ) {
-      case 0: val0 = kPvAll1; val1 = kPvAll0; break;
-      case 1: val0 = kPvAll0; val1 = kPvAll1; break;
-      case 2: val0 = kPvAll0; val1 = kPvAll0; break;
+      case 0: val0 = PV_ALL1; val1 = PV_ALL0; break;
+      case 1: val0 = PV_ALL0; val1 = PV_ALL1; break;
+      case 2: val0 = PV_ALL0; val1 = PV_ALL0; break;
       }
       init_val(inputs[i], val0, val1);
     }
@@ -159,9 +159,9 @@ SimNodeTest::test_gate(int ni,
   // calc_gobs() のテスト
   for (int ipos = 0; ipos < ni; ++ ipos) {
     // ここで書き込む値に対して意味はない．
-    init_val(node, kPvAll0, kPvAll1);
+    init_val(node, PV_ALL0, PV_ALL1);
     for (int i = 0; i < ni; ++ i) {
-      init_val(inputs[i], kPvAll0, kPvAll1);
+      init_val(inputs[i], PV_ALL0, PV_ALL1);
     }
 
     vector<int> ivals(ni, 0);
@@ -173,9 +173,9 @@ SimNodeTest::test_gate(int ni,
 	PackedVal val0;
 	PackedVal val1;
 	switch ( ivals[i] ) {
-	case 0: val0 = kPvAll1; val1 = kPvAll0; break;
-	case 1: val0 = kPvAll0; val1 = kPvAll1; break;
-	case 2: val0 = kPvAll0; val1 = kPvAll0; break;
+	case 0: val0 = PV_ALL1; val1 = PV_ALL0; break;
+	case 1: val0 = PV_ALL0; val1 = PV_ALL1; break;
+	case 2: val0 = PV_ALL0; val1 = PV_ALL0; break;
 	}
 	init_val(inputs[i], val0, val1);
 	if ( i == ipos ) {
@@ -193,10 +193,10 @@ SimNodeTest::test_gate(int ni,
       if ( vals[q] != vals[p] &&
 	   vals[q] != 2 &&
 	   vals[p] != 2 ) {
-	EXPECT_EQ( kPvAll1, val );
+	EXPECT_EQ( PV_ALL1, val );
       }
       else {
-	EXPECT_EQ( kPvAll0, val );
+	EXPECT_EQ( PV_ALL0, val );
       }
 
       // ivals を次の値へシフトする．
@@ -258,18 +258,18 @@ SimNodeTest::test_val3(PackedVal val0,
 {
   switch ( exp_val ) {
   case 0:
-    EXPECT_EQ( kPvAll1, val0 );
-    EXPECT_EQ( kPvAll0, val1 );
+    EXPECT_EQ( PV_ALL1, val0 );
+    EXPECT_EQ( PV_ALL0, val1 );
     break;
 
   case 1:
-    EXPECT_EQ( kPvAll0, val0 );
-    EXPECT_EQ( kPvAll1, val1 );
+    EXPECT_EQ( PV_ALL0, val0 );
+    EXPECT_EQ( PV_ALL1, val1 );
     break;
 
   case 2:
-    EXPECT_EQ( kPvAll0, val0 );
-    EXPECT_EQ( kPvAll0, val1 );
+    EXPECT_EQ( PV_ALL0, val0 );
+    EXPECT_EQ( PV_ALL0, val1 );
     break;
 
   default:

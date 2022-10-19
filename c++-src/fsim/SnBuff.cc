@@ -36,7 +36,7 @@ SnBuff::_calc_gobs(
   SizeType ipos
 )
 {
-  return kPvAll1;
+  return PV_ALL1;
 }
 
 

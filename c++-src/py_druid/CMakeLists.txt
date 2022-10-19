@@ -85,18 +85,6 @@ target_link_libraries ( py_druid_d
   )
 
 
-if ( Readline_FOUND )
-  foreach ( _tgt py_druid py_druid_d )
-    target_include_directories ( ${_tgt}
-      PRIVATE ${Readline_INCLUDE_DIR}
-      )
-    target_compile_definitions ( ${_tgt}
-      PRIVATE "-DHAS_READLINE"
-      )
-  endforeach ()
-endif ( Readline_FOUND )
-
-
 # ===================================================================
 #  テストの設定
 # ===================================================================

@@ -77,28 +77,28 @@ SimNodeTest::test_input()
   SimNode* node = SimNode::new_input(0);
 
   // hval の書き込み読み出しテスト
-  init_val(node, kPvAll0);
+  init_val(node, PV_ALL0);
 
-  test_hval(node, kPvAll1);
+  test_hval(node, PV_ALL1);
   test_hval(node, 0x5555555555555555UL);
   test_hval(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_hval(node, kPvAll0);
+  test_hval(node, PV_ALL0);
 
   // gval の書き込み読み出しテスト
-  init_val(node, kPvAll0);
+  init_val(node, PV_ALL0);
 
-  test_gval(node, kPvAll1);
+  test_gval(node, PV_ALL1);
   test_gval(node, 0x5555555555555555UL);
   test_gval(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_gval(node, kPvAll0);
+  test_gval(node, PV_ALL0);
 
   // fval の書き込み読み出しテスト
-  init_val(node, kPvAll1);
+  init_val(node, PV_ALL1);
 
-  test_fval(node, kPvAll1);
+  test_fval(node, PV_ALL1);
   test_fval(node, 0x5555555555555555UL);
   test_fval(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_fval(node, kPvAll0);
+  test_fval(node, PV_ALL0);
 
   delete node;
 }
@@ -121,128 +121,128 @@ SimNodeTest::test_gate(int ni,
   int np = 1 << ni;
 
   // hval の書き込み読み出しテスト
-  init_val(node, kPvAll0);
+  init_val(node, PV_ALL0);
 
-  test_hval(node, kPvAll1);
+  test_hval(node, PV_ALL1);
   test_hval(node, 0x5555555555555555UL);
   test_hval(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_hval(node, kPvAll0);
+  test_hval(node, PV_ALL0);
 
   // gval の書き込み読み出しテスト
-  init_val(node, kPvAll0);
+  init_val(node, PV_ALL0);
 
-  test_gval(node, kPvAll1);
+  test_gval(node, PV_ALL1);
   test_gval(node, 0x5555555555555555UL);
   test_gval(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_gval(node, kPvAll0);
+  test_gval(node, PV_ALL0);
 
   // fval の書き込み読み出しテスト
-  init_val(node, kPvAll1);
+  init_val(node, PV_ALL1);
 
-  test_fval(node, kPvAll1);
+  test_fval(node, PV_ALL1);
   test_fval(node, 0x5555555555555555UL);
   test_fval(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_fval(node, kPvAll0);
+  test_fval(node, PV_ALL0);
 
   // _calc_hval() のテスト
   // ここで書き込む値に対して意味はない．
-  init_val(node, kPvAll0);
+  init_val(node, PV_ALL0);
   for (int i = 0; i < ni; ++ i) {
-    init_val(inputs[i], kPvAll0);
+    init_val(inputs[i], PV_ALL0);
   }
 
   for (int p = 0; p < np; ++ p) {
     for (int i = 0; i < ni; ++ i) {
       if ( p & (1 << i) ) {
-	inputs[i]->set_hval(kPvAll1);
+	inputs[i]->set_hval(PV_ALL1);
       }
       else {
-	inputs[i]->set_hval(kPvAll0);
+	inputs[i]->set_hval(PV_ALL0);
       }
     }
     PackedVal val = node->_calc_hval();
     if ( vals[p] ) {
-      EXPECT_EQ( val, kPvAll1 );
+      EXPECT_EQ( val, PV_ALL1 );
     }
     else {
-      EXPECT_EQ( val, kPvAll0 );
+      EXPECT_EQ( val, PV_ALL0 );
     }
   }
 
   // _calc_gval() のテスト
   // ここで書き込む値に対して意味はない．
-  init_val(node, kPvAll0);
+  init_val(node, PV_ALL0);
   for (int i = 0; i < ni; ++ i) {
-    init_val(inputs[i], kPvAll0);
+    init_val(inputs[i], PV_ALL0);
   }
 
   for (int p = 0; p < np; ++ p) {
     for (int i = 0; i < ni; ++ i) {
       if ( p & (1 << i) ) {
-	inputs[i]->set_gval(kPvAll1);
+	inputs[i]->set_gval(PV_ALL1);
       }
       else {
-	inputs[i]->set_gval(kPvAll0);
+	inputs[i]->set_gval(PV_ALL0);
       }
     }
     PackedVal val = node->_calc_gval();
     if ( vals[p] ) {
-      EXPECT_EQ( val, kPvAll1 );
+      EXPECT_EQ( val, PV_ALL1 );
     }
     else {
-      EXPECT_EQ( val, kPvAll0 );
+      EXPECT_EQ( val, PV_ALL0 );
     }
   }
 
   // _calc_fval() のテスト
   // ここで書き込む値に対して意味はない．
-  init_val(node, kPvAll1);
+  init_val(node, PV_ALL1);
   for (int i = 0; i < ni; ++ i) {
-    init_val(inputs[i], kPvAll1);
+    init_val(inputs[i], PV_ALL1);
   }
 
   for (int p = 0; p < np; ++ p) {
     for (int i = 0; i < ni; ++ i) {
       if ( p & (1 << i) ) {
-	inputs[i]->set_fval(kPvAll1);
+	inputs[i]->set_fval(PV_ALL1);
       }
       else {
-	inputs[i]->set_fval(kPvAll0);
+	inputs[i]->set_fval(PV_ALL0);
       }
     }
     PackedVal val = node->_calc_fval();
     if ( vals[p] ) {
-      EXPECT_EQ( val, kPvAll1 );
+      EXPECT_EQ( val, PV_ALL1 );
     }
     else {
-      EXPECT_EQ( val, kPvAll0 );
+      EXPECT_EQ( val, PV_ALL0 );
     }
   }
 
   // calc_gobs() のテスト
   for (int ipos = 0; ipos < ni; ++ ipos) {
     // ここで書き込む値に対して意味はない．
-    init_val(node, kPvAll0);
+    init_val(node, PV_ALL0);
     for (int i = 0; i < ni; ++ i) {
-      init_val(inputs[i], kPvAll0);
+      init_val(inputs[i], PV_ALL0);
     }
 
     for (int p = 0; p < np; ++ p) {
       for (int i = 0; i < ni; ++ i) {
 	if ( p & (1 << i) ) {
-	  inputs[i]->set_gval(kPvAll1);
+	  inputs[i]->set_gval(PV_ALL1);
 	}
 	else {
-	  inputs[i]->set_gval(kPvAll0);
+	  inputs[i]->set_gval(PV_ALL0);
 	}
       }
       PackedVal val = node->calc_gobs(ipos);
       int q = p ^ (1 << ipos);
       if ( vals[p] != vals[q] ) {
-	EXPECT_EQ( val, kPvAll1 );
+	EXPECT_EQ( val, PV_ALL1 );
       }
       else {
-	EXPECT_EQ( val, kPvAll0 );
+	EXPECT_EQ( val, PV_ALL0 );
       }
     }
   }

@@ -52,7 +52,7 @@ Verifier::check(Fsim& fsim,
       const TestVector* tv = pat_list[rpos];
       fsim.set_pattern(wpos, tv);
       ++ wpos;
-      if ( wpos < kPvBitLen ) {
+      if ( wpos < PV_BITLEN ) {
 	continue;
       }
     }

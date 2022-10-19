@@ -24,10 +24,10 @@ init_val()
 {
 #if FSIM_VAL2
   // デフォルトで 0 にする．
-  return kPvAll0;
+  return PV_ALL0;
 #elif FSIM_VAL3
   // デフォルトで X にする．
-  return PackedVal3(kPvAll0, kPvAll0);
+  return PackedVal3(PV_ALL0, PV_ALL0);
 #endif
 }
 
@@ -39,9 +39,9 @@ int_to_packedval(
 )
 {
 #if FSIM_VAL2
-  return val ? kPvAll1 : kPvAll0;
+  return val ? PV_ALL1 : PV_ALL0;
 #elif FSIM_VAL3
-  return val ? PackedVal3(kPvAll1) : PackedVal3(kPvAll0);
+  return val ? PackedVal3(PV_ALL1) : PackedVal3(PV_ALL0);
 #endif
 }
 
@@ -54,12 +54,12 @@ val3_to_packedval(
 {
 #if FSIM_VAL2
   // Val3::_X は Val3::_0 とみなす．
-  return (val == Val3::_1) ? kPvAll1 : kPvAll0;
+  return (val == Val3::_1) ? PV_ALL1 : PV_ALL0;
 #elif FSIM_VAL3
   switch ( val ) {
-  case Val3::_X: return PackedVal3(kPvAll0, kPvAll0);
-  case Val3::_0: return PackedVal3(kPvAll1, kPvAll0);
-  case Val3::_1: return PackedVal3(kPvAll0, kPvAll1);
+  case Val3::_X: return PackedVal3(PV_ALL0, PV_ALL0);
+  case Val3::_0: return PackedVal3(PV_ALL1, PV_ALL0);
+  case Val3::_1: return PackedVal3(PV_ALL0, PV_ALL1);
   }
 #endif
 }
@@ -156,8 +156,8 @@ Tv2InputVals::Tv2InputVals(
 ) : mPatMap{pat_map}
 {
   // パタンのセットされている最初のビット位置を求めておく．
-  mPatFirstBit = kPvBitLen;
-  for ( int i = 0; i < kPvBitLen; ++ i ) {
+  mPatFirstBit = PV_BITLEN;
+  for ( int i = 0; i < PV_BITLEN; ++ i ) {
     if ( mPatMap & (1ULL << i) ) {
       mPatArray[i] = pat_array[i];
       if ( mPatFirstBit > i ) {
@@ -183,7 +183,7 @@ Tv2InputVals::set_val(
   for ( auto simnode: fsim.ppi_list() ) {
     FSIM_VALTYPE val = init_val();
     PackedVal bit = 1ULL;
-    for ( int i = 0; i < kPvBitLen; ++ i, bit <<= 1 ) {
+    for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
       int pos = (mPatMap & bit) ? i : mPatFirstBit;
       Val3 ival = mPatArray[pos].ppi_val(iid);
       bit_set(val, ival, bit);
@@ -204,7 +204,7 @@ Tv2InputVals::set_val1(
   for ( auto simnode: fsim.ppi_list() ) {
     FSIM_VALTYPE val = init_val();
     PackedVal bit = 1ULL;
-    for ( int i = 0; i < kPvBitLen; ++ i, bit <<= 1 ) {
+    for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
       int pos = (mPatMap & bit) ? i : mPatFirstBit;
       Val3 ival = mPatArray[pos].ppi_val(iid);
       bit_set(val, ival, bit);
@@ -225,7 +225,7 @@ Tv2InputVals::set_val2(
   for ( auto simnode: fsim.input_list() ) {
     FSIM_VALTYPE val = init_val();
     PackedVal bit = 1ULL;
-    for ( int i = 0; i < kPvBitLen; ++ i, bit <<= 1 ) {
+    for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
       int pos = (mPatMap & bit) ? i : mPatFirstBit;
       Val3 ival = mPatArray[pos].aux_input_val(iid);
       bit_set(val, ival, bit);

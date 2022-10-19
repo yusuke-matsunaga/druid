@@ -460,8 +460,8 @@ Dtpg2::rtpg(TvMgr& tvmgr,
     }
   }
 
-  TestVector* tv_array[kPvBitLen];
-  for (int i = 0; i < kPvBitLen; ++ i) {
+  TestVector* tv_array[PV_BITLEN];
+  for (int i = 0; i < PV_BITLEN; ++ i) {
     tv_array[i] = tvmgr.new_vector();
   }
 
@@ -481,7 +481,7 @@ Dtpg2::rtpg(TvMgr& tvmgr,
       fsim.set_pattern(wpos, tv);
       ++ pat_num;
       ++ wpos;
-      if ( wpos < kPvBitLen ) {
+      if ( wpos < PV_BITLEN ) {
 	continue;
       }
     }
@@ -491,8 +491,8 @@ Dtpg2::rtpg(TvMgr& tvmgr,
 
     int det_count = fsim.ppsfp();
 
-    const TpgFault* det_flags[kPvBitLen];
-    for (int i = 0; i < kPvBitLen; ++ i) {
+    const TpgFault* det_flags[PV_BITLEN];
+    for (int i = 0; i < PV_BITLEN; ++ i) {
       det_flags[i] = nullptr;
     }
     int num = wpos;
@@ -545,7 +545,7 @@ Dtpg2::rtpg(TvMgr& tvmgr,
     }
   }
 
-  for (int i = 0; i < kPvBitLen; ++ i) {
+  for (int i = 0; i < PV_BITLEN; ++ i) {
     tvmgr.delete_vector(tv_array[i]);
   }
 }

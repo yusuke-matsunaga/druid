@@ -48,7 +48,7 @@ public:
     ymuint32 seed  ///< [in] 乱数の種
   );
 
-  /// @brief 1セット(kPvBitLen個)のパタンで故障シミュレーションを行う．
+  /// @brief 1セット(PV_BITLEN個)のパタンで故障シミュレーションを行う．
   /// @return 新たに検出された故障数を返す．
   SizeType
   do_fsim();
@@ -80,7 +80,7 @@ private:
   Fsim* mFsim;
 
   // 現在のパタンを入れておくバッファ
-  TestVector* tv_array[kPvBitLen];
+  TestVector* tv_array[PV_BITLEN];
 
   // 検出された故障のリスト
   vector<const TpgFault*> mDetFaultList;

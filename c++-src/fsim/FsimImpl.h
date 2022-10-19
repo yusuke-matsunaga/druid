@@ -193,7 +193,7 @@ public:
   virtual
   void
   set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
     const TestVector& tv ///< [in] テストベクタ
   ) = 0;
 
@@ -201,7 +201,7 @@ public:
   virtual
   TestVector
   get_pattern(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
   ) = 0;
 
 

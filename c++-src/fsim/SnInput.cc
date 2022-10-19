@@ -67,7 +67,7 @@ FSIM_VALTYPE
 SnInput::_calc_val()
 {
   ASSERT_NOT_REACHED;
-  return FSIM_VALTYPE(kPvAll0);
+  return FSIM_VALTYPE(PV_ALL0);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
@@ -77,7 +77,7 @@ SnInput::_calc_gobs(
 )
 {
   ASSERT_NOT_REACHED;
-  return kPvAll0;
+  return PV_ALL0;
 }
 
 END_NAMESPACE_DRUID_FSIM

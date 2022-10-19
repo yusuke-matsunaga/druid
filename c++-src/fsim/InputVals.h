@@ -123,7 +123,7 @@ public:
   /// @brief コンストラクタ
   Tv2InputVals(
     PackedVal pat_map,     ///< [in] パタンのセットされているビットに1を立てたビットマップ
-    TestVector pat_array[] ///< [in] パタンの配列(サイズは kPvBitLen の固定長)
+    TestVector pat_array[] ///< [in] パタンの配列(サイズは PV_BITLEN の固定長)
   );
 
   /// @brief デストラクタ
@@ -163,11 +163,11 @@ private:
   PackedVal mPatMap;
 
   // mPatMap の最初の1のビット位置
-  // 全て０の場合には kPvBitLen が入る．
+  // 全て０の場合には PV_BITLEN が入る．
   SizeType mPatFirstBit;
 
   // テストベクタの配列
-  TestVector mPatArray[kPvBitLen];
+  TestVector mPatArray[PV_BITLEN];
 
 };
 

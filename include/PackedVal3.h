@@ -26,13 +26,15 @@ public:
   ///
   /// 不定値になる．
   PackedVal3(
-  ) : mVal0{kPvAll0},
-      mVal1{kPvAll0}
+  ) : mVal0{PV_ALL0},
+      mVal1{PV_ALL0}
   {
   }
 
   /// @brief コピーコンストラクタ
-  PackedVal3(const PackedVal3& src) = default;
+  PackedVal3(
+    const PackedVal3& src
+  ) = default;
 
   /// @brief コンストラクタ
   ///
@@ -223,12 +225,6 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
@@ -277,7 +273,7 @@ operator~(
   PackedVal3 right ///< [in] オペランド
 )
 {
-  return PackedVal3(right.val1(), right.val0());
+  return PackedVal3{right.val1(), right.val0()};
 }
 
 /// @relates PackedVal3
@@ -291,7 +287,7 @@ operator&(
 {
   PackedVal val0 = left.val0() | right.val0();
   PackedVal val1 = left.val1() & right.val1();
-  return PackedVal3(val0, val1);
+  return PackedVal3{val0, val1};
 }
 
 /// @relates PackedVal3
@@ -305,7 +301,7 @@ operator|(
 {
   PackedVal val0 = left.val0() & right.val0();
   PackedVal val1 = left.val1() | right.val1();
-  return PackedVal3(val0, val1);
+  return PackedVal3{val0, val1};
 }
 
 /// @relates PackedVal3
@@ -326,7 +322,7 @@ operator^(
   PackedVal val0 = tmp0_0 & tmp1_0;
   PackedVal val1 = tmp0_1 | tmp1_1;
 
-  return PackedVal3(val0, val1);
+  return PackedVal3{val0, val1};
 }
 
 /// @relates PackedVal3
@@ -342,9 +338,11 @@ operator^(
 {
   PackedVal tmp_val0 = left.val0();
   PackedVal tmp_val1 = left.val1();
+
   PackedVal val0 = (tmp_val0 & ~right) | (tmp_val1 &  right);
   PackedVal val1 = (tmp_val0 &  right) | (tmp_val1 & ~right);
-  return PackedVal3(val0, val1);
+
+  return PackedVal3{val0, val1};
 }
 
 /// @relates PackedVal3

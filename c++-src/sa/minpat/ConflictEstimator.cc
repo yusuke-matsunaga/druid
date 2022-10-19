@@ -614,7 +614,7 @@ ConflictChecker::get_pat_list(const vector<const TpgFault*>& fault_list)
   local_timer.start();
 
   vector<TestVector*> cur_array;
-  cur_array.reserve(kPvBitLen);
+  cur_array.reserve(PV_BITLEN);
 
   KDet2Op op(mFsim, fault_list);
 
@@ -625,19 +625,19 @@ ConflictChecker::get_pat_list(const vector<const TpgFault*>& fault_list)
     const FaultInfo& fi = mAnalyzer.fault_info(fault->id());
     TestVector* tv = fi.testvector();
     cur_array.push_back(tv);
-    if ( cur_array.size() == kPvBitLen ) {
+    if ( cur_array.size() == PV_BITLEN ) {
       if ( mVerbose > 1 ) {
 	cout << "\r " << base;
 	cout.flush();
       }
       mFsim.ppsfp(cur_array, op);
-      for (ymuint j = 0; j < kPvBitLen; ++ j) {
+      for (ymuint j = 0; j < PV_BITLEN; ++ j) {
 	const vector<ymuint>& det_list = op.det_list(j);
 	record_pat(det_list, fault_list, base + j);
       }
       cur_array.clear();
       op.clear_det_list();
-      base += kPvBitLen;
+      base += PV_BITLEN;
     }
   }
   if ( !cur_array.empty() ) {
@@ -651,24 +651,24 @@ ConflictChecker::get_pat_list(const vector<const TpgFault*>& fault_list)
     cur_array.clear();
   }
 
-  for (ymuint i = 0; i < kPvBitLen; ++ i) {
+  for (ymuint i = 0; i < PV_BITLEN; ++ i) {
     TestVector* tv = mTvMgr.new_vector();
     cur_array.push_back(tv);
   }
   ymuint nochg_count = 0;
   for (ymuint c = 0; c < 1000; ++ c) {
-    for (ymuint i = 0; i < kPvBitLen; ++ i) {
+    for (ymuint i = 0; i < PV_BITLEN; ++ i) {
       cur_array[i]->set_from_random(mRandGen);
     }
     mFsim.ppsfp(cur_array, op);
     ymuint nchg = 0;
-    for (ymuint j = 0; j < kPvBitLen; ++ j) {
+    for (ymuint j = 0; j < PV_BITLEN; ++ j) {
       const vector<ymuint>& det_list = op.det_list(j);
       nchg += record_pat(det_list, fault_list, base + j);
     }
     cur_array.clear();
     op.clear_det_list();
-    base += kPvBitLen;
+    base += PV_BITLEN;
     if ( nchg == 0 ) {
       ++ nochg_count;
       if ( nochg_count > 3 ) {
@@ -688,7 +688,7 @@ ConflictChecker::get_pat_list(const vector<const TpgFault*>& fault_list)
   }
 
   // 乱数パタンは削除しておく．
-  for (ymuint i = 0; i < kPvBitLen; ++ i) {
+  for (ymuint i = 0; i < PV_BITLEN; ++ i) {
     mTvMgr.delete_vector(cur_array[i]);
   }
 

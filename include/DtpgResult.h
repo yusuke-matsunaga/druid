@@ -31,8 +31,8 @@ public:
 
   /// @brief 空のコンストラクタ
   ///
-  /// status が省略された場合は FaultStatus::Undetected となる．
-  /// status は FaultStatus::Detected 以外でなければならない．
+  /// * status が省略された場合は FaultStatus::Undetected となる．
+  /// * status は FaultStatus::Detected 以外でなければならない．
   explicit
   DtpgResult(
     FaultStatus status = FaultStatus::Undetected

@@ -254,7 +254,7 @@ public:
       if ( i == nb - 2 ) {
 	xmask &= mMask;
       }
-      if ( xmask == kPvAll0 ) {
+      if ( xmask == PV_ALL0 ) {
 	continue;
       }
       PackedVal v = rd(randgen);
@@ -284,7 +284,7 @@ private:
     SizeType length  ///< [in] ベクタ長
   )
   {
-    return ((length + kPvBitLen - 1) / kPvBitLen) * 2;
+    return ((length + PV_BITLEN - 1) / PV_BITLEN) * 2;
   }
 
   /// @brief HEX文字列の長さを返す．
@@ -304,7 +304,7 @@ private:
     SizeType pos  ///< [in] 位置番号
   )
   {
-    return (pos / kPvBitLen) * 2;
+    return (pos / PV_BITLEN) * 2;
   }
 
   // 位置からシフト量を得る．
@@ -314,7 +314,7 @@ private:
     SizeType pos  ///< [in] 位置番号
   )
   {
-    return pos % kPvBitLen;
+    return pos % PV_BITLEN;
   }
 
 
@@ -351,7 +351,7 @@ private:
 
   // 1ワードあたりのHEX文字数
   static
-  const SizeType HPW = kPvBitLen / 4;
+  const SizeType HPW = PV_BITLEN / 4;
 
 };
 

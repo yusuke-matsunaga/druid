@@ -44,9 +44,9 @@ BitVectorRep::BitVectorRep(
 ) : mLength{vlen}
 {
   // マスクを設定する．
-  SizeType k = len() % kPvBitLen;
+  SizeType k = len() % PV_BITLEN;
   if ( k == 0 ) {
-    mMask = kPvAll1;
+    mMask = PV_ALL1;
   }
   else {
     mMask = (1ULL << k) - 1;
@@ -110,8 +110,8 @@ BitVectorRep::is_lt(
     PackedVal val1_1 = bv1.mPat[i1];
     PackedVal val2_0 = bv2.mPat[i0];
     PackedVal val2_1 = bv2.mPat[i1];
-    if ( (val1_0 & ~val2_0) != kPvAll0 ||
-	 (val1_1 & ~val2_1) != kPvAll0 ) {
+    if ( (val1_0 & ~val2_0) != PV_ALL0 ||
+	 (val1_1 & ~val2_1) != PV_ALL0 ) {
       return false;
     }
     if ( val1_0 != val2_0 || val1_1 != val2_1 ) {
@@ -138,8 +138,8 @@ BitVectorRep::is_le(
     PackedVal val1_1 = bv1.mPat[i1];
     PackedVal val2_0 = bv2.mPat[i0];
     PackedVal val2_1 = bv2.mPat[i1];
-    if ( (val1_0 & ~val2_0) != kPvAll0 ||
-	 (val1_1 & ~val2_1) != kPvAll0 ) {
+    if ( (val1_0 & ~val2_0) != PV_ALL0 ||
+	 (val1_1 & ~val2_1) != PV_ALL0 ) {
       return false;
     }
   }
@@ -163,7 +163,7 @@ BitVectorRep::is_compat(
     // コンフリクトしている．
     PackedVal diff0 = (bv1.mPat[i0] ^ bv2.mPat[i0]);
     PackedVal diff1 = (bv1.mPat[i1] ^ bv2.mPat[i1]);
-    if ( (diff0 & diff1) != kPvAll0 ) {
+    if ( (diff0 & diff1) != PV_ALL0 ) {
       return false;
     }
   }
@@ -177,8 +177,8 @@ BitVectorRep::init()
   SizeType nb = block_num(len());
   for ( SizeType i: Range_<SizeType, 2>(0, nb) ) {
     if ( i < nb - 2 ) {
-      mPat[i + 0] = kPvAll1;
-      mPat[i + 1] = kPvAll1;
+      mPat[i + 0] = PV_ALL1;
+      mPat[i + 1] = PV_ALL1;
     }
     else {
       mPat[i + 0] = mMask;
@@ -197,8 +197,8 @@ BitVectorRep::set_from_bin(
   SizeType nl = len();
   SizeType sft = 0;
   SizeType blk = 0;
-  PackedVal pat0 = kPvAll0;
-  PackedVal pat1 = kPvAll0;
+  PackedVal pat0 = PV_ALL0;
+  PackedVal pat1 = PV_ALL0;
   for ( int i: Range(0, nl) ) {
     char c = (i < bin_string.size()) ? bin_string[i] : 'X';
     PackedVal b0;
@@ -214,13 +214,13 @@ BitVectorRep::set_from_bin(
     pat0 |= (b0 << sft);
     pat1 |= (b1 << sft);
     ++ sft;
-    if ( sft == kPvBitLen ) {
+    if ( sft == PV_BITLEN ) {
       mPat[blk + 0] = pat0;
       mPat[blk + 1] = pat1;
       sft = 0;
       blk += 2;
-      pat0 = kPvAll0;
-      pat1 = kPvAll0;
+      pat0 = PV_ALL0;
+      pat1 = PV_ALL0;
     }
   }
   if ( sft != 0 ) {
@@ -241,10 +241,10 @@ BitVectorRep::set_from_hex(
   SizeType nl = hex_length(len());
   SizeType sft = 0;
   SizeType blk = 0;
-  PackedVal pat = kPvAll0;
+  PackedVal pat = PV_ALL0;
   for ( int i: Range(0, nl) ) {
     char c = (i < hex_string.size()) ? hex_string[i] : 'X';
-    PackedVal pat1 = kPvAll0;
+    PackedVal pat1 = PV_ALL0;
     if ( '0' <= c && c <= '9' ) {
       pat1 = static_cast<PackedVal>(c - '0');
     }
@@ -259,12 +259,12 @@ BitVectorRep::set_from_hex(
     }
     pat |= (pat1 << sft);
     sft += 4;
-    if ( sft == kPvBitLen ) {
+    if ( sft == PV_BITLEN ) {
       mPat[blk + 0] = ~pat;
       mPat[blk + 1] =  pat;
       sft = 0;
       blk += 2;
-      pat = kPvAll0;
+      pat = PV_ALL0;
     }
   }
   if ( sft != 0 ) {
@@ -291,7 +291,7 @@ BitVectorRep::merge(
     int i1 = i + 1;
     PackedVal diff0 = (mPat[i0] ^ src.mPat[i0]);
     PackedVal diff1 = (mPat[i1] ^ src.mPat[i1]);
-    if ( (diff0 & diff1) != kPvAll0 ) {
+    if ( (diff0 & diff1) != PV_ALL0 ) {
       return false;
     }
   }

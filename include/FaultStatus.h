@@ -17,12 +17,9 @@ BEGIN_NAMESPACE_DRUID
 /// @brief 故障の状態
 //////////////////////////////////////////////////////////////////////
 enum class FaultStatus {
-  /// @brief 未検出
-  Undetected,
-  /// @brief 検出
-  Detected,
-  /// @brief テスト不能 (冗長)
-  Untestable
+  Undetected, ///< 未検出
+  Detected,   ///< 検出
+  Untestable  ///< テスト不能 (冗長)
 };
 
 
@@ -41,43 +38,6 @@ str(
   }
   ASSERT_NOT_REACHED;
   return "";
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// Cython 用の変換関数
-//////////////////////////////////////////////////////////////////////
-
-/// @brief FaultStatus を整数に変換する
-inline
-int
-__fault_status_to_int(
-  FaultStatus status
-)
-{
-  switch ( status ) {
-  case FaultStatus::Undetected: return 0;
-  case FaultStatus::Detected:   return 1;
-  case FaultStatus::Untestable: return 2;
-  default: ASSERT_NOT_REACHED;
-  }
-  return 0;
-}
-
-/// @brief 整数を FaultStatus に変換する
-inline
-FaultStatus
-__int_to_fault_status(
-  int val
-)
-{
-  switch ( val ) {
-  case 0: return FaultStatus::Undetected;
-  case 1: return FaultStatus::Detected;
-  case 2: return FaultStatus::Untestable;
-  default: ASSERT_NOT_REACHED;
-  }
-  return FaultStatus::Undetected;
 }
 
 END_NAMESPACE_DRUID

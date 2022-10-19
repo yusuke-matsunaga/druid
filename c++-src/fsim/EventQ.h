@@ -202,8 +202,8 @@ private:
   PackedVal* mFlipMaskArray;
 
   // 反転マスクをセットしたノードのリスト
-  // 仕様上 kPvBitLen が最大
-  SimNode* mMaskList[kPvBitLen];
+  // 仕様上 PV_BITLEN が最大
+  SimNode* mMaskList[PV_BITLEN];
 
   // mMaskList の最後の要素位置
   SizeType mMaskPos;

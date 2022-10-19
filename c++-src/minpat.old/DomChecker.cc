@@ -261,7 +261,7 @@ DomChecker::do_fsim(const vector<ymuint>& fid_list)
       TestVector* tv = fi.testvector();
       mFsim.set_pattern(wpos, tv);
       ++ wpos;
-      if ( wpos < kPvBitLen ) {
+      if ( wpos < PV_BITLEN ) {
 	continue;
       }
     }
@@ -280,8 +280,8 @@ DomChecker::do_fsim(const vector<ymuint>& fid_list)
     wpos = 0;
   }
 
-  TestVector* cur_array[kPvBitLen];
-  for (ymuint i = 0; i < kPvBitLen; ++ i) {
+  TestVector* cur_array[PV_BITLEN];
+  for (ymuint i = 0; i < PV_BITLEN; ++ i) {
     TestVector* tv = mTvMgr.new_vector();
     cur_array[i] = tv;
   }
@@ -289,7 +289,7 @@ DomChecker::do_fsim(const vector<ymuint>& fid_list)
   ymuint nochg = 0;
   for ( ; ; ) {
     mFsim.clear_patterns();
-    for (ymuint i = 0; i < kPvBitLen; ++ i) {
+    for (ymuint i = 0; i < PV_BITLEN; ++ i) {
       cur_array[i]->set_from_random(mRandGen);
       mFsim.set_pattern(i, cur_array[i]);
     }
@@ -301,7 +301,7 @@ DomChecker::do_fsim(const vector<ymuint>& fid_list)
     mFsim.ppsfp();
     ymuint nchg = 0;
     nchg += record_dom_cand();
-    npat += kPvBitLen;
+    npat += PV_BITLEN;
     if ( nchg == 0 ) {
       ++ nochg;
       if ( nochg > 2 ) {
@@ -319,7 +319,7 @@ DomChecker::do_fsim(const vector<ymuint>& fid_list)
   mPat = npat;
 
   // 乱数パタンは削除しておく．
-  for (ymuint i = 0; i < kPvBitLen; ++ i) {
+  for (ymuint i = 0; i < PV_BITLEN; ++ i) {
     mTvMgr.delete_vector(cur_array[i]);
   }
 

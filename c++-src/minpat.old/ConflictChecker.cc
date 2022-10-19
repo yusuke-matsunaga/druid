@@ -454,7 +454,7 @@ ConflictChecker::do_fsim(const vector<ymuint>& fid_list)
       TestVector* tv = fi.testvector();
       mFsim.set_pattern(wpos, tv);
       ++ wpos;
-      if ( wpos < kPvBitLen ) {
+      if ( wpos < PV_BITLEN ) {
 	continue;
       }
     }
@@ -473,15 +473,15 @@ ConflictChecker::do_fsim(const vector<ymuint>& fid_list)
     wpos = 0;
   }
 
-  TestVector* cur_array[kPvBitLen];
-  for (ymuint i = 0; i < kPvBitLen; ++ i) {
+  TestVector* cur_array[PV_BITLEN];
+  for (ymuint i = 0; i < PV_BITLEN; ++ i) {
     cur_array[i] = mTvMgr.new_vector();
   }
 
   ymuint nochg_count = 0;
   for (ymuint c = 0; c < 1000; ++ c) {
     mFsim.clear_patterns();
-    for (ymuint i = 0; i < kPvBitLen; ++ i) {
+    for (ymuint i = 0; i < PV_BITLEN; ++ i) {
       cur_array[i]->set_from_random(mRandGen);
       mFsim.set_pattern(i, cur_array[i]);
     }
@@ -493,7 +493,7 @@ ConflictChecker::do_fsim(const vector<ymuint>& fid_list)
     mFsim.ppsfp();
     ymuint nchg = 0;
     nchg += record_pat(fid_list);
-    base += kPvBitLen;
+    base += PV_BITLEN;
     if ( nchg == 0 ) {
       ++ nochg_count;
       if ( nochg_count > 3 ) {
@@ -509,7 +509,7 @@ ConflictChecker::do_fsim(const vector<ymuint>& fid_list)
   }
 
   // 乱数パタンは削除しておく．
-  for (ymuint i = 0; i < kPvBitLen; ++ i) {
+  for (ymuint i = 0; i < PV_BITLEN; ++ i) {
     mTvMgr.delete_vector(cur_array[i]);
   }
 

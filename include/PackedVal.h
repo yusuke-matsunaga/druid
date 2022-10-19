@@ -19,13 +19,13 @@ BEGIN_NAMESPACE_DRUID
 using PackedVal = ymuint64;
 
 /// @brief 全てのビットが0の定数
-const PackedVal kPvAll0 = 0UL;
+const PackedVal PV_ALL0 = 0UL;
 
 /// @brief 全てのビットが1の定数
-const PackedVal kPvAll1 = ~0UL;
+const PackedVal PV_ALL1 = ~0UL;
 
 /// @brief PackedVal のビット長
-const int kPvBitLen = 64;
+const int PV_BITLEN = 64;
 
 
 /// @brief 2つのビットベクタの差分を求める．

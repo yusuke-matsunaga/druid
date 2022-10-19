@@ -40,12 +40,12 @@ val3_to_packedval(
 {
 #if FSIM_VAL2
   // kValX は kVal0 とみなす．
-  return (val == Val3::_1) ? kPvAll1 : kPvAll0;
+  return (val == Val3::_1) ? PV_ALL1 : PV_ALL0;
 #elif FSIM_VAL3
   switch ( val ) {
-  case Val3::_X: return PackedVal3(kPvAll0, kPvAll0);
-  case Val3::_0: return PackedVal3(kPvAll1, kPvAll0);
-  case Val3::_1: return PackedVal3(kPvAll0, kPvAll1);
+  case Val3::_X: return PackedVal3(PV_ALL0, PV_ALL0);
+  case Val3::_0: return PackedVal3(PV_ALL1, PV_ALL0);
+  case Val3::_1: return PackedVal3(PV_ALL0, PV_ALL1);
   }
 #endif
 }
@@ -94,7 +94,7 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
   const TpgNetwork& network
 )
 {
-  mPatMap = kPvAll0;
+  mPatMap = PV_ALL0;
   mPPIArray = nullptr;
   mPPOArray = nullptr;
   mPrevValArray = nullptr;
@@ -414,7 +414,7 @@ FSIM_CLASSNAME::sppfp(
 SizeType
 FSIM_CLASSNAME::ppsfp()
 {
-  if ( mPatMap == kPvAll0 ) {
+  if ( mPatMap == PV_ALL0 ) {
     // パタンが一つも設定されていない．
     mDetNum = 0;
     return 0;
@@ -433,12 +433,12 @@ FSIM_CLASSNAME::ppsfp()
 void
 FSIM_CLASSNAME::clear_patterns()
 {
-  mPatMap = kPvAll0;
-  mPatFirstBit = kPvBitLen;
+  mPatMap = PV_ALL0;
+  mPatFirstBit = PV_BITLEN;
 }
 
 // @brief ppsfp 用のパタンを設定する．
-// @param[in] pos 位置番号 ( 0 <= pos < kPvBitLen )
+// @param[in] pos 位置番号 ( 0 <= pos < PV_BITLEN )
 // @param[in] tv テストベクタ
 void
 FSIM_CLASSNAME::set_pattern(
@@ -446,7 +446,7 @@ FSIM_CLASSNAME::set_pattern(
   const TestVector& tv
 )
 {
-  ASSERT_COND( pos >= 0 && pos < kPvBitLen );
+  ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
 
   mPatBuff[pos] = tv;
   mPatMap |= (1ULL << pos);
@@ -457,13 +457,13 @@ FSIM_CLASSNAME::set_pattern(
 }
 
 // @brief 設定した ppsfp 用のパタンを読み出す．
-// @param[in] pos 位置番号 ( 0 <= pos < kPvBitLen )
+// @param[in] pos 位置番号 ( 0 <= pos < PV_BITLEN )
 TestVector
 FSIM_CLASSNAME::get_pattern(
   SizeType pos
 )
 {
-  ASSERT_COND( pos >= 0 && pos < kPvBitLen );
+  ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
   ASSERT_COND ( mPatMap & (1ULL << pos) );
 
   return mPatBuff[pos];
@@ -484,7 +484,7 @@ FSIM_CLASSNAME::_spsfp(
   auto obs = _fault_prop(ff);
 
   // obs が 0 ならその後のシミュレーションを行う必要はない．
-  if ( obs == kPvAll0 ) {
+  if ( obs == PV_ALL0 ) {
     return false;
   }
 
@@ -492,9 +492,9 @@ FSIM_CLASSNAME::_spsfp(
   auto root = ff->mNode->ffr_root();
 
   // root からの故障伝搬シミュレーションを行う．
-  obs = _prop_sim(root, kPvAll1);
+  obs = _prop_sim(root, PV_ALL1);
 
-  return (obs != kPvAll0);
+  return (obs != PV_ALL0);
 }
 
 // @brief SPPFP故障シミュレーションの本体
@@ -502,7 +502,7 @@ FSIM_CLASSNAME::_spsfp(
 SizeType
 FSIM_CLASSNAME::_sppfp()
 {
-  const SimFFR* ffr_buff[kPvBitLen];
+  const SimFFR* ffr_buff[PV_BITLEN];
 
   mDetNum = 0;
   auto bitpos = 0;
@@ -512,7 +512,7 @@ FSIM_CLASSNAME::_sppfp()
     // 結果は SimFault.mObsMask に保存される．
     // FFR 内の全ての obs マスクを ffr_req に入れる．
     auto ffr_req = _foreach_faults(ffr.fault_list());
-    if ( ffr_req == kPvAll0 ) {
+    if ( ffr_req == PV_ALL0 ) {
       // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
       continue;
     }
@@ -529,7 +529,7 @@ FSIM_CLASSNAME::_sppfp()
       ffr_buff[bitpos] = &ffr;
       ++ bitpos;
 
-      if ( bitpos == kPvBitLen ) {
+      if ( bitpos == PV_BITLEN ) {
 	_do_simulation(ffr_buff, bitpos);
 	bitpos = 0;
       }
@@ -560,7 +560,7 @@ FSIM_CLASSNAME::_ppsfp()
     auto ffr_req = _foreach_faults(fault_list) & mPatMap;
 
     // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
-    if ( ffr_req == kPvAll0 ) {
+    if ( ffr_req == PV_ALL0 ) {
       continue;
     }
 
@@ -789,7 +789,7 @@ FSIM_CLASSNAME::_foreach_faults(
   const vector<SimFault*>& fault_list
 )
 {
-  auto ffr_req = kPvAll0;
+  auto ffr_req = PV_ALL0;
   for ( auto ff: fault_list ) {
     if ( ff->mSkip ) {
       continue;
@@ -830,7 +830,7 @@ FSIM_CLASSNAME::_fault_sweep(
 )
 {
   for ( auto ff: fault_list ) {
-    if ( ff->mSkip || ff->mObsMask == kPvAll0 ) {
+    if ( ff->mSkip || ff->mObsMask == PV_ALL0 ) {
       continue;
     }
     auto f = ff->mOrigF;
@@ -853,7 +853,7 @@ FSIM_CLASSNAME::_fault_sweep(
       continue;
     }
     auto pat = ff->mObsMask & mask;
-    if ( pat != kPvAll0 ) {
+    if ( pat != PV_ALL0 ) {
       auto f = ff->mOrigF;
       mDetFaultArray[mDetNum] = f;
       mDetPatArray[mDetNum] = pat & mPatMap;

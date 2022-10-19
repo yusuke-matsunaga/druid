@@ -13,20 +13,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-TEST(Val3Test, val3_to_int)
-{
-  EXPECT_EQ( 0, __val3_to_int(Val3::_X) );
-  EXPECT_EQ( 1, __val3_to_int(Val3::_0) );
-  EXPECT_EQ( 2, __val3_to_int(Val3::_1) );
-}
-
-TEST(Val3Test, int_to_val3)
-{
-  EXPECT_EQ( Val3::_X, __int_to_val3(0) );
-  EXPECT_EQ( Val3::_0, __int_to_val3(1) );
-  EXPECT_EQ( Val3::_1, __int_to_val3(2) );
-}
-
 TEST(Val3Test, negation)
 {
   EXPECT_EQ( Val3::_X, ~(Val3::_X) );

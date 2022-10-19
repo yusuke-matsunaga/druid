@@ -27,18 +27,26 @@ public:
   TpgFault() = default;
 
   /// @brief コピーコンストラクタは禁止
-  TpgFault(const TpgFault& src) = delete;
+  TpgFault(
+    const TpgFault& src
+  ) = delete;
 
   /// @brief コピー代入演算子も禁止
   TpgFault&
-  operator=(const TpgFault& src) = delete;
+  operator=(
+    const TpgFault& src
+  ) = delete;
 
   /// @brief ムーブコンストラクタは禁止
-  TpgFault(TpgFault&& src) = delete;
+  TpgFault(
+    TpgFault&& src
+  ) = delete;
 
   /// @brief ムーブ代入演算子も禁止
   TpgFault&
-  operator=(TpgFault&& src) = delete;
+  operator=(
+    TpgFault&& src
+  ) = delete;
 
   /// @brief デストラクタ
   virtual

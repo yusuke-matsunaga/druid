@@ -193,39 +193,6 @@ bool3_to_val3(
   return Val3::_X;
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// cython とのインターフェイス用の暫定的な関数
-//////////////////////////////////////////////////////////////////////
-
-/// @brief Val3 を int に変換する．
-inline
-int
-__val3_to_int(Val3 val)
-{
-  switch ( val ) {
-  case Val3::_X: return 0;
-  case Val3::_0: return 1;
-  case Val3::_1: return 2;
-  }
-  ASSERT_NOT_REACHED;
-  return 0;
-}
-
-/// @brief int を Val3 に変換する．
-inline
-Val3
-__int_to_val3(int val)
-{
-  switch ( val ) {
-  case 0: return Val3::_X;
-  case 1: return Val3::_0;
-  case 2: return Val3::_1;
-  }
-  ASSERT_NOT_REACHED;
-  return Val3::_X;
-}
-
 END_NAMESPACE_DRUID
 
 #endif // VAL3_H

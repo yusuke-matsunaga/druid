@@ -39,11 +39,11 @@ SnXor::_calc_gobs(
 {
 #if FSIM_VAL2
   // 2値なら常に観測可能
-  return kPvAll1;
+  return PV_ALL1;
 #elif FSIM_VAL3
   // 3値はめんどくさい
   // 条件は ipos 以外が X でないこと
-  auto obs = kPvAll1;
+  auto obs = PV_ALL1;
   for ( auto i: Range(0, ipos) ) {
     auto ival = _fanin(i)->val();
     obs &= ival.val01();
@@ -83,7 +83,7 @@ SnXor2::_calc_gobs(
 {
 #if FSIM_VAL2
   // 2値なら常に観測可能
-  return kPvAll1;
+  return PV_ALL1;
 #elif FSIM_VAL3
   // 3値の場合，Xでないことが条件
   auto alt_pos = ipos ^ 1;

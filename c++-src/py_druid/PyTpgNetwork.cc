@@ -57,7 +57,7 @@ TpgNetwork_init(
   PyObject* kwds
 )
 {
-  static char* kwlist[] = {
+  static const char* kwlist[] = {
     "blif_file",
     "iscas89_file",
     nullptr
@@ -65,7 +65,7 @@ TpgNetwork_init(
   const char* blif_file = nullptr;
   const char* iscas89_file = nullptr;
   if ( !PyArg_ParseTupleAndKeywords(args, kwds,
-				    "|$ss", kwlist,
+				    "|$ss", const_cast<char**>(kwlist),
 				    &blif_file,
 				    &iscas89_file) ) {
     return -1;

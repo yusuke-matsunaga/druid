@@ -26,7 +26,7 @@ Rtpg::Rtpg(
 {
   mFsim = Fsim::new_Fsim2(network, fault_type);
 
-  for ( int i: Range(0, kPvBitLen) ) {
+  for ( int i: Range(0, PV_BITLEN) ) {
     tv_array[i] = mTvMgr.new_vector();
   }
 
@@ -39,7 +39,7 @@ Rtpg::~Rtpg()
 {
   delete mFsim;
 
-  for ( int i: Range(0, kPvBitLen) ) {
+  for ( int i: Range(0, PV_BITLEN) ) {
     mTvMgr.delete_vector(tv_array[i]);
   }
 }
@@ -53,7 +53,7 @@ Rtpg::randgen_init(
   mRandGen.init(seed);
 }
 
-// @brief 1セット(kPvBitLen個)のパタンで故障シミュレーションを行う．
+// @brief 1セット(PV_BITLEN個)のパタンで故障シミュレーションを行う．
 // @return 新たに検出された故障数を返す．
 SizeType
 Rtpg::do_fsim()

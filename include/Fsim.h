@@ -208,14 +208,14 @@ public:
   /// @brief ppsfp 用のパタンを設定する．
   void
   set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
     const TestVector& tv ///< [in] テストベクタ
   );
 
   /// @brief 設定した ppsfp 用のパタンを読み出す．
   TestVector
   get_pattern(
-    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < kPvBitLen )
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
   );
 
 

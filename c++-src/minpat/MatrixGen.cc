@@ -52,11 +52,11 @@ MatrixGen::generate()
   for ( auto tv: mTvList ) {
     mFsim.set_pattern(wpos, tv);
     ++ wpos;
-    if ( wpos == kPvBitLen ) {
+    if ( wpos == PV_BITLEN ) {
       do_fsim(matrix, tv_base, wpos);
       mFsim.clear_patterns();
       wpos = 0;
-      tv_base += kPvBitLen;
+      tv_base += PV_BITLEN;
     }
   }
   if ( wpos > 0 ) {
@@ -75,7 +75,7 @@ MatrixGen::do_fsim(
 )
 {
   int ndet = mFsim.ppsfp();
-  vector<int> det_list[kPvBitLen];
+  vector<int> det_list[PV_BITLEN];
   for ( auto i: Range(ndet) ) {
     const TpgFault* fault = mFsim.det_fault(i);
     PackedVal dbits = mFsim.det_fault_pat(i);

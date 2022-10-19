@@ -245,7 +245,7 @@ FaultReducer::make_dom_candidate(
   for ( auto tv: mTvList ) {
     mFsim.set_pattern(wpos, tv);
     ++ wpos;
-    if ( wpos == kPvBitLen ) {
+    if ( wpos == PV_BITLEN ) {
       do_fsim();
       mFsim.clear_patterns();
       wpos = 0;
@@ -260,7 +260,7 @@ FaultReducer::make_dom_candidate(
   std::mt19937 rg;
   TestVector tv(mNetwork.input_num(), mNetwork.dff_num(), mFaultType);
   for ( int nc_count = 0; nc_count < loop_limit; ) {
-    for ( auto i: Range(kPvBitLen) ) {
+    for ( auto i: Range(PV_BITLEN) ) {
       tv.set_from_random(rg);
       mFsim.set_pattern(i, tv);
     }
