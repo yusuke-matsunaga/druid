@@ -15,7 +15,6 @@
 #include "NodeValList.h"
 #include "GateEnc.h"
 #include "GateType.h"
-#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID_STRUCTENC
@@ -173,8 +172,7 @@ MffcPropCone::inject_fault(
   const TpgNode* node = mElemArray[ffr_pos];
   auto olit = fvar(node);
 
-  SatTseitinEnc enc{solver()};
-  enc.add_xorgate(lit1, lit2, olit);
+  solver().add_xorgate(lit1, lit2, olit);
 
   if ( debug_mffccone ) {
     DEBUG_OUT << "inject fault: " << ovar << " -> " << fvar(node)

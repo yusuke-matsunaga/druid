@@ -92,7 +92,6 @@ ym_init_submodules (
   ym-common
   ym-logic
   ym-sat
-  ym-luapp
   )
 
 

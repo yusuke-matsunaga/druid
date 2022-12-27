@@ -14,7 +14,6 @@
 #include "TpgFault.h"
 #include "ym/Range.h"
 #include "ym/SatSolver.h"
-#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -26,12 +25,14 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 void
-add_constraint(SatSolver& solver,
-	       const TpgNetwork& network,
-	       const TpgNode* root,
-	       const vector<const TpgNode*>& inode_list,
-	       const vector<pair<const TpgFault*, SatLiteral>>& fault_list,
-	       const vector<bool>& fvec)
+add_constraint(
+  SatSolver& solver,
+  const TpgNetwork& network,
+  const TpgNode* root,
+  const vector<const TpgNode*>& inode_list,
+  const vector<pair<const TpgFault*, SatLiteral>>& fault_list,
+  const vector<bool>& fvec
+)
 {
   if ( 0 ) {
     int nf = fault_list.size();
@@ -80,14 +81,15 @@ add_constraint(SatSolver& solver,
   auto olit = solver.new_variable();
   MF_Enc::make_faulty_FFR(solver, network, input_list, root, olit, fault_list);
 
-  SatTseitinEnc enc{solver};
-  enc.add_notgate(olit, flit);
+  solver.add_notgate(olit, flit);
 }
 
 void
-add_faults(vector<vector<const TpgFault*>>& ans_list,
-	   const vector<const TpgFault*>& fault_list,
-	   const vector<bool>& fvec)
+add_faults(
+  vector<vector<const TpgFault*>>& ans_list,
+  const vector<const TpgFault*>& fault_list,
+  const vector<bool>& fvec
+)
 {
   int nf = fault_list.size();
   vector<const TpgFault*> tmp_list;

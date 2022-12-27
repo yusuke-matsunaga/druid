@@ -45,7 +45,6 @@ add_executable ( py_druid
   $<TARGET_OBJECTS:druid_fsimsa3_obj>
   $<TARGET_OBJECTS:druid_fsimtd2_obj>
   $<TARGET_OBJECTS:druid_fsimtd3_obj>
-  $<TARGET_OBJECTS:ym_luaclib_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -66,7 +65,6 @@ add_executable ( py_druid_d
   $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
   $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
   $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
-  $<TARGET_OBJECTS:ym_luaclib_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 

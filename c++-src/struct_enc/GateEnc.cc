@@ -13,7 +13,6 @@
 #include "VidMap.h"
 
 #include "ym/SatSolver.h"
-#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -50,7 +49,6 @@ GateEnc::make_cnf(
 {
   SizeType ni = node->fanin_num();
   const auto& fanin_array = node->fanin_list();
-  SatTseitinEnc enc{mSolver};
   switch ( node->gate_type() ) {
   case GateType::Const0:
     mSolver.add_clause(~olit);
@@ -66,15 +64,15 @@ GateEnc::make_cnf(
 
   case GateType::Buff:
     {
-      SatLiteral ilit = lit(fanin_array[0]);
-      enc.add_buffgate(ilit, olit);
+      auto ilit = lit(fanin_array[0]);
+      mSolver.add_buffgate(ilit, olit);
     }
     break;
 
   case GateType::Not:
     {
-      SatLiteral ilit = lit(fanin_array[0]);
-      enc.add_notgate(ilit, olit);
+      auto ilit = lit(fanin_array[0]);
+      mSolver.add_notgate(ilit, olit);
     }
     break;
 
@@ -82,28 +80,28 @@ GateEnc::make_cnf(
     switch ( ni ) {
     case 2:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	enc.add_andgate(olit, ilit0, ilit1);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	mSolver.add_andgate(olit, ilit0, ilit1);
       }
       break;
 
     case 3:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	SatLiteral ilit2 = lit(fanin_array[2]);
-	enc.add_andgate( olit, ilit0, ilit1, ilit2);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	mSolver.add_andgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
     case 4:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	SatLiteral ilit2 = lit(fanin_array[2]);
-	SatLiteral ilit3 = lit(fanin_array[3]);
-	enc.add_andgate( olit, ilit0, ilit1, ilit2, ilit3);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	auto ilit3 = lit(fanin_array[3]);
+	mSolver.add_andgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
@@ -114,7 +112,7 @@ GateEnc::make_cnf(
 	for (int i = 0; i < ni; ++ i) {
 	  ilits[i] = lit(fanin_array[i]);
 	}
-	enc.add_andgate( olit, ilits);
+	mSolver.add_andgate( olit, ilits);
       }
       break;
     }
@@ -124,28 +122,28 @@ GateEnc::make_cnf(
     switch ( ni ) {
     case 2:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	enc.add_nandgate( olit, ilit0, ilit1);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	mSolver.add_nandgate( olit, ilit0, ilit1);
       }
       break;
 
     case 3:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	SatLiteral ilit2 = lit(fanin_array[2]);
-	enc.add_nandgate( olit, ilit0, ilit1, ilit2);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	mSolver.add_nandgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
     case 4:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	SatLiteral ilit2 = lit(fanin_array[2]);
-	SatLiteral ilit3 = lit(fanin_array[3]);
-	enc.add_nandgate( olit, ilit0, ilit1, ilit2, ilit3);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	auto ilit3 = lit(fanin_array[3]);
+	mSolver.add_nandgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
@@ -156,7 +154,7 @@ GateEnc::make_cnf(
 	for (int i = 0; i < ni; ++ i) {
 	  ilits[i] = lit(fanin_array[i]);
 	}
-	enc.add_nandgate( olit, ilits);
+	mSolver.add_nandgate( olit, ilits);
       }
       break;
     }
@@ -166,28 +164,28 @@ GateEnc::make_cnf(
     switch ( ni ) {
     case 2:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	enc.add_orgate( olit, ilit0, ilit1);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	mSolver.add_orgate( olit, ilit0, ilit1);
       }
       break;
 
     case 3:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	SatLiteral ilit2 = lit(fanin_array[2]);
-	enc.add_orgate( olit, ilit0, ilit1, ilit2);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	mSolver.add_orgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
     case 4:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	SatLiteral ilit2 = lit(fanin_array[2]);
-	SatLiteral ilit3 = lit(fanin_array[3]);
-	enc.add_orgate( olit, ilit0, ilit1, ilit2, ilit3);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	auto ilit3 = lit(fanin_array[3]);
+	mSolver.add_orgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
@@ -198,7 +196,7 @@ GateEnc::make_cnf(
 	for (int i = 0; i < ni; ++ i) {
 	  ilits[i] = lit(fanin_array[i]);
 	}
-	enc.add_orgate( olit, ilits);
+	mSolver.add_orgate( olit, ilits);
       }
       break;
     }
@@ -208,28 +206,28 @@ GateEnc::make_cnf(
     switch ( ni ) {
     case 2:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	enc.add_norgate( olit, ilit0, ilit1);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	mSolver.add_norgate( olit, ilit0, ilit1);
       }
       break;
 
     case 3:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	SatLiteral ilit2 = lit(fanin_array[2]);
-	enc.add_norgate( olit, ilit0, ilit1, ilit2);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	mSolver.add_norgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
     case 4:
       {
-	SatLiteral ilit0 = lit(fanin_array[0]);
-	SatLiteral ilit1 = lit(fanin_array[1]);
-	SatLiteral ilit2 = lit(fanin_array[2]);
-	SatLiteral ilit3 = lit(fanin_array[3]);
-	enc.add_norgate( olit, ilit0, ilit1, ilit2, ilit3);
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	auto ilit3 = lit(fanin_array[3]);
+	mSolver.add_norgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
@@ -240,7 +238,7 @@ GateEnc::make_cnf(
 	for (int i = 0; i < ni; ++ i) {
 	  ilits[i] = lit(fanin_array[i]);
 	}
-	enc.add_norgate( olit, ilits);
+	mSolver.add_norgate( olit, ilits);
       }
       break;
     }
@@ -249,18 +247,18 @@ GateEnc::make_cnf(
   case GateType::Xor:
     ASSERT_COND( ni == 2 );
     {
-      SatLiteral ilit0 = lit(fanin_array[0]);
-      SatLiteral ilit1 = lit(fanin_array[1]);
-      enc.add_xorgate( olit, ilit0, ilit1);
+      auto ilit0 = lit(fanin_array[0]);
+      auto ilit1 = lit(fanin_array[1]);
+      mSolver.add_xorgate( olit, ilit0, ilit1);
     }
     break;
 
   case GateType::Xnor:
     ASSERT_COND( ni == 2 );
     {
-      SatLiteral ilit0 = lit(fanin_array[0]);
-      SatLiteral ilit1 = lit(fanin_array[1]);
-      enc.add_xnorgate( olit, ilit0, ilit1);
+      auto ilit0 = lit(fanin_array[0]);
+      auto ilit1 = lit(fanin_array[1]);
+      mSolver.add_xnorgate( olit, ilit0, ilit1);
     }
     break;
 

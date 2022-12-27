@@ -17,7 +17,6 @@
 #include "NodeValList.h"
 #include "TestVector.h"
 #include "ym/Range.h"
-#include "ym/SatTseitinEnc.h"
 
 //#define DEBUG_DTPG
 
@@ -206,8 +205,7 @@ DtpgMFFC::inject_fault(
   auto node = mRootArray[ffr_id];
   auto olit = fvar(node);
 
-  SatTseitinEnc enc{solver()};
-  enc.add_xorgate(lit1, lit2, olit);
+  solver().add_xorgate(lit1, lit2, olit);
 
   if ( debug_mffc ) {
     DEBUG_OUT << "inject fault: " << ovar << " -> " << fvar(node)

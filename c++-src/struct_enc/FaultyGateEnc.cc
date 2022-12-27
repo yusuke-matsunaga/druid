@@ -14,7 +14,6 @@
 #include "VidMap.h"
 #include "ym/Range.h"
 #include "ym/SatSolver.h"
-#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -79,7 +78,6 @@ FaultyGateEnc::make_cnf(
     }
   }
 
-  SatTseitinEnc enc{mSolver};
   switch ( node->gate_type() ) {
   case GateType::Const0:
   case GateType::Const1:
@@ -122,7 +120,7 @@ FaultyGateEnc::make_cnf(
     case Fval2::one:
       // 入力の1縮退故障
       // ilits の要素数が 1 でも正しく動く．
-      enc.add_andgate( olit, ilits);
+      mSolver.add_andgate( olit, ilits);
       break;
     }
     break;
@@ -136,7 +134,7 @@ FaultyGateEnc::make_cnf(
     case Fval2::one:
       // 入力の1縮退故障
       // ilits の要素数が 1 でも正しく動く．
-      enc.add_nandgate( olit, ilits);
+      mSolver.add_nandgate( olit, ilits);
       break;
     }
     break;
@@ -146,7 +144,7 @@ FaultyGateEnc::make_cnf(
     case Fval2::zero:
       // 入力の 0 縮退故障
       // ilits の要素数が 1 でも正しく動く．
-      enc.add_orgate( olit, ilits );
+      mSolver.add_orgate( olit, ilits );
       break;
     case Fval2::one:
       // 入力の 1 縮退故障
@@ -160,7 +158,7 @@ FaultyGateEnc::make_cnf(
     case Fval2::zero:
       // 入力の 0 縮退故障
       // ilits の要素数が 1 でも正しく動く．
-      enc.add_norgate( olit, ilits);
+      mSolver.add_norgate( olit, ilits);
       break;
     case Fval2::one:
       // 入力の1縮退故障
@@ -173,10 +171,10 @@ FaultyGateEnc::make_cnf(
     ASSERT_COND( ni == 2 );
     switch ( fval ) {
     case Fval2::zero:
-      enc.add_buffgate( olit, ilits[0] );
+      mSolver.add_buffgate( olit, ilits[0] );
       break;
     case Fval2::one:
-      enc.add_notgate( olit, ilits[0] );
+      mSolver.add_notgate( olit, ilits[0] );
       break;
     }
     break;
@@ -185,10 +183,10 @@ FaultyGateEnc::make_cnf(
     ASSERT_COND( ni == 2 );
     switch ( fval ) {
     case Fval2::zero:
-      enc.add_notgate( olit, ilits[0] );
+      mSolver.add_notgate( olit, ilits[0] );
       break;
     case Fval2::one:
-      enc.add_buffgate( olit, ilits[0] );
+      mSolver.add_buffgate( olit, ilits[0] );
       break;
     }
     break;

@@ -12,7 +12,6 @@
 #include "GateType.h"
 #include "ym/Range.h"
 #include "ym/SatSolver.h"
-#include "ym/SatTseitinEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -31,7 +30,6 @@ gate_enc(
   SatLiteral olit
 )
 {
-  SatTseitinEnc enc{solver};
   SizeType ni = ilit_list.size();
   switch ( gate_type ) {
   case GateType::Const0:
@@ -47,45 +45,45 @@ gate_enc(
     break;
 
   case GateType::Buff:
-    enc.add_buffgate( ilit_list[0],  olit);
+    solver.add_buffgate( ilit_list[0],  olit);
     break;
 
   case GateType::Not:
-    enc.add_notgate( ilit_list[0], olit);
+    solver.add_notgate( ilit_list[0], olit);
     break;
 
   case GateType::And:
     switch ( ni ) {
     case 2:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	enc.add_andgate( olit, ilit0, ilit1);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	solver.add_andgate( olit, ilit0, ilit1);
       }
       break;
 
     case 3:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	SatLiteral ilit2{ilit_list[2]};
-	enc.add_andgate( olit, ilit0, ilit1, ilit2);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	auto ilit2 = ilit_list[2];
+	solver.add_andgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
     case 4:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	SatLiteral ilit2{ilit_list[2]};
-	SatLiteral ilit3{ilit_list[3]};
-	enc.add_andgate( olit, ilit0, ilit1, ilit2, ilit3);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	auto ilit2 = ilit_list[2];
+	auto ilit3 = ilit_list[3];
+	solver.add_andgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
     default:
       ASSERT_COND( ni > 4 );
-      enc.add_andgate( olit, ilit_list);
+      solver.add_andgate( olit, ilit_list);
       break;
     }
     break;
@@ -94,34 +92,34 @@ gate_enc(
     switch ( ni ) {
     case 2:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	enc.add_nandgate( olit, ilit0, ilit1);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	solver.add_nandgate( olit, ilit0, ilit1);
       }
       break;
 
     case 3:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	SatLiteral ilit2{ilit_list[2]};
-	enc.add_nandgate( olit, ilit0, ilit1, ilit2);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	auto ilit2 = ilit_list[2];
+	solver.add_nandgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
     case 4:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	SatLiteral ilit2{ilit_list[2]};
-	SatLiteral ilit3{ilit_list[3]};
-	enc.add_nandgate( olit, ilit0, ilit1, ilit2, ilit3);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	auto ilit2 = ilit_list[2];
+	auto ilit3 = ilit_list[3];
+	solver.add_nandgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
     default:
       ASSERT_COND( ni > 4 );
-      enc.add_nandgate( olit, ilit_list);
+      solver.add_nandgate( olit, ilit_list);
       break;
     }
     break;
@@ -130,34 +128,34 @@ gate_enc(
     switch ( ni ) {
     case 2:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	enc.add_orgate( olit, ilit0, ilit1);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	solver.add_orgate( olit, ilit0, ilit1);
       }
       break;
 
     case 3:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	SatLiteral ilit2{ilit_list[2]};
-	enc.add_orgate( olit, ilit0, ilit1, ilit2);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	auto ilit2 = ilit_list[2];
+	solver.add_orgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
     case 4:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	SatLiteral ilit2{ilit_list[2]};
-	SatLiteral ilit3{ilit_list[3]};
-	enc.add_orgate( olit, ilit0, ilit1, ilit2, ilit3);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	auto ilit2 = ilit_list[2];
+	auto ilit3 = ilit_list[3];
+	solver.add_orgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
     default:
       ASSERT_COND( ni > 4 );
-      enc.add_orgate( olit, ilit_list);
+      solver.add_orgate( olit, ilit_list);
       break;
     }
     break;
@@ -166,34 +164,34 @@ gate_enc(
     switch ( ni ) {
     case 2:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	enc.add_norgate( olit, ilit0, ilit1);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	solver.add_norgate( olit, ilit0, ilit1);
       }
       break;
 
     case 3:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	SatLiteral ilit2{ilit_list[2]};
-	enc.add_norgate( olit, ilit0, ilit1, ilit2);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	auto ilit2 = ilit_list[2];
+	solver.add_norgate( olit, ilit0, ilit1, ilit2);
       }
       break;
 
     case 4:
       {
-	SatLiteral ilit0{ilit_list[0]};
-	SatLiteral ilit1{ilit_list[1]};
-	SatLiteral ilit2{ilit_list[2]};
-	SatLiteral ilit3{ilit_list[3]};
-	enc.add_norgate( olit, ilit0, ilit1, ilit2, ilit3);
+	auto ilit0 = ilit_list[0];
+	auto ilit1 = ilit_list[1];
+	auto ilit2 = ilit_list[2];
+	auto ilit3 = ilit_list[3];
+	solver.add_norgate( olit, ilit0, ilit1, ilit2, ilit3);
       }
       break;
 
     default:
       ASSERT_COND( ni > 4 );
-      enc.add_norgate( olit, ilit_list);
+      solver.add_norgate( olit, ilit_list);
       break;
     }
     break;
@@ -201,18 +199,18 @@ gate_enc(
   case GateType::Xor:
     ASSERT_COND( ni == 2 );
     {
-      SatLiteral ilit0{ilit_list[0]};
-      SatLiteral ilit1{ilit_list[1]};
-      enc.add_xorgate( olit, ilit0, ilit1);
+      auto ilit0 = ilit_list[0];
+      auto ilit1 = ilit_list[1];
+      solver.add_xorgate( olit, ilit0, ilit1);
     }
     break;
 
   case GateType::Xnor:
     ASSERT_COND( ni == 2 );
     {
-      SatLiteral ilit0{ilit_list[0]};
-      SatLiteral ilit1{ilit_list[1]};
-      enc.add_xnorgate( olit, ilit0, ilit1);
+      auto ilit0 = ilit_list[0];
+      auto ilit1 = ilit_list[1];
+      solver.add_xnorgate( olit, ilit0, ilit1);
     }
     break;
 
@@ -282,26 +280,25 @@ faulty_cnf_dfs(
     ilit_list[i] = ilit;
   }
 
-  SatTseitinEnc enc{solver};
   // 故障挿入回路を作る．
   SizeType nf = network.node_rep_fault_num(node->id());
   for ( auto i: Range(nf) ) {
     auto f = network.node_rep_fault(node->id(), i);
     ASSERT_COND( fault_varmap.count(f->id()) > 0 );
-    SatLiteral flit = fault_varmap.at(f->id());
+    auto flit = fault_varmap.at(f->id());
     if ( f->is_branch_fault() ) {
       // ブランチの故障
       SizeType pos = f->tpg_pos();
       auto olit = solver.new_variable();
-      SatLiteral ilit{ilit_list[pos]};
+      auto ilit = ilit_list[pos];
       switch ( f->val() ) {
       case Fval2::zero:
 	// 0縮退故障の挿入回路を追加する．
-	enc.add_andgate(olit, ilit, ~flit);
+	solver.add_andgate(olit, ilit, ~flit);
 	break;
       case Fval2::one:
 	// 1縮退故障の挿入回路を追加する．
-	enc.add_orgate(olit, ilit, flit);
+	solver.add_orgate(olit, ilit, flit);
 	break;
       }
       // ovar を ilit_list[pos] に置き換える．
@@ -313,11 +310,11 @@ faulty_cnf_dfs(
       switch ( f->val() ) {
       case Fval2::zero:
 	// 0縮退故障の挿入回路を追加する．
-	enc.add_andgate(olit, tmp_lit, ~flit);
+	solver.add_andgate(olit, tmp_lit, ~flit);
 	break;
       case Fval2::one:
 	// 1縮退故障の挿入回路を追加する．
-	enc.add_orgate(olit, tmp_lit, flit);
+	solver.add_orgate(olit, tmp_lit, flit);
 	break;
       }
       olit = tmp_lit;
@@ -331,9 +328,6 @@ faulty_cnf_dfs(
 END_NONAMESPACE
 
 // @brief 部分回路に対する正常回路を作る．
-// @param[in] solver SATソルバ
-// @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
-// @param[in] output_list 出力のノードと対応するSATのリテラルのペアのリスト
 void
 MF_Enc::make_good_cnf(
   SatSolver& solver,
@@ -358,12 +352,6 @@ MF_Enc::make_good_cnf(
 }
 
 // @brief FFR に対する正常回路を作る．
-// @param[in] solver SATソルバ
-// @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
-// @param[in] onode 出力のノード
-// @param[in] olit 出力のノードに対応するSATのリテラル
-//
-// * input_vars の順番は ffr.input_list() の順番と同じ
 void
 MF_Enc::make_good_FFR(
   SatSolver& solver,
@@ -377,11 +365,6 @@ MF_Enc::make_good_FFR(
 }
 
 // @brief 部分回路に対する故障回路を作る．
-// @param[in] solver SATソルバ
-// @param[in] network 対象のネットワーク
-// @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
-// @param[in] output_list 出力のノードと対応するSATのリテラルのペアのリスト
-// @param[in] fault_list 代表故障と対応するSATのリテラルのペアのリスト
 void
 MF_Enc::make_faulty_cnf(
   SatSolver& solver,
@@ -416,12 +399,6 @@ MF_Enc::make_faulty_cnf(
 }
 
 // @brief FFR に対する故障回路を作る．
-// @param[in] solver SATソルバ
-// @param[in] network 対象のネットワーク
-// @param[in] input_list 入力のノードと対応するSATのリテラルのペアのリスト
-// @param[in] onode 出力のノード
-// @param[in] olit 出力のノードに対応するSATのリテラル
-// @param[in] fault_list 代表故障と対応するSATのリテラルのペアのリスト
 void
 MF_Enc::make_faulty_FFR(
   SatSolver& solver,

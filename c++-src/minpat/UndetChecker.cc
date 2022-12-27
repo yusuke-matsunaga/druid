@@ -18,7 +18,6 @@
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
-#include "ym/SatTseitinEnc.h"
 #include "ym/Range.h"
 
 //#define DEBUG_DTPG
@@ -247,14 +246,13 @@ UndetChecker::gen_good_cnf()
     }
   }
 
-  SatTseitinEnc enc{mSolver};
   for ( auto dff: mDffList ) {
     const TpgNode* onode = dff->output();
     const TpgNode* inode = dff->input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
-    SatLiteral olit{gvar(onode)};
-    SatLiteral ilit{hvar(inode)};
-    enc.add_buffgate(olit, ilit);
+    auto olit = gvar(onode);
+    auto ilit = hvar(inode);
+    mSolver.add_buffgate(olit, ilit);
   }
 
   for ( auto node: mPrevTfiList ) {
