@@ -10,19 +10,26 @@
 #include <Python.h>
 
 #include "druid.h"
+#include "PyVal3.h"
+#include "PyFaultType.h"
+#include "PyTpgFault.h"
+#include "PyTpgNetwork.h"
+#include "PyTestVector.h"
+#include "PyInputVector.h"
+#include "PyDffVector.h"
+#include "PyFsim.h"
+#include "PyFaultStatus.h"
+#include "PyDtpgResult.h"
 
+
+BEGIN_NAMESPACE_YM
+
+PyMODINIT_FUNC PyInit_ymbase();
+PyMODINIT_FUNC PyInit_ymcell();
+
+END_NAMESPACE_YM
 
 BEGIN_NAMESPACE_DRUID
-
-extern bool PyInit_Mt19937(PyObject* m);
-extern bool PyInit_Val3(PyObject* m);
-extern bool PyInit_FaultType(PyObject* m);
-extern bool PyInit_TpgFault(PyObject* m);
-extern bool PyInit_TestVector(PyObject* m);
-extern bool PyInit_InputVector(PyObject* m);
-extern bool PyInit_DffVector(PyObject* m);
-extern bool PyInit_TpgNetwork(PyObject* m);
-extern bool PyInit_Fsim(PyObject* m);
 
 BEGIN_NONAMESPACE
 
@@ -50,44 +57,49 @@ PyInit_druid()
     return nullptr;
   }
 
-  if ( !PyInit_Mt19937(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+  if ( !PyInit_ymbase() ) {
+    goto error;
   }
-  if ( !PyInit_Val3(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+  if ( !PyInit_ymcell() ) {
+    goto error;
   }
-  if ( !PyInit_FaultType(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+
+  if ( !PyVal3::init(m) ) {
+    goto error;
   }
-  if ( !PyInit_TpgFault(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+  if ( !PyFaultType::init(m) ) {
+    goto error;
   }
-  if ( !PyInit_TpgNetwork(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+  if ( !PyFaultStatus::init(m) ) {
+    goto error;
   }
-  if ( !PyInit_TestVector(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+  if ( !PyTpgFault::init(m) ) {
+    goto error;
   }
-  if ( !PyInit_InputVector(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+  if ( !PyTpgNetwork::init(m) ) {
+    goto error;
   }
-  if ( !PyInit_DffVector(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+  if ( !PyTestVector::init(m) ) {
+    goto error;
   }
-  if ( !PyInit_Fsim(m) ) {
-    Py_DECREF(m);
-    return nullptr;
+  if ( !PyInputVector::init(m) ) {
+    goto error;
+  }
+  if ( !PyDffVector::init(m) ) {
+    goto error;
+  }
+  if ( !PyFsim::init(m) ) {
+    goto error;
+  }
+  if ( !PyDtpgResult::init(m) ) {
+    goto error;
   }
 
   return m;
+
+ error:
+  Py_DECREF(m);
+  return nullptr;
 }
 
 END_NAMESPACE_DRUID

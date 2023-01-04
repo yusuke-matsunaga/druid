@@ -1,16 +1,12 @@
 
 /// @file PyFaultType.cc
-/// @brief PyFaultType の実装ファイル
+/// @brief Python FaultType の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "druid.h"
-#include "FaultType.h"
+#include "PyFaultType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,6 +20,11 @@ struct FaultTypeObject
   FaultType mVal;
 };
 
+// Python 用のタイプ定義
+PyTypeObject FaultTypeType = {
+  PyVarObject_HEAD_INIT(nullptr, 0)
+};
+
 // 定数 "stuck-at"
 PyObject* FaultType_StuckAt = nullptr;
 
@@ -34,61 +35,58 @@ PyObject* FaultType_TransitionDelay = nullptr;
 PyObject*
 FaultType_new(
   PyTypeObject* type,
-  PyObject* Py_UNUSED(args),
+  PyObject* args,
   PyObject* Py_UNUSED(kwds)
 )
 {
-  auto self = reinterpret_cast<FaultTypeObject*>(type->tp_alloc(type, 0));
-  // 必要なら self の初期化を行う．
-  return reinterpret_cast<PyObject*>(self);
+  if ( type != &FaultTypeType ) {
+    PyErr_SetString(PyExc_TypeError, "FaultType cannot be overloaded");
+    return nullptr;
+  }
+
+  // 変換ルール
+  // - 文字列型
+  //   * "stuck-at"|"s-a" -> FaultType::StuckAt
+  //   * "transition-delay"|"t-d" -> FaultType::TransitionDelay
+  // それ以外は TypeError
+
+  const char* val_str = nullptr;
+  if ( !PyArg_ParseTuple(args, "s", &val_str) ) {
+    return nullptr;
+  }
+
+  PyObject* fault_type_obj = nullptr;
+  if ( strcmp(val_str, "stuck-at") == 0 ||
+       strcmp(val_str, "s-a") == 0 ) {
+    fault_type_obj = FaultType_StuckAt;
+  }
+  else if ( strcmp(val_str, "transition-delay") == 0 ||
+	    strcmp(val_str, "t-d") == 0 ) {
+    fault_type_obj = FaultType_TransitionDelay;
+  }
+  else {
+    PyErr_SetString(PyExc_ValueError,
+		    "1st argument should be either 'stuck-at' or 'transition-delay'");
+    return nullptr;
+  }
+  Py_INCREF(fault_type_obj);
+  return fault_type_obj;
 }
 
 // 終了関数
 void
 FaultType_dealloc(
-  FaultTypeObject* self
+  PyObject* self
 )
 {
-  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
+  // auto faulttype_obj = reinterpret_cast<FaultTypeObject*>(self);
+  // 必要なら faulttype_obj->mVal の終了処理を行う．
+  Py_TYPE(self)->tp_free(self);
 }
 
-// 初期化関数(__init__()相当)
-int
-FaultType_init(
-  FaultTypeObject* self,
-  PyObject* args,
-  PyObject* Py_UNUSED(kwds)
-)
-{
-  // 変換ルール
-  // - 文字列型
-  //   * "stuck-at" -> FaultType::StuckAt
-  //   * "transition-delay" -> FaultType::TransitionDelay
-  // それ以外は TypeError
-
-  const char* val_str = nullptr;
-  if ( !PyArg_ParseTuple(args, "s", &val_str) ) {
-    return -1;
-  }
-  if ( strcmp(val_str, "stuck-at") == 0 ||
-       strcmp(val_str, "s-a") == 0 ) {
-    self->mVal = FaultType::StuckAt;
-  }
-  else if ( strcmp(val_str, "transition-delay") == 0 ||
-	    strcmp(val_str, "t-d") == 0 ) {
-    self->mVal = FaultType::TransitionDelay;
-  }
-  else {
-    PyErr_SetString(PyExc_ValueError,
-		    "1st argument should be either 'stuck-at' or 'transition-delay'");
-    return -1;
-  }
-  return 0;
-}
-
-// str() 関数
+// repr() 関数
 PyObject*
-FaultType_str(
+FaultType_repr(
   PyObject* self
 )
 {
@@ -107,81 +105,135 @@ PyMethodDef FaultType_methods[] = {
   {nullptr, nullptr, 0, nullptr}
 };
 
-// Python 用のタイプ定義
-PyTypeObject FaultTypeType = {
-  PyVarObject_HEAD_INIT(nullptr, 0)
-};
+// 定数オブジェクトの登録
+bool
+reg_const(
+  PyTypeObject& type,
+  PyObject*& obj,
+  const char* name,
+  FaultType val
+)
+{
+  obj = type.tp_alloc(&type, 0);
+  PyFaultType::_put(obj, val);
+  Py_INCREF(obj);
+  if ( PyDict_SetItemString(type.tp_dict, name, obj) < 0 ) {
+    return false;
+  }
+  return true;
+}
 
 END_NONAMESPACE
 
 
 // @brief 'FaultType' オブジェクトを使用可能にする．
 bool
-PyInit_FaultType(
+PyFaultType::init(
   PyObject* m
 )
 {
-  FaultTypeType.tp_name = "druid.FaultType";
+  FaultTypeType.tp_name = "FaultType";
   FaultTypeType.tp_basicsize = sizeof(FaultTypeObject);
   FaultTypeType.tp_itemsize = 0;
-  FaultTypeType.tp_dealloc = reinterpret_cast<destructor>(FaultType_dealloc);
+  FaultTypeType.tp_dealloc = FaultType_dealloc;
   FaultTypeType.tp_flags = Py_TPFLAGS_DEFAULT;
   FaultTypeType.tp_doc = PyDoc_STR("FaultType objects");
   FaultTypeType.tp_methods = FaultType_methods;
-  FaultTypeType.tp_init = reinterpret_cast<initproc>(FaultType_init);
   FaultTypeType.tp_new = FaultType_new;
-  FaultTypeType.tp_str = FaultType_str;
+  FaultTypeType.tp_repr = FaultType_repr;
   if ( PyType_Ready(&FaultTypeType) < 0 ) {
     return false;
   }
-  Py_INCREF(&FaultTypeType);
-  if ( PyModule_AddObject(m, "FaultType", reinterpret_cast<PyObject*>(&FaultTypeType)) < 0 ) {
-    Py_DECREF(&FaultTypeType);
-    return false;
+
+  // 型オブジェクトの登録
+  auto type_obj = reinterpret_cast<PyObject*>(&FaultTypeType);
+  Py_INCREF(type_obj);
+  if ( PyModule_AddObject(m, "FaultType", type_obj) < 0 ) {
+    Py_DECREF(type_obj);
+    goto error;
   }
 
-  FaultType_StuckAt = FaultType_new(&FaultTypeType, nullptr, nullptr);
-  reinterpret_cast<FaultTypeObject*>(FaultType_StuckAt)->mVal = FaultType::StuckAt;
-  Py_INCREF(FaultType_StuckAt);
-  if ( PyModule_AddObject(m, "FaultType_StuckAt", FaultType_StuckAt) < 0 ) {
-    Py_DECREF(FaultType_StuckAt);
-    return false;
+  // 定数オブジェクトの生成/登録
+  if ( !reg_const(FaultTypeType, FaultType_StuckAt,
+		  "StuckAt", FaultType::StuckAt) ) {
+    goto error;
   }
-
-  FaultType_TransitionDelay = FaultType_new(&FaultTypeType, nullptr, nullptr);
-  reinterpret_cast<FaultTypeObject*>(FaultType_TransitionDelay)->mVal = FaultType::TransitionDelay;
-  Py_INCREF(FaultType_TransitionDelay);
-  if ( PyModule_AddObject(m, "FaultType_TransitionDelay", FaultType_TransitionDelay) < 0 ) {
-    Py_DECREF(FaultType_TransitionDelay);
-    return false;
+  if ( !reg_const(FaultTypeType, FaultType_TransitionDelay,
+		  "TransitionDelay", FaultType::TransitionDelay) ) {
+    goto error;
   }
 
   return true;
+
+ error:
+
+  Py_XDECREF(FaultType_StuckAt);
+  Py_XDECREF(FaultType_TransitionDelay);
+
+  return false;
 }
 
+// @brief PyObject から FaultType を取り出す．
 bool
-FaultType_from_PyObj(
+PyFaultType::FromPyObject(
   PyObject* obj,
-  FaultType& fault_type
+  FaultType& val
 )
 {
-  if ( !Py_IS_TYPE(obj, &FaultTypeType) ) {
-    PyErr_SetString(PyExc_ValueError, "object is not a FaultType type");
+  if ( !_check(obj) ) {
+    PyErr_SetString(PyExc_TypeError, "object is not a FaultType type");
     return false;
   }
-  auto ft_obj = reinterpret_cast<FaultTypeObject*>(obj);
-  fault_type = ft_obj->mVal;
+  val = _get(obj);
   return true;
 }
 
+// @brief FaultType を PyObject に変換する．
 PyObject*
-PyObj_from_FaultType(
+PyFaultType::ToPyObject(
   FaultType val
 )
 {
-  auto ft_obj = FaultType_new(&FaultTypeType, nullptr, nullptr);
-  reinterpret_cast<FaultTypeObject*>(ft_obj)->mVal = val;
-  return ft_obj;
+  auto obj = FaultType_new(_typeobject(), nullptr, nullptr);
+  _put(obj, val);
+  return obj;
+}
+
+// @brief PyObject が FaultType タイプか調べる．
+bool
+PyFaultType::_check(
+  PyObject* obj
+)
+{
+  return Py_IS_TYPE(obj, _typeobject());
+}
+
+// @brief FaultType を表す PyObject から FaultType を取り出す．
+FaultType
+PyFaultType::_get(
+  PyObject* obj
+)
+{
+  auto faulttype_obj = reinterpret_cast<FaultTypeObject*>(obj);
+  return faulttype_obj->mVal;
+}
+
+// @brief FaultType を表す PyObject に値を設定する．
+void
+PyFaultType::_put(
+  PyObject* obj,
+  FaultType val
+)
+{
+  auto faulttype_obj = reinterpret_cast<FaultTypeObject*>(obj);
+  faulttype_obj->mVal = val;
+}
+
+// @brief FaultType を表すオブジェクトの型定義を返す．
+PyTypeObject*
+PyFaultType::_typeobject()
+{
+  return &FaultTypeType;
 }
 
 END_NAMESPACE_DRUID

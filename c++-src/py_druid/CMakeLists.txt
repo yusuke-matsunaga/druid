@@ -25,12 +25,14 @@ set ( py_druid_SOURCES
   PyMt19937.cc
   PyVal3.cc
   PyFaultType.cc
+  PyFaultStatus.cc
   PyTestVector.cc
   PyInputVector.cc
   PyDffVector.cc
   PyTpgFault.cc
   PyTpgNetwork.cc
   PyFsim.cc
+  PyDtpgResult.cc
   )
 
 
@@ -40,6 +42,8 @@ set ( py_druid_SOURCES
 
 add_executable ( py_druid
   ${py_druid_SOURCES}
+  $<TARGET_OBJECTS:py_ymbase_obj>
+  $<TARGET_OBJECTS:py_ymcell_obj>
   $<TARGET_OBJECTS:druid_common_obj>
   $<TARGET_OBJECTS:druid_fsimsa2_obj>
   $<TARGET_OBJECTS:druid_fsimsa3_obj>
@@ -60,6 +64,8 @@ target_link_libraries ( py_druid
 
 add_executable ( py_druid_d
   ${py_druid_SOURCES}
+  $<TARGET_OBJECTS:py_ymbase_obj_d>
+  $<TARGET_OBJECTS:py_ymcell_obj_d>
   $<TARGET_OBJECTS:druid_common_obj_d>
   $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
   $<TARGET_OBJECTS:druid_fsimsa3_obj_d>

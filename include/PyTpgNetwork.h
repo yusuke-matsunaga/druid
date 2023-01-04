@@ -1,0 +1,77 @@
+#ifndef PYTPGNETWORK_H
+#define PYTPGNETWORK_H
+
+/// @file PyTpgNetwork.h
+/// @brief PyTpgNetwork のヘッダファイル
+/// @author Yusuke Matsunaga (松永 裕介)
+///
+/// Copyright (C) 2022 Yusuke Matsunaga
+/// All rights reserved.
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "TpgNetwork.h"
+
+
+BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyTpgNetwork PyTpgNetwork.h "PyTpgNetwork.h"
+/// @brief Python 用の TpgNetwork 拡張
+///
+/// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
+//////////////////////////////////////////////////////////////////////
+class PyTpgNetwork
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 初期化する．
+  /// @return 初期化が成功したら true を返す．
+  static
+  bool
+  init(
+    PyObject* m ///< [in] 親のモジュールを表す PyObject
+  );
+
+  /// @brief TpgNetwork を表す PyObject から TpgNetwork を取り出す．
+  /// @return 変換が成功したら true を返す．
+  ///
+  /// エラーの場合にはPython例外がセットされる．
+  static
+  bool
+  FromPyObject(
+    PyObject* obj,  ///< [in] TpgNetwork を表す PyObject
+    const TpgNetwork*& val ///< [out] 変換された TpgNetwork を格納する変数
+  );
+
+  /// @brief PyObject が TpgNetwork タイプか調べる．
+  static
+  bool
+  _check(
+    PyObject* obj ///< [in] 対象の PyObject
+  );
+
+  /// @brief TpgNetwork を表す PyObject から TpgNetwork を取り出す．
+  /// @return TpgNetwork を返す．
+  ///
+  /// _check(obj) == true であると仮定している．
+  static
+  TpgNetwork*
+  _get(
+    PyObject* obj ///< [in] 変換元の PyObject
+  );
+
+  /// @brief TpgNetwork を表すオブジェクトの型定義を返す．
+  static
+  PyTypeObject*
+  _typeobject();
+
+};
+
+END_NAMESPACE_DRUID
+
+#endif // PYTPGNETWORK_H

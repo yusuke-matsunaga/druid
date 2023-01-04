@@ -1,33 +1,21 @@
 
 /// @file PyFsim.cc
-/// @brief PyFsim の実装ファイル
+/// @brief Python Fsim の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "druid.h"
-#include "Fsim.h"
-#include "TestVector.h"
-#include "InputVector.h"
-#include "DffVector.h"
+#include "PyFsim.h"
+#include "PyTpgNetwork.h"
+#include "PyTestVector.h"
+#include "PyInputVector.h"
+#include "PyDffVector.h"
+#include "PyFaultType.h"
+#include "PyTpgFault.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-extern bool FaultType_from_PyObj(PyObject*, FaultType&);
-extern bool TpgNetwork_from_PyObj(PyObject*, TpgNetwork*&);
-extern bool TpgFault_from_PyObj(PyObject*, const TpgFault*&);
-extern bool TestVector_from_PyObj(PyObject*, TestVector&);
-extern bool InputVector_from_PyObj(PyObject*, InputVector&);
-extern bool DffVector_from_PyObj(PyObject*, DffVector&);
-extern PyObject* PyObj_from_TpgFault(const TpgFault*);
-extern PyObject* PyObj_from_TestVector(const TestVector&);
-extern PyObject* PyObj_from_InputVector(const InputVector&);
-extern PyObject* PyObj_from_DffVector(const DffVector&);
 
 BEGIN_NONAMESPACE
 
@@ -35,7 +23,12 @@ BEGIN_NONAMESPACE
 struct FsimObject
 {
   PyObject_HEAD
-  Fsim* mFsim;
+  Fsim* mPtr;
+};
+
+// Python 用のタイプ定義
+PyTypeObject FsimType = {
+  PyVarObject_HEAD_INIT(nullptr, 0)
 };
 
 // 生成関数
@@ -46,25 +39,27 @@ Fsim_new(
   PyObject* Py_UNUSED(kwds)
 )
 {
-  auto self = reinterpret_cast<FsimObject*>(type->tp_alloc(type, 0));
-  self->mFsim = nullptr;
-  return reinterpret_cast<PyObject*>(self);
+  auto self = type->tp_alloc(type, 0);
+  auto fsim_obj = reinterpret_cast<FsimObject*>(self);
+  fsim_obj->mPtr = nullptr;
+  return self;
 }
 
 // 終了関数
 void
 Fsim_dealloc(
-  FsimObject* self
+  PyObject* self
 )
 {
-  delete self->mFsim;
-  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
+  auto fsim_obj = reinterpret_cast<FsimObject*>(self);
+  delete fsim_obj->mPtr;
+  Py_TYPE(self)->tp_free(self);
 }
 
 // 初期化関数(__init__()相当)
 int
 Fsim_init(
-  FsimObject* self,
+  PyObject* self,
   PyObject* args,
   PyObject* Py_UNUSED(kwds)
 )
@@ -79,13 +74,13 @@ Fsim_init(
     return -1;
   }
 
-  TpgNetwork* network;
-  if ( !TpgNetwork_from_PyObj(network_obj, network) ) {
+  const TpgNetwork* network;
+  if ( !PyTpgNetwork::FromPyObject(network_obj, network) ) {
     return -1;
   }
 
   FaultType fault_type;
-  if ( !FaultType_from_PyObj(fault_type_obj, fault_type) ) {
+  if ( !PyFaultType::FromPyObject(fault_type_obj, fault_type) ) {
     return -1;
   }
 
@@ -101,7 +96,8 @@ Fsim_init(
     return -1;
   }
 
-  self->mFsim = new Fsim{*network, fault_type, has_x};
+  auto fsim_obj = reinterpret_cast<FsimObject*>(self);
+  fsim_obj->mPtr = new Fsim{*network, fault_type, has_x};
 
   return 0;
 }
@@ -111,7 +107,7 @@ Fsim_set_skip_all(
   FsimObject* self
 )
 {
-  self->mFsim->set_skip_all();
+  self->mPtr->set_skip_all();
   Py_RETURN_NONE;
 }
 
@@ -133,19 +129,19 @@ Fsim_set_skip(
     for ( SizeType i = 0; i < n; ++ i ) {
       auto obj1 = PySequence_GetItem(obj, i);
       const TpgFault* fault = nullptr;
-      if ( !TpgFault_from_PyObj(obj1, fault) ) {
+      if ( !PyTpgFault::FromPyObject(obj1, fault) ) {
 	return nullptr;
       }
       fault_list.push_back(fault);
     }
-    self->mFsim->set_skip(fault_list);
+    self->mPtr->set_skip(fault_list);
   }
   else {
     const TpgFault* fault = nullptr;
-    if ( !TpgFault_from_PyObj(obj, fault) ) {
+    if ( !PyTpgFault::FromPyObject(obj, fault) ) {
       return nullptr;
     }
-    self->mFsim->set_skip(fault);
+    self->mPtr->set_skip(fault);
   }
   Py_RETURN_NONE;
 }
@@ -155,7 +151,7 @@ Fsim_clear_skip_all(
   FsimObject* self
 )
 {
-  self->mFsim->clear_skip_all();
+  self->mPtr->clear_skip_all();
   Py_RETURN_NONE;
 }
 
@@ -177,19 +173,19 @@ Fsim_clear_skip(
     for ( SizeType i = 0; i < n; ++ i ) {
       auto obj1 = PySequence_GetItem(obj, i);
       const TpgFault* fault = nullptr;
-      if ( !TpgFault_from_PyObj(obj1, fault) ) {
+      if ( !PyTpgFault::FromPyObject(obj1, fault) ) {
 	return nullptr;
       }
       fault_list.push_back(fault);
     }
-    self->mFsim->clear_skip(fault_list);
+    self->mPtr->clear_skip(fault_list);
   }
   else {
     const TpgFault* fault = nullptr;
-    if ( !TpgFault_from_PyObj(obj, fault) ) {
+    if ( !PyTpgFault::FromPyObject(obj, fault) ) {
       return nullptr;
     }
-    self->mFsim->clear_skip(fault);
+    self->mPtr->clear_skip(fault);
   }
   Py_RETURN_NONE;
 }
@@ -206,14 +202,14 @@ Fsim_spsfp(
     return nullptr;
   }
   TestVector tv;
-  if ( !TestVector_from_PyObj(obj1, tv) ) {
+  if ( !PyTestVector::FromPyObject(obj1, tv) ) {
     return nullptr;
   }
   const TpgFault* fault = nullptr;
-  if ( !TpgFault_from_PyObj(obj2, fault) ) {
+  if ( !PyTpgFault::FromPyObject(obj2, fault) ) {
     return nullptr;
   }
-  bool ans = self->mFsim->spsfp(tv, fault);
+  bool ans = self->mPtr->spsfp(tv, fault);
   return PyBool_FromLong(ans);
 }
 
@@ -228,10 +224,10 @@ Fsim_sppfp(
     return nullptr;
   }
   TestVector tv;
-  if ( !TestVector_from_PyObj(obj1, tv) ) {
+  if ( !PyTestVector::FromPyObject(obj1, tv) ) {
     return nullptr;
   }
-  SizeType n = self->mFsim->sppfp(tv);
+  SizeType n = self->mPtr->sppfp(tv);
   return PyLong_FromLong(n);
 }
 
@@ -241,7 +237,7 @@ Fsim_ppsfp(
   PyObject* Py_UNUSED(args)
 )
 {
-  SizeType n = self->mFsim->ppsfp();
+  SizeType n = self->mPtr->ppsfp();
   return PyLong_FromLong(n);
 }
 
@@ -257,10 +253,10 @@ Fsim_calc_wsa(
     return nullptr;
   }
   InputVector iv;
-  if ( !InputVector_from_PyObj(obj1, iv) ) {
+  if ( !PyInputVector::FromPyObject(obj1, iv) ) {
     return nullptr;
   }
-  SizeType n = self->mFsim->calc_wsa(iv, weighted);
+  SizeType n = self->mPtr->calc_wsa(iv, weighted);
   return PyLong_FromLong(n);
 }
 
@@ -276,14 +272,14 @@ Fsim_set_state(
     return nullptr;
   }
   InputVector iv;
-  if ( !InputVector_from_PyObj(obj1, iv) ) {
+  if ( !PyInputVector::FromPyObject(obj1, iv) ) {
     return nullptr;
   }
   DffVector dv;
-  if ( !DffVector_from_PyObj(obj2, dv) ) {
+  if ( !PyDffVector::FromPyObject(obj2, dv) ) {
     return nullptr;
   }
-  self->mFsim->set_state(iv, dv);
+  self->mPtr->set_state(iv, dv);
   Py_RETURN_NONE;
 }
 
@@ -295,9 +291,9 @@ Fsim_get_state(
 {
   InputVector iv;
   DffVector dv;
-  self->mFsim->get_state(iv, dv);
-  auto obj1 = PyObj_from_InputVector(iv);
-  auto obj2 = PyObj_from_DffVector(dv);
+  self->mPtr->get_state(iv, dv);
+  auto obj1 = PyInputVector::ToPyObject(iv);
+  auto obj2 = PyDffVector::ToPyObject(dv);
   return Py_BuildValue("OO", obj1, obj2);
 }
 
@@ -307,7 +303,7 @@ Fsim_clear_patterns(
   PyObject* Py_UNUSED(args)
 )
 {
-  self->mFsim->clear_patterns();
+  self->mPtr->clear_patterns();
   Py_RETURN_NONE;
 }
 
@@ -323,10 +319,10 @@ Fsim_set_pattern(
     return nullptr;
   }
   TestVector tv;
-  if ( !TestVector_from_PyObj(obj1, tv) ) {
+  if ( !PyTestVector::FromPyObject(obj1, tv) ) {
     return nullptr;
   }
-  self->mFsim->set_pattern(pos, tv);
+  self->mPtr->set_pattern(pos, tv);
   Py_RETURN_NONE;
 }
 
@@ -340,8 +336,8 @@ Fsim_get_pattern(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto tv = self->mFsim->get_pattern(pos);
-  return PyObj_from_TestVector(tv);
+  auto tv = self->mPtr->get_pattern(pos);
+  return PyTestVector::ToPyObject(tv);
 }
 
 PyObject*
@@ -350,7 +346,7 @@ Fsim_det_fault_num(
   PyObject* Py_UNUSED(args)
 )
 {
-  SizeType n = self->mFsim->det_fault_num();
+  SizeType n = self->mPtr->det_fault_num();
   return PyLong_FromLong(n);
 }
 
@@ -364,8 +360,8 @@ Fsim_det_fault(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto f = self->mFsim->det_fault(pos);
-  return PyObj_from_TpgFault(f);
+  auto f = self->mPtr->det_fault(pos);
+  return PyTpgFault::ToPyObject(f);
 }
 
 PyObject*
@@ -374,12 +370,12 @@ Fsim_det_fault_list(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fault_list = self->mFsim->det_fault_list();
+  auto fault_list = self->mPtr->det_fault_list();
   SizeType n = fault_list.num();
   auto ans_obj = PyList_New(n);
   for ( SizeType i = 0; i < n; ++ i ) {
     auto f = fault_list[i];
-    auto obj1 = PyObj_from_TpgFault(f);
+    auto obj1 = PyTpgFault::ToPyObject(f);
     PyList_SET_ITEM(ans_obj, i, obj1);
   }
   return ans_obj;
@@ -395,7 +391,7 @@ Fsim_det_fault_pat(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto pat = self->mFsim->det_fault_pat(pos);
+  auto pat = self->mPtr->det_fault_pat(pos);
   return PyLong_FromLong(pat);
 }
 
@@ -405,7 +401,7 @@ Fsim_det_fault_pat_list(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto pat_list = self->mFsim->det_fault_pat_list();
+  auto pat_list = self->mPtr->det_fault_pat_list();
   SizeType n = pat_list.num();
   auto ans_obj = PyList_New(n);
   for ( SizeType i = 0; i < n; ++ i ) {
@@ -457,40 +453,82 @@ PyMethodDef Fsim_methods[] = {
   {nullptr, nullptr, 0, nullptr}
 };
 
-// Python 用のタイプ定義
-PyTypeObject FsimType = {
-  PyVarObject_HEAD_INIT(nullptr, 0)
-  // 残りのメンバは Fsim_init
-};
-
 END_NONAMESPACE
 
 
 // @brief 'Fsim' オブジェクトを使用可能にする．
 bool
-PyInit_Fsim(
+PyFsim::init(
   PyObject* m
 )
 {
-  FsimType.tp_name = "druid.Fsim";
+  FsimType.tp_name = "Fsim";
   FsimType.tp_basicsize = sizeof(FsimObject);
   FsimType.tp_itemsize = 0;
-  FsimType.tp_dealloc = reinterpret_cast<destructor>(Fsim_dealloc);
+  FsimType.tp_dealloc = Fsim_dealloc;
   FsimType.tp_flags = Py_TPFLAGS_DEFAULT;
   FsimType.tp_doc = PyDoc_STR("Fsim objects");
   FsimType.tp_methods = Fsim_methods;
-  FsimType.tp_init = reinterpret_cast<initproc>(Fsim_init);
+  FsimType.tp_init = Fsim_init;
   FsimType.tp_new = Fsim_new;
   if ( PyType_Ready(&FsimType) < 0 ) {
     return false;
   }
-  Py_INCREF(&FsimType);
-  if ( PyModule_AddObject(m, "Fsim",
-			  reinterpret_cast<PyObject*>(&FsimType)) < 0 ) {
-    Py_DECREF(&FsimType);
+
+  // 型オブジェクトの登録
+  auto type_obj = reinterpret_cast<PyObject*>(&FsimType);
+  Py_INCREF(type_obj);
+  if ( PyModule_AddObject(m, "Fsim", type_obj) < 0 ) {
+    Py_DECREF(type_obj);
+    goto error;
+  }
+
+  return true;
+
+ error:
+
+  return false;
+}
+
+// @brief PyObject から Fsim を取り出す．
+bool
+PyFsim::FromPyObject(
+  PyObject* obj,
+  Fsim*& val
+)
+{
+  if ( !_check(obj) ) {
+    PyErr_SetString(PyExc_TypeError, "object is not a Fsim type");
     return false;
   }
+  val = _get(obj);
   return true;
+}
+
+// @brief PyObject が Fsim タイプか調べる．
+bool
+PyFsim::_check(
+  PyObject* obj
+)
+{
+  return Py_IS_TYPE(obj, _typeobject());
+}
+
+// @brief Fsim を表す PyObject から Fsim を取り出す．
+Fsim*
+PyFsim::_get(
+  PyObject* obj
+)
+{
+  auto fsim_obj = reinterpret_cast<FsimObject*>(obj);
+  return fsim_obj->mPtr;
+}
+
+// @brief Fsim を表すオブジェクトの型定義を返す．
+PyTypeObject*
+PyFsim::_typeobject()
+{
+  return &FsimType;
 }
 
 END_NAMESPACE_DRUID

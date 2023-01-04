@@ -1,23 +1,17 @@
 
 /// @file PyDffVector.cc
-/// @brief PyDffVector の実装ファイル
+/// @brief Python DffVector の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "druid.h"
-#include "DffVector.h"
+#include "PyDffVector.h"
+#include "ym/PyMt19937.h"
+#include "PyVal3.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-extern PyObject* PyObj_from_Val3(Val3);
-extern bool Mt19937_from_PyObj(PyObject*, std::mt19937*&);
-extern bool Val3_from_PyObj(PyObject*, Val3&);
 
 BEGIN_NONAMESPACE
 
@@ -25,7 +19,7 @@ BEGIN_NONAMESPACE
 struct DffVectorObject
 {
   PyObject_HEAD
-  DffVector* mDv;
+  DffVector* mPtr;
 };
 
 // Python 用のタイプ定義
@@ -37,30 +31,33 @@ PyTypeObject DffVectorType = {
 PyObject*
 DffVector_new(
   PyTypeObject* type,
-  PyObject* args,
-  PyObject* kwds
+  PyObject* Py_UNUSED(args),
+  PyObject* Py_UNUSED(kwds)
 )
 {
-  auto self = reinterpret_cast<DffVectorObject*>(type->tp_alloc(type, 0));
-  self->mDv = nullptr;
-  return reinterpret_cast<PyObject*>(self);
+  auto self = type->tp_alloc(type, 0);
+  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(self);
+  dffvector_obj->mPtr = nullptr;
+  return self;
 }
 
 // 終了関数
 void
 DffVector_dealloc(
-  DffVectorObject* self
+  PyObject* self
 )
 {
-  delete self->mDv;
-  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
+  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(self);
+  delete dffvector_obj->mPtr;
+  Py_TYPE(self)->tp_free(self);
 }
 
 // 初期化関数(__init__()相当)
 int
 DffVector_init(
-  DffVectorObject* self,
-  PyObject* args
+  PyObject* self,
+  PyObject* args,
+  PyObject* Py_UNUSED(kwds)
 )
 {
   SizeType num = 0;
@@ -68,7 +65,8 @@ DffVector_init(
     return -1;
   }
 
-  self->mDv = new DffVector{num};
+  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(self);
+  dffvector_obj->mPtr = new DffVector{num};
   return 0;
 }
 
@@ -79,7 +77,7 @@ DffVector_str(
 )
 {
   auto tv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto tmp_str = tv_obj->mDv->bin_str();
+  auto tmp_str = tv_obj->mPtr->bin_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -90,7 +88,7 @@ DffVector_len(
 )
 {
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  SizeType n = dv_obj->mDv->len();
+  SizeType n = dv_obj->mPtr->len();
   return PyLong_FromLong(n);
 }
 
@@ -105,8 +103,8 @@ DffVector_val(
     return nullptr;
   }
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto val = dv_obj->mDv->val(pos);
-  return PyObj_from_Val3(val);
+  auto val = dv_obj->mPtr->val(pos);
+  return PyVal3::ToPyObject(val);
 }
 
 PyObject*
@@ -116,7 +114,7 @@ DffVector_x_count(
 )
 {
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto val = dv_obj->mDv->x_count();
+  auto val = dv_obj->mPtr->x_count();
   return PyLong_FromLong(val);
 }
 
@@ -127,7 +125,7 @@ DffVector_bin_str(
 )
 {
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto tmp_str = dv_obj->mDv->bin_str();
+  auto tmp_str = dv_obj->mPtr->bin_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -138,7 +136,7 @@ DffVector_hex_str(
 )
 {
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto tmp_str = dv_obj->mDv->hex_str();
+  auto tmp_str = dv_obj->mPtr->hex_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -149,7 +147,7 @@ DffVector_init_method(
 )
 {
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mDv->init();
+  dv_obj->mPtr->init();
   Py_RETURN_NONE;
 }
 
@@ -165,11 +163,11 @@ DffVector_set_val(
     return nullptr;
   }
   Val3 val;
-  if ( !Val3_from_PyObj(obj, val) ) {
+  if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mDv->set_val(pos, val);
+  dv_obj->mPtr->set_val(pos, val);
   Py_RETURN_NONE;
 }
 
@@ -185,11 +183,11 @@ DffVector_set_from_random(
   }
 
   std::mt19937* mt19937;
-  if ( !Mt19937_from_PyObj(obj, mt19937) ) {
+  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
     return nullptr;
   }
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mDv->set_from_random(*mt19937);
+  dv_obj->mPtr->set_from_random(*mt19937);
   Py_RETURN_NONE;
 }
 
@@ -205,11 +203,11 @@ DffVector_fix_x_from_random(
   }
 
   std::mt19937* mt19937;
-  if ( !Mt19937_from_PyObj(obj, mt19937) ) {
+  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
     return nullptr;
   }
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mDv->fix_x_from_random(*mt19937);
+  dv_obj->mPtr->fix_x_from_random(*mt19937);
   Py_RETURN_NONE;
 }
 
@@ -241,57 +239,98 @@ END_NONAMESPACE
 
 // @brief 'DffVector' オブジェクトを使用可能にする．
 bool
-PyInit_DffVector(
+PyDffVector::init(
   PyObject* m
 )
 {
-  DffVectorType.tp_name = "druid.DffVector";
+  DffVectorType.tp_name = "DffVector";
   DffVectorType.tp_basicsize = sizeof(DffVectorObject);
   DffVectorType.tp_itemsize = 0;
-  DffVectorType.tp_dealloc = reinterpret_cast<destructor>(DffVector_dealloc);
+  DffVectorType.tp_dealloc = DffVector_dealloc;
   DffVectorType.tp_flags = Py_TPFLAGS_DEFAULT;
   DffVectorType.tp_doc = PyDoc_STR("DffVector objects");
-  DffVectorType.tp_methods = DffVector_methods;
-  DffVectorType.tp_init = reinterpret_cast<initproc>(DffVector_init);
+  DffVectorType.tp_init = DffVector_init;
   DffVectorType.tp_new = DffVector_new;
-  DffVectorType.tp_str = DffVector_str;
-
   if ( PyType_Ready(&DffVectorType) < 0 ) {
     return false;
   }
-  Py_INCREF(&DffVectorType);
-  if ( PyModule_AddObject(m, "DffVector", reinterpret_cast<PyObject*>(&DffVectorType)) < 0 ) {
-    Py_DECREF(&DffVectorType);
-    return false;
+
+  // 型オブジェクトの登録
+  auto type_obj = reinterpret_cast<PyObject*>(&DffVectorType);
+  Py_INCREF(type_obj);
+  if ( PyModule_AddObject(m, "DffVector", type_obj) < 0 ) {
+    Py_DECREF(type_obj);
+    goto error;
   }
+
   return true;
+
+ error:
+
+  return false;
 }
 
 // @brief PyObject から DffVector を取り出す．
 bool
-DffVector_from_PyObj(
+PyDffVector::FromPyObject(
   PyObject* obj,
-  DffVector& dv
+  DffVector& val
 )
 {
-  if ( !Py_IS_TYPE(obj, &DffVectorType) ) {
-    PyErr_SetString(PyExc_ValueError, "object is not a DffVector type");
+  if ( !_check(obj) ) {
+    PyErr_SetString(PyExc_TypeError, "object is not a DffVector type");
     return false;
   }
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(obj);
-  dv = *(dv_obj->mDv);
+  val = _get(obj);
   return true;
 }
 
-// @brief DffVector から PyObject を作り出す．
+// @brief DffVector を PyObject に変換する．
 PyObject*
-PyObj_from_DffVector(
-  const DffVector& dv
+PyDffVector::ToPyObject(
+  const DffVector& val
 )
 {
-  auto dv_obj = DffVector_new(&DffVectorType, nullptr, nullptr);
-  reinterpret_cast<DffVectorObject*>(dv_obj)->mDv = new DffVector{dv};
-  return dv_obj;
+  auto obj = DffVector_new(_typeobject(), nullptr, nullptr);
+  _put(obj, val);
+  return obj;
+}
+
+// @brief PyObject が DffVector タイプか調べる．
+bool
+PyDffVector::_check(
+  PyObject* obj
+)
+{
+  return Py_IS_TYPE(obj, _typeobject());
+}
+
+// @brief DffVector を表す PyObject から DffVector を取り出す．
+const DffVector&
+PyDffVector::_get(
+  PyObject* obj
+)
+{
+  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
+  return *dffvector_obj->mPtr;
+}
+
+// @brief DffVector を表す PyObject に値を設定する．
+void
+PyDffVector::_put(
+  PyObject* obj,
+  const DffVector& val
+)
+{
+  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
+  *dffvector_obj->mPtr = val;
+}
+
+// @brief DffVector を表すオブジェクトの型定義を返す．
+PyTypeObject*
+PyDffVector::_typeobject()
+{
+  return &DffVectorType;
 }
 
 END_NAMESPACE_DRUID

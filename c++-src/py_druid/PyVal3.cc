@@ -1,16 +1,12 @@
 
 /// @file PyVal3.cc
-/// @brief PyVal3 の実装ファイル
+/// @brief Python Val3 の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "druid.h"
-#include "Val3.h"
+#include "PyVal3.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -46,6 +42,10 @@ Val3_new(
   PyObject* Py_UNUSED(kwds)
 )
 {
+  if ( type != &Val3Type ) {
+    PyErr_SetString(PyExc_TypeError, "Val3 cannot be overloaded");
+    return nullptr;
+  }
   // 変換ルール
   // - 数値型
   //   * 0 -> Val3::_0
@@ -110,7 +110,7 @@ Val3_dealloc(
   PyObject* self
 )
 {
-  // auto val3_obj = reinterpret_cast<Val3Object*>(obj);
+  // auto val3_obj = reinterpret_cast<Val3Object*>(self);
   // 必要なら val3_obj->mVal の終了処理を行う．
   Py_TYPE(self)->tp_free(self);
 }
@@ -121,9 +121,10 @@ Val3_repr(
   PyObject* self
 )
 {
-  auto val3_obj = reinterpret_cast<Val3Object*>(self);
+  auto val = PyVal3::_get(self);
+  // val から 文字列を作る．
   const char* tmp_str = nullptr;
-  switch ( val3_obj->mVal ) {
+  switch ( val ) {
   case Val3::_X: tmp_str = "X"; break;
   case Val3::_0: tmp_str = "0"; break;
   case Val3::_1: tmp_str = "1"; break;
@@ -136,20 +137,111 @@ PyMethodDef Val3_methods[] = {
   {nullptr, nullptr, 0, nullptr}
 };
 
+// 比較関数
+PyObject*
+Val3_richcmpfunc(
+  PyObject* self,
+  PyObject* other,
+  int op
+)
+{
+  if ( PyVal3::_check(self) &&
+       PyVal3::_check(other) ) {
+    auto val1 = PyVal3::_get(self);
+    auto val2 = PyVal3::_get(other);
+    if ( op == Py_EQ ) {
+      return PyBool_FromLong(val1 == val2);
+    }
+    if ( op == Py_NE ) {
+      return PyBool_FromLong(val1 != val2);
+    }
+  }
+  Py_INCREF(Py_NotImplemented);
+  return Py_NotImplemented;
+}
+
+// 否定演算(単項演算の例)
+PyObject*
+Val3_invert(
+  PyObject* self
+)
+{
+  if ( PyVal3::_check(self) ) {
+    auto val = PyVal3::_get(self);
+    return PyVal3::ToPyObject(~val);
+  }
+  Py_RETURN_NOTIMPLEMENTED;
+}
+
+// AND
+PyObject*
+Val3_and(
+  PyObject* self,
+  PyObject* other
+)
+{
+  if ( PyVal3::_check(self) && PyVal3::_check(other) ) {
+    auto val1 = PyVal3::_get(self);
+    auto val2 = PyVal3::_get(other);
+    return PyVal3::ToPyObject(val1 & val2);
+  }
+  Py_RETURN_NOTIMPLEMENTED;
+}
+
+// OR
+PyObject*
+Val3_or(
+  PyObject* self,
+  PyObject* other
+)
+{
+  if ( PyVal3::_check(self) && PyVal3::_check(other) ) {
+    auto val1 = PyVal3::_get(self);
+    auto val2 = PyVal3::_get(other);
+    return PyVal3::ToPyObject(val1 | val2);
+  }
+  Py_RETURN_NOTIMPLEMENTED;
+}
+
+// XOR
+PyObject*
+Val3_xor(
+  PyObject* self,
+  PyObject* other
+)
+{
+  if ( PyVal3::_check(self) && PyVal3::_check(other) ) {
+    auto val1 = PyVal3::_get(self);
+    auto val2 = PyVal3::_get(other);
+    return PyVal3::ToPyObject(val1 ^ val2);
+  }
+  Py_RETURN_NOTIMPLEMENTED;
+}
+
+// 数値演算メソッド定義
+PyNumberMethods Val3_number = {
+  .nb_invert = Val3_invert,
+  .nb_and = Val3_and,
+  .nb_xor = Val3_xor,
+  .nb_or = Val3_or,
+  .nb_inplace_and = Val3_and,
+  .nb_inplace_xor = Val3_xor,
+  .nb_inplace_or = Val3_or
+};
+
 // 定数オブジェクトの登録
 bool
 reg_val3(
-  PyObject* m,
+  PyTypeObject& type,
   PyObject*& obj,
   const char* name,
   Val3 val
 )
 {
-  obj = Val3Type.tp_alloc(&Val3Type, 0);
-  auto val3_obj = reinterpret_cast<Val3Object*>(obj);
-  val3_obj->mVal = val;
+  obj = type.tp_alloc(&type, 0);
+  PyVal3::_put(obj, val);
   Py_INCREF(obj);
-  if ( PyModule_AddObject(m, name, obj) < 0 ) {
+  if ( PyDict_SetItemString(type.tp_dict, name, obj) < 0 ) {
     return false;
   }
   return true;
@@ -160,38 +252,42 @@ END_NONAMESPACE
 
 // @brief 'Val3' オブジェクトを使用可能にする．
 bool
-PyInit_Val3(
+PyVal3::init(
   PyObject* m
 )
 {
-  Val3Type.tp_name = "druid.Val3";
+  Val3Type.tp_name = "Val3";
   Val3Type.tp_basicsize = sizeof(Val3Object);
   Val3Type.tp_itemsize = 0;
-  Val3Type.tp_dealloc = reinterpret_cast<destructor>(Val3_dealloc);
+  Val3Type.tp_dealloc = Val3_dealloc;
   Val3Type.tp_flags = Py_TPFLAGS_DEFAULT;
   Val3Type.tp_doc = PyDoc_STR("Val3 objects");
+  Val3Type.tp_richcompare = Val3_richcmpfunc;
   Val3Type.tp_methods = Val3_methods;
   Val3Type.tp_new = Val3_new;
   Val3Type.tp_repr = Val3_repr;
+  Val3Type.tp_as_number = &Val3_number;
   if ( PyType_Ready(&Val3Type) < 0 ) {
     return false;
   }
 
-  Py_INCREF(&Val3Type);
-  if ( PyModule_AddObject(m, "Val3", reinterpret_cast<PyObject*>(&Val3Type)) < 0 ) {
-    Py_DECREF(&Val3Type);
+  // 型オブジェクトの登録
+  auto type_obj = reinterpret_cast<PyObject*>(&Val3Type);
+  Py_INCREF(type_obj);
+  if ( PyModule_AddObject(m, "Val3", type_obj) < 0 ) {
+    Py_DECREF(type_obj);
     goto error;
   }
 
-  if ( !reg_val3(m, Val3_0, "Val3_0", Val3::_0) ) {
+  if ( !reg_val3(Val3Type, Val3_0, "_0", Val3::_0) ) {
     goto error;
   }
 
-  if ( !reg_val3(m, Val3_1, "Val3_1", Val3::_1) ) {
+  if ( !reg_val3(Val3Type, Val3_1, "_1", Val3::_1) ) {
     goto error;
   }
 
-  if ( !reg_val3(m, Val3_X, "Val3_X", Val3::_X) ) {
+  if ( !reg_val3(Val3Type, Val3_X, "_X", Val3::_X) ) {
     goto error;
   }
 
@@ -206,30 +302,67 @@ PyInit_Val3(
   return false;
 }
 
+// @brief PyObject から Val3 を取り出す．
 bool
-Val3_from_PyObj(
+PyVal3::FromPyObject(
   PyObject* obj,
   Val3& val
 )
 {
-  if ( !Py_IS_TYPE(obj, &Val3Type) ) {
+  if ( !_check(obj) ) {
     PyErr_SetString(PyExc_TypeError, "object is not a Val3 type");
     return false;
   }
-  auto val3_obj = reinterpret_cast<Val3Object*>(obj);
-  val = val3_obj->mVal;
+  val = _get(obj);
   return true;
 }
 
+// @brief Val3 を PyObject に変換する．
 PyObject*
-PyObj_from_Val3(
+PyVal3::ToPyObject(
   Val3 val
 )
 {
-  auto obj = Val3_new(&Val3Type, nullptr, nullptr);
+  auto obj = Val3_new(_typeobject(), nullptr, nullptr);
+  _put(obj, val);
+  return obj;
+}
+
+// @brief PyObject が Val3 タイプか調べる．
+bool
+PyVal3::_check(
+  PyObject* obj
+)
+{
+  return Py_IS_TYPE(obj, _typeobject());
+}
+
+// @brief Val3 を表す PyObject から Val3 を取り出す．
+Val3
+PyVal3::_get(
+  PyObject* obj
+)
+{
+  auto val3_obj = reinterpret_cast<Val3Object*>(obj);
+  return val3_obj->mVal;
+}
+
+// @brief Val3 を表す PyObject に値を設定する．
+void
+PyVal3::_put(
+  PyObject* obj,
+  Val3 val
+)
+{
   auto val3_obj = reinterpret_cast<Val3Object*>(obj);
   val3_obj->mVal = val;
-  return obj;
+}
+
+// @brief Val3 を表すオブジェクトの型定義を返す．
+PyTypeObject*
+PyVal3::_typeobject()
+{
+  return &Val3Type;
 }
 
 END_NAMESPACE_DRUID

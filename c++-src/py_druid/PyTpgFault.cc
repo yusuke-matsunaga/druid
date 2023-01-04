@@ -1,16 +1,13 @@
 
-/// @file PyTpgFalt.cc
-/// @brief TpgFault の Python 拡張
+/// @file PyTpgFault.cc
+/// @brief Python TpgFault の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "druid.h"
-#include "TpgFault.h"
+#include "PyTpgFault.h"
+#include "TpgNode.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,6 +21,11 @@ struct TpgFaultObject
   const TpgFault* mFault;
 };
 
+// Python 用のタイプ定義
+PyTypeObject TpgFaultType = {
+  PyVarObject_HEAD_INIT(nullptr, 0)
+};
+
 // 生成関数
 PyObject*
 TpgFault_new(
@@ -32,30 +34,31 @@ TpgFault_new(
   PyObject* Py_UNUSED(kwds)
 )
 {
-  auto self = reinterpret_cast<TpgFaultObject*>(type->tp_alloc(type, 0));
-  self->mFault = nullptr;
-  return reinterpret_cast<PyObject*>(self);
+  auto self = type->tp_alloc(type, 0);
+  auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(self);
+  tpgfault_obj->mFault = nullptr;
+  return self;
 }
 
 // 終了関数
 void
 TpgFault_dealloc(
-  TpgFaultObject* self
+  PyObject* self
 )
 {
-  // なにもしない．
-  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
+  auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(self);
+  delete tpgfault_obj->mFault;
+  Py_TYPE(self)->tp_free(self);
 }
 
 // 初期化関数(__init__()相当)
 int
 TpgFault_init(
-  TpgFaultObject* self,
+  PyObject* self,
   PyObject* args,
   PyObject* Py_UNUSED(kwds)
 )
 {
-  // なにもしない．
   return 0;
 }
 
@@ -69,14 +72,142 @@ TpgFault_str(
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
+PyObject*
+TpgFault_is_stem_fault(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  return PyBool_FromLong(fault->is_stem_fault());
+}
+
+PyObject*
+TpgFault_is_branch_fault(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  return PyBool_FromLong(fault->is_branch_fault());
+}
+
+PyObject*
+TpgFault_is_rep(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  return PyBool_FromLong(fault->is_rep());
+}
+
 // メソッド定義
 PyMethodDef TpgFault_methods[] = {
+  {"is_stem_fault", TpgFault_is_stem_fault, METH_NOARGS,
+   PyDoc_STR("True if STEM fault")},
+  {"is_branch_fault", TpgFault_is_branch_fault, METH_NOARGS,
+   PyDoc_STR("True if BRANCH fault")},
+  {"is_rep", TpgFault_is_rep, METH_NOARGS,
+   PyDoc_STR("True if representative fault")},
   {nullptr, nullptr, 0, nullptr}
 };
 
-// Python 用のタイプ定義
-PyTypeObject TpgFaultType = {
-  PyVarObject_HEAD_INIT(nullptr, 0)
+// ID を返す．
+PyObject*
+TpgFault_id(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  auto id = fault->id();
+  return PyLong_FromLong(id);
+}
+
+// tpg_inode を返す．
+PyObject*
+TpgFault_tpg_inode(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  auto node = fault->tpg_inode();
+  return PyLong_FromLong(node->id());
+}
+
+// tpg_onode を返す．
+PyObject*
+TpgFault_tpg_onode(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  auto node = fault->tpg_onode();
+  return PyLong_FromLong(node->id());
+}
+
+// fault_pos を返す．
+PyObject*
+TpgFault_fault_pos(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  auto pos = fault->fault_pos();
+  return PyLong_FromLong(pos);
+}
+
+// tpg_pos を返す．
+PyObject*
+TpgFault_tpg_pos(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  auto pos = fault->tpg_pos();
+  return PyLong_FromLong(pos);
+}
+
+// val を返す．
+PyObject*
+TpgFault_val(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  auto val = fault->val();
+  auto ival = val == Fval2::zero ? 0 : 1;
+  return PyLong_FromLong(ival);
+}
+
+// rep_fault を返す．
+PyObject*
+TpgFault_rep_fault(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto fault = PyTpgFault::_get(self);
+  auto node = fault->rep_fault();
+  return PyLong_FromLong(node->id());
+}
+
+// getset メソッド定義
+PyGetSetDef TpgFault_getsetters[] = {
+  {"id", TpgFault_id, nullptr, PyDoc_STR("ID")},
+  {"tpg_inode", TpgFault_tpg_inode, nullptr, PyDoc_STR("input node")},
+  {"tpg_onode", TpgFault_tpg_onode, nullptr, PyDoc_STR("output node")},
+  {"fault_pos", TpgFault_fault_pos, nullptr, PyDoc_STR("fault's position")},
+  {"tpg_pos", TpgFault_tpg_pos, nullptr, PyDoc_STR("position in TpgNode's fanin")},
+  {"val", TpgFault_val, nullptr, PyDoc_STR("fault value")},
+  {"rep_fault", TpgFault_rep_fault, nullptr, PyDoc_STR("representative fault")},
+  {nullptr, nullptr, nullptr, nullptr}
 };
 
 END_NONAMESPACE
@@ -84,56 +215,101 @@ END_NONAMESPACE
 
 // @brief 'TpgFault' オブジェクトを使用可能にする．
 bool
-PyInit_TpgFault(
+PyTpgFault::init(
   PyObject* m
 )
 {
-  TpgFaultType.tp_name = "druid.TpgFault";
+  TpgFaultType.tp_name = "TpgFault";
   TpgFaultType.tp_basicsize = sizeof(TpgFaultObject);
   TpgFaultType.tp_itemsize = 0;
-  TpgFaultType.tp_dealloc = reinterpret_cast<destructor>(TpgFault_dealloc);
+  TpgFaultType.tp_dealloc = TpgFault_dealloc;
   TpgFaultType.tp_flags = Py_TPFLAGS_DEFAULT;
   TpgFaultType.tp_doc = PyDoc_STR("TpgFault objects");
   TpgFaultType.tp_methods = TpgFault_methods;
-  TpgFaultType.tp_init = reinterpret_cast<initproc>(TpgFault_init);
+  TpgFaultType.tp_getset = TpgFault_getsetters;
+  TpgFaultType.tp_init = TpgFault_init;
   TpgFaultType.tp_new = TpgFault_new;
   TpgFaultType.tp_str = TpgFault_str;
   if ( PyType_Ready(&TpgFaultType) < 0 ) {
     return false;
   }
-  Py_INCREF(&TpgFaultType);
-  if ( PyModule_AddObject(m, "TpgFault", reinterpret_cast<PyObject*>(&TpgFaultType)) < 0 ) {
-    Py_DECREF(&TpgFaultType);
-    return false;
+
+  // 型オブジェクトの登録
+  auto type_obj = reinterpret_cast<PyObject*>(&TpgFaultType);
+  Py_INCREF(type_obj);
+  if ( PyModule_AddObject(m, "TpgFault", type_obj) < 0 ) {
+    Py_DECREF(type_obj);
+    goto error;
   }
+
   return true;
+
+ error:
+
+  return false;
 }
 
 // @brief PyObject から TpgFault を取り出す．
 bool
-TpgFault_from_PyObj(
+PyTpgFault::FromPyObject(
   PyObject* obj,
-  const TpgFault*& fault
+  const TpgFault*& val
 )
 {
-  if ( !Py_IS_TYPE(obj, &TpgFaultType) ) {
-    PyErr_SetString(PyExc_ValueError, "object is not a TpgFault type");
+  if ( !_check(obj) ) {
+    PyErr_SetString(PyExc_TypeError, "object is not a TpgFault type");
     return false;
   }
-  auto fault_obj = reinterpret_cast<TpgFaultObject*>(obj);
-  fault = fault_obj->mFault;
+  val = _get(obj);
   return true;
 }
 
-// @brief TpgFault から PyObject を作り出す．
+// @brief TpgFault を PyObject に変換する．
 PyObject*
-PyObj_from_TpgFault(
-  const TpgFault* fault
+PyTpgFault::ToPyObject(
+  const TpgFault* val
 )
 {
-  auto fault_obj = TpgFault_new(&TpgFaultType, nullptr, nullptr);
-  reinterpret_cast<TpgFaultObject*>(fault_obj)->mFault = fault;
-  return fault_obj;
+  auto obj = TpgFault_new(_typeobject(), nullptr, nullptr);
+  _put(obj, val);
+  return obj;
+}
+
+// @brief PyObject が TpgFault タイプか調べる．
+bool
+PyTpgFault::_check(
+  PyObject* obj
+)
+{
+  return Py_IS_TYPE(obj, _typeobject());
+}
+
+// @brief TpgFault を表す PyObject から TpgFault を取り出す．
+const TpgFault*
+PyTpgFault::_get(
+  PyObject* obj
+)
+{
+  auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(obj);
+  return tpgfault_obj->mFault;
+}
+
+// @brief TpgFault を表す PyObject に値を設定する．
+void
+PyTpgFault::_put(
+  PyObject* obj,
+  const TpgFault* val
+)
+{
+  auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(obj);
+  tpgfault_obj->mFault = val;
+}
+
+// @brief TpgFault を表すオブジェクトの型定義を返す．
+PyTypeObject*
+PyTpgFault::_typeobject()
+{
+  return &TpgFaultType;
 }
 
 END_NAMESPACE_DRUID

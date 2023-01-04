@@ -1,23 +1,17 @@
 
 /// @file PyInputVector.cc
-/// @brief PyInputVector の実装ファイル
+/// @brief Python InputVector の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "druid.h"
-#include "InputVector.h"
+#include "PyInputVector.h"
+#include "ym/PyMt19937.h"
+#include "PyVal3.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-extern PyObject* PyObj_from_Val3(Val3);
-extern bool Mt19937_from_PyObj(PyObject*, std::mt19937*&);
-extern bool Val3_from_PyObj(PyObject*, Val3&);
 
 BEGIN_NONAMESPACE
 
@@ -25,7 +19,7 @@ BEGIN_NONAMESPACE
 struct InputVectorObject
 {
   PyObject_HEAD
-  InputVector* mIv;
+  InputVector* mPtr;
 };
 
 // Python 用のタイプ定義
@@ -37,30 +31,33 @@ PyTypeObject InputVectorType = {
 PyObject*
 InputVector_new(
   PyTypeObject* type,
-  PyObject* args,
-  PyObject* kwds
+  PyObject* Py_UNUSED(args),
+  PyObject* Py_UNUSED(kwds)
 )
 {
-  auto self = reinterpret_cast<InputVectorObject*>(type->tp_alloc(type, 0));
-  self->mIv = nullptr;
-  return reinterpret_cast<PyObject*>(self);
+  auto self = type->tp_alloc(type, 0);
+  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(self);
+  inputvector_obj->mPtr = nullptr;
+  return self;
 }
 
 // 終了関数
 void
 InputVector_dealloc(
-  InputVectorObject* self
+  PyObject* self
 )
 {
-  delete self->mIv;
-  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
+  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(self);
+  delete inputvector_obj->mPtr;
+  Py_TYPE(self)->tp_free(self);
 }
 
 // 初期化関数(__init__()相当)
 int
 InputVector_init(
-  InputVectorObject* self,
-  PyObject* args
+  PyObject* self,
+  PyObject* args,
+  PyObject* Py_UNUSED(kwds)
 )
 {
   SizeType num = 0;
@@ -68,7 +65,8 @@ InputVector_init(
     return -1;
   }
 
-  self->mIv = new InputVector{num};
+  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(self);
+  inputvector_obj->mPtr = new InputVector{num};
   return 0;
 }
 
@@ -78,8 +76,9 @@ InputVector_str(
   PyObject* self
 )
 {
-  auto tv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto tmp_str = tv_obj->mIv->bin_str();
+  auto& val = PyInputVector::_get(self);
+  // val から 文字列を作る．
+  auto tmp_str = val.bin_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -90,7 +89,7 @@ InputVector_len(
 )
 {
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  SizeType n = iv_obj->mIv->len();
+  SizeType n = iv_obj->mPtr->len();
   return PyLong_FromLong(n);
 }
 
@@ -105,8 +104,8 @@ InputVector_val(
     return nullptr;
   }
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto val = iv_obj->mIv->val(pos);
-  return PyObj_from_Val3(val);
+  auto val = iv_obj->mPtr->val(pos);
+  return PyVal3::ToPyObject(val);
 }
 
 PyObject*
@@ -116,7 +115,7 @@ InputVector_x_count(
 )
 {
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto val = iv_obj->mIv->x_count();
+  auto val = iv_obj->mPtr->x_count();
   return PyLong_FromLong(val);
 }
 
@@ -127,7 +126,7 @@ InputVector_bin_str(
 )
 {
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto tmp_str = iv_obj->mIv->bin_str();
+  auto tmp_str = iv_obj->mPtr->bin_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -138,7 +137,7 @@ InputVector_hex_str(
 )
 {
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto tmp_str = iv_obj->mIv->hex_str();
+  auto tmp_str = iv_obj->mPtr->hex_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -149,7 +148,7 @@ InputVector_init_method(
 )
 {
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mIv->init();
+  iv_obj->mPtr->init();
   Py_RETURN_NONE;
 }
 
@@ -165,11 +164,11 @@ InputVector_set_val(
     return nullptr;
   }
   Val3 val;
-  if ( !Val3_from_PyObj(obj, val) ) {
+  if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mIv->set_val(pos, val);
+  iv_obj->mPtr->set_val(pos, val);
   Py_RETURN_NONE;
 }
 
@@ -185,11 +184,11 @@ InputVector_set_from_random(
   }
 
   std::mt19937* mt19937;
-  if ( !Mt19937_from_PyObj(obj, mt19937) ) {
+  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
     return nullptr;
   }
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mIv->set_from_random(*mt19937);
+  iv_obj->mPtr->set_from_random(*mt19937);
   Py_RETURN_NONE;
 }
 
@@ -205,11 +204,11 @@ InputVector_fix_x_from_random(
   }
 
   std::mt19937* mt19937;
-  if ( !Mt19937_from_PyObj(obj, mt19937) ) {
+  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
     return nullptr;
   }
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mIv->fix_x_from_random(*mt19937);
+  iv_obj->mPtr->fix_x_from_random(*mt19937);
   Py_RETURN_NONE;
 }
 
@@ -241,57 +240,99 @@ END_NONAMESPACE
 
 // @brief 'InputVector' オブジェクトを使用可能にする．
 bool
-PyInit_InputVector(
+PyInputVector::init(
   PyObject* m
 )
 {
-  InputVectorType.tp_name = "druid.InputVector";
+  InputVectorType.tp_name = "InputVector";
   InputVectorType.tp_basicsize = sizeof(InputVectorObject);
   InputVectorType.tp_itemsize = 0;
-  InputVectorType.tp_dealloc = reinterpret_cast<destructor>(InputVector_dealloc);
+  InputVectorType.tp_dealloc = InputVector_dealloc;
   InputVectorType.tp_flags = Py_TPFLAGS_DEFAULT;
   InputVectorType.tp_doc = PyDoc_STR("InputVector objects");
   InputVectorType.tp_methods = InputVector_methods;
-  InputVectorType.tp_init = reinterpret_cast<initproc>(InputVector_init);
+  InputVectorType.tp_init = InputVector_init;
   InputVectorType.tp_new = InputVector_new;
-  InputVectorType.tp_str = InputVector_str;
-
   if ( PyType_Ready(&InputVectorType) < 0 ) {
     return false;
   }
-  Py_INCREF(&InputVectorType);
-  if ( PyModule_AddObject(m, "InputVector", reinterpret_cast<PyObject*>(&InputVectorType)) < 0 ) {
-    Py_DECREF(&InputVectorType);
-    return false;
+
+  // 型オブジェクトの登録
+  auto type_obj = reinterpret_cast<PyObject*>(&InputVectorType);
+  Py_INCREF(type_obj);
+  if ( PyModule_AddObject(m, "InputVector", type_obj) < 0 ) {
+    Py_DECREF(type_obj);
+    goto error;
   }
+
   return true;
+
+ error:
+
+  return false;
 }
 
 // @brief PyObject から InputVector を取り出す．
 bool
-InputVector_from_PyObj(
+PyInputVector::FromPyObject(
   PyObject* obj,
-  InputVector& iv
+  InputVector& val
 )
 {
-  if ( !Py_IS_TYPE(obj, &InputVectorType) ) {
-    PyErr_SetString(PyExc_ValueError, "object is not a InputVector type");
+  if ( !_check(obj) ) {
+    PyErr_SetString(PyExc_TypeError, "object is not a InputVector type");
     return false;
   }
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(obj);
-  iv = *(iv_obj->mIv);
+  val = _get(obj);
   return true;
 }
 
-// @brief InputVector から PyObject を作り出す．
+// @brief InputVector を PyObject に変換する．
 PyObject*
-PyObj_from_InputVector(
-  const InputVector& iv
+PyInputVector::ToPyObject(
+  const InputVector& val
 )
 {
-  auto iv_obj = InputVector_new(&InputVectorType, nullptr, nullptr);
-  reinterpret_cast<InputVectorObject*>(iv_obj)->mIv = new InputVector{iv};
-  return iv_obj;
+  auto obj = InputVector_new(_typeobject(), nullptr, nullptr);
+  _put(obj, val);
+  return obj;
+}
+
+// @brief PyObject が InputVector タイプか調べる．
+bool
+PyInputVector::_check(
+  PyObject* obj
+)
+{
+  return Py_IS_TYPE(obj, _typeobject());
+}
+
+// @brief InputVector を表す PyObject から InputVector を取り出す．
+const InputVector&
+PyInputVector::_get(
+  PyObject* obj
+)
+{
+  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
+  return *inputvector_obj->mPtr;
+}
+
+// @brief InputVector を表す PyObject に値を設定する．
+void
+PyInputVector::_put(
+  PyObject* obj,
+  const InputVector& val
+)
+{
+  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
+  *inputvector_obj->mPtr = val;
+}
+
+// @brief InputVector を表すオブジェクトの型定義を返す．
+PyTypeObject*
+PyInputVector::_typeobject()
+{
+  return &InputVectorType;
 }
 
 END_NAMESPACE_DRUID
