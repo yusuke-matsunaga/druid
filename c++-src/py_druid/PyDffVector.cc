@@ -9,6 +9,7 @@
 #include "PyDffVector.h"
 #include "ym/PyMt19937.h"
 #include "PyVal3.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -253,7 +254,7 @@ PyDffVector::init(
   DffVectorType.tp_new = DffVector_new;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "DffVector", &DffVectorType) ) {
+  if ( !PyModule::reg_type(m, "DffVector", &DffVectorType) ) {
     goto error;
   }
 

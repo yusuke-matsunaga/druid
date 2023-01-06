@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "PyDtpgEngine.h"
+#include "PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -152,7 +153,7 @@ PyDtpgEngine::init(
   DtpgEngineType.tp_new = DtpgEngine_new;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "DtpgEngine", &DtpgEngineType) ) {
+  if ( !PyModule::reg_type(m, "DtpgEngine", &DtpgEngineType) ) {
     goto error;
   }
 

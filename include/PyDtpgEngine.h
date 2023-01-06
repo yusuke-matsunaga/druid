@@ -11,7 +11,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "ym/PyBase.h"
 #include "DtpgEngine.h"
 
 
@@ -23,8 +22,7 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
 //////////////////////////////////////////////////////////////////////
-class PyDtpgEngine :
-  public PyBase
+class PyDtpgEngine
 {
 public:
   //////////////////////////////////////////////////////////////////////

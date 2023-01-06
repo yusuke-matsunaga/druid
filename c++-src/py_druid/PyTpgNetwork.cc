@@ -9,6 +9,7 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgFault.h"
 #include "ym/PyClibCellLibrary.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -164,7 +165,7 @@ PyTpgNetwork::init(
   TpgNetworkType.tp_new = TpgNetwork_new;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "TpgNetwork", &TpgNetworkType) ) {
+  if ( !PyModule::reg_type(m, "TpgNetwork", &TpgNetworkType) ) {
     goto error;
   }
 

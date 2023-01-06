@@ -13,6 +13,7 @@
 #include "PyDffVector.h"
 #include "PyFaultType.h"
 #include "PyTpgFault.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -473,7 +474,7 @@ PyFsim::init(
   FsimType.tp_new = Fsim_new;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "Fsim", &FsimType) ) {
+  if ( !PyModule::reg_type(m, "Fsim", &FsimType) ) {
     goto error;
   }
 

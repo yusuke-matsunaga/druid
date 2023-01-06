@@ -10,6 +10,7 @@
 #include "ym/PyMt19937.h"
 #include "PyVal3.h"
 #include "PyFaultType.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -498,7 +499,7 @@ PyTestVector::init(
   TestVectorType.tp_as_number = &TestVectorNumber;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "TestVector", &TestVectorType) ) {
+  if ( !PyModule::reg_type(m, "TestVector", &TestVectorType) ) {
     goto error;
   }
 

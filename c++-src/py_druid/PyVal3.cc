@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "PyVal3.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -62,14 +63,14 @@ Val3_new(
   if ( !PyArg_ParseTuple(args, "O", &obj1) ) {
     return nullptr;
   }
-  PyObject* val3_obj = nullptr;
+  Val3 val3;
   if ( PyLong_Check(obj1) ) {
     long val = PyLong_AsLong(obj1);
     if ( val == 0 ) {
-      val3_obj = Val3_0;
+      val3 = Val3::_0;
     }
     else if ( val == 1 ) {
-      val3_obj = Val3_1;
+      val3 = Val3::_1;
     }
     else {
       // エラー
@@ -83,15 +84,15 @@ Val3_new(
       return nullptr;
     }
     if ( strcmp(val_str, "0") == 0 ) {
-      val3_obj = Val3_0;
+      val3 = Val3::_0;
     }
     else if ( strcmp(val_str, "1") == 0 ) {
-      val3_obj = Val3_1;
+      val3 = Val3::_1;
     }
     else if ( strcmp(val_str, "x") == 0 ||
 	      strcmp(val_str, "X") == 0 ||
 	      strcmp(val_str, "?") == 0 ) {
-      val3_obj = Val3_X;
+      val3 = Val3::_X;
     }
     else {
       // エラー
@@ -100,8 +101,7 @@ Val3_new(
       return nullptr;
     }
   }
-  Py_INCREF(val3_obj);
-  return val3_obj;
+  return PyVal3::ToPyObject(val3);
 }
 
 // 終了関数
@@ -229,19 +229,27 @@ PyNumberMethods Val3_number = {
   .nb_inplace_or = Val3_or
 };
 
-// 定数オブジェクトの登録
-bool
-reg_val3(
-  PyTypeObject& type,
-  PyObject*& obj,
-  const char* name,
+// 定数オブジェクトの生成
+PyObject*
+new_const(
   Val3 val
 )
 {
-  obj = type.tp_alloc(&type, 0);
-  PyVal3::_put(obj, val);
+  auto obj = Val3Type.tp_alloc(&Val3Type, 0);
+  auto val3_obj = reinterpret_cast<Val3Object*>(obj);
+  val3_obj->mVal = val;
   Py_INCREF(obj);
-  if ( PyDict_SetItemString(type.tp_dict, name, obj) < 0 ) {
+  return obj;
+}
+
+// 定数オブジェクトの登録
+bool
+reg_obj(
+  const char* name,
+  PyObject*& obj
+)
+{
+  if ( PyDict_SetItemString(Val3Type.tp_dict, name, obj) < 0 ) {
     return false;
   }
   return true;
@@ -269,19 +277,23 @@ PyVal3::init(
   Val3Type.tp_as_number = &Val3_number;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "Val3", &Val3Type) ) {
+  if ( !PyModule::reg_type(m, "Val3", &Val3Type) ) {
     goto error;
   }
 
-  if ( !reg_val3(Val3Type, Val3_0, "_0", Val3::_0) ) {
+  // 定数オブジェクトの生成
+  Val3_0 = new_const(Val3::_0);
+  Val3_1 = new_const(Val3::_1);
+  Val3_X = new_const(Val3::_X);
+
+  // 定数オブジェクトの登録
+  if ( !reg_obj("_0", Val3_0) ) {
     goto error;
   }
-
-  if ( !reg_val3(Val3Type, Val3_1, "_1", Val3::_1) ) {
+  if ( !reg_obj("_1", Val3_X) ) {
     goto error;
   }
-
-  if ( !reg_val3(Val3Type, Val3_X, "_X", Val3::_X) ) {
+  if ( !reg_obj("_X", Val3_X) ) {
     goto error;
   }
 
@@ -317,8 +329,14 @@ PyVal3::ToPyObject(
   Val3 val
 )
 {
-  auto obj = Val3_new(_typeobject(), nullptr, nullptr);
-  _put(obj, val);
+  PyObject* obj = nullptr;
+  switch ( val ) {
+  case Val3::_0: obj = Val3_0; break;
+  case Val3::_1: obj = Val3_1; break;
+  case Val3::_X: obj = Val3_X; break;
+  default: ASSERT_NOT_REACHED; break;
+  }
+  Py_INCREF(obj);
   return obj;
 }
 
@@ -339,17 +357,6 @@ PyVal3::_get(
 {
   auto val3_obj = reinterpret_cast<Val3Object*>(obj);
   return val3_obj->mVal;
-}
-
-// @brief Val3 を表す PyObject に値を設定する．
-void
-PyVal3::_put(
-  PyObject* obj,
-  Val3 val
-)
-{
-  auto val3_obj = reinterpret_cast<Val3Object*>(obj);
-  val3_obj->mVal = val;
 }
 
 // @brief Val3 を表すオブジェクトの型定義を返す．

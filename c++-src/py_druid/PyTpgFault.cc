@@ -8,6 +8,7 @@
 
 #include "PyTpgFault.h"
 #include "TpgNode.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -219,7 +220,7 @@ PyTpgFault::init(
   TpgFaultType.tp_str = TpgFault_str;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "TpgFault", &TpgFaultType) ) {
+  if ( !PyModule::reg_type(m, "TpgFault", &TpgFaultType) ) {
     goto error;
   }
 

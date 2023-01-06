@@ -9,6 +9,7 @@
 #include "PyInputVector.h"
 #include "ym/PyMt19937.h"
 #include "PyVal3.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -255,7 +256,7 @@ PyInputVector::init(
   InputVectorType.tp_new = InputVector_new;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "InputVector", &InputVectorType) ) {
+  if ( !PyModule::reg_type(m, "InputVector", &InputVectorType) ) {
     goto error;
   }
 

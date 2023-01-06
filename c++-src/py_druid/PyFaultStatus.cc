@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "PyFaultStatus.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -132,19 +133,27 @@ FaultStatus_richcmpfunc(
   return Py_NotImplemented;
 }
 
-// 定数オブジェクトの登録
-bool
-reg_const(
-  PyTypeObject& type,
-  PyObject*& obj,
-  const char* name,
+// 定数オブジェクトの生成
+PyObject*
+new_const(
   FaultStatus val
 )
 {
-  obj = type.tp_alloc(&type, 0);
-  PyFaultStatus::_put(obj, val);
+  auto obj = FaultStatusType.tp_alloc(&FaultStatusType, 0);
+  auto fs_obj = reinterpret_cast<FaultStatusObject*>(obj);
+  fs_obj->mVal = val;
   Py_INCREF(obj);
-  if ( PyDict_SetItemString(type.tp_dict, name, obj) < 0 ) {
+  return obj;
+}
+
+// 定数オブジェクトの登録
+bool
+reg_const(
+  const char* name,
+  PyObject*& obj
+)
+{
+  if ( PyDict_SetItemString(FaultStatusType.tp_dict, name, obj) < 0 ) {
     return false;
   }
   return true;
@@ -171,21 +180,23 @@ PyFaultStatus::init(
   FaultStatusType.tp_repr = FaultStatus_repr;
 
   // 型オブジェクトの登録
-  if ( !reg_type(m, "Faultstatus", &FaultStatusType) ) {
+  if ( !PyModule::reg_type(m, "Faultstatus", &FaultStatusType) ) {
     goto error;
   }
 
   // 定数オブジェクトの生成
-  if ( !reg_const(FaultStatusType, FaultStatus_Undetected,
-		  "Undetected", FaultStatus::Undetected) ) {
+  FaultStatus_Undetected = new_const(FaultStatus::Undetected);
+  FaultStatus_Detected = new_const(FaultStatus::Detected);
+  FaultStatus_Untestable = new_const(FaultStatus::Untestable);
+
+  // 定数オブジェクトの登録
+  if ( !reg_const("Undetected", FaultStatus_Undetected) ) {
     goto error;
   }
-  if ( !reg_const(FaultStatusType, FaultStatus_Detected,
-		  "Detected", FaultStatus::Detected) ) {
+  if ( !reg_const("Detected", FaultStatus_Detected) ) {
     goto error;
   }
-  if ( !reg_const(FaultStatusType, FaultStatus_Untestable,
-		  "Untestable", FaultStatus::Untestable) ) {
+  if ( !reg_const("Untestable", FaultStatus_Untestable) ) {
     goto error;
   }
 
@@ -221,8 +232,14 @@ PyFaultStatus::ToPyObject(
   FaultStatus val
 )
 {
-  auto obj = FaultStatus_new(_typeobject(), nullptr, nullptr);
-  _put(obj, val);
+  PyObject* obj = nullptr;
+  switch ( val ) {
+  case FaultStatus::Undetected: obj = FaultStatus_Undetected;
+  case FaultStatus::Detected:   obj = FaultStatus_Detected;
+  case FaultStatus::Untestable: obj = FaultStatus_Untestable;
+  default: ASSERT_NOT_REACHED;
+  }
+  Py_INCREF(obj);
   return obj;
 }
 
@@ -243,17 +260,6 @@ PyFaultStatus::_get(
 {
   auto faultstatus_obj = reinterpret_cast<FaultStatusObject*>(obj);
   return faultstatus_obj->mVal;
-}
-
-// @brief FaultStatus を表す PyObject に値を設定する．
-void
-PyFaultStatus::_put(
-  PyObject* obj,
-  FaultStatus val
-)
-{
-  auto faultstatus_obj = reinterpret_cast<FaultStatusObject*>(obj);
-  faultstatus_obj->mVal = val;
 }
 
 // @brief FaultStatus を表すオブジェクトの型定義を返す．
