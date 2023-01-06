@@ -467,19 +467,13 @@ PyFsim::init(
   FsimType.tp_itemsize = 0;
   FsimType.tp_dealloc = Fsim_dealloc;
   FsimType.tp_flags = Py_TPFLAGS_DEFAULT;
-  FsimType.tp_doc = PyDoc_STR("Fsim objects");
+  FsimType.tp_doc = PyDoc_STR("Fsim object");
   FsimType.tp_methods = Fsim_methods;
   FsimType.tp_init = Fsim_init;
   FsimType.tp_new = Fsim_new;
-  if ( PyType_Ready(&FsimType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&FsimType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "Fsim", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "Fsim", &FsimType) ) {
     goto error;
   }
 

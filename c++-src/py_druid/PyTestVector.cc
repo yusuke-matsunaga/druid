@@ -490,21 +490,15 @@ PyTestVector::init(
   TestVectorType.tp_itemsize = 0;
   TestVectorType.tp_dealloc = TestVector_dealloc;
   TestVectorType.tp_flags = Py_TPFLAGS_DEFAULT;
-  TestVectorType.tp_doc = PyDoc_STR("TestVector objects");
+  TestVectorType.tp_doc = PyDoc_STR("TestVector object");
   TestVectorType.tp_methods = TestVector_methods;
   TestVectorType.tp_init = TestVector_init;
   TestVectorType.tp_new = TestVector_new;
   TestVectorType.tp_str = TestVector_str;
   TestVectorType.tp_as_number = &TestVectorNumber;
-  if ( PyType_Ready(&TestVectorType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&TestVectorType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "TestVector", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "TestVector", &TestVectorType) ) {
     goto error;
   }
 

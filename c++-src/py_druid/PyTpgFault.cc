@@ -46,20 +46,8 @@ TpgFault_dealloc(
   PyObject* self
 )
 {
-  auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(self);
-  delete tpgfault_obj->mFault;
+  // mFault は borrowed reference なので開放しない．
   Py_TYPE(self)->tp_free(self);
-}
-
-// 初期化関数(__init__()相当)
-int
-TpgFault_init(
-  PyObject* self,
-  PyObject* args,
-  PyObject* Py_UNUSED(kwds)
-)
-{
-  return 0;
 }
 
 // str() 関数
@@ -224,21 +212,14 @@ PyTpgFault::init(
   TpgFaultType.tp_itemsize = 0;
   TpgFaultType.tp_dealloc = TpgFault_dealloc;
   TpgFaultType.tp_flags = Py_TPFLAGS_DEFAULT;
-  TpgFaultType.tp_doc = PyDoc_STR("TpgFault objects");
+  TpgFaultType.tp_doc = PyDoc_STR("TpgFault object");
   TpgFaultType.tp_methods = TpgFault_methods;
   TpgFaultType.tp_getset = TpgFault_getsetters;
-  TpgFaultType.tp_init = TpgFault_init;
   TpgFaultType.tp_new = TpgFault_new;
   TpgFaultType.tp_str = TpgFault_str;
-  if ( PyType_Ready(&TpgFaultType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&TpgFaultType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "TpgFault", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "TpgFault", &TpgFaultType) ) {
     goto error;
   }
 

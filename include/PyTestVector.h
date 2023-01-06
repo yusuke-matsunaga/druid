@@ -11,6 +11,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include "ym/PyBase.h"
 #include "TestVector.h"
 
 
@@ -22,7 +23,8 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
 //////////////////////////////////////////////////////////////////////
-class PyTestVector
+class PyTestVector :
+  public PyBase
 {
 public:
   //////////////////////////////////////////////////////////////////////

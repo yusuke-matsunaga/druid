@@ -137,19 +137,13 @@ PyFaultType::init(
   FaultTypeType.tp_itemsize = 0;
   FaultTypeType.tp_dealloc = FaultType_dealloc;
   FaultTypeType.tp_flags = Py_TPFLAGS_DEFAULT;
-  FaultTypeType.tp_doc = PyDoc_STR("FaultType objects");
+  FaultTypeType.tp_doc = PyDoc_STR("FaultType object");
   FaultTypeType.tp_methods = FaultType_methods;
   FaultTypeType.tp_new = FaultType_new;
   FaultTypeType.tp_repr = FaultType_repr;
-  if ( PyType_Ready(&FaultTypeType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&FaultTypeType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "FaultType", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "FaultType", &FaultTypeType) ) {
     goto error;
   }
 

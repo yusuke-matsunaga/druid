@@ -249,19 +249,13 @@ PyInputVector::init(
   InputVectorType.tp_itemsize = 0;
   InputVectorType.tp_dealloc = InputVector_dealloc;
   InputVectorType.tp_flags = Py_TPFLAGS_DEFAULT;
-  InputVectorType.tp_doc = PyDoc_STR("InputVector objects");
+  InputVectorType.tp_doc = PyDoc_STR("InputVector object");
   InputVectorType.tp_methods = InputVector_methods;
   InputVectorType.tp_init = InputVector_init;
   InputVectorType.tp_new = InputVector_new;
-  if ( PyType_Ready(&InputVectorType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&InputVectorType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "InputVector", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "InputVector", &InputVectorType) ) {
     goto error;
   }
 

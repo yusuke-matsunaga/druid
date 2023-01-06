@@ -164,20 +164,14 @@ PyFaultStatus::init(
   FaultStatusType.tp_itemsize = 0;
   FaultStatusType.tp_dealloc = FaultStatus_dealloc;
   FaultStatusType.tp_flags = Py_TPFLAGS_DEFAULT;
-  FaultStatusType.tp_doc = PyDoc_STR("FaultStatus objects");
+  FaultStatusType.tp_doc = PyDoc_STR("FaultStatus object");
   FaultStatusType.tp_richcompare = FaultStatus_richcmpfunc;
   FaultStatusType.tp_methods = FaultStatus_methods;
   FaultStatusType.tp_new = FaultStatus_new;
   FaultStatusType.tp_repr = FaultStatus_repr;
-  if ( PyType_Ready(&FaultStatusType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&FaultStatusType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "FaultStatus", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "Faultstatus", &FaultStatusType) ) {
     goto error;
   }
 

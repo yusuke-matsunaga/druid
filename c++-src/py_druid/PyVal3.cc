@@ -261,21 +261,15 @@ PyVal3::init(
   Val3Type.tp_itemsize = 0;
   Val3Type.tp_dealloc = Val3_dealloc;
   Val3Type.tp_flags = Py_TPFLAGS_DEFAULT;
-  Val3Type.tp_doc = PyDoc_STR("Val3 objects");
+  Val3Type.tp_doc = PyDoc_STR("Val3 object");
   Val3Type.tp_richcompare = Val3_richcmpfunc;
   Val3Type.tp_methods = Val3_methods;
   Val3Type.tp_new = Val3_new;
   Val3Type.tp_repr = Val3_repr;
   Val3Type.tp_as_number = &Val3_number;
-  if ( PyType_Ready(&Val3Type) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&Val3Type);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "Val3", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "Val3", &Val3Type) ) {
     goto error;
   }
 

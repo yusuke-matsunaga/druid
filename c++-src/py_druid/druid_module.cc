@@ -19,7 +19,6 @@
 #include "PyDffVector.h"
 #include "PyFsim.h"
 #include "PyFaultStatus.h"
-#include "PyDtpgResult.h"
 
 
 BEGIN_NAMESPACE_YM
@@ -57,11 +56,19 @@ PyInit_druid()
     return nullptr;
   }
 
-  if ( !PyInit_ymbase() ) {
-    goto error;
+  {
+    auto ymbase = PyInit_ymbase();
+    if ( !ymbase ) {
+      goto error;
+    }
+    PyModule_AddObject(m, "ymbase", ymbase);
   }
-  if ( !PyInit_ymcell() ) {
-    goto error;
+  {
+    auto ymcell = PyInit_ymcell();
+    if ( !ymcell ) {
+      goto error;
+    }
+    PyModule_AddObject(m, "ymcell", ymcell);
   }
 
   if ( !PyVal3::init(m) ) {
@@ -89,9 +96,6 @@ PyInit_druid()
     goto error;
   }
   if ( !PyFsim::init(m) ) {
-    goto error;
-  }
-  if ( !PyDtpgResult::init(m) ) {
     goto error;
   }
 

@@ -22,7 +22,6 @@ include_directories (
 set ( py_druid_SOURCES
   py_druid.cc
   druid_module.cc
-  PyMt19937.cc
   PyVal3.cc
   PyFaultType.cc
   PyFaultStatus.cc
@@ -32,7 +31,6 @@ set ( py_druid_SOURCES
   PyTpgFault.cc
   PyTpgNetwork.cc
   PyFsim.cc
-  PyDtpgResult.cc
   )
 
 
@@ -97,3 +95,6 @@ target_link_libraries ( py_druid_d
 # ===================================================================
 #  インストールターゲットの設定
 # ===================================================================
+
+install ( TARGETS py_druid DESTINATION bin )
+install ( TARGETS py_druid_d DESTINATION bin )

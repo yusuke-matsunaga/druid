@@ -248,18 +248,12 @@ PyDffVector::init(
   DffVectorType.tp_itemsize = 0;
   DffVectorType.tp_dealloc = DffVector_dealloc;
   DffVectorType.tp_flags = Py_TPFLAGS_DEFAULT;
-  DffVectorType.tp_doc = PyDoc_STR("DffVector objects");
+  DffVectorType.tp_doc = PyDoc_STR("DffVector object");
   DffVectorType.tp_init = DffVector_init;
   DffVectorType.tp_new = DffVector_new;
-  if ( PyType_Ready(&DffVectorType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&DffVectorType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "DffVector", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "DffVector", &DffVectorType) ) {
     goto error;
   }
 

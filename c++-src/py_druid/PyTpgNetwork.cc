@@ -159,18 +159,12 @@ PyTpgNetwork::init(
   TpgNetworkType.tp_itemsize = 0;
   TpgNetworkType.tp_dealloc = TpgNetwork_dealloc;
   TpgNetworkType.tp_flags = Py_TPFLAGS_DEFAULT;
-  TpgNetworkType.tp_doc = PyDoc_STR("TpgNetwork objects");
+  TpgNetworkType.tp_doc = PyDoc_STR("TpgNetwork object");
   TpgNetworkType.tp_methods = TpgNetwork_methods;
   TpgNetworkType.tp_new = TpgNetwork_new;
-  if ( PyType_Ready(&TpgNetworkType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&TpgNetworkType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "TpgNetwork", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "TpgNetwork", &TpgNetworkType) ) {
     goto error;
   }
 

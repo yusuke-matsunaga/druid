@@ -123,7 +123,9 @@ DtpgEngine_gen_pattern(
   auto fault = PyTpgFault::_get(fault_obj);
   auto dtpg_obj = reinterpret_cast<DtpgEngineObject*>(self);
   auto result = dtpg_obj->get_pattern(fault);
-  return PyDtpgResult::ToPyObject(result);
+  auto status_obj = PyFaultStatus::ToPyObject(result.status());
+  auto tv_obj = PyTestVector::ToPyObject(result.testvector());
+  return Py_BuildValue("OO", status_obj, tv_obj);
 }
 
 // メソッド定義
@@ -145,18 +147,12 @@ PyDtpgEngine::init(
   DtpgEngineType.tp_itemsize = 0;
   DtpgEngineType.tp_dealloc = DtpgEngine_dealloc;
   DtpgEngineType.tp_flags = Py_TPFLAGS_DEFAULT;
-  DtpgEngineType.tp_doc = PyDoc_STR("DtpgEngine objects");
+  DtpgEngineType.tp_doc = PyDoc_STR("DtpgEngine object");
   DtpgEngineType.tp_methods = DtpgEngine_methods;
   DtpgEngineType.tp_new = DtpgEngine_new;
-  if ( PyType_Ready(&DtpgEngineType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
-  auto type_obj = reinterpret_cast<PyObject*>(&DtpgEngineType);
-  Py_INCREF(type_obj);
-  if ( PyModule_AddObject(m, "DtpgEngine", type_obj) < 0 ) {
-    Py_DECREF(type_obj);
+  if ( !reg_type(m, "DtpgEngine", &DtpgEngineType) ) {
     goto error;
   }
 
