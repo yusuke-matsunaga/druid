@@ -3,7 +3,7 @@
 /// @brief Python TestVector の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "PyTestVector.h"
@@ -33,13 +33,34 @@ PyTypeObject TestVectorType = {
 PyObject*
 TestVector_new(
   PyTypeObject* type,
-  PyObject* Py_UNUSED(args),
-  PyObject* Py_UNUSED(kwds)
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  SizeType input_num = 0;
+  SizeType dff_num = 0;
+  PyObject* fault_type_obj = nullptr;
+  static const char* kwlist[] = {
+    "input_num",
+    "dff_num",
+    "fault_type",
+    nullptr
+  };
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "i|i$O!",
+				    const_cast<char**>(kwlist),
+				    &input_num, &dff_num,
+				    PyFaultType::_typeobject(), &fault_type_obj) ) {
+    return nullptr;
+  }
+
+  auto fault_type = FaultType::StuckAt;
+  if ( fault_type_obj != nullptr ) {
+    fault_type = PyFaultType::_get(fault_type_obj);
+  }
+
   auto self = type->tp_alloc(type, 0);
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(self);
-  testvector_obj->mPtr = nullptr;
+  testvector_obj->mPtr = new TestVector{input_num, dff_num, fault_type};
   return self;
 }
 
@@ -52,41 +73,6 @@ TestVector_dealloc(
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(self);
   delete testvector_obj->mPtr;
   Py_TYPE(self)->tp_free(self);
-}
-
-// 初期化関数(__init__()相当)
-int
-TestVector_init(
-  PyObject* self,
-  PyObject* args,
-  PyObject* kwds
-)
-{
-  SizeType input_num = 0;
-  SizeType dff_num = 0;
-  PyObject* fault_type_obj = nullptr;
-  static const char* kwlist[] = {
-    "",
-    "",
-    "fault_type",
-    nullptr
-  };
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "i|i$O",
-				    const_cast<char**>(kwlist),
-				    &input_num, &dff_num, &fault_type_obj) ) {
-    return -1;
-  }
-
-  FaultType fault_type;
-  if ( fault_type_obj == nullptr ) {
-    fault_type = FaultType::StuckAt;
-  }
-  else if ( !PyFaultType::FromPyObject(fault_type_obj, fault_type) ) {
-    return -1;
-  }
-  auto testvector_obj = reinterpret_cast<TestVectorObject*>(self);
-  testvector_obj->mPtr = new TestVector{input_num, dff_num, fault_type};
-  return 0;
 }
 
 // repr() 関数
@@ -372,16 +358,13 @@ TestVector_set_from_random(
 )
 {
   PyObject* obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &obj) ) {
+  if ( !PyArg_ParseTuple(args, "O!", PyMt19937::_typeobject(), &obj) ) {
     return nullptr;
   }
 
-  std::mt19937* mt19937;
-  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
-    return nullptr;
-  }
+  auto& mt19937 = PyMt19937::_get(obj);
   auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->set_from_random(*mt19937);
+  tv_obj->mPtr->set_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -392,16 +375,13 @@ TestVector_fix_x_from_random(
 )
 {
   PyObject* obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &obj) ) {
+  if ( !PyArg_ParseTuple(args, "O!", PyMt19937::_typeobject(), &obj) ) {
     return nullptr;
   }
 
-  std::mt19937* mt19937;
-  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
-    return nullptr;
-  }
+  auto& mt19937 = PyMt19937::_get(obj);
   auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->fix_x_from_random(*mt19937);
+  tv_obj->mPtr->fix_x_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -493,7 +473,6 @@ PyTestVector::init(
   TestVectorType.tp_flags = Py_TPFLAGS_DEFAULT;
   TestVectorType.tp_doc = PyDoc_STR("TestVector object");
   TestVectorType.tp_methods = TestVector_methods;
-  TestVectorType.tp_init = TestVector_init;
   TestVectorType.tp_new = TestVector_new;
   TestVectorType.tp_str = TestVector_str;
   TestVectorType.tp_as_number = &TestVectorNumber;
@@ -510,29 +489,15 @@ PyTestVector::init(
   return false;
 }
 
-// @brief PyObject から TestVector を取り出す．
-bool
-PyTestVector::FromPyObject(
-  PyObject* obj,
-  TestVector& val
-)
-{
-  if ( !_check(obj) ) {
-    PyErr_SetString(PyExc_TypeError, "object is not a TestVector type");
-    return false;
-  }
-  val = _get(obj);
-  return true;
-}
-
 // @brief TestVector を PyObject に変換する．
 PyObject*
 PyTestVector::ToPyObject(
   TestVector val
 )
 {
-  auto obj = TestVector_new(_typeobject(), nullptr, nullptr);
-  _put(obj, val);
+  auto obj = TestVectorType.tp_alloc(&TestVectorType, 0);
+  auto testvector_obj = reinterpret_cast<TestVectorObject*>(obj);
+  (*testvector_obj->mPtr) = val;
   return obj;
 }
 
@@ -553,17 +518,6 @@ PyTestVector::_get(
 {
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(obj);
   return *testvector_obj->mPtr;
-}
-
-// @brief TestVector を表す PyObject に値を設定する．
-void
-PyTestVector::_put(
-  PyObject* obj,
-  const TestVector& val
-)
-{
-  auto testvector_obj = reinterpret_cast<TestVectorObject*>(obj);
-  (*testvector_obj->mPtr) = val;
 }
 
 // @brief TestVector を表すオブジェクトの型定義を返す．

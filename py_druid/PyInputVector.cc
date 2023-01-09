@@ -3,7 +3,7 @@
 /// @brief Python InputVector の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "PyInputVector.h"
@@ -32,14 +32,25 @@ PyTypeObject InputVectorType = {
 PyObject*
 InputVector_new(
   PyTypeObject* type,
-  PyObject* Py_UNUSED(args),
-  PyObject* Py_UNUSED(kwds)
+  PyObject* args,
+  PyObject* kwds
 )
 {
-  auto self = type->tp_alloc(type, 0);
-  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(self);
-  inputvector_obj->mPtr = nullptr;
-  return self;
+  static const char* kwlist[] = {
+    "num",
+    nullptr
+  };
+  SizeType num = 0;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "i",
+				    const_cast<char**>(kwlist),
+				    &num) ) {
+    return nullptr;
+  }
+
+  auto obj = type->tp_alloc(type, 0);
+  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
+  inputvector_obj->mPtr = new InputVector{num};
+  return obj;
 }
 
 // 終了関数
@@ -51,24 +62,6 @@ InputVector_dealloc(
   auto inputvector_obj = reinterpret_cast<InputVectorObject*>(self);
   delete inputvector_obj->mPtr;
   Py_TYPE(self)->tp_free(self);
-}
-
-// 初期化関数(__init__()相当)
-int
-InputVector_init(
-  PyObject* self,
-  PyObject* args,
-  PyObject* Py_UNUSED(kwds)
-)
-{
-  SizeType num = 0;
-  if ( !PyArg_ParseTuple(args, "i", &num) ) {
-    return -1;
-  }
-
-  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(self);
-  inputvector_obj->mPtr = new InputVector{num};
-  return 0;
 }
 
 // str() 関数
@@ -180,16 +173,13 @@ InputVector_set_from_random(
 )
 {
   PyObject* obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &obj) ) {
+  if ( !PyArg_ParseTuple(args, "O!", PyMt19937::_typeobject(), &obj) ) {
     return nullptr;
   }
 
-  std::mt19937* mt19937;
-  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
-    return nullptr;
-  }
+  auto& mt19937 = PyMt19937::_get(obj);
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mPtr->set_from_random(*mt19937);
+  iv_obj->mPtr->set_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -200,16 +190,13 @@ InputVector_fix_x_from_random(
 )
 {
   PyObject* obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &obj) ) {
+  if ( !PyArg_ParseTuple(args, "O!", PyMt19937::_typeobject(), &obj) ) {
     return nullptr;
   }
 
-  std::mt19937* mt19937;
-  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
-    return nullptr;
-  }
+  auto& mt19937 = PyMt19937::_get(obj);
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mPtr->fix_x_from_random(*mt19937);
+  iv_obj->mPtr->fix_x_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -252,7 +239,6 @@ PyInputVector::init(
   InputVectorType.tp_flags = Py_TPFLAGS_DEFAULT;
   InputVectorType.tp_doc = PyDoc_STR("InputVector object");
   InputVectorType.tp_methods = InputVector_methods;
-  InputVectorType.tp_init = InputVector_init;
   InputVectorType.tp_new = InputVector_new;
 
   // 型オブジェクトの登録
@@ -267,29 +253,15 @@ PyInputVector::init(
   return false;
 }
 
-// @brief PyObject から InputVector を取り出す．
-bool
-PyInputVector::FromPyObject(
-  PyObject* obj,
-  InputVector& val
-)
-{
-  if ( !_check(obj) ) {
-    PyErr_SetString(PyExc_TypeError, "object is not a InputVector type");
-    return false;
-  }
-  val = _get(obj);
-  return true;
-}
-
 // @brief InputVector を PyObject に変換する．
 PyObject*
 PyInputVector::ToPyObject(
   const InputVector& val
 )
 {
-  auto obj = InputVector_new(_typeobject(), nullptr, nullptr);
-  _put(obj, val);
+  auto obj = InputVectorType.tp_alloc(&InputVectorType, 0);
+  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
+  (*inputvector_obj->mPtr) = val;
   return obj;
 }
 
@@ -310,17 +282,6 @@ PyInputVector::_get(
 {
   auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
   return *inputvector_obj->mPtr;
-}
-
-// @brief InputVector を表す PyObject に値を設定する．
-void
-PyInputVector::_put(
-  PyObject* obj,
-  const InputVector& val
-)
-{
-  auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
-  *inputvector_obj->mPtr = val;
 }
 
 // @brief InputVector を表すオブジェクトの型定義を返す．

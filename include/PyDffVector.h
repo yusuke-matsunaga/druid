@@ -5,7 +5,7 @@
 /// @brief PyDffVector のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #define PY_SSIZE_T_CLEAN
@@ -37,17 +37,6 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief DffVector を表す PyObject から DffVector を取り出す．
-  /// @return 変換が成功したら true を返す．
-  ///
-  /// エラーの場合にはPython例外がセットされる．
-  static
-  bool
-  FromPyObject(
-    PyObject* obj,  ///< [in] DffVector を表す PyObject
-    DffVector& val ///< [out] 変換された DffVector を格納する変数
-  );
-
   /// @brief DffVector を表す PyObject を作る．
   /// @return 生成した PyObject を返す．
   ///
@@ -73,16 +62,6 @@ public:
   const DffVector&
   _get(
     PyObject* obj ///< [in] 変換元の PyObject
-  );
-
-  /// @brief DffVector を表す PyObject に値を設定する．
-  ///
-  /// _check(obj) == true であると仮定している．
-  static
-  void
-  _put(
-    PyObject* obj, ///< [in] 対象の PyObject
-    const DffVector& val ///< [in] 設定する値
   );
 
   /// @brief DffVector を表すオブジェクトの型定義を返す．

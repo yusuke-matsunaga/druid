@@ -3,7 +3,7 @@
 /// @brief Python FaultStatus の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "PyFaultStatus.h"
@@ -41,7 +41,7 @@ PyObject*
 FaultStatus_new(
   PyTypeObject* type,
   PyObject* args,
-  PyObject* Py_UNUSED(kwds)
+  PyObject* kwds
 )
 {
   if ( type != &FaultStatusType ) {
@@ -56,30 +56,35 @@ FaultStatus_new(
   //   * "untestable" -> FaultStatus::Untestable
   // それ以外は TypeError
 
+  static const char* kwlist[] = {
+    "name",
+    nullptr
+  };
   const char* val_str = nullptr;
-  if ( !PyArg_ParseTuple(args, "s", &val_str) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "s",
+				    const_cast<char**>(kwlist),
+				    &val_str) ) {
     return nullptr;
   }
 
-  PyObject* obj = nullptr;
+  FaultStatus fs;
   if ( strcasecmp(val_str, "undetected") == 0 ||
        strcasecmp(val_str, "u") == 0 ) {
-    obj = FaultStatus_Undetected;
+    fs = FaultStatus::Undetected;
   }
   else if ( strcasecmp(val_str, "detected") == 0 ||
 	    strcasecmp(val_str, "d") == 0 ) {
-    obj = FaultStatus_Detected;
+    fs = FaultStatus::Detected;
   }
   else if ( strcasecmp(val_str, "untestable") == 0 ) {
-    obj = FaultStatus_Untestable;
+    fs = FaultStatus::Untestable;
   }
   else {
     PyErr_SetString(PyExc_ValueError,
 		    "1st argument should be either 'undetected', 'detected' or 'untestable'");
     return nullptr;
   }
-  Py_INCREF(obj);
-  return obj;
+  return PyFaultStatus::ToPyObject(fs);
 }
 
 // 終了関数
@@ -142,7 +147,6 @@ new_const(
   auto obj = FaultStatusType.tp_alloc(&FaultStatusType, 0);
   auto fs_obj = reinterpret_cast<FaultStatusObject*>(obj);
   fs_obj->mVal = val;
-  Py_INCREF(obj);
   return obj;
 }
 

@@ -37,17 +37,6 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief TpgNetwork を表す PyObject から TpgNetwork を取り出す．
-  /// @return 変換が成功したら true を返す．
-  ///
-  /// エラーの場合にはPython例外がセットされる．
-  static
-  bool
-  FromPyObject(
-    PyObject* obj,  ///< [in] TpgNetwork を表す PyObject
-    const TpgNetwork*& val ///< [out] 変換された TpgNetwork を格納する変数
-  );
-
   /// @brief PyObject が TpgNetwork タイプか調べる．
   static
   bool

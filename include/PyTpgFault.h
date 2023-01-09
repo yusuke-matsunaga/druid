@@ -37,17 +37,6 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief TpgFault を表す PyObject から TpgFault を取り出す．
-  /// @return 変換が成功したら true を返す．
-  ///
-  /// エラーの場合にはPython例外がセットされる．
-  static
-  bool
-  FromPyObject(
-    PyObject* obj,  ///< [in] TpgFault を表す PyObject
-    const TpgFault*& val ///< [out] 変換された TpgFault を格納する変数
-  );
-
   /// @brief TpgFault を表す PyObject を作る．
   /// @return 生成した PyObject を返す．
   ///
@@ -73,16 +62,6 @@ public:
   const TpgFault*
   _get(
     PyObject* obj ///< [in] 変換元の PyObject
-  );
-
-  /// @brief TpgFault を表す PyObject に値を設定する．
-  ///
-  /// _check(obj) == true であると仮定している．
-  static
-  void
-  _put(
-    PyObject* obj, ///< [in] 対象の PyObject
-    const TpgFault* val ///< [in] 設定する値
   );
 
   /// @brief TpgFault を表すオブジェクトの型定義を返す．

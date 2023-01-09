@@ -3,7 +3,7 @@
 /// @brief Python DffVector の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "PyDffVector.h"
@@ -32,14 +32,24 @@ PyTypeObject DffVectorType = {
 PyObject*
 DffVector_new(
   PyTypeObject* type,
-  PyObject* Py_UNUSED(args),
-  PyObject* Py_UNUSED(kwds)
+  PyObject* args,
+  PyObject* kwds
 )
 {
-  auto self = type->tp_alloc(type, 0);
-  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(self);
-  dffvector_obj->mPtr = nullptr;
-  return self;
+  static const char* kwlist[] = {
+    "num",
+    nullptr
+  };
+  SizeType num = 0;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "i",
+				    const_cast<char**>(kwlist),
+				    &num) ) {
+    return nullptr;
+  }
+  auto obj = type->tp_alloc(type, 0);
+  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
+  dffvector_obj->mPtr = new DffVector{num};
+  return obj;
 }
 
 // 終了関数
@@ -51,24 +61,6 @@ DffVector_dealloc(
   auto dffvector_obj = reinterpret_cast<DffVectorObject*>(self);
   delete dffvector_obj->mPtr;
   Py_TYPE(self)->tp_free(self);
-}
-
-// 初期化関数(__init__()相当)
-int
-DffVector_init(
-  PyObject* self,
-  PyObject* args,
-  PyObject* Py_UNUSED(kwds)
-)
-{
-  SizeType num = 0;
-  if ( !PyArg_ParseTuple(args, "i", &num) ) {
-    return -1;
-  }
-
-  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(self);
-  dffvector_obj->mPtr = new DffVector{num};
-  return 0;
 }
 
 // str() 関数
@@ -179,16 +171,13 @@ DffVector_set_from_random(
 )
 {
   PyObject* obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &obj) ) {
+  if ( !PyArg_ParseTuple(args, "O!", PyMt19937::_typeobject(), &obj) ) {
     return nullptr;
   }
 
-  std::mt19937* mt19937;
-  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
-    return nullptr;
-  }
+  auto& mt19937 = PyMt19937::_get(obj);
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mPtr->set_from_random(*mt19937);
+  dv_obj->mPtr->set_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -199,16 +188,13 @@ DffVector_fix_x_from_random(
 )
 {
   PyObject* obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &obj) ) {
+  if ( !PyArg_ParseTuple(args, "O!", PyMt19937::_typeobject(), &obj) ) {
     return nullptr;
   }
 
-  std::mt19937* mt19937;
-  if ( !PyMt19937::FromPyObject(obj, mt19937) ) {
-    return nullptr;
-  }
+  auto& mt19937 = PyMt19937::_get(obj);
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mPtr->fix_x_from_random(*mt19937);
+  dv_obj->mPtr->fix_x_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -250,7 +236,6 @@ PyDffVector::init(
   DffVectorType.tp_dealloc = DffVector_dealloc;
   DffVectorType.tp_flags = Py_TPFLAGS_DEFAULT;
   DffVectorType.tp_doc = PyDoc_STR("DffVector object");
-  DffVectorType.tp_init = DffVector_init;
   DffVectorType.tp_new = DffVector_new;
 
   // 型オブジェクトの登録
@@ -265,29 +250,15 @@ PyDffVector::init(
   return false;
 }
 
-// @brief PyObject から DffVector を取り出す．
-bool
-PyDffVector::FromPyObject(
-  PyObject* obj,
-  DffVector& val
-)
-{
-  if ( !_check(obj) ) {
-    PyErr_SetString(PyExc_TypeError, "object is not a DffVector type");
-    return false;
-  }
-  val = _get(obj);
-  return true;
-}
-
 // @brief DffVector を PyObject に変換する．
 PyObject*
 PyDffVector::ToPyObject(
   const DffVector& val
 )
 {
-  auto obj = DffVector_new(_typeobject(), nullptr, nullptr);
-  _put(obj, val);
+  auto obj = DffVectorType.tp_alloc(&DffVectorType, 0);
+  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
+  (*dffvector_obj->mPtr) = val;
   return obj;
 }
 
@@ -308,17 +279,6 @@ PyDffVector::_get(
 {
   auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
   return *dffvector_obj->mPtr;
-}
-
-// @brief DffVector を表す PyObject に値を設定する．
-void
-PyDffVector::_put(
-  PyObject* obj,
-  const DffVector& val
-)
-{
-  auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
-  *dffvector_obj->mPtr = val;
 }
 
 // @brief DffVector を表すオブジェクトの型定義を返す．

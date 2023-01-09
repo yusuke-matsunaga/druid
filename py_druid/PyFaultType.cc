@@ -3,7 +3,7 @@
 /// @brief Python FaultType の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "PyFaultType.h"
@@ -37,7 +37,7 @@ PyObject*
 FaultType_new(
   PyTypeObject* type,
   PyObject* args,
-  PyObject* Py_UNUSED(kwds)
+  PyObject* kwds
 )
 {
   if ( type != &FaultTypeType ) {
@@ -50,9 +50,14 @@ FaultType_new(
   //   * "stuck-at"|"s-a" -> FaultType::StuckAt
   //   * "transition-delay"|"t-d" -> FaultType::TransitionDelay
   // それ以外は TypeError
-
+  static const char* kwlist[] = {
+    "name",
+    nullptr
+  };
   const char* val_str = nullptr;
-  if ( !PyArg_ParseTuple(args, "s", &val_str) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "s",
+				    const_cast<char**>(kwlist),
+				    &val_str) ) {
     return nullptr;
   }
 

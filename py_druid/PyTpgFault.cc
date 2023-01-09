@@ -3,7 +3,7 @@
 /// @brief Python TpgFault の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "PyTpgFault.h"
@@ -35,10 +35,8 @@ TpgFault_new(
   PyObject* Py_UNUSED(kwds)
 )
 {
-  auto self = type->tp_alloc(type, 0);
-  auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(self);
-  tpgfault_obj->mFault = nullptr;
-  return self;
+  PyErr_SetString(PyExc_TypeError, "instantiation of 'TpgFault' is disabled");
+  return nullptr;
 }
 
 // 終了関数
@@ -231,29 +229,15 @@ PyTpgFault::init(
   return false;
 }
 
-// @brief PyObject から TpgFault を取り出す．
-bool
-PyTpgFault::FromPyObject(
-  PyObject* obj,
-  const TpgFault*& val
-)
-{
-  if ( !_check(obj) ) {
-    PyErr_SetString(PyExc_TypeError, "object is not a TpgFault type");
-    return false;
-  }
-  val = _get(obj);
-  return true;
-}
-
 // @brief TpgFault を PyObject に変換する．
 PyObject*
 PyTpgFault::ToPyObject(
   const TpgFault* val
 )
 {
-  auto obj = TpgFault_new(_typeobject(), nullptr, nullptr);
-  _put(obj, val);
+  auto obj = TpgFaultType.tp_alloc(&TpgFaultType, 0);
+  auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(obj);
+  tpgfault_obj->mFault = val;
   return obj;
 }
 
@@ -274,17 +258,6 @@ PyTpgFault::_get(
 {
   auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(obj);
   return tpgfault_obj->mFault;
-}
-
-// @brief TpgFault を表す PyObject に値を設定する．
-void
-PyTpgFault::_put(
-  PyObject* obj,
-  const TpgFault* val
-)
-{
-  auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(obj);
-  tpgfault_obj->mFault = val;
 }
 
 // @brief TpgFault を表すオブジェクトの型定義を返す．

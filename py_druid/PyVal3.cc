@@ -3,7 +3,7 @@
 /// @brief Python Val3 の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "PyVal3.h"
@@ -40,7 +40,7 @@ PyObject*
 Val3_new(
   PyTypeObject* type,
   PyObject* args,
-  PyObject* Py_UNUSED(kwds)
+  PyObject* kwds
 )
 {
   if ( type != &Val3Type ) {
@@ -59,8 +59,14 @@ Val3_new(
   //     "?" -> Val3::_X
   // それ以外は TypeError
 
+  static const char* kwlist[] = {
+    "name",
+    nullptr
+  };
   PyObject* obj1;
-  if ( !PyArg_ParseTuple(args, "O", &obj1) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
+				    const_cast<char**>(kwlist),
+				    &obj1) ) {
     return nullptr;
   }
   Val3 val3;

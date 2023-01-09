@@ -36,6 +36,8 @@ TpgNetwork_new(
   PyObject* Py_UNUSED(kwds)
 )
 {
+  PyErr_SetString(PyExc_TypeError, "instantiation of 'TpgNetwork' is disabled");
+  return nullptr;
   auto self = type->tp_alloc(type, 0);
   auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(self);
   tpgnetwork_obj->mPtr = new TpgNetwork;
@@ -73,8 +75,11 @@ TpgNetwork_read_blif(
 				    &clib_obj) ) {
     return nullptr;
   }
-  auto obj = TpgNetwork_new(&TpgNetworkType, nullptr, nullptr);
-  auto network_p = PyTpgNetwork::_get(obj);
+  auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
+  auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
+  auto network_p = new TpgNetwork;
+  tpgnetwork_obj->mPtr = network_p;
+
   // blif ファイルを読み込む．
   if ( clib_obj == nullptr ) {
     if ( !network_p->read_blif(blif_file) ) {
@@ -104,8 +109,11 @@ TpgNetwork_read_bench(
   if ( !PyArg_ParseTuple(args, "s", &bench_file) ) {
     return nullptr;
   }
-  auto obj = TpgNetwork_new(&TpgNetworkType, nullptr, nullptr);
-  auto network_p = PyTpgNetwork::_get(obj);
+  auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
+  auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
+  auto network_p = new TpgNetwork;
+  tpgnetwork_obj->mPtr = network_p;
+
   // iscas89(.bench) ファイルを読み込む．
   if ( !network_p->read_iscas89(bench_file) ) {
     PyErr_SetString(PyExc_ValueError, "read failed");
@@ -174,21 +182,6 @@ PyTpgNetwork::init(
  error:
 
   return false;
-}
-
-// @brief PyObject から TpgNetwork を取り出す．
-bool
-PyTpgNetwork::FromPyObject(
-  PyObject* obj,
-  const TpgNetwork*& val
-)
-{
-  if ( !_check(obj) ) {
-    PyErr_SetString(PyExc_TypeError, "object is not a TpgNetwork type");
-    return false;
-  }
-  val = _get(obj);
-  return true;
 }
 
 // @brief PyObject が TpgNetwork タイプか調べる．

@@ -114,6 +114,7 @@ foreach ( dir ${YM_SUBMODULE_LIST} )
 endforeach ()
 
 add_subdirectory ( c++-src )
+add_subdirectory ( py_druid )
 add_subdirectory ( tests/common )
 add_subdirectory ( tests/gtest )
 add_subdirectory ( tests/test-programs )
