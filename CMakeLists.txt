@@ -117,6 +117,7 @@ add_subdirectory ( c++-src )
 add_subdirectory ( py_druid )
 add_subdirectory ( tests/common )
 add_subdirectory ( tests/gtest )
+add_subdirectory ( tests/py_druid )
 add_subdirectory ( tests/test-programs )
 
 if ( DOXYGEN_FOUND )

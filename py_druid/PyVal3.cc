@@ -244,7 +244,6 @@ new_const(
   auto obj = Val3Type.tp_alloc(&Val3Type, 0);
   auto val3_obj = reinterpret_cast<Val3Object*>(obj);
   val3_obj->mVal = val;
-  Py_INCREF(obj);
   return obj;
 }
 
@@ -296,7 +295,7 @@ PyVal3::init(
   if ( !reg_obj("_0", Val3_0) ) {
     goto error;
   }
-  if ( !reg_obj("_1", Val3_X) ) {
+  if ( !reg_obj("_1", Val3_1) ) {
     goto error;
   }
   if ( !reg_obj("_X", Val3_X) ) {
