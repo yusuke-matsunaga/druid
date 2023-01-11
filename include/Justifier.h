@@ -5,11 +5,11 @@
 /// @brief Justifier のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "ym/SatBool3.h"
+#include "ym/sat.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -17,8 +17,11 @@ BEGIN_NAMESPACE_DRUID
 class JustImpl;
 
 //////////////////////////////////////////////////////////////////////
-/// @class Justifier Justifier.h "td/Justifier.h"
+/// @class Justifier Justifier.h "Justifier.h"
 /// @brief 正当化に必要な割当を求めるファンクター
+///
+/// SAT ソルバで解を求めた後で，必要最小限の PI の割当を求める．
+/// 正当化が必要な値の割当は assign_list に入っている．
 //////////////////////////////////////////////////////////////////////
 class Justifier
 {
@@ -39,7 +42,7 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 正当化に必要な割当を求める(遷移故障用)．
+  /// @brief 正当化に必要な割当を求める
   /// @return テストベクタ
   TestVector
   operator()(

@@ -3,7 +3,7 @@
 /// @brief Justifier の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2018, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "Justifier.h"
@@ -18,21 +18,21 @@ BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
-std::unique_ptr<JustImpl>
+JustImpl*
 new_just(
   const string& just_type,
   SizeType max_id
 )
 {
   if ( just_type == "just1" ) {
-    return std::unique_ptr<JustImpl>{new Just1(max_id)};
+    return new Just1(max_id);
   }
   if ( just_type == "just2" ) {
-    return std::unique_ptr<JustImpl>{new Just2(max_id)};
+    return new Just2(max_id);
   }
 
   // デフォルトフォールバックは Just2
-  return std::unique_ptr<JustImpl>{new Just2(max_id)};
+  return new Just2(max_id);
 }
 
 END_NONAMESPACE
@@ -54,9 +54,11 @@ Justifier::Justifier(
 // @brief デストラクタ
 Justifier::~Justifier()
 {
+  // JustImpl のサイズが必要なので
+  // ヘッダファイルでは定義できない．
 }
 
-// @brief 正当化に必要な割当を求める(遷移故障用)．
+// @brief 正当化に必要な割当を求める
 TestVector
 Justifier::operator()(
   FaultType fault_type,

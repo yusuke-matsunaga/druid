@@ -27,8 +27,8 @@ public:
   DtpgFFR(
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,	     ///< [in] 故障の種類
-    const TpgFFR& ffr,		     ///< [in] Justifier の種類を表す文字列
-    const string& just_type,	     ///< [in] 故障伝搬の起点となる FFR
+    const TpgFFR& ffr,		     ///< [in] 故障伝搬の起点となる FFR
+    const string& just_type,	     ///< [in] Justifier の種類を表す文字列
     const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
     = SatSolverType()
   );
