@@ -1,23 +1,23 @@
-#! /usr/bin/env python3
+#! /usr/bin/env py_druid
 
-### @file dtpg.py
-### @brief DTPG を行うクラス
-### @author Yusuke Matsunaga (松永 裕介)
-###
-### Copyright (C) 2018 Yusuke Matsunaga
-### All rights reserved.
+"""DTPG を行うクラス
 
-from druid_core import DtpgFFR, DtpgMFFC
-from druid_core import Fsim
-from druid_core import FaultStatus
-from druid_core import TestVector
+:file: dtpg.py
+:author: Yusuke Matsunaga (松永 裕介)
+:Copyright: (C) 2018 Yusuke Matsunaga
+ All rights reserved.
+"""
+
+from druid import DtpgFFR, DtpgMFFC
+from druid import Fsim
+from druid import FaultStatus
+from druid import TestVector
 
 
-### @brief DTPG を行うクラス
-class Dtpg :
+class Dtpg:
+    """DTPGを行うクラス"""
 
-    ### @brief 初期化
-    def __init__(self, network, fault_type) :
+    def __init__(self, network, fault_type):
         self.__network = network
         self.__fault_type = fault_type
         self.__fsim3 = Fsim('Fsim3', network, fault_type)
@@ -29,22 +29,22 @@ class Dtpg :
         for fault in self.__network.rep_fault_list() :
             self.__fault_mark[fault.id] = True
 
-    ### @brief 故障の印を消す．
-    def clear_fault_mark(self) :
+    def clear_fault_mark(self):
+        """故障のマークを消す．"""
         for fault in self.__network.rep_fault_list() :
             self.__fault_mark[fault.id] = False
             self.__fsim3.set_skip(fault)
 
-    ### @brief 故障に印をつける．
-    def set_fault_mark(self, fault, val) :
+    def set_fault_mark(self, fault, val):
+        """故障にマークを作る．"""
         self.__fault_mark[fault.id] = val
         if val :
             self.__fsim3.clear_skip(fault)
         else :
             self.__fsim3.set_skip(fault)
 
-    ### @brief FFR mode でパタン生成を行う．
-    def ffr_mode(self, drop) :
+    def ffr_mode(self, drop):
+        """FFRモードでパタン生成を行う．"""
         self.__ndet = 0
         self.__nunt = 0
         self.__nabt = 0
@@ -58,8 +58,9 @@ class Dtpg :
                     self.__call_dtpg(dtpg, fault)
         return self.__ndet, self.__nunt, self.__nabt
 
+    """
     ### @brief FFR mode でパタン生成を行う．
-    def k_ffr_mode(self, k) :
+    def k_ffr_mode(self, k):
         self.__ndet = 0
         self.__nunt = 0
         self.__nabt = 0
@@ -71,9 +72,10 @@ class Dtpg :
                 if self.__fault_mark[fault.id] :
                     self.__call_dtpg_k(dtpg, fault, k)
         return self.__ndet, self.__nunt, self.__nabt
+    """
 
-    ### @brief MFFC mode でパタン生成を行う．
-    def mffc_mode(self, drop) :
+    def mffc_mode(self, drop):
+        """MFFCモードでパタン生成を行う．"""
         self.__ndet = 0
         self.__nunt = 0
         self.__nabt = 0
@@ -85,8 +87,8 @@ class Dtpg :
                     self.__call_dtpg(dtpg, fault)
         return self.__ndet, self.__nunt, self.__nabt
 
-    ### @brief 全モードで共通な処理
-    def __call_dtpg(self, dtpg, fault) :
+    def __call_dtpg(self, dtpg, fault):
+        """全モードで共通な処理"""
         stat, testvect = dtpg(fault)
         if stat == FaultStatus.Detected :
             self.__ndet += 1
@@ -113,6 +115,7 @@ class Dtpg :
         else :
             assert False
 
+    """
     ### @brief 全モードで共通な処理
     def __call_dtpg_k(self, dtpg, fault, k) :
         stat, testvect_list = dtpg(fault, k)
@@ -134,7 +137,8 @@ class Dtpg :
             self.__nabt += 1
         else :
             assert False
-
+    """
+    
     ### @brief 検出された故障のリストを返す．
     @property
     def fault_list(self) :

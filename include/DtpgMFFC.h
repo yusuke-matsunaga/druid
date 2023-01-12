@@ -44,7 +44,7 @@ protected:
 
   /// @brief make_cnf() の追加処理
   void
-  make_cnf_sub() override;
+  opt_make_cnf() override;
 
   /// @brief gen_pattern() で用いる検出条件を作る．
   ///

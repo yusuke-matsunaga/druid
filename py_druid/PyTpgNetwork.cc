@@ -38,10 +38,6 @@ TpgNetwork_new(
 {
   PyErr_SetString(PyExc_TypeError, "instantiation of 'TpgNetwork' is disabled");
   return nullptr;
-  auto self = type->tp_alloc(type, 0);
-  auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(self);
-  tpgnetwork_obj->mPtr = new TpgNetwork;
-  return self;
 }
 
 // 終了関数
@@ -75,12 +71,12 @@ TpgNetwork_read_blif(
 				    &clib_obj) ) {
     return nullptr;
   }
+#if 0
   auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
   auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
   auto network_p = new TpgNetwork;
   tpgnetwork_obj->mPtr = network_p;
 
-  // blif ファイルを読み込む．
   if ( clib_obj == nullptr ) {
     if ( !network_p->read_blif(blif_file) ) {
       PyErr_SetString(PyExc_ValueError, "read failed");
@@ -96,7 +92,28 @@ TpgNetwork_read_blif(
       return nullptr;
     }
   }
+
   return obj;
+#else
+  // blif ファイルを読み込む．
+  ClibCellLibrary cell_library;
+  if ( clib_obj == nullptr ) {
+    cell_library = PyClibCellLibrary::_get(clib_obj);
+  }
+  try {
+    auto src_network = TpgNetwork::read_blif(blif_file, cell_library);
+    auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
+    auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
+    tpgnetwork_obj->mPtr = new TpgNetwork{std::move(src_network)};
+    return obj;
+  }
+  catch ( std::invalid_argument ) {
+    ostringstream buf;
+    buf << "Error occured in reading \"" << blif_file << "\"";
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+#endif
 }
 
 PyObject*
@@ -109,6 +126,7 @@ TpgNetwork_read_bench(
   if ( !PyArg_ParseTuple(args, "s", &bench_file) ) {
     return nullptr;
   }
+#if 0
   auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
   auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
   auto network_p = new TpgNetwork;
@@ -121,6 +139,21 @@ TpgNetwork_read_bench(
     return nullptr;
   }
   return obj;
+#else
+  try {
+    auto src_network = TpgNetwork::read_iscas89(bench_file);
+    auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
+    auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
+    tpgnetwork_obj->mPtr = new TpgNetwork{std::move(src_network)};
+    return obj;
+  }
+  catch ( std::invalid_argument ) {
+    ostringstream buf;
+    buf << "Error occured in reading \"" << bench_file << "\"";
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+#endif
 }
 
 PyObject*

@@ -105,8 +105,7 @@ Dtpg_se::gen_pattern(
   Timer timer;
   timer.start();
 
-  SatStats prev_stats;
-  mStructEnc.solver().get_stats(prev_stats);
+  auto prev_stats = mStructEnc.solver().get_stats();
 
   // 故障が属している FFR の根のノード
   const TpgNode* ffr_root = fault->tpg_onode()->ffr_root();
@@ -129,8 +128,7 @@ Dtpg_se::gen_pattern(
   timer.stop();
   auto time = timer.get_time();
 
-  SatStats sat_stats;
-  mStructEnc.solver().get_stats(sat_stats);
+  auto sat_stats = mStructEnc.solver().get_stats();
   //sat_stats -= prev_stats;
 
   if ( ans == SatBool3::True ) {

@@ -6,7 +6,6 @@
 /// Copyright (C) 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "TestVector.h"
@@ -22,8 +21,10 @@ bool verbose = false;
 
 // 故障を検出したときの出力
 void
-print_fault(const TpgFault* f,
-	    int tv_id)
+print_fault(
+  const TpgFault* f,
+  int tv_id
+)
 {
   if ( verbose ) {
     cout << setw(7) << tv_id << ": " << f->str() << endl;
@@ -198,6 +199,20 @@ usage()
   cerr << "USAGE: " << argv0 << " ?-n #pat? ?--fsim2|--fsim3? ?--ppspf|--sppfp? --blif|--iscas89 <file>" << endl;
 }
 
+TpgNetwork
+read_network(
+  const string& filename,
+  bool blif,
+  bool iscas89
+)
+{
+  ASSERT_COND( blif | iscas89 );
+  if ( blif ) {
+    return TpgNetwork::read_blif(filename);
+  }
+  return TpgNetwork::read_iscas89(filename);
+}
+
 int
 fsim2test(
   int argc,
@@ -205,8 +220,7 @@ fsim2test(
 )
 {
   int npat = 0;
-  bool blif = false;
-  bool iscas89 = false;
+  string format = "blif";
 
   bool fsim2 = false;
   bool fsim3 = false;
@@ -277,18 +291,10 @@ fsim2test(
 	td_mode = true;
       }
       else if ( strcmp(argv[pos], "--blif") == 0 ) {
-	if ( iscas89 ) {
-	  cerr << "--blif and --iscas89 are mutually exclusive" << endl;
-	  return -1;
-	}
-	blif = true;
+	format = "blif";
       }
       else if ( strcmp(argv[pos], "--iscas89") == 0 ) {
-	if ( blif ) {
-	  cerr << "--blif and --iscas89 are mutually exclusive" << endl;
-	  return -1;
-	}
-	iscas89 = true;
+	format = "iscas89";
       }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
@@ -319,28 +325,8 @@ fsim2test(
     fsim2 = true;
   }
 
-  if ( !blif && !iscas89 ) {
-    // とりあえず blif をデフォルトにする．
-    blif = true;
-  }
-
   string filename = argv[pos];
-  TpgNetwork network;
-  if ( blif ) {
-    if ( !network.read_blif(filename) ) {
-      cerr << "Error in reading " << filename << endl;
-      return -1;
-    }
-  }
-  else if ( iscas89 ) {
-    if ( !network.read_iscas89(filename) ) {
-      cerr << "Error in reading " << filename << endl;
-      return -1;
-    }
-  }
-  else {
-    ASSERT_NOT_REACHED;
-  }
+  auto network = TpgNetwork::read_network(filename, format);
 
   if ( !sa_mode && !td_mode ) {
     sa_mode = true;

@@ -471,16 +471,14 @@ DomChecker::solve(const vector<SatLiteral>& assumptions)
   Timer timer;
   timer.start();
 
-  SatStats prev_stats;
-  mSolver.get_stats(prev_stats);
+  auto prev_stats = mSolver.get_stats();
 
   SatBool3 ans = mSolver.solve(assumptions);
 
   timer.stop();
   auto time = timer.get_time();
 
-  SatStats sat_stats;
-  mSolver.get_stats(sat_stats);
+  auto sat_stats = mSolver.get_stats();
   //sat_stats -= prev_stats;
 
   if ( ans == SatBool3::True ) {

@@ -135,7 +135,7 @@ private:
 
   SatSolverType mSolverType;
 
-  TpgNetwork mNetwork;
+  TpgNetwork* mNetwork_p;
 
   DtpgTest* mDtpgTest;
 
@@ -152,17 +152,18 @@ DtpgTestWithParam::DtpgTestWithParam() :
 void
 DtpgTestWithParam::SetUp()
 {
-  bool stat = mNetwork.read_blif(filename());
-  ASSERT_COND( stat );
+  auto network = TpgNetwork::read_blif(filename());
+  mNetwork_p = new TpgNetwork{std::move(network)};
 
   string mode = test_mode();
-  mDtpgTest = DtpgTest::new_test(mode, mNetwork, fault_type(), just_type(), mSolverType);
+  mDtpgTest = DtpgTest::new_test(mode, *mNetwork_p, fault_type(), just_type(), mSolverType);
 }
 
 // @brief 終了処理を行う．
 void
 DtpgTestWithParam::TearDown()
 {
+  delete mNetwork_p;
   delete mDtpgTest;
   mDtpgTest = nullptr;
 }
@@ -172,7 +173,7 @@ DtpgTestWithParam::do_test()
 {
   auto count = mDtpgTest->do_test(false);
 
-  EXPECT_EQ( total_fault_num(), mNetwork.rep_fault_num() );
+  EXPECT_EQ( total_fault_num(), mNetwork_p->rep_fault_num() );
   EXPECT_EQ( detect_fault_num(), count.mDetCount );
   EXPECT_EQ( untest_fault_num(), count.mUntestCount );
 

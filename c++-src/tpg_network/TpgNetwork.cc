@@ -22,10 +22,19 @@ BEGIN_NAMESPACE_DRUID
 // クラス TpgNetwork
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-TpgNetwork::TpgNetwork() :
-  mImpl{new TpgNetworkImpl}
+// @brief 空のコンストラクタ
+TpgNetwork::TpgNetwork(
+)
 {
+  // mImpl は nullptr を指すはず
+}
+
+// @brief コンストラクタ
+TpgNetwork::TpgNetwork(
+  const BnNetwork& network
+) : mImpl{new TpgNetworkImpl}
+{
+  mImpl->set(network);
 }
 
 // @brief ムーブコンストラクタ
@@ -43,6 +52,55 @@ TpgNetwork::operator=(
 {
   std::swap(mImpl, src.mImpl);
   return *this;
+}
+
+// @brief blif ファイルを読み込む．
+TpgNetwork
+TpgNetwork::read_blif(
+  const string& filename
+)
+{
+  return read_blif(filename, ClibCellLibrary{});
+}
+
+// @brief blif ファイルを読み込む．
+TpgNetwork
+TpgNetwork::read_blif(
+  const string& filename,
+  const ClibCellLibrary& cell_library
+)
+{
+  auto network = BnNetwork::read_blif(filename, cell_library);
+  return TpgNetwork{network};
+}
+
+// @brief iscas89 形式のファイルを読み込む．
+TpgNetwork
+TpgNetwork::read_iscas89(
+  const string& filename
+)
+{
+  auto network = BnNetwork::read_iscas89(filename);
+  return TpgNetwork{network};
+}
+
+// @brief ファイルを読み込む
+TpgNetwork
+TpgNetwork::read_network(
+  const string& filename,
+  const string& format,
+  const ClibCellLibrary& cell_library
+)
+{
+  if ( format == "blif" ) {
+    return read_blif(filename, cell_library);
+  }
+  if ( format == "iscas89" ) {
+    return read_iscas89(filename);
+  }
+  ostringstream buf;
+  buf << format << ": Unknown format";
+  throw std::invalid_argument(buf.str());
 }
 
 // @brief デストラクタ
@@ -301,55 +359,6 @@ TpgNetwork::node_rep_fault(
 ) const
 {
   return mImpl->node_rep_fault(id, pos);
-}
-
-// @brief BnNetwork から内容を設定する．
-void
-TpgNetwork::set(
-  const BnNetwork& network
-)
-{
-  mImpl->set(network);
-}
-
-// @brief blif ファイルを読み込む．
-bool
-TpgNetwork::read_blif(
-  const string& filename
-)
-{
-  return read_blif(filename, ClibCellLibrary());
-}
-
-// @brief blif ファイルを読み込む．
-bool
-TpgNetwork::read_blif(
-  const string& filename,
-  const ClibCellLibrary& cell_library
-)
-{
-  BnNetwork network = BnNetwork::read_blif(filename, cell_library);
-  bool stat = network.node_num() != 0;
-  if ( stat ) {
-    set(network);
-  }
-
-  return stat;
-}
-
-// @brief iscas89 形式のファイルを読み込む．
-bool
-TpgNetwork::read_iscas89(
-  const string& filename
-)
-{
-  BnNetwork network = BnNetwork::read_iscas89(filename);
-  bool stat = network.node_num() != 0;
-  if ( stat ) {
-    set(network);
-  }
-
-  return stat;
 }
 
 // @brief TpgNetwork の内容を出力する関数

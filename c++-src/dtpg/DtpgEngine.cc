@@ -3,7 +3,7 @@
 /// @brief DtpgEngine の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "DtpgEngine.h"
@@ -64,11 +64,6 @@ DtpgEngine::DtpgEngine(
   mOutputList.reserve(network.ppo_num());
 }
 
-// @brief デストラクタ
-DtpgEngine::~DtpgEngine()
-{
-}
-
 // @brief CNF の生成を行う．
 void
 DtpgEngine::make_cnf()
@@ -103,7 +98,7 @@ DtpgEngine::make_cnf()
     }
   }
 
-  make_cnf_sub();
+  opt_make_cnf();
 
   cnf_end();
 }
@@ -154,7 +149,9 @@ DtpgEngine::prepare_vars()
   // root の TFO を mTfoList に入れる．
   set_tfo_mark(mRoot);
   for ( int rpos = 0; rpos < mTfoList.size(); ++ rpos ) {
-    const TpgNode* node = mTfoList[rpos];
+    // set_tfo_mark() 中で mTfoList に要素を追加しているので
+    // 古いタイプの for 文を用いている．
+    auto node = mTfoList[rpos];
     for ( auto onode: node->fanout_list() ) {
       set_tfo_mark(onode);
     }
@@ -167,7 +164,9 @@ DtpgEngine::prepare_vars()
     }
   }
   for ( int rpos = 0; rpos < mTfiList.size(); ++ rpos ) {
-    const TpgNode* node = mTfiList[rpos];
+    // set_tfi_mark() 中で mTfiList に要素を追加しているので
+    // 古いタイプの for 文を用いている．
+    auto node = mTfiList[rpos];
     for ( auto inode: node->fanin_list() ) {
       set_tfi_mark(inode);
     }
@@ -179,12 +178,14 @@ DtpgEngine::prepare_vars()
       mDffList.push_back(mRoot->dff());
     }
     for ( auto dff: mDffList ) {
-      const TpgNode* node = dff->input();
+      auto node = dff->input();
       mTfi2List.push_back(node);
     }
     set_tfi2_mark(mRoot);
     for ( int rpos = 0; rpos < mTfi2List.size(); ++ rpos) {
-      const TpgNode* node = mTfi2List[rpos];
+      // set_tfi2_mark() 中で mTfi2List に要素を追加しているので
+      // 古いタイプの for 文を用いている．
+      auto node = mTfi2List[rpos];
       for ( auto inode: node->fanin_list() ) {
 	set_tfi2_mark(inode);
       }
@@ -276,8 +277,8 @@ DtpgEngine::gen_good_cnf()
   }
 
   for ( auto dff: mDffList ) {
-    const TpgNode* onode = dff->output();
-    const TpgNode* inode = dff->input();
+    auto onode = dff->output();
+    auto inode = dff->input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
     auto olit = gvar(onode);
     auto ilit = hvar(inode);
@@ -347,8 +348,8 @@ DtpgEngine::gen_detect_cnf()
   int no = mOutputList.size();
   vector<SatLiteral> odiff(no);
   for (int i = 0; i < no; ++ i) {
-    const TpgNode* node = mOutputList[i];
-    SatLiteral dlit(dvar(node));
+    auto node = mOutputList[i];
+    auto dlit = dvar(node);
     odiff[i] = dlit;
   }
   mSolver.add_clause(odiff);
@@ -376,7 +377,7 @@ DtpgEngine::gen_undetect_cnf()
   // 故障の検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
   //////////////////////////////////////////////////////////////////////
   for ( auto node: mOutputList ) {
-    SatLiteral dlit(dvar(node));
+    auto dlit = dvar(node);
     mSolver.add_clause(~dlit);
   }
 }
@@ -384,7 +385,7 @@ DtpgEngine::gen_undetect_cnf()
 
 // @brief make_cnf() の追加処理
 void
-DtpgEngine::make_cnf_sub()
+DtpgEngine::opt_make_cnf()
 {
 }
 
@@ -458,7 +459,7 @@ DtpgEngine::make_dchain_cnf(
       tmp_lits.push_back(~dlit);
       mSolver.add_clause(tmp_lits);
 
-      const TpgNode* imm_dom = node->imm_dom();
+      auto imm_dom = node->imm_dom();
       if ( imm_dom != nullptr ) {
 	auto odlit = mDvarMap(imm_dom);
 	mSolver.add_clause(~dlit, odlit);
@@ -487,7 +488,7 @@ DtpgEngine::gen_pattern(
   // ffr_cond の内容を assumptions に追加する．
   add_to_literal_list(ffr_cond, assumptions);
 
-  SatBool3 sat_res = check(assumptions);
+  auto sat_res = check(assumptions);
   if ( sat_res == SatBool3::True ) {
     auto testvect = backtrace(fault->tpg_onode()->ffr_root(), ffr_cond);
     return DtpgResult{testvect};
@@ -559,16 +560,14 @@ DtpgEngine::check(
   Timer timer;
   timer.start();
 
-  SatStats prev_stats;
-  mSolver.get_stats(prev_stats);
+  auto prev_stats = mSolver.get_stats();
 
-  SatBool3 ans = mSolver.solve(assumptions);
+  auto ans = mSolver.solve(assumptions);
 
   timer.stop();
   auto time = timer.get_time();
 
-  SatStats sat_stats;
-  mSolver.get_stats(sat_stats);
+  auto sat_stats = mSolver.get_stats();
   //sat_stats -= prev_stats;
 
   if ( ans == SatBool3::True ) {
@@ -648,10 +647,10 @@ DtpgEngine::get_mandatory_condition(
   NodeValList mand_cond;
   auto assumptions = conv_to_literal_list(ffr_cond);
   for ( auto nv: suf_cond ) {
-    SatLiteral lit = conv_to_literal(nv);
-    vector<SatLiteral> assumptions1{assumptions};
+    auto lit = conv_to_literal(nv);
+    auto assumptions1 = assumptions;
     assumptions1.push_back(~lit);
-    SatBool3 tmp_res = check(assumptions1);
+    auto tmp_res = check(assumptions1);
     if ( tmp_res == SatBool3::False ) {
       mand_cond.add(nv);
       assumptions.push_back(lit);
@@ -673,13 +672,13 @@ DtpgEngine::add_negation(
   if ( expr.is_posi_literal() ) {
     int id = expr.varid().val();
     auto node = mNetwork.node(id);
-    SatLiteral lit(gvar(node));
+    auto lit = gvar(node);
     solver().add_clause(~clit, ~lit);
   }
   else if ( expr.is_nega_literal() ) {
     int id = expr.varid().val();
     auto node = mNetwork.node(id);
-    SatLiteral lit(gvar(node));
+    auto lit = gvar(node);
     solver().add_clause(~clit,  lit);
   }
   else if ( expr.is_and() ) {
@@ -689,14 +688,14 @@ DtpgEngine::add_negation(
     tmp_lits.reserve(n + 1);
     tmp_lits.push_back(~clit);
     for ( auto expr1: expr.operand_list() ) {
-      SatLiteral lit1 = _add_negation_sub(expr1);
+      auto lit1 = _add_negation_sub(expr1);
       tmp_lits.push_back(~lit1);
     }
     solver().add_clause(tmp_lits);
   }
   else if ( expr.is_or() ) {
     for ( auto expr1: expr.operand_list() ) {
-      SatLiteral lit1 = _add_negation_sub(expr1);
+      auto lit1 = _add_negation_sub(expr1);
       solver().add_clause(~clit, ~lit1);
     }
   }

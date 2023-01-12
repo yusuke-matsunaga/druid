@@ -6,7 +6,6 @@
 /// Copyright (C) 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "Dtpg2.h"
 
 #include "Dtpg2Impl.h"
@@ -28,18 +27,15 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-// @param[in] sat_type SATソルバの種類を表す文字列
-// @param[in] sat_option SATソルバに渡すオプション文字列
-// @param[in] sat_outp SATソルバ用の出力ストリーム
-// @param[in] bt バックトレーサー
-Dtpg2::Dtpg2(const string& sat_type,
-	     const string& sat_option,
-	     ostream* sat_outp,
-	     BackTracer& bt) :
-  mSatType(sat_type),
-  mSatOption(sat_option),
-  mSatOutP(sat_outp),
-  mBackTracer(bt)
+Dtpg2::Dtpg2(
+  const string& sat_type,
+  const string& sat_option,
+  ostream* sat_outp,
+  BackTracer& bt
+) : mSatType{sat_type},
+    mSatOption{sat_option},
+    mSatOutP{sat_outp},
+    mBackTracer{bt}
 {
 }
 
@@ -49,23 +45,18 @@ Dtpg2::~Dtpg2()
 }
 
 // @brief テスト生成を行う．
-// @param[in] tvmgr テストベクタのマネージャ
-// @param[in] fmgr 故障マネージャ
-// @param[in] fsim 故障シミュレーター
-// @param[in] network 対象のネットワーク
-// @param[in] dop 故障検出時に実行されるファンクター
-// @param[in] uop 故障が冗長故障の時に実行されるファンクター
-// @param[inout] stats DTPGの統計情報
 void
-Dtpg2::run(TvMgr& tvmgr,
-	   TpgFaultMgr& fmgr,
-	   Fsim& fsim,
-	   const TpgNetwork& network,
-	   bool use_xorsampling,
-	   double wsa_ratio,
-	   int scount_limit,
-	   vector<const TestVector*>& tv_list,
-	   DtpgStats& stats)
+Dtpg2::run(
+  TvMgr& tvmgr,
+  TpgFaultMgr& fmgr,
+  Fsim& fsim,
+  const TpgNetwork& network,
+  bool use_xorsampling,
+  double wsa_ratio,
+  int scount_limit,
+  vector<const TestVector*>& tv_list,
+  DtpgStats& stats
+)
 {
   cout << "scount_limit = " << scount_limit << endl;
   int wsa_limit = 0;
@@ -75,8 +66,8 @@ Dtpg2::run(TvMgr& tvmgr,
     int warmup = 100;
     bool weighted = false;
 
-    InputVector* i_vect = tvmgr.new_input_vector();
-    DffVector* f_vect = tvmgr.new_dff_vector();
+    auto i_vect = tvmgr.new_input_vector();
+    auto f_vect = tvmgr.new_dff_vector();
     double total_wsa = 0.0;
     RandGen rg;
 
@@ -122,11 +113,11 @@ Dtpg2::run(TvMgr& tvmgr,
   TestVector* tv = tvmgr.new_vector();
   int nf = network.rep_fault_num();
   for (int i = 0; i < nf; ++ i) {
-    const TpgFault* fault = network.rep_fault(i);
+    auto fault = network.rep_fault(i);
     if ( fmgr.status(fault) == kFsUndetected ) {
-      SatBool3 stat = dtpg(tvmgr, fsim, network, fault, use_xorsampling,
-			   wsa_limit, scount_limit,
-			   initial_tv_list, stats);
+      auto stat = dtpg(tvmgr, fsim, network, fault, use_xorsampling,
+		       wsa_limit, scount_limit,
+		       initial_tv_list, stats);
       if ( stat == kB3True ) {
 	++ mPatNum;
 	fmgr.set_status(fault, kFsDetected);
@@ -162,11 +153,11 @@ Dtpg2::run(TvMgr& tvmgr,
 
     Fsim* fsim = Fsim::new_Fsim2(network, FaultType::TransitionDelay);
     for (int i = 0; i < np; ++ i) {
-      const TestVector* tv = initial_tv_list[i];
+      auto tv = initial_tv_list[i];
       fsim->clear_skip_all();
       int nd = fsim->sppfp(tv);
       for (int j = 0; j < nd; ++ j) {
-	const TpgFault* f = fsim->det_fault(j);
+	auto f = fsim->det_fault(j);
 	int k;
 	bool stat = fault_map.find(f->id(), k);
 	ASSERT_COND( stat );
@@ -189,27 +180,21 @@ Dtpg2::run(TvMgr& tvmgr,
 }
 
 // @brief テスト生成を行なう．
-// @param[in] network 対象のネットワーク
-// @param[in] tvmgr テストベクタのマネージャ
-// @param[in] fault 対象の故障
-// @param[out] nodeval_list テストパタンの値割り当てを格納するリスト
-// @param[inout] stats DTPGの統計情報
-// @return 結果を返す．
-//
-// 直前にどちらのモードでCNFを作っていたかで動作は異なる．<br>
-// どちらの関数も呼んでいなければなにもしないで kB3X を返す．
 SatBool3
-Dtpg2::dtpg(TvMgr& tvmgr,
-	    Fsim& fsim,
-	    const TpgNetwork& network,
-	    const TpgFault* fault,
-	    bool use_xorsampling,
-	    int wsa_limit,
-	    int scount_limit,
-	    vector<TestVector*>& tv_list,
-	    DtpgStats& stats)
+Dtpg2::dtpg(
+  TvMgr& tvmgr,
+  Fsim& fsim,
+  const TpgNetwork& network,
+  const TpgFault* fault,
+  bool use_xorsampling,
+  int wsa_limit,
+  int scount_limit,
+  vector<TestVector*>& tv_list,
+  DtpgStats& stats
+)
 {
-  Dtpg2Impl impl(mSatType, mSatOption, mSatOutP, mBackTracer, network, fault->ffr()->root());
+  Dtpg2Impl impl{mSatType, mSatOption, mSatOutP, mBackTracer,
+		 network, fault->ffr()->root()};
   impl.gen_cnf(stats);
 
   // 今の故障に関係のある PPI の数を数える．
@@ -237,7 +222,7 @@ Dtpg2::dtpg(TvMgr& tvmgr,
     return ans;
   }
 
-  TestVector* tv = tvmgr.new_vector();
+  auto tv = tvmgr.new_vector();
   int wsa = optimize(tvmgr, fsim, wsa_limit, nodeval_list, tv);
   if ( wsa <= wsa_limit ) {
     tv_list.push_back(tv);
@@ -258,11 +243,12 @@ Dtpg2::dtpg(TvMgr& tvmgr,
 
   {
     bool exit = false;
-    TestVector* tv_min = tvmgr.new_vector();
+    auto tv_min = tvmgr.new_vector();
     int wsa_min = UINT_MAX;
     for ( ; count < count_limit; ++ count) {
       ++ mTotalCount;
-      Dtpg2Impl impl2(mSatType, mSatOption, mSatOutP, mBackTracer, network, fault->ffr()->root());
+      Dtpg2Impl impl2{mSatType, mSatOption, mSatOutP, mBackTracer,
+		      network, fault->ffr()->root()};
       impl2.gen_cnf(stats);
       impl2.make_xor_list();
       impl2.add_xor_constraint(xor_num, mRandGen);
@@ -271,7 +257,7 @@ Dtpg2::dtpg(TvMgr& tvmgr,
       for (int p = 0U; p < xn_exp; ++ p) {
 	++ mTotalSampling;
 	NodeValList nodeval_list1;
-	SatBool3 ans = impl2.dtpg_with_xor(fault, p, nodeval_list1, stats);
+	auto ans = impl2.dtpg_with_xor(fault, p, nodeval_list1, stats);
 	if ( ans != kB3True ) {
 	  continue;
 	}
@@ -325,11 +311,13 @@ Dtpg2::dtpg(TvMgr& tvmgr,
 }
 
 int
-Dtpg2::optimize(TvMgr& tvmgr,
-		Fsim& fsim,
-		int wsa_limit,
-		const NodeValList& nodeval_list,
-		TestVector* tv)
+Dtpg2::optimize(
+  TvMgr& tvmgr,
+  Fsim& fsim,
+  int wsa_limit,
+  const NodeValList& nodeval_list,
+  TestVector* tv
+)
 {
   int ni = tvmgr.input_num();
   int nd = tvmgr.dff_num();
@@ -342,7 +330,7 @@ Dtpg2::optimize(TvMgr& tvmgr,
     vector<bool> i1_map(ni, true);
     vector<bool> d0_map(nd, true);
     for (int i = 0; i < n; ++ i) {
-      NodeVal nv = nodeval_list[i];
+      auto nv = nodeval_list[i];
       const TpgNode* node = nv.node();
       if ( node->is_primary_input() ) {
 	int id = node->input_id();

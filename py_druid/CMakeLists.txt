@@ -31,6 +31,8 @@ set ( py_druid_SOURCES
   PyTpgFault.cc
   PyTpgNetwork.cc
   PyFsim.cc
+  PyDtpgFFR.cc
+  PyDtpgMFFC.cc
   )
 
 

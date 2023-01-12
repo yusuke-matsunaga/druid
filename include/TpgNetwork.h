@@ -10,7 +10,7 @@
 
 #include "druid.h"
 #include "ym/bnet.h"
-#include "ym/clib.h"
+#include "ym/ClibCellLibrary.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -45,7 +45,9 @@ public:
   // コンストラクタ/デストラクタ
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief コンストラクタ
+  /// @brief 空のコンストラクタ
+  ///
+  /// 不正な値となる．
   TpgNetwork();
 
   /// @brief コピーコンストラクタは禁止
@@ -68,6 +70,44 @@ public:
   TpgNetwork&
   operator=(
     TpgNetwork&& src ///< [in] ムーブ元
+  );
+
+  /// @brief blif ファイルを読み込む．
+  ///
+  /// エラーが起こったら std::invalid_argument 例外を送出する．
+  static
+  TpgNetwork
+  read_blif(
+    const string& filename ///< [in] ファイル名
+  );
+
+  /// @brief blif ファイルを読み込む．
+  ///
+  /// エラーが起こったら std::invalid_argument 例外を送出する．
+  static
+  TpgNetwork
+  read_blif(
+    const string& filename,             ///< [in] ファイル名
+    const ClibCellLibrary& cell_library ///< [in] セルライブラリ
+  );
+
+  /// @brief iscas89 形式のファイルを読み込む．
+  ///
+  /// エラーが起こったら std::invalid_argument 例外を送出する．
+  static
+  TpgNetwork
+  read_iscas89(
+    const string& filename ///< [in] ファイル名
+  );
+
+  /// @brief ファイルを読み込む
+  static
+  TpgNetwork
+  read_network(
+    const string& filename,             ///< [in] ファイル名
+    const string& format,               ///< [in] ファイルの形式を表す文字列
+    const ClibCellLibrary& cell_library ///< [in] セルライブラリ
+    = ClibCellLibrary{}
   );
 
   /// @brief デストラクタ
@@ -274,37 +314,14 @@ public:
   ) const;
 
 
-public:
+private:
   //////////////////////////////////////////////////////////////////////
-  // 内容を設定するための関数
+  // 内部でのみ用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief BnNetwork から内容を設定する．
-  void
-  set(
+  /// @brief BnNetwork からの変換コンストラクタ
+  TpgNetwork(
     const BnNetwork& network ///< [in] 設定元のネットワーク
-  );
-
-  /// @brief blif ファイルを読み込む．
-  /// @return 読み込みが成功したら true を返す．
-  bool
-  read_blif(
-    const string& filename ///< [in] ファイル名
-  );
-
-  /// @brief blif ファイルを読み込む．
-  /// @return 読み込みが成功したら true を返す．
-  bool
-  read_blif(
-    const string& filename,             ///< [in] ファイル名
-    const ClibCellLibrary& cell_library ///< [in] セルライブラリ
-  );
-
-  /// @brief iscas89 形式のファイルを読み込む．
-  /// @return 読み込みが成功したら true を返す．
-  bool
-  read_iscas89(
-    const string& filename ///< [in] ファイル名
   );
 
 

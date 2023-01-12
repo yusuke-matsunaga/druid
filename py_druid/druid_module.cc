@@ -18,6 +18,8 @@
 #include "PyInputVector.h"
 #include "PyDffVector.h"
 #include "PyFsim.h"
+#include "PyDtpgFFR.h"
+#include "PyDtpgMFFC.h"
 #include "PyFaultStatus.h"
 
 
@@ -96,6 +98,12 @@ PyInit_druid()
     goto error;
   }
   if ( !PyFsim::init(m) ) {
+    goto error;
+  }
+  if ( !PyDtpgFFR::init(m) ) {
+    goto error;
+  }
+  if ( !PyDtpgMFFC::init(m) ) {
     goto error;
   }
 

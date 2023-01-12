@@ -14,20 +14,24 @@
 BEGIN_NAMESPACE_DRUID
 
 void
-loop_test(ymuint loop_count,
-	  const string& filename)
+loop_test(
+  ymuint loop_count,
+  const string& filename
+)
 {
   for (ymuint i1 = 0; i1 < loop_count; ++ i1) {
-    TpgNetwork network;
     for (ymuint i2 = 0; i2 < loop_count; ++ i2) {
       cout << "            "
 	   << "\r" << i1 << ": " << i2 << "\r";
       cout.flush();
-      if ( !network.read_iscas89(filename) ) {
+      try {
+	auto network = TpgNetwork::read_iscas89(filename);
+	FaultStatusMgr fmgr(network);
+      }
+      catch ( std::invalid_argument ) {
 	cerr << "Error in reading " << filename << endl;
 	break;
       }
-      FaultStatusMgr fmgr(network);
     }
   }
   cout << endl;

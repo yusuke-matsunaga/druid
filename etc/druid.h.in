@@ -87,7 +87,6 @@ class UntestOp;
 class Justifier;
 
 class VidMap;
-class ValMap;
 
 class Fsim;
 

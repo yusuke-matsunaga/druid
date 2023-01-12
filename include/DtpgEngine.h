@@ -33,6 +33,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgEngine DtpgEngine.h "DtpgEngine.h"
 /// @brief DTPG の基本的な処理を行うクラス
+///
+/// 基本的には get_pattern(fault) で対象のテストパタンを求める．
 //////////////////////////////////////////////////////////////////////
 class DtpgEngine
 {
@@ -49,7 +51,7 @@ public:
   );
 
   /// @brief デストラクタ
-  ~DtpgEngine();
+  ~DtpgEngine() = default;
 
 
 public:
@@ -58,6 +60,9 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief CNF の生成を行う．
+  ///
+  /// root からいずれかの外部出力へ故障の影響が伝搬する
+  /// 条件を表す CNF を作る．
   void
   make_cnf();
 
@@ -409,7 +414,7 @@ private:
   /// デフォルトではなにもしない．
   virtual
   void
-  make_cnf_sub();
+  opt_make_cnf();
 
   /// @brief gen_pattern() で用いる検出条件を作る．
   ///

@@ -55,7 +55,7 @@ DtpgMFFC::~DtpgMFFC()
 
 // @brief make_cnf() の追加処理
 void
-DtpgMFFC::make_cnf_sub()
+DtpgMFFC::opt_make_cnf()
 {
   SizeType ffr_id = 0;
   for ( auto ffr: mMFFC.ffr_list() ) {

@@ -21,11 +21,13 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 void
-ffr_decomp(const TpgNetwork& network,
-	   const TpgNode* root,
-	   int limit,
-	   SatSolverType solver_type,
-	   int& comp_bits)
+ffr_decomp(
+  const TpgNetwork& network,
+  const TpgNode* root,
+  int limit,
+  SatSolverType solver_type,
+  int& comp_bits
+)
 {
   vector<const TpgNode*> node_stack;
   vector<const TpgNode*> node_list;
@@ -101,15 +103,16 @@ usage()
 }
 
 int
-mf_comp(int argc,
-	char** argv)
+mf_comp(
+  int argc,
+  char** argv
+)
 {
   string sat_type;
   string sat_option;
   ostream* sat_outp = nullptr;
 
-  bool blif = false;
-  bool iscas89 = false;
+  string format = "blif";
 
   bool dump = false;
 
@@ -121,18 +124,10 @@ mf_comp(int argc,
   for ( ; pos < argc; ++ pos) {
     if ( argv[pos][0] == '-' ) {
       if ( strcmp(argv[pos], "--blif") == 0 ) {
-	if ( iscas89 ) {
-	  cerr << "--blif and --iscas89 are mutually exclusive" << endl;
-	  return -1;
-	}
-	blif = true;
+	format = "blif";
       }
       else if ( strcmp(argv[pos], "--iscas89") == 0 ) {
-	if ( blif ) {
-	  cerr << "--blif and --iscas89 are mutually exclusive" << endl;
-	  return -1;
-	}
-	iscas89 = true;
+	format = "iscas89";
       }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
@@ -156,30 +151,10 @@ mf_comp(int argc,
     return -1;
   }
 
-  if ( !blif && !iscas89 ) {
-    // とりあえず blif をデフォルトにする．
-    blif = true;
-  }
-
   int limit = atoi(argv[pos]);
 
   string filename = argv[pos + 1];
-  TpgNetwork network;
-  if ( blif ) {
-    if ( !network.read_blif(filename) ) {
-      cerr << "Error in reading " << filename << endl;
-      return -1;
-    }
-  }
-  else if ( iscas89 ) {
-    if ( !network.read_iscas89(filename) ) {
-      cerr << "Error in reading " << filename << endl;
-      return -1;
-    }
-  }
-  else {
-    ASSERT_NOT_REACHED;
-  }
+  auto network = TpgNetwork::read_network(filename, format);
 
   if ( dump ) {
     print_network(cout, network);
