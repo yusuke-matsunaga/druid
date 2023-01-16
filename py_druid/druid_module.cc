@@ -22,15 +22,10 @@
 #include "PyDtpgMFFC.h"
 #include "PyFaultStatus.h"
 #include "ym/PyModule.h"
+#include "ym/py_ymbase.h"
+#include "ym/py_ymcell.h"
+#include "ym/py_ymsat.h"
 
-
-BEGIN_NAMESPACE_YM
-
-PyMODINIT_FUNC PyInit_ymbase();
-PyMODINIT_FUNC PyInit_ymcell();
-PyMODINIT_FUNC PyInit_ymsat();
-
-END_NAMESPACE_YM
 
 BEGIN_NAMESPACE_DRUID
 
