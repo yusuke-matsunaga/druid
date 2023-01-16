@@ -21,12 +21,14 @@
 #include "PyDtpgFFR.h"
 #include "PyDtpgMFFC.h"
 #include "PyFaultStatus.h"
+#include "ym/PyModule.h"
 
 
 BEGIN_NAMESPACE_YM
 
 PyMODINIT_FUNC PyInit_ymbase();
 PyMODINIT_FUNC PyInit_ymcell();
+PyMODINIT_FUNC PyInit_ymsat();
 
 END_NAMESPACE_YM
 
@@ -58,19 +60,14 @@ PyInit_druid()
     return nullptr;
   }
 
-  {
-    auto ymbase = PyInit_ymbase();
-    if ( !ymbase ) {
-      goto error;
-    }
-    PyModule_AddObject(m, "ymbase", ymbase);
+  if ( !PyModule::reg_submodule(m, "ymbase", PyInit_ymbase()) ) {
+    goto error;
   }
-  {
-    auto ymcell = PyInit_ymcell();
-    if ( !ymcell ) {
-      goto error;
-    }
-    PyModule_AddObject(m, "ymcell", ymcell);
+  if ( !PyModule::reg_submodule(m, "ymcell", PyInit_ymcell()) ) {
+    goto error;
+  }
+  if ( !PyModule::reg_submodule(m, "ymsat", PyInit_ymcell()) ) {
+    goto error;
   }
 
   if ( !PyVal3::init(m) ) {

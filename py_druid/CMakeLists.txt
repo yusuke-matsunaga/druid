@@ -44,6 +44,7 @@ add_executable ( py_druid
   ${py_druid_SOURCES}
   $<TARGET_OBJECTS:py_ymbase_obj>
   $<TARGET_OBJECTS:py_ymcell_obj>
+  $<TARGET_OBJECTS:py_ymsat_obj>
   $<TARGET_OBJECTS:druid_common_obj>
   $<TARGET_OBJECTS:druid_fsimsa2_obj>
   $<TARGET_OBJECTS:druid_fsimsa3_obj>
@@ -66,6 +67,7 @@ add_executable ( py_druid_d
   ${py_druid_SOURCES}
   $<TARGET_OBJECTS:py_ymbase_obj_d>
   $<TARGET_OBJECTS:py_ymcell_obj_d>
+  $<TARGET_OBJECTS:py_ymsat_obj_d>
   $<TARGET_OBJECTS:druid_common_obj_d>
   $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
   $<TARGET_OBJECTS:druid_fsimsa3_obj_d>

@@ -25,7 +25,7 @@ main(
 )
 {
   // "druid" モジュールを予め組み込んでおく．
-  PyImport_AppendInittab("druid", &DRUID_NAMESPACE::PyInit_druid);
+  PyImport_AppendInittab("druid", DRUID_NAMESPACE::PyInit_druid);
 
   return Py_BytesMain(argc, argv);
 }
