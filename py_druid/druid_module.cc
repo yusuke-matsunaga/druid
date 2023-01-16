@@ -10,17 +10,6 @@
 #include <Python.h>
 
 #include "druid.h"
-#include "PyVal3.h"
-#include "PyFaultType.h"
-#include "PyTpgFault.h"
-#include "PyTpgNetwork.h"
-#include "PyTestVector.h"
-#include "PyInputVector.h"
-#include "PyDffVector.h"
-#include "PyFsim.h"
-#include "PyDtpgFFR.h"
-#include "PyDtpgMFFC.h"
-#include "PyFaultStatus.h"
 #include "ym/PyModule.h"
 #include "ym/py_ymbase.h"
 #include "ym/py_ymcell.h"
@@ -28,6 +17,10 @@
 
 
 BEGIN_NAMESPACE_DRUID
+
+extern bool types_init(PyObject*);
+extern bool fsim_init(PyObject*);
+extern bool dtpg_init(PyObject*);
 
 BEGIN_NONAMESPACE
 
@@ -65,37 +58,13 @@ PyInit_druid()
     goto error;
   }
 
-  if ( !PyVal3::init(m) ) {
+  if ( !types_init(m) ) {
     goto error;
   }
-  if ( !PyFaultType::init(m) ) {
+  if ( !dtpg_init(m) ) {
     goto error;
   }
-  if ( !PyFaultStatus::init(m) ) {
-    goto error;
-  }
-  if ( !PyTpgFault::init(m) ) {
-    goto error;
-  }
-  if ( !PyTpgNetwork::init(m) ) {
-    goto error;
-  }
-  if ( !PyTestVector::init(m) ) {
-    goto error;
-  }
-  if ( !PyInputVector::init(m) ) {
-    goto error;
-  }
-  if ( !PyDffVector::init(m) ) {
-    goto error;
-  }
-  if ( !PyFsim::init(m) ) {
-    goto error;
-  }
-  if ( !PyDtpgFFR::init(m) ) {
-    goto error;
-  }
-  if ( !PyDtpgMFFC::init(m) ) {
+  if ( !fsim_init(m) ) {
     goto error;
   }
 

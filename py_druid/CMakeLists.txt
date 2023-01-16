@@ -22,17 +22,20 @@ include_directories (
 set ( py_druid_SOURCES
   py_druid.cc
   druid_module.cc
-  PyVal3.cc
-  PyFaultType.cc
-  PyFaultStatus.cc
-  PyTestVector.cc
-  PyInputVector.cc
-  PyDffVector.cc
-  PyTpgFault.cc
-  PyTpgNetwork.cc
-  PyFsim.cc
-  PyDtpgFFR.cc
-  PyDtpgMFFC.cc
+  types/types_module.cc
+  types/PyVal3.cc
+  types/PyFaultType.cc
+  types/PyFaultStatus.cc
+  types/PyTestVector.cc
+  types/PyInputVector.cc
+  types/PyDffVector.cc
+  types/PyTpgFault.cc
+  types/PyTpgNetwork.cc
+  fsim/fsim_module.cc
+  fsim/PyFsim.cc
+  dtpg/dtpg_module.cc
+  dtpg/PyDtpgFFR.cc
+  dtpg/PyDtpgMFFC.cc
   )
 
 
