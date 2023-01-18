@@ -269,8 +269,8 @@ TpgNetworkImpl::make_logic_node(
     // pos * 2 + 1: 否定のリテラルに対応する．
     vector<const TpgNode*> leaf_nodes(ni * 2, nullptr);
     for ( auto i: Range(ni) ) {
-      SizeType p_num = expr.literal_num(VarId(i), false);
-      SizeType n_num = expr.literal_num(VarId(i), true);
+      SizeType p_num = expr.literal_num(i, false);
+      SizeType n_num = expr.literal_num(i, true);
       auto inode = fanin_list[i];
       if ( n_num == 0 ) {
 	if ( p_num == 1 ) {
@@ -383,11 +383,11 @@ TpgNetworkImpl::make_cplx_node(
   for ( auto expr1: expr.operand_list() ) {
     const TpgNode* inode;
     if ( expr1.is_posi_literal() ) {
-      SizeType iid = expr1.varid().val();
+      SizeType iid = expr1.varid();
       inode = leaf_nodes[iid * 2 + 0];
     }
     else if ( expr1.is_nega_literal() ) {
-      SizeType iid = expr1.varid().val();
+      SizeType iid = expr1.varid();
       inode = leaf_nodes[iid * 2 + 1];
     }
     else {
@@ -408,7 +408,7 @@ TpgNetworkImpl::make_cplx_node(
   for ( auto expr1: expr.operand_list() ) {
     // 美しくないけどスマートなやり方を思いつかない．
     if ( expr1.is_posi_literal() ) {
-      SizeType iid = expr1.varid().val();
+      SizeType iid = expr1.varid();
       if ( inode_array[iid].mNode == nullptr ) {
 	inode_array[iid].set(node, ipos);
       }

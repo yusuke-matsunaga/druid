@@ -9,7 +9,6 @@
 /// All rights reserved.
 
 #include "druid.h"
-//#include "DtpgEngine.h"
 #include "ym/Expr.h"
 
 
@@ -106,7 +105,7 @@ private:
   Expr
   _restrict_sub(
     const Expr& expr,                         ///< [in] 論理式
-    const unordered_map<VarId, bool>& val_map ///< [in] 割り当てマップ
+    const unordered_map<SizeType, bool>& val_map ///< [in] 割り当てマップ
   );
 
 

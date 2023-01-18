@@ -670,13 +670,13 @@ DtpgEngine::add_negation(
 )
 {
   if ( expr.is_posi_literal() ) {
-    int id = expr.varid().val();
+    int id = expr.varid();
     auto node = mNetwork.node(id);
     auto lit = gvar(node);
     solver().add_clause(~clit, ~lit);
   }
   else if ( expr.is_nega_literal() ) {
-    int id = expr.varid().val();
+    int id = expr.varid();
     auto node = mNetwork.node(id);
     auto lit = gvar(node);
     solver().add_clause(~clit,  lit);
@@ -711,13 +711,13 @@ DtpgEngine::_add_negation_sub(
 )
 {
   if ( expr.is_posi_literal() ) {
-    int id = expr.varid().val();
+    int id = expr.varid();
     auto node = mNetwork.node(id);
     auto lit = gvar(node);
     return lit;
   }
   else if ( expr.is_nega_literal() ) {
-    int id = expr.varid().val();
+    int id = expr.varid();
     auto node = mNetwork.node(id);
     auto lit = gvar(node);
     return ~lit;

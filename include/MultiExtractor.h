@@ -100,7 +100,7 @@ private:
   {
     ASSERT_COND( mFconeMark.count(node->id()) == 0 );
 
-    VarId var(node->id());
+    auto var = node->id();
     bool inv = (gval(node) == Val3::_0); // 0 の時に inv = true
 
     return Expr::make_literal(var, inv);

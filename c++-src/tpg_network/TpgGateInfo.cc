@@ -45,8 +45,8 @@ extra_node_count(
   // まず入力部分に挿入されるノード数を数える．
   SizeType n = 0;
   for ( SizeType i: Range(ni) ) {
-    SizeType p_num = expr.literal_num(VarId(i), false);
-    SizeType n_num = expr.literal_num(VarId(i), true);
+    SizeType p_num = expr.literal_num(i, false);
+    SizeType n_num = expr.literal_num(i, true);
     ASSERT_COND( p_num > 0 || n_num > 0 );
     if ( n_num == 0 ) {
       if ( p_num > 1 ) {
@@ -84,11 +84,11 @@ ccv_sub(
     return Val3::_1;
   }
   if ( expr.is_posi_literal() ) {
-    int iid = expr.varid().val();
+    int iid = expr.varid();
     return ivals[iid];
   }
   if ( expr.is_nega_literal() ) {
-    SizeType iid = expr.varid().val();
+    SizeType iid = expr.varid();
     return ~ivals[iid];
   }
 

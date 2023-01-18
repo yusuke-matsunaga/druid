@@ -761,12 +761,12 @@ Analyzer::common_cube(
 
   NodeValList cube;
   if ( expr.is_posi_literal() ) {
-    int id = expr.varid().val();
+    int id = expr.varid();
     auto node = mNetwork.node(id);
     cube.add(node, 1, true);
   }
   else if ( expr.is_nega_literal() ) {
-    int id = expr.varid().val();
+    int id = expr.varid();
     auto node = mNetwork.node(id);
     cube.add(node, 1, false);
   }
@@ -795,11 +795,11 @@ Analyzer::restrict(
   const NodeValList& mand_cond
 )
 {
-  unordered_map<VarId, bool> val_map;
+  unordered_map<SizeType, bool> val_map;
   for ( auto nv: mand_cond ) {
     auto node = nv.node();
     bool val = nv.val();
-    val_map.emplace(VarId(node->id()), val);
+    val_map.emplace(node->id(), val);
   }
   return _restrict_sub(expr, val_map);
 }
@@ -808,13 +808,13 @@ Analyzer::restrict(
 Expr
 Analyzer::_restrict_sub(
   const Expr& expr,
-  const unordered_map<VarId, bool>& val_map
+  const unordered_map<SizeType, bool>& val_map
 )
 {
   ASSERT_COND( !expr.is_constant() );
 
   if ( expr.is_posi_literal() ) {
-    VarId var = expr.varid();
+    auto var = expr.varid();
     if ( val_map.count(var) > 0 ) {
       bool val = val_map.at(var);
       if ( val == false ) {
@@ -827,7 +827,7 @@ Analyzer::_restrict_sub(
     return expr;
   }
   else if ( expr.is_nega_literal() ) {
-    VarId var = expr.varid();
+    auto var = expr.varid();
     bool val;
     if ( val_map.count(var) > 0 ) {
       bool val = val_map.at(var);
