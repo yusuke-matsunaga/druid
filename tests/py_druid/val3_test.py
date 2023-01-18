@@ -9,7 +9,7 @@
 
 import pytest
 import itertools
-from druid import Val3
+from druid.types import Val3
 
 
 def test_constructor1():
