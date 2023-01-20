@@ -517,7 +517,7 @@ Analyzer::init(
 	    bool out_of_range = false;
 	    for ( auto nv: mand_cond ) {
 	      auto node = nv.node();
-	      if ( undet_checker.gvar(node) == kSatLiteralX ) {
+	      if ( undet_checker.gvar(node) == SatLiteral::X ) {
 		out_of_range = true;
 		break;
 	      }

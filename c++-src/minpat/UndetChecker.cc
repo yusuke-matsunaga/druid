@@ -308,7 +308,7 @@ UndetChecker::conv_to_literal(NodeVal node_val)
   if ( node_val.time() == 0 ) {
     if ( !has_hvar(node) ) {
 #if 0
-      return kSatLiteralX;
+      return SatLiteral::X;
 #else
       make_prev_cnf(node);
 #endif
@@ -318,7 +318,7 @@ UndetChecker::conv_to_literal(NodeVal node_val)
   else {
     if ( !has_gvar(node) ) {
 #if 0
-      return kSatLiteralX;
+      return SatLiteral::X;
 #else
       make_good_cnf(node);
 #endif
@@ -343,7 +343,7 @@ UndetChecker::conv_to_assumptions(const NodeValList& assign_list,
   assumptions.reserve(n + n0);
   for ( auto nv: assign_list ) {
     auto lit = conv_to_literal(nv);
-    if ( lit != kSatLiteralX ) {
+    if ( lit != SatLiteral::X ) {
       assumptions.push_back(lit);
     }
 #if 0

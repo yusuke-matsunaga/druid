@@ -376,7 +376,7 @@ inline
 SatLiteral
 UndetChecker::hvar(const TpgNode* node)
 {
-  ASSERT_COND( mHvarMap(node) != kSatLiteralX );
+  ASSERT_COND( mHvarMap(node) != SatLiteral::X );
 
   return mHvarMap(node);
 }

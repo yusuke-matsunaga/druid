@@ -239,7 +239,7 @@ protected:
     const TpgNode* node  ///< [in] 対象のノード
   ) const
   {
-    ASSERT_COND( mHvarMap(node) != kSatLiteralX );
+    ASSERT_COND( mHvarMap(node) != SatLiteral::X );
 
     return mHvarMap(node);
   }

@@ -405,7 +405,7 @@ FaultReducer::ffr_reduction()
 	bool unsat = true;
 	vector<SatLiteral> assumptions1(assumptions);
 	// プレースホルダ
-	assumptions1.push_back(kSatLiteralX);
+	assumptions1.push_back(SatLiteral::X);
 	for ( auto nv: ffr_cond2 ) {
 	  SatLiteral lit1 = dtpg.conv_to_literal(nv);
 	  assumptions1[assumptions.size()] = ~lit1;

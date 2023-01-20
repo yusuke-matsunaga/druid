@@ -29,7 +29,7 @@ public:
   /// @brief コンストラクタ
   VidMap(
     SizeType max_id = 0 ///< [in] ノード番号の最大値
-  ) : mVidArray(max_id, kSatLiteralX)
+  ) : mVidArray(max_id, SatLiteral::X)
   {
   }
 

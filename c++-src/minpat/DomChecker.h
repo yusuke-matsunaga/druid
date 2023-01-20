@@ -156,7 +156,7 @@ protected:
     const TpgNode* node ///< [in] 対象のノード
   )
   {
-    ASSERT_COND( mHvarMap(node) != kSatLiteralX );
+    ASSERT_COND( mHvarMap(node) != SatLiteral::X );
 
     return mHvarMap(node);
   }
@@ -490,7 +490,7 @@ inline
 SatLiteral
 DomChecker::hvar(const TpgNode* node)
 {
-  ASSERT_COND( mHvarMap(node) != kSatLiteralX );
+  ASSERT_COND( mHvarMap(node) != SatLiteral::X );
 
   return mHvarMap(node);
 }
