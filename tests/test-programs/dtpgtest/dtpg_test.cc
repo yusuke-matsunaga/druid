@@ -96,6 +96,30 @@ dtpg_test(
 	}
 	mode = "mffc_new";
       }
+      else if ( strcmp(argv[pos], "--lingeling") == 0 ) {
+	sat_type = "lingeling";
+      }
+      else if ( strcmp(argv[pos], "--glueminisat2") == 0 ) {
+	sat_type = "glueminisat2";
+      }
+      else if ( strcmp(argv[pos], "--minisat2") == 0 ) {
+	sat_type = "minisat2";
+      }
+      else if ( strcmp(argv[pos], "--minisat") == 0 ) {
+	sat_type = "minisat";
+      }
+      else if ( strcmp(argv[pos], "--ymsat1") == 0 ) {
+	sat_type = "ymsat1";
+      }
+      else if ( strcmp(argv[pos], "--ymsat2") == 0 ) {
+	sat_type = "ymsat2";
+      }
+      else if ( strcmp(argv[pos], "--ymsat2old") == 0 ) {
+	sat_type = "ymsat2old";
+      }
+      else if ( strcmp(argv[pos], "--ymsat1_old") == 0 ) {
+	sat_type = "ymsat1_old";
+      }
       else if ( strcmp(argv[pos], "--blif") == 0 ) {
 	format = "blif";
       }

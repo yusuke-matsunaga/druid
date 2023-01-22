@@ -67,14 +67,18 @@ operator<<(
   return s;
 }
 
-TestData mydata[] = {
+TestData mydata1[] = {
+  TestData{"s5378.blif", 4603, 4563, 4253, 40, 350}
+};
+
+TestData mydata2[] = {
   TestData{"s27.blif",     32,   32,   32,  0,   0},
   TestData{"s1196.blif", 1242, 1242, 1241,  0,   1},
   TestData{"s5378.blif", 4603, 4563, 4253, 40, 350}
 };
 
 class DtpgTestWithParam :
-public ::testing::TestWithParam<std::tuple<TestData, string, FaultType, string>>
+  public ::testing::TestWithParam<std::tuple<TestData, string, string, FaultType, string>>
 {
 public:
 
@@ -115,6 +119,10 @@ private:
   int
   untest_fault_num();
 
+  /// @brief テストパラメータから SATタイプを取り出す．
+  string
+  sat_type();
+
   /// @brief テストパラメータからテストモードを取り出す．
   string
   test_mode();
@@ -133,18 +141,14 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  SatSolverType mSolverType;
+  TpgNetwork* mNetwork_p{nullptr};
 
-  TpgNetwork* mNetwork_p;
-
-  DtpgTest* mDtpgTest;
+  DtpgTest* mDtpgTest{nullptr};
 
 };
 
 
-DtpgTestWithParam::DtpgTestWithParam() :
-  mSolverType{"ymsat2"},
-  mDtpgTest{nullptr}
+DtpgTestWithParam::DtpgTestWithParam()
 {
 }
 
@@ -155,8 +159,11 @@ DtpgTestWithParam::SetUp()
   auto network = TpgNetwork::read_blif(filename());
   mNetwork_p = new TpgNetwork{std::move(network)};
 
-  string mode = test_mode();
-  mDtpgTest = DtpgTest::new_test(mode, *mNetwork_p, fault_type(), just_type(), mSolverType);
+  auto mode = test_mode();
+
+  auto solver_type = SatSolverType{sat_type()};
+
+  mDtpgTest = DtpgTest::new_test(mode, *mNetwork_p, fault_type(), just_type(), solver_type);
 }
 
 // @brief 終了処理を行う．
@@ -223,25 +230,32 @@ DtpgTestWithParam::untest_fault_num()
   }
 }
 
+// @brief テストパラメータから SATタイプを取り出す．
+string
+DtpgTestWithParam::sat_type()
+{
+  return std::get<1>(GetParam());
+}
+
 // @brief テストパラメータからテストモードを取り出す．
 string
 DtpgTestWithParam::test_mode()
 {
-  return std::get<1>(GetParam());
+  return std::get<2>(GetParam());
 }
 
 // @brief テストパラメータから FaultType を取り出す．
 FaultType
 DtpgTestWithParam::fault_type()
 {
-  return std::get<2>(GetParam());
+  return std::get<3>(GetParam());
 }
 
 // @brief テストパラメータから just_type を取り出す．
 string
 DtpgTestWithParam::just_type()
 {
-  return std::get<3>(GetParam());
+  return std::get<4>(GetParam());
 }
 
 TEST_P(DtpgTestWithParam, test1)
@@ -249,8 +263,19 @@ TEST_P(DtpgTestWithParam, test1)
   do_test();
 }
 
-INSTANTIATE_TEST_SUITE_P(DtpgTest, DtpgTestWithParam,
-			 ::testing::Combine(::testing::ValuesIn(mydata),
+INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam,
+			 ::testing::Combine(::testing::ValuesIn(mydata1),
+					    ::testing::Values("lingeling", "glueminisat2",
+							      "minisat2", "minisat",
+							      "ymsat1", "ymsat2",
+							      "ymsat2old", "ymsat1_old"),
+					    ::testing::Values("ffr"),
+					    ::testing::Values(FaultType::StuckAt),
+					    ::testing::Values("just1")));
+
+INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam,
+			 ::testing::Combine(::testing::ValuesIn(mydata2),
+					    ::testing::Values("ymsat2"),
 					    ::testing::Values("ffr",    "ffr_new",
 							      "mffc",   "mffc_new"),
 					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
