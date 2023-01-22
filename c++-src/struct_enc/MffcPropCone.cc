@@ -37,8 +37,8 @@ MffcPropCone::MffcPropCone(
     mElemArray(mffc.ffr_num()),
     mElemVarArray(mffc.ffr_num())
 {
-  for ( int i = 0; i < mffc.ffr_num(); ++ i ) {
-    const TpgFFR* ffr = mffc.ffr(i);
+  for ( SizeType i = 0; i < mffc.ffr_num(); ++ i ) {
+    auto ffr = mffc.ffr(i);
     mElemArray[i] = ffr->root();
     ASSERT_COND( ffr->root() != nullptr );
     mElemPosMap.emplace(ffr->root()->id(), i);
@@ -65,7 +65,7 @@ MffcPropCone::make_cnf()
 
   // 各FFRの根にXORゲートを挿入した故障回路を作る．
   // そのXORをコントロールする入力変数を作る．
-  for ( int i = 0; i < mElemArray.size(); ++ i ) {
+  for ( SizeType i = 0; i < mElemArray.size(); ++ i ) {
     mElemVarArray[i] = solver().new_variable();
 
     if ( debug_mffccone ) {
@@ -78,7 +78,7 @@ MffcPropCone::make_cnf()
   vector<const TpgNode*> node_list;
   unordered_map<int, int> ffr_map;
   for ( int i = 0; i < mElemArray.size(); ++ i ) {
-    const TpgNode* node = mElemArray[i];
+    auto node = mElemArray[i];
     ffr_map.emplace(node->id(), i);
     if ( node == root_node() ) {
       continue;
@@ -95,8 +95,8 @@ MffcPropCone::make_cnf()
       }
     }
   }
-  for ( int rpos = 0; rpos < node_list.size(); ++ rpos ) {
-    const TpgNode* node = node_list[rpos];
+  for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
+    auto node = node_list[rpos];
     if ( node == root_node() ) {
       continue;
     }
@@ -116,8 +116,8 @@ MffcPropCone::make_cnf()
 
   // 最も入力よりにある FFR の根のノードの場合
   // 正常回路と制御変数のXORをとったものを故障値とする．
-  for ( int i = 0; i < mElemArray.size(); ++ i ) {
-    const TpgNode* node = mElemArray[i];
+  for ( SizeType i = 0; i < mElemArray.size(); ++ i ) {
+    auto node = mElemArray[i];
     if ( fvar(node) != gvar(node) ) {
       // このノードは入力側ではない．
       continue;
@@ -131,8 +131,8 @@ MffcPropCone::make_cnf()
 
   // node_list に含まれるノードの入出力の関係を表すCNF式を作る．
   GateEnc gate_enc(solver(), fvar_map());
-  for ( int rpos = 0; rpos < node_list.size(); ++ rpos ) {
-    const TpgNode* node = node_list[rpos];
+  for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
+    auto node = node_list[rpos];
     auto ovar = fvar(node);
     int ffr_pos;
     if ( ffr_map.count(node->id()) > 0 ) {
@@ -169,7 +169,7 @@ MffcPropCone::inject_fault(
 {
   auto lit1 = ovar;
   auto lit2 = mElemVarArray[ffr_pos];
-  const TpgNode* node = mElemArray[ffr_pos];
+  auto node = mElemArray[ffr_pos];
   auto olit = fvar(node);
 
   solver().add_xorgate(lit1, lit2, olit);
@@ -199,10 +199,11 @@ MffcPropCone::make_condition(
     int ffr_id = mElemPosMap.at(root->id());
     vector<SatLiteral> assumptions;
     assumptions.reserve(ffr_num);
-    for ( int i = 0; i < ffr_num; ++ i ) {
+    for ( SizeType i = 0; i < ffr_num; ++ i ) {
       auto evar = mElemVarArray[i];
       bool inv = (i != ffr_id);
-      assumptions.push_back(SatLiteral{evar, inv});
+      auto lit = evar * inv;
+      assumptions.push_back(lit);
     }
     return assumptions;
   }

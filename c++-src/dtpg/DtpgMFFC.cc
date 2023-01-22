@@ -62,10 +62,8 @@ DtpgMFFC::opt_make_cnf()
     mRootArray[ffr_id] = ffr->root();
     mFfrIdMap.emplace(ffr->root()->id(), ffr_id);
 
-    auto cvar = solver().new_variable();
+    auto cvar = solver().new_variable(true);
     mEvarArray[ffr_id] = cvar;
-
-    solver().freeze_literal(cvar);
 
     if ( debug_mffc ) {
       DEBUG_OUT << "cvar(FFR#" << ffr_id << ") = " << cvar << endl;
@@ -185,7 +183,8 @@ DtpgMFFC::gen_assumptions(
       for ( auto i: Range(ffr_num) ) {
 	auto evar = mEvarArray[i];
 	bool inv = (i != ffr_id);
-	assumptions.push_back(SatLiteral(evar, inv));
+	auto lit = evar * inv;
+	assumptions.push_back(lit);
       }
     }
   }

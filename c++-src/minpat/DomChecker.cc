@@ -210,8 +210,7 @@ DomChecker::prepare_vars()
 
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
-    auto gvar = mSolver.new_variable();
-    mSolver.freeze_literal(gvar);
+    auto gvar = mSolver.new_variable(true);
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap[0].set_vid(node, gvar);
@@ -227,8 +226,7 @@ DomChecker::prepare_vars()
   for ( int pos: { 0, 1 } ) {
     // TFO の部分に変数を割り当てる．
     for ( auto node: mTfoList[pos] ) {
-      auto fvar = mSolver.new_variable();
-      mSolver.freeze_literal(fvar);
+      auto fvar = mSolver.new_variable(true);
 
       mFvarMap[pos].set_vid(node, fvar);
       if ( pos == 0 ) {
@@ -254,8 +252,7 @@ DomChecker::prepare_vars()
 
   // prev TFI の部分に変数を割り当てる．
   for ( auto node: mPrevTfiList ) {
-    auto hvar = mSolver.new_variable();
-    mSolver.freeze_literal(hvar);
+    auto hvar = mSolver.new_variable(true);
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {

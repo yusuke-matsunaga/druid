@@ -194,12 +194,9 @@ DtpgEngine::prepare_vars()
 
   // TFO の部分に変数を割り当てる．
   for ( auto node: mTfoList ) {
-    auto gvar = mSolver.new_variable();
-    auto fvar = mSolver.new_variable();
+    auto gvar = mSolver.new_variable(true);
+    auto fvar = mSolver.new_variable(true);
     auto dvar = mSolver.new_variable();
-
-    mSolver.freeze_literal(gvar);
-    mSolver.freeze_literal(fvar);
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap.set_vid(node, fvar);
@@ -214,9 +211,7 @@ DtpgEngine::prepare_vars()
 
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
-    auto gvar = mSolver.new_variable();
-
-    mSolver.freeze_literal(gvar);
+    auto gvar = mSolver.new_variable(true);
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap.set_vid(node, gvar);
@@ -229,9 +224,7 @@ DtpgEngine::prepare_vars()
 
   // TFI2 の部分に変数を割り当てる．
   for ( auto node: mTfi2List ) {
-    auto hvar = mSolver.new_variable();
-
-    mSolver.freeze_literal(hvar);
+    auto hvar = mSolver.new_variable(true);
 
     mHvarMap.set_vid(node, hvar);
 

@@ -117,19 +117,18 @@ MF_FaultComp::get_faults_list(const TpgNetwork& network,
 			      const vector<const TpgFault*>& f_list,
 			      SatSolverType solver_type)
 {
-  int nf = f_list.size();
 
-  SatSolver solver(solver_type);
+  SatSolver solver{solver_type};
 
-  vector<pair<const TpgFault*, SatLiteral>> fault_list(nf);
-  vector<SatLiteral> tmp_lits(nf);
-  for ( int i: Range(nf) ) {
-    auto fault = f_list[i];
-    auto var = solver.new_variable();
-    SatLiteral lit{var};
-    solver.freeze_literal(lit);
-    fault_list[i] = make_pair(fault, lit);
-    tmp_lits[i] = SatLiteral{var};
+  vector<pair<const TpgFault*, SatLiteral>> fault_list;
+  vector<SatLiteral> tmp_lits;
+  SizeType nf = f_list.size();
+  fault_list.reserve(nf);
+  tmp_lits.reserve(nf);
+  for ( auto fault: f_list ) {
+    auto var = solver.new_variable(true);
+    fault_list.push_back( make_pair(fault, var) );
+    tmp_lits.push_back(var);
   }
   // 最低1つは故障を含むという制約
   solver.add_clause(tmp_lits);

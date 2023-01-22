@@ -335,7 +335,7 @@ private:
     // すでに節が作られていた場合にはなにもしない．
     make_tfi_cnf(node, time);
     bool inv = !val;
-    return SatLiteral{var(node, time), inv};
+    return var(node, time) * inv;
   }
 
   /// @brief ノードに新しい変数を割り当てる．
@@ -347,8 +347,7 @@ private:
     int time		 ///< [in] 時刻(0 or 1)
   )
   {
-    auto var = mSolver.new_variable();
-    mSolver.freeze_literal(var);
+    auto var = mSolver.new_variable(true);
     _set_var(node, time, var);
   }
 

@@ -70,14 +70,13 @@ PropCone::mark_tfo(
 {
   set_tfo_mark(node);
 
-  for (int rpos = 0; rpos < mNodeList.size(); ++ rpos) {
-    const TpgNode* node = mNodeList[rpos];
+  for ( SizeType rpos = 0; rpos < mNodeList.size(); ++ rpos ) {
+    auto node = mNodeList[rpos];
     if ( end_mark(node) ) {
       // ここで止まる．
       continue;
     }
-    int nfo = node->fanout_num();
-    for (auto fonode: node->fanout_list() ) {
+    for ( auto fonode: node->fanout_list() ) {
       set_tfo_mark(fonode);
     }
   }
@@ -91,8 +90,8 @@ void
 PropCone::make_vars()
 {
   // TFO のノードに変数を割り当てる．
-  for (int i = 0; i < mNodeList.size(); ++ i) {
-    const TpgNode* node = mNodeList[i];
+  for ( SizeType i = 0; i < mNodeList.size(); ++ i ) {
+    auto node = mNodeList[i];
     auto fvar = solver().new_variable();
     set_fvar(node, fvar);
     if ( debug ) {
@@ -104,9 +103,9 @@ PropCone::make_vars()
     }
 #if 0
     // ファンインのノードうち TFO に含まれないノードの fvar を gvar にする．
-    int ni = node->fanin_num();
-    for (int i = 0; i < ni; ++ i) {
-      const TpgNode* inode = node->fanin(i);
+    SizeType ni = node->fanin_num();
+    for ( SizeType i = 0; i < ni; ++ i ) {
+      auto inode = node->fanin(i);
       if ( !tfo_mark(inode) ) {
 	set_fvar(inode, gvar(inode));
 	if ( debug ) {
@@ -121,7 +120,7 @@ PropCone::make_vars()
   // TFO の TFI のノードの fvar を gvar と同じにする．
   vector<const TpgNode*> tmp_list;
   vector<bool> tfi_mark(max_id(), false);
-  for (int i = 0; i < mNodeList.size(); ++ i) {
+  for ( SizeType i = 0; i < mNodeList.size(); ++ i ) {
     const TpgNode* node = mNodeList[i];
     for ( auto inode: node->fanin_list() ) {
       if ( !tfo_mark(inode) && !tfi_mark[inode->id()] ) {
@@ -130,8 +129,8 @@ PropCone::make_vars()
       }
     }
   }
-  for (int rpos = 0; rpos < tmp_list.size(); ++ rpos) {
-    const TpgNode* node = tmp_list[rpos];
+  for ( SizeType rpos = 0; rpos < tmp_list.size(); ++ rpos ) {
+    auto node = tmp_list[rpos];
     set_fvar(node, gvar(node));
     for ( auto inode: node->fanin_list() ) {
       if ( !tfi_mark[inode->id()] ) {
@@ -147,8 +146,8 @@ void
 PropCone::make_cnf()
 {
   GateEnc gate_enc(solver(), fvar_map());
-  for (int i = 0; i < mNodeList.size(); ++ i) {
-    const TpgNode* node = mNodeList[i];
+  for ( SizeType i = 0; i < mNodeList.size(); ++ i ) {
+    auto node = mNodeList[i];
     if ( i > 0 ) {
       // 故障回路のゲートの入出力関係を表すCNFを作る．
       gate_enc.make_cnf(node);
@@ -161,19 +160,19 @@ PropCone::make_cnf()
   }
 
   // 外部出力へ故障の影響が伝搬する条件を作る．
-  int no = mOutputList.size();
-  vector<SatLiteral> odiff(no);
-  for (int i = 0; i < no; ++ i) {
-    const TpgNode* node = mOutputList[i];
-    SatLiteral dlit(dvar(node));
-    odiff[i] = dlit;
+  vector<SatLiteral> odiff;
+  odiff.reserve(mOutputList.size());
+  for ( auto node: mOutputList ) {
+    auto dlit = dvar(node);
+    odiff.push_back(dlit);
   }
   solver().add_clause(odiff);
 
-  const TpgNode* root = mNodeList[0];
+  auto root = mNodeList[0];
   if ( !root->is_ppo() ) {
     // root の dlit が1でなければならない．
-    solver().add_clause(SatLiteral(dvar(root)));
+    auto dlit = dvar(root);
+    solver().add_clause(dlit);
   }
 }
 
@@ -215,15 +214,15 @@ PropCone::make_dchain_cnf(
     tmp_lits.reserve(nfo + 1);
     tmp_lits.push_back(~dlit);
     for ( auto onode: node->fanout_list() ) {
-      SatLiteral odlit(dvar(onode), false);
+      auto odlit = dvar(onode);
       tmp_lits.push_back(odlit);
     }
     solver().add_clause(tmp_lits);
 
     // immediate dominator がある場合，immediate dominator の dlit も 1 でなければならない．
-    const TpgNode* idom = node->imm_dom();
+    auto idom = node->imm_dom();
     if ( idom != nullptr ) {
-      SatLiteral odlit(dvar(idom));
+      auto odlit = dvar(idom);
       solver().add_clause(~dlit, odlit);
     }
   }
