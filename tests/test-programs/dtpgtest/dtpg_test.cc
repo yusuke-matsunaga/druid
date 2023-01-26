@@ -96,29 +96,25 @@ dtpg_test(
 	}
 	mode = "mffc_new";
       }
-      else if ( strcmp(argv[pos], "--lingeling") == 0 ) {
-	sat_type = "lingeling";
+      else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
+	++ pos;
+	if ( pos < argc ) {
+	  sat_type = argv[pos];
+	}
+	else {
+	  cerr << "--sat_type requires <string> argument" << endl;
+	  return -1;
+	}
       }
-      else if ( strcmp(argv[pos], "--glueminisat2") == 0 ) {
-	sat_type = "glueminisat2";
-      }
-      else if ( strcmp(argv[pos], "--minisat2") == 0 ) {
-	sat_type = "minisat2";
-      }
-      else if ( strcmp(argv[pos], "--minisat") == 0 ) {
-	sat_type = "minisat";
-      }
-      else if ( strcmp(argv[pos], "--ymsat1") == 0 ) {
-	sat_type = "ymsat1";
-      }
-      else if ( strcmp(argv[pos], "--ymsat2") == 0 ) {
-	sat_type = "ymsat2";
-      }
-      else if ( strcmp(argv[pos], "--ymsat2old") == 0 ) {
-	sat_type = "ymsat2old";
-      }
-      else if ( strcmp(argv[pos], "--ymsat1_old") == 0 ) {
-	sat_type = "ymsat1_old";
+      else if ( strcmp(argv[pos], "--sat_option") == 0 ) {
+	++ pos;
+	if ( pos < argc ) {
+	  sat_option = argv[pos];
+	}
+	else {
+	  cerr << "--sat_option requires <string> argument" << endl;
+	  return -1;
+	}
       }
       else if ( strcmp(argv[pos], "--blif") == 0 ) {
 	format = "blif";
@@ -200,7 +196,7 @@ dtpg_test(
     print_network(cout, network);
   }
 
-  SatSolverType solver_type(sat_type, sat_option, sat_outp);
+  SatSolverType solver_type{sat_type, sat_option, sat_outp};
   auto test = DtpgTest::new_test(mode, network, fault_type, just_type, solver_type);
 
   auto count = test->do_test(verbose);

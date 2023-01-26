@@ -85,7 +85,7 @@ MffcPropCone::make_cnf()
     }
     for ( auto onode: node->fanout_list() ) {
       if ( fvar(onode) == gvar(onode) ) {
-	auto var = solver().new_variable();
+	auto var = solver().new_variable(true);
 	set_fvar(onode, var);
 	node_list.push_back(onode);
 
@@ -102,7 +102,7 @@ MffcPropCone::make_cnf()
     }
     for ( auto onode: node->fanout_list() ) {
       if ( fvar(onode) == gvar(onode) ) {
-	auto var = solver().new_variable();
+	auto var = solver().new_variable(true);
 	set_fvar(onode, var);
 	node_list.push_back(onode);
 
@@ -123,7 +123,7 @@ MffcPropCone::make_cnf()
       continue;
     }
 
-    auto fvar = solver().new_variable();
+    auto fvar = solver().new_variable(true);
     set_fvar(node, fvar);
 
     inject_fault(i, gvar(node));

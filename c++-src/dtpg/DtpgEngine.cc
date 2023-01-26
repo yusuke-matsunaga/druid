@@ -196,7 +196,7 @@ DtpgEngine::prepare_vars()
   for ( auto node: mTfoList ) {
     auto gvar = mSolver.new_variable(true);
     auto fvar = mSolver.new_variable(true);
-    auto dvar = mSolver.new_variable();
+    auto dvar = mSolver.new_variable(true);
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap.set_vid(node, fvar);

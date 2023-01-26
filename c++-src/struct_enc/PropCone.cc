@@ -92,13 +92,13 @@ PropCone::make_vars()
   // TFO のノードに変数を割り当てる．
   for ( SizeType i = 0; i < mNodeList.size(); ++ i ) {
     auto node = mNodeList[i];
-    auto fvar = solver().new_variable();
+    auto fvar = solver().new_variable(true);
     set_fvar(node, fvar);
     if ( debug ) {
       cout << "fvar(Node#" << node->id() << ") = " << fvar << endl;
     }
     if ( mDetect ) {
-      auto dvar = solver().new_variable();
+      auto dvar = solver().new_variable(true);
       set_dvar(node, dvar);
     }
 #if 0
