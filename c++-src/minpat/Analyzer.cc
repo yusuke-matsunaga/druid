@@ -128,7 +128,7 @@ Analyzer::gen_fault_list(
   std::mt19937 randgen;
   int n0 = 0;
   int n1 = 0;
-  for ( auto& ffr: mNetwork.ffr_list() ) {
+  for ( auto ffr: mNetwork.ffr_list() ) {
     // FFR ごとに検出可能な故障をもとめる．
     DtpgFFR dtpg{mNetwork, mFaultType, ffr, just_type};
     vector<FaultInfo*> tmp_fi_list;
@@ -342,7 +342,7 @@ Analyzer::dom_reduction2(
     for ( auto col: matrix.row_list(i1) ) {
       col_mark[col] = true;
     }
-    for ( auto& ffr2: mNetwork.ffr_list() ) {
+    for ( auto ffr2: mNetwork.ffr_list() ) {
       if ( ffr2.root() == fault1->tpg_onode()->ffr_root() ) {
 	continue;
       }
@@ -422,7 +422,7 @@ Analyzer::init(
   vector<NodeValList> ffr_cond_array(mNetwork.max_fault_id());
   vector<FaultInfo*> tmp_fi_map(mNetwork.max_fault_id(), nullptr);
   int n1 = 0;
-  for ( auto& ffr: mNetwork.ffr_list() ) {
+  for ( auto ffr: mNetwork.ffr_list() ) {
     // FFR ごとに検出可能な故障をもとめる．
     DtpgFFR dtpg(mNetwork, mFaultType, ffr, just_type);
     vector<const TpgFault*> fault_list;
@@ -497,13 +497,13 @@ Analyzer::init(
 	 << "after FFR dominance reduction: " << n1 << endl;
   }
 
-  for ( auto& ffr: mNetwork.ffr_list() ) {
+  for ( auto ffr: mNetwork.ffr_list() ) {
     for ( auto fault: ffr.fault_list() ) {
       if ( !mark[fault->id()] ) {
 	continue;
       }
       UndetChecker undet_checker(mNetwork, mFaultType, fault);
-      for ( auto& ffr2: mNetwork.ffr_list() ) {
+      for ( auto ffr2: mNetwork.ffr_list() ) {
 	if ( &ffr == &ffr2 ) {
 	  continue;
 	}
@@ -551,14 +551,14 @@ Analyzer::init(
     cout << "after semi-global dominance reduction: " << n2 << endl;
   }
 
-  for ( auto& ffr: mNetwork.ffr_list() ) {
+  for ( auto ffr: mNetwork.ffr_list() ) {
     //DtpgFFR2 dtpg(sat_type, sat_option, sat_outp, mFaultType, just_type, mNetwork, ffr);
     for ( auto fault: ffr.fault_list() ) {
       if ( !mark[fault->id()] ) {
 	continue;
       }
-      for ( auto& ffr2: mNetwork.ffr_list() ) {
-	if ( &ffr == &ffr2 ) {
+      for ( auto ffr2: mNetwork.ffr_list() ) {
+	if ( ffr == ffr2 ) {
 	  continue;
 	}
 	DomChecker dom_checker(mNetwork, mFaultType, ffr2.root(), fault);

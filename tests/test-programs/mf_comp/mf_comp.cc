@@ -164,7 +164,8 @@ mf_comp(
 
   int orig_bits = 0;
   int comp_bits = 0;
-  for ( auto& ffr: network.ffr_list() ) {
+  for ( SizeType ffr_id = 0; ffr_id < network.ffr_num(); ++ ffr_id ) {
+    auto ffr = network.ffr(ffr_id);
     int obits1 = ffr.fault_num();
     int cbits1 = obits1;
 

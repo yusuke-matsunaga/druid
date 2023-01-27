@@ -53,12 +53,13 @@ public:
   /// @brief FFRの根の場合にFFRを返す．
   ///
   /// そうでなければ nullptr を返す．
-  const TpgFFR*
+  SizeType
   ffr() const
   {
     return mFfr;
   }
 
+#if 0
   /// @brief MFFCの根の場合にMFFCを返す．
   ///
   /// そうでなければ nullptr を返す．
@@ -67,6 +68,7 @@ public:
   {
     return mMffc;
   }
+#endif
 
   /// @brief このノードに含まれる代表故障の数を返す．
   SizeType
@@ -140,12 +142,13 @@ public:
   /// @brief FFR を設定する．
   void
   set_ffr(
-    TpgFFR* ffr ///< [in] このノードを根とするFFR
+    SizeType ffr ///< [in] このノードを根とするFFR番号
   )
   {
     mFfr = ffr;
   }
 
+#if 0
   /// @brief MFFC を設定する．
   void
   set_mffc(
@@ -154,6 +157,7 @@ public:
   {
     mMffc = mffc;
   }
+#endif
 
   /// @brief 故障リストを設定する．
   void
@@ -226,11 +230,14 @@ private:
   /// @brief ノード名
   string mName;
 
+#if 0
   /// @brief FFR
   const TpgFFR* mFfr{nullptr};
 
   /// @brief MFFC
   const TpgMFFC* mMffc{nullptr};
+#endif
+  SizeType mFfr;
 
   /// @brief 代表故障のリスト
   vector<const TpgFault*> mFaultList;

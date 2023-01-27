@@ -183,7 +183,7 @@ FaultReducer::init(
 
   // 各々の故障のテストベクタをもとめる(故障シミュレーション用)
   std::mt19937 rg;
-  for ( auto& ffr: mNetwork.ffr_list() ) {
+  for ( auto ffr: mNetwork.ffr_list() ) {
     string just_type;
     DtpgFFR dtpg(mNetwork, mFaultType, ffr, just_type);
     for ( auto fault: ffr.fault_list() ) {
@@ -367,7 +367,7 @@ FaultReducer::ffr_reduction()
     mTimer.start();
   }
 
-  for ( auto& ffr: mNetwork.ffr_list() ) {
+  for ( auto ffr: mNetwork.ffr_list() ) {
     // FFR ごとに検出可能な故障をもとめる．
     vector<const TpgFault*> tmp_fault_list;
     for ( auto fault: ffr.fault_list() ) {
@@ -517,7 +517,7 @@ FaultReducer::dom_reduction2()
     if ( fi1.mDeleted ) {
       continue;
     }
-    for ( auto& ffr2: mNetwork.ffr_list() ) {
+    for ( auto ffr2: mNetwork.ffr_list() ) {
       if ( ffr2.root() == fault1->tpg_onode()->ffr_root() ) {
 	continue;
       }
@@ -595,7 +595,7 @@ FaultReducer::dom_reduction3(
       continue;
     }
     UndetChecker undet_checker(mNetwork, mFaultType, fault1, mSolverType);
-    for ( auto& ffr2: mNetwork.ffr_list() ) {
+    for ( auto ffr2: mNetwork.ffr_list() ) {
       if ( ffr2.root() == fault1->tpg_onode()->ffr_root() ) {
 	continue;
       }

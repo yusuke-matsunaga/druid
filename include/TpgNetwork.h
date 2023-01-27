@@ -11,6 +11,8 @@
 #include "druid.h"
 #include "ym/bnet.h"
 #include "ym/ClibCellLibrary.h"
+#include "TpgMFFCList.h"
+#include "TpgFFRList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -240,28 +242,34 @@ public:
   mffc_num() const;
 
   /// @brief MFFC を返す．
-  const TpgMFFC&
+  TpgMFFC
   mffc(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
   ) const;
 
   /// @brief MFFC のリストを得る．
-  const vector<TpgMFFC>&
-  mffc_list() const;
+  const TpgMFFCList
+  mffc_list() const
+  {
+    return TpgMFFCList{mImpl.get(), mffc_num()};
+  }
 
   /// @brief FFR 数を返す．
   SizeType
   ffr_num() const;
 
   /// @brief FFR を返す．
-  const TpgFFR&
+  TpgFFR
   ffr(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
   ) const;
 
   /// @brief FFR のリストを得る．
-  const vector<TpgFFR>&
-  ffr_list() const;
+  const TpgFFRList
+  ffr_list() const
+  {
+    return TpgFFRList{mImpl.get(), ffr_num()};
+  }
 
   /// @brief DFF数を得る．
   SizeType

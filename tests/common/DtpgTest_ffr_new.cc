@@ -33,7 +33,7 @@ DtpgTest_ffr_new::~DtpgTest_ffr_new()
 void
 DtpgTest_ffr_new::_main_body()
 {
-  for ( auto& ffr: mNetwork.ffr_list() ) {
+  for ( auto ffr: mNetwork.ffr_list() ) {
     DtpgFFR dtpg(mNetwork, mFaultType, ffr, mJustType, mSolverType);
     for ( auto fault: ffr.fault_list() ) {
       if ( mFaultMgr.get(fault) == FaultStatus::Undetected ) {

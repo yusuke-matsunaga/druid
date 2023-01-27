@@ -33,7 +33,7 @@ DtpgTest_mffc::~DtpgTest_mffc()
 void
 DtpgTest_mffc::_main_body()
 {
-  for ( auto& mffc: mNetwork.mffc_list() ) {
+  for ( auto mffc: mNetwork.mffc_list() ) {
     Dtpg_se dtpg{mNetwork, mFaultType, mffc, mJustType, mSolverType};
     for ( auto fault: mffc.fault_list() ) {
       if ( mFaultMgr.get(fault) == FaultStatus::Undetected ) {

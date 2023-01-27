@@ -252,41 +252,116 @@ TpgNetworkImpl::dff_list() const
 }
 
 // @brief MFFC を返す．
-const TpgMFFC&
+TpgMFFC
 TpgNetworkImpl::mffc(
   SizeType pos
 ) const
 {
   ASSERT_COND( pos >= 0 && pos < mffc_num() );
 
-  return mMffcArray[pos];
+  return TpgMFFC{this, pos};
 }
 
+// @brief MFFC の根のノードを返す．
+const TpgNode*
+TpgNetworkImpl::mffc_root(
+  SizeType pos
+) const
+{
+  ASSERT_COND( pos >= 0 && pos < mffc_num() );
+
+  auto& mffc = mMffcArray[pos];
+  return mffc.mRoot;
+}
+
+// @brief MFFCに含まれるFFRのリストを返す．
+const vector<TpgFFR>&
+TpgNetworkImpl::mffc_ffr_list(
+  SizeType pos
+) const
+{
+  ASSERT_COND( pos >= 0 && pos < mffc_num() );
+
+  auto& mffc = mMffcArray[pos];
+  return mffc.mFfrList;
+}
+
+// @brief MFFCに含まれる代表故障のリストを返す．
+const vector<const TpgFault*>&
+TpgNetworkImpl::mffc_fault_list(
+  SizeType pos
+) const
+{
+  ASSERT_COND( pos >= 0 && pos < mffc_num() );
+
+  auto& mffc = mMffcArray[pos];
+  return mffc.mFaultList;
+}
+
+#if 0
 // @brief MFFC のリストを得る．
 const vector<TpgMFFC>&
 TpgNetworkImpl::mffc_list() const
 {
   return mMffcArray;
 }
+#endif
 
 // @brief FFR を返す．
-const TpgFFR&
+TpgFFR
 TpgNetworkImpl::ffr(
   SizeType pos
 ) const
 {
   ASSERT_COND( pos >= 0 && pos < ffr_num() );
 
-  return mFfrArray[pos];
+  return TpgFFR{this, pos};
 }
 
+// @brief FFR の根のノードを返す．
+const TpgNode*
+TpgNetworkImpl::ffr_root(
+  SizeType pos
+) const
+{
+  ASSERT_COND( pos >= 0 && pos < ffr_num() );
+
+  auto& ffr = mFfrArray[pos];
+  return ffr.mRoot;
+}
+
+// @brief 葉(FFRの入力)のリストを返す．
+const vector<const TpgNode*>&
+TpgNetworkImpl::ffr_input_list(
+  SizeType pos
+) const
+{
+  ASSERT_COND( pos >= 0 && pos < ffr_num() );
+
+  auto& ffr = mFfrArray[pos];
+  return ffr.mInputList;
+}
+
+// @brief FFRに含まれる代表故障のリストを返す．
+const vector<const TpgFault*>&
+TpgNetworkImpl::ffr_fault_list(
+  SizeType pos
+) const
+{
+  ASSERT_COND( pos >= 0 && pos < ffr_num() );
+
+  auto& ffr = mFfrArray[pos];
+  return ffr.mFaultList;
+}
+
+#if 0
 // @brief FFR のリストを得る．
 const vector<TpgFFR>&
 TpgNetworkImpl::ffr_list() const
 {
   return mFfrArray;
 }
-
+#endif
 
 BEGIN_NONAMESPACE
 
@@ -658,8 +733,7 @@ TpgNetworkImpl::set(
   mFfrArray.resize(ffr_num);
   for ( SizeType i: Range(ffr_num) ) {
     auto node = ffr_root_list[i];
-    auto ffr = &mFfrArray[i];
-    set_ffr(node, ffr);
+    set_ffr(i, node);
   }
 
 
@@ -671,8 +745,7 @@ TpgNetworkImpl::set(
   mMffcArray.resize(mffc_num);
   for ( SizeType i: Range(mffc_num) ) {
     auto node = mffc_root_list[i];
-    auto mffc = &mMffcArray[i];
-    set_mffc(node, mffc);
+    set_mffc(i, node);
   }
 }
 
@@ -806,15 +879,19 @@ TpgNetworkImpl::set_rep_faults(
 // @brief FFR の情報を設定する．
 void
 TpgNetworkImpl::set_ffr(
-  const TpgNode* root,
-  TpgFFR* ffr
+  SizeType id,
+  const TpgNode* root
 )
 {
+  auto& ffr = mFfrArray[id];
+
+  ffr.mRoot = root;
+
   // root を根とするFFRの故障リストを求める．
-  vector<const TpgFault*> fault_list;
+  //vector<const TpgFault*> fault_list;
 
   // root を根とするFFRの入力のリスト
-  vector<const TpgNode*> input_list;
+  //vector<const TpgNode*> input_list;
   // input_list の重複チェック用のハッシュ表
   unordered_set<int> input_hash;
 
@@ -825,14 +902,14 @@ TpgNetworkImpl::set_ffr(
     auto node = node_stack.back();
     node_stack.pop_back();
 
-    mAuxInfoArray[node->id()].add_to_fault_list(fault_list);
+    mAuxInfoArray[node->id()].add_to_fault_list(ffr.mFaultList);
 
     for ( auto inode: node->fanin_list() ) {
       if ( inode->ffr_root() == inode || inode->is_ppi() ) {
 	// inode は他の FFR の根
 	if ( input_hash.count(inode->id()) == 0 ) {
 	  input_hash.emplace(inode->id());
-	  input_list.push_back(inode);
+	  ffr.mInputList.push_back(inode);
 	}
       }
       else {
@@ -841,23 +918,25 @@ TpgNetworkImpl::set_ffr(
     }
   }
 
-  mAuxInfoArray[root->id()].set_ffr(ffr);
-
-  ffr->set(root, input_list, fault_list);
+  mAuxInfoArray[root->id()].set_ffr(id);
 }
 
 // @brief MFFC の情報を設定する．
 void
 TpgNetworkImpl::set_mffc(
-  const TpgNode* root,
-  TpgMFFC* mffc
+  SizeType id,
+  const TpgNode* root
 )
 {
+  auto& mffc = mMffcArray[id];
+
+  mffc.mRoot = root;
+
   // root を根とする MFFC の情報を得る．
   vector<bool> mark(node_num());
   vector<const TpgNode*> node_list;
-  vector<const TpgFFR*> ffr_list;
-  vector<const TpgFault*> fault_list;
+  //vector<const TpgFFR*> ffr_list;
+  //vector<const TpgFault*> fault_list;
 
   node_list.push_back(root);
   mark[root->id()] = true;
@@ -866,10 +945,11 @@ TpgNetworkImpl::set_mffc(
     node_list.pop_back();
 
     if ( node->ffr_root() == node ) {
-      ffr_list.push_back(mAuxInfoArray[node->id()].ffr());
+      auto ffr_id = mAuxInfoArray[node->id()].ffr();
+      mffc.mFfrList.push_back(TpgFFR{this, ffr_id});
     }
 
-    mAuxInfoArray[node->id()].add_to_fault_list(fault_list);
+    mAuxInfoArray[node->id()].add_to_fault_list(mffc.mFaultList);
 
     for ( auto inode: node->fanin_list() ) {
       if ( !mark[inode->id()] &&
@@ -880,9 +960,9 @@ TpgNetworkImpl::set_mffc(
     }
   }
 
-  mAuxInfoArray[root->id()].set_mffc(mffc);
+  //mAuxInfoArray[root->id()].set_mffc(mffc);
 
-  mffc->set(root, ffr_list, fault_list);
+  //mffc->set(root, ffr_list, fault_list);
 }
 
 END_NAMESPACE_DRUID

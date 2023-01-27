@@ -59,8 +59,9 @@ DtpgMFFC::opt_make_cnf()
 {
   SizeType ffr_id = 0;
   for ( auto ffr: mMFFC.ffr_list() ) {
-    mRootArray[ffr_id] = ffr->root();
-    mFfrIdMap.emplace(ffr->root()->id(), ffr_id);
+    auto root = ffr.root();
+    mRootArray[ffr_id] = root;
+    mFfrIdMap.emplace(root->id(), ffr_id);
 
     auto cvar = solver().new_variable(true);
     mEvarArray[ffr_id] = cvar;

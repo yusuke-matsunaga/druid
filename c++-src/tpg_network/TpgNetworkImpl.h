@@ -233,14 +233,28 @@ public:
   }
 
   /// @brief MFFC を返す．
-  const TpgMFFC&
+  TpgMFFC
   mffc(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
   ) const;
 
-  /// @brief MFFC のリストを得る．
-  const vector<TpgMFFC>&
-  mffc_list() const;
+  /// @brief MFFC の根のノードを返す．
+  const TpgNode*
+  mffc_root(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
+  ) const;
+
+  /// @brief MFFCに含まれるFFRのリストを返す．
+  const vector<TpgFFR>&
+  mffc_ffr_list(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
+  ) const;
+
+  /// @brief MFFCに含まれる代表故障のリストを返す．
+  const vector<const TpgFault*>&
+  mffc_fault_list(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
+  ) const;
 
   /// @brief FFR 数を返す．
   SizeType
@@ -250,14 +264,28 @@ public:
   }
 
   /// @brief FFR を返す．
-  const TpgFFR&
+  TpgFFR
   ffr(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
   ) const;
 
-  /// @brief FFR のリストを得る．
-  const vector<TpgFFR>&
-  ffr_list() const;
+  /// @brief FFR の根のノードを返す．
+  const TpgNode*
+  ffr_root(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
+  ) const;
+
+  /// @brief 葉(FFRの入力)のリストを返す．
+  const vector<const TpgNode*>&
+  ffr_input_list(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
+  ) const;
+
+  /// @brief FFRに含まれる代表故障のリストを返す．
+  const vector<const TpgFault*>&
+  ffr_fault_list(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
+  ) const;
 
   /// @brief DFF数を得る．
   SizeType
@@ -379,6 +407,44 @@ private:
 
     const TpgNode* mNode;
     SizeType mPos;
+  };
+
+
+  /// @brief MFFC の情報
+  struct _MFFC
+  {
+
+    // ID番号
+    SizeType mId;
+
+    // 根のノード
+    const TpgNode* mRoot{nullptr};
+
+    // FFRの配列
+    vector<TpgFFR> mFfrList;
+
+    // 故障の配列
+    vector<const TpgFault*> mFaultList;
+
+  };
+
+
+  /// @brief FFR の情報
+  struct _FFR
+  {
+
+    // ID番号
+    SizeType mId;
+
+    // 根のノード
+    const TpgNode* mRoot;
+
+    // 葉のノードの配列
+    vector<const TpgNode*> mInputList;
+
+    // 故障の配列
+    vector<const TpgFault*> mFaultList;
+
   };
 
 
@@ -575,15 +641,15 @@ public:
   /// @brief FFR の情報を設定する．
   void
   set_ffr(
-    const TpgNode* root, ///< [in] FFR の根のノード
-    TpgFFR* ffr		 ///< [in] 対象の FFR
+    SizeType id,        ///< [in] ID番号
+    const TpgNode* root ///< [in] FFR の根のノード
   );
 
   /// @brief MFFC の情報を設定する．
   void
   set_mffc(
-    const TpgNode* root, ///< [in] root MFFCの根のノード
-    TpgMFFC* mffc	 ///< [in] mffc 対象のMFFC
+    SizeType id,       ///< [in] ID番号
+    const TpgNode* root ///< [in] root MFFCの根のノード
   );
 
 
@@ -617,10 +683,10 @@ private:
   vector<const TpgNode*> mPPOArray2;
 
   // MFFC の本体の配列
-  vector<TpgMFFC> mMffcArray;
+  vector<_MFFC> mMffcArray;
 
   // FFR の本体の配列
-  vector<TpgFFR> mFfrArray;
+  vector<_FFR> mFfrArray;
 
   // 全故障数
   SizeType mFaultNum{0};

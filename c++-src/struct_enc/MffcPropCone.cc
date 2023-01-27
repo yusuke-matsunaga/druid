@@ -39,9 +39,10 @@ MffcPropCone::MffcPropCone(
 {
   for ( SizeType i = 0; i < mffc.ffr_num(); ++ i ) {
     auto ffr = mffc.ffr(i);
-    mElemArray[i] = ffr->root();
-    ASSERT_COND( ffr->root() != nullptr );
-    mElemPosMap.emplace(ffr->root()->id(), i);
+    auto root = ffr.root();
+    ASSERT_COND( root != nullptr );
+    mElemArray[i] = root;
+    mElemPosMap.emplace(root->id(), i);
   }
 }
 

@@ -9,10 +9,12 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "ym/Array.h"
+#include "TpgFFR.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+class TpgNetworkImpl;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgMFFC TpgMFFC.h "TpgMFFC.h"
@@ -35,6 +37,15 @@ public:
   /// @brief コンストラクタ
   TpgMFFC() = default;
 
+  /// @brief コンストラクタ
+  TpgMFFC(
+    const TpgNetworkImpl* network, ///< [in] ネットワーク
+    SizeType id                    ///< [in] ID番号
+  ) : mNetwork{network},
+      mId{id}
+  {
+  }
+
   /// @brief デストラクタ
   ~TpgMFFC() = default;
 
@@ -46,41 +57,35 @@ public:
 
   /// @brief 根のノードを返す．
   const TpgNode*
-  root() const
-  {
-    return mRoot;
-  }
+  root() const;
 
   /// @brief このMFFCに含まれるFFR数を返す．
   SizeType
   ffr_num() const
   {
-    return mFfrList.size();
+    return ffr_list().size();
   }
 
   /// @brief このMFFCに含まれるFFRを返す．
-  const TpgFFR*
+  TpgFFR
   ffr(
     SizeType pos /// [in] 位置番号 ( 0 <= pos < ffr_num() )
   ) const
   {
     ASSERT_COND( pos < ffr_num() );
 
-    return mFfrList[pos];
+    return ffr_list()[pos];
   }
 
   /// @brief このMFFCに含まれるFFRのリストを返す．
-  const vector<const TpgFFR*>&
-  ffr_list() const
-  {
-    return mFfrList;
-  }
+  const vector<TpgFFR>&
+  ffr_list() const;
 
   /// @brief このMFFCに含まれる代表故障の数を返す．
   SizeType
   fault_num() const
   {
-    return mFaultList.size();
+    return fault_list().size();
   }
 
   /// @brief このFFRに含まれる代表故障を返す．
@@ -91,33 +96,29 @@ public:
   {
     ASSERT_COND( pos >= 0 && pos < fault_num() );
 
-    return mFaultList[pos];
+    return fault_list()[pos];
   }
 
   /// @brief このFFRに含まれる代表故障のリストを返す．
   const vector<const TpgFault*>&
-  fault_list() const
+  fault_list() const;
+
+  /// @brief 等価比較演算子
+  bool
+  operator==(
+    const TpgMFFC& right
+  ) const
   {
-    return mFaultList;
+    return mNetwork == right.mNetwork && mId == right.mId;
   }
 
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 設定用の関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 内容を設定する．
-  void
-  set(
-    const TpgNode* root,                      ///< [in] 根のノード
-    const vector<const TpgFFR*>& ffr_list,    ///< [in]	このMFFCに含まれるFFRのリスト
-    const vector<const TpgFault*>& fault_list ///< [in] このMFFCに含まれる故障のリスト
-  )
+  /// @brief 非等価比較演算子
+  bool
+  operator!=(
+    const TpgMFFC& right
+  ) const
   {
-    mRoot = root;
-    mFfrList = ffr_list;
-    mFaultList = fault_list;
+    return !operator==(right);
   }
 
 
@@ -126,14 +127,11 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 根のノード
-  const TpgNode* mRoot{nullptr};
+  // ネットワーク
+  const TpgNetworkImpl* mNetwork{nullptr};
 
-  // FFRの配列
-  vector<const TpgFFR*> mFfrList;
-
-  // 故障の配列
-  vector<const TpgFault*> mFaultList;
+  // ID番号
+  SizeType mId;
 
 };
 

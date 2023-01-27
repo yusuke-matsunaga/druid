@@ -13,6 +13,7 @@
 #include "PyTestVector.h"
 #include "PyTpgFault.h"
 #include "PyTpgNetwork.h"
+#include "TpgMFFC.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -73,7 +74,7 @@ DtpgMFFC_new(
   auto dtpg_obj = reinterpret_cast<DtpgMFFCObject*>(obj);
   auto network_p = PyTpgNetwork::_get(network_obj);
   auto fault_type = PyFaultType::_get(fault_type_obj);
-  auto& mffc = network_p->mffc(mffc_id);
+  auto mffc = network_p->mffc(mffc_id);
   dtpg_obj->mPtr = new DtpgMFFC{*network_p, fault_type, mffc,
 				just_type, solver_type};
   return obj;

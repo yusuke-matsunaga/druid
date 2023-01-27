@@ -249,8 +249,7 @@ TpgNetwork::mffc_num() const
 }
 
 // @brief MFFC を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < mffc_num() )
-const TpgMFFC&
+TpgMFFC
 TpgNetwork::mffc(
   SizeType pos
 ) const
@@ -258,12 +257,14 @@ TpgNetwork::mffc(
   return mImpl->mffc(pos);
 }
 
+#if 0
 // @brief MFFC のリストを得る．
 const vector<TpgMFFC>&
 TpgNetwork::mffc_list() const
 {
   return mImpl->mffc_list();
 }
+#endif
 
 // @brief FFR 数を返す．
 SizeType
@@ -273,7 +274,7 @@ TpgNetwork::ffr_num() const
 }
 
 // @brief FFR を返す．
-const TpgFFR&
+TpgFFR
 TpgNetwork::ffr(
   SizeType pos
 ) const
@@ -281,12 +282,14 @@ TpgNetwork::ffr(
   return mImpl->ffr(pos);
 }
 
+#if 0
 // @brief FFR のリストを得る．
 const vector<TpgFFR>&
 TpgNetwork::ffr_list() const
 {
   return mImpl->ffr_list();
 }
+#endif
 
 // @brief DFF数を得る．
 SizeType

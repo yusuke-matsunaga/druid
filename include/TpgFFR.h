@@ -9,12 +9,11 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "ym/Array.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
-class TpgFaultBase;
+class TpgNetworkImpl;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgFFR TpgFFR.h "TpgFFR.h"
@@ -36,6 +35,15 @@ public:
   /// @brief コンストラクタ
   TpgFFR() = default;
 
+  /// @brief コンストラクタ
+  TpgFFR(
+    const TpgNetworkImpl* network, ///< [in] ネットワーク
+    SizeType id                    ///< [in] ID番号
+  ) : mNetwork{network},
+      mId{id}
+  {
+  }
+
   /// @brief デストラクタ
   ~TpgFFR() = default;
 
@@ -47,16 +55,13 @@ public:
 
   /// @brief 根のノードを返す．
   const TpgNode*
-  root() const
-  {
-    return mRoot;
-  }
+  root() const;
 
   /// @brief 葉(FFRの入力)の数を返す．
   SizeType
   input_num() const
   {
-    return mInputList.size();
+    return input_list().size();
   }
 
   /// @brief 葉(FFRの入力)を返す．
@@ -67,21 +72,18 @@ public:
   {
     ASSERT_COND( 0 <= pos && pos < input_num() );
 
-    return mInputList[pos];
+    return input_list()[pos];
   }
 
   /// @brief 葉(FFRの入力)のリストを返す．
   const vector<const TpgNode*>&
-  input_list() const
-  {
-    return mInputList;
-  }
+  input_list() const;
 
   /// @brief このFFRに含まれる代表故障の数を返す．
   SizeType
   fault_num() const
   {
-    return mFaultList.size();
+    return fault_list().size();
   }
 
   /// @brief このFFRに含まれる代表故障を返す．
@@ -92,36 +94,29 @@ public:
   {
     ASSERT_COND( pos >= 0 && pos < fault_num() );
 
-    return mFaultList[pos];
+    return fault_list()[pos];
   }
 
   /// @brief このFFRに含まれる代表故障のリストを返す．
   const vector<const TpgFault*>&
-  fault_list() const
+  fault_list() const;
+
+  /// @brief 等価比較演算子
+  bool
+  operator==(
+    const TpgFFR& right
+  ) const
   {
-    return mFaultList;
+    return mNetwork == right.mNetwork && mId == right.mId;
   }
 
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 設定用の関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 内容を設定する．
-  ///
-  /// input_list, fault_list の所有権は移譲しない．
-  /// 生成/解放の責任は親の TpgNetwork にある．
-  void
-  set(
-    const TpgNode* root,                      ///< [in] 根のノード
-    const vector<const TpgNode*>& input_list, ///< [in] 入力のノードのリスト(配列)
-    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト(配列)
-  )
+  /// @brief 非等価比較演算子
+  bool
+  operator!=(
+    const TpgFFR& right
+  ) const
   {
-    mRoot = root;
-    mInputList = input_list;
-    mFaultList = fault_list;
+    return !operator==(right);
   }
 
 
@@ -130,14 +125,11 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 根のノード
-  const TpgNode* mRoot;
+  // ネットワーク
+  const TpgNetworkImpl* mNetwork{nullptr};
 
-  // 葉のノードの配列
-  vector<const TpgNode*> mInputList;
-
-  // 故障の配列
-  vector<const TpgFault*> mFaultList;
+  // ID番号
+  SizeType mId;
 
 };
 

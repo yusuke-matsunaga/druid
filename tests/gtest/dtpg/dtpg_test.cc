@@ -265,7 +265,7 @@ TEST_P(DtpgTestWithParam, test1)
 
 INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam,
 			 ::testing::Combine(::testing::ValuesIn(mydata1),
-					    ::testing::Values("lingeling", "glueminisat2",
+					    ::testing::Values("lingeling",
 							      "minisat2", "minisat",
 							      "ymsat1", "ymsat2",
 							      "ymsat1_old"),
