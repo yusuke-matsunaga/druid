@@ -31,6 +31,8 @@ set ( py_druid_SOURCES
   types/PyDffVector.cc
   types/PyTpgFault.cc
   types/PyTpgNetwork.cc
+  types/PyTpgMFFC.cc
+  types/PyTpgFFR.cc
   fsim/fsim_module.cc
   fsim/PyFsim.cc
   dtpg/dtpg_module.cc

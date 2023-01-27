@@ -14,6 +14,8 @@
 #include "PyFaultType.h"
 #include "PyTpgFault.h"
 #include "PyTpgNetwork.h"
+#include "PyTpgMFFC.h"
+#include "PyTpgFFR.h"
 #include "PyTestVector.h"
 #include "PyInputVector.h"
 #include "PyDffVector.h"
@@ -60,6 +62,12 @@ PyInit_types()
     goto error;
   }
   if ( !PyTpgNetwork::init(m) ) {
+    goto error;
+  }
+  if ( !PyTpgMFFC::init(m) ) {
+    goto error;
+  }
+  if ( !PyTpgFFR::init(m) ) {
     goto error;
   }
   if ( !PyTestVector::init(m) ) {

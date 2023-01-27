@@ -13,6 +13,7 @@
 #include "PyTestVector.h"
 #include "PyTpgFault.h"
 #include "PyTpgNetwork.h"
+#include "PyTpgFFR.h"
 #include "TpgFFR.h"
 
 
@@ -50,14 +51,14 @@ DtpgFFR_new(
   };
   PyObject* network_obj = nullptr;
   PyObject* fault_type_obj = nullptr;
-  int ffr_id = -1;
+  PyObject* ffr_obj = nullptr;
   const char* just_type_str = nullptr;
   const char* solver_type_str = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!i|ss",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!|ss",
 				    const_cast<char**>(kwlist),
 				    PyTpgNetwork::_typeobject(), &network_obj,
 				    PyFaultType::_typeobject(), &fault_type_obj,
-				    &ffr_id,
+				    PyTpgFFR::_typeobject(), &ffr_obj,
 				    &just_type_str,
 				    &solver_type_str) ) {
     return nullptr;
@@ -72,10 +73,10 @@ DtpgFFR_new(
   }
   auto obj = type->tp_alloc(type, 0);
   auto dtpg_obj = reinterpret_cast<DtpgFFRObject*>(obj);
-  auto network_p = PyTpgNetwork::_get(network_obj);
+  auto& network = PyTpgNetwork::_get(network_obj);
   auto fault_type = PyFaultType::_get(fault_type_obj);
-  auto ffr = network_p->ffr(ffr_id);
-  dtpg_obj->mPtr = new DtpgFFR{*network_p, fault_type, ffr,
+  auto ffr = PyTpgFFR::_get(ffr_obj);
+  dtpg_obj->mPtr = new DtpgFFR{network, fault_type, ffr,
 			       just_type, solver_type};
   return obj;
 }

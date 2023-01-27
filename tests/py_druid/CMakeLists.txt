@@ -32,6 +32,6 @@ add_test ( py_druid_test
   ${PROJECT_BINARY_DIR}/py_druid/py_druid_d -m pytest ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
-#set_property ( TEST py_matoth_test
-#  PROPERTY ENVIRONMENT TESTDATA_DIR=${PROJECT_SOURCE_DIR}/testdata/kifu
-#  )
+set_property ( TEST py_druid_test
+  PROPERTY ENVIRONMENT TESTDATA_DIR=${PROJECT_SOURCE_DIR}/tests/data
+  )

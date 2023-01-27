@@ -72,10 +72,10 @@ DtpgMFFC_new(
   }
   auto obj = type->tp_alloc(type, 0);
   auto dtpg_obj = reinterpret_cast<DtpgMFFCObject*>(obj);
-  auto network_p = PyTpgNetwork::_get(network_obj);
+  auto& network = PyTpgNetwork::_get(network_obj);
   auto fault_type = PyFaultType::_get(fault_type_obj);
-  auto mffc = network_p->mffc(mffc_id);
-  dtpg_obj->mPtr = new DtpgMFFC{*network_p, fault_type, mffc,
+  auto mffc = network.mffc(mffc_id);
+  dtpg_obj->mPtr = new DtpgMFFC{network, fault_type, mffc,
 				just_type, solver_type};
   return obj;
 }

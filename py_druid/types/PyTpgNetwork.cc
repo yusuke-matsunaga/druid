@@ -7,6 +7,8 @@
 /// All rights reserved.
 
 #include "PyTpgNetwork.h"
+#include "PyTpgMFFC.h"
+#include "PyTpgFFR.h"
 #include "PyTpgFault.h"
 #include "ym/PyClibCellLibrary.h"
 #include "ym/PyModule.h"
@@ -71,33 +73,9 @@ TpgNetwork_read_blif(
 				    &clib_obj) ) {
     return nullptr;
   }
-#if 0
-  auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
-  auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
-  auto network_p = new TpgNetwork;
-  tpgnetwork_obj->mPtr = network_p;
-
-  if ( clib_obj == nullptr ) {
-    if ( !network_p->read_blif(blif_file) ) {
-      PyErr_SetString(PyExc_ValueError, "read failed");
-      TpgNetwork_dealloc(obj);
-      return nullptr;
-    }
-  }
-  else {
-    auto& cell_library = PyClibCellLibrary::_get(clib_obj);
-    if ( !network_p->read_blif(blif_file, cell_library) ) {
-      PyErr_SetString(PyExc_ValueError, "read failed");
-      TpgNetwork_dealloc(obj);
-      return nullptr;
-    }
-  }
-
-  return obj;
-#else
   // blif ファイルを読み込む．
   ClibCellLibrary cell_library;
-  if ( clib_obj == nullptr ) {
+  if ( clib_obj != nullptr ) {
     cell_library = PyClibCellLibrary::_get(clib_obj);
   }
   try {
@@ -113,7 +91,6 @@ TpgNetwork_read_blif(
     PyErr_SetString(PyExc_ValueError, buf.str().c_str());
     return nullptr;
   }
-#endif
 }
 
 PyObject*
@@ -126,20 +103,6 @@ TpgNetwork_read_bench(
   if ( !PyArg_ParseTuple(args, "s", &bench_file) ) {
     return nullptr;
   }
-#if 0
-  auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
-  auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
-  auto network_p = new TpgNetwork;
-  tpgnetwork_obj->mPtr = network_p;
-
-  // iscas89(.bench) ファイルを読み込む．
-  if ( !network_p->read_iscas89(bench_file) ) {
-    PyErr_SetString(PyExc_ValueError, "read failed");
-    TpgNetwork_dealloc(obj);
-    return nullptr;
-  }
-  return obj;
-#else
   try {
     auto src_network = TpgNetwork::read_iscas89(bench_file);
     auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
@@ -153,17 +116,147 @@ TpgNetwork_read_bench(
     PyErr_SetString(PyExc_ValueError, buf.str().c_str());
     return nullptr;
   }
-#endif
+}
+
+// メソッド定義
+PyMethodDef TpgNetwork_methods[] = {
+  {"read_blif", reinterpret_cast<PyCFunction>(TpgNetwork_read_blif),
+   METH_VARARGS | METH_STATIC, PyDoc_STR("read 'blif' format")},
+  {"read_bench", TpgNetwork_read_bench,
+   METH_VARARGS | METH_STATIC, PyDoc_STR("read 'iscas89(.bench)' format")},
+  {nullptr, nullptr, 0, nullptr}
+};
+
+PyObject*
+TpgNetwork_node_num(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  auto val = network.node_num();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+TpgNetwork_input_num(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  auto val = network.input_num();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+TpgNetwork_output_num(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  auto val = network.output_num();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+TpgNetwork_ppi_num(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  auto val = network.ppi_num();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+TpgNetwork_ppo_num(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  auto val = network.ppo_num();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+TpgNetwork_mffc_num(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  auto val = network.mffc_num();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+TpgNetwork_ffr_num(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  auto val = network.ffr_num();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+TpgNetwork_dff_num(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  auto val = network.dff_num();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+TpgNetwork_mffc_list(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  SizeType n = network.mffc_num();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto mffc = network.mffc(i);
+    auto obj1 = PyTpgMFFC::ToPyObject(mffc);
+    PyList_SetItem(ans_obj, i, obj1);
+  }
+  return ans_obj;
+}
+
+PyObject*
+TpgNetwork_ffr_list(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::_get(self);
+  SizeType n = network.ffr_num();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto ffr = network.ffr(i);
+    auto obj1 = PyTpgFFR::ToPyObject(ffr);
+    PyList_SetItem(ans_obj, i, obj1);
+  }
+  return ans_obj;
 }
 
 PyObject*
 TpgNetwork_rep_fault_list(
   PyObject* self,
-  PyObject* Py_UNUSED(args)
+  void* Py_UNUSED(closure)
 )
 {
-  auto network_p = PyTpgNetwork::_get(self);
-  auto& fault_list = network_p->rep_fault_list();
+  auto& network = PyTpgNetwork::_get(self);
+  auto& fault_list = network.rep_fault_list();
   SizeType n = fault_list.size();
   auto ans_obj = PyList_New(n);
   Py_IncRef(ans_obj);
@@ -176,15 +269,21 @@ TpgNetwork_rep_fault_list(
   return ans_obj;
 }
 
-// メソッド定義
-PyMethodDef TpgNetwork_methods[] = {
-  {"read_blif", reinterpret_cast<PyCFunction>(TpgNetwork_read_blif),
-   METH_VARARGS | METH_STATIC, PyDoc_STR("read 'blif' format")},
-  {"read_bench", TpgNetwork_read_bench,
-   METH_VARARGS | METH_STATIC, PyDoc_STR("read 'iscas89(.bench)' format")},
-  {"rep_fault_list", TpgNetwork_rep_fault_list,
-   METH_NOARGS, PyDoc_STR("generate a list for all representative faults")},
-  {nullptr, nullptr, 0, nullptr}
+// get/set 関数定義
+PyGetSetDef TpgNetwork_getset[] = {
+  {"node_num", TpgNetwork_node_num, nullptr, PyDoc_STR("# of nodes"), nullptr},
+  {"input_num", TpgNetwork_input_num, nullptr, PyDoc_STR("# of inputs"), nullptr},
+  {"output_num", TpgNetwork_output_num, nullptr, PyDoc_STR("# of outputs"), nullptr},
+  {"ppi_num", TpgNetwork_ppi_num, nullptr, PyDoc_STR("# of PPIs"), nullptr},
+  {"ppo_num", TpgNetwork_ppo_num, nullptr, PyDoc_STR("# of PPOs"), nullptr},
+  {"mffc_num", TpgNetwork_mffc_num, nullptr, PyDoc_STR("# of MFFCs"), nullptr},
+  {"ffr_num", TpgNetwork_ffr_num, nullptr, PyDoc_STR("# of FFRs"), nullptr},
+  {"dff_num", TpgNetwork_dff_num, nullptr, PyDoc_STR("# of D-FFs"), nullptr},
+  {"mffc_list", TpgNetwork_mffc_list, nullptr, PyDoc_STR("list for all MFFCs"), nullptr},
+  {"ffr_list", TpgNetwork_ffr_list, nullptr, PyDoc_STR("list for all FFRs"), nullptr},
+  {"rep_fault_list", TpgNetwork_rep_fault_list, nullptr,
+   PyDoc_STR("list for all representative faults"), nullptr},
+  {nullptr, nullptr, nullptr, nullptr, nullptr},
 };
 
 END_NONAMESPACE
@@ -203,6 +302,7 @@ PyTpgNetwork::init(
   TpgNetworkType.tp_flags = Py_TPFLAGS_DEFAULT;
   TpgNetworkType.tp_doc = PyDoc_STR("TpgNetwork object");
   TpgNetworkType.tp_methods = TpgNetwork_methods;
+  TpgNetworkType.tp_getset = TpgNetwork_getset;
   TpgNetworkType.tp_new = TpgNetwork_new;
 
   // 型オブジェクトの登録
@@ -227,13 +327,13 @@ PyTpgNetwork::_check(
 }
 
 // @brief TpgNetwork を表す PyObject から TpgNetwork を取り出す．
-TpgNetwork*
+const TpgNetwork&
 PyTpgNetwork::_get(
   PyObject* obj
 )
 {
   auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
-  return tpgnetwork_obj->mPtr;
+  return *tpgnetwork_obj->mPtr;
 }
 
 // @brief TpgNetwork を表すオブジェクトの型定義を返す．

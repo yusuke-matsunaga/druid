@@ -1,28 +1,28 @@
-#ifndef PYTPGNETWORK_H
-#define PYTPGNETWORK_H
+#ifndef PYTPGFFR_H
+#define PYTPGFFR_H
 
-/// @file PyTpgNetwork.h
-/// @brief PyTpgNetwork のヘッダファイル
+/// @file PyTpgFFR.h
+/// @brief PyTpgFFR のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "TpgNetwork.h"
+#include "TpgFFR.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyTpgNetwork PyTpgNetwork.h "PyTpgNetwork.h"
-/// @brief Python 用の TpgNetwork 拡張
+/// @class PyTpgFFR PyTpgFFR.h "PyTpgFFR.h"
+/// @brief Python 用の TpgFFR 拡張
 ///
 /// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
 //////////////////////////////////////////////////////////////////////
-class PyTpgNetwork
+class PyTpgFFR
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -37,24 +37,31 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief PyObject が TpgNetwork タイプか調べる．
+  /// @brief TpgFFR を PyObject に変換する．
+  static
+  PyObject*
+  ToPyObject(
+    const TpgFFR& val ///< [in] 値
+  );
+
+  /// @brief PyObject が TpgFFR タイプか調べる．
   static
   bool
   _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
-  /// @brief TpgNetwork を表す PyObject から TpgNetwork を取り出す．
-  /// @return TpgNetwork を返す．
+  /// @brief TpgFFR を表す PyObject から TpgFFR を取り出す．
+  /// @return TpgFFR を返す．
   ///
   /// _check(obj) == true であると仮定している．
   static
-  const TpgNetwork&
+  const TpgFFR&
   _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 
-  /// @brief TpgNetwork を表すオブジェクトの型定義を返す．
+  /// @brief TpgFFR を表すオブジェクトの型定義を返す．
   static
   PyTypeObject*
   _typeobject();
@@ -63,4 +70,4 @@ public:
 
 END_NAMESPACE_DRUID
 
-#endif // PYTPGNETWORK_H
+#endif // PYTPGFFR_H

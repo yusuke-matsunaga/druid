@@ -1,28 +1,28 @@
-#ifndef PYTPGNETWORK_H
-#define PYTPGNETWORK_H
+#ifndef PYTPGMFFC_H
+#define PYTPGMFFC_H
 
-/// @file PyTpgNetwork.h
-/// @brief PyTpgNetwork のヘッダファイル
+/// @file PyTpgMFFC.h
+/// @brief PyTpgMFFC のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "TpgNetwork.h"
+#include "TpgMFFC.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyTpgNetwork PyTpgNetwork.h "PyTpgNetwork.h"
-/// @brief Python 用の TpgNetwork 拡張
+/// @class PyTpgMFFC PyTpgMFFC.h "PyTpgMFFC.h"
+/// @brief Python 用の TpgMFFC 拡張
 ///
 /// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
 //////////////////////////////////////////////////////////////////////
-class PyTpgNetwork
+class PyTpgMFFC
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -37,24 +37,34 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief PyObject が TpgNetwork タイプか調べる．
+  /// @brief TpgMFFC を表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyObject(
+    const TpgMFFC& val ///< [in] 値
+  );
+
+  /// @brief PyObject が TpgMFFC タイプか調べる．
   static
   bool
   _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
-  /// @brief TpgNetwork を表す PyObject から TpgNetwork を取り出す．
-  /// @return TpgNetwork を返す．
+  /// @brief TpgMFFC を表す PyObject から TpgMFFC を取り出す．
+  /// @return TpgMFFC を返す．
   ///
   /// _check(obj) == true であると仮定している．
   static
-  const TpgNetwork&
+  const TpgMFFC&
   _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 
-  /// @brief TpgNetwork を表すオブジェクトの型定義を返す．
+  /// @brief TpgMFFC を表すオブジェクトの型定義を返す．
   static
   PyTypeObject*
   _typeobject();
@@ -63,4 +73,4 @@ public:
 
 END_NAMESPACE_DRUID
 
-#endif // PYTPGNETWORK_H
+#endif // PYTPGMFFC_H

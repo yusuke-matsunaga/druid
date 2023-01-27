@@ -55,6 +55,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief ID番号を返す．
+  SizeType
+  id() const
+  {
+    return mId;
+  }
+
   /// @brief 根のノードを返す．
   const TpgNode*
   root() const;

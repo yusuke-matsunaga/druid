@@ -57,7 +57,7 @@ Fsim_new(
     return nullptr;
   }
 
-  auto network = PyTpgNetwork::_get(network_obj);
+  auto& network = PyTpgNetwork::_get(network_obj);
   auto fault_type = PyFaultType::_get(fault_type_obj);
 
   bool has_x = false;
@@ -73,7 +73,7 @@ Fsim_new(
   }
   auto self = type->tp_alloc(type, 0);
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  fsim_obj->mPtr = new Fsim{*network, fault_type, has_x};
+  fsim_obj->mPtr = new Fsim{network, fault_type, has_x};
   return self;
 }
 
