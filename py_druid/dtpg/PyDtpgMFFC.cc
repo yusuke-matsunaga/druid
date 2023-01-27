@@ -13,6 +13,7 @@
 #include "PyTestVector.h"
 #include "PyTpgFault.h"
 #include "PyTpgNetwork.h"
+#include "PyTpgMFFC.h"
 #include "TpgMFFC.h"
 
 
@@ -50,14 +51,14 @@ DtpgMFFC_new(
   };
   PyObject* network_obj = nullptr;
   PyObject* fault_type_obj = nullptr;
-  int mffc_id = -1;
+  PyObject* mffc_obj = nullptr;
   const char* just_type_str = nullptr;
   const char* solver_type_str = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!i|ss",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!|ss",
 				    const_cast<char**>(kwlist),
 				    PyTpgNetwork::_typeobject(), &network_obj,
 				    PyFaultType::_typeobject(), &fault_type_obj,
-				    &mffc_id,
+				    PyTpgMFFC::_typeobject(), &mffc_obj,
 				    &just_type_str,
 				    &solver_type_str) ) {
     return nullptr;
@@ -74,7 +75,7 @@ DtpgMFFC_new(
   auto dtpg_obj = reinterpret_cast<DtpgMFFCObject*>(obj);
   auto& network = PyTpgNetwork::_get(network_obj);
   auto fault_type = PyFaultType::_get(fault_type_obj);
-  auto mffc = network.mffc(mffc_id);
+  auto mffc = PyTpgMFFC::_get(mffc_obj);
   dtpg_obj->mPtr = new DtpgMFFC{network, fault_type, mffc,
 				just_type, solver_type};
   return obj;
