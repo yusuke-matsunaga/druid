@@ -39,8 +39,24 @@ list ( APPEND CMAKE_MODULE_PATH
 
 include (YmUtils)
 
+# Python3 に関する初期化を行う．
+#
+# 入力: なし
+# 出力: PYTHON_INTERP Python の実行ファイル
+#       PYTHON_VERSION_MAJOR Python の major バージョン
+#       PYTHON_VERSION_MINOR Python の minor バージョン
+#       ... FindPythonInterp, FindPythonLibs によって設定される変数
+#       YM_PYTHON_STRING: Python3.6 のような文字列
+#       YM_PYTHON_LIBDIR: ここで生成される Python ライブラリの格納先
+macro ( ym_init_python2 )
+  # Python のバージョン指定
+  find_package( Python3 ${ARGV} COMPONENTS Interpreter Development )
+  set( YM_PYTHON_STRING "python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}" )
+  set( YM_PYTHON_LIBDIR "lib/${YM_PYTHON_STRING}/site-packages/" )
+endmacro ()
+
 ym_init ( "" )
-ym_init_python ( REQUIRED )
+ym_init_python ( 3.9 EXACT )
 ym_init_doxygen ()
 ym_init_gperftools ()
 ym_init_ctest ()
