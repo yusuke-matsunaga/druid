@@ -30,9 +30,8 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 TpgLogic::TpgLogic(
-  const vector<const TpgNode*>& fanin_list,
-  SizeType fanout_num
-) : TpgNode{fanin_list, fanout_num}
+  const vector<const TpgNode*>& fanin_list
+) : TpgNode{fanin_list}
 {
 }
 
@@ -50,8 +49,8 @@ TpgLogic::is_logic() const
 
 // @brief コンストラクタ
 TpgLogicC0::TpgLogicC0(
-  SizeType fanout_num
-) : TpgLogic{{}, fanout_num}
+) : TpgLogic{{}}
+
 {
 }
 
@@ -71,8 +70,7 @@ TpgLogicC0::gate_type() const
 
 // @brief コンストラクタ
 TpgLogicC1::TpgLogicC1(
-  SizeType fanout_num
-) : TpgLogic{{}, fanout_num}
+) : TpgLogic{{}}
 {
 }
 
@@ -92,9 +90,8 @@ TpgLogicC1::gate_type() const
 
 // @brief コンストラクタ
 TpgLogicBUFF::TpgLogicBUFF(
-  const TpgNode* fanin,
-  SizeType fanout_num
-) : TpgLogic{{fanin}, fanout_num}
+  const TpgNode* fanin
+) : TpgLogic{{fanin}}
 {
 }
 
@@ -154,9 +151,8 @@ TpgLogicBUFF::noval() const
 
 // @brief コンストラクタ
 TpgLogicNOT::TpgLogicNOT(
-  const TpgNode* fanin,
-  SizeType fanout_num
-) : TpgLogic{{fanin}, fanout_num}
+  const TpgNode* fanin
+) : TpgLogic{{fanin}}
 {
 }
 
@@ -216,9 +212,8 @@ TpgLogicNOT::noval() const
 
 // @brief コンストラクタ
 TpgLogicAND::TpgLogicAND(
-  const vector<const TpgNode*>& fanin_list,
-  SizeType fanout_num
-) : TpgLogic{fanin_list, fanout_num}
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -278,9 +273,8 @@ TpgLogicAND::noval() const
 
 // @brief コンストラクタ
 TpgLogicNAND::TpgLogicNAND(
-  const vector<const TpgNode*>& fanin_list,
-  SizeType fanout_num
-) : TpgLogic{fanin_list, fanout_num}
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -340,9 +334,8 @@ TpgLogicNAND::noval() const
 
 // @brief コンストラクタ
 TpgLogicOR::TpgLogicOR(
-  const vector<const TpgNode*>& fanin_list,
-  SizeType fanout_num
-) : TpgLogic{fanin_list, fanout_num}
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -402,9 +395,8 @@ TpgLogicOR::noval() const
 
 // @brief コンストラクタ
 TpgLogicNOR::TpgLogicNOR(
-  const vector<const TpgNode*>& fanin_list,
-  SizeType fanout_num
-) : TpgLogic{fanin_list, fanout_num}
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -464,9 +456,8 @@ TpgLogicNOR::noval() const
 
 // @brief コンストラクタ
 TpgLogicXOR2::TpgLogicXOR2(
-  const vector<const TpgNode*>& fanin_list,
-  SizeType fanout_num
-) : TpgLogic{fanin_list, fanout_num}
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 
@@ -526,9 +517,8 @@ TpgLogicXOR2::noval() const
 
 // @brief コンストラクタ
 TpgLogicXNOR2::TpgLogicXNOR2(
-  const vector<const TpgNode*>& fanin_list,
-  SizeType fanout_num
-) : TpgLogic{fanin_list, fanout_num}
+  const vector<const TpgNode*>& fanin_list
+) : TpgLogic{fanin_list}
 {
 }
 

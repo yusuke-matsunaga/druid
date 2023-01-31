@@ -45,11 +45,9 @@ operator<<(
 
 // @brief コンストラクタ
 TpgNode::TpgNode(
-  const vector<const TpgNode*>& fanin_list,
-  SizeType fanout_num
+  const vector<const TpgNode*>& fanin_list
 ) : mFaninList{fanin_list}
 {
-  mFanoutList.reserve(fanout_num);
 }
 
 // @brief 外部入力タイプの時 true を返す．
@@ -234,15 +232,6 @@ TpgNode::set_output_id2(
 )
 {
   ASSERT_NOT_REACHED;
-}
-
-// @brief ファンアウトを設定する．
-void
-TpgNode::add_fanout(
-  const TpgNode* fo_node
-)
-{
-  mFanoutList.push_back(fo_node);
 }
 
 // @brief immediate dominator をセットする．

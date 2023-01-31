@@ -96,13 +96,13 @@ FaultyGateEncTest::check_ofault(
   // 入力ノードを作る．
   vector<const TpgNode*> input_list(input_num);
   for ( int i: Range(input_num) ) {
-    TpgNode* inode = mNetworkImpl.make_input_node(i, string(), 1);
+    TpgNode* inode = mNetworkImpl.make_input_node(string{});
     input_list[i] = inode;
   }
   // ゲートを作る．
-  vector<pair<SizeType, SizeType>> connection_list;
+  vector<vector<const TpgNode*>> connection_list(mNetworkImpl.node_num());
   TpgNode* node = mNetworkImpl.make_logic_node(string(), gimgr.simple_type(gate_type),
-					       input_list, 0, connection_list);
+					       input_list, connection_list);
 
   ASSERT_EQ( input_num + 1, mNetworkImpl.node_num() );
 
@@ -177,13 +177,13 @@ FaultyGateEncTest::check_ifault(
   // 入力ノードを作る．
   vector<const TpgNode*> input_list(input_num);
   for ( int i: Range(input_num) ) {
-    TpgNode* inode = mNetworkImpl.make_input_node(i, string(), 1);
+    TpgNode* inode = mNetworkImpl.make_input_node(string{});
     input_list[i] = inode;
   }
   // ゲートを作る．
-  vector<pair<SizeType, SizeType>> connection_list;
+  vector<vector<const TpgNode*>> connection_list(mNetworkImpl.node_num());
   TpgNode* node = mNetworkImpl.make_logic_node(string(), gimgr.simple_type(gate_type),
-					       input_list, 0, connection_list);
+					       input_list, connection_list);
 
   ASSERT_EQ( input_num + 1, mNetworkImpl.node_num() );
 

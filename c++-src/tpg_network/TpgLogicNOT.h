@@ -26,8 +26,7 @@ private:
 
   /// @brief コンストラクタ
   TpgLogicNOT(
-    const TpgNode* fanin, ///< [in] ファンイン
-    SizeType fanout_num   ///< [in] ファンアウト数
+    const TpgNode* fanin ///< [in] ファンイン
   );
 
   /// @brief デストラクタ

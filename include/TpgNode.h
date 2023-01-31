@@ -43,9 +43,9 @@ protected:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief コンストラクタ
+  explicit
   TpgNode(
-    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインリスト
-    SizeType fanout_num                       ///< [in] ファンアウト数
+    const vector<const TpgNode*>& fanin_list ///< [in] ファンインリスト
   );
 
   /// @brief コピーコンストラクタは禁止
@@ -316,19 +316,14 @@ public:
     SizeType id  ///< [in] セットする番号
   );
 
-  /// @brief ファンアウト数を設定する．
-  ///
-  /// 同時にファンアウト用の配列も確保する．
-  void
-  set_fanout_num(
-    SizeType fanout_num  ///< [in] ファンアウト数
-  );
-
   /// @brief ファンアウトを設定する．
   void
-  add_fanout(
-    const TpgNode* fo_node  ///< [in] ファンアウト先のノード
-  );
+  set_fanouts(
+    const vector<const TpgNode*>& fo_list
+  )
+  {
+    mFanoutList = fo_list;
+  }
 
   /// @brief immediate dominator をセットする．
   void

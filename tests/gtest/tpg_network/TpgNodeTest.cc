@@ -47,7 +47,7 @@ TpgNodeTest::TpgNodeTest()
   for ( auto i: { 0, 1, 2, 3, 4 } ) {
     ostringstream buf;
     buf << "input" << i;
-    mInputNodeList[i] = mNetwork.make_input_node(i, buf.str(), 1);
+    mInputNodeList[i] = mNetwork.make_input_node( buf.str());
   }
 }
 
@@ -70,17 +70,14 @@ TpgNodeTest::cval_test(
 
 TEST_F(TpgNodeTest, input)
 {
-  int iid = 20;
-  int fanout_num = 0;
-  auto node = mNetwork.make_input_node(iid, "input", fanout_num);
+  auto node = mNetwork.make_input_node("input");
 
   ASSERT_TRUE( node != nullptr );
 }
 
 TEST_F(TpgNodeTest, output)
 {
-  int oid = 20;
-  auto node = mNetwork.make_output_node(oid, "output", mInputNodeList[0]);
+  auto node = mNetwork.make_output_node("output", mInputNodeList[0]);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -89,21 +86,21 @@ TEST_F(TpgNodeTest, output)
 
 TEST_F(TpgNodeTest, CONST0)
 {
-  auto node = mNetwork.make_logic(GateType::Const0, {}, 0);
+  auto node = mNetwork.make_logic(GateType::Const0, {});
 
   ASSERT_TRUE( node != nullptr );
 }
 
 TEST_F(TpgNodeTest, CONST1)
 {
-  auto node = mNetwork.make_logic(GateType::Const1, {}, 0);
+  auto node = mNetwork.make_logic(GateType::Const1, {});
 
   ASSERT_TRUE( node != nullptr );
 }
 
 TEST_F(TpgNodeTest, BUFF)
 {
-  auto node = mNetwork.make_logic(GateType::Buff, {mInputNodeList[0]}, 0);
+  auto node = mNetwork.make_logic(GateType::Buff, {mInputNodeList[0]});
 
   ASSERT_TRUE( node != nullptr );
 
@@ -112,7 +109,7 @@ TEST_F(TpgNodeTest, BUFF)
 
 TEST_F(TpgNodeTest, NOT)
 {
-  auto node = mNetwork.make_logic(GateType::Not, {mInputNodeList[0]}, 0);
+  auto node = mNetwork.make_logic(GateType::Not, {mInputNodeList[0]});
 
   ASSERT_TRUE( node != nullptr );
 
@@ -126,7 +123,7 @@ TEST_F(TpgNodeTest, AND2)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::And, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::And, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -141,7 +138,7 @@ TEST_F(TpgNodeTest, AND3)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::And, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::And, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -156,7 +153,7 @@ TEST_F(TpgNodeTest, AND4)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::And, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::And, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -171,7 +168,7 @@ TEST_F(TpgNodeTest, AND5)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::And, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::And, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -186,7 +183,7 @@ TEST_F(TpgNodeTest, NAND2)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Nand, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nand, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -202,7 +199,7 @@ TEST_F(TpgNodeTest, NAND3)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Nand, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nand, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -217,7 +214,7 @@ TEST_F(TpgNodeTest, NAND4)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Nand, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nand, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -233,7 +230,7 @@ TEST_F(TpgNodeTest, NAND5)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Nand, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nand, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -249,7 +246,7 @@ TEST_F(TpgNodeTest, OR2)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Or, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Or, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -265,7 +262,7 @@ TEST_F(TpgNodeTest, OR3)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Or, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Or, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -281,7 +278,7 @@ TEST_F(TpgNodeTest, OR4)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Or, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Or, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -297,7 +294,7 @@ TEST_F(TpgNodeTest, OR5)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Or, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Or, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -313,7 +310,7 @@ TEST_F(TpgNodeTest, NOR2)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Nor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nor, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -329,7 +326,7 @@ TEST_F(TpgNodeTest, NOR3)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Nor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nor, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -345,7 +342,7 @@ TEST_F(TpgNodeTest, NOR4)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Nor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nor, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -361,7 +358,7 @@ TEST_F(TpgNodeTest, NOR5)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Nor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Nor, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -377,7 +374,7 @@ TEST_F(TpgNodeTest, XOR2)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Xor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Xor, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 
@@ -393,7 +390,7 @@ TEST_F(TpgNodeTest, XNOR2)
   for ( int i = 0; i < ni; ++ i ) {
     fanin_list[i] = mInputNodeList[i];
   }
-  auto node = mNetwork.make_logic(GateType::Xnor, fanin_list, 0);
+  auto node = mNetwork.make_logic(GateType::Xnor, fanin_list);
 
   ASSERT_TRUE( node != nullptr );
 

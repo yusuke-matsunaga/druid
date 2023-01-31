@@ -22,7 +22,7 @@ BEGIN_NAMESPACE_DRUID
 TpgPPO::TpgPPO(
   SizeType output_id,
   const TpgNode* fanin
-) : TpgNode{{fanin}, 0},
+) : TpgNode{{fanin}},
     mOutputId{output_id}
 {
   mOutputId2 = 0;

@@ -25,9 +25,7 @@ class TpgLogicC1 :
 private:
 
   /// @brief コンストラクタ
-  TpgLogicC1(
-    SizeType fanout_num ///< [in] ファンアウト数
-  );
+  TpgLogicC1();
 
   /// @brief デストラクタ
   ~TpgLogicC1() = default;

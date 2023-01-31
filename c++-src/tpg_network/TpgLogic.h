@@ -27,8 +27,7 @@ protected:
 
   /// @brief コンストラクタ
   TpgLogic(
-    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインリスト
-    SizeType fanout_num                       ///< [in] ファンアウト数
+    const vector<const TpgNode*>& fanin_list ///< [in] ファンインリスト
   );
 
   /// @brief デストラクタ

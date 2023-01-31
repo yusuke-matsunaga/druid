@@ -11,7 +11,6 @@
 #include "TpgNode.h"
 #include "TpgDff.h"
 #include "GateType.h"
-
 #include "ym/BnNetwork.h"
 #include "ym/ClibCellLibrary.h"
 
@@ -29,12 +28,28 @@ TpgNetwork::TpgNetwork(
   // mImpl は nullptr を指すはず
 }
 
-// @brief コンストラクタ
+// @brief BnNetwork からの変換コンストラクタ
 TpgNetwork::TpgNetwork(
   const BnNetwork& network
 ) : mImpl{new TpgNetworkImpl}
 {
   mImpl->set(network);
+}
+
+// @brief コンストラクタ
+TpgNetwork::TpgNetwork(
+  const BlifModel& model
+) : mImpl{new TpgNetworkImpl}
+{
+  //mImpl->set(model);
+}
+
+// @brief コンストラクタ
+TpgNetwork::TpgNetwork(
+  const Iscas89Model& model
+) : mImpl{new TpgNetworkImpl}
+{
+  //mImpl->set(model);
 }
 
 // @brief ムーブコンストラクタ
@@ -70,8 +85,16 @@ TpgNetwork::read_blif(
   const ClibCellLibrary& cell_library
 )
 {
+#if 0
+  BlifModel model;
+  if ( !model.read(filename, cell_library) ) {
+    throw std::invalid_argumnet("read failed");
+  }
+  return TpgNetwork{model};
+#else
   auto network = BnNetwork::read_blif(filename, cell_library);
   return TpgNetwork{network};
+#endif
 }
 
 // @brief iscas89 形式のファイルを読み込む．
@@ -80,8 +103,16 @@ TpgNetwork::read_iscas89(
   const string& filename
 )
 {
+#if 0
+  Iscas89Model model;
+  if ( !model.read(filename) ) {
+    throw std::invalid_argumnet("read failed");
+  }
+  return TpgNetwork{model};
+#else
   auto network = BnNetwork::read_iscas89(filename);
   return TpgNetwork{network};
+#endif
 }
 
 // @brief ファイルを読み込む

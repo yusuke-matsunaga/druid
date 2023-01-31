@@ -12,6 +12,8 @@
 
 #include "ym/bnet.h"
 #include "ym/clib.h"
+#include "ym/blif_nsdef.h"
+#include "ym/iscas89_nsdef.h"
 #include "ym/logic.h"
 #include "ym/Array.h"
 
@@ -363,7 +365,19 @@ public:
   /// @brief BnNetwork から内容を設定する．
   void
   set(
-    const BnNetwork& network ///< [in] 設定元のネットワーク
+    const BnNetwork& network
+  );
+
+  /// @brief BlifModel から内容を設定する．
+  void
+  set(
+    const BlifModel& model
+  );
+
+  /// @brief Iscas89Model から内容を設定する．
+  void
+  set(
+    const Iscas89Model& model
   );
 
   /// @brief サイズを設定する．
@@ -374,6 +388,10 @@ public:
     SizeType dff_num,
     SizeType node_num
   );
+
+  /// @brief set() の後処理
+  void
+  post_op();
 
 
 private:
@@ -461,16 +479,13 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_input_node(
-    SizeType iid,       ///< [in] 入力の番号
-    const string& name, ///< [in] ノード名
-    SizeType fanout_num ///< [in] ファンアウト数
+    const string& name ///< [in] ノード名
   );
 
   /// @brief 出力ノードを生成する．
   /// @return 生成したノードを返す．
   TpgNode*
   make_output_node(
-    SizeType oid,        ///< [in] 出力の番号
     const string& name,  ///< [in] ノード名
     const TpgNode* inode ///< [in] 入力のノード
   );
@@ -479,8 +494,7 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_dff_input_node(
-    SizeType oid,        ///< [in] 出力の番号
-    const TpgDff* dff,   ///< [in] 接続しているDFF
+    SizeType dff_id,     ///< [in] DFF番号
     const string& name,  ///< [in] ノード名
     const TpgNode* inode ///< [in] 入力のノード
   );
@@ -489,17 +503,15 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_dff_output_node(
-    SizeType iid,        ///< [in] 入力の番号
-    const TpgDff* dff,   ///< [in] 接続しているDFF
-    const string& name,  ///< [in] ノード名
-    SizeType fanout_num  ///< [in] ファンアウト数
+    SizeType dff_id,   ///< [in] DFF番号
+    const string& name ///< [in] ノード名
   );
 
   /// @brief DFFのクロック端子を生成する．
   /// @return 生成したノードを返す．
   TpgNode*
   make_dff_clock_node(
-    const TpgDff* dff,   ///< [in] 接続しているDFF
+    SizeType dff_id,     ///< [in] DFF番号
     const string& name,  ///< [in] ノード名
     const TpgNode* inode ///< [in] 入力のノード
   );
@@ -508,7 +520,7 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_dff_clear_node(
-    const TpgDff* dff,   ///< [in] 接続しているDFF
+    SizeType dff_id,     ///< [in] DFF番号
     const string& name,  ///< [in] ノード名
     const TpgNode* inode ///< [in] 入力のノード
   );
@@ -517,7 +529,7 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_dff_preset_node(
-    const TpgDff* dff,   ///< [in] 接続しているDFF
+    SizeType dff_id,     ///< [in] DFF番号
     const string& name,  ///< [in] ノード名
     const TpgNode* inode ///< [in] 入力のノード
   );
@@ -529,8 +541,7 @@ public:
     const string& name,                       ///< [in] ノード名
     const TpgGateInfo* node_info,             ///< [in] 論理関数の情報
     const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
-    SizeType fanout_num,                      ///< [in] ファンアウト数
-    vector<pair<SizeType, SizeType>>& connection_list   ///< [in] 接続リスト
+    vector<vector<const TpgNode*>>& connection_list ///< [in] 接続リスト
   );
 
   /// @brief 論理式から TpgNode の木を生成する．
@@ -543,8 +554,7 @@ public:
     const Expr& expr,			      ///< [in] 式
     const vector<const TpgNode*>& leaf_nodes, ///< [in] 式のリテラルに対応するノードの配列
     vector<InodeInfo>& inode_array,	      ///< [in] ファンインの対応関係を収める配列
-    SizeType fanout_num,		      ///< [in] ファンアウト数
-    vector<pair<SizeType, SizeType>>& connection_list   ///< [out] 接続リスト
+    vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
   );
 
   /// @brief バッファを生成する．
@@ -553,8 +563,7 @@ public:
   make_buff_node(
     const string& name,                     ///< [in] ノード名
     const TpgNode* fanin,		    ///< [in] ファンインのノード
-    SizeType fanout_num,		    ///< [in] ファンアウト数
-    vector<pair<SizeType, SizeType>>& connection_list ///< [out] 接続リスト
+    vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
   );
 
   /// @brief インバーターを生成する．
@@ -563,8 +572,7 @@ public:
   make_not_node(
     const string& name,                     ///< [in] ノード名
     const TpgNode* fanin,		    ///< [in] ファンインのノード
-    SizeType fanout_num,		    ///< [in] ファンアウト数
-    vector<pair<SizeType, SizeType>>& connection_list ///< [out] 接続リスト
+    vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
   );
 
   /// @brief 組み込み型の論理ゲートを生成する．
@@ -574,17 +582,15 @@ public:
     const string& name,                       ///< [in] ノード名
     GateType type,			      ///< [in] ゲートの型
     const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
-    SizeType fanout_num,                      ///< [in] ファンアウト数
-    vector<pair<SizeType, SizeType>>& connection_list ///< [out] 接続リスト
+    vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
   );
 
   /// @brief 論理ノードを作る．
   /// @return 作成したノードを返す．
   TpgNode*
   make_logic(
-    GateType gate_type,                       ///< [in] ゲートタイプ
-    const vector<const TpgNode*>& inode_list, ///< [in] 入力ノードのリスト
-    SizeType fanout_num                       ///< [in] ファンアウト数
+    GateType gate_type,                      ///< [in] ゲートタイプ
+    const vector<const TpgNode*>& inode_list ///< [in] 入力ノードのリスト
   );
 
   /// @brief make_XXX_node の共通処理

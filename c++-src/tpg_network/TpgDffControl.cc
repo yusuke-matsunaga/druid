@@ -22,7 +22,7 @@ BEGIN_NAMESPACE_DRUID
 TpgDffControl::TpgDffControl(
   const TpgDff* dff,
   const TpgNode* fanin
-) : TpgNode{{fanin}, 0},
+) : TpgNode{{fanin}},
     mDff{dff}
 {
 }

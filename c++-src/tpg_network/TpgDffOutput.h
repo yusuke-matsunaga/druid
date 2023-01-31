@@ -26,9 +26,8 @@ private:
 
   /// @brief コンストラクタ
   TpgDffOutput(
-    SizeType input_id,   ///< [in] 入力番号
-    SizeType fanout_num, ///< [in] ファンアウト数
-    const TpgDff* dff    ///< [in] 接続しているDFF
+    SizeType input_id, ///< [in] 入力番号
+    const TpgDff* dff  ///< [in] 接続しているDFF
   );
 
   /// @brief デストラクタ

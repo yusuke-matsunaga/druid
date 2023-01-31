@@ -20,9 +20,8 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 TpgPPI::TpgPPI(
-  SizeType input_id,
-  SizeType fanout_num
-) : TpgNode{{}, fanout_num},
+  SizeType input_id
+) : TpgNode{{}},
     mInputId{input_id}
 {
 }
@@ -66,9 +65,8 @@ TpgPPI::gate_type() const
 
 // @brief コンストラクタ
 TpgInput::TpgInput(
-  SizeType input_id,
-  SizeType fanout_num
-) : TpgPPI{input_id, fanout_num}
+  SizeType input_id
+) : TpgPPI{input_id}
 {
 }
 
@@ -87,9 +85,8 @@ TpgInput::is_primary_input() const
 // @brief コンストラクタ
 TpgDffOutput::TpgDffOutput(
   SizeType input_id,
-  SizeType fanout_num,
   const TpgDff* dff
-) : TpgPPI{input_id, fanout_num},
+) : TpgPPI{input_id},
     mDff{dff}
 {
 }

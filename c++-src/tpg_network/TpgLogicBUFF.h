@@ -26,8 +26,7 @@ private:
 
   /// @brief コンストラクタ
   TpgLogicBUFF(
-    const TpgNode* fanin, /// @param[in] ファンイン
-    SizeType fanout_num   ///< [in] ファンアウト数
+    const TpgNode* fanin /// @param[in] ファンイン
   );
 
   /// @brief デストラクタ

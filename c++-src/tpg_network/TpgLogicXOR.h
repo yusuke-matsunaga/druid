@@ -28,8 +28,7 @@ private:
   ///
   /// fanin_list.size() == 2 であることを仮定している．
   TpgLogicXOR2(
-    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
-    SizeType fanout_num ///< [in] ファンアウト数
+    const vector<const TpgNode*>& fanin_list ///< [in] ファンインのリスト
   );
 
   /// @brief デストラクタ

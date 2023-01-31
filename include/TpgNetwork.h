@@ -10,6 +10,8 @@
 
 #include "druid.h"
 #include "ym/bnet.h"
+#include "ym/blif_nsdef.h"
+#include "ym/iscas89_nsdef.h"
 #include "ym/ClibCellLibrary.h"
 #include "TpgMFFCList.h"
 #include "TpgFFRList.h"
@@ -330,6 +332,16 @@ private:
   /// @brief BnNetwork からの変換コンストラクタ
   TpgNetwork(
     const BnNetwork& network ///< [in] 設定元のネットワーク
+  );
+
+  /// @brief BlifModel からの変換コンストラクタ
+  TpgNetwork(
+    const BlifModel& model ///< [in] 設定元のネットワーク
+  );
+
+  /// @brief Iscas89Model からの変換コンストラクタ
+  TpgNetwork(
+    const Iscas89Model& model ///< [in] 設定元のネットワーク
   );
 
 

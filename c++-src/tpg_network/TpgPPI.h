@@ -24,8 +24,7 @@ protected:
 
   /// @brief コンストラクタ
   TpgPPI(
-    SizeType input_id,   ///< [in] 入力番号
-    SizeType fanout_num  ///< [in] ファンアウト数
+    SizeType input_id ///< [in] 入力番号
   );
 
   /// @brief デストラクタ
