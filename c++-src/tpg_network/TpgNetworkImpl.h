@@ -391,7 +391,9 @@ public:
 
   /// @brief set() の後処理
   void
-  post_op();
+  post_op(
+    const vector<vector<const TpgNode*>>& connection_list ///< [in] 接続リスト
+  );
 
 
 private:

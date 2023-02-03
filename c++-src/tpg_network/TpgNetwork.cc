@@ -12,6 +12,8 @@
 #include "TpgDff.h"
 #include "GateType.h"
 #include "ym/BnNetwork.h"
+#include "ym/BlifModel.h"
+#include "ym/Iscas89Model.h"
 #include "ym/ClibCellLibrary.h"
 
 
@@ -88,7 +90,7 @@ TpgNetwork::read_blif(
 #if 0
   BlifModel model;
   if ( !model.read(filename, cell_library) ) {
-    throw std::invalid_argumnet("read failed");
+    throw std::invalid_argument("read failed");
   }
   return TpgNetwork{model};
 #else
@@ -103,10 +105,10 @@ TpgNetwork::read_iscas89(
   const string& filename
 )
 {
-#if 0
+#if 1
   Iscas89Model model;
   if ( !model.read(filename) ) {
-    throw std::invalid_argumnet("read failed");
+    throw std::invalid_argument("read failed");
   }
   return TpgNetwork{model};
 #else
