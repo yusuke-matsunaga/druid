@@ -20,7 +20,7 @@
 #include "PyInputVector.h"
 #include "PyDffVector.h"
 #include "PyFaultStatus.h"
-#include "ym/PyModule.h"
+#include "pym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID

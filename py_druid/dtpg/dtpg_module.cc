@@ -12,7 +12,7 @@
 #include "druid.h"
 #include "PyDtpgFFR.h"
 #include "PyDtpgMFFC.h"
-#include "ym/PyModule.h"
+#include "pym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID

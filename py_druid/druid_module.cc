@@ -10,10 +10,10 @@
 #include <Python.h>
 
 #include "druid.h"
-#include "ym/PyModule.h"
-#include "ym/py_ymbase.h"
-#include "ym/py_ymcell.h"
-#include "ym/py_ymsat.h"
+#include "pym/PyModule.h"
+#include "pym/ymbase.h"
+#include "pym/ymcell.h"
+#include "pym/ymsat.h"
 
 
 BEGIN_NAMESPACE_DRUID

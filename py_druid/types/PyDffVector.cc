@@ -7,9 +7,9 @@
 /// All rights reserved.
 
 #include "PyDffVector.h"
-#include "ym/PyMt19937.h"
 #include "PyVal3.h"
-#include "ym/PyModule.h"
+#include "pym/PyMt19937.h"
+#include "pym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID

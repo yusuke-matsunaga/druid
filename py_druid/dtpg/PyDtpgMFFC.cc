@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "PyDtpgMFFC.h"
-#include "ym/PyModule.h"
 #include "PyFaultStatus.h"
 #include "PyFaultType.h"
 #include "PyTestVector.h"
@@ -15,6 +14,7 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgMFFC.h"
 #include "TpgMFFC.h"
+#include "pym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID

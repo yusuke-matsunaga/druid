@@ -8,7 +8,7 @@
 
 #include "PyTpgFFR.h"
 #include "PyTpgFault.h"
-#include "ym/PyModule.h"
+#include "pym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID

@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "PyDtpgEngine.h"
-#include "PyModule.h"
+#include "pym/PyModule.h"
 
 
 BEGIN_NAMESPACE_DRUID
