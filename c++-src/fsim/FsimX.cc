@@ -13,8 +13,6 @@
 #include "TpgNode.h"
 #include "TpgFault.h"
 
-#include "GateType.h"
-
 #include "TestVector.h"
 #include "InputVector.h"
 #include "DffVector.h"
@@ -154,7 +152,7 @@ FSIM_CLASSNAME::set_network(
       // 外部出力に対応する SimNode の生成
       auto inode = simmap[tpgnode->fanin(0)->id()];
       // 実際にはバッファタイプのノードに出力の印をつけるだけ．
-      node = make_gate(GateType::Buff, vector<SimNode*>(1, inode));
+      node = make_gate(PrimType::Buff, vector<SimNode*>(1, inode));
       node->set_output();
       mPPOArray[tpgnode->output_id()] = node;
     }
@@ -164,7 +162,7 @@ FSIM_CLASSNAME::set_network(
       // DFFの制御端子に対応する SimNode の生成
       auto inode = simmap[tpgnode->fanin(0)->id()];
       // 実際にはバッファタイプのノードに出力の印をつけるだけ．
-      node = make_gate(GateType::Buff, vector<SimNode*>(1, inode));
+      node = make_gate(PrimType::Buff, vector<SimNode*>(1, inode));
       node->set_output();
     }
     else if ( tpgnode->is_logic() ) {
@@ -900,7 +898,7 @@ FSIM_CLASSNAME::make_input()
 // @brief 単純な logic ノードを作る．
 SimNode*
 FSIM_CLASSNAME::make_gate(
-  GateType type,
+  PrimType type,
   const vector<SimNode*>& inputs
 )
 {

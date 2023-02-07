@@ -31,16 +31,6 @@ ym_add_gtest ( TpgNodeTest
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
-ym_add_gtest(GateTypeTest
-  GateTypeTest.cc
-  $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
-  ${YM_SUBMODULE_OBJ_D_LIST}
-  )
-
 ym_add_gtest(GateEncTest
   GateEncTest.cc
   $<TARGET_OBJECTS:druid_common_obj_d>

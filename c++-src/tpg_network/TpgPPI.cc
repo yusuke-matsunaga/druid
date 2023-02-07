@@ -9,7 +9,6 @@
 #include "TpgPPI.h"
 #include "TpgInput.h"
 #include "TpgDffOutput.h"
-#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -47,15 +46,10 @@ TpgPPI::input_id() const
 }
 
 // @brief ゲートタイプを得る．
-//
-// - is_logic() が true の時はゲートタイプを返す．
-// - is_ppi() が true の時は GateType::Input を返す．
-// - is_ppo() が true の時は GateType::Buff を返す．
-// - それ以外の返り値は不定
-GateType
+PrimType
 TpgPPI::gate_type() const
 {
-  return GateType::Input;
+  return PrimType::None;
 }
 
 

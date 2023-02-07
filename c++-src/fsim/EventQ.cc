@@ -8,7 +8,6 @@
 
 #include "EventQ.h"
 #include "SimNode.h"
-#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -73,7 +72,7 @@ EventQ::put_trigger(
   bool immediate
 )
 {
-  if ( immediate || node->gate_type() == GateType::Input ) {
+  if ( immediate || node->gate_type() == PrimType::None ) {
     // 入力の場合，他のイベントの干渉は受けないので
     // 今計算してしまう．
     // もしくは ppsfp のようにイベントが単独であると

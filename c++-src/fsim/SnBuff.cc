@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "SnBuff.h"
-#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -17,10 +16,10 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnBuff::gate_type() const
 {
-  return GateType::Buff;
+  return PrimType::Buff;
 }
 
 // @brief 出力値の計算を行う．
@@ -45,10 +44,10 @@ SnBuff::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNot::gate_type() const
 {
-  return GateType::Not;
+  return PrimType::Not;
 }
 
 // @brief 出力値の計算を行う．

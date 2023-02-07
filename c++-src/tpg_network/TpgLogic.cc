@@ -18,7 +18,6 @@
 #include "TpgLogicXOR.h"
 #include "TpgLogicXNOR.h"
 
-#include "GateType.h"
 #include "Val3.h"
 
 
@@ -57,10 +56,10 @@ TpgLogicC0::TpgLogicC0(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicC0::gate_type() const
 {
-  return GateType::Const0;
+  return PrimType::C0;
 }
 
 
@@ -77,10 +76,10 @@ TpgLogicC1::TpgLogicC1(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicC1::gate_type() const
 {
-  return GateType::Const1;
+  return PrimType::C1;
 }
 
 
@@ -98,10 +97,10 @@ TpgLogicBUFF::TpgLogicBUFF(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicBUFF::gate_type() const
 {
-  return GateType::Buff;
+  return PrimType::Buff;
 }
 
 // @brief controling value を得る．
@@ -159,10 +158,10 @@ TpgLogicNOT::TpgLogicNOT(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicNOT::gate_type() const
 {
-  return GateType::Not;
+  return PrimType::Not;
 }
 
 // @brief controling value を得る．
@@ -220,10 +219,10 @@ TpgLogicAND::TpgLogicAND(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicAND::gate_type() const
 {
-  return GateType::And;
+  return PrimType::And;
 }
 
 // @brief controling value を得る．
@@ -281,10 +280,10 @@ TpgLogicNAND::TpgLogicNAND(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicNAND::gate_type() const
 {
-  return GateType::Nand;
+  return PrimType::Nand;
 }
 
 // @brief controling value を得る．
@@ -342,10 +341,10 @@ TpgLogicOR::TpgLogicOR(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicOR::gate_type() const
 {
-  return GateType::Or;
+  return PrimType::Or;
 }
 
 // @brief controling value を得る．
@@ -403,10 +402,10 @@ TpgLogicNOR::TpgLogicNOR(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicNOR::gate_type() const
 {
-  return GateType::Nor;
+  return PrimType::Nor;
 }
 
 // @brief controling value を得る．
@@ -464,10 +463,10 @@ TpgLogicXOR2::TpgLogicXOR2(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicXOR2::gate_type() const
 {
-  return GateType::Xor;
+  return PrimType::Xor;
 }
 
 // @brief controling value を得る．
@@ -525,10 +524,10 @@ TpgLogicXNOR2::TpgLogicXNOR2(
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicXNOR2::gate_type() const
 {
-  return GateType::Xnor;
+  return PrimType::Xnor;
 }
 
 // @brief controling value を得る．

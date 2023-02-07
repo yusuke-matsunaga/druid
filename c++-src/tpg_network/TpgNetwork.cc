@@ -10,7 +10,6 @@
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
 #include "TpgDff.h"
-#include "GateType.h"
 #include "ym/BnNetwork.h"
 #include "ym/BlifModel.h"
 #include "ym/Iscas89Model.h"
@@ -40,18 +39,21 @@ TpgNetwork::TpgNetwork(
 
 // @brief コンストラクタ
 TpgNetwork::TpgNetwork(
-  const BlifModel& model
+  const BlifModel& model,
+  const string& clock_name,
+  const string& reset_name
 ) : mImpl{new TpgNetworkImpl}
 {
-  //mImpl->set(model);
+  mImpl->set(model, clock_name, reset_name);
 }
 
 // @brief コンストラクタ
 TpgNetwork::TpgNetwork(
-  const Iscas89Model& model
+  const Iscas89Model& model,
+  const string& clock_name
 ) : mImpl{new TpgNetworkImpl}
 {
-  mImpl->set(model);
+  mImpl->set(model, clock_name);
 }
 
 // @brief ムーブコンストラクタ
@@ -74,42 +76,42 @@ TpgNetwork::operator=(
 // @brief blif ファイルを読み込む．
 TpgNetwork
 TpgNetwork::read_blif(
-  const string& filename
+  const string& filename,
+  const string& clock_name,
+  const string& reset_name
 )
 {
-  return read_blif(filename, ClibCellLibrary{});
+  return read_blif(filename, ClibCellLibrary{}, clock_name, reset_name);
 }
 
 // @brief blif ファイルを読み込む．
 TpgNetwork
 TpgNetwork::read_blif(
   const string& filename,
-  const ClibCellLibrary& cell_library
+  const ClibCellLibrary& cell_library,
+  const string& clock_name,
+  const string& reset_name
 )
 {
-#if 0
   BlifModel model;
   if ( !model.read(filename, cell_library) ) {
     throw std::invalid_argument("read failed");
   }
-  return TpgNetwork{model};
-#else
-  auto network = BnNetwork::read_blif(filename, cell_library);
-  return TpgNetwork{network};
-#endif
+  return TpgNetwork{model, clock_name, reset_name};
 }
 
 // @brief iscas89 形式のファイルを読み込む．
 TpgNetwork
 TpgNetwork::read_iscas89(
-  const string& filename
+  const string& filename,
+  const string& clock
 )
 {
   Iscas89Model model;
   if ( !model.read(filename) ) {
     throw std::invalid_argument("read failed");
   }
-  return TpgNetwork{model};
+  return TpgNetwork{model, clock};
 }
 
 // @brief ファイルを読み込む
@@ -117,14 +119,16 @@ TpgNetwork
 TpgNetwork::read_network(
   const string& filename,
   const string& format,
-  const ClibCellLibrary& cell_library
+  const ClibCellLibrary& cell_library,
+  const string& clock_name,
+  const string& reset_name
 )
 {
   if ( format == "blif" ) {
-    return read_blif(filename, cell_library);
+    return read_blif(filename, cell_library, clock_name, reset_name);
   }
   if ( format == "iscas89" ) {
-    return read_iscas89(filename);
+    return read_iscas89(filename, clock_name);
   }
   ostringstream buf;
   buf << format << ": Unknown format";
@@ -285,15 +289,6 @@ TpgNetwork::mffc(
   return mImpl->mffc(pos);
 }
 
-#if 0
-// @brief MFFC のリストを得る．
-const vector<TpgMFFC>&
-TpgNetwork::mffc_list() const
-{
-  return mImpl->mffc_list();
-}
-#endif
-
 // @brief FFR 数を返す．
 SizeType
 TpgNetwork::ffr_num() const
@@ -309,15 +304,6 @@ TpgNetwork::ffr(
 {
   return mImpl->ffr(pos);
 }
-
-#if 0
-// @brief FFR のリストを得る．
-const vector<TpgFFR>&
-TpgNetwork::ffr_list() const
-{
-  return mImpl->ffr_list();
-}
-#endif
 
 // @brief DFF数を得る．
 SizeType
@@ -453,12 +439,12 @@ print_network(
 }
 
 // @brief ノード名を出力する
-// @param[in] s 出力先のストリーム
-// @param[in] node 対象のノード
 void
-print_node(ostream& s,
-	   const TpgNetwork& network,
-	   const TpgNode* node)
+print_node(
+  ostream& s,
+  const TpgNetwork& network,
+  const TpgNode* node
+)
 {
   s << "NODE#" << node->id() << ": " << network.node_name(node->id());
 }

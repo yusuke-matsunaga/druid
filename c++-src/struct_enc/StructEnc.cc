@@ -19,7 +19,6 @@
 #include "TpgDff.h"
 #include "TpgMFFC.h"
 
-#include "GateType.h"
 #include "GateEnc.h"
 
 #include "Val3.h"

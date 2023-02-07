@@ -9,7 +9,6 @@
 #include "MF_Enc.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "GateType.h"
 #include "ym/Range.h"
 #include "ym/SatSolver.h"
 
@@ -25,34 +24,35 @@ BEGIN_NONAMESPACE
 void
 gate_enc(
   SatSolver& solver,
-  GateType gate_type,
+  PrimType gate_type,
   const vector<SatLiteral>& ilit_list,
   SatLiteral olit
 )
 {
   SizeType ni = ilit_list.size();
   switch ( gate_type ) {
-  case GateType::Const0:
-    solver.add_clause(~olit);
-    break;
-
-  case GateType::Const1:
-    solver.add_clause( olit);
-    break;
-
-  case GateType::Input:
+  case PrimType::None:
     // なにもしない．
     break;
 
-  case GateType::Buff:
+  case PrimType::C0:
+    solver.add_clause(~olit);
+    break;
+
+  case PrimType::C1:
+    solver.add_clause( olit);
+    break;
+
+
+  case PrimType::Buff:
     solver.add_buffgate( ilit_list[0],  olit);
     break;
 
-  case GateType::Not:
+  case PrimType::Not:
     solver.add_notgate( ilit_list[0], olit);
     break;
 
-  case GateType::And:
+  case PrimType::And:
     switch ( ni ) {
     case 2:
       {
@@ -88,7 +88,7 @@ gate_enc(
     }
     break;
 
-  case GateType::Nand:
+  case PrimType::Nand:
     switch ( ni ) {
     case 2:
       {
@@ -124,7 +124,7 @@ gate_enc(
     }
     break;
 
-  case GateType::Or:
+  case PrimType::Or:
     switch ( ni ) {
     case 2:
       {
@@ -160,7 +160,7 @@ gate_enc(
     }
     break;
 
-  case GateType::Nor:
+  case PrimType::Nor:
     switch ( ni ) {
     case 2:
       {
@@ -196,7 +196,7 @@ gate_enc(
     }
     break;
 
-  case GateType::Xor:
+  case PrimType::Xor:
     ASSERT_COND( ni == 2 );
     {
       auto ilit0 = ilit_list[0];
@@ -205,7 +205,7 @@ gate_enc(
     }
     break;
 
-  case GateType::Xnor:
+  case PrimType::Xnor:
     ASSERT_COND( ni == 2 );
     {
       auto ilit0 = ilit_list[0];

@@ -6,11 +6,9 @@
 /// Copyright (C) 2016, 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "gtest/gtest.h"
 #include "druid.h"
 #include "SimNode.h"
-#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -30,7 +28,7 @@ public:
   /// @param[in] vals 真理値表ベクタ
   void
   test_gate(int ni,
-	    GateType gate_type,
+	    PrimType gate_type,
 	    int vals[]);
 
   /// @brief fval の書き込み読み出しテスト
@@ -100,7 +98,7 @@ SimNodeTest::test_input()
 // @param[in] vals 真理値表ベクタ
 void
 SimNodeTest::test_gate(int ni,
-		       GateType gate_type,
+		       PrimType gate_type,
 		       int vals[])
 {
   vector<SimNode*> inputs(ni);
@@ -291,7 +289,7 @@ TEST_F(SimNodeTest, BUFF)
     2,
   };
 
-  test_gate(1, GateType::Buff, vals);
+  test_gate(1, PrimType::Buff, vals);
 }
 
 TEST_F(SimNodeTest, NOT)
@@ -302,7 +300,7 @@ TEST_F(SimNodeTest, NOT)
     2,
   };
 
-  test_gate(1, GateType::Not, vals);
+  test_gate(1, PrimType::Not, vals);
 }
 
 TEST_F(SimNodeTest, AND2)
@@ -321,7 +319,7 @@ TEST_F(SimNodeTest, AND2)
     }
   }
 
-  test_gate(2, GateType::And, vals);
+  test_gate(2, PrimType::And, vals);
 }
 
 TEST_F(SimNodeTest, AND3)
@@ -342,7 +340,7 @@ TEST_F(SimNodeTest, AND3)
     }
   }
 
-  test_gate(3, GateType::And, vals);
+  test_gate(3, PrimType::And, vals);
 }
 
 TEST_F(SimNodeTest, AND4)
@@ -365,7 +363,7 @@ TEST_F(SimNodeTest, AND4)
     }
   }
 
-  test_gate(4, GateType::And, vals);
+  test_gate(4, PrimType::And, vals);
 }
 
 TEST_F(SimNodeTest, AND5)
@@ -390,7 +388,7 @@ TEST_F(SimNodeTest, AND5)
     }
   }
 
-  test_gate(5, GateType::And, vals);
+  test_gate(5, PrimType::And, vals);
 }
 
 TEST_F(SimNodeTest, NAND2)
@@ -409,7 +407,7 @@ TEST_F(SimNodeTest, NAND2)
     }
   }
 
-  test_gate(2, GateType::Nand, vals);
+  test_gate(2, PrimType::Nand, vals);
 }
 
 TEST_F(SimNodeTest, NAND3)
@@ -430,7 +428,7 @@ TEST_F(SimNodeTest, NAND3)
     }
   }
 
-  test_gate(3, GateType::Nand, vals);
+  test_gate(3, PrimType::Nand, vals);
 }
 
 TEST_F(SimNodeTest, NAND4)
@@ -453,7 +451,7 @@ TEST_F(SimNodeTest, NAND4)
     }
   }
 
-  test_gate(4, GateType::Nand, vals);
+  test_gate(4, PrimType::Nand, vals);
 }
 
 TEST_F(SimNodeTest, NAND5)
@@ -478,7 +476,7 @@ TEST_F(SimNodeTest, NAND5)
     }
   }
 
-  test_gate(5, GateType::Nand, vals);
+  test_gate(5, PrimType::Nand, vals);
 }
 
 TEST_F(SimNodeTest, OR2)
@@ -497,7 +495,7 @@ TEST_F(SimNodeTest, OR2)
     }
   }
 
-  test_gate(2, GateType::Or, vals);
+  test_gate(2, PrimType::Or, vals);
 }
 
 TEST_F(SimNodeTest, OR3)
@@ -518,7 +516,7 @@ TEST_F(SimNodeTest, OR3)
     }
   }
 
-  test_gate(3, GateType::Or, vals);
+  test_gate(3, PrimType::Or, vals);
 }
 
 TEST_F(SimNodeTest, OR4)
@@ -541,7 +539,7 @@ TEST_F(SimNodeTest, OR4)
     }
   }
 
-  test_gate(4, GateType::Or, vals);
+  test_gate(4, PrimType::Or, vals);
 }
 
 TEST_F(SimNodeTest, OR5)
@@ -566,7 +564,7 @@ TEST_F(SimNodeTest, OR5)
     }
   }
 
-  test_gate(5, GateType::Or, vals);
+  test_gate(5, PrimType::Or, vals);
 }
 
 TEST_F(SimNodeTest, NOR2)
@@ -585,7 +583,7 @@ TEST_F(SimNodeTest, NOR2)
     }
   }
 
-  test_gate(2, GateType::Nor, vals);
+  test_gate(2, PrimType::Nor, vals);
 }
 
 TEST_F(SimNodeTest, NOR3)
@@ -606,7 +604,7 @@ TEST_F(SimNodeTest, NOR3)
     }
   }
 
-  test_gate(3, GateType::Nor, vals);
+  test_gate(3, PrimType::Nor, vals);
 }
 
 TEST_F(SimNodeTest, NOR4)
@@ -629,7 +627,7 @@ TEST_F(SimNodeTest, NOR4)
     }
   }
 
-  test_gate(4, GateType::Nor, vals);
+  test_gate(4, PrimType::Nor, vals);
 }
 
 TEST_F(SimNodeTest, NOR5)
@@ -654,7 +652,7 @@ TEST_F(SimNodeTest, NOR5)
     }
   }
 
-  test_gate(5, GateType::Nor, vals);
+  test_gate(5, PrimType::Nor, vals);
 }
 
 TEST_F(SimNodeTest, XOR2)
@@ -675,7 +673,7 @@ TEST_F(SimNodeTest, XOR2)
     }
   }
 
-  test_gate(2, GateType::Xor, vals);
+  test_gate(2, PrimType::Xor, vals);
 }
 
 TEST_F(SimNodeTest, XOR3)
@@ -711,7 +709,7 @@ TEST_F(SimNodeTest, XOR3)
     }
   }
 
-  test_gate(3, GateType::Xor, vals);
+  test_gate(3, PrimType::Xor, vals);
 }
 
 TEST_F(SimNodeTest, XNOR2)
@@ -732,7 +730,7 @@ TEST_F(SimNodeTest, XNOR2)
     }
   }
 
-  test_gate(2, GateType::Xnor, vals);
+  test_gate(2, PrimType::Xnor, vals);
 }
 
 TEST_F(SimNodeTest, XNOR3)
@@ -768,7 +766,7 @@ TEST_F(SimNodeTest, XNOR3)
     }
   }
 
-  test_gate(3, GateType::Xnor, vals);
+  test_gate(3, PrimType::Xnor, vals);
 }
 
 END_NAMESPACE_DRUID_FSIM

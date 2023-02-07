@@ -24,7 +24,7 @@ public:
 
   /// @brief コンストラクタ
   SimpleGateInfo(
-    GateType gate_type ///< [in] ゲートタイプ
+    PrimType gate_type ///< [in] ゲートタイプ
   );
 
   /// @brief デストラクタ
@@ -41,7 +41,7 @@ public:
   is_simple() const override;
 
   /// @brief ゲートタイプを返す．
-  GateType
+  PrimType
   gate_type() const override;
 
   /// @brief 論理式を返す．
@@ -66,7 +66,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // ゲートタイプ
-  GateType mGateType;
+  PrimType mGateType;
 
   // 制御値
   Val3 mCVal[2];

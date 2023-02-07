@@ -79,7 +79,12 @@ TEST(DruidTest, read_blif_1)
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto& dff = network.dff(i);
     EXPECT_EQ( i, dff.id() );
+    EXPECT_TRUE( dff.input() != nullptr );
+    EXPECT_TRUE( dff.output() != nullptr );
+    EXPECT_TRUE( dff.clock() != nullptr );
   }
+
+  print_network(cout, network);
 }
 
 TEST(DruidTest, bad_read_blif_1)

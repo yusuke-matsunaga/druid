@@ -280,3 +280,17 @@ if ( GPERFTOOLS_FOUND )
     ${GPERFTOOLS_LIBRARIES}
     )
 endif ()
+
+# ===================================================================
+#  read_blif_test
+# ===================================================================
+
+add_executable ( tpg_read_blif_test
+  read_blif/read_blif_test.cc
+  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  ${YM_SUBMODULE_OBJ_LIST}
+  )

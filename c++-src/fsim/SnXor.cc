@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "SnXor.h"
-#include "GateType.h"
 #include "ym/Range.h"
 
 
@@ -18,10 +17,10 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnXor::gate_type() const
 {
-  return GateType::Xor;
+  return PrimType::Xor;
 }
 
 // @brief 出力値の計算を行う．
@@ -62,10 +61,10 @@ SnXor::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnXor2::gate_type() const
 {
-  return GateType::Xor;
+  return PrimType::Xor;
 }
 
 // @brief 出力値の計算を行う．
@@ -98,10 +97,10 @@ SnXor2::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnXnor::gate_type() const
 {
-  return GateType::Xnor;
+  return PrimType::Xnor;
 }
 
 // @brief 出力値の計算を行う．
@@ -117,10 +116,10 @@ SnXnor::_calc_val()
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnXnor2::gate_type() const
 {
-  return GateType::Xnor;
+  return PrimType::Xnor;
 }
 
 // @brief 出力値の計算を行う．

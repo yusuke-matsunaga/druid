@@ -59,7 +59,7 @@ public:
   ///
   /// is_logic() が false の場合の返り値は不定
   /// ただし疑似出力の場合はバッファタイプとみなす．
-  GateType
+  PrimType
   gate_type() const override;
 
 

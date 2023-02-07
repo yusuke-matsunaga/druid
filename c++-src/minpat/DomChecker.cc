@@ -11,7 +11,6 @@
 #include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "TpgDff.h"
-#include "GateType.h"
 #include "GateEnc.h"
 #include "FaultyGateEnc.h"
 #include "Val3.h"

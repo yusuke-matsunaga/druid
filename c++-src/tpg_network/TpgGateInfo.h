@@ -55,7 +55,7 @@ public:
   ///
   /// 組み込みタイプ(is_simple() = true)のときのみ意味を持つ．
   virtual
-  GateType
+  PrimType
   gate_type() const = 0;
 
   /// @brief 論理式を返す．
@@ -101,10 +101,17 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief TpgGateInfo を登録する．
+  const TpgGateInfo*
+  new_info(
+    SizeType ni,     ///< [in] 入力数
+    const Expr& expr ///< [in] 論理式
+  );
+
   /// @brief 組み込み型のオブジェクトを返す．
   const TpgGateInfo*
   simple_type(
-    GateType gate_type ///< [in] ゲートタイプ
+    PrimType gate_type ///< [in] ゲートタイプ
   );
 
   /// @brief 複合型のオブジェクトを返す．

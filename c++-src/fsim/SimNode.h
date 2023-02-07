@@ -69,7 +69,7 @@ public:
   SimNode*
   new_gate(
     SizeType id,                   ///< [in] ノード番号
-    GateType type,                 ///< [in] ゲートの種類
+    PrimType type,                 ///< [in] ゲートの種類
     const vector<SimNode*>& inputs ///< [in] ファンインのノードのリスト
   );
 
@@ -88,7 +88,7 @@ public:
 
   /// @brief ゲートタイプを返す．
   virtual
-  GateType
+  PrimType
   gate_type() const = 0;
 
   /// @brief ファンイン数を得る．

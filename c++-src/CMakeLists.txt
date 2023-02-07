@@ -24,6 +24,9 @@ set (tpg_network_SOURCES
   tpg_network/NodeValList.cc
   tpg_network/TpgNetwork.cc
   tpg_network/TpgNetworkImpl.cc
+  tpg_network/TpgNetworkImpl_bnet.cc
+  tpg_network/TpgNetworkImpl_blif.cc
+  tpg_network/TpgNetworkImpl_iscas89.cc
   tpg_network/TpgNetworkImpl_make_node.cc
   tpg_network/TpgDff.cc
   tpg_network/TpgFFR.cc

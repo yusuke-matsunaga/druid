@@ -8,36 +8,10 @@
 
 #include "TpgNode.h"
 #include "TpgFFR.h"
-#include "GateType.h"
 #include "Val3.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-// @brief GateType のストリーム演算子
-ostream&
-operator<<(
-  ostream& s,
-  GateType gate_type
-)
-{
-  switch ( gate_type ) {
-  case GateType::Const0: s << "CONST-0"; break;
-  case GateType::Const1: s << "CONST-1"; break;
-  case GateType::Input:  s << "INPUT"; break;
-  case GateType::Buff:   s << "BUFF"; break;
-  case GateType::Not:    s << "NOT"; break;
-  case GateType::And:    s << "AND"; break;
-  case GateType::Nand:   s << "NAND"; break;
-  case GateType::Or:     s << "OR"; break;
-  case GateType::Nor:    s << "NOR"; break;
-  case GateType::Xor:    s << "XOR"; break;
-  case GateType::Xnor:   s << "XNOR"; break;
-  default:               s << "---"; break;
-  }
-  return s;
-}
-
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgNode
@@ -174,12 +148,12 @@ TpgNode::dff() const
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgNode::gate_type() const
 {
   ASSERT_NOT_REACHED;
 
-  return GateType::Const0;
+  return PrimType::None;
 }
 
 // @brief controling value を得る．

@@ -528,7 +528,7 @@ private:
   /// @brief logic ノードを作る．
   SimNode*
   make_gate(
-    GateType type,
+    PrimType type,
     const vector<SimNode*>& inputs
   );
 

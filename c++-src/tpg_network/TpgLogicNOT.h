@@ -41,7 +41,7 @@ public:
   /// @brief ゲートタイプを得る．
   ///
   /// is_logic() が false の場合の返り値は不定
-  GateType
+  PrimType
   gate_type() const override;
 
   /// @brief controling value を得る．

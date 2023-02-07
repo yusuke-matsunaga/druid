@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "SnGate.h"
-#include "GateType.h"
 #include "ym/Range.h"
 
 

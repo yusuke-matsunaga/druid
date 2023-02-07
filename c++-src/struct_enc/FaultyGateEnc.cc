@@ -10,7 +10,6 @@
 
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "GateType.h"
 #include "VidMap.h"
 #include "ym/Range.h"
 #include "ym/SatSolver.h"
@@ -79,13 +78,13 @@ FaultyGateEnc::make_cnf(
   }
 
   switch ( node->gate_type() ) {
-  case GateType::Const0:
-  case GateType::Const1:
-  case GateType::Input:
+  case PrimType::C0:
+  case PrimType::C1:
+  case PrimType::None:
     ASSERT_NOT_REACHED;
     break;
 
-  case GateType::Buff:
+  case PrimType::Buff:
     switch ( fval ) {
     case Fval2::zero:
       // 入力の0縮退故障
@@ -98,7 +97,7 @@ FaultyGateEnc::make_cnf(
     }
     break;
 
-  case GateType::Not:
+  case PrimType::Not:
     switch( fval ) {
     case Fval2::zero:
       // 入力の0縮退故障
@@ -111,7 +110,7 @@ FaultyGateEnc::make_cnf(
     }
     break;
 
-  case GateType::And:
+  case PrimType::And:
     switch ( fval ) {
     case Fval2::zero:
       // 入力の0縮退故障
@@ -125,7 +124,7 @@ FaultyGateEnc::make_cnf(
     }
     break;
 
-  case GateType::Nand:
+  case PrimType::Nand:
     switch ( fval ) {
     case Fval2::zero:
       // 入力の 0 縮退故障
@@ -139,7 +138,7 @@ FaultyGateEnc::make_cnf(
     }
     break;
 
-  case GateType::Or:
+  case PrimType::Or:
     switch ( fval ) {
     case Fval2::zero:
       // 入力の 0 縮退故障
@@ -153,7 +152,7 @@ FaultyGateEnc::make_cnf(
     }
     break;
 
-  case GateType::Nor:
+  case PrimType::Nor:
     switch ( fval ) {
     case Fval2::zero:
       // 入力の 0 縮退故障
@@ -167,7 +166,7 @@ FaultyGateEnc::make_cnf(
     }
     break;
 
-  case GateType::Xor:
+  case PrimType::Xor:
     ASSERT_COND( ni == 2 );
     switch ( fval ) {
     case Fval2::zero:
@@ -179,7 +178,7 @@ FaultyGateEnc::make_cnf(
     }
     break;
 
-  case GateType::Xnor:
+  case PrimType::Xnor:
     ASSERT_COND( ni == 2 );
     switch ( fval ) {
     case Fval2::zero:

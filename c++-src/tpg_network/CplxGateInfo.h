@@ -43,7 +43,7 @@ public:
   is_simple() const override;
 
   /// @brief ゲートタイプを返す．
-  GateType
+  PrimType
   gate_type() const override;
 
   /// @brief 論理式を返す．

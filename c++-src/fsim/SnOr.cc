@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "SnOr.h"
-#include "GateType.h"
 #include "ym/Range.h"
 
 
@@ -36,10 +35,10 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnOr::gate_type() const
 {
-  return GateType::Or;
+  return PrimType::Or;
 }
 
 // @brief 出力値の計算を行う．
@@ -71,10 +70,10 @@ SnOr::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnOr2::gate_type() const
 {
-  return GateType::Or;
+  return PrimType::Or;
 }
 
 // @brief 出力値の計算を行う．
@@ -100,10 +99,10 @@ SnOr2::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnOr3::gate_type() const
 {
-  return GateType::Or;
+  return PrimType::Or;
 }
 
 // @brief 出力値の計算を行う．
@@ -131,10 +130,10 @@ SnOr3::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnOr4::gate_type() const
 {
-  return GateType::Or;
+  return PrimType::Or;
 }
 
 // @brief 出力値の計算を行う．
@@ -163,10 +162,10 @@ SnOr4::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNor::gate_type() const
 {
-  return GateType::Nor;
+  return PrimType::Nor;
 }
 
 // @brief 出力値の計算を行う．
@@ -182,10 +181,10 @@ SnNor::_calc_val()
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNor2::gate_type() const
 {
-  return GateType::Nor;
+  return PrimType::Nor;
 }
 
 // @brief 出力値の計算を行う．
@@ -201,10 +200,10 @@ SnNor2::_calc_val()
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNor3::gate_type() const
 {
-  return GateType::Nor;
+  return PrimType::Nor;
 }
 
 // @brief 出力値の計算を行う．(3値版)
@@ -220,10 +219,10 @@ SnNor3::_calc_val()
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNor4::gate_type() const
 {
-  return GateType::Nor;
+  return PrimType::Nor;
 }
 
 // @brief 出力値の計算を行う．

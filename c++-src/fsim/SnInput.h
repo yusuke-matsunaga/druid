@@ -37,7 +37,7 @@ public:
   /// @brief ゲートタイプを返す．
   ///
   /// ここでは kGateBUFF を返す．
-  GateType
+  PrimType
   gate_type() const override;
 
   /// @brief ファンイン数を得る．

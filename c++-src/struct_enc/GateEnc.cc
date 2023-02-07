@@ -9,7 +9,6 @@
 #include "GateEnc.h"
 
 #include "TpgNode.h"
-#include "GateType.h"
 #include "VidMap.h"
 
 #include "ym/SatSolver.h"
@@ -50,33 +49,32 @@ GateEnc::make_cnf(
   SizeType ni = node->fanin_num();
   const auto& fanin_array = node->fanin_list();
   switch ( node->gate_type() ) {
-  case GateType::Const0:
+  case PrimType::C0:
     mSolver.add_clause(~olit);
     break;
 
-  case GateType::Const1:
+  case PrimType::C1:
     mSolver.add_clause( olit);
     break;
 
-  case GateType::Input:
-    // なにもしない．
+  case PrimType::None:
     break;
 
-  case GateType::Buff:
+  case PrimType::Buff:
     {
       auto ilit = lit(fanin_array[0]);
       mSolver.add_buffgate(ilit, olit);
     }
     break;
 
-  case GateType::Not:
+  case PrimType::Not:
     {
       auto ilit = lit(fanin_array[0]);
       mSolver.add_notgate(ilit, olit);
     }
     break;
 
-  case GateType::And:
+  case PrimType::And:
     switch ( ni ) {
     case 2:
       {
@@ -118,7 +116,7 @@ GateEnc::make_cnf(
     }
     break;
 
-  case GateType::Nand:
+  case PrimType::Nand:
     switch ( ni ) {
     case 2:
       {
@@ -160,7 +158,7 @@ GateEnc::make_cnf(
     }
     break;
 
-  case GateType::Or:
+  case PrimType::Or:
     switch ( ni ) {
     case 2:
       {
@@ -202,7 +200,7 @@ GateEnc::make_cnf(
     }
     break;
 
-  case GateType::Nor:
+  case PrimType::Nor:
     switch ( ni ) {
     case 2:
       {
@@ -244,7 +242,7 @@ GateEnc::make_cnf(
     }
     break;
 
-  case GateType::Xor:
+  case PrimType::Xor:
     ASSERT_COND( ni == 2 );
     {
       auto ilit0 = lit(fanin_array[0]);
@@ -253,7 +251,7 @@ GateEnc::make_cnf(
     }
     break;
 
-  case GateType::Xnor:
+  case PrimType::Xnor:
     ASSERT_COND( ni == 2 );
     {
       auto ilit0 = lit(fanin_array[0]);

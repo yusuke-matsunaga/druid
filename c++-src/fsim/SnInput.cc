@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "SnInput.h"
-#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -30,10 +29,10 @@ SnInput::~SnInput()
 }
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnInput::gate_type() const
 {
-  return GateType::Input;
+  return PrimType::None;
 }
 
 // @brief ファンイン数を得る．

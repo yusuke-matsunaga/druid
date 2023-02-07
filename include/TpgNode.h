@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "ym/logic.h" // for PrimType
 
 
 BEGIN_NAMESPACE_DRUID
@@ -168,11 +169,10 @@ public:
   /// @brief ゲートタイプを得る．
   ///
   /// - is_logic() が true の時はゲートタイプを返す．
-  /// - is_ppi() が true の時は GateType::INPUT を返す．
-  /// - is_ppo() が true の時は GateType::BUFF を返す．
-  /// - それ以外の返り値は不定
+  /// - is_ppo() が true の時は PrimType::Buff を返す．
+  /// - それ以外の時は PrimType::None を返す．
   virtual
-  GateType
+  PrimType
   gate_type() const;
 
   /// @brief controling value を得る．

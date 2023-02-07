@@ -10,7 +10,6 @@
 #include "Extractor.h"
 #include "TpgDff.h"
 #include "TpgFault.h"
-#include "GateType.h"
 #include "GateEnc.h"
 #include "FaultyGateEnc.h"
 #include "NodeValList.h"

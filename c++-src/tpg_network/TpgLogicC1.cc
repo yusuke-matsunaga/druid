@@ -6,9 +6,7 @@
 /// Copyright (C) 2016, 2018 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgLogicC1.h"
-#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,10 +18,10 @@ BEGIN_NAMESPACE_DRUID
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgLogicC1::gate_type() const
 {
-  return GateType::Const1;
+  return PrimType::Const1;
 }
 
 END_NAMESPACE_DRUID

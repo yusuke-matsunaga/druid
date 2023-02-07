@@ -12,7 +12,6 @@
 #include "SnAnd.h"
 #include "SnOr.h"
 #include "SnXor.h"
-#include "GateType.h"
 #include "ym/Range.h"
 
 
@@ -55,26 +54,26 @@ SimNode::new_input(
 SimNode*
 SimNode::new_gate(
   SizeType id,
-  GateType type,
+  PrimType type,
   const vector<SimNode*>& inputs
 )
 {
   SimNode* node = nullptr;
   auto ni = inputs.size();
   switch ( type ) {
-  case GateType::Buff:
+  case PrimType::Buff:
     ASSERT_COND( ni == 1 );
 
     node = new SnBuff(id, inputs);
     break;
 
-  case GateType::Not:
+  case PrimType::Not:
     ASSERT_COND( ni == 1 );
 
     node = new SnNot(id, inputs);
     break;
 
-  case GateType::And:
+  case PrimType::And:
     switch ( ni ) {
     case 2:  node = new SnAnd2(id, inputs); break;
     case 3:  node = new SnAnd3(id, inputs); break;
@@ -83,7 +82,7 @@ SimNode::new_gate(
     }
     break;
 
-  case GateType::Nand:
+  case PrimType::Nand:
     switch ( ni ) {
     case 2:  node = new SnNand2(id, inputs); break;
     case 3:  node = new SnNand3(id, inputs); break;
@@ -92,7 +91,7 @@ SimNode::new_gate(
     }
     break;
 
-  case GateType::Or:
+  case PrimType::Or:
     switch ( ni ) {
     case 2:  node = new SnOr2(id, inputs); break;
     case 3:  node = new SnOr3(id, inputs); break;
@@ -101,7 +100,7 @@ SimNode::new_gate(
     }
     break;
 
-  case GateType::Nor:
+  case PrimType::Nor:
     switch ( ni ) {
     case 2:  node = new SnNor2(id, inputs); break;
     case 3:  node = new SnNor3(id, inputs); break;
@@ -110,14 +109,14 @@ SimNode::new_gate(
     }
     break;
 
-  case GateType::Xor:
+  case PrimType::Xor:
     switch ( ni ) {
     case 2:  node = new SnXor2(id, inputs); break;
     default: node = new SnXor(id, inputs);  break;
     }
     break;
 
-  case GateType::Xnor:
+  case PrimType::Xnor:
     switch ( ni ) {
     case 2:  node = new SnXnor2(id, inputs); break;
     default: node = new SnXnor(id, inputs);  break;

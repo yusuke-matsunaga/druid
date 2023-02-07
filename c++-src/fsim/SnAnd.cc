@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "SnAnd.h"
-#include "GateType.h"
 #include "ym/Range.h"
 
 
@@ -35,10 +34,10 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnAnd::gate_type() const
 {
-  return GateType::And;
+  return PrimType::And;
 }
 
 // @brief 故障値の計算を行う．
@@ -70,10 +69,10 @@ SnAnd::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnAnd2::gate_type() const
 {
-  return GateType::And;
+  return PrimType::And;
 }
 
 // @brief 出力値の計算を行う．
@@ -99,10 +98,10 @@ SnAnd2::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnAnd3::gate_type() const
 {
-  return GateType::And;
+  return PrimType::And;
 }
 
 // @brief 出力値の計算を行う．
@@ -130,10 +129,10 @@ SnAnd3::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnAnd4::gate_type() const
 {
-  return GateType::And;
+  return PrimType::And;
 }
 
 // @brief 出力値の計算を行う．
@@ -162,10 +161,10 @@ SnAnd4::_calc_gobs(
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNand::gate_type() const
 {
-  return GateType::Nand;
+  return PrimType::Nand;
 }
 
 // @brief 出力値の計算を行う．
@@ -181,10 +180,10 @@ SnNand::_calc_val()
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNand2::gate_type() const
 {
-  return GateType::Nand;
+  return PrimType::Nand;
 }
 
 // @brief 出力値の計算を行う．
@@ -200,10 +199,10 @@ SnNand2::_calc_val()
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNand3::gate_type() const
 {
-  return GateType::Nand;
+  return PrimType::Nand;
 }
 
 // @brief 出力値の計算を行う．
@@ -219,10 +218,10 @@ SnNand3::_calc_val()
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SnNand4::gate_type() const
 {
-  return GateType::Nand;
+  return PrimType::Nand;
 }
 
 // @brief 出力値の計算を行う．

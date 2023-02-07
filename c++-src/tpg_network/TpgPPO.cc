@@ -9,7 +9,6 @@
 #include "TpgPPO.h"
 #include "TpgOutput.h"
 #include "TpgDffInput.h"
-#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -58,10 +57,10 @@ TpgPPO::output_id2() const
 // @brief ゲートタイプを得る．
 //
 // is_logic() が false の場合の返り値は不定
-GateType
+PrimType
 TpgPPO::gate_type() const
 {
-  return GateType::Buff;
+  return PrimType::Buff;
 }
 
 // @brief 出力番号2をセットする．

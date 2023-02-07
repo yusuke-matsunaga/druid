@@ -34,7 +34,6 @@
 #include "TpgLogicXOR.h"
 #include "TpgLogicXNOR.h"
 
-#include "GateType.h"
 #include "Val3.h"
 
 #include "ym/Expr.h"
@@ -224,11 +223,11 @@ TpgNetworkImpl::make_logic_node(
     // 組み込み型の場合．
     // 2入力以上の XOR/XNOR ゲートを2入力に分解する．
     auto gate_type = node_info->gate_type();
-    if ( gate_type == GateType::Xor && ni > 2 ) {
+    if ( gate_type == PrimType::Xor && ni > 2 ) {
       vector<const TpgNode*> tmp_list(2);
       tmp_list[0] = fanin_list[0];
       tmp_list[1] = fanin_list[1];
-      auto tmp_node = make_prim_node(string{}, GateType::Xor, tmp_list,
+      auto tmp_node = make_prim_node(string{}, PrimType::Xor, tmp_list,
 				     connection_list);
       inode_array[0].set(tmp_node, 0);
       inode_array[1].set(tmp_node, 1);
@@ -236,22 +235,22 @@ TpgNetworkImpl::make_logic_node(
 	tmp_list[0] = tmp_node;
 	tmp_list[1] = fanin_list[i];
 	if ( i < ni - 1 ) {
-	  tmp_node = make_prim_node(string(), GateType::Xor, tmp_list,
+	  tmp_node = make_prim_node(string(), PrimType::Xor, tmp_list,
 				    connection_list);
 	}
 	else {
-	  tmp_node = make_prim_node(src_name, GateType::Xor, tmp_list,
+	  tmp_node = make_prim_node(src_name, PrimType::Xor, tmp_list,
 				    connection_list);
 	}
 	inode_array[i].set(tmp_node, 1);
       }
       node = tmp_node;
     }
-    else if ( gate_type == GateType::Xnor && ni > 2 ) {
+    else if ( gate_type == PrimType::Xnor && ni > 2 ) {
       vector<const TpgNode*> tmp_list(2);
       tmp_list[0] = fanin_list[0];
       tmp_list[1] = fanin_list[1];
-      auto tmp_node = make_prim_node(string{}, GateType::Xor, tmp_list,
+      auto tmp_node = make_prim_node(string{}, PrimType::Xor, tmp_list,
 				     connection_list);
       inode_array[0].set(tmp_node, 0);
       inode_array[1].set(tmp_node, 1);
@@ -259,11 +258,11 @@ TpgNetworkImpl::make_logic_node(
 	tmp_list[0] = tmp_node;
 	tmp_list[1] = fanin_list[i];
 	if ( i < ni - 1 ) {
-	  tmp_node = make_prim_node(string{}, GateType::Xor, tmp_list,
+	  tmp_node = make_prim_node(string{}, PrimType::Xor, tmp_list,
 				    connection_list);
 	}
 	else {
-	  tmp_node = make_prim_node(src_name, GateType::Xnor, tmp_list,
+	  tmp_node = make_prim_node(src_name, PrimType::Xnor, tmp_list,
 				    connection_list);
 	}
 	inode_array[i].set(tmp_node, i);
@@ -379,15 +378,15 @@ TpgNetworkImpl::make_cplx_node(
 {
   // expr はリテラルではない．
   ASSERT_COND( !expr.is_literal() );
-  GateType gate_type;
+  PrimType gate_type;
   if ( expr.is_and() ) {
-    gate_type = GateType::And;
+    gate_type = PrimType::And;
   }
   else if ( expr.is_or() ) {
-    gate_type = GateType::Or;
+    gate_type = PrimType::Or;
   }
   else if ( expr.is_xor() ) {
-    gate_type = GateType::Xor;
+    gate_type = PrimType::Xor;
   }
   else {
     ASSERT_NOT_REACHED;
@@ -443,7 +442,7 @@ TpgNetworkImpl::make_buff_node(
   vector<vector<const TpgNode*>>& connection_list
 )
 {
-  return make_prim_node(name, GateType::Buff, {fanin},
+  return make_prim_node(name, PrimType::Buff, {fanin},
 			connection_list);
 }
 
@@ -455,7 +454,7 @@ TpgNetworkImpl::make_not_node(
   vector<vector<const TpgNode*>>& connection_list
 )
 {
-  return make_prim_node(name, GateType::Not, {fanin},
+  return make_prim_node(name, PrimType::Not, {fanin},
 			connection_list);
 }
 
@@ -463,7 +462,7 @@ TpgNetworkImpl::make_not_node(
 TpgNode*
 TpgNetworkImpl::make_prim_node(
   const string& name,
-  GateType type,
+  PrimType type,
   const vector<const TpgNode*>& fanin_list,
   vector<vector<const TpgNode*>>& connection_list
 )
@@ -481,60 +480,60 @@ TpgNetworkImpl::make_prim_node(
 // @brief 論理ノードを作る．
 TpgNode*
 TpgNetworkImpl::make_logic(
-  GateType gate_type,
+  PrimType gate_type,
   const vector<const TpgNode*>& inode_list
 )
 {
   SizeType ni = inode_list.size();
   TpgNode* node = nullptr;
   switch ( gate_type ) {
-  case GateType::Const0:
+  case PrimType::C0:
     ASSERT_COND( ni == 0 );
 
     node = new TpgLogicC0;
     break;
 
-  case GateType::Const1:
+  case PrimType::C1:
     ASSERT_COND( ni == 0 );
 
     node = new TpgLogicC1;
     break;
 
-  case GateType::Buff:
+  case PrimType::Buff:
     ASSERT_COND( ni == 1 );
 
     node = new TpgLogicBUFF{inode_list[0]};
     break;
 
-  case GateType::Not:
+  case PrimType::Not:
     ASSERT_COND( ni == 1 );
 
     node = new TpgLogicNOT{inode_list[0]};
     break;
 
-  case GateType::And:
+  case PrimType::And:
     node = new TpgLogicAND{inode_list};
     break;
 
-  case GateType::Nand:
+  case PrimType::Nand:
     node = new TpgLogicNAND{inode_list};
     break;
 
-  case GateType::Or:
+  case PrimType::Or:
     node = new TpgLogicOR{inode_list};
     break;
 
-  case GateType::Nor:
+  case PrimType::Nor:
     node = new TpgLogicNOR{inode_list};
     break;
 
-  case GateType::Xor:
+  case PrimType::Xor:
     ASSERT_COND( ni == 2 );
 
     node = new TpgLogicXOR2{inode_list};
     break;
 
-  case GateType::Xnor:
+  case PrimType::Xnor:
     ASSERT_COND( ni == 2 );
 
     node = new TpgLogicXNOR2{inode_list};

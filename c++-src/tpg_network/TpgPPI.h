@@ -51,12 +51,7 @@ public:
   input_id() const override;
 
   /// @brief ゲートタイプを得る．
-  ///
-  /// - is_logic() が true の時はゲートタイプを返す．
-  /// - is_ppi() が true の時は kGateINPUT を返す．
-  /// - is_ppo() が true の時は kGateBUFF を返す．
-  /// - それ以外の返り値は不定
-  GateType
+  PrimType
   gate_type() const override;
 
 

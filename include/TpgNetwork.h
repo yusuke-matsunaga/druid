@@ -82,7 +82,9 @@ public:
   static
   TpgNetwork
   read_blif(
-    const string& filename ///< [in] ファイル名
+    const string& filename,        ///< [in] ファイル名
+    const string& clock_name = {}, ///< [in] クロック入力名
+    const string& reset_name = {}  ///< [in] リセット入力名
   );
 
   /// @brief blif ファイルを読み込む．
@@ -91,8 +93,10 @@ public:
   static
   TpgNetwork
   read_blif(
-    const string& filename,             ///< [in] ファイル名
-    const ClibCellLibrary& cell_library ///< [in] セルライブラリ
+    const string& filename,              ///< [in] ファイル名
+    const ClibCellLibrary& cell_library, ///< [in] セルライブラリ
+    const string& clock_name = {},       ///< [in] クロック入力名
+    const string& reset_name = {}        ///< [in] リセット入力名
   );
 
   /// @brief iscas89 形式のファイルを読み込む．
@@ -101,7 +105,8 @@ public:
   static
   TpgNetwork
   read_iscas89(
-    const string& filename ///< [in] ファイル名
+    const string& filename,       ///< [in] ファイル名
+    const string& clock_name = {} ///< [in] クロック入力名
   );
 
   /// @brief ファイルを読み込む
@@ -111,7 +116,9 @@ public:
     const string& filename,             ///< [in] ファイル名
     const string& format,               ///< [in] ファイルの形式を表す文字列
     const ClibCellLibrary& cell_library ///< [in] セルライブラリ
-    = ClibCellLibrary{}
+    = ClibCellLibrary{},
+    const string& clock_name = {},       ///< [in] クロック入力名
+    const string& reset_name = {}        ///< [in] リセット入力名
   );
 
   /// @brief デストラクタ
@@ -336,12 +343,15 @@ private:
 
   /// @brief BlifModel からの変換コンストラクタ
   TpgNetwork(
-    const BlifModel& model ///< [in] 設定元のネットワーク
+    const BlifModel& model,   ///< [in] 設定元のネットワーク
+    const string& clock_name, ///< [in] クロック入力名
+    const string& reset_name  ///< [in] リセット入力名
   );
 
   /// @brief Iscas89Model からの変換コンストラクタ
   TpgNetwork(
-    const Iscas89Model& model ///< [in] 設定元のネットワーク
+    const Iscas89Model& model, ///< [in] 設定元のネットワーク
+    const string& clock_name   ///< [in] クロック入力名
   );
 
 

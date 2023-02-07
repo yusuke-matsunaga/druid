@@ -8,7 +8,6 @@
 
 #include "gtest/gtest.h"
 #include "GateEnc.h"
-#include "GateType.h"
 #include "TpgNetworkImpl.h"
 #include "TpgGateInfo.h"
 #include "TpgNode.h"
@@ -41,7 +40,7 @@ public:
   void
   check(
     SizeType input_num, ///< [in] 入力数
-    GateType gate_type, ///< [in] ゲートの種類
+    PrimType gate_type, ///< [in] ゲートの種類
     int vals[]          ///< [in] 真理値表を表す配列
   );
 
@@ -71,7 +70,7 @@ GateEncTest::~GateEncTest()
 void
 GateEncTest::check(
   SizeType input_num,
-  GateType gate_type,
+  PrimType gate_type,
   int vals[]
 )
 {
@@ -87,7 +86,7 @@ GateEncTest::check(
   }
   // ゲートを作る．
   vector<vector<const TpgNode*>> connection_list(mNetworkImpl.node_num());
-  TpgNode* node = mNetworkImpl.make_logic_node(string(), gimgr.simple_type(gate_type),
+  TpgNode* node = mNetworkImpl.make_logic_node({}, gimgr.simple_type(gate_type),
 					       input_list, connection_list);
 
   ASSERT_EQ( input_num + 1, mNetworkImpl.node_num() );
@@ -148,137 +147,137 @@ GateEncTest::check(
 TEST_F(GateEncTest, const0)
 {
   int vals[] = { 0 };
-  check(0, GateType::Const0, vals);
+  check(0, PrimType::C0, vals);
 }
 
 TEST_F(GateEncTest, const1)
 {
   int vals[] = { 1 };
-  check(0, GateType::Const1, vals);
+  check(0, PrimType::C1, vals);
 }
 
 TEST_F(GateEncTest, buff)
 {
   int vals[] = { 0, 1 };
-  check(1, GateType::Buff, vals);
+  check(1, PrimType::Buff, vals);
 }
 
 TEST_F(GateEncTest, not)
 {
   int vals[] = { 1, 0 };
-  check(1, GateType::Not, vals);
+  check(1, PrimType::Not, vals);
 }
 
 TEST_F(GateEncTest, and2)
 {
   int vals[] = { 0, 0, 0, 1 };
-  check(2, GateType::And, vals);
+  check(2, PrimType::And, vals);
 }
 
 TEST_F(GateEncTest, and3)
 {
   int vals[] = { 0, 0, 0, 0, 0, 0, 0, 1 };
-  check(3, GateType::And, vals);
+  check(3, PrimType::And, vals);
 }
 
 TEST_F(GateEncTest, and4)
 {
   int vals[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-  check(4, GateType::And, vals);
+  check(4, PrimType::And, vals);
 }
 
 TEST_F(GateEncTest, and5)
 {
   int vals[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-  check(5, GateType::And, vals);
+  check(5, PrimType::And, vals);
 }
 
 TEST_F(GateEncTest, nand2)
 {
   int vals[] = { 1, 1, 1, 0 };
-  check(2, GateType::Nand, vals);
+  check(2, PrimType::Nand, vals);
 }
 
 TEST_F(GateEncTest, nand3)
 {
   int vals[] = { 1, 1, 1, 1, 1, 1, 1, 0 };
-  check(3, GateType::Nand, vals);
+  check(3, PrimType::Nand, vals);
 }
 
 TEST_F(GateEncTest, nand4)
 {
   int vals[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 };
-  check(4, GateType::Nand, vals);
+  check(4, PrimType::Nand, vals);
 }
 
 TEST_F(GateEncTest, nand5)
 {
   int vals[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 };
-  check(5, GateType::Nand, vals);
+  check(5, PrimType::Nand, vals);
 }
 
 TEST_F(GateEncTest, or2)
 {
   int vals[] = { 0, 1, 1, 1 };
-  check(2, GateType::Or, vals);
+  check(2, PrimType::Or, vals);
 }
 
 TEST_F(GateEncTest, or3)
 {
   int vals[] = { 0, 1, 1, 1, 1, 1, 1, 1 };
-  check(3, GateType::Or, vals);
+  check(3, PrimType::Or, vals);
 }
 
 TEST_F(GateEncTest, or4)
 {
   int vals[] = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-  check(4, GateType::Or, vals);
+  check(4, PrimType::Or, vals);
 }
 
 TEST_F(GateEncTest, or5)
 {
   int vals[] = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-  check(5, GateType::Or, vals);
+  check(5, PrimType::Or, vals);
 }
 
 TEST_F(GateEncTest, nor2)
 {
   int vals[] = { 1, 0, 0, 0 };
-  check(2, GateType::Nor, vals);
+  check(2, PrimType::Nor, vals);
 }
 
 TEST_F(GateEncTest, nor3)
 {
   int vals[] = { 1, 0, 0, 0, 0, 0, 0, 0 };
-  check(3, GateType::Nor, vals);
+  check(3, PrimType::Nor, vals);
 }
 
 TEST_F(GateEncTest, nor4)
 {
   int vals[] = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  check(4, GateType::Nor, vals);
+  check(4, PrimType::Nor, vals);
 }
 
 TEST_F(GateEncTest, nor5)
 {
   int vals[] = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  check(5, GateType::Nor, vals);
+  check(5, PrimType::Nor, vals);
 }
 
 TEST_F(GateEncTest, xor2)
 {
   int vals[] = { 0, 1, 1, 0 };
-  check(2, GateType::Xor, vals);
+  check(2, PrimType::Xor, vals);
 }
 
 TEST_F(GateEncTest, xnor2)
 {
   int vals[] = { 1, 0, 0, 1 };
-  check(2, GateType::Xnor, vals);
+  check(2, PrimType::Xnor, vals);
 }
 
 END_NAMESPACE_DRUID

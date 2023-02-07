@@ -9,7 +9,6 @@
 #include "TpgGateInfo.h"
 #include "SimpleGateInfo.h"
 #include "CplxGateInfo.h"
-#include "GateType.h"
 #include "Val3.h"
 #include "ym/Range.h"
 
@@ -159,42 +158,42 @@ calc_c_val(
 // 制御値の計算を行う．
 Val3
 c_val(
-  GateType gate_type,
+  PrimType gate_type,
   Val3 ival
 )
 {
   switch ( gate_type ) {
-  case GateType::Const0:
-  case GateType::Const1:
+  case PrimType::C0:
+  case PrimType::C1:
     // 常に X
     return Val3::_X;
 
-  case GateType::Buff:
+  case PrimType::Buff:
     // そのまま返す．
     return ival;
 
-  case GateType::Not:
+  case PrimType::Not:
     // 反転して返す．
     return ~ival;
 
-  case GateType::And:
+  case PrimType::And:
     // 0 の時のみ 0
     return ival == Val3::_0 ? Val3::_0 : Val3::_X;
 
-  case GateType::Nand:
+  case PrimType::Nand:
     // 0 の時のみ 1
     return ival == Val3::_0 ? Val3::_1 : Val3::_X;
 
-  case GateType::Or:
+  case PrimType::Or:
     // 1 の時のみ 1
     return ival == Val3::_1 ? Val3::_1 : Val3::_X;
 
-  case GateType::Nor:
+  case PrimType::Nor:
     // 1 の時のみ 0
     return ival == Val3::_1 ? Val3::_0 : Val3::_X;
 
-  case GateType::Xor:
-  case GateType::Xnor:
+  case PrimType::Xor:
+  case PrimType::Xnor:
     // 常に X
     return Val3::_X;
 
@@ -214,7 +213,7 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 SimpleGateInfo::SimpleGateInfo(
-  GateType gate_type
+  PrimType gate_type
 ) : mGateType{gate_type}
 {
   mCVal[0] = c_val(gate_type, Val3::_0);
@@ -234,7 +233,7 @@ SimpleGateInfo::is_simple() const
 }
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 SimpleGateInfo::gate_type() const
 {
   return mGateType;
@@ -298,11 +297,11 @@ CplxGateInfo::is_simple() const
 }
 
 // @brief ゲートタイプを返す．
-GateType
+PrimType
 CplxGateInfo::gate_type() const
 {
   // ダミー
-  return GateType::Const0;
+  return PrimType::None;
 }
 
 // @brief 論理式を返す．
@@ -338,16 +337,16 @@ CplxGateInfo::cval(
 // @brief コンストラクタ
 TpgGateInfoMgr::TpgGateInfoMgr()
 {
-  mSimpleType[0] = new SimpleGateInfo(GateType::Const0);
-  mSimpleType[1] = new SimpleGateInfo(GateType::Const1);
-  mSimpleType[2] = new SimpleGateInfo(GateType::Buff);
-  mSimpleType[3] = new SimpleGateInfo(GateType::Not);
-  mSimpleType[4] = new SimpleGateInfo(GateType::And);
-  mSimpleType[5] = new SimpleGateInfo(GateType::Nand);
-  mSimpleType[6] = new SimpleGateInfo(GateType::Or);
-  mSimpleType[7] = new SimpleGateInfo(GateType::Nor);
-  mSimpleType[8] = new SimpleGateInfo(GateType::Xor);
-  mSimpleType[9] = new SimpleGateInfo(GateType::Xnor);
+  mSimpleType[0] = new SimpleGateInfo(PrimType::C0);
+  mSimpleType[1] = new SimpleGateInfo(PrimType::C1);
+  mSimpleType[2] = new SimpleGateInfo(PrimType::Buff);
+  mSimpleType[3] = new SimpleGateInfo(PrimType::Not);
+  mSimpleType[4] = new SimpleGateInfo(PrimType::And);
+  mSimpleType[5] = new SimpleGateInfo(PrimType::Nand);
+  mSimpleType[6] = new SimpleGateInfo(PrimType::Or);
+  mSimpleType[7] = new SimpleGateInfo(PrimType::Nor);
+  mSimpleType[8] = new SimpleGateInfo(PrimType::Xor);
+  mSimpleType[9] = new SimpleGateInfo(PrimType::Xnor);
 }
 
 // @brief デストラクタ
@@ -361,23 +360,39 @@ TpgGateInfoMgr::~TpgGateInfoMgr()
   }
 }
 
+// @brief TpgGateInfo を登録する．
+const TpgGateInfo*
+TpgGateInfoMgr::new_info(
+  SizeType ni,
+  const Expr& expr
+)
+{
+  auto prim_type = expr.analyze();
+  if ( prim_type != PrimType::None ) {
+    return simple_type(prim_type);
+  }
+  else {
+    return complex_type(ni, expr);
+  }
+}
+
 // @brief 組み込み型のオブジェクトを返す．
 const TpgGateInfo*
 TpgGateInfoMgr::simple_type(
-  GateType gate_type
+  PrimType prim_type
 )
 {
-  switch ( gate_type ) {
-  case GateType::Const0: return mSimpleType[0];
-  case GateType::Const1: return mSimpleType[1];
-  case GateType::Buff:   return mSimpleType[2];
-  case GateType::Not:    return mSimpleType[3];
-  case GateType::And:    return mSimpleType[4];
-  case GateType::Nand:   return mSimpleType[5];
-  case GateType::Or:     return mSimpleType[6];
-  case GateType::Nor:    return mSimpleType[7];
-  case GateType::Xor:    return mSimpleType[8];
-  case GateType::Xnor:   return mSimpleType[9];
+  switch ( prim_type ) {
+  case PrimType::C0:   return mSimpleType[0];
+  case PrimType::C1:   return mSimpleType[1];
+  case PrimType::Buff: return mSimpleType[2];
+  case PrimType::Not:  return mSimpleType[3];
+  case PrimType::And:  return mSimpleType[4];
+  case PrimType::Nand: return mSimpleType[5];
+  case PrimType::Or:   return mSimpleType[6];
+  case PrimType::Nor:  return mSimpleType[7];
+  case PrimType::Xor:  return mSimpleType[8];
+  case PrimType::Xnor: return mSimpleType[9];
   default: break;
   }
   ASSERT_NOT_REACHED;

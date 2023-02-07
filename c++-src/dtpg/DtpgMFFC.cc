@@ -12,7 +12,6 @@
 #include "TpgFault.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
-#include "GateType.h"
 #include "GateEnc.h"
 #include "NodeValList.h"
 #include "TestVector.h"

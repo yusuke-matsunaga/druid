@@ -371,13 +371,16 @@ public:
   /// @brief BlifModel から内容を設定する．
   void
   set(
-    const BlifModel& model
+    const BlifModel& model,
+    const string& clock_name,
+    const string& reset_name
   );
 
   /// @brief Iscas89Model から内容を設定する．
   void
   set(
-    const Iscas89Model& model
+    const Iscas89Model& model,
+    const string& clock_name
   );
 
   /// @brief サイズを設定する．
@@ -583,7 +586,7 @@ public:
   TpgNode*
   make_prim_node(
     const string& name,                       ///< [in] ノード名
-    GateType type,			      ///< [in] ゲートの型
+    PrimType type,			      ///< [in] ゲートの型
     const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
     vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
   );
@@ -592,7 +595,7 @@ public:
   /// @return 作成したノードを返す．
   TpgNode*
   make_logic(
-    GateType gate_type,                      ///< [in] ゲートタイプ
+    PrimType gate_type,                      ///< [in] ゲートタイプ
     const vector<const TpgNode*>& inode_list ///< [in] 入力ノードのリスト
   );
 

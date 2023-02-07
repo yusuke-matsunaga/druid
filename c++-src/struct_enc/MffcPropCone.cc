@@ -14,7 +14,6 @@
 #include "TpgFault.h"
 #include "NodeValList.h"
 #include "GateEnc.h"
-#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID_STRUCTENC

@@ -37,7 +37,7 @@ public:
 public:
 
   /// @brief ゲートタイプを返す．
-  GateType
+  PrimType
   gate_type() const override;
 
 
@@ -83,7 +83,7 @@ public:
 public:
 
   /// @brief ゲートタイプを返す．
-  GateType
+  PrimType
   gate_type() const override;
 
 
