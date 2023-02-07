@@ -26,7 +26,7 @@ def test_read_blif():
     assert network.ffr_num == 5676
     assert network.dff_num == 1452
 
-    for ffr in network.ffr_list():
+    for ffr in network.ffr_list:
         for fault in ffr.fault_list:
             print(fault)
             

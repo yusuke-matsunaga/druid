@@ -17,6 +17,14 @@ TEST(DruidTest, read_iscas89_1)
   string filename = "b01.bench";
   string path = DATAPATH + filename;
   auto network = TpgNetwork::read_iscas89(path);
+  EXPECT_EQ( 60, network.node_num() );
+  EXPECT_EQ( 3, network.input_num() );
+  EXPECT_EQ( 2, network.output_num() );
+  EXPECT_EQ( 8, network.ppi_num() );
+  EXPECT_EQ( 7, network.ppo_num() );
+  EXPECT_EQ( 21, network.mffc_num() );
+  EXPECT_EQ( 24, network.ffr_num() );
+  EXPECT_EQ( 5, network.dff_num() );
 }
 
 TEST(DruidTest, bad_read_iscas89_1)

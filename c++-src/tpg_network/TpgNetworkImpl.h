@@ -381,12 +381,13 @@ public:
   );
 
   /// @brief サイズを設定する．
-  void
+  SizeType
   set_size(
     SizeType input_num,
     SizeType output_num,
     SizeType dff_num,
-    SizeType node_num
+    SizeType gate_num,
+    SizeType dff_control_num
   );
 
   /// @brief set() の後処理

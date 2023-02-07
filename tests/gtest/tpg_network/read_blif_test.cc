@@ -20,6 +20,15 @@ TEST(DruidTest, read_blif_1)
   string path = DATAPATH + filename;
   auto network = TpgNetwork::read_blif(path);
 
+  EXPECT_EQ( 23900, network.node_num() );
+  EXPECT_EQ( 13, network.input_num() );
+  EXPECT_EQ( 278, network.output_num() );
+  EXPECT_EQ( 1465, network.ppi_num() );
+  EXPECT_EQ( 1730, network.ppo_num() );
+  EXPECT_EQ( 4689, network.mffc_num() );
+  EXPECT_EQ( 5676, network.ffr_num() );
+  EXPECT_EQ( 1452, network.dff_num() );
+
   auto nn = network.node_num();
   for ( SizeType i = 0; i < nn; ++ i ) {
     auto node = network.node(i);

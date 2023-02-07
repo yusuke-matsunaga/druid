@@ -51,7 +51,7 @@ TpgNetwork::TpgNetwork(
   const Iscas89Model& model
 ) : mImpl{new TpgNetworkImpl}
 {
-  //mImpl->set(model);
+  mImpl->set(model);
 }
 
 // @brief ムーブコンストラクタ
@@ -105,16 +105,11 @@ TpgNetwork::read_iscas89(
   const string& filename
 )
 {
-#if 1
   Iscas89Model model;
   if ( !model.read(filename) ) {
     throw std::invalid_argument("read failed");
   }
   return TpgNetwork{model};
-#else
-  auto network = BnNetwork::read_iscas89(filename);
-  return TpgNetwork{network};
-#endif
 }
 
 // @brief ファイルを読み込む

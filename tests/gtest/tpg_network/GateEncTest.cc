@@ -75,7 +75,7 @@ GateEncTest::check(
   int vals[]
 )
 {
-  mNetworkImpl.set_size(input_num, 0, 0, input_num + 1);
+  mNetworkImpl.set_size(input_num, 0, 0, 1, 0);
 
   TpgGateInfoMgr gimgr;
 

@@ -25,6 +25,8 @@
 #include "ym/BnNode.h"
 #include "ym/Expr.h"
 
+#include "ym/BlifModel.h"
+#include "ym/BlifCover.h"
 #include "ym/Iscas89Model.h"
 #include "ym/Range.h"
 
@@ -37,20 +39,20 @@ BEGIN_NONAMESPACE
 inline
 GateType
 conv_to_gate_type(
-  BnNodeType type
+  PrimType type
 )
 {
   switch ( type ) {
-  case BnNodeType::C0:   return GateType::Const0;
-  case BnNodeType::C1:   return GateType::Const1;
-  case BnNodeType::Buff: return GateType::Buff;
-  case BnNodeType::Not:  return GateType::Not;
-  case BnNodeType::And:  return GateType::And;
-  case BnNodeType::Nand: return GateType::Nand;
-  case BnNodeType::Or:   return GateType::Or;
-  case BnNodeType::Nor:  return GateType::Nor;
-  case BnNodeType::Xor:  return GateType::Xor;
-  case BnNodeType::Xnor: return GateType::Xnor;
+  case PrimType::C0:   return GateType::Const0;
+  case PrimType::C1:   return GateType::Const1;
+  case PrimType::Buff: return GateType::Buff;
+  case PrimType::Not:  return GateType::Not;
+  case PrimType::And:  return GateType::And;
+  case PrimType::Nand: return GateType::Nand;
+  case PrimType::Or:   return GateType::Or;
+  case PrimType::Nor:  return GateType::Nor;
+  case PrimType::Xor:  return GateType::Xor;
+  case PrimType::Xnor: return GateType::Xnor;
   default: break;
   }
   ASSERT_NOT_REACHED;
@@ -124,13 +126,13 @@ struct Lt
 
 void
 check_network_connection(
-  const TpgNetworkImpl& network
+  const TpgNetworkImpl* network
 )
 {
   // fanin/fanout の sanity check
   bool error = false;
 
-  for ( auto node: network.node_list() ) {
+  for ( auto node: network->node_list() ) {
     for ( auto inode: node->fanin_list() ) {
       bool found = false;
       for ( auto onode: inode->fanout_list() ) {
@@ -324,15 +326,6 @@ TpgNetworkImpl::mffc_fault_list(
   return mffc.mFaultList;
 }
 
-#if 0
-// @brief MFFC のリストを得る．
-const vector<TpgMFFC>&
-TpgNetworkImpl::mffc_list() const
-{
-  return mMffcArray;
-}
-#endif
-
 // @brief FFR を返す．
 TpgFFR
 TpgNetworkImpl::ffr(
@@ -430,16 +423,18 @@ TpgNetworkImpl::set(
   // 追加で生成されるノード数を数える．
   //////////////////////////////////////////////////////////////////////
   SizeType extra_node_num = 0;
-  SizeType nl = network.logic_num();
   for ( auto src_node: network.logic_list() ) {
     auto logic_type = src_node.type();
     if ( logic_type == BnNodeType::Expr ) {
-      auto node_info = node_info_list[src_node.func_id()];
+      auto node_info = node_info_list[src_node.expr_id()];
       extra_node_num += node_info->extra_node_num();
     }
-    else if ( logic_type == BnNodeType::Xor || logic_type == BnNodeType::Xnor ) {
-      SizeType ni = src_node.fanin_num();
-      extra_node_num += (ni - 2);
+    else if ( logic_type == BnNodeType::Prim ) {
+      auto prim_type = src_node.primitive_type();
+      if ( prim_type == PrimType::Xor || prim_type == PrimType::Xnor ) {
+	SizeType ni = src_node.fanin_num();
+	extra_node_num += (ni - 2);
+      }
     }
   }
 
@@ -468,7 +463,7 @@ TpgNetworkImpl::set(
   SizeType input_num = input_map.size();
   SizeType output_num = output_map.size();
   SizeType dff_num = network.dff_num();
-
+  SizeType gate_num = network.logic_num() + extra_node_num;
   SizeType dff_control_num = 0;
   for ( auto dff: network.dff_list() ) {
     // まずクロックで一つ
@@ -483,8 +478,9 @@ TpgNetworkImpl::set(
     }
   }
 
-  SizeType nn = input_num + output_num + dff_num * 2 + nl + extra_node_num + dff_control_num;
-  set_size(input_num, output_num, dff_num, nn);
+  // ノード数の見積もり
+  SizeType nn = set_size(input_num, output_num, dff_num,
+			 gate_num, dff_control_num);
 
   NodeMap node_map;
   vector<vector<const TpgNode*>> connection_list(nn);
@@ -521,12 +517,14 @@ TpgNetworkImpl::set(
     const TpgGateInfo* node_info = nullptr;
     auto logic_type = src_node.type();
     if ( logic_type == BnNodeType::Expr ) {
-      node_info = node_info_list[src_node.func_id()];
+      node_info = node_info_list[src_node.expr_id()];
+    }
+    else if ( logic_type == BnNodeType::Prim ) {
+      auto gate_type = conv_to_gate_type(src_node.primitive_type());
+      node_info = node_info_mgr.simple_type(gate_type);
     }
     else {
-      ASSERT_COND( logic_type != BnNodeType::TvFunc );
-      auto gate_type = conv_to_gate_type(logic_type);
-      node_info = node_info_mgr.simple_type(gate_type);
+      ASSERT_NOT_REACHED;
     }
 
     // ファンインのノードを取ってくる．
@@ -610,16 +608,16 @@ TpgNetworkImpl::set(
 
   TpgGateInfoMgr node_info_mgr;
 
-#if 0
   //////////////////////////////////////////////////////////////////////
   // 複雑な形のゲートを調べる．
   //////////////////////////////////////////////////////////////////////
   SizeType nc = model.cover_num();
   vector<const TpgGateInfo*> node_info_array(nc);
   for ( SizeType i = 0; i < nc; ++ i ) {
-    auto& cover = mode.cover(i);
+    auto& cover = model.cover(i);
+    auto expr = cover.expr();
+    SizeType ni = cover.input_num();
   }
-#endif
 }
 
 // @brief 内容を設定する．
@@ -694,19 +692,21 @@ TpgNetworkImpl::set(
   SizeType input_num = model.input_list().size();
   SizeType output_num = model.output_list().size();
   SizeType dff_num = model.dff_list().size();
-  SizeType gate_num = model.gate_list().size();
+  SizeType gate_num = model.gate_list().size() + extra_node_num;
 
-  SizeType dff_control_num = 0;
+  // .bench はクロックが明示的に指定されていない．
   if ( dff_num > 0 ) {
-    // .bench はクロックしか持たない．
-    dff_control_num += 1;
+    ++ input_num;
   }
+  // .bench はクロックしか持たない．
+  SizeType dff_control_num = dff_num;
 
-  SizeType nn = input_num + output_num + dff_num * 2 + gate_num + extra_node_num + dff_control_num;
-  set_size(input_num, output_num, dff_num, nn);
+  // 生成されるノード数を見積もる．
+  SizeType nn = set_size(input_num, output_num, dff_num,
+			 gate_num, dff_control_num);
 
   NodeMap node_map;
-  vector<vector<const TpgNode*>> connection_list;
+  vector<vector<const TpgNode*>> connection_list(nn);
 
   //////////////////////////////////////////////////////////////////////
   // 入力ノードを作成する．
@@ -718,6 +718,14 @@ TpgNetworkImpl::set(
   }
 
   //////////////////////////////////////////////////////////////////////
+  // .bench には外部クロック端子の記述がないので生成する
+  //////////////////////////////////////////////////////////////////////
+  TpgNode* clock_node = nullptr;
+  if ( dff_num > 0 ) {
+    clock_node = make_input_node("__clock__");
+  }
+
+  //////////////////////////////////////////////////////////////////////
   // DFFの出力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
   SizeType dff_id = 0;
@@ -726,14 +734,6 @@ TpgNetworkImpl::set(
     auto node = make_dff_output_node(dff_id, name);
     node_map.reg(id, node);
     ++ dff_id;
-  }
-
-  //////////////////////////////////////////////////////////////////////
-  // .bench には外部クロック端子の記述がないので生成する
-  //////////////////////////////////////////////////////////////////////
-  TpgNode* clock_node = nullptr;
-  if ( dff_num > 0 ) {
-    clock_node = make_input_node("__clock__");
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -780,7 +780,7 @@ TpgNetworkImpl::set(
     string buf = "*";
     buf += model.node_name(id);
     auto node = make_output_node(buf, inode);
-    connection_list[id].push_back(node);
+    connection_list[inode->id()].push_back(node);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -807,12 +807,13 @@ TpgNetworkImpl::set(
 }
 
 // @brief サイズを設定する．
-void
+SizeType
 TpgNetworkImpl::set_size(
   SizeType input_num,
   SizeType output_num,
   SizeType dff_num,
-  SizeType node_num
+  SizeType gate_num,
+  SizeType dff_control_num
 )
 {
   mInputNum = input_num;
@@ -822,6 +823,8 @@ TpgNetworkImpl::set_size(
   for ( auto i: Range(dff_num) ) {
     mDffArray[i].mId = i;
   }
+
+  SizeType node_num = input_num + output_num + dff_num * 2 + gate_num + dff_control_num;
 
   mNodeArray.clear();
   mNodeArray.reserve(node_num);
@@ -837,6 +840,8 @@ TpgNetworkImpl::set_size(
   mPPOArray.reserve(nppo);
   mPPOArray2.clear();
   mPPOArray2.reserve(nppo);
+
+  return node_num;
 }
 
 // @brief set() の後処理
@@ -856,7 +861,7 @@ TpgNetworkImpl::post_op(
 
   { // 検証
     // 接続が正しいかチェックする．
-    check_network_connection(*this);
+    check_network_connection(this);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -1087,11 +1092,6 @@ TpgNetworkImpl::set_ffr(
 
   ffr.mRoot = root;
 
-  // root を根とするFFRの故障リストを求める．
-  //vector<const TpgFault*> fault_list;
-
-  // root を根とするFFRの入力のリスト
-  //vector<const TpgNode*> input_list;
   // input_list の重複チェック用のハッシュ表
   unordered_set<int> input_hash;
 
@@ -1135,8 +1135,6 @@ TpgNetworkImpl::set_mffc(
   // root を根とする MFFC の情報を得る．
   vector<bool> mark(node_num());
   vector<const TpgNode*> node_list;
-  //vector<const TpgFFR*> ffr_list;
-  //vector<const TpgFault*> fault_list;
 
   node_list.push_back(root);
   mark[root->id()] = true;
@@ -1159,10 +1157,6 @@ TpgNetworkImpl::set_mffc(
       }
     }
   }
-
-  //mAuxInfoArray[root->id()].set_mffc(mffc);
-
-  //mffc->set(root, ffr_list, fault_list);
 }
 
 END_NAMESPACE_DRUID
