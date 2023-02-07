@@ -128,7 +128,7 @@ TpgNetworkImpl::set(
   unordered_map<SizeType, SizeType> dff_dict;
 
   //////////////////////////////////////////////////////////////////////
-  // 入力ノードを作成する．
+  // 外部入力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
   for ( auto id: model.input_list() ) {
     auto name = model.node_name(id);
@@ -146,18 +146,18 @@ TpgNetworkImpl::set(
     clock_input = make_input_node(name);
   }
 
-  TpgNode* clear_input = nullptr;
+  TpgNode* reset_input = nullptr;
   if ( has_clear ) {
     // クリア入力の生成
     auto name = reset_name;
     if ( name == string{} ) {
       name = "__reset__";
     }
-    clear_input = make_input_node(name);
+    reset_input = make_input_node(name);
   }
 
   //////////////////////////////////////////////////////////////////////
-  // DFFの出力ノードを作成する．
+  // DFFの出力ノード(PPI)を作成する．
   //////////////////////////////////////////////////////////////////////
   SizeType dff_id = 0;
   for ( auto id: model.dff_list() ) {
@@ -226,14 +226,14 @@ TpgNetworkImpl::set(
     char rval = model.node_rval(src_id);
     if ( rval == '0' ) {
       string clear_name = dff_name + ".clear";
-      auto clear = make_dff_clear_node(dff_id, clear_name, clear_input);
-      connection_list[clear_input->id()].push_back(clear);
+      auto clear = make_dff_clear_node(dff_id, clear_name, reset_input);
+      connection_list[reset_input->id()].push_back(clear);
     }
     else if ( rval == '1' ) {
       // プリセット端子を作る．
       string preset_name = dff_name + ".preset";
-      auto preset = make_dff_preset_node(dff_id, preset_name, clear_input);
-      connection_list[clear_input->id()].push_back(preset);
+      auto preset = make_dff_preset_node(dff_id, preset_name, reset_input);
+      connection_list[reset_input->id()].push_back(preset);
     }
   }
 

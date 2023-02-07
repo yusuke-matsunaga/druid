@@ -98,40 +98,6 @@ public:
     return *this;
   }
 
-  /// @brief 割当リストからTestVectorを作るクラスメソッド
-  /// @return assign_list から変換したテストベクタ
-  ///
-  /// assign_list に外部入力とDFF以外の割当が含まれている場合無視する．
-  static
-  TestVector
-  new_from_assign_list(
-    SizeType input_num,            ///< [in] 入力数
-    SizeType dff_num,		   ///< [in] DFF数
-    FaultType fault_type,	   ///< [in] 故障の種類
-    const NodeValList& assign_list ///< [in] 割当リスト
-  );
-
-  /// @brief HEX文字列からTestVectorを作るクラスメソッド
-  /// @return 生成したテストベクタ
-  ///
-  /// 1時刻目の外部入力，１時刻目のDFF，２時刻目の外部入力の順にならんでいると仮定する．<br>
-  /// hex_string が短い時には残りはXで初期化される．<br>
-  /// hex_string が長い時には余りは捨てられる．<br>
-  static
-  TestVector
-  new_from_hex(
-    SizeType input_num,      ///< [in] 入力数
-    SizeType dff_num,	     ///< [in] DFF数
-    FaultType fault_type,    ///< [in] 故障の種類
-    const string& hex_string ///< [in] HEX 文字列
-  )
-  {
-    TestVector tv{input_num, dff_num, fault_type};
-    tv.mVector.set_from_hex(hex_string);
-
-    return tv;
-  }
-
   /// @brief デストラクタ
   ~TestVector() = default;
 
@@ -263,12 +229,6 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // TestVector の演算
-  //////////////////////////////////////////////////////////////////////
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
   // 値を設定する関数
   //////////////////////////////////////////////////////////////////////
 
@@ -277,6 +237,27 @@ public:
   init()
   {
     mVector.init();
+  }
+
+  /// @brief 割当リストから値を設定する．
+  ///
+  /// assign_list に外部入力とDFF以外の割当が含まれている場合無視する．
+  void
+  set_from_assign_list(
+    const NodeValList& assign_list ///< [in] 割当リスト
+  );
+
+  /// @brief HEX文字列から値を設定する．
+  ///
+  /// 1時刻目の外部入力，１時刻目のDFF，２時刻目の外部入力の順にならんでいると仮定する．<br>
+  /// hex_string が短い時には残りはXで初期化される．<br>
+  /// hex_string が長い時には余りは捨てられる．<br>
+  void
+  set_from_hex(
+    const string& hex_string ///< [in] HEX 文字列
+  )
+  {
+    mVector.set_from_hex(hex_string);
   }
 
   /// @brief PPIの値を設定する．

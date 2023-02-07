@@ -110,7 +110,7 @@ TvInputVals::set_val(
 {
   SizeType iid = 0;
   for ( auto simnode: fsim.ppi_list() ) {
-    Val3 val3 = mTestVector.ppi_val(iid);
+    auto val3 = mTestVector.ppi_val(iid);
     simnode->set_val(val3_to_packedval(val3));
     ++ iid;
   }
@@ -124,7 +124,7 @@ TvInputVals::set_val1(
 {
   SizeType iid = 0;
   for ( auto simnode: fsim.ppi_list() ) {
-    Val3 val3 = mTestVector.ppi_val(iid);
+    auto val3 = mTestVector.ppi_val(iid);
     simnode->set_val(val3_to_packedval(val3));
     ++ iid;
   }
@@ -138,7 +138,7 @@ TvInputVals::set_val2(
 {
   SizeType iid = 0;
   for ( auto simnode: fsim.input_list() ) {
-    Val3 val3 = mTestVector.aux_input_val(iid);
+    auto val3 = mTestVector.aux_input_val(iid);
     simnode->set_val(val3_to_packedval(val3));
     ++ iid;
   }
@@ -157,7 +157,7 @@ Tv2InputVals::Tv2InputVals(
 {
   // パタンのセットされている最初のビット位置を求めておく．
   mPatFirstBit = PV_BITLEN;
-  for ( int i = 0; i < PV_BITLEN; ++ i ) {
+  for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
     if ( mPatMap & (1ULL << i) ) {
       mPatArray[i] = pat_array[i];
       if ( mPatFirstBit > i ) {
@@ -181,11 +181,11 @@ Tv2InputVals::set_val(
   // 設定されていないビットはどこか他の設定されているビットをコピーする．
   SizeType iid = 0;
   for ( auto simnode: fsim.ppi_list() ) {
-    FSIM_VALTYPE val = init_val();
+    auto val = init_val();
     PackedVal bit = 1ULL;
     for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
-      int pos = (mPatMap & bit) ? i : mPatFirstBit;
-      Val3 ival = mPatArray[pos].ppi_val(iid);
+      SizeType pos = (mPatMap & bit) ? i : mPatFirstBit;
+      auto ival = mPatArray[pos].ppi_val(iid);
       bit_set(val, ival, bit);
     }
     simnode->set_val(val);
@@ -202,11 +202,11 @@ Tv2InputVals::set_val1(
   // 設定されていないビットはどこか他の設定されているビットをコピーする．
   SizeType iid = 0;
   for ( auto simnode: fsim.ppi_list() ) {
-    FSIM_VALTYPE val = init_val();
+    auto val = init_val();
     PackedVal bit = 1ULL;
     for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
-      int pos = (mPatMap & bit) ? i : mPatFirstBit;
-      Val3 ival = mPatArray[pos].ppi_val(iid);
+      SizeType pos = (mPatMap & bit) ? i : mPatFirstBit;
+      auto ival = mPatArray[pos].ppi_val(iid);
       bit_set(val, ival, bit);
     }
     simnode->set_val(val);
@@ -223,11 +223,11 @@ Tv2InputVals::set_val2(
   // 設定されていないビットはどこか他の設定されているビットをコピーする．
   SizeType iid = 0;
   for ( auto simnode: fsim.input_list() ) {
-    FSIM_VALTYPE val = init_val();
+    auto val = init_val();
     PackedVal bit = 1ULL;
     for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
-      int pos = (mPatMap & bit) ? i : mPatFirstBit;
-      Val3 ival = mPatArray[pos].aux_input_val(iid);
+      SizeType pos = (mPatMap & bit) ? i : mPatFirstBit;
+      auto ival = mPatArray[pos].aux_input_val(iid);
       bit_set(val, ival, bit);
     }
     simnode->set_val(val);
@@ -258,15 +258,15 @@ NvlInputVals::set_val(
   FSIM_CLASSNAME& fsim
 ) const
 {
-  FSIM_VALTYPE val0 = init_val();
+  auto val0 = init_val();
   for ( auto simnode: fsim.ppi_list() ) {
     simnode->set_val(val0);
   }
 
   for ( auto nv: mAssignList ) {
     ASSERT_COND( nv.time() == 1 );
-    int iid = nv.node()->input_id();
-    SimNode* simnode = fsim.ppi(iid);
+    SizeType iid = nv.node()->input_id();
+    auto simnode = fsim.ppi(iid);
     simnode->set_val(int_to_packedval(nv.val()));
   }
 }
@@ -277,15 +277,15 @@ NvlInputVals::set_val1(
   FSIM_CLASSNAME& fsim
 ) const
 {
-  FSIM_VALTYPE val0 = init_val();
+  auto val0 = init_val();
   for ( auto simnode: fsim.ppi_list() ) {
     simnode->set_val(val0);
   }
 
   for ( auto nv: mAssignList ) {
     if ( nv.time() == 0 ) {
-      int iid = nv.node()->input_id();
-      SimNode* simnode = fsim.ppi(iid);
+      SizeType iid = nv.node()->input_id();
+      auto simnode = fsim.ppi(iid);
       simnode->set_val(int_to_packedval(nv.val()));
     }
   }
@@ -297,15 +297,15 @@ NvlInputVals::set_val2(
   FSIM_CLASSNAME& fsim
 ) const
 {
-  FSIM_VALTYPE val0 = init_val();
+  auto val0 = init_val();
   for ( auto simnode: fsim.input_list() ) {
     simnode->set_val(val0);
   }
 
   for ( auto nv: mAssignList ) {
     if ( nv.time() == 1 ) {
-      int iid = nv.node()->input_id();
-      SimNode* simnode = fsim.ppi(iid);
+      SizeType iid = nv.node()->input_id();
+      auto simnode = fsim.ppi(iid);
       simnode->set_val(int_to_packedval(nv.val()));
     }
   }

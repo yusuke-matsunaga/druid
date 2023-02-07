@@ -14,40 +14,33 @@
 
 BEGIN_NAMESPACE_DRUID
 
-// @brief 割当リストからTestVectorを作るクラスメソッド
-TestVector
-TestVector::new_from_assign_list(
-  SizeType input_num,
-  SizeType dff_num,
-  FaultType fault_type,
+// @brief 割当リストから値を設定する．
+void
+TestVector::set_from_assign_list(
   const NodeValList& assign_list
 )
 {
-  TestVector tv(input_num, dff_num, fault_type);
-
   for ( auto nv: assign_list ) {
-    const TpgNode* node = nv.node();
+    auto node = nv.node();
     ASSERT_COND( node->is_ppi() );
 
-    Val3 val = nv.val() ? Val3::_1 : Val3::_0;
+    auto val = nv.val() ? Val3::_1 : Val3::_0;
 
-    if ( fault_type == FaultType::StuckAt ) {
-      tv.set_ppi_val(node->input_id(), val);
+    if ( fault_type() == FaultType::StuckAt ) {
+      set_ppi_val(node->input_id(), val);
     }
-    else if ( fault_type == FaultType::TransitionDelay ) {
+    else if ( fault_type() == FaultType::TransitionDelay ) {
       int time = nv.time();
       if ( time == 0 ) {
-	tv.set_ppi_val(node->input_id(), val);
+	set_ppi_val(node->input_id(), val);
       }
       else {
 	ASSERT_COND( node->is_primary_input() );
 
-	tv.set_aux_input_val(node->input_id(), val);
+	set_aux_input_val(node->input_id(), val);
       }
     }
   }
-
-  return tv;
 }
 
 // @brief 複数のテストベクタをマージする．

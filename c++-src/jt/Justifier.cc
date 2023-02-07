@@ -68,20 +68,19 @@ Justifier::operator()(
   const SatModel& model
 )
 {
+  TestVector tv{mNetwork.input_num(), mNetwork.dff_num(), fault_type};
   if ( fault_type == FaultType::StuckAt ) {
     auto pi_assign_list = mImpl->justify(assign_list, var2_map, model);
-    return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(),
-					    FaultType::StuckAt, pi_assign_list);
+    tv.set_from_assign_list(pi_assign_list);
   }
   else if ( fault_type == FaultType::TransitionDelay ) {
     auto pi_assign_list = mImpl->justify(assign_list, var1_map, var2_map, model);
-    return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(),
-					    FaultType::TransitionDelay, pi_assign_list);
+    tv.set_from_assign_list(pi_assign_list);
   }
   else {
     ASSERT_NOT_REACHED;
   }
-  return TestVector{};
+  return tv;
 }
 
 END_NAMESPACE_DRUID

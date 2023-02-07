@@ -599,8 +599,9 @@ MF_Dtpg::get_tv()
       assign_list.add(node, 1, val);
     }
   }
-  return TestVector::new_from_assign_list(mNetwork.input_num(), mNetwork.dff_num(), mFaultType,
-					  assign_list);
+  TestVector tv{mNetwork.input_num(), mNetwork.dff_num(), mFaultType};
+  tv.set_from_assign_list(assign_list);
+  return tv;
 }
 
 END_NAMESPACE_DRUID

@@ -72,7 +72,7 @@ public:
     int time		 ///< [in] 時刻 ( 0 or 1 )
   ) const
   {
-    const VidMap& varmap = (time == 0) ? mVar1Map : mVar2Map;
+    auto& varmap = (time == 0) ? mVar1Map : mVar2Map;
     return bool3_to_val3(mSatModel[varmap(node)]);
   }
 
@@ -84,7 +84,7 @@ public:
     NodeValList& assign_list ///< [out] 値の割当リスト
   ) const
   {
-    Val3 v = val(node, time);
+    auto v = val(node, time);
     if ( v != Val3::_X ) {
       bool bval = (v == Val3::_1);
       assign_list.add(node, time, bval);

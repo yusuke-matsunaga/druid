@@ -25,8 +25,8 @@ NodeValList::merge(
   SizeType i1 = 0;
   SizeType i2 = 0;
   while ( i1 < n1 && i2 < n2 ) {
-    NodeVal v1 = mAsList[i1];
-    NodeVal v2 = src_list.mAsList[i2];
+    auto v1 = mAsList[i1];
+    auto v2 = src_list.mAsList[i2];
     if ( v1 < v2 ) {
       tmp_list.push_back(v1);
       ++ i1;
@@ -42,11 +42,11 @@ NodeValList::merge(
     }
   }
   for ( ; i1 < n1; ++ i1) {
-    NodeVal v1 = mAsList[i1];
+    auto v1 = mAsList[i1];
     tmp_list.push_back(v1);
   }
   for ( ; i2 < n2; ++ i2) {
-    NodeVal v2 = src_list.mAsList[i2];
+    auto v2 = src_list.mAsList[i2];
     tmp_list.push_back(v2);
   }
 
@@ -67,8 +67,8 @@ NodeValList::diff(
   SizeType i1 = 0;
   SizeType i2 = 0;
   while ( i1 < n1 && i2 < n2 ) {
-    NodeVal v1 = mAsList[i1];
-    NodeVal v2 = src_list.mAsList[i2];
+    auto v1 = mAsList[i1];
+    auto v2 = src_list.mAsList[i2];
     if ( v1 < v2 ) {
       tmp_list.push_back(v1);
       ++ i1;
@@ -82,7 +82,7 @@ NodeValList::diff(
     }
   }
   for ( ; i1 < n1; ++ i1) {
-    NodeVal v1 = mAsList[i1];
+    auto v1 = mAsList[i1];
     tmp_list.push_back(v1);
   }
 
@@ -117,8 +117,8 @@ compare(
   SizeType i2 = 0;
   int ans = 3;
   while ( i1 < n1 && i2 < n2 ) {
-    NodeVal nv1 = src_list1[i1];
-    NodeVal nv2 = src_list2[i2];
+    auto nv1 = src_list1[i1];
+    auto nv2 = src_list2[i2];
     if ( nv1.node_time() == nv2.node_time() ) {
       if ( nv1.val() != nv2.val() ) {
 	// 矛盾している．

@@ -45,7 +45,7 @@ JustImpl::justify(
 
   NodeValList pi_assign_list;
   for ( auto nv: assign_list ) {
-    const TpgNode* node = nv.node();
+    auto node = nv.node();
     int time = nv.time();
     just_main(jd, node, time, pi_assign_list);
   }
@@ -72,7 +72,7 @@ JustImpl::justify(
 
   NodeValList pi_assign_list;
   for ( auto nv: assign_list ) {
-    const TpgNode* node = nv.node();
+    auto node = nv.node();
     int time = nv.time();
     just_main(jd, node, time, pi_assign_list);
   }
@@ -107,8 +107,8 @@ JustImpl::just_main(
   if ( node->is_dff_output() ) {
     if ( time == 1 && jd.td_mode() ) {
       // DFF の出力で1時刻目の場合は0時刻目に戻る．
-      const TpgDff* dff = node->dff();
-      const TpgNode* alt_node = dff->input();
+      auto dff = node->dff();
+      auto alt_node = dff->input();
       just_main(jd, alt_node, 0, pi_assign_list);
     }
     else {
@@ -118,10 +118,10 @@ JustImpl::just_main(
     return;
   }
 
-  Val3 oval = jd.val(node, time);
+  auto oval = jd.val(node, time);
   if ( oval == node->coval() ) {
     // cval を持つファンインを選ぶ．
-    const TpgNode* inode = select_cval_node(jd, node, time);
+    auto inode = select_cval_node(jd, node, time);
     // そのノードに再帰する．
     just_main(jd, inode, time, pi_assign_list);
   }

@@ -74,7 +74,7 @@ public:
     bool val		 ///< [in] 値
   )
   {
-    add(NodeVal(node, time, val));
+    add(NodeVal{node, time, val});
   }
 
   /// @brief 値を追加する．
