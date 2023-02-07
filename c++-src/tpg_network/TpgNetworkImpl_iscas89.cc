@@ -6,6 +6,7 @@
 /// Copyright (C) 2018, 2019, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
+#include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
 #include "TpgGateInfo.h"
@@ -15,6 +16,34 @@
 
 
 BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgNetwork
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgNetwork::TpgNetwork(
+  const Iscas89Model& model,
+  const string& clock_name
+) : mImpl{new TpgNetworkImpl}
+{
+  mImpl->set(model, clock_name);
+}
+
+// @brief iscas89 形式のファイルを読み込む．
+TpgNetwork
+TpgNetwork::read_iscas89(
+  const string& filename,
+  const string& clock
+)
+{
+  Iscas89Model model;
+  if ( !model.read(filename) ) {
+    throw std::invalid_argument("read failed");
+  }
+  return TpgNetwork{model, clock};
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgNetworkImpl

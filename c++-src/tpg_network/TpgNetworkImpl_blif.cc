@@ -6,6 +6,7 @@
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
+#include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
 #include "TpgGateInfo.h"
@@ -16,6 +17,37 @@
 
 
 BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgNetwork
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgNetwork::TpgNetwork(
+  const BlifModel& model,
+  const string& clock_name,
+  const string& reset_name
+) : mImpl{new TpgNetworkImpl}
+{
+  mImpl->set(model, clock_name, reset_name);
+}
+
+// @brief blif ファイルを読み込む．
+TpgNetwork
+TpgNetwork::read_blif(
+  const string& filename,
+  const ClibCellLibrary& cell_library,
+  const string& clock_name,
+  const string& reset_name
+)
+{
+  BlifModel model;
+  if ( !model.read(filename, cell_library) ) {
+    throw std::invalid_argument("read failed");
+  }
+  return TpgNetwork{model, clock_name, reset_name};
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgNetworkImpl

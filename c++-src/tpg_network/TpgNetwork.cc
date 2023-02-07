@@ -10,9 +10,6 @@
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
 #include "TpgDff.h"
-#include "ym/BnNetwork.h"
-#include "ym/BlifModel.h"
-#include "ym/Iscas89Model.h"
 #include "ym/ClibCellLibrary.h"
 
 
@@ -27,33 +24,6 @@ TpgNetwork::TpgNetwork(
 )
 {
   // mImpl は nullptr を指すはず
-}
-
-// @brief BnNetwork からの変換コンストラクタ
-TpgNetwork::TpgNetwork(
-  const BnNetwork& network
-) : mImpl{new TpgNetworkImpl}
-{
-  mImpl->set(network);
-}
-
-// @brief コンストラクタ
-TpgNetwork::TpgNetwork(
-  const BlifModel& model,
-  const string& clock_name,
-  const string& reset_name
-) : mImpl{new TpgNetworkImpl}
-{
-  mImpl->set(model, clock_name, reset_name);
-}
-
-// @brief コンストラクタ
-TpgNetwork::TpgNetwork(
-  const Iscas89Model& model,
-  const string& clock_name
-) : mImpl{new TpgNetworkImpl}
-{
-  mImpl->set(model, clock_name);
 }
 
 // @brief ムーブコンストラクタ
@@ -82,36 +52,6 @@ TpgNetwork::read_blif(
 )
 {
   return read_blif(filename, ClibCellLibrary{}, clock_name, reset_name);
-}
-
-// @brief blif ファイルを読み込む．
-TpgNetwork
-TpgNetwork::read_blif(
-  const string& filename,
-  const ClibCellLibrary& cell_library,
-  const string& clock_name,
-  const string& reset_name
-)
-{
-  BlifModel model;
-  if ( !model.read(filename, cell_library) ) {
-    throw std::invalid_argument("read failed");
-  }
-  return TpgNetwork{model, clock_name, reset_name};
-}
-
-// @brief iscas89 形式のファイルを読み込む．
-TpgNetwork
-TpgNetwork::read_iscas89(
-  const string& filename,
-  const string& clock
-)
-{
-  Iscas89Model model;
-  if ( !model.read(filename) ) {
-    throw std::invalid_argument("read failed");
-  }
-  return TpgNetwork{model, clock};
 }
 
 // @brief ファイルを読み込む

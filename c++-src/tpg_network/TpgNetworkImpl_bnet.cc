@@ -6,6 +6,7 @@
 /// Copyright (C) 2018, 2019, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
+#include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
 #include "TpgGateInfo.h"
@@ -21,6 +22,19 @@
 
 
 BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgNetwork
+//////////////////////////////////////////////////////////////////////
+
+// @brief BnNetwork からの変換コンストラクタ
+TpgNetwork::TpgNetwork(
+  const BnNetwork& network
+) : mImpl{new TpgNetworkImpl}
+{
+  mImpl->set(network);
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgNetworkImpl
