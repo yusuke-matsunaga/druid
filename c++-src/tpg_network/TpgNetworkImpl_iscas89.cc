@@ -11,7 +11,7 @@
 #include "TpgNode.h"
 #include "TpgGateInfo.h"
 #include "NodeMap.h"
-
+#include "ym/Iscas89Parser.h"
 #include "ym/Iscas89Model.h"
 
 
@@ -37,8 +37,9 @@ TpgNetwork::read_iscas89(
   const string& clock
 )
 {
+  Iscas89Parser parser;
   Iscas89Model model;
-  if ( !model.read(filename) ) {
+  if ( !parser.read(filename, model) ) {
     throw std::invalid_argument("read failed");
   }
   return TpgNetwork{model, clock};
