@@ -63,7 +63,10 @@ public:
 
   /// @brief 統計情報を得る．
   const DtpgStats&
-  stats() const;
+  stats() const
+  {
+    return mStats;
+  }
 
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
@@ -97,31 +100,58 @@ public:
   SatLiteral
   hvar(
     const TpgNode* node ///< [in] 対象のノード
-  );
+  )
+  {
+    ASSERT_COND( mHvarMap(node) != SatLiteral::X );
+
+    return mHvarMap(node);
+  }
 
   /// @brief 正常値の変数を返す．
   SatLiteral
   gvar(
     const TpgNode* node ///< [in] 対象のノード
-  );
+  )
+  {
+    return mGvarMap(node);
+  }
 
   /// @brief 故障値の変数を返す．
   SatLiteral
   fvar(
     const TpgNode* node ///< [in] 対象のノード
-  );
+  )
+  {
+    return mFvarMap(node);
+  }
 
   /// @brief gvar が割り当てられている時に true を返す．
   bool
   has_gvar(
     const TpgNode* node ///< [in] 対象のノード
-  ) const;
+  ) const
+  {
+    if ( (mMarkArray[node->id()] & 8U) != 0U ) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
 
   /// @brief hvar が割り当てられている時に true を返す．
   bool
   has_hvar(
     const TpgNode* node ///< [in] 対象のノード
-  ) const;
+  ) const
+  {
+    if ( (mMarkArray[node->id()] & 16U) != 0U ) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
 
 
 protected:
@@ -131,11 +161,17 @@ protected:
 
   /// @brief 対象のネットワークを返す．
   const TpgNetwork&
-  network() const;
+  network() const
+  {
+    return mNetwork;
+  }
 
   /// @brief ノード番号の最大値を返す．
   SizeType
-  max_node_id() const;
+  max_node_id() const
+  {
+    return network().node_num();
+  }
 
   /// @brief CNF 作成を開始する．
   void
@@ -155,44 +191,71 @@ protected:
 
   /// @brief SATソルバを返す．
   SatSolver&
-  solver();
+  solver()
+  {
+    return mSolver;
+  }
 
   /// @brief 1時刻前の正常値の変数を設定する．
   void
   set_hvar(
     const TpgNode* node, ///< [in] 対象のノード
     SatLiteral var       ///< [in] 設定する変数
-  );
+  )
+  {
+    mHvarMap.set_vid(node, var);
+    mMarkArray[node->id()] |= 16U;
+  }
 
   /// @brief 正常値の変数を設定する．
   void
   set_gvar(
     const TpgNode* node, ///< [in] 対象のノード
     SatLiteral var       ///< [in] 設定する変数
-  );
+  )
+  {
+    mGvarMap.set_vid(node, var);
+    mFvarMap.set_vid(node, var);
+    mMarkArray[node->id()] |= 8U;
+  }
 
   /// @brief 故障値値の変数を設定する．
   void
   set_fvar(
     const TpgNode* node, ///< [in] 対象のノード
     SatLiteral var       ///< [in] 設定する変数
-  );
+  )
+  {
+    mFvarMap.set_vid(node, var);
+  }
 
   /// @brief 1時刻前の正常値の変数マップを返す．
   const VidMap&
-  hvar_map() const;
+  hvar_map() const
+  {
+    return mHvarMap;
+  }
 
   /// @brief 正常値の変数マップを返す．
   const VidMap&
-  gvar_map() const;
+  gvar_map() const
+  {
+    return mGvarMap;
+  }
 
   /// @brief 故障値の変数マップを返す．
   const VidMap&
-  fvar_map() const;
+  fvar_map() const
+  {
+    return mFvarMap;
+  }
 
   /// @brief 起点となるノードを返す．
   const TpgNode*
-  root_node() const;
+  root_node() const
+  {
+    return mRoot;
+  }
 
   /// @brief 関係するノードのリストを返す．
   const vector<const TpgNode*>&
@@ -236,7 +299,19 @@ private:
   void
   set_tfo_mark(
     const TpgNode* node ///< [in] 対象のノード
-  );
+  )
+  {
+    int id = node->id();
+    ymuint8 mask = 1U;
+    if ( (mMarkArray[id] & mask) == 0U ) {
+      mMarkArray[id] |= mask;
+      mTfoList.push_back(node);
+      if ( node->is_ppo() ) {
+	mOutputList.push_back(node);
+      }
+      set_tfi_mark(node);
+    }
+  }
 
   /// @brief TFI マークをつける．
   ///
@@ -244,7 +319,18 @@ private:
   void
   set_tfi_mark(
     const TpgNode* node ///< [in] 対象のノード
-  );
+  )
+  {
+    int id = node->id();
+    ymuint8 mask = 2U;
+    if ( (mMarkArray[id] & mask) == 0U ) {
+      mMarkArray[id] |= mask;
+      mTfiList.push_back(node);
+      if ( mFaultType == FaultType::TransitionDelay && node->is_dff_output() ) {
+	mDffInputList.push_back(node->alt_node());
+      }
+    }
+  }
 
   /// @brief prev TFI マークをつける．
   ///
@@ -252,7 +338,15 @@ private:
   void
   set_prev_tfi_mark(
     const TpgNode* node ///< [in] 対象のノード
-  );
+  )
+  {
+    int id = node->id();
+    ymuint8 mask = 4U;
+    if ( (mMarkArray[id] & mask) == 0U ) {
+      mMarkArray[id] |= mask;
+      mPrevTfiList.push_back(node);
+    }
+  }
 
   /// @brief 正常回路の CNF を作る．
   void
@@ -339,212 +433,6 @@ private:
   Timer mTimer;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief 統計情報を得る．
-inline
-const DtpgStats&
-UndetChecker::stats() const
-{
-  return mStats;
-}
-
-// @brief SATソルバを返す．
-inline
-SatSolver&
-UndetChecker::solver()
-{
-  return mSolver;
-}
-
-// @brief 対象のネットワークを返す．
-inline
-const TpgNetwork&
-UndetChecker::network() const
-{
-  return mNetwork;
-}
-
-// @brief ノード番号の最大値を返す．
-inline
-SizeType
-UndetChecker::max_node_id() const
-{
-  return network().node_num();
-}
-
-// @brief 起点となるノードを返す．
-inline
-const TpgNode*
-UndetChecker::root_node() const
-{
-  return mRoot;
-}
-
-// @brief 1時刻前の正常値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatLiteral
-UndetChecker::hvar(const TpgNode* node)
-{
-  ASSERT_COND( mHvarMap(node) != SatLiteral::X );
-
-  return mHvarMap(node);
-}
-
-// @brief 正常値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatLiteral
-UndetChecker::gvar(const TpgNode* node)
-{
-  return mGvarMap(node);
-}
-
-// @brief 故障値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatLiteral
-UndetChecker::fvar(const TpgNode* node)
-{
-  return mFvarMap(node);
-}
-
-// @brief 1時刻前の正常値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-UndetChecker::set_hvar(const TpgNode* node,
-		       SatLiteral var)
-{
-  mHvarMap.set_vid(node, var);
-  mMarkArray[node->id()] |= 16U;
-}
-
-// @brief hvar が割り当てられている時に true を返す．
-inline
-bool
-UndetChecker::has_hvar(const TpgNode* node) const
-{
-  if ( (mMarkArray[node->id()] & 16U) != 0U ) {
-    return true;
-  }
-  else {
-    return false;
-  }
-}
-
-// @brief 正常値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-UndetChecker::set_gvar(const TpgNode* node,
-		       SatLiteral var)
-{
-  mGvarMap.set_vid(node, var);
-  mFvarMap.set_vid(node, var);
-  mMarkArray[node->id()] |= 8U;
-}
-
-// @brief gvar が割り当てられている時に true を返す．
-inline
-bool
-UndetChecker::has_gvar(const TpgNode* node) const
-{
-  if ( (mMarkArray[node->id()] & 8U) != 0U ) {
-    return true;
-  }
-  else {
-    return false;
-  }
-}
-
-// @brief 故障値値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-UndetChecker::set_fvar(const TpgNode* node,
-		       SatLiteral var)
-{
-  mFvarMap.set_vid(node, var);
-}
-
-// @brief 1時刻前の正常値の変数マップを返す．
-inline
-const VidMap&
-UndetChecker::hvar_map() const
-{
-  return mHvarMap;
-}
-
-// @brief 正常値の変数マップを返す．
-inline
-const VidMap&
-UndetChecker::gvar_map() const
-{
-  return mGvarMap;
-}
-
-// @brief 故障値の変数マップを返す．
-inline
-const VidMap&
-UndetChecker::fvar_map() const
-{
-  return mFvarMap;
-}
-
-// @brief TFO マークをつける．
-inline
-void
-UndetChecker::set_tfo_mark(const TpgNode* node)
-{
-  int id = node->id();
-  ymuint8 mask = 1U;
-  if ( (mMarkArray[id] & mask) == 0U ) {
-    mMarkArray[id] |= mask;
-    mTfoList.push_back(node);
-    if ( node->is_ppo() ) {
-      mOutputList.push_back(node);
-    }
-    set_tfi_mark(node);
-  }
-}
-
-// @brief TFI マークをつける．
-inline
-void
-UndetChecker::set_tfi_mark(const TpgNode* node)
-{
-  int id = node->id();
-  ymuint8 mask = 2U;
-  if ( (mMarkArray[id] & mask) == 0U ) {
-    mMarkArray[id] |= mask;
-    mTfiList.push_back(node);
-    if ( mFaultType == FaultType::TransitionDelay && node->is_dff_output() ) {
-      mDffInputList.push_back(node->alt_node());
-    }
-  }
-}
-
-// @brief TFI2 マークをつける．
-inline
-void
-UndetChecker::set_prev_tfi_mark(const TpgNode* node)
-{
-  int id = node->id();
-  ymuint8 mask = 4U;
-  if ( (mMarkArray[id] & mask) == 0U ) {
-    mMarkArray[id] |= mask;
-    mPrevTfiList.push_back(node);
-  }
-}
 
 END_NAMESPACE_DRUID
 

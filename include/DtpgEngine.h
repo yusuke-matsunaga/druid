@@ -437,85 +437,6 @@ private:
     const Expr& expr  ///< [in] 論理式
   );
 
-  /// @brief TFO マークをつける．
-  ///
-  /// と同時に mTfoList に入れる．<br>
-  /// 出力ノードの場合は mOutputList にも入れる．<br>
-  /// すでにマークされていたら何もしない．
-  void
-  set_tfo_mark(
-    const TpgNode* node  ///< [in] 対象のノード
-  )
-  {
-    SizeType id = node->id();
-    auto& bits = mBitsArray[id];
-    if ( !bits[0] ) {
-      bits[0] =true;
-      mTfoList.push_back(node);
-      if ( node->is_ppo() ) {
-	mOutputList.push_back(node);
-      }
-      if ( mFaultType == FaultType::TransitionDelay ) {
-	if ( node->is_primary_input() ) {
-	  mAuxInputList.push_back(node);
-	}
-      }
-      else {
-	if ( node->is_ppi() ) {
-	  mPPIList.push_back(node);
-	}
-      }
-    }
-  }
-
-  /// @brief TFI マークをつける．
-  ///
-  /// と同時に mTfiList に入れる．
-  void
-  set_tfi_mark(
-    const TpgNode* node  ///< [in] 対象のノード
-  )
-  {
-    SizeType id = node->id();
-    auto& bits = mBitsArray[id];
-    if ( !bits[0] && !bits[1] ) {
-      bits[1] = true;
-      mTfiList.push_back(node);
-      if ( mFaultType == FaultType::TransitionDelay ) {
-	if ( node->is_dff_output() ) {
-	  mDffInputList.push_back(node->alt_node());
-	}
-	else if ( node->is_primary_input() ) {
-	  mAuxInputList.push_back(node);
-	}
-      }
-      else {
-	if ( node->is_ppi() ) {
-	  mPPIList.push_back(node);
-	}
-      }
-    }
-  }
-
-  /// @brief TFI2 マークをつける．
-  ///
-  /// と同時に mTfi2List に入れる．
-  void
-  set_tfi2_mark(
-    const TpgNode* node  ///< [in] 対象のノード
-  )
-  {
-    SizeType id = node->id();
-    auto& bits = mBitsArray[id];
-    if ( !bits[2] ) {
-      bits[2] = true;
-      mTfi2List.push_back(node);
-      if ( node->is_ppi() ) {
-	mPPIList.push_back(node);
-      }
-    }
-  }
-
   /// @brief SATモデルから値を取り出す．
   Val3
   get_val(
@@ -576,12 +497,14 @@ private:
   // 関係する擬似外部入力ノードを入れておくリスト
   vector<const TpgNode*> mPPIList;
 
+#if 0
   // 作業用のマークを入れておく配列
   // サイズは mMaxNodeId
   // 0: tfi
   // 1: tfo
   // 2: tfi2
   vector<bitset<3>> mBitsArray;
+#endif
 
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;

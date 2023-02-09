@@ -18,6 +18,7 @@
 #include "MultiExtractor.h"
 #include "Justifier.h"
 #include "TestVector.h"
+#include "NodeList.h"
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
@@ -49,7 +50,6 @@ DtpgEngine::DtpgEngine(
     mNetwork{network},
     mFaultType{fault_type},
     mRoot{root},
-    mBitsArray(mNetwork.node_num(), 0U),
     mHvarMap{network.node_num()},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
@@ -57,16 +57,13 @@ DtpgEngine::DtpgEngine(
     mJustifier{just_type, network},
     mTimerEnable{true}
 {
-  mTfoList.reserve(network.node_num());
-  mTfiList.reserve(network.node_num());
-  mTfi2List.reserve(network.node_num());
-  mOutputList.reserve(network.ppo_num());
 }
 
 // @brief CNF の生成を行う．
 void
 DtpgEngine::make_cnf()
 {
+
   cnf_begin();
 
   // 変数割り当て
@@ -146,46 +143,53 @@ void
 DtpgEngine::prepare_vars()
 {
   // root の TFO を mTfoList に入れる．
-  set_tfo_mark(mRoot);
-  for ( SizeType rpos = 0; rpos < mTfoList.size(); ++ rpos ) {
-    // set_tfo_mark() 中で mTfoList に要素を追加しているので
-    // 古いタイプの for 文を用いている．
-    auto node = mTfoList[rpos];
-    for ( auto onode: node->fanout_list() ) {
-      set_tfo_mark(onode);
-    }
-  }
+  mTfoList = NodeList::get_tfo_list(mNetwork.node_num(), mRoot);
 
   // TFO の TFI を mNodeList に入れる．
+  vector<bool> tfo_mark(mNetwork.node_num(), false);
   for ( auto node: mTfoList ) {
-    for ( auto inode: node->fanin_list() ) {
-      set_tfi_mark(inode);
+    tfo_mark[node->id()] = true;
+    if ( node->is_ppo() ) {
+      mOutputList.push_back(node);
     }
-  }
-  for ( SizeType rpos = 0; rpos < mTfiList.size(); ++ rpos ) {
-    // set_tfi_mark() 中で mTfiList に要素を追加しているので
-    // 古いタイプの for 文を用いている．
-    auto node = mTfiList[rpos];
-    for ( auto inode: node->fanin_list() ) {
-      set_tfi_mark(inode);
+    if ( mFaultType == FaultType::TransitionDelay ) {
+      if ( node->is_primary_input() ) {
+	mAuxInputList.push_back(node);
+      }
+    }
+    else {
+      if ( node->is_ppi() ) {
+	mPPIList.push_back(node);
+      }
     }
   }
 
-  // TFI に含まれる DFF のさらに TFI を mTfi2List に入れる．
+  mTfiList = NodeList::get_tfi_list(mNetwork.node_num(), mTfoList);
   if ( mFaultType == FaultType::TransitionDelay ) {
     if ( mRoot->is_dff_output() ) {
       mDffInputList.push_back(mRoot->alt_node());
     }
-    for ( auto node: mDffInputList ) {
-      mTfi2List.push_back(node);
+    for ( auto node: mTfiList ) {
+      if ( node->is_dff_output() ) {
+	mDffInputList.push_back(node->alt_node());
+      }
+      else if ( node->is_primary_input() ) {
+	mAuxInputList.push_back(node);
+      }
     }
-    set_tfi2_mark(mRoot);
-    for ( SizeType rpos = 0; rpos < mTfi2List.size(); ++ rpos) {
-      // set_tfi2_mark() 中で mTfi2List に要素を追加しているので
-      // 古いタイプの for 文を用いている．
-      auto node = mTfi2List[rpos];
-      for ( auto inode: node->fanin_list() ) {
-	set_tfi2_mark(inode);
+    auto tmp_list = mDffInputList;
+    tmp_list.push_back(mRoot);
+    mTfi2List = NodeList::get_tfi_list(mNetwork.node_num(), tmp_list);
+    for ( auto node: mTfi2List ) {
+      if ( node->is_ppi() ) {
+	mPPIList.push_back(node);
+      }
+    }
+  }
+  else {
+    for ( auto node: mTfiList ) {
+      if ( node->is_ppi() ) {
+	mPPIList.push_back(node);
       }
     }
   }
@@ -209,6 +213,9 @@ DtpgEngine::prepare_vars()
 
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
+    if ( tfo_mark[node->id()] ) {
+      continue;
+    }
     auto gvar = mSolver.new_variable(true);
 
     mGvarMap.set_vid(node, gvar);
@@ -240,19 +247,6 @@ DtpgEngine::gen_good_cnf()
   // 正常回路の CNF を生成
   //////////////////////////////////////////////////////////////////////
   GateEnc gval_enc{mSolver, mGvarMap};
-  for ( auto node: mTfoList ) {
-    gval_enc.make_cnf(node);
-
-    if ( debug_dtpg ) {
-      DEBUG_OUT << "Node#" << node->id() << ": gvar("
-		<< gvar(node) << ") := " << node->gate_type()
-		<< "(";
-      for ( auto inode: node->fanin_list() ) {
-	DEBUG_OUT << " " << gvar(inode);
-      }
-      DEBUG_OUT << ")" << endl;
-    }
-  }
   for ( auto node: mTfiList ) {
     gval_enc.make_cnf(node);
 
@@ -335,7 +329,7 @@ DtpgEngine::gen_detect_cnf()
   //////////////////////////////////////////////////////////////////////
   // 故障の検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
   //////////////////////////////////////////////////////////////////////
-  int no = mOutputList.size();
+  SizeType no = mOutputList.size();
   vector<SatLiteral> odiff(no);
   for (int i = 0; i < no; ++ i) {
     auto node = mOutputList[i];
