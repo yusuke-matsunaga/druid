@@ -28,7 +28,7 @@ private:
   /// @brief コンストラクタ
   TpgDffInput(
     SizeType output_id,  ///< [in] 出力番号
-    TpgDFF dff,          ///< [in] 接続しているDFF
+    SizeType dff_id,     ///< [in] 接続しているDFFのID番号
     const TpgNode* fanin ///< [in] ファンインのノード
   );
 
@@ -45,14 +45,12 @@ public:
   bool
   is_dff_input() const override;
 
-#if 0
-  /// @brief 接続している DFF を返す．
+  /// @brief 接続している DFF 番号を返す．
   ///
   /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
   /// の時に意味を持つ．
-  TpgDFF
-  dff() const override;
-#endif
+  SizeType
+  dff_id() const override;
 
   /// @brief DFFに関する相方のノードを返す．
   ///
@@ -66,8 +64,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 対応する DFF
-  TpgDFF mDff;
+  // 対応する DFF 番号
+  SizeType mDffId;
 
   // 相方のノード
   const TpgNode* mAltNode{nullptr};

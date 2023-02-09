@@ -221,23 +221,12 @@ MF_Dtpg::prepare_vars()
   if ( mFaultType == FaultType::TransitionDelay ) {
     for ( auto root: mRootList ) {
       if ( root->is_dff_output() ) {
-#if DFF
-	mDffList.push_back(root->dff());
-#else
 	mDffInputList.push_back(root->alt_node());
-#endif
       }
     }
-#if DFF
-    for ( auto dff: mDffList ) {
-      auto node = dff.input();
-      mTfi2List.push_back(node);
-    }
-#else
     for ( auto node: mDffInputList ) {
       mTfi2List.push_back(node);
     }
-#endif
     for ( auto root: mRootList ) {
       set_tfi2_mark(root);
     }
@@ -326,16 +315,6 @@ MF_Dtpg::gen_good_cnf()
     }
   }
 
-#if DFF
-  for ( auto dff: mDffList ) {
-    auto onode = dff.output();
-    auto inode = dff.input();
-    // DFF の入力の1時刻前の値と出力の値が等しい．
-    auto olit = gvar(onode);
-    auto ilit = hvar(inode);
-    mSolver.add_buffgate(olit, ilit);
-  }
-#else
   for ( auto inode: mDffInputList ) {
     auto onode = inode->alt_node();
     // DFF の入力の1時刻前の値と出力の値が等しい．
@@ -343,7 +322,6 @@ MF_Dtpg::gen_good_cnf()
     auto ilit = hvar(inode);
     mSolver.add_buffgate(olit, ilit);
   }
-#endif
   GateEnc hval_enc(mSolver, mHvarMap);
   for ( auto node: mTfi2List ) {
     hval_enc.make_cnf(node);

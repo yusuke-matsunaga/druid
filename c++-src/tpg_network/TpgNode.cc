@@ -134,16 +134,14 @@ TpgNode::output_id2() const
   return 0;
 }
 
-#if 0
-// @brief 接続している DFF を返す．
-TpgDFF
-TpgNode::dff() const
+// @brief 接続している DFF 番号を返す．
+SizeType
+TpgNode::dff_id() const
 {
   ASSERT_NOT_REACHED;
 
-  return {};
+  return 0;
 }
-#endif
 
 // @brief DFFに関する相方のノードを返す．
 const TpgNode*

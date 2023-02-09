@@ -163,22 +163,11 @@ UndetChecker::prepare_vars()
   // TFI に含まれる DFF のさらに TFI を mPrevTfiList に入れる．
   if ( mFaultType == FaultType::TransitionDelay ) {
     if ( mRoot->is_dff_output() ) {
-#if DFF
-      mDffList.push_back(mRoot->dff());
-#else
       mDffInputList.push_back(mRoot->alt_node());
-#endif
     }
-#if DFF
-    for ( auto dff: mDffList ) {
-      auto node = dff.input();
-      mPrevTfiList.push_back(node);
-    }
-#else
     for ( auto node: mDffInputList ) {
       mPrevTfiList.push_back(node);
     }
-#endif
     set_prev_tfi_mark(mRoot);
     for ( int rpos = 0; rpos < mPrevTfiList.size(); ++ rpos) {
       const TpgNode* node = mPrevTfiList[rpos];
@@ -247,16 +236,6 @@ UndetChecker::gen_good_cnf()
     }
   }
 
-#if DFF
-  for ( auto dff: mDffList ) {
-    auto onode = dff.output();
-    auto inode = dff.input();
-    // DFF の入力の1時刻前の値と出力の値が等しい．
-    auto olit = gvar(onode);
-    auto ilit = hvar(inode);
-    mSolver.add_buffgate(olit, ilit);
-  }
-#else
   for ( auto inode: mDffInputList ) {
     auto onode = inode->alt_node();
     // DFF の入力の1時刻前の値と出力の値が等しい．
@@ -264,7 +243,6 @@ UndetChecker::gen_good_cnf()
     auto ilit = hvar(inode);
     mSolver.add_buffgate(olit, ilit);
   }
-#endif
 
   for ( auto node: mPrevTfiList ) {
     mHvalEnc.make_cnf(node);
@@ -318,21 +296,13 @@ UndetChecker::conv_to_literal(NodeVal node_val)
   SatLiteral vid;
   if ( node_val.time() == 0 ) {
     if ( !has_hvar(node) ) {
-#if 0
-      return SatLiteral::X;
-#else
       make_prev_cnf(node);
-#endif
     }
     vid = hvar(node);
   }
   else {
     if ( !has_gvar(node) ) {
-#if 0
-      return SatLiteral::X;
-#else
       make_good_cnf(node);
-#endif
     }
     vid = gvar(node);
   }

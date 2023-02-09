@@ -80,9 +80,9 @@ TpgInput::is_primary_input() const
 // @brief コンストラクタ
 TpgDffOutput::TpgDffOutput(
   SizeType input_id,
-  TpgDFF dff
+  SizeType dff_id
 ) : TpgPPI{input_id},
-    mDff{dff}
+    mDffId{dff_id}
 {
 }
 
@@ -93,17 +93,15 @@ TpgDffOutput::is_dff_output() const
   return true;
 }
 
-#if 0
 // @brief 接続している DFF を返す．
 //
 // is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
 // の時に意味を持つ．
-TpgDFF
-TpgDffOutput::dff() const
+SizeType
+TpgDffOutput::dff_id() const
 {
-  return mDff;
+  return mDffId;
 }
-#endif
 
 // @brief DFFに関する相方のノードを返す．
 const TpgNode*

@@ -157,15 +157,13 @@ public:
   SizeType
   output_id2() const;
 
-#if 0
-  /// @brief 接続している DFF を返す．
+  /// @brief 接続している DFF 番号を返す．
   ///
   /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
   /// の時に意味を持つ．
   virtual
-  TpgDFF
-  dff() const;
-#endif
+  SizeType
+  dff_id() const;
 
   /// @brief DFFに関する相方のノードを返す．
   ///

@@ -99,10 +99,10 @@ TpgNetworkImpl::make_dff_input_node(
 )
 {
   SizeType id = mPPOArray.size();
-  auto dff = &mDFFArray[dff_id];
-  auto node = new TpgDffInput{id, dff, inode};
+  auto node = new TpgDffInput{id, dff_id, inode};
   make_node_common(node, name, 1);
-  dff->mInput = node;
+  auto& dff = mDFFArray[dff_id];
+  dff.mInput = node;
 
   // 入力位置の故障を生成
   SizeType ipos = 0;
@@ -123,10 +123,10 @@ TpgNetworkImpl::make_dff_output_node(
 )
 {
   SizeType id = mPPIArray.size();
-  auto dff = &mDFFArray[dff_id];
-  auto node = new TpgDffOutput{id, dff};
+  auto node = new TpgDffOutput{id, dff_id};
   make_node_common(node, name, 0);
-  dff->mOutput = node;
+  auto& dff = mDFFArray[dff_id];
+  dff.mOutput = node;
 
   // 出力位置の故障を生成
   for ( auto val: {Fval2::zero, Fval2::one} ) {
@@ -146,10 +146,10 @@ TpgNetworkImpl::make_dff_clock_node(
   const TpgNode* inode
 )
 {
-  auto dff = &mDFFArray[dff_id];
-  auto node = new TpgDffClock{dff, inode};
+  auto node = new TpgDffClock{dff_id, inode};
   make_node_common(node, name, 1);
-  dff->mClock = node;
+  auto& dff = mDFFArray[dff_id];
+  dff.mClock = node;
 
   // 入力位置の故障を生成
   SizeType ipos = 0;
@@ -168,10 +168,10 @@ TpgNetworkImpl::make_dff_clear_node(
   const TpgNode* inode
 )
 {
-  auto dff = &mDFFArray[dff_id];
-  auto node = new TpgDffClear{dff, inode};
+  auto node = new TpgDffClear{dff_id, inode};
   make_node_common(node, name, 1);
-  dff->mClear = node;
+  auto& dff = mDFFArray[dff_id];
+  dff.mClear = node;
 
   // 入力位置の故障を生成
   SizeType ipos = 0;
@@ -190,10 +190,10 @@ TpgNetworkImpl::make_dff_preset_node(
   const TpgNode* inode
 )
 {
-  auto dff = &mDFFArray[dff_id];
-  auto node = new TpgDffPreset{dff, inode};
+  auto node = new TpgDffPreset{dff_id, inode};
   make_node_common(node, name, 1);
-  dff->mPreset = node;
+  auto& dff = mDFFArray[dff_id];
+  dff.mPreset = node;
 
   // 入力位置の故障を生成
   SizeType ipos = 0;

@@ -25,7 +25,7 @@ protected:
 
   /// @brief コンストラクタ
   TpgDffControl(
-    TpgDFF dff,          /// @param[in] 接続しているDFF
+    SizeType dff_id,     ///< [in] 接続しているDFFのID番号
     const TpgNode* fanin ///< [in] ファンインのノード
   );
 
@@ -38,14 +38,12 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-#if 0
   /// @brief 接続している DFF を返す．
   ///
   /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
   /// の時に意味を持つ．
-  TpgDFF
-  dff() const override;
-#endif
+  SizeType
+  dff_id() const override;
 
 
 private:
@@ -53,8 +51,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 対応する DFF
-  TpgDFF mDff;
+  // 対応する DFF 番号
+  SizeType mDffId;
 
 };
 

@@ -26,7 +26,7 @@ private:
 
   /// @brief コンストラクタ
   TpgDffClear(
-    TpgDFF dff,          /// @param[in] 接続しているDFFのID番号
+    SizeType dff_id,     ///< [in] 接続しているDFFのID番号
     const TpgNode* fanin ///< [in] ファンインのノード
   );
 

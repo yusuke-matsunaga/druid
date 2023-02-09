@@ -26,7 +26,7 @@ private:
 
   /// @brief コンストラクタ
   TpgDffClock(
-    TpgDFF dff,          /// @param[in] 接続しているDFF
+    SizeType dff_id,     ///< [in] 接続しているDFFのID番号
     const TpgNode* fanin /// @param[in] ファンインのノード
   );
 

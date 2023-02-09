@@ -21,24 +21,23 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 TpgDffControl::TpgDffControl(
-  TpgDFF dff,
+  SizeType dff_id,
   const TpgNode* fanin
 ) : TpgNode{{fanin}},
-    mDff{dff}
+    mDffId{dff_id}
 {
 }
 
-#if 0
 // @brief 接続している DFF を返す．
 //
 // is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
 // の時に意味を持つ．
-TpgDFF
-TpgDffControl::dff() const
+SizeType
+TpgDffControl::dff_id() const
 {
-  return mDff;
+  return mDffId;
 }
-#endif
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgDffClock
@@ -46,9 +45,9 @@ TpgDffControl::dff() const
 
 // @brief コンストラクタ
 TpgDffClock::TpgDffClock(
-  TpgDFF dff,
+  SizeType dff_id,
   const TpgNode* fanin
-) : TpgDffControl{dff, fanin}
+) : TpgDffControl{dff_id, fanin}
 {
 }
 
@@ -66,9 +65,9 @@ TpgDffClock::is_dff_clock() const
 
 // @brief コンストラクタ
 TpgDffClear::TpgDffClear(
-  TpgDFF dff,
+  SizeType dff_id,
   const TpgNode* fanin
-) : TpgDffControl{dff, fanin}
+) : TpgDffControl{dff_id, fanin}
 {
 }
 
@@ -86,9 +85,9 @@ TpgDffClear::is_dff_clear() const
 
 // @brief コンストラクタ
 TpgDffPreset::TpgDffPreset(
-  TpgDFF dff,
+  SizeType dff_id,
   const TpgNode* fanin
-) : TpgDffControl{dff, fanin}
+) : TpgDffControl{dff_id, fanin}
 {
 }
 

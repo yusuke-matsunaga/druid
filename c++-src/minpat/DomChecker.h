@@ -9,8 +9,6 @@
 /// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#define DFF 0
-
 #include "druid.h"
 
 #include "TpgNetwork.h"
@@ -341,11 +339,7 @@ private:
       mMarkArray[id] |= mask;
       mTfiList.push_back(node);
       if ( mFaultType == FaultType::TransitionDelay && node->is_dff_output() ) {
-#if DFF
-	mDffList.push_back(node->dff());
-#else
 	mDffInputList.push_back(node->alt_node());
-#endif
       }
     }
   }
@@ -396,13 +390,8 @@ private:
   // TFIノードを入れておくリスト
   vector<const TpgNode*> mTfiList;
 
-#if DFF
-  // TFI に含まれる DFF 入れておくリスト
-  vector<TpgDFF> mDffList;
-#else
   // TFI に含まれる DFF の入力を入れておくリスト
   vector<const TpgNode*> mDffInputList;
-#endif
 
   // 1時刻前関係するノードを入れておくリスト
   vector<const TpgNode*> mPrevTfiList;
@@ -433,227 +422,6 @@ private:
   Timer mTimer;
 
 };
-
-#if 0
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief 統計情報を得る．
-inline
-const DtpgStats&
-DomChecker::stats() const
-{
-  return mStats;
-}
-
-// @brief SATソルバに変数を割り当てる．
-inline
-SatLiteral
-DomChecker::new_variable()
-{
-  return solver().new_variable();
-}
-
-// @brief SATソルバに節を追加する．
-inline
-void
-DomChecker::add_clause(const vector<SatLiteral>& lits)
-{
-  solver().add_clause(lits);
-}
-
-// @brief SATソルバを返す．
-inline
-SatSolver&
-DomChecker::solver()
-{
-  return mSolver;
-}
-
-// @brief 対象のネットワークを返す．
-inline
-const TpgNetwork&
-DomChecker::network() const
-{
-  return mNetwork;
-}
-
-// @brief ノード番号の最大値を返す．
-inline
-int
-DomChecker::max_node_id() const
-{
-  return network().node_num();
-}
-
-// @brief 起点となるノードを返す．
-inline
-const TpgNode*
-DomChecker::root_node(int pos) const
-{
-  return mRoot[pos];
-}
-
-// @brief 1時刻前の正常値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatLiteral
-DomChecker::hvar(const TpgNode* node)
-{
-  ASSERT_COND( mHvarMap(node) != SatLiteral::X );
-
-  return mHvarMap(node);
-}
-
-// @brief 正常値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatLiteral
-DomChecker::gvar(const TpgNode* node)
-{
-  return mGvarMap(node);
-}
-
-// @brief 故障値の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatLiteral
-DomChecker::fvar(const TpgNode* node,
-		 int pos)
-{
-  return mFvarMap[pos](node);
-}
-
-// @brief 伝搬条件の変数を返す．
-// @param[in] node 対象のノード
-inline
-SatLiteral
-DomChecker::dvar(const TpgNode* node)
-{
-  return mDvarMap(node);
-}
-
-// @brief 1時刻前の正常値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-DomChecker::set_hvar(const TpgNode* node,
-		     SatLiteral var)
-{
-  mHvarMap.set_vid(node, var);
-}
-
-// @brief 正常値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-DomChecker::set_gvar(const TpgNode* node,
-		     SatLiteral var)
-{
-  mGvarMap.set_vid(node, var);
-}
-
-// @brief 故障値値の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-DomChecker::set_fvar(const TpgNode* node,
-		     SatLiteral var,
-		     int pos)
-{
-  mFvarMap[pos].set_vid(node, var);
-}
-
-// @brief 故障伝搬条件の変数を設定する．
-// @param[in] node 対象のノード
-// @param[in] var 設定する変数
-inline
-void
-DomChecker::set_dvar(const TpgNode* node,
-		     SatLiteral var)
-{
-  mDvarMap.set_vid(node, var);
-}
-
-// @brief 1時刻前の正常値の変数マップを返す．
-inline
-const VidMap&
-DomChecker::hvar_map() const
-{
-  return mHvarMap;
-}
-
-// @brief 正常値の変数マップを返す．
-inline
-const VidMap&
-DomChecker::gvar_map() const
-{
-  return mGvarMap;
-}
-
-// @brief 故障値の変数マップを返す．
-inline
-const VidMap&
-DomChecker::fvar_map(int pos) const
-{
-  return mFvarMap[pos];
-}
-
-// @brief TFO マークをつける．
-inline
-void
-DomChecker::set_tfo_mark(const TpgNode* node,
-			 int pos)
-{
-  int id = node->id();
-  ymuint8 mask = 1U << pos;
-  if ( (mMarkArray[id] & mask) == 0U ) {
-    mMarkArray[id] |= mask;
-    mTfoList[pos].push_back(node);
-    if ( node->is_ppo() ) {
-      mOutputList[pos].push_back(node);
-    }
-    set_tfi_mark(node);
-  }
-}
-
-// @brief TFI マークをつける．
-inline
-void
-DomChecker::set_tfi_mark(const TpgNode* node)
-{
-  int id = node->id();
-  ymuint8 mask = 4U;
-  if ( (mMarkArray[id] & mask) == 0U ) {
-    mMarkArray[id] |= mask;
-    mTfiList.push_back(node);
-    if ( mFaultType == FaultType::TransitionDelay && node->is_dff_output() ) {
-#if DFF
-      mDffList.push_back(node->dff());
-#else
-      mDffInputList.push_back(node->alt_node());
-#endif
-    }
-  }
-}
-
-// @brief TFI2 マークをつける．
-inline
-void
-DomChecker::set_prev_tfi_mark(const TpgNode* node)
-{
-  int id = node->id();
-  ymuint8 mask = 8U;
-  if ( (mMarkArray[id] & mask) == 0U ) {
-    mMarkArray[id] |= mask;
-    mPrevTfiList.push_back(node);
-  }
-}
-#endif
 
 END_NAMESPACE_DRUID
 
