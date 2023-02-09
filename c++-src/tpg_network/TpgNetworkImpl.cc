@@ -8,6 +8,8 @@
 
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
+#include "TpgDffInput.h"
+#include "TpgDffOutput.h"
 #include "TpgFaultBase.h"
 #include "TpgDFF.h"
 #include "TpgMFFC.h"
@@ -278,6 +280,17 @@ TpgNetworkImpl::post_op(
   { // 検証
     // 接続が正しいかチェックする．
     check_network_connection(this);
+  }
+
+
+  //////////////////////////////////////////////////////////////////////
+  // DFF の入力と出力を結びつける．
+  //////////////////////////////////////////////////////////////////////
+  for ( auto _dff: mDFFArray ) {
+    auto input = reinterpret_cast<TpgDffInput*>(_dff.mInput);
+    auto output = reinterpret_cast<TpgDffOutput*>(_dff.mOutput);
+    input->mAltNode = output;
+    output->mAltNode = input;
   }
 
   //////////////////////////////////////////////////////////////////////

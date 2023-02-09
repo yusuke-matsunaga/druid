@@ -190,13 +190,23 @@ DomChecker::prepare_vars()
   if ( mFaultType == FaultType::TransitionDelay ) {
     for ( int pos: { 0, 1 } ) {
       if ( mRoot[pos]->is_dff_output() ) {
+#if DFF
 	mDffList.push_back(mRoot[pos]->dff());
+#else
+	mDffInputList.push_back(mRoot[pos]->alt_node());
+#endif
       }
     }
+#if DFF
     for ( auto dff: mDffList ) {
       auto node = dff.input();
       mPrevTfiList.push_back(node);
     }
+#else
+    for ( auto node: mDffInputList ) {
+      mPrevTfiList.push_back(node);
+    }
+#endif
     set_prev_tfi_mark(mRoot[0]);
     set_prev_tfi_mark(mRoot[1]);
     for ( int rpos = 0; rpos < mPrevTfiList.size(); ++ rpos) {
@@ -285,6 +295,7 @@ DomChecker::gen_good_cnf()
     }
   }
 
+#if DFF
   for ( auto dff: mDffList ) {
     auto onode = dff.output();
     auto inode = dff.input();
@@ -293,7 +304,15 @@ DomChecker::gen_good_cnf()
     auto ilit = hvar(inode);
     mSolver.add_buffgate(olit, ilit);
   }
-
+#else
+  for ( auto inode: mDffInputList ) {
+    auto onode = inode->alt_node();
+    // DFF の入力の1時刻前の値と出力の値が等しい．
+    auto olit = gvar(onode);
+    auto ilit = hvar(inode);
+    mSolver.add_buffgate(olit, ilit);
+  }
+#endif
   GateEnc hval_enc(mSolver, mHvarMap);
   for ( auto node: mPrevTfiList ) {
     hval_enc.make_cnf(node);

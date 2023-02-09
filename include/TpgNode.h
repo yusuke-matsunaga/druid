@@ -157,14 +157,22 @@ public:
   SizeType
   output_id2() const;
 
+#if 0
   /// @brief 接続している DFF を返す．
   ///
   /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
   /// の時に意味を持つ．
-  /// それ以外では nullptr を返す．
   virtual
   TpgDFF
   dff() const;
+#endif
+
+  /// @brief DFFに関する相方のノードを返す．
+  ///
+  /// is_dff_input() | is_dff_output() の時に意味を持つ．
+  virtual
+  const TpgNode*
+  alt_node() const;
 
   /// @brief ゲートタイプを得る．
   ///

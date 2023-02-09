@@ -9,6 +9,8 @@
 /// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
+#define DFF 0
+
 #include "druid.h"
 
 #include "TpgNetwork.h"
@@ -483,7 +485,11 @@ private:
       mTfiList.push_back(node);
       if ( mFaultType == FaultType::TransitionDelay ) {
 	if ( node->is_dff_output() ) {
+#if DFF
 	  mDffList.push_back(node->dff());
+#else
+	  mDffInputList.push_back(node->alt_node());
+#endif
 	}
 	else if ( node->is_primary_input() ) {
 	  mAuxInputList.push_back(node);
@@ -561,8 +567,13 @@ private:
   // TFIノードを入れておくリスト
   vector<const TpgNode*> mTfiList;
 
+#if DFF
   // TFI に含まれる DFF 入れておくリスト
   vector<TpgDFF> mDffList;
+#else
+  // TFI に含まれる DFF の入力を入れておくリスト
+  vector<const TpgNode*> mDffInputList;
+#endif
 
   // 1時刻前関係するノードを入れておくリスト
   vector<const TpgNode*> mTfi2List;

@@ -9,6 +9,8 @@
 /// Copyright (C) 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
+#define DFF 0
+
 #include "druid.h"
 
 #include "TpgNetwork.h"
@@ -339,7 +341,11 @@ private:
       mMarkArray[id] |= mask;
       mTfiList.push_back(node);
       if ( mFaultType == FaultType::TransitionDelay && node->is_dff_output() ) {
+#if DFF
 	mDffList.push_back(node->dff());
+#else
+	mDffInputList.push_back(node->alt_node());
+#endif
       }
     }
   }
@@ -390,8 +396,13 @@ private:
   // TFIノードを入れておくリスト
   vector<const TpgNode*> mTfiList;
 
+#if DFF
   // TFI に含まれる DFF 入れておくリスト
   vector<TpgDFF> mDffList;
+#else
+  // TFI に含まれる DFF の入力を入れておくリスト
+  vector<const TpgNode*> mDffInputList;
+#endif
 
   // 1時刻前関係するノードを入れておくリスト
   vector<const TpgNode*> mPrevTfiList;
@@ -621,7 +632,11 @@ DomChecker::set_tfi_mark(const TpgNode* node)
     mMarkArray[id] |= mask;
     mTfiList.push_back(node);
     if ( mFaultType == FaultType::TransitionDelay && node->is_dff_output() ) {
+#if DFF
       mDffList.push_back(node->dff());
+#else
+      mDffInputList.push_back(node->alt_node());
+#endif
     }
   }
 }

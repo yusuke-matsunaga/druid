@@ -174,12 +174,22 @@ DtpgEngine::prepare_vars()
   // TFI に含まれる DFF のさらに TFI を mTfi2List に入れる．
   if ( mFaultType == FaultType::TransitionDelay ) {
     if ( mRoot->is_dff_output() ) {
+#if DFF
       mDffList.push_back(mRoot->dff());
+#else
+      mDffInputList.push_back(mRoot->alt_node());
+#endif
     }
+#if DFF
     for ( auto dff: mDffList ) {
       auto node = dff.input();
       mTfi2List.push_back(node);
     }
+#else
+    for ( auto node: mDffInputList ) {
+      mTfi2List.push_back(node);
+    }
+#endif
     set_tfi2_mark(mRoot);
     for ( int rpos = 0; rpos < mTfi2List.size(); ++ rpos) {
       // set_tfi2_mark() 中で mTfi2List に要素を追加しているので
@@ -268,6 +278,7 @@ DtpgEngine::gen_good_cnf()
     }
   }
 
+#if DFF
   for ( auto dff: mDffList ) {
     auto onode = dff.output();
     auto inode = dff.input();
@@ -276,6 +287,15 @@ DtpgEngine::gen_good_cnf()
     auto ilit = hvar(inode);
     mSolver.add_buffgate(olit, ilit);
   }
+#else
+  for ( auto inode: mDffInputList ) {
+    auto onode = inode->alt_node();
+    // DFF の入力の1時刻前の値と出力の値が等しい．
+    auto olit = gvar(onode);
+    auto ilit = hvar(inode);
+    mSolver.add_buffgate(olit, ilit);
+  }
+#endif
 
   GateEnc hval_enc{mSolver, mHvarMap};
   for ( auto node: mTfi2List ) {

@@ -93,6 +93,7 @@ TpgDffOutput::is_dff_output() const
   return true;
 }
 
+#if 0
 // @brief 接続している DFF を返す．
 //
 // is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
@@ -101,6 +102,14 @@ TpgDFF
 TpgDffOutput::dff() const
 {
   return mDff;
+}
+#endif
+
+// @brief DFFに関する相方のノードを返す．
+const TpgNode*
+TpgDffOutput::alt_node() const
+{
+  return mAltNode;
 }
 
 END_NAMESPACE_DRUID

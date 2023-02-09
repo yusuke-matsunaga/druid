@@ -107,8 +107,7 @@ JustImpl::just_main(
   if ( node->is_dff_output() ) {
     if ( time == 1 && jd.td_mode() ) {
       // DFF の出力で1時刻目の場合は0時刻目に戻る．
-      auto dff = node->dff();
-      auto alt_node = dff.input();
+      auto alt_node = node->alt_node();
       just_main(jd, alt_node, 0, pi_assign_list);
     }
     else {

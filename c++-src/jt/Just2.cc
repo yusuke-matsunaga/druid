@@ -127,8 +127,7 @@ Just2::add_weight(
   else if ( node->is_dff_output() ) {
     if ( time == 1 && jd.td_mode() ) {
       // 1時刻前のタイムフレームに戻る．
-      auto dff = node->dff();
-      auto alt_node = dff.input();
+      auto alt_node = node->alt_node();
       add_weight(jd, alt_node, 0);
     }
   }
@@ -174,8 +173,7 @@ Just2::calc_value(
   }
   else if ( node->is_dff_output() ) {
     if ( time == 1 && jd.td_mode() ) {
-      auto dff = node->dff();
-      auto alt_node = dff.input();
+      auto alt_node = node->alt_node();
       val = node_value(alt_node, 0);
     }
     else {

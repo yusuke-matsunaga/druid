@@ -134,16 +134,24 @@ TpgNode::output_id2() const
   return 0;
 }
 
+#if 0
 // @brief 接続している DFF を返す．
-//
-// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
-// の時に意味を持つ．
 TpgDFF
 TpgNode::dff() const
 {
   ASSERT_NOT_REACHED;
 
   return {};
+}
+#endif
+
+// @brief DFFに関する相方のノードを返す．
+const TpgNode*
+TpgNode::alt_node() const
+{
+  ASSERT_NOT_REACHED;
+
+  return nullptr;
 }
 
 // @brief ゲートタイプを得る．

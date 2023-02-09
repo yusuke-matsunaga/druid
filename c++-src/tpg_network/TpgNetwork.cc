@@ -335,7 +335,7 @@ print_network(
     }
     else if ( node->is_dff_output() ) {
       s << "INPUT#" << node->input_id()
-	<< "(DFF#" << node->dff().id() << ".output)";
+	<< "(DFF#" /*<< node->dff().id()*/ << ".output)";
     }
     else if ( node->is_primary_output() ) {
       s << "OUTPUT#" << node->output_id();
@@ -345,19 +345,19 @@ print_network(
     }
     else if ( node->is_dff_input() ) {
       s << "OUTPUT#" << node->output_id()
-	<< "(DFF#" << node->dff().id() << ".input)";
+	<< "(DFF#" /*<< node->dff().id()*/ << ".input)";
       const TpgNode* inode = node->fanin(0);
       s << " = ";
       print_node(s, network, inode);
     }
     else if ( node->is_dff_clock() ) {
-      s << "DFF#" << node->dff().id() << ".clock";
+      s << "DFF#" /*<< node->dff().id()*/ << ".clock";
     }
     else if ( node->is_dff_clear() ) {
-      s << "DFF#" << node->dff().id() << ".clear";
+      s << "DFF#" /*<< node->dff().id()*/ << ".clear";
     }
     else if ( node->is_dff_preset() ) {
-      s << "DFF#" << node->dff().id() << ".preset";
+      s << "DFF#" /*<< node->dff().id()*/ << ".preset";
     }
     else if ( node->is_logic() ) {
       s << node->gate_type();
