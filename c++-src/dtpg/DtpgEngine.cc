@@ -49,7 +49,7 @@ DtpgEngine::DtpgEngine(
     mNetwork{network},
     mFaultType{fault_type},
     mRoot{root},
-    mMarkArray(mNetwork.node_num(), 0U),
+    mBitsArray(mNetwork.node_num(), 0U),
     mHvarMap{network.node_num()},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
@@ -147,7 +147,7 @@ DtpgEngine::prepare_vars()
 {
   // root の TFO を mTfoList に入れる．
   set_tfo_mark(mRoot);
-  for ( int rpos = 0; rpos < mTfoList.size(); ++ rpos ) {
+  for ( SizeType rpos = 0; rpos < mTfoList.size(); ++ rpos ) {
     // set_tfo_mark() 中で mTfoList に要素を追加しているので
     // 古いタイプの for 文を用いている．
     auto node = mTfoList[rpos];
@@ -162,7 +162,7 @@ DtpgEngine::prepare_vars()
       set_tfi_mark(inode);
     }
   }
-  for ( int rpos = 0; rpos < mTfiList.size(); ++ rpos ) {
+  for ( SizeType rpos = 0; rpos < mTfiList.size(); ++ rpos ) {
     // set_tfi_mark() 中で mTfiList に要素を追加しているので
     // 古いタイプの for 文を用いている．
     auto node = mTfiList[rpos];
@@ -180,7 +180,7 @@ DtpgEngine::prepare_vars()
       mTfi2List.push_back(node);
     }
     set_tfi2_mark(mRoot);
-    for ( int rpos = 0; rpos < mTfi2List.size(); ++ rpos) {
+    for ( SizeType rpos = 0; rpos < mTfi2List.size(); ++ rpos) {
       // set_tfi2_mark() 中で mTfi2List に要素を追加しているので
       // 古いタイプの for 文を用いている．
       auto node = mTfi2List[rpos];

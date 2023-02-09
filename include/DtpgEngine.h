@@ -448,7 +448,7 @@ private:
   )
   {
     SizeType id = node->id();
-    auto& bits = mMarkArray[id];
+    auto& bits = mBitsArray[id];
     if ( !bits[0] ) {
       bits[0] =true;
       mTfoList.push_back(node);
@@ -477,7 +477,7 @@ private:
   )
   {
     SizeType id = node->id();
-    auto& bits = mMarkArray[id];
+    auto& bits = mBitsArray[id];
     if ( !bits[0] && !bits[1] ) {
       bits[1] = true;
       mTfiList.push_back(node);
@@ -506,7 +506,7 @@ private:
   )
   {
     SizeType id = node->id();
-    auto& bits = mMarkArray[id];
+    auto& bits = mBitsArray[id];
     if ( !bits[2] ) {
       bits[2] = true;
       mTfi2List.push_back(node);
@@ -581,7 +581,7 @@ private:
   // 0: tfi
   // 1: tfo
   // 2: tfi2
-  vector<bitset<3>> mMarkArray;
+  vector<bitset<3>> mBitsArray;
 
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;
