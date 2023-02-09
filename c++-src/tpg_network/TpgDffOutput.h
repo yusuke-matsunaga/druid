@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "TpgPPI.h"
+#include "TpgDFF.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -27,7 +28,7 @@ private:
   /// @brief コンストラクタ
   TpgDffOutput(
     SizeType input_id, ///< [in] 入力番号
-    const TpgDff* dff  ///< [in] 接続しているDFF
+    TpgDFF dff         ///< [in] 接続しているDFF
   );
 
   /// @brief デストラクタ
@@ -47,7 +48,7 @@ public:
   ///
   /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
   /// の時に意味を持つ．
-  const TpgDff*
+  TpgDFF
   dff() const override;
 
 
@@ -57,7 +58,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 対応する DFF
-  const TpgDff* mDff;
+  TpgDFF mDff;
 
 };
 

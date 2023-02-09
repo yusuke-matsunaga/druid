@@ -8,7 +8,7 @@
 
 #include "JustImpl.h"
 #include "JustData.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -108,7 +108,7 @@ JustImpl::just_main(
     if ( time == 1 && jd.td_mode() ) {
       // DFF の出力で1時刻目の場合は0時刻目に戻る．
       auto dff = node->dff();
-      auto alt_node = dff->input();
+      auto alt_node = dff.input();
       just_main(jd, alt_node, 0, pi_assign_list);
     }
     else {

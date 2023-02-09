@@ -8,7 +8,7 @@
 
 #include "Just2.h"
 #include "JustData.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -127,8 +127,8 @@ Just2::add_weight(
   else if ( node->is_dff_output() ) {
     if ( time == 1 && jd.td_mode() ) {
       // 1時刻前のタイムフレームに戻る．
-      const TpgDff* dff = node->dff();
-      const TpgNode* alt_node = dff->input();
+      auto dff = node->dff();
+      auto alt_node = dff.input();
       add_weight(jd, alt_node, 0);
     }
   }
@@ -174,8 +174,8 @@ Just2::calc_value(
   }
   else if ( node->is_dff_output() ) {
     if ( time == 1 && jd.td_mode() ) {
-      const TpgDff* dff = node->dff();
-      const TpgNode* alt_node = dff->input();
+      auto dff = node->dff();
+      auto alt_node = dff.input();
       val = node_value(alt_node, 0);
     }
     else {

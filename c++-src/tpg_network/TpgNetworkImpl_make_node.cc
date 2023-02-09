@@ -99,7 +99,7 @@ TpgNetworkImpl::make_dff_input_node(
 )
 {
   SizeType id = mPPOArray.size();
-  auto dff = &mDffArray[dff_id];
+  auto dff = &mDFFArray[dff_id];
   auto node = new TpgDffInput{id, dff, inode};
   make_node_common(node, name, 1);
   dff->mInput = node;
@@ -123,7 +123,7 @@ TpgNetworkImpl::make_dff_output_node(
 )
 {
   SizeType id = mPPIArray.size();
-  auto dff = &mDffArray[dff_id];
+  auto dff = &mDFFArray[dff_id];
   auto node = new TpgDffOutput{id, dff};
   make_node_common(node, name, 0);
   dff->mOutput = node;
@@ -146,7 +146,7 @@ TpgNetworkImpl::make_dff_clock_node(
   const TpgNode* inode
 )
 {
-  auto dff = &mDffArray[dff_id];
+  auto dff = &mDFFArray[dff_id];
   auto node = new TpgDffClock{dff, inode};
   make_node_common(node, name, 1);
   dff->mClock = node;
@@ -168,7 +168,7 @@ TpgNetworkImpl::make_dff_clear_node(
   const TpgNode* inode
 )
 {
-  auto dff = &mDffArray[dff_id];
+  auto dff = &mDFFArray[dff_id];
   auto node = new TpgDffClear{dff, inode};
   make_node_common(node, name, 1);
   dff->mClear = node;
@@ -190,7 +190,7 @@ TpgNetworkImpl::make_dff_preset_node(
   const TpgNode* inode
 )
 {
-  auto dff = &mDffArray[dff_id];
+  auto dff = &mDFFArray[dff_id];
   auto node = new TpgDffPreset{dff, inode};
   make_node_common(node, name, 1);
   dff->mPreset = node;

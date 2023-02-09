@@ -10,6 +10,7 @@
 #include "TpgDffClock.h"
 #include "TpgDffClear.h"
 #include "TpgDffPreset.h"
+#include "TpgDFF.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,7 +21,7 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 TpgDffControl::TpgDffControl(
-  const TpgDff* dff,
+  TpgDFF dff,
   const TpgNode* fanin
 ) : TpgNode{{fanin}},
     mDff{dff}
@@ -31,7 +32,7 @@ TpgDffControl::TpgDffControl(
 //
 // is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
 // の時に意味を持つ．
-const TpgDff*
+TpgDFF
 TpgDffControl::dff() const
 {
   return mDff;
@@ -44,7 +45,7 @@ TpgDffControl::dff() const
 
 // @brief コンストラクタ
 TpgDffClock::TpgDffClock(
-  const TpgDff* dff,
+  TpgDFF dff,
   const TpgNode* fanin
 ) : TpgDffControl{dff, fanin}
 {
@@ -64,7 +65,7 @@ TpgDffClock::is_dff_clock() const
 
 // @brief コンストラクタ
 TpgDffClear::TpgDffClear(
-  const TpgDff* dff,
+  TpgDFF dff,
   const TpgNode* fanin
 ) : TpgDffControl{dff, fanin}
 {
@@ -84,7 +85,7 @@ TpgDffClear::is_dff_clear() const
 
 // @brief コンストラクタ
 TpgDffPreset::TpgDffPreset(
-  const TpgDff* dff,
+  TpgDFF dff,
   const TpgNode* fanin
 ) : TpgDffControl{dff, fanin}
 {

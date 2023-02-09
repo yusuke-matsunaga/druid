@@ -9,6 +9,7 @@
 #include "TpgPPO.h"
 #include "TpgOutput.h"
 #include "TpgDffInput.h"
+#include "TpgDFF.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -103,10 +104,10 @@ TpgOutput::is_primary_output() const
 // @brief コンストラクタ
 TpgDffInput::TpgDffInput(
   SizeType output_id,
-  const TpgDff* dff,
+  TpgDFF dff,
   const TpgNode* fanin
 ) : TpgPPO{output_id, fanin},
-    mDff(dff)
+    mDff{dff}
 {
 }
 
@@ -121,7 +122,7 @@ TpgDffInput::is_dff_input() const
 //
 // is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
 // の時に意味を持つ．
-const TpgDff*
+TpgDFF
 TpgDffInput::dff() const
 {
   return mDff;

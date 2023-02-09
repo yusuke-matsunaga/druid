@@ -9,7 +9,7 @@
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
 #include "TpgFaultBase.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
 
@@ -199,118 +199,6 @@ TpgNetworkImpl::_node_input_fault(
   return mAuxInfoArray[id].input_fault(pos, val);
 }
 
-// @brief DFF を得る．
-const TpgDff&
-TpgNetworkImpl::dff(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < dff_num() );
-
-  return mDffArray[pos];
-}
-
-// @brief DFF のリストを得る．
-const vector<TpgDff>&
-TpgNetworkImpl::dff_list() const
-{
-  return mDffArray;
-}
-
-// @brief MFFC を返す．
-TpgMFFC
-TpgNetworkImpl::mffc(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < mffc_num() );
-
-  return TpgMFFC{this, pos};
-}
-
-// @brief MFFC の根のノードを返す．
-const TpgNode*
-TpgNetworkImpl::mffc_root(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < mffc_num() );
-
-  auto& mffc = mMffcArray[pos];
-  return mffc.mRoot;
-}
-
-// @brief MFFCに含まれるFFRのリストを返す．
-const vector<TpgFFR>&
-TpgNetworkImpl::mffc_ffr_list(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < mffc_num() );
-
-  auto& mffc = mMffcArray[pos];
-  return mffc.mFfrList;
-}
-
-// @brief MFFCに含まれる代表故障のリストを返す．
-const vector<const TpgFault*>&
-TpgNetworkImpl::mffc_fault_list(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < mffc_num() );
-
-  auto& mffc = mMffcArray[pos];
-  return mffc.mFaultList;
-}
-
-// @brief FFR を返す．
-TpgFFR
-TpgNetworkImpl::ffr(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < ffr_num() );
-
-  return TpgFFR{this, pos};
-}
-
-// @brief FFR の根のノードを返す．
-const TpgNode*
-TpgNetworkImpl::ffr_root(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < ffr_num() );
-
-  auto& ffr = mFfrArray[pos];
-  return ffr.mRoot;
-}
-
-// @brief 葉(FFRの入力)のリストを返す．
-const vector<const TpgNode*>&
-TpgNetworkImpl::ffr_input_list(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < ffr_num() );
-
-  auto& ffr = mFfrArray[pos];
-  return ffr.mInputList;
-}
-
-// @brief FFRに含まれる代表故障のリストを返す．
-const vector<const TpgFault*>&
-TpgNetworkImpl::ffr_fault_list(
-  SizeType pos
-) const
-{
-  ASSERT_COND( pos >= 0 && pos < ffr_num() );
-
-  auto& ffr = mFfrArray[pos];
-  return ffr.mFaultList;
-}
-
 BEGIN_NONAMESPACE
 
 // @brief ノードの TFI にマークをつける．
@@ -346,10 +234,10 @@ TpgNetworkImpl::set_size(
 {
   mInputNum = input_num;
   mOutputNum = output_num;
-  mDffArray.clear();
-  mDffArray.resize(dff_num);
+  mDFFArray.clear();
+  mDFFArray.resize(dff_num);
   for ( auto i: Range(dff_num) ) {
-    mDffArray[i].mId = i;
+    mDFFArray[i].mId = i;
   }
 
   SizeType node_num = input_num + output_num + dff_num * 2 + gate_num + dff_control_num;
@@ -496,8 +384,8 @@ TpgNetworkImpl::post_op(
   // FFR の情報を作る．
   //////////////////////////////////////////////////////////////////////
   SizeType ffr_num = ffr_root_list.size() ;
-  mFfrArray.clear();
-  mFfrArray.resize(ffr_num);
+  mFFRArray.clear();
+  mFFRArray.resize(ffr_num);
   for ( SizeType i: Range(ffr_num) ) {
     auto node = ffr_root_list[i];
     set_ffr(i, node);
@@ -507,8 +395,8 @@ TpgNetworkImpl::post_op(
   // MFFC の情報を作る．
   //////////////////////////////////////////////////////////////////////
   SizeType mffc_num = mffc_root_list.size();
-  mMffcArray.clear();
-  mMffcArray.resize(mffc_num);
+  mMFFCArray.clear();
+  mMFFCArray.resize(mffc_num);
   for ( SizeType i: Range(mffc_num) ) {
     auto node = mffc_root_list[i];
     set_mffc(i, node);
@@ -616,7 +504,7 @@ TpgNetworkImpl::set_ffr(
   const TpgNode* root
 )
 {
-  auto& ffr = mFfrArray[id];
+  auto& ffr = mFFRArray[id];
 
   ffr.mRoot = root;
 
@@ -656,7 +544,7 @@ TpgNetworkImpl::set_mffc(
   const TpgNode* root
 )
 {
-  auto& mffc = mMffcArray[id];
+  auto& mffc = mMFFCArray[id];
 
   mffc.mRoot = root;
 
@@ -672,7 +560,7 @@ TpgNetworkImpl::set_mffc(
 
     if ( node->ffr_root() == node ) {
       auto ffr_id = mAuxInfoArray[node->id()].ffr();
-      mffc.mFfrList.push_back(TpgFFR{this, ffr_id});
+      mffc.mFFRList.push_back(TpgFFR{this, ffr_id});
     }
 
     mAuxInfoArray[node->id()].add_to_fault_list(mffc.mFaultList);

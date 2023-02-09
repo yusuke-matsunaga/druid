@@ -17,9 +17,14 @@
 #include "ym/logic.h"
 #include "ym/Array.h"
 
-#include "TpgDff.h"
-#include "TpgMFFC.h"
-#include "TpgFFR.h"
+//#include "TpgDFF.h"
+//#include "TpgMFFC.h"
+//#include "TpgFFR.h"
+
+#include "DFFImpl.h"
+#include "MFFCImpl.h"
+#include "FFRImpl.h"
+
 
 BEGIN_NAMESPACE_DRUID
 
@@ -231,69 +236,43 @@ public:
   SizeType
   mffc_num() const
   {
-    return mMffcArray.size();
+    return mMFFCArray.size();
   }
 
   /// @brief MFFC を返す．
-  TpgMFFC
-  mffc(
+  const MFFCImpl&
+  _mffc(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
-  ) const;
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < mffc_num() );
 
-  /// @brief MFFC の根のノードを返す．
-  const TpgNode*
-  mffc_root(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
-  ) const;
-
-  /// @brief MFFCに含まれるFFRのリストを返す．
-  const vector<TpgFFR>&
-  mffc_ffr_list(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
-  ) const;
-
-  /// @brief MFFCに含まれる代表故障のリストを返す．
-  const vector<const TpgFault*>&
-  mffc_fault_list(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
-  ) const;
+    return mMFFCArray[pos];
+  }
 
   /// @brief FFR 数を返す．
   SizeType
   ffr_num() const
   {
-    return mFfrArray.size();
+    return mFFRArray.size();
   }
 
   /// @brief FFR を返す．
-  TpgFFR
-  ffr(
+  const FFRImpl&
+  _ffr(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
-  ) const;
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < ffr_num() );
 
-  /// @brief FFR の根のノードを返す．
-  const TpgNode*
-  ffr_root(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
-  ) const;
-
-  /// @brief 葉(FFRの入力)のリストを返す．
-  const vector<const TpgNode*>&
-  ffr_input_list(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
-  ) const;
-
-  /// @brief FFRに含まれる代表故障のリストを返す．
-  const vector<const TpgFault*>&
-  ffr_fault_list(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
-  ) const;
+    return mFFRArray[pos];
+  }
 
   /// @brief DFF数を得る．
   SizeType
   dff_num() const
   {
-    return mDffArray.size();
+    return mDFFArray.size();
   }
 
   /// @brief DFF を得る．
@@ -302,14 +281,19 @@ public:
   /// dff = network.dff(dff->id())
   /// @endcode
   /// の関係が成り立つ．
-  const TpgDff&
-  dff(
+  const DFFImpl&
+  _dff(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
-  ) const;
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < dff_num() );
+
+    return mDFFArray[pos];
+  }
 
   /// @brief DFF のリストを得る．
-  const vector<TpgDff>&
-  dff_list() const;
+  const vector<DFFImpl>&
+  dff_list() const { return mDFFArray; }
 
   /// @brief 故障IDの最大値+1を返す．
   SizeType
@@ -431,44 +415,6 @@ private:
 
     const TpgNode* mNode;
     SizeType mPos;
-  };
-
-
-  /// @brief MFFC の情報
-  struct _MFFC
-  {
-
-    // ID番号
-    SizeType mId;
-
-    // 根のノード
-    const TpgNode* mRoot{nullptr};
-
-    // FFRの配列
-    vector<TpgFFR> mFfrList;
-
-    // 故障の配列
-    vector<const TpgFault*> mFaultList;
-
-  };
-
-
-  /// @brief FFR の情報
-  struct _FFR
-  {
-
-    // ID番号
-    SizeType mId;
-
-    // 根のノード
-    const TpgNode* mRoot;
-
-    // 葉のノードの配列
-    vector<const TpgNode*> mInputList;
-
-    // 故障の配列
-    vector<const TpgFault*> mFaultList;
-
   };
 
 
@@ -677,7 +623,7 @@ private:
   SizeType mOutputNum{0};
 
   // DFFの実体の配列
-  vector<TpgDff> mDffArray;
+  vector<DFFImpl> mDFFArray;
 
   // ノードのポインタ配列
   vector<const TpgNode*> mNodeArray;
@@ -695,10 +641,10 @@ private:
   vector<const TpgNode*> mPPOArray2;
 
   // MFFC の本体の配列
-  vector<_MFFC> mMffcArray;
+  vector<MFFCImpl> mMFFCArray;
 
   // FFR の本体の配列
-  vector<_FFR> mFfrArray;
+  vector<FFRImpl> mFFRArray;
 
   // 全故障数
   SizeType mFaultNum{0};

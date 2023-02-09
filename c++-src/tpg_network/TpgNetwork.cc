@@ -9,7 +9,7 @@
 #include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 #include "ym/ClibCellLibrary.h"
 
 
@@ -226,7 +226,7 @@ TpgNetwork::mffc(
   SizeType pos
 ) const
 {
-  return mImpl->mffc(pos);
+  return TpgMFFC{mImpl.get(), pos};
 }
 
 // @brief FFR 数を返す．
@@ -242,7 +242,7 @@ TpgNetwork::ffr(
   SizeType pos
 ) const
 {
-  return mImpl->ffr(pos);
+  return TpgFFR{mImpl.get(), pos};
 }
 
 // @brief DFF数を得る．
@@ -253,19 +253,20 @@ TpgNetwork::dff_num() const
 }
 
 // @brief DFF を得る．
-const TpgDff&
+TpgDFF
 TpgNetwork::dff(
   SizeType pos
 ) const
 {
-  return mImpl->dff(pos);
+  auto impl = &(mImpl->_dff(pos));
+  return TpgDFF{impl};
 }
 
 // @brief DFF のリストを得る．
-const vector<TpgDff>&
+TpgDFFList
 TpgNetwork::dff_list() const
 {
-  return mImpl->dff_list();
+  return TpgDFFList{mImpl->dff_list()};
 }
 
 // @brief 故障IDの最大値+1を返す．
@@ -334,7 +335,7 @@ print_network(
     }
     else if ( node->is_dff_output() ) {
       s << "INPUT#" << node->input_id()
-	<< "(DFF#" << node->dff()->id() << ".output)";
+	<< "(DFF#" << node->dff().id() << ".output)";
     }
     else if ( node->is_primary_output() ) {
       s << "OUTPUT#" << node->output_id();
@@ -344,19 +345,19 @@ print_network(
     }
     else if ( node->is_dff_input() ) {
       s << "OUTPUT#" << node->output_id()
-	<< "(DFF#" << node->dff()->id() << ".input)";
+	<< "(DFF#" << node->dff().id() << ".input)";
       const TpgNode* inode = node->fanin(0);
       s << " = ";
       print_node(s, network, inode);
     }
     else if ( node->is_dff_clock() ) {
-      s << "DFF#" << node->dff()->id() << ".clock";
+      s << "DFF#" << node->dff().id() << ".clock";
     }
     else if ( node->is_dff_clear() ) {
-      s << "DFF#" << node->dff()->id() << ".clear";
+      s << "DFF#" << node->dff().id() << ".clear";
     }
     else if ( node->is_dff_preset() ) {
-      s << "DFF#" << node->dff()->id() << ".preset";
+      s << "DFF#" << node->dff().id() << ".preset";
     }
     else if ( node->is_logic() ) {
       s << node->gate_type();

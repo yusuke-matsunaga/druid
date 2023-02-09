@@ -28,7 +28,7 @@ set (tpg_network_SOURCES
   tpg_network/TpgNetworkImpl_blif.cc
   tpg_network/TpgNetworkImpl_iscas89.cc
   tpg_network/TpgNetworkImpl_make_node.cc
-  tpg_network/TpgDff.cc
+  tpg_network/TpgDFF.cc
   tpg_network/TpgFFR.cc
   tpg_network/TpgMFFC.cc
   tpg_network/TpgGateInfo.cc

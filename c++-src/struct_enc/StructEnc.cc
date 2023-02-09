@@ -16,7 +16,7 @@
 #include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "TpgNode.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 #include "TpgMFFC.h"
 
 #include "GateEnc.h"
@@ -261,7 +261,7 @@ StructEnc::make_tfi_list(
 
     // 遷移故障モードの場合には１時刻前の回路も作る．
     if ( fault_type() == FaultType::TransitionDelay && node->is_dff_output() ) {
-      const TpgNode* inode = node->dff()->input();
+      auto inode = node->dff().input();
       add_prev_node(inode);
     }
   }
@@ -295,7 +295,7 @@ StructEnc::make_vars()
     if ( !var_mark(node, 0) ) {
       // FF の入力の場合は1時刻後の出力の変数を用いる．
       if ( node->is_dff_input() ) {
-	const TpgNode* onode = node->dff()->output();
+	auto onode = node->dff().output();
 	if ( var_mark(onode, 1) ) {
 	  _set_var(node, 0, var(onode, 1));
 	}
@@ -363,7 +363,7 @@ StructEnc::make_tfi_var(
   // 遷移故障モードの時は前の時刻の回路も作る．
   if ( fault_type() == FaultType::TransitionDelay &&
        node->is_dff_output() && time == 1 ) {
-    const TpgNode* inode = node->dff()->input();
+    auto inode = node->dff().input();
     make_tfi_var(inode, 0);
   }
 }
@@ -394,7 +394,7 @@ StructEnc::make_tfi_cnf(
   // 遷移故障モードの時は前の時刻の回路も作る．
   if ( fault_type() == FaultType::TransitionDelay &&
        node->is_dff_output() && time == 1 ) {
-    const TpgNode* inode = node->dff()->input();
+    auto inode = node->dff().input();
     make_tfi_cnf(inode, 0);
   }
 }

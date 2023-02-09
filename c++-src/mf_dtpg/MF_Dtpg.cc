@@ -8,7 +8,7 @@
 
 #include "MF_Dtpg.h"
 #include "Extractor.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 #include "TpgFault.h"
 #include "GateEnc.h"
 #include "FaultyGateEnc.h"
@@ -225,7 +225,7 @@ MF_Dtpg::prepare_vars()
       }
     }
     for ( auto dff: mDffList ) {
-      const TpgNode* node = dff->input();
+      auto node = dff.input();
       mTfi2List.push_back(node);
     }
     for ( auto root: mRootList ) {
@@ -317,8 +317,8 @@ MF_Dtpg::gen_good_cnf()
   }
 
   for ( auto dff: mDffList ) {
-    const TpgNode* onode = dff->output();
-    const TpgNode* inode = dff->input();
+    auto onode = dff.output();
+    auto inode = dff.input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
     auto olit = gvar(onode);
     auto ilit = hvar(inode);

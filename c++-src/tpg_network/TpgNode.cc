@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "TpgNode.h"
+#include "TpgDFF.h"
 #include "TpgFFR.h"
 #include "Val3.h"
 
@@ -137,12 +138,12 @@ TpgNode::output_id2() const
 //
 // is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
 // の時に意味を持つ．
-const TpgDff*
+TpgDFF
 TpgNode::dff() const
 {
   ASSERT_NOT_REACHED;
 
-  return nullptr;
+  return {};
 }
 
 // @brief ゲートタイプを得る．

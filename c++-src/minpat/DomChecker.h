@@ -391,7 +391,7 @@ private:
   vector<const TpgNode*> mTfiList;
 
   // TFI に含まれる DFF 入れておくリスト
-  vector<const TpgDff*> mDffList;
+  vector<TpgDFF> mDffList;
 
   // 1時刻前関係するノードを入れておくリスト
   vector<const TpgNode*> mPrevTfiList;

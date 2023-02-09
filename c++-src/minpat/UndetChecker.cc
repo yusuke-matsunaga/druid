@@ -10,7 +10,7 @@
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 #include "FaultyGateEnc.h"
 #include "Val3.h"
 #include "NodeValList.h"
@@ -35,27 +35,23 @@ END_NONAMESPACE
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] root 故障伝搬の起点となるノード
-// @param[in] fault 故障伝搬をさせない故障
-// @param[in] solver_type SATソルバの実装タイプ
-UndetChecker::UndetChecker(const TpgNetwork& network,
-			   FaultType fault_type,
-			   const TpgFault* fault,
-			   const SatSolverType& solver_type) :
-  mSolver(solver_type),
-  mNetwork(network),
-  mFaultType(fault_type),
-  mFault(fault),
-  mMarkArray(mNetwork.node_num(), 0U),
-  mHvarMap(network.node_num()),
-  mGvarMap(network.node_num()),
-  mFvarMap(network.node_num()),
-  mGvalEnc(mSolver, mGvarMap),
-  mHvalEnc(mSolver, mHvarMap),
-  mFvalEnc(mSolver, mFvarMap),
-  mTimerEnable(true)
+UndetChecker::UndetChecker(
+  const TpgNetwork& network,
+  FaultType fault_type,
+  const TpgFault* fault,
+  const SatSolverType& solver_type
+) : mSolver(solver_type),
+    mNetwork(network),
+    mFaultType(fault_type),
+    mFault(fault),
+    mMarkArray(mNetwork.node_num(), 0U),
+    mHvarMap(network.node_num()),
+    mGvarMap(network.node_num()),
+    mFvarMap(network.node_num()),
+    mGvalEnc(mSolver, mGvarMap),
+    mHvalEnc(mSolver, mHvarMap),
+    mFvalEnc(mSolver, mFvarMap),
+    mTimerEnable(true)
 {
   mRoot = fault->tpg_onode();
   mTfiList.reserve(network.node_num());
@@ -170,7 +166,7 @@ UndetChecker::prepare_vars()
       mDffList.push_back(mRoot->dff());
     }
     for ( auto dff: mDffList ) {
-      const TpgNode* node = dff->input();
+      auto node = dff.input();
       mPrevTfiList.push_back(node);
     }
     set_prev_tfi_mark(mRoot);
@@ -242,8 +238,8 @@ UndetChecker::gen_good_cnf()
   }
 
   for ( auto dff: mDffList ) {
-    const TpgNode* onode = dff->output();
-    const TpgNode* inode = dff->input();
+    auto onode = dff.output();
+    auto inode = dff.input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
     auto olit = gvar(onode);
     auto ilit = hvar(inode);

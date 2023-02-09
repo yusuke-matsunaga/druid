@@ -1,11 +1,11 @@
 #ifndef TPGDFF_H
 #define TPGDFF_H
 
-/// @file TpgDff.h
-/// @brief TpgDff のヘッダファイル
+/// @file TpgDFF.h
+/// @brief TpgDFF のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -13,21 +13,25 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class DFFImpl;
+
 //////////////////////////////////////////////////////////////////////
-/// @class TpgDff TpgDff.h "TpgDff.h"
+/// @class TpgDFF TpgDFF.h "TpgDFF.h"
 /// @brief DFF を表すクラス
 //////////////////////////////////////////////////////////////////////
-class TpgDff
+class TpgDFF
 {
-  friend class TpgNetworkImpl;
-
 public:
 
   /// @brief コンストラクタ
-  TpgDff();
+  TpgDFF(
+    const DFFImpl* impl = nullptr ///< [in] 実装オブジェクト
+  ) : mImpl{impl}
+  {
+  }
 
   /// @brief デストラクタ
-  ~TpgDff();
+  ~TpgDFF() = default;
 
 
 public:
@@ -65,23 +69,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // ID番号
-  SizeType mId;
-
-  // 入力端子
-  TpgNode* mInput;
-
-  // 出力端子
-  TpgNode* mOutput;
-
-  // クロック端子
-  TpgNode* mClock;
-
-  // クリア端子
-  TpgNode* mClear;
-
-  // プリセット端子
-  TpgNode* mPreset;
+  // 実装オブジェクト
+  const DFFImpl* mImpl{nullptr};
 
 };
 

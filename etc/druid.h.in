@@ -63,7 +63,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 class TpgNetwork;
-class TpgDff;
+class TpgDFF;
 class TpgNode;
 class TpgMFFC;
 class TpgFFR;

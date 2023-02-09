@@ -10,7 +10,7 @@
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 #include "GateEnc.h"
 #include "FaultyGateEnc.h"
 #include "Val3.h"
@@ -194,7 +194,7 @@ DomChecker::prepare_vars()
       }
     }
     for ( auto dff: mDffList ) {
-      const TpgNode* node = dff->input();
+      auto node = dff.input();
       mPrevTfiList.push_back(node);
     }
     set_prev_tfi_mark(mRoot[0]);
@@ -286,8 +286,8 @@ DomChecker::gen_good_cnf()
   }
 
   for ( auto dff: mDffList ) {
-    const TpgNode* onode = dff->output();
-    const TpgNode* inode = dff->input();
+    auto onode = dff.output();
+    auto inode = dff.input();
     // DFF の入力の1時刻前の値と出力の値が等しい．
     auto olit = gvar(onode);
     auto ilit = hvar(inode);

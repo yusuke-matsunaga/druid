@@ -13,6 +13,7 @@
 #include "ym/blif_nsdef.h"
 #include "ym/iscas89_nsdef.h"
 #include "ym/ClibCellLibrary.h"
+#include "TpgDFFList.h"
 #include "TpgMFFCList.h"
 #include "TpgFFRList.h"
 
@@ -257,7 +258,7 @@ public:
   ) const;
 
   /// @brief MFFC のリストを得る．
-  const TpgMFFCList
+  TpgMFFCList
   mffc_list() const
   {
     return TpgMFFCList{mImpl.get(), mffc_num()};
@@ -274,7 +275,7 @@ public:
   ) const;
 
   /// @brief FFR のリストを得る．
-  const TpgFFRList
+  TpgFFRList
   ffr_list() const
   {
     return TpgFFRList{mImpl.get(), ffr_num()};
@@ -290,13 +291,13 @@ public:
   /// dff = network.dff(dff->id())
   /// @endcode
   /// の関係が成り立つ．
-  const TpgDff&
+  TpgDFF
   dff(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
   ) const;
 
   /// @brief DFF のリストを得る．
-  const vector<TpgDff>&
+  TpgDFFList
   dff_list() const;
 
   /// @brief 故障IDの最大値+1を返す．

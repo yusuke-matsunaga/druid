@@ -9,6 +9,7 @@
 #include "TpgPPI.h"
 #include "TpgInput.h"
 #include "TpgDffOutput.h"
+#include "TpgDFF.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -79,7 +80,7 @@ TpgInput::is_primary_input() const
 // @brief コンストラクタ
 TpgDffOutput::TpgDffOutput(
   SizeType input_id,
-  const TpgDff* dff
+  TpgDFF dff
 ) : TpgPPI{input_id},
     mDff{dff}
 {
@@ -96,7 +97,7 @@ TpgDffOutput::is_dff_output() const
 //
 // is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
 // の時に意味を持つ．
-const TpgDff*
+TpgDFF
 TpgDffOutput::dff() const
 {
   return mDff;

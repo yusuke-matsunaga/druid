@@ -163,7 +163,7 @@ public:
   /// の時に意味を持つ．
   /// それ以外では nullptr を返す．
   virtual
-  const TpgDff*
+  TpgDFF
   dff() const;
 
   /// @brief ゲートタイプを得る．

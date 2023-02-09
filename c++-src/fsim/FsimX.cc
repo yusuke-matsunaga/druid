@@ -9,7 +9,7 @@
 #include "FsimX.h"
 
 #include "TpgNetwork.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
 

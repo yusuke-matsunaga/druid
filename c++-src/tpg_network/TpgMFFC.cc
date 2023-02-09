@@ -9,6 +9,7 @@
 #include "TpgMFFC.h"
 #include "TpgNetworkImpl.h"
 #include "TpgFFR.h"
+#include "MFFCImpl.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -17,21 +18,30 @@ BEGIN_NAMESPACE_DRUID
 const TpgNode*
 TpgMFFC::root() const
 {
-  return mNetwork->mffc_root(mId);
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto& mffc = mNetwork->_mffc(mId);
+  return mffc.root();
 }
 
 // @brief このMFFCに含まれるFFR番号のリストを返す．
 const vector<TpgFFR>&
 TpgMFFC::ffr_list() const
 {
-  return mNetwork->mffc_ffr_list(mId);
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto& mffc = mNetwork->_mffc(mId);
+  return mffc.ffr_list();
 }
 
 // @brief このFFRに含まれる代表故障のリストを返す．
 const vector<const TpgFault*>&
 TpgMFFC::fault_list() const
 {
-  return mNetwork->mffc_fault_list(mId);
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto& mffc = mNetwork->_mffc(mId);
+  return mffc.fault_list();
 }
 
 END_NAMESPACE_DRUID

@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "TpgNode.h"
+#include "TpgDFF.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,7 +25,7 @@ protected:
 
   /// @brief コンストラクタ
   TpgDffControl(
-    const TpgDff* dff,   ///< [in] 接続しているDFF
+    TpgDFF dff,          /// @param[in] 接続しているDFF
     const TpgNode* fanin ///< [in] ファンインのノード
   );
 
@@ -41,7 +42,7 @@ public:
   ///
   /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
   /// の時に意味を持つ．
-  const TpgDff*
+  TpgDFF
   dff() const override;
 
 
@@ -51,7 +52,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 対応する DFF
-  const TpgDff* mDff;
+  TpgDFF mDff;
 
 };
 

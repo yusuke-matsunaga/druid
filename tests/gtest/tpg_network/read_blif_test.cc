@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 #include "TpgNetwork.h"
 #include "TpgNode.h"
-#include "TpgDff.h"
+#include "TpgDFF.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -77,7 +77,7 @@ TEST(DruidTest, read_blif_1)
 
   auto nd = network.dff_num();
   for ( SizeType i = 0; i < nd; ++ i ) {
-    auto& dff = network.dff(i);
+    auto dff = network.dff(i);
     EXPECT_EQ( i, dff.id() );
     EXPECT_TRUE( dff.input() != nullptr );
     EXPECT_TRUE( dff.output() != nullptr );
