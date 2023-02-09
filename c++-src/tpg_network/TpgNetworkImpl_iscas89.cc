@@ -119,11 +119,13 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // DFFの出力ノード(PPI)を作成する．
   //////////////////////////////////////////////////////////////////////
+  unordered_map<SizeType, SizeType> dff_map;
   SizeType dff_id = 0;
   for ( auto id: model.dff_list() ) {
     auto name = model.node_name(id);
     auto node = make_dff_output_node(dff_id, name);
     node_map.reg(id, node);
+    dff_map.emplace(id, dff_id);
     ++ dff_id;
   }
 
@@ -161,10 +163,11 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // DFFの入力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
-  dff_id = 0;
   for ( auto id: model.dff_list() ) {
     auto iid = model.node_input(id);
     auto inode = node_map.get(iid);
+    ASSERT_COND( dff_map.count(id) > 0 );
+    auto dff_id = dff_map.at(id);
     string dff_name = model.node_name(id);
     string input_name = dff_name + ".input";
     auto node = make_dff_input_node(dff_id, input_name, inode);
