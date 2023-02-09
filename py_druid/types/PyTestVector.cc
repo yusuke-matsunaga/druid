@@ -497,7 +497,7 @@ PyTestVector::ToPyObject(
 {
   auto obj = TestVectorType.tp_alloc(&TestVectorType, 0);
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(obj);
-  (*testvector_obj->mPtr) = val;
+  testvector_obj->mPtr = new TestVector{val};
   return obj;
 }
 

@@ -29,7 +29,7 @@ ym_add_gtest ( druid_dtpg_test
   $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
   $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
-  DEFINITIONS "-DDATAPATH=\"${CMAKE_CURRENT_SOURCE_DIR}/data/\""
+  DEFINITIONS "-DDATAPATH=\"${PROJECT_SOURCE_DIR}/tests/data/\""
   )
 
 target_include_directories ( druid_dtpg_test

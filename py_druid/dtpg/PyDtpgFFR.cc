@@ -157,13 +157,13 @@ PyDtpgFFR::_check(
 }
 
 // @brief DtpgFFR を表す PyObject から DtpgFFR を取り出す．
-DtpgFFR*
+DtpgFFR&
 PyDtpgFFR::_get(
   PyObject* obj
 )
 {
   auto dtpg_obj = reinterpret_cast<DtpgFFRObject*>(obj);
-  return dtpg_obj->mPtr;
+  return *dtpg_obj->mPtr;
 }
 
 // @brief DtpgFFR を表すオブジェクトの型定義を返す．

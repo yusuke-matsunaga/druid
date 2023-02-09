@@ -49,7 +49,7 @@ public:
   ///
   /// _check(obj) == true であると仮定している．
   static
-  DtpgFFR*
+  DtpgFFR&
   _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );

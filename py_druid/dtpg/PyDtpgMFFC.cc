@@ -157,13 +157,13 @@ PyDtpgMFFC::_check(
 }
 
 // @brief DtpgMFFC を表す PyObject から DtpgMFFC を取り出す．
-DtpgMFFC*
+DtpgMFFC&
 PyDtpgMFFC::_get(
   PyObject* obj
 )
 {
   auto dtpg_obj = reinterpret_cast<DtpgMFFCObject*>(obj);
-  return dtpg_obj->mPtr;
+  return *dtpg_obj->mPtr;
 }
 
 // @brief DtpgMFFC を表すオブジェクトの型定義を返す．

@@ -184,7 +184,7 @@ PyFaultStatus::init(
   FaultStatusType.tp_repr = FaultStatus_repr;
 
   // 型オブジェクトの登録
-  if ( !PyModule::reg_type(m, "Faultstatus", &FaultStatusType) ) {
+  if ( !PyModule::reg_type(m, "FaultStatus", &FaultStatusType) ) {
     goto error;
   }
 
@@ -238,9 +238,9 @@ PyFaultStatus::ToPyObject(
 {
   PyObject* obj = nullptr;
   switch ( val ) {
-  case FaultStatus::Undetected: obj = FaultStatus_Undetected;
-  case FaultStatus::Detected:   obj = FaultStatus_Detected;
-  case FaultStatus::Untestable: obj = FaultStatus_Untestable;
+  case FaultStatus::Undetected: obj = FaultStatus_Undetected; break;
+  case FaultStatus::Detected:   obj = FaultStatus_Detected; break;
+  case FaultStatus::Untestable: obj = FaultStatus_Untestable; break;
   default: ASSERT_NOT_REACHED;
   }
   Py_INCREF(obj);
