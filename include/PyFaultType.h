@@ -61,17 +61,17 @@ public:
   /// @brief PyObject が FaultType タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief FaultType を表す PyObject から FaultType を取り出す．
   /// @return FaultType を返す．
   ///
-  /// _check(obj) == true であると仮定している．
+  /// Check(obj) == true であると仮定している．
   static
   FaultType
-  _get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

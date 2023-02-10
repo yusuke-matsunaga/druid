@@ -50,17 +50,17 @@ public:
   /// @brief PyObject が TpgMFFC タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief TpgMFFC を表す PyObject から TpgMFFC を取り出す．
   /// @return TpgMFFC を返す．
   ///
-  /// _check(obj) == true であると仮定している．
+  /// Check(obj) == true であると仮定している．
   static
   const TpgMFFC&
-  _get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

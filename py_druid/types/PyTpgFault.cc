@@ -65,7 +65,7 @@ TpgFault_is_stem_fault(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   return PyBool_FromLong(fault->is_stem_fault());
 }
 
@@ -75,7 +75,7 @@ TpgFault_is_branch_fault(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   return PyBool_FromLong(fault->is_branch_fault());
 }
 
@@ -85,7 +85,7 @@ TpgFault_is_rep(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   return PyBool_FromLong(fault->is_rep());
 }
 
@@ -107,7 +107,7 @@ TpgFault_id(
   void* Py_UNUSED(closure)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   auto id = fault->id();
   return PyLong_FromLong(id);
 }
@@ -119,7 +119,7 @@ TpgFault_tpg_inode(
   void* Py_UNUSED(closure)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   auto node = fault->tpg_inode();
   return PyLong_FromLong(node->id());
 }
@@ -131,7 +131,7 @@ TpgFault_tpg_onode(
   void* Py_UNUSED(closure)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   auto node = fault->tpg_onode();
   return PyLong_FromLong(node->id());
 }
@@ -143,7 +143,7 @@ TpgFault_fault_pos(
   void* Py_UNUSED(closure)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   auto pos = fault->fault_pos();
   return PyLong_FromLong(pos);
 }
@@ -155,7 +155,7 @@ TpgFault_tpg_pos(
   void* Py_UNUSED(closure)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   auto pos = fault->tpg_pos();
   return PyLong_FromLong(pos);
 }
@@ -167,7 +167,7 @@ TpgFault_val(
   void* Py_UNUSED(closure)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   auto val = fault->val();
   auto ival = val == Fval2::zero ? 0 : 1;
   return PyLong_FromLong(ival);
@@ -180,7 +180,7 @@ TpgFault_rep_fault(
   void* Py_UNUSED(closure)
 )
 {
-  auto fault = PyTpgFault::_get(self);
+  auto fault = PyTpgFault::Get(self);
   auto node = fault->rep_fault();
   return PyLong_FromLong(node->id());
 }
@@ -243,7 +243,7 @@ PyTpgFault::ToPyObject(
 
 // @brief PyObject が TpgFault タイプか調べる．
 bool
-PyTpgFault::_check(
+PyTpgFault::Check(
   PyObject* obj
 )
 {
@@ -252,7 +252,7 @@ PyTpgFault::_check(
 
 // @brief TpgFault を表す PyObject から TpgFault を取り出す．
 const TpgFault*
-PyTpgFault::_get(
+PyTpgFault::Get(
   PyObject* obj
 )
 {

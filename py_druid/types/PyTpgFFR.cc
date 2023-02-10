@@ -62,7 +62,7 @@ TpgFFR_ffr_id(
   void* Py_UNUSED(closure)
 )
 {
-  auto val = PyTpgFFR::_get(self);
+  auto val = PyTpgFFR::Get(self);
   return PyLong_FromLong(val.id());
 }
 
@@ -72,7 +72,7 @@ TpgFFR_fault_list(
   void* Py_UNUSED(closure)
 )
 {
-  auto val = PyTpgFFR::_get(self);
+  auto val = PyTpgFFR::Get(self);
   auto& fault_list = val.fault_list();
   SizeType n = fault_list.size();
   auto ans_obj = PyList_New(n);
@@ -99,10 +99,10 @@ TpgFFR_richcmpfunc(
   int op
 )
 {
-  if ( PyTpgFFR::_check(self) &&
-       PyTpgFFR::_check(other) ) {
-    auto val1 = PyTpgFFR::_get(self);
-    auto val2 = PyTpgFFR::_get(other);
+  if ( PyTpgFFR::Check(self) &&
+       PyTpgFFR::Check(other) ) {
+    auto val1 = PyTpgFFR::Get(self);
+    auto val2 = PyTpgFFR::Get(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -160,7 +160,7 @@ PyTpgFFR::ToPyObject(
 
 // @brief PyObject が TpgFFR タイプか調べる．
 bool
-PyTpgFFR::_check(
+PyTpgFFR::Check(
   PyObject* obj
 )
 {
@@ -169,7 +169,7 @@ PyTpgFFR::_check(
 
 // @brief TpgFFR を表す PyObject から TpgFFR を取り出す．
 const TpgFFR&
-PyTpgFFR::_get(
+PyTpgFFR::Get(
   PyObject* obj
 )
 {

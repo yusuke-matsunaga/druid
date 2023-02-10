@@ -73,9 +73,9 @@ DtpgFFR_new(
   }
   auto obj = type->tp_alloc(type, 0);
   auto dtpg_obj = reinterpret_cast<DtpgFFRObject*>(obj);
-  auto& network = PyTpgNetwork::_get(network_obj);
-  auto fault_type = PyFaultType::_get(fault_type_obj);
-  auto ffr = PyTpgFFR::_get(ffr_obj);
+  auto& network = PyTpgNetwork::Get(network_obj);
+  auto fault_type = PyFaultType::Get(fault_type_obj);
+  auto ffr = PyTpgFFR::Get(ffr_obj);
   dtpg_obj->mPtr = new DtpgFFR{network, fault_type, ffr,
 			       just_type, solver_type};
   return obj;
@@ -102,7 +102,7 @@ DtpgFFR_gen_pattern(
   if ( !PyArg_ParseTuple(args, "O!", PyTpgFault::_typeobject(), &fault_obj) ) {
     return nullptr;
   }
-  auto fault = PyTpgFault::_get(fault_obj);
+  auto fault = PyTpgFault::Get(fault_obj);
   auto dtpg_obj = reinterpret_cast<DtpgFFRObject*>(self);
   auto result = dtpg_obj->mPtr->gen_pattern(fault);
   auto status_obj = PyFaultStatus::ToPyObject(result.status());
@@ -149,7 +149,7 @@ PyDtpgFFR::init(
 
 // @brief PyObject が DtpgFFR タイプか調べる．
 bool
-PyDtpgFFR::_check(
+PyDtpgFFR::Check(
   PyObject* obj
 )
 {
@@ -158,7 +158,7 @@ PyDtpgFFR::_check(
 
 // @brief DtpgFFR を表す PyObject から DtpgFFR を取り出す．
 DtpgFFR&
-PyDtpgFFR::_get(
+PyDtpgFFR::Get(
   PyObject* obj
 )
 {

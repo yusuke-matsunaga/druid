@@ -70,7 +70,7 @@ InputVector_str(
   PyObject* self
 )
 {
-  auto& val = PyInputVector::_get(self);
+  auto& val = PyInputVector::Get(self);
   // val から 文字列を作る．
   auto tmp_str = val.bin_str();
   return Py_BuildValue("s", tmp_str.c_str());
@@ -177,7 +177,7 @@ InputVector_set_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::_get(obj);
+  auto& mt19937 = PyMt19937::Get(obj);
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
   iv_obj->mPtr->set_from_random(mt19937);
   Py_RETURN_NONE;
@@ -194,7 +194,7 @@ InputVector_fix_x_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::_get(obj);
+  auto& mt19937 = PyMt19937::Get(obj);
   auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
   iv_obj->mPtr->fix_x_from_random(mt19937);
   Py_RETURN_NONE;
@@ -267,7 +267,7 @@ PyInputVector::ToPyObject(
 
 // @brief PyObject が InputVector タイプか調べる．
 bool
-PyInputVector::_check(
+PyInputVector::Check(
   PyObject* obj
 )
 {
@@ -276,7 +276,7 @@ PyInputVector::_check(
 
 // @brief InputVector を表す PyObject から InputVector を取り出す．
 const InputVector&
-PyInputVector::_get(
+PyInputVector::Get(
   PyObject* obj
 )
 {

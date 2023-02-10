@@ -62,7 +62,7 @@ TpgMFFC_mffc_id(
   void* Py_UNUSED(closure)
 )
 {
-  auto val = PyTpgMFFC::_get(self);
+  auto val = PyTpgMFFC::Get(self);
   return PyLong_FromLong(val.id());
 }
 
@@ -72,7 +72,7 @@ TpgMFFC_fault_list(
   void* Py_UNUSED(closure)
 )
 {
-  auto val = PyTpgMFFC::_get(self);
+  auto val = PyTpgMFFC::Get(self);
   auto& fault_list = val.fault_list();
   SizeType n = fault_list.size();
   auto ans_obj = PyList_New(n);
@@ -99,10 +99,10 @@ TpgMFFC_richcmpfunc(
   int op
 )
 {
-  if ( PyTpgMFFC::_check(self) &&
-       PyTpgMFFC::_check(other) ) {
-    auto val1 = PyTpgMFFC::_get(self);
-    auto val2 = PyTpgMFFC::_get(other);
+  if ( PyTpgMFFC::Check(self) &&
+       PyTpgMFFC::Check(other) ) {
+    auto val1 = PyTpgMFFC::Get(self);
+    auto val2 = PyTpgMFFC::Get(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -160,7 +160,7 @@ PyTpgMFFC::ToPyObject(
 
 // @brief PyObject が TpgMFFC タイプか調べる．
 bool
-PyTpgMFFC::_check(
+PyTpgMFFC::Check(
   PyObject* obj
 )
 {
@@ -169,7 +169,7 @@ PyTpgMFFC::_check(
 
 // @brief TpgMFFC を表す PyObject から TpgMFFC を取り出す．
 const TpgMFFC&
-PyTpgMFFC::_get(
+PyTpgMFFC::Get(
   PyObject* obj
 )
 {

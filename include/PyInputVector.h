@@ -50,17 +50,17 @@ public:
   /// @brief PyObject が InputVector タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief InputVector を表す PyObject から InputVector を取り出す．
   /// @return InputVector を返す．
   ///
-  /// _check(obj) == true であると仮定している．
+  /// Check(obj) == true であると仮定している．
   static
   const InputVector&
-  _get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

@@ -40,17 +40,17 @@ public:
   /// @brief PyObject が DtpgMFFC タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief DtpgMFFC を表す PyObject から DtpgMFFC を取り出す．
   /// @return DtpgMFFC を返す．
   ///
-  /// _check(obj) == true であると仮定している．
+  /// Check(obj) == true であると仮定している．
   static
   DtpgMFFC&
-  _get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

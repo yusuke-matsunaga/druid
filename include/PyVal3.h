@@ -61,17 +61,17 @@ public:
   /// @brief PyObject が Val3 タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief Val3 を表す PyObject から Val3 を取り出す．
   /// @return Val3 を返す．
   ///
-  /// _check(obj) == true であると仮定している．
+  /// Check(obj) == true であると仮定している．
   static
   Val3
-  _get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

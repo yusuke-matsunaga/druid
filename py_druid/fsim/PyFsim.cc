@@ -57,8 +57,8 @@ Fsim_new(
     return nullptr;
   }
 
-  auto& network = PyTpgNetwork::_get(network_obj);
-  auto fault_type = PyFaultType::_get(fault_type_obj);
+  auto& network = PyTpgNetwork::Get(network_obj);
+  auto fault_type = PyFaultType::Get(fault_type_obj);
 
   bool has_x = false;
   if ( val_type == 2 ) {
@@ -94,7 +94,7 @@ Fsim_set_skip_all(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   fsim->set_skip_all();
   Py_RETURN_NONE;
 }
@@ -110,28 +110,28 @@ Fsim_set_skip(
     return nullptr;
   }
 
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   if ( PySequence_Check(obj) ) {
     SizeType n = PySequence_Size(obj);
     vector<const TpgFault*> fault_list;
     fault_list.reserve(n);
     for ( SizeType i = 0; i < n; ++ i ) {
       auto obj1 = PySequence_GetItem(obj, i);
-      if ( !PyTpgFault::_check(obj1) ) {
+      if ( !PyTpgFault::Check(obj1) ) {
 	PyErr_SetString(PyExc_TypeError, "'TpgFault' type expected");
 	return nullptr;
       }
-      auto fault = PyTpgFault::_get(obj1);
+      auto fault = PyTpgFault::Get(obj1);
       fault_list.push_back(fault);
     }
     fsim->set_skip(fault_list);
   }
   else {
-    if ( !PyTpgFault::_check(obj) ) {
+    if ( !PyTpgFault::Check(obj) ) {
       PyErr_SetString(PyExc_TypeError, "'TpgFault' type expected");
       return nullptr;
     }
-    auto fault = PyTpgFault::_get(obj);
+    auto fault = PyTpgFault::Get(obj);
     fsim->set_skip(fault);
   }
   Py_RETURN_NONE;
@@ -143,7 +143,7 @@ Fsim_clear_skip_all(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   fsim->clear_skip_all();
   Py_RETURN_NONE;
 }
@@ -159,28 +159,28 @@ Fsim_clear_skip(
     return nullptr;
   }
 
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   if ( PySequence_Check(obj) ) {
     SizeType n = PySequence_Size(obj);
     vector<const TpgFault*> fault_list;
     fault_list.reserve(n);
     for ( SizeType i = 0; i < n; ++ i ) {
       auto obj1 = PySequence_GetItem(obj, i);
-      if ( !PyTpgFault::_check(obj1) ) {
+      if ( !PyTpgFault::Check(obj1) ) {
 	PyErr_SetString(PyExc_TypeError, "'TpgFault' type expected");
 	return nullptr;
       }
-      auto fault = PyTpgFault::_get(obj1);
+      auto fault = PyTpgFault::Get(obj1);
       fault_list.push_back(fault);
     }
     fsim->clear_skip(fault_list);
   }
   else {
-    if ( !PyTpgFault::_check(obj) ) {
+    if ( !PyTpgFault::Check(obj) ) {
       PyErr_SetString(PyExc_TypeError, "'TpgFault' type expected");
       return nullptr;
     }
-    auto fault = PyTpgFault::_get(obj);
+    auto fault = PyTpgFault::Get(obj);
     fsim->clear_skip(fault);
   }
   Py_RETURN_NONE;
@@ -199,9 +199,9 @@ Fsim_spsfp(
 			 PyTpgFault::_typeobject(), &obj2) ) {
     return nullptr;
   }
-  auto tv = PyTestVector::_get(obj1);
-  auto fault = PyTpgFault::_get(obj2);
-  auto fsim = PyFsim::_get(self);
+  auto tv = PyTestVector::Get(obj1);
+  auto fault = PyTpgFault::Get(obj2);
+  auto fsim = PyFsim::Get(self);
   bool ans = fsim->spsfp(tv, fault);
   return PyBool_FromLong(ans);
 }
@@ -217,8 +217,8 @@ Fsim_sppfp(
 			 PyTestVector::_typeobject(), &obj1) ) {
     return nullptr;
   }
-  auto tv = PyTestVector::_get(obj1);
-  auto fsim = PyFsim::_get(self);
+  auto tv = PyTestVector::Get(obj1);
+  auto fsim = PyFsim::Get(self);
   SizeType n = fsim->sppfp(tv);
   return PyLong_FromLong(n);
 }
@@ -229,7 +229,7 @@ Fsim_ppsfp(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   SizeType n = fsim->ppsfp();
   return PyLong_FromLong(n);
 }
@@ -247,8 +247,8 @@ Fsim_calc_wsa(
 			 &weighted) ) {
     return nullptr;
   }
-  auto iv = PyInputVector::_get(obj1);
-  auto fsim = PyFsim::_get(self);
+  auto iv = PyInputVector::Get(obj1);
+  auto fsim = PyFsim::Get(self);
   SizeType n = fsim->calc_wsa(iv, weighted);
   return PyLong_FromLong(n);
 }
@@ -266,9 +266,9 @@ Fsim_set_state(
 			 PyDffVector::_typeobject(), &obj2) ) {
     return nullptr;
   }
-  auto iv = PyInputVector::_get(obj1);
-  auto dv = PyDffVector::_get(obj2);
-  auto fsim = PyFsim::_get(self);
+  auto iv = PyInputVector::Get(obj1);
+  auto dv = PyDffVector::Get(obj2);
+  auto fsim = PyFsim::Get(self);
   fsim->set_state(iv, dv);
   Py_RETURN_NONE;
 }
@@ -281,7 +281,7 @@ Fsim_get_state(
 {
   InputVector iv;
   DffVector dv;
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   fsim->get_state(iv, dv);
   auto obj1 = PyInputVector::ToPyObject(iv);
   auto obj2 = PyDffVector::ToPyObject(dv);
@@ -294,7 +294,7 @@ Fsim_clear_patterns(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   fsim->clear_patterns();
   Py_RETURN_NONE;
 }
@@ -311,8 +311,8 @@ Fsim_set_pattern(
 			 PyTestVector::_typeobject(), &obj1) ) {
     return nullptr;
   }
-  auto tv = PyTestVector::_get(obj1);
-  auto fsim = PyFsim::_get(self);
+  auto tv = PyTestVector::Get(obj1);
+  auto fsim = PyFsim::Get(self);
   fsim->set_pattern(pos, tv);
   Py_RETURN_NONE;
 }
@@ -327,7 +327,7 @@ Fsim_get_pattern(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   auto tv = fsim->get_pattern(pos);
   return PyTestVector::ToPyObject(tv);
 }
@@ -338,7 +338,7 @@ Fsim_det_fault_num(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   SizeType n = fsim->det_fault_num();
   return PyLong_FromLong(n);
 }
@@ -353,7 +353,7 @@ Fsim_det_fault(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   auto f = fsim->det_fault(pos);
   return PyTpgFault::ToPyObject(f);
 }
@@ -364,7 +364,7 @@ Fsim_det_fault_list(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   auto fault_list = fsim->det_fault_list();
   SizeType n = fault_list.num();
   auto ans_obj = PyList_New(n);
@@ -386,7 +386,7 @@ Fsim_det_fault_pat(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   auto pat = fsim->det_fault_pat(pos);
   return PyLong_FromLong(pat);
 }
@@ -397,7 +397,7 @@ Fsim_det_fault_pat_list(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::_get(self);
+  auto fsim = PyFsim::Get(self);
   auto pat_list = fsim->det_fault_pat_list();
   SizeType n = pat_list.num();
   auto ans_obj = PyList_New(n);
@@ -482,7 +482,7 @@ PyFsim::init(
 
 // @brief PyObject が Fsim タイプか調べる．
 bool
-PyFsim::_check(
+PyFsim::Check(
   PyObject* obj
 )
 {
@@ -491,7 +491,7 @@ PyFsim::_check(
 
 // @brief Fsim を表す PyObject から Fsim を取り出す．
 Fsim*
-PyFsim::_get(
+PyFsim::Get(
   PyObject* obj
 )
 {

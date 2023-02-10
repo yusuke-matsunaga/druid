@@ -76,7 +76,7 @@ TpgNetwork_read_blif(
   // blif ファイルを読み込む．
   ClibCellLibrary cell_library;
   if ( clib_obj != nullptr ) {
-    cell_library = PyClibCellLibrary::_get(clib_obj);
+    cell_library = PyClibCellLibrary::Get(clib_obj);
   }
   try {
     auto src_network = TpgNetwork::read_blif(blif_file, cell_library);
@@ -133,7 +133,7 @@ TpgNetwork_node_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto val = network.node_num();
   return PyLong_FromLong(val);
 }
@@ -144,7 +144,7 @@ TpgNetwork_input_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto val = network.input_num();
   return PyLong_FromLong(val);
 }
@@ -155,7 +155,7 @@ TpgNetwork_output_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto val = network.output_num();
   return PyLong_FromLong(val);
 }
@@ -166,7 +166,7 @@ TpgNetwork_ppi_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto val = network.ppi_num();
   return PyLong_FromLong(val);
 }
@@ -177,7 +177,7 @@ TpgNetwork_ppo_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto val = network.ppo_num();
   return PyLong_FromLong(val);
 }
@@ -188,7 +188,7 @@ TpgNetwork_mffc_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto val = network.mffc_num();
   return PyLong_FromLong(val);
 }
@@ -199,7 +199,7 @@ TpgNetwork_ffr_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto val = network.ffr_num();
   return PyLong_FromLong(val);
 }
@@ -210,7 +210,7 @@ TpgNetwork_dff_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto val = network.dff_num();
   return PyLong_FromLong(val);
 }
@@ -221,7 +221,7 @@ TpgNetwork_mffc_list(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   SizeType n = network.mffc_num();
   auto ans_obj = PyList_New(n);
   for ( SizeType i = 0; i < n; ++ i ) {
@@ -238,7 +238,7 @@ TpgNetwork_ffr_list(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   SizeType n = network.ffr_num();
   auto ans_obj = PyList_New(n);
   for ( SizeType i = 0; i < n; ++ i ) {
@@ -255,7 +255,7 @@ TpgNetwork_rep_fault_list(
   void* Py_UNUSED(closure)
 )
 {
-  auto& network = PyTpgNetwork::_get(self);
+  auto& network = PyTpgNetwork::Get(self);
   auto& fault_list = network.rep_fault_list();
   SizeType n = fault_list.size();
   auto ans_obj = PyList_New(n);
@@ -319,7 +319,7 @@ PyTpgNetwork::init(
 
 // @brief PyObject が TpgNetwork タイプか調べる．
 bool
-PyTpgNetwork::_check(
+PyTpgNetwork::Check(
   PyObject* obj
 )
 {
@@ -328,7 +328,7 @@ PyTpgNetwork::_check(
 
 // @brief TpgNetwork を表す PyObject から TpgNetwork を取り出す．
 const TpgNetwork&
-PyTpgNetwork::_get(
+PyTpgNetwork::Get(
   PyObject* obj
 )
 {

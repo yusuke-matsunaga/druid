@@ -47,17 +47,17 @@ public:
   /// @brief PyObject が TpgFFR タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief TpgFFR を表す PyObject から TpgFFR を取り出す．
   /// @return TpgFFR を返す．
   ///
-  /// _check(obj) == true であると仮定している．
+  /// Check(obj) == true であると仮定している．
   static
   const TpgFFR&
-  _get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

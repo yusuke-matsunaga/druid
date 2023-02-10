@@ -104,7 +104,7 @@ FaultStatus_repr(
   PyObject* self
 )
 {
-  auto val = PyFaultStatus::_get(self);
+  auto val = PyFaultStatus::Get(self);
   // val から 文字列を作る．
   const char* tmp_str = str(val);
   return Py_BuildValue("s", tmp_str);
@@ -123,10 +123,10 @@ FaultStatus_richcmpfunc(
   int op
 )
 {
-  if ( PyFaultStatus::_check(self) &&
-       PyFaultStatus::_check(other) ) {
-    auto val1 = PyFaultStatus::_get(self);
-    auto val2 = PyFaultStatus::_get(other);
+  if ( PyFaultStatus::Check(self) &&
+       PyFaultStatus::Check(other) ) {
+    auto val1 = PyFaultStatus::Get(self);
+    auto val2 = PyFaultStatus::Get(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -222,11 +222,11 @@ PyFaultStatus::FromPyObject(
   FaultStatus& val
 )
 {
-  if ( !_check(obj) ) {
+  if ( !Check(obj) ) {
     PyErr_SetString(PyExc_TypeError, "object is not a FaultStatus type");
     return false;
   }
-  val = _get(obj);
+  val = Get(obj);
   return true;
 }
 
@@ -249,7 +249,7 @@ PyFaultStatus::ToPyObject(
 
 // @brief PyObject が FaultStatus タイプか調べる．
 bool
-PyFaultStatus::_check(
+PyFaultStatus::Check(
   PyObject* obj
 )
 {
@@ -258,7 +258,7 @@ PyFaultStatus::_check(
 
 // @brief FaultStatus を表す PyObject から FaultStatus を取り出す．
 FaultStatus
-PyFaultStatus::_get(
+PyFaultStatus::Get(
   PyObject* obj
 )
 {

@@ -55,7 +55,7 @@ TestVector_new(
 
   auto fault_type = FaultType::StuckAt;
   if ( fault_type_obj != nullptr ) {
-    fault_type = PyFaultType::_get(fault_type_obj);
+    fault_type = PyFaultType::Get(fault_type_obj);
   }
 
   auto self = type->tp_alloc(type, 0);
@@ -362,7 +362,7 @@ TestVector_set_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::_get(obj);
+  auto& mt19937 = PyMt19937::Get(obj);
   auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
   tv_obj->mPtr->set_from_random(mt19937);
   Py_RETURN_NONE;
@@ -379,7 +379,7 @@ TestVector_fix_x_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::_get(obj);
+  auto& mt19937 = PyMt19937::Get(obj);
   auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
   tv_obj->mPtr->fix_x_from_random(mt19937);
   Py_RETURN_NONE;
@@ -503,7 +503,7 @@ PyTestVector::ToPyObject(
 
 // @brief PyObject が TestVector タイプか調べる．
 bool
-PyTestVector::_check(
+PyTestVector::Check(
   PyObject* obj
 )
 {
@@ -512,7 +512,7 @@ PyTestVector::_check(
 
 // @brief TestVector を表す PyObject から TestVector を取り出す．
 const TestVector&
-PyTestVector::_get(
+PyTestVector::Get(
   PyObject* obj
 )
 {

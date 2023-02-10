@@ -50,17 +50,17 @@ public:
   /// @brief PyObject が DffVector タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief DffVector を表す PyObject から DffVector を取り出す．
   /// @return DffVector を返す．
   ///
-  /// _check(obj) == true であると仮定している．
+  /// Check(obj) == true であると仮定している．
   static
   const DffVector&
-  _get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

@@ -51,17 +51,17 @@ public:
   /// @brief PyObject が Fsim タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief Fsim を表す PyObject から Fsim を取り出す．
   /// @return Fsim を返す．
   ///
-  /// _check(obj) == true であると仮定している．
+  /// Check(obj) == true であると仮定している．
   static
   Fsim*
-  _get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 
