@@ -5,9 +5,8 @@
 /// @brief DopBase のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "DetectOp.h"
 
@@ -24,11 +23,11 @@ class DopBase :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] fsmgr 故障マネージャ
-  DopBase(FaultStatusMgr& fsmgr);
+  DopBase(
+    FaultStatusMgr& fsmgr ///< [in] 故障マネージャ
+  );
 
   /// @brief デストラクタ
-  virtual
   ~DopBase();
 
 
@@ -38,11 +37,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テストパタンが見つかった時の処理
-  /// @param[in] f 故障
-  /// @param[in] tv テストベクタ
   void
-  operator()(const TpgFault* f,
-	     const TestVector& tv) override;
+  operator()(
+    const TpgFault* f,   ///< [in] 故障
+    const TestVector& tv ///< [in] テストベクタ
+  ) override;
 
 
 private:

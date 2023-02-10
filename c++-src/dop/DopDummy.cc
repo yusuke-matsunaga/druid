@@ -6,7 +6,6 @@
 /// Copyright (C) 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "DopDummy.h"
 
 
@@ -16,7 +15,7 @@ BEGIN_NAMESPACE_DRUID
 DetectOp*
 new_DopDummy()
 {
-  return new DopDummy();
+  return new DopDummy;
 }
 
 
@@ -35,11 +34,11 @@ DopDummy::~DopDummy()
 }
 
 // @brief テストパタンが見つかった時の処理
-// @param[in] f 故障
-// @param[in] tv テストベクタ
 void
-DopDummy::operator()(const TpgFault* f,
-		     const TestVector& tv)
+DopDummy::operator()(
+  const TpgFault* f,
+  const TestVector& tv
+)
 {
 }
 

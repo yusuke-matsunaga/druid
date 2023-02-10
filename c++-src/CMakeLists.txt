@@ -63,7 +63,12 @@ set (dtpg_SOURCES
   dtpg/DtpgEngine.cc
   dtpg/DtpgFFR.cc
   dtpg/DtpgMFFC.cc
-  dtpg/Dtpg_se.cc
+  dtpg/TpgMgr.cc
+  dtpg/TpgDriver.cc
+  dtpg/TpgFFRDriver.cc
+  dtpg/TpgMFFCDriver.cc
+
+  dtpg_old/Dtpg_se.cc
   )
 
 set (dop_SOURCES

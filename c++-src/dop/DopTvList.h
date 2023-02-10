@@ -5,9 +5,8 @@
 /// @brief DopTvList のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "DetectOp.h"
 
@@ -24,17 +23,11 @@ class DopTvList :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] input_num 入力数
-  /// @param[in] dff_numr DFF数
-  /// @param[in] fault_type 故障の種類
-  /// @param[in] tvlist テストベクタのリスト
-  DopTvList(int input_num,
-	    int dff_num,
-	    FaultType fault_type,
-	    vector<TestVector>& tvlist);
+  DopTvList(
+    vector<TestVector>& tvlist ///< [in] テストベクタのリスト
+  );
 
   /// @brief デストラクタ
-  virtual
   ~DopTvList();
 
 
@@ -44,26 +37,17 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テストパタンが見つかった時の処理
-  /// @param[in] f 故障
-  /// @param[in] tv テストベクタ
   void
-  operator()(const TpgFault* f,
-	     const TestVector& tv) override;
+  operator()(
+    const TpgFault* f,   ///< [in] 故障
+    const TestVector& tv ///< [in] テストベクタ
+  ) override;
 
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 入力数
-  int mInputNum;
-
-  // DFF数
-  int mDffNum;
-
-  // 故障の種類
-  FaultType mFaultType;
 
   // テストベクタのリスト
   vector<TestVector>& mTvList;

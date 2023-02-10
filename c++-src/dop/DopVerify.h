@@ -5,9 +5,8 @@
 /// @brief DopVerify のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "DetectOp.h"
 
@@ -24,13 +23,12 @@ class DopVerify :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] fsim 故障シミュレータ
-  /// @param[in] result 結果を格納するオブジェクト
-  DopVerify(Fsim& fsim,
-	    DopVerifyResult& result);
+  DopVerify(
+    Fsim& fsim,             ///< [in] 故障シミュレータ
+    DopVerifyResult& result ///< [in] 結果を格納するオブジェクト
+  );
 
   /// @brief デストラクタ
-  virtual
   ~DopVerify();
 
 
@@ -40,11 +38,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テストパタンが見つかった時の処理
-  /// @param[in] f 故障
-  /// @param[in] tv テストベクタ
   void
-  operator()(const TpgFault* f,
-	     const TestVector& tv) override;
+  operator()(
+    const TpgFault* f,   ///< [in] 故障
+    const TestVector& tv ///< [in] テストベクタ
+  ) override;
 
 
 private:

@@ -3,9 +3,8 @@
 /// @brief DopVerify の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "DopVerify.h"
 #include "DopVerifyResult.h"
@@ -17,13 +16,13 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief 'verify' タイプを生成する．
-// @param[in] fsim 故障シミュレータ
-// @param[in] result 結果を格納するオブジェクト
 DetectOp*
-new_DopVerify(Fsim& fsim,
-	      DopVerifyResult& result)
+new_DopVerify(
+  Fsim& fsim,
+  DopVerifyResult& result
+)
 {
-  return new DopVerify(fsim, result);
+  return new DopVerify{fsim, result};
 }
 
 
@@ -32,12 +31,11 @@ new_DopVerify(Fsim& fsim,
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] fsim 故障シミュレータ
-// @param[in] result 結果を格納するオブジェクト
-DopVerify::DopVerify(Fsim& fsim,
-		     DopVerifyResult& result) :
-  mFsim(fsim),
-  mResult(result)
+DopVerify::DopVerify(
+  Fsim& fsim,
+  DopVerifyResult& result
+) : mFsim{fsim},
+    mResult{result}
 {
 }
 
@@ -47,11 +45,11 @@ DopVerify::~DopVerify()
 }
 
 // @brief テストパタンが見つかった時の処理
-// @param[in] f 故障
-// @param[in] tv テストベクタ
 void
-DopVerify::operator()(const TpgFault* f,
-		      const TestVector& tv)
+DopVerify::operator()(
+  const TpgFault* f,
+  const TestVector& tv
+)
 {
   bool detect = mFsim.spsfp(tv, f);
   if ( detect ) {

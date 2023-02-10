@@ -9,7 +9,6 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "FaultType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,7 +23,7 @@ public:
 
   /// @brief デストラクタ
   virtual
-  ~DetectOp() { }
+  ~DetectOp() = default;
 
 
 public:
@@ -43,12 +42,17 @@ public:
 };
 
 /// @brief 'base' タイプを生成する．
+///
+/// 故障マネージャの状態を変更する．
 DetectOp*
 new_DopBase(
   FaultStatusMgr& fmgr ///< [in] 故障マネージャ
 );
 
 /// @brief 'drop' タイプを生成する．
+///
+/// 求まったパタンで故障シミュレーションを行い
+/// 検出できる故障を求める．
 DetectOp*
 new_DopDrop(
   FaultStatusMgr& fmgr, ///< [in] 故障マネージャ
@@ -56,15 +60,17 @@ new_DopDrop(
 );
 
 /// @brief 'tvlist' タイプを生成する．
+///
+/// 求まったパタンを tvlist に加える．
 DetectOp*
 new_DopTvList(
-  SizeType input_num,        ///< [in] 入力数
-  SizeType dff_num,          ///< [in] DFF数
-  FaultType fault_type,      ///< [in] 故障タイプ
   vector<TestVector>& tvlist ///< [in] テストベクタのリスト
 );
 
 /// @brief 'verify' タイプを生成する．
+///
+/// 故障シミュレータを用いてパタンの検証を行う．
+/// 結果は result に蓄積される．
 DetectOp*
 new_DopVerify(
   Fsim& fsim,             ///< [in] 故障シミュレータ
@@ -72,6 +78,8 @@ new_DopVerify(
 );
 
 /// @brief 'dummy' タイプを生成する．
+///
+/// なにもシない．
 DetectOp*
 new_DopDummy();
 

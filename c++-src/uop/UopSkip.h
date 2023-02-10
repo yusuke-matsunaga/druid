@@ -5,9 +5,8 @@
 /// @brief UopSkip のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "UntestOp.h"
 
@@ -24,13 +23,12 @@ class UopSkip :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] threshold しきい値
-  /// @param[in] max_fault_id 故障番号の最大値
-  UopSkip(int threshold,
-	  int max_fault_id);
+  UopSkip(
+    SizeType threshold,   ///< [in] しきい値
+    SizeType max_fault_id ///< [in] 故障番号の最大値
+  );
 
   /// @brief デストラクタ
-  virtual
   ~UopSkip();
 
 
@@ -40,10 +38,10 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テスト不能故障と判定された時の処理
-  /// @param[in] f 故障
-  virtual
   void
-  operator()(const TpgFault* f);
+  operator()(
+    const TpgFault* f ///< [in] 故障
+  );
 
   /// @brief 検出不能回数とスキップフラグをクリアする．
   void
@@ -56,16 +54,16 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // スキップフラグをセットするしきい値
-  int mThreshold;
+  SizeType mThreshold;
 
   // 故障の検出不能回数を保持する配列
-  vector<int> mUntestCountArray;
+  vector<SizeType> mUntestCountArray;
 
   // 検出不能となった故障の番号を保持するリスト
-  vector<int> mUntestList;
+  vector<SizeType> mUntestList;
 
   // スキップフラグがセットされた故障の番号を保持するリスト
-  vector<int> mSkipList;
+  vector<SizeType> mSkipList;
 
 };
 

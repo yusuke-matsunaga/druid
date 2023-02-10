@@ -5,9 +5,8 @@
 /// @brief DopDummy のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "DetectOp.h"
 
@@ -27,7 +26,6 @@ public:
   DopDummy();
 
   /// @brief デストラクタ
-  virtual
   ~DopDummy();
 
 
@@ -37,17 +35,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テストパタンが見つかった時の処理
-  /// @param[in] f 故障
-  /// @param[in] tv テストベクタ
   void
-  operator()(const TpgFault* f,
-	     const TestVector& tv) override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
+  operator()(
+    const TpgFault* f,   ///< [in] 故障
+    const TestVector& tv ///< [in] テストベクタ
+  ) override;
 
 };
 

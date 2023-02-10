@@ -5,9 +5,8 @@
 /// @brief DopDrop のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "DetectOp.h"
 
@@ -24,13 +23,12 @@ class DopDrop :
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] fsmgr 故障の状態を管理するクラス
-  /// @param[in] fsim 故障シミュレータ
-  DopDrop(FaultStatusMgr& fsmgr,
-	  Fsim& fsim);
+  DopDrop(
+    FaultStatusMgr& fsmgr, ///< [in] 故障の状態を管理するクラス
+    Fsim& fsim             ///< [in] 故障シミュレータ
+  );
 
   /// @brief デストラクタ
-  virtual
   ~DopDrop();
 
 
@@ -40,17 +38,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テストパタンが見つかった時の処理
-  /// @param[in] f 故障
-  /// @param[in] tv テストベクタ
   void
-  operator()(const TpgFault* f,
-	     const TestVector& tv) override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  operator()(
+    const TpgFault* f,   ///< [in] 故障
+    const TestVector& tv ///< [in] テストベクタ
+  ) override;
 
 
 private:

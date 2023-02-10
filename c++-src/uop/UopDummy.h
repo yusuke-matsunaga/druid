@@ -5,9 +5,8 @@
 /// @brief UopDummy のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "UntestOp.h"
 
@@ -27,7 +26,6 @@ public:
   UopDummy();
 
   /// @brief デストラクタ
-  virtual
   ~UopDummy();
 
 
@@ -37,10 +35,10 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テスト不能故障と判定された時の処理
-  /// @param[in] f 故障
-  virtual
   void
-  operator()(const TpgFault* f);
+  operator()(
+    const TpgFault* f ///< [in] 故障
+  );
 
 };
 

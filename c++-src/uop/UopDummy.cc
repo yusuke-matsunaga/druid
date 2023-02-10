@@ -3,9 +3,8 @@
 /// @brief UopDummy の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2013-2014 Yusuke Matsunaga
+/// Copyright (C) 2013-2014, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "UopDummy.h"
 
@@ -16,7 +15,7 @@ BEGIN_NAMESPACE_DRUID
 UntestOp*
 new_UopDummy()
 {
-  return new UopDummy();
+  return new UopDummy;
 }
 
 
@@ -35,9 +34,10 @@ UopDummy::~UopDummy()
 }
 
 // @brief テスト不能故障と判定された時の処理
-// @param[in] f 故障
 void
-UopDummy::operator()(const TpgFault* f)
+UopDummy::operator()(
+  const TpgFault* f
+)
 {
 }
 

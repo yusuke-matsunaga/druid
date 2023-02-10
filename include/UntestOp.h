@@ -23,7 +23,7 @@ public:
 
   /// @brief デストラクタ
   virtual
-  ~UntestOp() { }
+  ~UntestOp() = default;
 
 
 public:
@@ -41,6 +41,8 @@ public:
 };
 
 /// @brief 'base' タイプを生成する．
+///
+/// fmgr に登録する．
 UntestOp*
 new_UopBase(
   FaultStatusMgr& fmgr ///< [in] 故障マネージャ
@@ -54,6 +56,8 @@ new_UopSkip(
 );
 
 /// @brief 'dummy' タイプを生成する．
+///
+/// なにもしない．
 UntestOp*
 new_UopDummy();
 

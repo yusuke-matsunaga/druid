@@ -17,6 +17,9 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class FaultStatusMgr FaultStatusMgr.h "FaultStatusMgr.h"
 /// @brief 故障の状態を保持するクラス
+///
+/// 見かけは TpgFault をキーとした FaultStatus の辞書
+/// ただし，常に全ての TpgFault の値を持っている．
 //////////////////////////////////////////////////////////////////////
 class FaultStatusMgr
 {
