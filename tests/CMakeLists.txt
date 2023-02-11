@@ -3,7 +3,12 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories(
-  ${GTEST_INCLUDE_DIR}
+  ${PROJECT_SOURCE_DIR}/include/dtpg
+  ${PROJECT_SOURCE_DIR}/include/enc
+  ${PROJECT_SOURCE_DIR}/include/main
+  ${PROJECT_SOURCE_DIR}/include/types
+  ${PROJECT_BUILD_DIR}/include
+  ${YM_SUBMODULE_INCLUDE_LIST}
   )
 
 
@@ -11,12 +16,10 @@ include_directories(
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( misc )
-add_subdirectory( testvector )
-add_subdirectory( tpg_network )
-add_subdirectory( sa_fsim2 )
-add_subdirectory( sa_fsim3 )
-add_subdirectory( dtpg )
+add_subdirectory ( common )
+add_subdirectory ( gtest )
+add_subdirectory ( py_druid )
+add_subdirectory ( test-programs )
 
 
 # ===================================================================

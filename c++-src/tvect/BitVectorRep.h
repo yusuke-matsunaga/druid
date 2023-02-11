@@ -77,6 +77,13 @@ public:
     return mLength;
   }
 
+  /// @brief ブロック長を返す．
+  SizeType
+  block_num() const
+  {
+    return block_num(len());
+  }
+
   /// @brief 値を得る．
   Val3
   val(
@@ -211,56 +218,42 @@ public:
     const string& hex_string  ///< [in] HEX 文字列
   );
 
-  /// @brief 乱数パタンを設定する．
-  ///
-  /// - 結果はかならず 0 か 1 になる．(Xは含まれない)
-  template<class URNG>
+  /// @brief 値をセットする．
   void
-  set_from_random(
-    URNG& randgen  ///< [in] 乱数生成器
+  set_block(
+    SizeType pos, ///< [in] 位置 ( 0 <= pos < block_num() )
+    PackedVal v0, ///< [in] ブロック0の値
+    PackedVal v1  ///< [in] ブロック1の値
   )
   {
-    std::uniform_int_distribution<PackedVal> rd;
-    SizeType nb = block_num(len());
-    for ( SizeType i = 0; i < nb; i += 2 ) {
-      PackedVal v = rd(randgen);
-      SizeType i0 = i;
-      SizeType i1 = i + 1;
-      if ( i == nb - 2 ) {
-	mPat[i0] = ~v & mMask;
-	mPat[i1] =  v & mMask;
-      }
-      else {
-	mPat[i0] = ~v;
-	mPat[i1] =  v;
-      }
+    SizeType i0 = pos * 2 + 0;
+    SizeType i1 = i0 + 1;
+    if ( i1 == block_num(len()) - 1 ) {
+      mPat[i0] = v0 & mMask;
+      mPat[i1] = v1 & mMask;
+    }
+    else {
+      mPat[i0] = v0;
+      mPat[i1] = v1;
     }
   }
 
-  /// @brief X の部分を乱数で 0/1 に設定する．
-  template<class URNG>
+  /// @brief X の部分に値をセットする．
   void
-  fix_x_from_random(
-    URNG& randgen  ///< [in] 乱数生成器
+  fix_block(
+    SizeType pos, ///< [in] 位置 ( 0 <= pos < block_num() )
+    PackedVal v0, ///< [in] ブロック0の値
+    PackedVal v1  ///< [in] ブロック1の値
   )
   {
-    std::uniform_int_distribution<PackedVal> rd;
-    SizeType nb = block_num(len());
-    for ( SizeType i = 0; i < nb; i += 2 ) {
-      SizeType i0 = i;
-      SizeType i1 = i + 1;
-      // X のビットマスク
-      PackedVal xmask = mPat[i0] & mPat[i1];
-      if ( i == nb - 2 ) {
-	xmask &= mMask;
-      }
-      if ( xmask == PV_ALL0 ) {
-	continue;
-      }
-      PackedVal v = rd(randgen);
-      mPat[i0] &= ~(~v & xmask);
-      mPat[i1] &= ~( v & xmask);
+    SizeType i0 = pos * 2 + 0;
+    SizeType i1 = i0 + 1;
+    PackedVal xmask = mPat[i0] & mPat[i1];
+    if ( i1 == block_num(len()) - 1 ) {
+      xmask &= mMask;
     }
+    mPat[i0] &= ~(~v0 & xmask);
+    mPat[i1] &= ~(~v1 & xmask);
   }
 
   /// @breif ビットベクタをマージする．

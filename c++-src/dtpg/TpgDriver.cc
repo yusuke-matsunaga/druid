@@ -7,8 +7,10 @@
 /// All rights reserved.
 
 #include "TpgDriver.h"
-#include "TpgFFRDriver.h"
-#include "TpgMFFCDriver.h"
+#include "TpgDriver_FFR.h"
+#include "TpgDriver_MFFC.h"
+#include "TpgDriver_FFR_se.h"
+#include "TpgDriver_MFFC_se.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,13 +26,19 @@ TpgDriver::new_driver(
 )
 {
   if ( dtpg_type == "ffr" ) {
-    return new TpgFFRDriver{mgr, network, fault_type, just_type, solver_type};
+    return new TpgDriver_FFR{mgr, network, fault_type, just_type, solver_type};
   }
   if ( dtpg_type == "mffc" ) {
-    return new TpgMFFCDriver{mgr, network, fault_type, just_type, solver_type};
+    return new TpgDriver_MFFC{mgr, network, fault_type, just_type, solver_type};
+  }
+  if ( dtpg_type == "ffr_se" ) {
+    return new TpgDriver_FFR_se{mgr, network, fault_type, just_type, solver_type};
+  }
+  if ( dtpg_type == "mffc_se" ) {
+    return new TpgDriver_MFFC_se{mgr, network, fault_type, just_type, solver_type};
   }
   // デフォルトフォールバック
-  return new TpgFFRDriver{mgr, network, fault_type, just_type, solver_type};
+  return new TpgDriver_FFR{mgr, network, fault_type, just_type, solver_type};
 }
 
 // @brief テストパタン生成の結果を更新する．

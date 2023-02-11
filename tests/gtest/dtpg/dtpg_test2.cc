@@ -170,7 +170,7 @@ DtpgTestWithParam2::SetUp()
 
   mTpgMgr = new TpgMgr{*mNetwork_p, fault_type(), mode, just_type(), solver_type};
 
-  mTpgMgr->add_dop(new_DopVerify(mTpgMgr->fsim(), mVerifyResult));
+  mTpgMgr->add_verify_dop(mVerifyResult);
 }
 
 // @brief 終了処理を行う．

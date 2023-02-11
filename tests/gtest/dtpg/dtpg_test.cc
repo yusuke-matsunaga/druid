@@ -276,8 +276,8 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam,
 INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam,
 			 ::testing::Combine(::testing::ValuesIn(mydata2),
 					    ::testing::Values("ymsat2"),
-					    ::testing::Values("ffr",    "ffr_new",
-							      "mffc",   "mffc_new"),
+					    ::testing::Values("ffr",    "ffr_se",
+							      "mffc",   "mffc_se"),
 					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
 					    ::testing::Values("just1", "just2")));
 

@@ -17,6 +17,7 @@
 #include "DtpgStats.h"
 #include "FaultType.h"
 #include "Justifier.h"
+#include "Val3.h"
 
 #include "ym/Expr.h"
 #include "ym/sat.h"
@@ -338,7 +339,7 @@ protected:
     const TpgNode* node  ///< [in] 対象のノード
   ) const
   {
-    SatLiteral var = hvar(node);
+    auto var = hvar(node);
     return get_val(var);
   }
 
@@ -348,7 +349,7 @@ protected:
     const TpgNode* node  ///< [in] 対象のノード
   ) const
   {
-    SatLiteral var = gvar(node);
+    auto var = gvar(node);
     return get_val(var);
   }
 
@@ -358,7 +359,7 @@ protected:
     const TpgNode* node  ///< [in] 対象のノード
   ) const
   {
-    SatLiteral var = fvar(node);
+    auto var = fvar(node);
     return get_val(var);
   }
 
@@ -443,7 +444,7 @@ private:
     SatLiteral var  ///< [in] 変数番号
   ) const
   {
-    SatBool3 sat_val = mSatModel[var];
+    auto sat_val = mSatModel[var];
     if ( sat_val == SatBool3::True ) {
       return Val3::_1;
     }

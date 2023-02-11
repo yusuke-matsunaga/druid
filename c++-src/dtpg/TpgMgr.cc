@@ -52,6 +52,43 @@ TpgMgr::run()
   mDriver->run();
 }
 
+// @brief 'base' タイプの DetectOp を登録する．
+void
+TpgMgr::add_base_dop()
+{
+  add_dop(new_DopBase(fault_status_mgr()));
+}
+
+// @brief 'drop' タイプの DetectOp を登録する．
+void
+TpgMgr::add_drop_dop()
+{
+  add_dop(new_DopDrop(fault_status_mgr(), fsim()));
+}
+
+// @brief 'tvlist' タイプの DetectOp を登録する．
+void
+TpgMgr::add_tvlist_dop()
+{
+  add_dop(new_DopTvList(mTVList));
+}
+
+// @brief 'verify' タイプの DetectOp を登録する．
+void
+TpgMgr::add_verify_dop(
+  DopVerifyResult& verify_result
+)
+{
+  add_dop(new_DopVerify(fsim(), verify_result));
+}
+
+// @brief 'base' タイプの UntestOp を登録する．
+void
+TpgMgr::add_base_uop()
+{
+  add_uop(new_UopBase(fault_status_mgr()));
+}
+
 // @brief テストパタン生成後の情報の更新を行う．
 void
 TpgMgr::_update(

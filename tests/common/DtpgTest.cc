@@ -48,16 +48,16 @@ DtpgTest::new_test(
   const SatSolverType& solver_type
 )
 {
-  if ( mode == "ffr" ) {
+  if ( mode == "ffr_se" ) {
     return new DtpgTest_ffr(network, fault_type, just_type, solver_type);
   }
-  if ( mode == "ffr_new" ) {
+  if ( mode == "ffr" ) {
     return new DtpgTest_ffr_new(network, fault_type, just_type, solver_type);
   }
-  if ( mode == "mffc" ) {
+  if ( mode == "mffc_se" ) {
     return new DtpgTest_mffc(network, fault_type, just_type, solver_type);
   }
-  if ( mode == "mffc_new" ) {
+  if ( mode == "mffc" ) {
     return new DtpgTest_mffc_new(network, fault_type, just_type, solver_type);
   }
   ASSERT_NOT_REACHED;

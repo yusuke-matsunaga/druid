@@ -12,13 +12,12 @@
 #include "TpgFault.h"
 #include "TpgDFF.h"
 #include "GateEnc.h"
-#include "Val3.h"
 #include "NodeValList.h"
 #include "Extractor.h"
 #include "MultiExtractor.h"
 #include "Justifier.h"
 #include "TestVector.h"
-#include "NodeList.h"
+#include "TpgNodeSet.h"
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
@@ -143,9 +142,8 @@ void
 DtpgEngine::prepare_vars()
 {
   // root の TFO を mTfoList に入れる．
-  mTfoList = NodeList::get_tfo_list(mNetwork.node_num(), mRoot);
+  mTfoList = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot);
 
-  // TFO の TFI を mNodeList に入れる．
   vector<bool> tfo_mark(mNetwork.node_num(), false);
   for ( auto node: mTfoList ) {
     tfo_mark[node->id()] = true;
@@ -164,7 +162,8 @@ DtpgEngine::prepare_vars()
     }
   }
 
-  mTfiList = NodeList::get_tfi_list(mNetwork.node_num(), mTfoList);
+  // TFO の TFI を mTfiList に入れる．
+  mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList);
   if ( mFaultType == FaultType::TransitionDelay ) {
     if ( mRoot->is_dff_output() ) {
       mDffInputList.push_back(mRoot->alt_node());
@@ -179,7 +178,7 @@ DtpgEngine::prepare_vars()
     }
     auto tmp_list = mDffInputList;
     tmp_list.push_back(mRoot);
-    mTfi2List = NodeList::get_tfi_list(mNetwork.node_num(), tmp_list);
+    mTfi2List = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list);
     for ( auto node: mTfi2List ) {
       if ( node->is_ppi() ) {
 	mPPIList.push_back(node);

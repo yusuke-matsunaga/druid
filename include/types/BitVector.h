@@ -9,11 +9,14 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BitVectorRep.h"
+#include "Val3.h"
+#include "PackedVal.h"
 #include <random>
 
 
 BEGIN_NAMESPACE_DRUID
+
+class BitVectorRep;
 
 //////////////////////////////////////////////////////////////////////
 /// @class BitVector BitVector.h "BitVector.h"
@@ -31,27 +34,18 @@ public:
   explicit
   BitVector(
     SizeType len = 0  ///< [in] ベクタ長
-  ) : mPtr{BitVectorRep::new_vector(len)}
-  {
-  }
+  );
 
   /// @brief コピーコンストラクタ
   BitVector(
     const BitVector& src  ///< [in] コピー元のソース
-  ) : mPtr{src.mPtr}
-  {
-  }
+  );
 
   /// @brief コピー代入演算子
   BitVector&
   operator=(
     const BitVector& src  ///< [in] コピー元のソース
-  )
-  {
-    mPtr = src.mPtr;
-
-    return *this;
-  }
+  );
 
   /// @brief 2進文字列からオブジェクトを作る．
   ///
@@ -63,16 +57,7 @@ public:
   BitVector
   from_bin_str(
     const string& bin_str  ///< [in] 2進文字列
-  )
-  {
-    SizeType l = bin_str.size();
-    BitVector bv{l};
-    if ( bv.set_from_bin(bin_str) ) {
-      return bv;
-    }
-    // エラーの場合
-    return BitVector(0);
-  }
+  );
 
   /// @brief HEX文字列からオブジェクトを作る．
   ///
@@ -85,18 +70,10 @@ public:
   from_hex_str(
     SizeType len,         ///< [in] ベクタ長
     const string& hex_str ///< [in] HEX文字列
-  )
-  {
-    BitVector bv{len};
-    if ( bv.set_from_hex(hex_str) ) {
-      return bv;
-    }
-    // エラーの場合
-    return BitVector(0);
-  }
+  );
 
   /// @brief デストラクタ
-  ~BitVector() = default;
+  ~BitVector();
 
 
 public:
@@ -106,54 +83,39 @@ public:
 
   /// @brief ベクタ長を返す．
   SizeType
-  len() const
+  len() const;
+
+  /// @brief ブロック長を返す．
+  SizeType
+  block_num() const
   {
-    return mPtr->len();
+    return (len() + PV_BITLEN - 1) / PV_BITLEN;
   }
 
   /// @brief 値を得る．
   Val3
   val(
     SizeType pos  ///< [in] 位置番号 ( 0 <= pos < len() )
-  ) const
-  {
-    return mPtr->val(pos);
-  }
+  ) const;
 
   /// @brief X の個数を得る．
   SizeType
-  x_count() const
-  {
-    return mPtr->x_count();
-  }
+  x_count() const;
 
   /// @brief マージして代入する．
   BitVector&
   operator&=(
     const BitVector& right
-  )
-  {
-    uniquefy();
-
-    mPtr->merge(*right.mPtr);
-
-    return *this;
-  }
+  );
 
   /// @brief 内容を BIN 形式で表す．
   string
-  bin_str() const
-  {
-    return mPtr->bin_str();
-  }
+  bin_str() const;
 
   /// @brief 内容を HEX 形式で表す．
   /// @note X を含む場合の出力は不定
   string
-  hex_str() const
-  {
-    return mPtr->hex_str();
-  }
+  hex_str() const;
 
 
 public:
@@ -163,24 +125,14 @@ public:
 
   /// @brief すべて未定(X) で初期化する．
   void
-  init()
-  {
-    uniquefy();
-
-    mPtr->init();
-  }
+  init();
 
   /// @brief 値を設定する．
   void
   set_val(
     SizeType pos, ///< [in] 位置番号 ( 0 <= pos < len() )
     Val3 val      ///< [in] 値
-  )
-  {
-    uniquefy();
-
-    mPtr->set_val(pos, val);
-  }
+  );
 
   /// @brief BIN文字列から内容を設定する．
   /// @retval true 適切に設定された．
@@ -192,12 +144,7 @@ public:
   bool
   set_from_bin(
     const string& bin_string  ///< [in] BIN文字列
-  )
-  {
-    uniquefy();
-
-    return mPtr->set_from_bin(bin_string);
-  }
+  );
 
   /// @brief HEX文字列から内容を設定する．
   /// @retval true 適切に設定された．
@@ -210,12 +157,7 @@ public:
   bool
   set_from_hex(
     const string& hex_string  ///< [in] HEX 文字列
-  )
-  {
-    uniquefy();
-
-    return mPtr->set_from_hex(hex_string);
-  }
+  );
 
   /// @brief 乱数パタンを設定する．
   ///
@@ -228,7 +170,12 @@ public:
   {
     uniquefy();
 
-    mPtr->set_from_random(randgen);
+    std::uniform_int_distribution<PackedVal> rd;
+    SizeType nb = block_num();
+    for ( SizeType i = 0; i < nb; ++ i ) {
+      PackedVal v = rd(randgen);
+      set_block(i, ~v, v);
+    }
   }
 
   /// @brief X の部分を乱数で 0/1 に設定する．
@@ -240,13 +187,18 @@ public:
   {
     uniquefy();
 
-    mPtr->fix_x_from_random(randgen);
+    std::uniform_int_distribution<PackedVal> rd;
+    SizeType nb = block_num();
+    for ( SizeType i = 0; i < nb; ++ i ) {
+      PackedVal v = rd(randgen);
+      fix_block(i, ~v, v);
+    }
   }
 
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // 2高演算
+  // 2項演算
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 両立関係の比較を行う．
@@ -254,20 +206,14 @@ public:
   bool
   operator&&(
     const BitVector& right  ///< [in] オペランド2
-  ) const
-  {
-    return BitVectorRep::is_compat(*mPtr, *right.mPtr);
-  }
+  ) const;
 
   /// @brief 等価関係の比較を行なう．
   /// @return left と right が等しいとき true を返す．
   bool
   operator==(
     const BitVector& right ///< [in] オペランド2
-  ) const
-  {
-    return BitVectorRep::is_eq(*mPtr, *right.mPtr);
-  }
+  ) const;
 
   /// @brief 等価関係の比較を行なう．
   /// @return left と right が等しくないとき true を返す．
@@ -286,10 +232,7 @@ public:
   bool
   operator<(
     const BitVector& right ///< [in] オペランド2
-  ) const
-  {
-    return BitVectorRep::is_lt(*mPtr, *right.mPtr);
-  }
+  ) const;
 
   /// @brief 包含関係の比較を行なう．
   /// @return minterm の集合として left が right を含んでいたら true を返す．
@@ -311,10 +254,7 @@ public:
   bool
   operator<=(
     const BitVector& right ///< [in] オペランド2
-  ) const
-  {
-    return BitVectorRep::is_le(*mPtr, *right.mPtr);
-  }
+  ) const;
 
   /// @brief 包含関係の比較を行なう
   /// @return minterm の集合として left が right を含んでいたら true を返す．
@@ -351,13 +291,23 @@ private:
   ///
   /// 内容を書き換える前に呼ばれる．
   void
-  uniquefy()
-  {
-    if ( !mPtr.unique() ) {
-      // 内容を変更するので複製する．
-      mPtr = std::shared_ptr<BitVectorRep>(BitVectorRep::new_vector(*mPtr));
-    }
-  }
+  uniquefy();
+
+  /// @brief 値をセットする．
+  void
+  set_block(
+    SizeType pos, ///< [in] 位置 ( 0 <= pos < block_num() )
+    PackedVal v0, ///< [in] ブロック0の値
+    PackedVal v1  ///< [in] ブロック1の値
+  );
+
+  /// @brief X の部分に値をセットする．
+  void
+  fix_block(
+    SizeType pos, ///< [in] 位置 ( 0 <= pos < block_num() )
+    PackedVal v0, ///< [in] ブロック0の値
+    PackedVal v1  ///< [in] ブロック1の値
+  );
 
 
 private:

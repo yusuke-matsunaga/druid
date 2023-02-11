@@ -3,8 +3,12 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-  ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}/include/types
+  ${PROJECT_SOURCE_DIR}/include/dtpg
+  ${PROJECT_SOURCE_DIR}/include/main
+  ${PROJECT_SOURCE_DIR}/include/enc
+  ${PROJECT_SOURCE_DIR}/include/pym
+  ${PROJECT_BUILD_DIR}/include
   ${YM_SUBMODULE_INCLUDE_LIST}
   ${Python3_INCLUDE_DIRS}
   )
@@ -22,6 +26,7 @@ include_directories (
 set ( py_druid_SOURCES
   py_druid.cc
   druid_module.cc
+
   types/types_module.cc
   types/PyVal3.cc
   types/PyFaultType.cc
@@ -33,11 +38,14 @@ set ( py_druid_SOURCES
   types/PyTpgNetwork.cc
   types/PyTpgMFFC.cc
   types/PyTpgFFR.cc
+
   fsim/fsim_module.cc
   fsim/PyFsim.cc
+
   dtpg/dtpg_module.cc
   dtpg/PyDtpgFFR.cc
   dtpg/PyDtpgMFFC.cc
+  dtpg/PyTpgMgr.cc
   )
 
 

@@ -60,6 +60,30 @@ public:
     mDopList.push_back(dop);
   }
 
+  /// @brief 'base' タイプの DetectOp を登録する．
+  ///
+  /// 結果は内部の FaultStatusMgr に反映される．
+  void
+  add_base_dop();
+
+  /// @brief 'drop' タイプの DetectOp を登録する．
+  ///
+  /// 結果は内部の FaultStatusMgr に反映される．
+  void
+  add_drop_dop();
+
+  /// @brief 'tvlist' タイプの DetectOp を登録する．
+  ///
+  /// 結果は内部の TVList に格納される．
+  void
+  add_tvlist_dop();
+
+  /// @brief 'verify' タイプの DetectOp を登録する．
+  void
+  add_verify_dop(
+    DopVerifyResult& verify_result ///< [in] 検証結果を格納するオブジェクト
+  );
+
   /// @brief UntestOp を登録する．
   void
   add_uop(
@@ -68,6 +92,10 @@ public:
   {
     mUopList.push_back(uop);
   }
+
+  /// @brief 'base' タイプの UntestOp を登録する．
+  void
+  add_base_uop();
 
   /// @brief 対象のネットワークを返す．
   const TpgNetwork&

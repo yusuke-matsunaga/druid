@@ -93,9 +93,7 @@ ym_init_submodules (
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-  ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BINARY_DIR}/include
-  ${YM_SUBMODULE_INCLUDE_LIST}
   )
 
 
@@ -109,10 +107,7 @@ endforeach ()
 
 add_subdirectory ( c++-src )
 add_subdirectory ( py_druid )
-add_subdirectory ( tests/common )
-add_subdirectory ( tests/gtest )
-add_subdirectory ( tests/py_druid )
-add_subdirectory ( tests/test-programs )
+add_subdirectory ( tests )
 
 if ( DOXYGEN_FOUND )
   # doxygen の対象となるヘッダファイル(のパタン)を YM_DOXY_SRCS に入れる．

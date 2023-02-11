@@ -1,8 +1,8 @@
-#ifndef TPGFFRDRIVER_H
-#define TPGFFRDRIVER_H
+#ifndef TPGDRIVER_MFFC_SE_H
+#define TPGDRIVER_MFFC_SE_H
 
-/// @file TpgFFRDriver.h
-/// @brief TpgFFRDriver のヘッダファイル
+/// @file TpgDriver_MFFC_se.h
+/// @brief TpgDriver_MFFC_se のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
@@ -15,16 +15,16 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgFFRDriver TpgFFRDriver.h "TpgFFRDriver.h"
+/// @class TpgDriver_MFFC_se TpgDriver_MFFC_se.h "TpgDriver_MFFC_se.h"
 /// @brief
 //////////////////////////////////////////////////////////////////////
-class TpgFFRDriver :
+class TpgDriver_MFFC_se :
   public TpgDriver
 {
 public:
 
   /// @brief コンストラクタ
-  TpgFFRDriver(
+  TpgDriver_MFFC_se(
     TpgMgr& mgr,                     ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
@@ -33,7 +33,7 @@ public:
   );
 
   /// @brief デストラクタ
-  ~TpgFFRDriver() = default;
+  ~TpgDriver_MFFC_se() = default;
 
 
 public:
@@ -44,12 +44,6 @@ public:
   /// @brief テスト生成を行う．
   void
   run() override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:
@@ -73,4 +67,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // TPGFFRDRIVER_H
+#endif // TPGDRIVER_MFFC_SE_H

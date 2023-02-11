@@ -219,6 +219,59 @@ if ( GPERFTOOLS_FOUND )
     )
 endif ()
 
+add_executable ( dtpg_test2
+  dtpgtest/dtpg_test2.cc
+  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  ${YM_SUBMODULE_OBJ_LIST}
+  )
+
+target_compile_options ( dtpg_test2
+  PRIVATE "-O3"
+  )
+
+target_compile_definitions ( dtpg_test2
+  PRIVATE "-DNDEBUG"
+  )
+
+target_link_libraries ( dtpg_test2
+  ${YM_LIB_DEPENDS}
+  )
+
+if ( GPERFTOOLS_FOUND )
+  target_link_libraries ( dtpg_test2
+    ${GPERFTOOLS_LIBRARIES}
+    )
+endif ()
+
+
+add_executable ( dtpg_test2_d
+  dtpgtest/dtpg_test2.cc
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_compile_options ( dtpg_test2_d
+  PRIVATE "-g"
+  )
+
+target_link_libraries ( dtpg_test2_d
+  ${YM_LIB_DEPENDS}
+  )
+
+if ( GPERFTOOLS_FOUND )
+  target_link_libraries ( dtpg_test2_d
+    ${GPERFTOOLS_LIBRARIES}
+    )
+endif ()
+
 
 # ===================================================================
 #  mf_comp

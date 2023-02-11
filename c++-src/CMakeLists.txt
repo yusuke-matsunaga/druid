@@ -3,8 +3,10 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-  ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}/include/dtpg
+  ${PROJECT_SOURCE_DIR}/include/enc
+  ${PROJECT_SOURCE_DIR}/include/main
+  ${PROJECT_SOURCE_DIR}/include/types
   ${YM_SUBMODULE_INCLUDE_LIST}
   )
 
@@ -23,7 +25,7 @@ add_subdirectory ( fsim )
 set (tpg_network_SOURCES
   tpg_network/FaultStatusMgr.cc
   tpg_network/NodeValList.cc
-  tpg_network/NodeList.cc
+  tpg_network/TpgNodeSet.cc
   tpg_network/TpgNetwork.cc
   tpg_network/TpgNetworkImpl.cc
   tpg_network/TpgNetworkImpl_bnet.cc
@@ -41,6 +43,7 @@ set (tpg_network_SOURCES
   tpg_network/TpgLogic.cc
   tpg_network/TpgFault.cc
 
+  tvect/BitVector.cc
   tvect/BitVectorRep.cc
   tvect/TestVector.cc
 
@@ -65,8 +68,10 @@ set (dtpg_SOURCES
   dtpg/DtpgMFFC.cc
   dtpg/TpgMgr.cc
   dtpg/TpgDriver.cc
-  dtpg/TpgFFRDriver.cc
-  dtpg/TpgMFFCDriver.cc
+  dtpg/TpgDriver_FFR.cc
+  dtpg/TpgDriver_MFFC.cc
+  dtpg/TpgDriver_FFR_se.cc
+  dtpg/TpgDriver_MFFC_se.cc
 
   dtpg_old/Dtpg_se.cc
   )

@@ -1,8 +1,8 @@
-#ifndef NODELIST_H
-#define NODELIST_H
+#ifndef TPGNODESET_H
+#define TPGNODESET_H
 
-/// @file NodeList.h
-/// @brief NodeList のヘッダファイル
+/// @file TpgNodeSet.h
+/// @brief TpgNodeSet のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
@@ -15,10 +15,12 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class NodeList NodeList.h "NodeList.h"
+/// @class TpgNodeSet TpgNodeSet.h "TpgNodeSet.h"
 /// @brief 重複のないノードのリストを作るクラス
+///
+/// 実はただの関数
 //////////////////////////////////////////////////////////////////////
-class NodeList
+class TpgNodeSet
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -70,4 +72,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // NODELIST_H
+#endif // TPGNODESET_H

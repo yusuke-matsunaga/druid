@@ -68,9 +68,23 @@ dtpg_test(
   int pos = 1;
   for ( ; pos < argc; ++ pos) {
     if ( argv[pos][0] == '-' ) {
-      if ( strcmp(argv[pos], "--ffr") == 0 ) {
+      if ( strcmp(argv[pos], "--ffr_se") == 0 ) {
 	if ( mode != string{} ) {
-	  cerr << "--ffr and --" << mode << " are mutually exclusive" << endl;
+	  cerr << "--ffr_se and --" << mode << " are mutually exclusive" << endl;
+	  return -1;
+	}
+	mode = "ffr_se";
+      }
+      else if ( strcmp(argv[pos], "--mffc_se") == 0 ) {
+	if ( mode != string{} ) {
+	  cerr << "--mffc_se and --" << mode << " are mutually exclusive" << endl;
+	  return -1;
+	}
+	mode = "mffc_se";
+      }
+      else if ( strcmp(argv[pos], "--ffr") == 0 ) {
+	if ( mode != string{} ) {
+	  cerr << "--ffr  and --" << mode << " are mutually exclusive" << endl;
 	  return -1;
 	}
 	mode = "ffr";
@@ -81,20 +95,6 @@ dtpg_test(
 	  return -1;
 	}
 	mode = "mffc";
-      }
-      else if ( strcmp(argv[pos], "--ffr-new") == 0 ) {
-	if ( mode != string{} ) {
-	  cerr << "--ffr-new  and --" << mode << " are mutually exclusive" << endl;
-	  return -1;
-	}
-	mode = "ffr_new";
-      }
-      else if ( strcmp(argv[pos], "--mffc-new") == 0 ) {
-	if ( mode != string{} ) {
-	  cerr << "--mffc_new and --" << mode << " are mutually exclusive" << endl;
-	  return -1;
-	}
-	mode = "mffc_new";
       }
       else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
 	++ pos;

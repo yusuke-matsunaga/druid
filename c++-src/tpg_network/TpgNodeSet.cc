@@ -1,19 +1,19 @@
 
-/// @file NodeList.cc
-/// @brief NodeList の実装ファイル
+/// @file TpgNodeSet.cc
+/// @brief TpgNodeSet の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "NodeList.h"
+#include "TpgNodeSet.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief TFO のノードを求める．
 vector<const TpgNode*>
-NodeList::get_tfo_list(
+TpgNodeSet::get_tfo_list(
   SizeType max_size,
   const TpgNode* root
 )
@@ -36,7 +36,7 @@ NodeList::get_tfo_list(
 
 // @brief TFI のノードを求める．
 vector<const TpgNode*>
-NodeList::get_tfi_list(
+TpgNodeSet::get_tfi_list(
   SizeType max_size,
   const vector<const TpgNode*>& root_list
 )
