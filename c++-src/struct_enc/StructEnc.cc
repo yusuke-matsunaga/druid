@@ -18,6 +18,7 @@
 #include "TpgNode.h"
 #include "TpgDFF.h"
 #include "TpgMFFC.h"
+#include "TpgNodeSet.h"
 
 #include "GateEnc.h"
 
@@ -105,81 +106,6 @@ StructEnc::make_prop_condition(
   return mConeList[cone_id]->make_condition(ffr_root);
 }
 
-// @brief 故障の検出条件を割当リストに追加する．
-void
-StructEnc::add_fault_condition(
-  const TpgFault* fault,
-  NodeValList& assign_list
-)
-{
-  // 故障の活性化条件
-  const TpgNode* inode = fault->tpg_inode();
-  // 0縮退故障の時 1にする．
-  bool val = (fault->val() == Fval2::zero);
-  assign_list.add(inode, 1, val);
-
-  if ( fault_type() == FaultType::TransitionDelay ) {
-    // 1時刻前の値が逆の値である条件を作る．
-    assign_list.add(inode, 0, !val);
-  }
-
-  // ブランチの故障の場合，ゲートの出力までの伝搬条件を作る．
-  if ( fault->is_branch_fault() ) {
-    // 故障の伝搬条件
-    const TpgNode* onode = fault->tpg_onode();
-    Val3 nval = onode->nval();
-    if ( nval != Val3::_X ) {
-      bool val = (nval == Val3::_1);
-      // inode -> onode の伝搬条件
-      for ( auto ipos: Range(onode->fanin_num()) ) {
-	if ( ipos != fault->tpg_pos() ) {
-	  auto inode1 = onode->fanin(ipos);
-	  assign_list.add(inode1, 1, val);
-	}
-      }
-    }
-  }
-}
-
-// @brief FFR内の故障の伝搬条件を割当リストに追加する．
-void
-StructEnc::add_ffr_condition(
-  const TpgNode* root_node,
-  const TpgFault* fault,
-  NodeValList& assign_list
-)
-{
-  // ノードに対する故障の伝搬条件
-  add_fault_condition(fault, assign_list);
-
-  // FFR の根までの伝搬条件
-  for ( const TpgNode* node = fault->tpg_onode(); node != root_node;
-       node = node->fanout_list()[0] ) {
-    ASSERT_COND( node->fanout_num() == 1 );
-    const TpgNode* onode = node->fanout_list()[0];
-    int ni = onode->fanin_num();
-    if ( ni == 1 ) {
-      // サイドインプットがなければスキップ
-      continue;
-    }
-    Val3 nval = onode->nval();
-    if ( nval == Val3::_X ) {
-      // 非制御値がなければスキップ
-      // 実際には制御値がない時にスキップ
-      // 例えば XOR ゲートの場合がそれにあたる．
-      continue;
-    }
-    // サイドインプットの値を非制御値にする．
-    bool val = (nval == Val3::_1);
-    for ( auto inode: onode->fanin_list() ) {
-      if ( inode == node ) {
-	continue;
-      }
-      assign_list.add(inode, 1, val);
-    }
-  }
-}
-
 // @brief 割当リストに従って値を固定する．
 void
 StructEnc::add_assignments(
@@ -223,56 +149,37 @@ StructEnc::conv_to_literal_list(
   return ans_list;
 }
 
-// @brief 与えられたノード(のリスト)のTFIのリストを作る．
-void
-StructEnc::make_tfi_list(
-  const vector<const TpgNode*>& node_list
-)
-{
-  // node_list を mCurNodeList に入れる．
-  for ( auto node: node_list ) {
-    if ( !cur_mark(node) ) {
-      add_cur_node(node);
-    }
-  }
-  for ( int rpos = 0; rpos < mCurNodeList.size(); ++ rpos ) {
-    const TpgNode* node = mCurNodeList[rpos];
-
-    // node のファンインを mCurNodeList に追加する．
-    for ( auto inode: node->fanin_list() ) {
-      if ( !cur_mark(inode) ) {
-	add_cur_node(inode);
-      }
-    }
-
-    // 遷移故障モードの場合には１時刻前の回路も作る．
-    if ( fault_type() == FaultType::TransitionDelay && node->is_dff_output() ) {
-      auto inode = node->alt_node();
-      add_prev_node(inode);
-    }
-  }
-
-  for ( int rpos = 0; rpos < mPrevNodeList.size(); ++ rpos ) {
-    const TpgNode* node = mPrevNodeList[rpos];
-
-    // node のファンインを mCurNodeList に追加する．
-    for ( auto inode: node->fanin_list() ) {
-      if ( !prev_mark(inode) ) {
-	add_prev_node(inode);
-      }
-    }
-  }
-}
-
 // @brief 関係あるノードに変数を割り当てる．
 void
 StructEnc::make_vars()
 {
+  vector<const TpgNode*> tmp_list;
   for ( auto& focone: mConeList ) {
     if ( fault_type() == FaultType::TransitionDelay ) {
       add_prev_node(focone->root_node());
     }
-    make_tfi_list(focone->tfo_node_list());
+    auto& src_list = focone->tfo_node_list();
+    tmp_list.insert(tmp_list.end(), src_list.begin(), src_list.end());
+  }
+
+  mCurNodeList = TpgNodeSet::get_tfi_list(max_node_id(), tmp_list);
+
+  if ( fault_type() == FaultType::TransitionDelay ) {
+    tmp_list.clear();
+    for ( auto& focone: mConeList ) {
+      auto root = focone->root_node();
+      tmp_list.push_back(root);
+      if ( root->is_dff_output() ) {
+	tmp_list.push_back(root->alt_node());
+      }
+    }
+    for ( auto node: mCurNodeList ) {
+      if ( node->is_dff_output() ) {
+	auto inode = node->alt_node();
+	tmp_list.push_back(inode);
+      }
+    }
+    mPrevNodeList = TpgNodeSet::get_tfi_list(max_node_id(), tmp_list);
   }
 
   for ( int i = 0; i < mCurNodeList.size(); ++ i ) {
@@ -333,62 +240,6 @@ StructEnc::make_cnf()
 
   for ( auto& focone: mConeList ) {
     focone->make_cnf();
-  }
-}
-
-// @brief node の TFI の部分に変数を割り当てる．
-void
-StructEnc::make_tfi_var(
-  const TpgNode* node,
-  int time
-)
-{
-  if ( var_mark(node, time) ) {
-    return;
-  }
-  set_new_var(node, time);
-
-  // 先に TFI のノードの変数を作る．
-  for ( auto inode: node->fanin_list() ) {
-    make_tfi_var(inode, time);
-  }
-
-  // 遷移故障モードの時は前の時刻の回路も作る．
-  if ( fault_type() == FaultType::TransitionDelay &&
-       node->is_dff_output() && time == 1 ) {
-    auto inode = node->alt_node();
-    make_tfi_var(inode, 0);
-  }
-}
-
-// @brief node の TFI の CNF を作る．
-void
-StructEnc::make_tfi_cnf(
-  const TpgNode* node,
-  int time
-)
-{
-  if ( cnf_mark(node, time) ) {
-    return;
-  }
-  set_cnf_mark(node, time);
-
-  make_tfi_var(node, time);
-
-  // node の入出力の関係を表す節を作る．
-  GateEnc gate_enc(mSolver, var_map(time));
-  gate_enc.make_cnf(node);
-
-  // TFI のノードの節を作る．
-  for ( auto inode: node->fanin_list() ) {
-    make_tfi_cnf(inode, time);
-  }
-
-  // 遷移故障モードの時は前の時刻の回路も作る．
-  if ( fault_type() == FaultType::TransitionDelay &&
-       node->is_dff_output() && time == 1 ) {
-    auto inode = node->alt_node();
-    make_tfi_cnf(inode, 0);
   }
 }
 

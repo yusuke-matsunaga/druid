@@ -192,24 +192,6 @@ public:
   void
   make_cnf();
 
-  /// @brief node の TFI の部分に変数を割り当てる．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  void
-  make_tfi_var(
-    const TpgNode* node, ///< [in] 対象のノード
-    int time		 ///< [in] 時刻(0 or 1)
-  );
-
-  /// @brief node の TFI の CNF を作る．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  void
-  make_tfi_cnf(
-    const TpgNode* node, ///< [in] 対象のノード
-    int time		 ///< [in] 時刻(0 or 1)
-  );
-
   /// @brief 変数マップを得る．
   ///
   /// 縮退故障モードの場合の時刻は 1
@@ -295,21 +277,6 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障の検出条件を割当リストに追加する．
-  ///
-  /// fault の影響がノードの出力に伝搬する条件を assumptions に加える．
-  void
-  add_fault_condition(
-    const TpgFault* fault,    ///< [in] 故障
-    NodeValList& assign_list  ///< [out] 条件を表す割当リスト
-  );
-
-  /// @brief 与えられたノード(のリスト)のTFIのリストを作る．
-  void
-  make_tfi_list(
-    const vector<const TpgNode*>& node_list  ///< [in] ノードのリスト
-  );
-
   /// @brief ノードの値割り当てに対応するリテラルを返す．
   SatLiteral
   nv_to_lit(
@@ -333,7 +300,7 @@ private:
   {
     // node およびその TFI に関する節を追加する．
     // すでに節が作られていた場合にはなにもしない．
-    make_tfi_cnf(node, time);
+    //make_tfi_cnf(node, time);
     bool inv = !val;
     return var(node, time) * inv;
   }
