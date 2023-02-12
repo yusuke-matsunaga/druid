@@ -192,24 +192,6 @@ public:
   void
   make_cnf();
 
-  /// @brief node の TFI の部分に変数を割り当てる．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  void
-  make_tfi_var(
-    const TpgNode* node, ///< [in] 対象のノード
-    int time		 ///< [in] 時刻(0 or 1)
-  );
-
-  /// @brief node の TFI の CNF を作る．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  void
-  make_tfi_cnf(
-    const TpgNode* node, ///< [in] 対象のノード
-    int time		 ///< [in] 時刻(0 or 1)
-  );
-
   /// @brief 変数マップを得る．
   ///
   /// 縮退故障モードの場合の時刻は 1
@@ -295,21 +277,6 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障の検出条件を割当リストに追加する．
-  ///
-  /// fault の影響がノードの出力に伝搬する条件を assumptions に加える．
-  void
-  add_fault_condition(
-    const TpgFault* fault,    ///< [in] 故障
-    NodeValList& assign_list  ///< [out] 条件を表す割当リスト
-  );
-
-  /// @brief 与えられたノード(のリスト)のTFIのリストを作る．
-  void
-  make_tfi_list(
-    const vector<const TpgNode*>& node_list  ///< [in] ノードのリスト
-  );
-
   /// @brief ノードの値割り当てに対応するリテラルを返す．
   SatLiteral
   nv_to_lit(
@@ -333,7 +300,7 @@ private:
   {
     // node およびその TFI に関する節を追加する．
     // すでに節が作られていた場合にはなにもしない．
-    make_tfi_cnf(node, time);
+    //make_tfi_cnf(node, time);
     bool inv = !val;
     return var(node, time) * inv;
   }
@@ -362,85 +329,6 @@ private:
   )
   {
     var_map(time).set_vid(node, var);
-    int pos = time ? 0 : 1;
-    mMark[node->id()][pos] = true;
-  }
-
-  /// @brief ノードの gvar が割り当てられているか調べる．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  bool
-  var_mark(
-    const TpgNode* node, ///< [in] ノード
-    int time		 ///< [in] 時刻(0 or 1)
-  ) const
-  {
-    int pos = time ? 0 : 1;
-    return mMark[node->id()][pos];
-  }
-
-  /// @brief ノードの CNF が作成済みか調べる．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  bool
-  cnf_mark(
-    const TpgNode* node, ///< [in] ノード
-    int time		 ///< [in] 時刻(0 or 1)
-  ) const
-  {
-    int pos = time ? 2 : 3;
-    return mMark[node->id()][pos];
-  }
-
-  /// @brief ノードに CNF マークをつける．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  void
-  set_cnf_mark(
-    const TpgNode* node, ///< [in] ノード
-    int time		 ///< [in] 時刻(0 or 1)
-  )
-  {
-    int pos = time ? 2 : 3;
-    mMark[node->id()][pos] = true;
-  }
-
-  /// @brief mCurNodeList に登録済みのマークを得る．
-  bool
-  cur_mark(
-    const TpgNode* node   ///< [in] ノード
-  ) const
-  {
-    return mMark[node->id()][4];
-  }
-
-  /// @brief mCurNodeList に登録する．
-  void
-  add_cur_node(
-    const TpgNode* node  ///< [in] ノード
-  )
-  {
-    mCurNodeList.push_back(node);
-    mMark[node->id()][4] = true;
-  }
-
-  /// @brief mPrevNodeList に登録する．
-  bool
-  prev_mark(
-    const TpgNode* node  ///< [in] ノード
-  ) const
-  {
-    return mMark[node->id()][5];
-  }
-
-  /// @brief mPrevNodeList に登録する．
-  void
-  add_prev_node(
-    const TpgNode* node  ///< [in] ノード
-  )
-  {
-    mPrevNodeList.push_back(node);
-    mMark[node->id()][5] = true;
   }
 
 
@@ -460,15 +348,6 @@ private:
 
   // ノード番号の最大値
   SizeType mMaxId;
-
-  // 処理済みのノードの印
-  // 0: gvar 割り当て済み
-  // 1: hvar 割り当て済み
-  // 2: CNF 作成済み
-  // 3: 1時刻前の CNF 作成済み
-  // 4: mCurNodeList に登録済み
-  // 5: mPrevNodeList に登録済み
-  vector<bitset<6>> mMark;
 
   // 関係するノードのリスト
   vector<const TpgNode*> mCurNodeList;
