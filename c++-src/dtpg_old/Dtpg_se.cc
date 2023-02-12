@@ -108,14 +108,13 @@ Dtpg_se::gen_pattern(
   auto prev_stats = mStructEnc.solver().get_stats();
 
   // 故障が属している FFR の根のノード
-  const TpgNode* ffr_root = fault->tpg_onode()->ffr_root();
+  auto ffr_root = fault->tpg_onode()->ffr_root();
 
   // FFR より出力側の故障伝搬条件を assumptions に入れる．
   auto assumptions = mStructEnc.make_prop_condition(ffr_root, 0);
 
   // FFR 内の故障伝搬条件を assign_list に入れる．
-  NodeValList assign_list;
-  mStructEnc.add_ffr_condition(ffr_root, fault, assign_list);
+  auto assign_list = fault->ffr_propagate_condition(mStructEnc.fault_type());
 
   // assign_list を変換して assumptions に追加する．
   auto as2 = mStructEnc.conv_to_literal_list(assign_list);
@@ -138,7 +137,7 @@ Dtpg_se::gen_pattern(
     timer.start();
 
     // ffr_root より先の伝搬条件を求める．
-    NodeValList assign_list2 = mStructEnc.extract_prop_condition(ffr_root, 0, model);
+    auto assign_list2 = mStructEnc.extract_prop_condition(ffr_root, 0, model);
     assign_list.merge(assign_list2);
 
     // assign_list の条件を正当化する．
