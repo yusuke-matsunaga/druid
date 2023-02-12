@@ -31,8 +31,9 @@ public:
   static
   vector<const TpgNode*>
   get_tfo_list(
-    SizeType max_size,  ///< [in] ノード番号の最大値 + 1
-    const TpgNode* root ///< [in] 起点となるノード
+    SizeType max_size,             ///< [in] ノード番号の最大値 + 1
+    const TpgNode* root,           ///< [in] 起点となるノード
+    const TpgNode* bnode = nullptr ///< [in] ブロックノード
   );
 
   /// @brief TFI のノードを求める．

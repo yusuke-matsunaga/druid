@@ -15,7 +15,8 @@ BEGIN_NAMESPACE_DRUID
 vector<const TpgNode*>
 TpgNodeSet::get_tfo_list(
   SizeType max_size,
-  const TpgNode* root
+  const TpgNode* root,
+  const TpgNode* bnode
 )
 {
   vector<const TpgNode*> node_list;
@@ -27,8 +28,10 @@ TpgNodeSet::get_tfo_list(
     // set_tfo_mark() 中で node_list に要素を追加しているので
     // 古いタイプの for 文を用いている．
     auto node = node_list[rpos];
-    for ( auto onode: node->fanout_list() ) {
-      set_mark(onode, node_list, mark_array);
+    if ( node != bnode ) {
+      for ( auto onode: node->fanout_list() ) {
+	set_mark(onode, node_list, mark_array);
+      }
     }
   }
   return node_list;

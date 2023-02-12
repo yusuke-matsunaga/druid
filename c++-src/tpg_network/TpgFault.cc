@@ -45,10 +45,10 @@ TpgFault::ffr_propagate_condition(
   // ブランチの故障の場合，ゲートの出力までの伝搬条件を作る．
   if ( is_branch_fault() ) {
     auto onode = tpg_onode();
-    SizeType fpos = tpg_pos();
-    Val3 nval = onode->nval();
+    auto nval = onode->nval();
     if ( nval != Val3::_X ) {
       bool val = (nval == Val3::_1);
+      SizeType fpos = tpg_pos();
       for ( auto ipos: Range(onode->fanin_num()) ) {
 	if ( ipos != fpos ) {
 	  auto inode1 = onode->fanin(ipos);
