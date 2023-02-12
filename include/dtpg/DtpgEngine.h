@@ -498,15 +498,6 @@ private:
   // 関係する擬似外部入力ノードを入れておくリスト
   vector<const TpgNode*> mPPIList;
 
-#if 0
-  // 作業用のマークを入れておく配列
-  // サイズは mMaxNodeId
-  // 0: tfi
-  // 1: tfo
-  // 2: tfi2
-  vector<bitset<3>> mBitsArray;
-#endif
-
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;
 
