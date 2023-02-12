@@ -54,12 +54,10 @@ StructEnc::StructEnc(
   for (int i = 0; i < 2; ++ i) {
     mVarMap[i].init(mMaxId);
   }
-  mDebugFlag = 0;
 
-#if 0
-  mDebugFlag |= debug_extract;
-  mDebugFlag |= debug_justify;
-#endif
+  mDebugFlag = 0;
+  //mDebugFlag |= debug_extract;
+  //mDebugFlag |= debug_justify;
 }
 
 // @brief デストラクタ
@@ -78,12 +76,6 @@ StructEnc::add_simple_cone(
   auto focone = new SimplePropCone{*this, fnode, bnode, detect};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{focone});
-
-  if ( fault_type() == FaultType::TransitionDelay ) {
-    add_prev_node(fnode);
-  }
-  make_tfi_list(focone->tfo_node_list());
-
   return cone_id;
 }
 
@@ -98,12 +90,6 @@ StructEnc::add_mffc_cone(
   auto mffccone = new MffcPropCone{*this, mffc, bnode, detect};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{mffccone});
-
-  if ( fault_type() == FaultType::TransitionDelay ) {
-    add_prev_node(mffc.root());
-  }
-  make_tfi_list(mffccone->tfo_node_list());
-
   return cone_id;
 }
 
@@ -282,6 +268,13 @@ StructEnc::make_tfi_list(
 void
 StructEnc::make_vars()
 {
+  for ( auto& focone: mConeList ) {
+    if ( fault_type() == FaultType::TransitionDelay ) {
+      add_prev_node(focone->root_node());
+    }
+    make_tfi_list(focone->tfo_node_list());
+  }
+
   for ( int i = 0; i < mCurNodeList.size(); ++ i ) {
     const TpgNode* node = mCurNodeList[i];
     if ( !var_mark(node, 1) ) {
