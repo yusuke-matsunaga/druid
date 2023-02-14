@@ -163,18 +163,18 @@ DtpgEngine::prepare_vars()
   // TFO の TFI を mTfiList に入れる．
   mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList);
   if ( mFaultType == FaultType::TransitionDelay ) {
+    vector<const TpgNode*> tmp_list;
     if ( mRoot->is_dff_output() ) {
-      mDffInputList.push_back(mRoot->alt_node());
+      tmp_list.push_back(mRoot->alt_node());
     }
     for ( auto node: mTfiList ) {
       if ( node->is_dff_output() ) {
-	mDffInputList.push_back(node->alt_node());
+	tmp_list.push_back(node->alt_node());
       }
       else if ( node->is_primary_input() ) {
 	mAuxInputList.push_back(node);
       }
     }
-    auto tmp_list = mDffInputList;
     tmp_list.push_back(mRoot);
     mTfi2List = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list);
     for ( auto node: mTfi2List ) {

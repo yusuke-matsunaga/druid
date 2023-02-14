@@ -483,9 +483,6 @@ private:
   // TFIノードを入れておくリスト
   vector<const TpgNode*> mTfiList;
 
-  // TFI に含まれる DFF の入力を入れておくリスト
-  vector<const TpgNode*> mDffInputList;
-
   // 1時刻前関係するノードを入れておくリスト
   vector<const TpgNode*> mTfi2List;
 
