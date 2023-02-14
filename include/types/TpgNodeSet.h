@@ -36,12 +36,30 @@ public:
     const TpgNode* bnode = nullptr ///< [in] ブロックノード
   );
 
+  /// @brief TFO のノードを求める．
+  static
+  vector<const TpgNode*>
+  get_tfo_list(
+    SizeType max_size,                     ///< [in] ノード番号の最大値 + 1
+    const TpgNode* root,                   ///< [in] 起点となるノード
+    std::function<void(const TpgNode*)> op ///< [in] ノードに対するファンクタ
+  );
+
   /// @brief TFI のノードを求める．
   static
   vector<const TpgNode*>
   get_tfi_list(
-    SizeType max_size,  ///< [in] ノード番号の最大値 + 1
+    SizeType max_size,                      ///< [in] ノード番号の最大値 + 1
     const vector<const TpgNode*>& root_list ///< [in] 起点となるノード
+  );
+
+  /// @brief TFI のノードを求める．
+  static
+  vector<const TpgNode*>
+  get_tfi_list(
+    SizeType max_size,                       ///< [in] ノード番号の最大値 + 1
+    const vector<const TpgNode*>& root_list, ///< [in] 起点となるノード
+    std::function<void(const TpgNode*)> op   ///< [in] ノードに対するファンクタ
   );
 
 

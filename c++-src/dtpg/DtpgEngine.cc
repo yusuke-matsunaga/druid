@@ -141,54 +141,58 @@ DtpgEngine::timer_stop()
 void
 DtpgEngine::prepare_vars()
 {
-  // root の TFO を mTfoList に入れる．
-  mTfoList = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot);
-
-  for ( auto node: mTfoList ) {
-    if ( node->is_ppo() ) {
-      mOutputList.push_back(node);
-    }
-    if ( mFaultType == FaultType::TransitionDelay ) {
-      if ( node->is_primary_input() ) {
-	mAuxInputList.push_back(node);
-      }
-    }
-    else {
-      if ( node->is_ppi() ) {
-	mPPIList.push_back(node);
-      }
-    }
-  }
-
-  // TFO の TFI を mTfiList に入れる．
-  mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList);
   if ( mFaultType == FaultType::TransitionDelay ) {
+    // root の TFO を mTfoList に入れる．
+    mTfoList = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot,
+					[&](const TpgNode* node) {
+					  if ( node->is_ppo() ) {
+					    mOutputList.push_back(node);
+					  }
+					  else if ( node->is_primary_input() ) {
+					    mAuxInputList.push_back(node);
+					  }
+					});
+
     vector<const TpgNode*> tmp_list;
     if ( mRoot->is_dff_output() ) {
       tmp_list.push_back(mRoot->alt_node());
     }
-    for ( auto node: mTfiList ) {
-      if ( node->is_dff_output() ) {
-	tmp_list.push_back(node->alt_node());
-      }
-      else if ( node->is_primary_input() ) {
-	mAuxInputList.push_back(node);
-      }
-    }
+    // TFO の TFI を mTfiList に入れる．
+    mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList,
+					[&](const TpgNode* node) {
+					  if ( node->is_dff_output() ) {
+					    tmp_list.push_back(node->alt_node());
+					  }
+					  else if ( node->is_primary_input() ) {
+					    mAuxInputList.push_back(node);
+					  }
+					});
     tmp_list.push_back(mRoot);
-    mTfi2List = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list);
-    for ( auto node: mTfi2List ) {
-      if ( node->is_ppi() ) {
-	mPPIList.push_back(node);
-      }
-    }
+    mTfi2List = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list,
+					 [&](const TpgNode* node) {
+					   if ( node->is_ppi() ) {
+					     mPPIList.push_back(node);
+					   }
+					 });
   }
   else {
-    for ( auto node: mTfiList ) {
-      if ( node->is_ppi() ) {
-	mPPIList.push_back(node);
-      }
-    }
+    // root の TFO を mTfoList に入れる．
+    mTfoList = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot,
+					[&](const TpgNode* node) {
+					  if ( node->is_ppo() ) {
+					    mOutputList.push_back(node);
+					  }
+					  else if ( node->is_ppi() ) {
+					    mPPIList.push_back(node);
+					  }
+					});
+    // TFO の TFI を mTfiList に入れる．
+    mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList,
+					[&](const TpgNode* node) {
+					  if ( node->is_ppi() ) {
+					    mPPIList.push_back(node);
+					  }
+					});
   }
 
   // TFI の部分に正常回路用の変数を割り当てる．
