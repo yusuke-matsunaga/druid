@@ -79,22 +79,8 @@ DtpgMFFC::opt_make_cnf()
   for ( SizeType i = 0; i < mRootArray.size(); ++ i ) {
     auto node = mRootArray[i];
     ffr_map.emplace(node->id(), i);
-    if ( node == root_node() ) {
-      continue;
-    }
-    for ( auto onode: node->fanout_list() ) {
-      if ( fvar(onode) == gvar(onode) ) {
-	auto var = solver().new_variable(true);
-	set_fvar(onode, var);
-	node_list.push_back(onode);
-
-	if ( debug_mffc ) {
-	  DEBUG_OUT << "fvar(Node#" << onode->id() << ") = " << var << endl;
-	}
-      }
-    }
+    node_list.push_back(node);
   }
-
   for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
     auto node = node_list[rpos];
     if ( node == root_node() ) {
