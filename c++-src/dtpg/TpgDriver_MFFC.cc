@@ -8,6 +8,7 @@
 
 #include "TpgDriver_MFFC.h"
 #include "DtpgMFFC.h"
+#include "DtpgFFR.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -36,14 +37,27 @@ void
 TpgDriver_MFFC::run()
 {
   for ( auto mffc: mNetwork.mffc_list() ) {
-    DtpgMFFC dtpg{mNetwork, mFaultType, mffc, mJustType, mSolverType};
-    for ( auto fault: mffc.fault_list() ) {
-      if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
-	auto result = dtpg.gen_pattern(fault);
-	_update(fault, result);
+    if ( mffc.ffr_num() == 1 ) {
+      auto ffr = mffc.ffr(0);
+      DtpgFFR dtpg{mNetwork, mFaultType, ffr, mJustType, mSolverType};
+      for ( auto fault: ffr.fault_list() ) {
+	if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
+	  auto result = dtpg.gen_pattern(fault);
+	  _update(fault, result);
+	}
       }
+      _merge_stats(dtpg.stats());
     }
-    _merge_stats(dtpg.stats());
+    else {
+      DtpgMFFC dtpg{mNetwork, mFaultType, mffc, mJustType, mSolverType};
+      for ( auto fault: mffc.fault_list() ) {
+	if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
+	  auto result = dtpg.gen_pattern(fault);
+	  _update(fault, result);
+	}
+      }
+      _merge_stats(dtpg.stats());
+    }
   }
 }
 
