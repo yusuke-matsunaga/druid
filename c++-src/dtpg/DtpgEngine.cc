@@ -220,8 +220,14 @@ DtpgEngine::prepare_vars()
 
   // TFI2 の部分に変数を割り当てる．
   for ( auto node: mTfi2List ) {
-    auto hvar = mSolver.new_variable(true);
-
+    SatLiteral hvar;
+    if ( node->is_dff_input() ) {
+      auto onode = node->alt_node();
+      hvar = gvar(onode);
+    }
+    else {
+      hvar = mSolver.new_variable(true);
+    }
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {
@@ -250,14 +256,6 @@ DtpgEngine::gen_good_cnf()
       }
       DEBUG_OUT << ")" << endl;
     }
-  }
-
-  for ( auto inode: mDffInputList ) {
-    auto onode = inode->alt_node();
-    // DFF の入力の1時刻前の値と出力の値が等しい．
-    auto olit = gvar(onode);
-    auto ilit = hvar(inode);
-    mSolver.add_buffgate(olit, ilit);
   }
 
   GateEnc hval_enc{mSolver, mHvarMap};
