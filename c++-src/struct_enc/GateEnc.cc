@@ -16,6 +16,10 @@
 
 BEGIN_NAMESPACE_DRUID
 
+BEGIN_NONAMESPACE
+static const bool debug_gate_enc = false;
+END_NONAMESPACE
+
 // @brief コンストラクタ
 GateEnc::GateEnc(
   SatSolver& solver,
@@ -48,22 +52,39 @@ GateEnc::make_cnf(
 {
   SizeType ni = node->fanin_num();
   const auto& fanin_array = node->fanin_list();
+  {
+    for ( auto inode: fanin_array ) {
+      auto ilit = lit(inode);
+      if ( ilit == SatLiteral::X ) {
+	abort();
+      }
+    }
+  }
   switch ( node->gate_type() ) {
+  case PrimType::None:
+    break;
+
   case PrimType::C0:
     mSolver.add_clause(~olit);
+    if ( debug_gate_enc ) {
+      cout << "C0: " << olit << endl;
+    }
     break;
 
   case PrimType::C1:
     mSolver.add_clause( olit);
-    break;
-
-  case PrimType::None:
+    if ( debug_gate_enc ) {
+      cout << "C1: " << olit << endl;
+    }
     break;
 
   case PrimType::Buff:
     {
       auto ilit = lit(fanin_array[0]);
       mSolver.add_buffgate(ilit, olit);
+      if ( debug_gate_enc ) {
+	cout << "Buff: " << olit << " = " << ilit  << endl;
+      }
     }
     break;
 
@@ -71,6 +92,9 @@ GateEnc::make_cnf(
     {
       auto ilit = lit(fanin_array[0]);
       mSolver.add_notgate(ilit, olit);
+      if ( debug_gate_enc ) {
+	cout << "Not: " << olit << " = " << ilit  << endl;
+      }
     }
     break;
 
@@ -114,6 +138,16 @@ GateEnc::make_cnf(
       }
       break;
     }
+    if ( debug_gate_enc ) {
+      cout << "And: " << olit << " = ";
+      const char* amp = "";
+      for ( auto inode: fanin_array ) {
+	auto ilit = lit(inode);
+	cout << amp << ilit;
+	amp = " & ";
+      }
+      cout << endl;
+    }
     break;
 
   case PrimType::Nand:
@@ -155,6 +189,16 @@ GateEnc::make_cnf(
 	mSolver.add_nandgate( olit, ilits);
       }
       break;
+    }
+    if ( debug_gate_enc ) {
+      cout << "Nand: " << olit << " = ~(";
+      const char* amp = "";
+      for ( auto inode: fanin_array ) {
+	auto ilit = lit(inode);
+	cout << amp << ilit;
+	amp = " & ";
+      }
+      cout << ")" << endl;
     }
     break;
 
@@ -198,6 +242,16 @@ GateEnc::make_cnf(
       }
       break;
     }
+    if ( debug_gate_enc ) {
+      cout << "Or: " << olit << " = ";
+      const char* amp = "";
+      for ( auto inode: fanin_array ) {
+	auto ilit = lit(inode);
+	cout << amp << ilit;
+	amp = " | ";
+      }
+      cout << endl;
+    }
     break;
 
   case PrimType::Nor:
@@ -240,6 +294,16 @@ GateEnc::make_cnf(
       }
       break;
     }
+    if ( debug_gate_enc ) {
+      cout << "Nor: " << olit << " = ~(";
+      const char* amp = "";
+      for ( auto inode: fanin_array ) {
+	auto ilit = lit(inode);
+	cout << amp << ilit;
+	amp = " | ";
+      }
+      cout << ")" << endl;
+    }
     break;
 
   case PrimType::Xor:
@@ -248,6 +312,10 @@ GateEnc::make_cnf(
       auto ilit0 = lit(fanin_array[0]);
       auto ilit1 = lit(fanin_array[1]);
       mSolver.add_xorgate( olit, ilit0, ilit1);
+      if ( debug_gate_enc ) {
+	cout << "Xor: " << olit << " = " << ilit0
+	     << " ^ " << ilit1  << endl;
+      }
     }
     break;
 
@@ -257,6 +325,10 @@ GateEnc::make_cnf(
       auto ilit0 = lit(fanin_array[0]);
       auto ilit1 = lit(fanin_array[1]);
       mSolver.add_xnorgate( olit, ilit0, ilit1);
+      if ( debug_gate_enc ) {
+	cout << "Xnor: " << olit << " = ~(" << ilit0
+	     << " ^ " << ilit1 << ")" << endl;
+      }
     }
     break;
 
