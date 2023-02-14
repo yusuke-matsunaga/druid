@@ -8,7 +8,7 @@
 /// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "structenc_nsdef.h"
+#include "druid.h"
 #include "TpgNode.h"
 #include "ym/SatLiteral.h"
 
