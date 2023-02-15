@@ -93,7 +93,7 @@ GateEnc::make_cnf(
       auto ilit = lit(fanin_array[0]);
       mSolver.add_notgate(ilit, olit);
       if ( debug_gate_enc ) {
-	cout << "Not: " << olit << " = " << ilit  << endl;
+	cout << "Not: " << olit << " = ~" << ilit  << endl;
       }
     }
     break;
