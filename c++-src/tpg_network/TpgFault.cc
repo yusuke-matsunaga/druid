@@ -23,9 +23,9 @@ BEGIN_NAMESPACE_DRUID
 // クラス TpgFault
 //////////////////////////////////////////////////////////////////////
 
-// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
+// @brief 故障が励起してノードの出力まで伝搬する条件を求める．
 NodeValList
-TpgFault::ffr_propagate_condition(
+TpgFault::node_propagate_condition(
   FaultType fault_type
 ) const
 {
@@ -58,6 +58,18 @@ TpgFault::ffr_propagate_condition(
     }
   }
 
+  return assign_list;
+}
+
+// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
+NodeValList
+TpgFault::ffr_propagate_condition(
+  FaultType fault_type
+) const
+{
+  // ノードの出力までの伝搬条件を求める．
+  auto assign_list = node_propagate_condition(fault_type);
+
   // FFR の根までの伝搬条件を作る．
   for ( auto node = tpg_onode(); node->fanout_num() == 1;
 	node = node->fanout_list()[0]) {
@@ -66,7 +78,7 @@ TpgFault::ffr_propagate_condition(
     if ( ni == 1 ) {
       continue;
     }
-    Val3 nval = fonode->nval();
+    auto nval = fonode->nval();
     if ( nval == Val3::_X ) {
       continue;
     }

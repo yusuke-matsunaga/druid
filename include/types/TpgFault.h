@@ -119,6 +119,12 @@ public:
     return Val3::_0;
   }
 
+  /// @brief 故障が励起してノードの出力まで伝搬する条件を求める．
+  NodeValList
+  node_propagate_condition(
+    FaultType fault_type   ///< [in] 故障の種類
+  ) const;
+
   /// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
   NodeValList
   ffr_propagate_condition(
