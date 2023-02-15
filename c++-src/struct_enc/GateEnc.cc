@@ -64,6 +64,7 @@ GateEnc::make_cnf(
       }
     }
   }
+
   switch ( node->gate_type() ) {
   case PrimType::None:
     break;
