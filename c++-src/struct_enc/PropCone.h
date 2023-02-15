@@ -56,7 +56,9 @@ public:
   /// @brief 関係するノードの変数を作る．
   virtual
   void
-  make_vars() = 0;
+  make_vars(
+    const vector<const TpgNode*>& node_list
+  ) = 0;
 
   /// @brief 関係するノードの入出力の関係を表すCNFを作る．
   virtual
@@ -143,7 +145,7 @@ protected:
   const VidMap&
   gvar_map() const
   {
-    return mStructEnc.var_map(1);
+    return mStructEnc.gvar_map();
   }
 
   /// @brief 故障回路の変数マップを得る．
@@ -166,7 +168,7 @@ protected:
     const TpgNode* node
   ) const
   {
-    return mStructEnc.var(node, 1);
+    return mStructEnc.gvar(node);
   }
 
   /// @brief 故障値の変数を得る．
@@ -220,6 +222,12 @@ protected:
   {
     return mStructEnc.solver();
   }
+
+  /// @brief ノード名を返す．
+  string
+  node_name(
+    const TpgNode* node ///< [in] ノード
+  );
 
 
 private:

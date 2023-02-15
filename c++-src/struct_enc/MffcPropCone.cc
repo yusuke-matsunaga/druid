@@ -52,9 +52,11 @@ MffcPropCone::~MffcPropCone()
 
 // @brief 関係するノードの変数を作る．
 void
-MffcPropCone::make_vars()
+MffcPropCone::make_vars(
+  const vector<const TpgNode*>& node_list
+)
 {
-  PropCone::make_vars();
+  PropCone::make_vars(node_list);
 }
 
 // @brief 関係するノードの入出力の関係を表すCNFを作る．
@@ -77,7 +79,7 @@ MffcPropCone::make_cnf()
   // 求め，同時に変数を割り当てる．
   vector<const TpgNode*> node_list;
   unordered_map<int, int> ffr_map;
-  for ( int i = 0; i < mElemArray.size(); ++ i ) {
+  for ( SizeType i = 0; i < mElemArray.size(); ++ i ) {
     auto node = mElemArray[i];
     ffr_map.emplace(node->id(), i);
     if ( node == root_node() ) {
@@ -90,7 +92,7 @@ MffcPropCone::make_cnf()
 	node_list.push_back(onode);
 
 	if ( debug_mffccone ) {
-	  DEBUG_OUT << "fvar(Node#" << onode->id() << ") = " << var << endl;
+	  DEBUG_OUT << node_name(onode) << "fvar = " << var << endl;
 	}
       }
     }
@@ -107,7 +109,7 @@ MffcPropCone::make_cnf()
 	node_list.push_back(onode);
 
 	if ( debug_mffccone ) {
-	  DEBUG_OUT << "fvar(Node#" << onode->id() << ") = " << var << endl;
+	  DEBUG_OUT << node_name(onode) << "fvar = " << var << endl;
 	}
       }
     }
@@ -130,11 +132,9 @@ MffcPropCone::make_cnf()
   }
 
   // node_list に含まれるノードの入出力の関係を表すCNF式を作る．
-  GateEnc gate_enc(solver(), fvar_map());
-  for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
-    auto node = node_list[rpos];
+  GateEnc gate_enc{solver(), fvar_map()};
+  for ( auto node: node_list ) {
     auto ovar = fvar(node);
-    int ffr_pos;
     if ( ffr_map.count(node->id()) > 0 ) {
       auto ffr_pos = ffr_map.at(node->id());
       // 実際のゲートの出力と ovar の間に XOR ゲートを挿入する．
@@ -149,7 +149,7 @@ MffcPropCone::make_cnf()
     }
 
     if ( debug_mffccone ) {
-      DEBUG_OUT << "Node#" << node->id() << ": ofvar("
+      DEBUG_OUT << node_name(node) << ": ofvar("
 		<< ovar << ") := " << node->gate_type()
 		<< "(";
       for ( auto inode: node->fanin_list() ) {
@@ -163,7 +163,7 @@ MffcPropCone::make_cnf()
 // @brief 故障挿入回路のCNFを作る．
 void
 MffcPropCone::inject_fault(
-  int ffr_pos,
+  SizeType ffr_pos,
   SatLiteral ovar
 )
 {

@@ -46,7 +46,9 @@ public:
 
   /// @brief 関係するノードの変数を作る．
   void
-  make_vars() override;
+  make_vars(
+    const vector<const TpgNode*>& node_list
+  ) override;
 
   /// @brief 関係するノードの入出力の関係を表すCNFを作る．
   void
@@ -73,8 +75,8 @@ private:
   /// @brief 故障挿入回路のCNFを作る．
   void
   inject_fault(
-    int ffr_pos,    ///< [in] 要素番号
-    SatLiteral ovar ///< [in] ゲートの出力の変数
+    SizeType ffr_pos, ///< [in] 要素番号
+    SatLiteral ovar   ///< [in] ゲートの出力の変数
   );
 
 
@@ -92,7 +94,7 @@ private:
   vector<SatLiteral> mElemVarArray;
 
   // ノード番号をキーにしてFFR番号を入れる連想配列
-  unordered_map<int, int> mElemPosMap;
+  unordered_map<SizeType, SizeType> mElemPosMap;
 
 };
 

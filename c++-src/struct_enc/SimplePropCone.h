@@ -47,7 +47,9 @@ public:
 
   /// @brief 関係するノードの変数を作る．
   void
-  make_vars() override;
+  make_vars(
+    const vector<const TpgNode*>& node_list
+  ) override;
 
   /// @brief 関係するノードの入出力の関係を表すCNFを作る．
   void

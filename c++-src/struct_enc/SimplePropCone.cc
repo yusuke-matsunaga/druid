@@ -38,9 +38,11 @@ SimplePropCone::~SimplePropCone()
 
 // @brief 関係するノードの変数を作る．
 void
-SimplePropCone::make_vars()
+SimplePropCone::make_vars(
+  const vector<const TpgNode*>& node_list
+)
 {
-  PropCone::make_vars();
+  PropCone::make_vars(node_list);
 }
 
 // @brief 関係するノードの入出力の関係を表すCNFを作る．

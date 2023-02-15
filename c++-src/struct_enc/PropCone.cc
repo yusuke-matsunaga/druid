@@ -87,11 +87,17 @@ PropCone::mark_tfo(
 
 // @brief 関係するノードの変数を作る．
 void
-PropCone::make_vars()
+PropCone::make_vars(
+  const vector<const TpgNode*>& node_list
+)
 {
+  for ( auto node: node_list ) {
+    auto var = gvar(node);
+    set_fvar(node, var);
+  }
+
   // TFO のノードに変数を割り当てる．
-  for ( SizeType i = 0; i < mNodeList.size(); ++ i ) {
-    auto node = mNodeList[i];
+  for ( auto node: mNodeList ) {
     auto fvar = solver().new_variable(true);
     set_fvar(node, fvar);
     if ( debug ) {
@@ -100,43 +106,6 @@ PropCone::make_vars()
     if ( mDetect ) {
       auto dvar = solver().new_variable(true);
       set_dvar(node, dvar);
-    }
-#if 0
-    // ファンインのノードうち TFO に含まれないノードの fvar を gvar にする．
-    SizeType ni = node->fanin_num();
-    for ( SizeType i = 0; i < ni; ++ i ) {
-      auto inode = node->fanin(i);
-      if ( !tfo_mark(inode) ) {
-	set_fvar(inode, gvar(inode));
-	if ( debug ) {
-	  cout << "fvar(Node#" << inode->id() << ") = gvar" << endl;
-	}
-      }
-    }
-#endif
-  }
-
-  // 暫定的
-  // TFO の TFI のノードの fvar を gvar と同じにする．
-  vector<const TpgNode*> tmp_list;
-  vector<bool> tfi_mark(max_id(), false);
-  for ( SizeType i = 0; i < mNodeList.size(); ++ i ) {
-    const TpgNode* node = mNodeList[i];
-    for ( auto inode: node->fanin_list() ) {
-      if ( !tfo_mark(inode) && !tfi_mark[inode->id()] ) {
-	tfi_mark[inode->id()] = true;
-	tmp_list.push_back(inode);
-      }
-    }
-  }
-  for ( SizeType rpos = 0; rpos < tmp_list.size(); ++ rpos ) {
-    auto node = tmp_list[rpos];
-    set_fvar(node, gvar(node));
-    for ( auto inode: node->fanin_list() ) {
-      if ( !tfi_mark[inode->id()] ) {
-	tfi_mark[inode->id()] = true;
-	tmp_list.push_back(inode);
-      }
     }
   }
 }
@@ -226,6 +195,15 @@ PropCone::make_dchain_cnf(
       solver().add_clause(~dlit, odlit);
     }
   }
+}
+
+// @brief ノード名を返す．
+string
+PropCone::node_name(
+  const TpgNode* node
+)
+{
+  return mStructEnc.node_name(node);
 }
 
 END_NAMESPACE_DRUID_STRUCTENC

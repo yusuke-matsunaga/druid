@@ -49,12 +49,10 @@ StructEnc::StructEnc(
 ) : mNetwork{network},
     mFaultType{fault_type},
     mSolver{solver_type},
-    mMaxId{network.node_num()}
+    mMaxId{network.node_num()},
+    mGvarMap(mMaxId),
+    mHvarMap(mMaxId)
 {
-  for (int i = 0; i < 2; ++ i) {
-    mVarMap[i].init(mMaxId);
-  }
-
   mDebugFlag = 0;
   //mDebugFlag |= debug_extract;
   //mDebugFlag |= debug_justify;
@@ -152,16 +150,23 @@ StructEnc::conv_to_literal_list(
 void
 StructEnc::make_vars()
 {
+  // PropCone の TFO を tmp_list に入れる．
   vector<const TpgNode*> tmp_list;
   for ( auto& focone: mConeList ) {
     auto& src_list = focone->tfo_node_list();
     tmp_list.insert(tmp_list.end(), src_list.begin(), src_list.end());
   }
 
-  mCurNodeList = TpgNodeSet::get_tfi_list(max_node_id(), tmp_list);
-
   if ( fault_type() == FaultType::TransitionDelay ) {
-    tmp_list.clear();
+    // tmp_list の TFI を mCurNodeList に入れる．
+    // そのうちの DFF の出力に対しては対応する入力を mDffInputList に入れる．
+    mCurNodeList = TpgNodeSet::get_tfi_list(max_node_id(), tmp_list,
+					    [&](const TpgNode* node) {
+					      tfi_hook(node);
+					    });
+    // mDffInputList と PropCone の根のノードを tmp_list に入れる．
+    // 根のノードが DFF の出力の場合には対応する入力も tmp_list に入れる．
+    tmp_list = mDffInputList;
     for ( auto& focone: mConeList ) {
       auto root = focone->root_node();
       tmp_list.push_back(root);
@@ -169,37 +174,31 @@ StructEnc::make_vars()
 	tmp_list.push_back(root->alt_node());
       }
     }
-    for ( auto node: mCurNodeList ) {
-      if ( node->is_dff_output() ) {
-	auto inode = node->alt_node();
-	tmp_list.push_back(inode);
-      }
-    }
+    // tmp_list の TFI を mPrevNodeList に入れる．
     mPrevNodeList = TpgNodeSet::get_tfi_list(max_node_id(), tmp_list);
+  }
+  else {
+    // tmp_list の TFI を mCurNodeList に入れる．
+    mCurNodeList = TpgNodeSet::get_tfi_list(max_node_id(), tmp_list);
   }
 
   for ( auto node: mCurNodeList ) {
-    set_new_var(node, 1);
+    auto var = mSolver.new_variable(true);
+    set_gvar(node, var);
     if ( debug() & debug_make_vars ) {
-      cout << mNetwork.node_name(node->id()) << "@1 -> " << var(node, 1) << endl;
+      cout << node_name(node) << ": gvar = " << var << endl;
     }
   }
   for ( auto node: mPrevNodeList ) {
-    // FF の入力の場合は1時刻後の出力の変数を用いる．
-    if ( node->is_dff_input() ) {
-      auto onode = node->alt_node();
-      _set_var(node, 0, var(onode, 1));
-    }
-    else {
-      set_new_var(node, 0);
-    }
+    auto var = mSolver.new_variable(true);
+    set_hvar(node, var);
     if ( debug() & debug_make_vars ) {
-      cout << mNetwork.node_name(node->id()) << "@0 -> " << var(node, 0) << endl;
+      cout << node_name(node) << ": hvar = " << var << endl;
     }
   }
 
   for ( auto& focone: mConeList ) {
-    focone->make_vars();
+    focone->make_vars(mCurNodeList);
   }
 }
 
@@ -207,14 +206,29 @@ StructEnc::make_vars()
 void
 StructEnc::make_cnf()
 {
-  GateEnc gate_enc1(mSolver, var_map(1));
+  GateEnc gate_enc1(mSolver, gvar_map());
   for ( auto node: mCurNodeList ) {
     gate_enc1.make_cnf(node);
   }
 
-  GateEnc gate_enc0(mSolver, var_map(0));
+  GateEnc gate_enc0(mSolver, hvar_map());
   for ( auto node: mPrevNodeList ) {
     gate_enc0.make_cnf(node);
+  }
+
+  for ( auto node: mDffInputList ) {
+    auto onode = node->alt_node();
+    auto olit = gvar(onode);
+    auto ilit = hvar(node);
+    if ( olit == SatLiteral::X ) {
+      cout << node_name(onode) << ": gvar = X" << endl;
+      abort();
+    }
+    if ( ilit == SatLiteral::X ) {
+      cout << node_name(node) << ": hvar = X" << endl;
+      abort();
+    }
+    mSolver.add_buffgate(olit, ilit);
   }
 
   for ( auto& focone: mConeList ) {
@@ -281,13 +295,22 @@ StructEnc::justify(
 	 << "StructEnc::justify(" << assign_list << ")" << endl;
   }
 
-  auto testvect = justifier(mFaultType, assign_list, var_map(0), var_map(1), model);
+  auto testvect = justifier(mFaultType, assign_list, hvar_map(), gvar_map(), model);
 
   if ( debug() & debug_justify ) {
     cout << " => " << testvect.bin_str() << endl;
   }
 
   return testvect;
+}
+
+// @brief ノード名を得る．
+string
+StructEnc::node_name(
+  const TpgNode* node
+)
+{
+  return mNetwork.node_name(node->id());
 }
 
 END_NAMESPACE_DRUID_STRUCTENC

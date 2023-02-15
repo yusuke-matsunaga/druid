@@ -65,26 +65,35 @@ public:
   }
 
   /// @brief 変数マップを得る．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
   const VidMap&
-  var_map(
-    int time  ///< [in] 時刻(0 or 1)
-  ) const
+  gvar_map() const
   {
-    return mVarMap[time & 1];
+    return mGvarMap;
+  }
+
+  /// @brief 変数マップを得る．
+  const VidMap&
+  hvar_map() const
+  {
+    return mHvarMap;
   }
 
   /// @brief 変数リテラルを得る．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
   SatLiteral
-  var(
-    const TpgNode* node, ///< [in] ノード
-    int time		 ///< [in] 時刻(0 or 1)
+  gvar(
+    const TpgNode* node ///< [in] ノード
   ) const
   {
-    return var_map(time)(node);
+    return mGvarMap(node);
+  }
+
+  /// @brief 変数リテラルを得る．
+  SatLiteral
+  hvar(
+    const TpgNode* node ///< [in] ノード
+  ) const
+  {
+    return mHvarMap(node);
   }
 
 
@@ -192,17 +201,6 @@ public:
   void
   make_cnf();
 
-  /// @brief 変数マップを得る．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  VidMap&
-  var_map(
-    int time  ///< [in] 時刻(0 or 1)
-  )
-  {
-    return mVarMap[time & 1];
-  }
-
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -225,16 +223,6 @@ public:
     const NodeValList& assign_list1, ///< [in] 割当リスト1
     const NodeValList& assign_list2  ///< [in] 割当リスト2
   );
-
-#if 0
-  /// @brief 結果のなかで必要なものだけを取り出す．
-  NodeValList
-  extract(
-    const SatModel& model, ///< [in] SAT のモデル
-    const TpgFault* fault, ///< [in] 対象の故障
-    SizeType cone_id		   ///< [in] コーン番号
-  );
-#endif
 
   /// @brief 伝搬条件を求める．
   NodeValList
@@ -271,6 +259,12 @@ public:
     return mDebugFlag;
   }
 
+  /// @brief ノード名を得る．
+  string
+  node_name(
+    const TpgNode* node ///< [in] ノード
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -302,33 +296,43 @@ private:
     // すでに節が作られていた場合にはなにもしない．
     //make_tfi_cnf(node, time);
     bool inv = !val;
-    return var(node, time) * inv;
-  }
-
-  /// @brief ノードに新しい変数を割り当てる．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
-  void
-  set_new_var(
-    const TpgNode* node, ///< [in] ノード
-    int time		 ///< [in] 時刻(0 or 1)
-  )
-  {
-    auto var = mSolver.new_variable(true);
-    _set_var(node, time, var);
+    if ( time == 1) {
+      return gvar(node) * inv;
+    }
+    else {
+      return hvar(node) * inv;
+    }
   }
 
   /// @brief ノードに変数を割り当てる．
-  ///
-  /// 縮退故障モードの場合の時刻は 1
   void
-  _set_var(
+  set_gvar(
     const TpgNode* node, ///< [in] ノード
-    int time,		 ///< [in] 時刻(0 or 1)
     SatLiteral var	 ///< [in] 変数リテラル
   )
   {
-    var_map(time).set_vid(node, var);
+    mGvarMap.set_vid(node, var);
+  }
+
+  /// @brief ノードに変数を割り当てる．
+  void
+  set_hvar(
+    const TpgNode* node, ///< [in] ノード
+    SatLiteral var	 ///< [in] 変数リテラル
+  )
+  {
+    mHvarMap.set_vid(node, var);
+  }
+
+  /// @brief mCurNodeList を求める時に呼ばれるフック関数
+  void
+  tfi_hook(
+    const TpgNode* node ///< [in] ノード
+  )
+  {
+    if ( node->is_dff_output() ) {
+      mDffInputList.push_back(node->alt_node());
+    }
   }
 
 
@@ -352,11 +356,17 @@ private:
   // 関係するノードのリスト
   vector<const TpgNode*> mCurNodeList;
 
+  // mCurNodeList に関係する DFF の入力のリスト
+  vector<const TpgNode*> mDffInputList;
+
   // 関係する１時刻前のノードのリスト
   vector<const TpgNode*> mPrevNodeList;
 
   // 変数マップ
-  VidMap mVarMap[2];
+  VidMap mGvarMap;
+
+  // 変数マップ
+  VidMap mHvarMap;
 
   // propagation cone のリスト
   vector<unique_ptr<PropCone>> mConeList;
