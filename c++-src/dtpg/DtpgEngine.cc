@@ -141,33 +141,57 @@ DtpgEngine::timer_stop()
 void
 DtpgEngine::prepare_vars()
 {
-  if ( mFaultType == FaultType::TransitionDelay ) {
-    // root の TFO を mTfoList に入れる．
-    mTfoList = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot,
-					[&](const TpgNode* node) {
-					  if ( node->is_ppo() ) {
-					    mOutputList.push_back(node);
+  if ( debug_dtpg ) {
+    DEBUG_OUT << endl;
+    DEBUG_OUT << "DtpgEngine::prepare_vars() begin" << endl;
+    DEBUG_OUT << " Root = " << node_name(mRoot) << endl;
+  }
+
+  // root の TFO を mTfoList に入れる．
+  mTfoList = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot,
+				      [&](const TpgNode* node) {
+					if ( node->is_ppo() ) {
+					  mOutputList.push_back(node);
+					}
+					if ( mFaultType == FaultType::TransitionDelay ) {
+					  if ( node->is_primary_input() ) {
+					    mAuxInputList.push_back(node);
+					  }
+					}
+					else {
+					  if ( node->is_ppi() ) {
+					    mPPIList.push_back(node);
+					  }
+					}
+				      });
+
+  // TFO の TFI を mTfiList に入れる．
+  // そのうちの DFF の出力に対応するDFFの入力を tmp_list に入れておく．
+  mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList,
+				      [&](const TpgNode* node) {
+					if ( mFaultType == FaultType::TransitionDelay ) {
+					  if ( node->is_dff_output() ) {
+					    mDffInputList.push_back(node->alt_node());
 					  }
 					  else if ( node->is_primary_input() ) {
 					    mAuxInputList.push_back(node);
 					  }
-					});
+					}
+					else {
+					  if ( node->is_ppi() ) {
+					    mPPIList.push_back(node);
+					  }
+					}
+				      });
 
-    vector<const TpgNode*> tmp_list;
+  if ( mFaultType == FaultType::TransitionDelay ) {
+    auto tmp_list = mDffInputList;
     if ( mRoot->is_dff_output() ) {
       tmp_list.push_back(mRoot->alt_node());
     }
-    // TFO の TFI を mTfiList に入れる．
-    mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList,
-					[&](const TpgNode* node) {
-					  if ( node->is_dff_output() ) {
-					    tmp_list.push_back(node->alt_node());
-					  }
-					  else if ( node->is_primary_input() ) {
-					    mAuxInputList.push_back(node);
-					  }
-					});
+    // mRoot の1時刻前も必要なので tmp_list に入れておく．
     tmp_list.push_back(mRoot);
+    // tmp_list の TFI を mTfi2List に入れる．
     mTfi2List = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list,
 					 [&](const TpgNode* node) {
 					   if ( node->is_ppi() ) {
@@ -175,27 +199,8 @@ DtpgEngine::prepare_vars()
 					   }
 					 });
   }
-  else {
-    // root の TFO を mTfoList に入れる．
-    mTfoList = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot,
-					[&](const TpgNode* node) {
-					  if ( node->is_ppo() ) {
-					    mOutputList.push_back(node);
-					  }
-					  else if ( node->is_ppi() ) {
-					    mPPIList.push_back(node);
-					  }
-					});
-    // TFO の TFI を mTfiList に入れる．
-    mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList,
-					[&](const TpgNode* node) {
-					  if ( node->is_ppi() ) {
-					    mPPIList.push_back(node);
-					  }
-					});
-  }
 
-  // TFI の部分に正常回路用の変数を割り当てる．
+  // 正常回路の変数を作る．
   for ( auto node: mTfiList ) {
     auto gvar = mSolver.new_variable(true);
 
@@ -203,12 +208,13 @@ DtpgEngine::prepare_vars()
     mFvarMap.set_vid(node, gvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << "gvar(Node#" << node->id() << ") = " << gvar << endl
-		<< "fvar(Node#" << node->id() << ") = " << gvar << endl;
+      DEBUG_OUT << node_name(node)
+		<< ": gvar|fvar = "
+		<< gvar << endl;
     }
   }
 
-  // TFO の部分に故障回路用の変数を割り当てる．
+  // 故障回路の変数を作る．
   for ( auto node: mTfoList ) {
     auto fvar = mSolver.new_variable(true);
     auto dvar = mSolver.new_variable(true);
@@ -217,26 +223,28 @@ DtpgEngine::prepare_vars()
     mDvarMap.set_vid(node, dvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT	<< "fvar(Node#" << node->id() << ") = " << fvar << endl
-		<< "dvar(Node#" << node->id() << ") = " << dvar << endl;
+      DEBUG_OUT	<< node_name(node)
+		<< ": fvar = " << fvar
+		<< ", dvar = " << dvar
+		<< endl;
     }
   }
 
-  // TFI2 の部分に変数を割り当てる．
+  // 1時刻前の正常回路の変数を作る．
   for ( auto node: mTfi2List ) {
-    SatLiteral hvar;
-    if ( node->is_dff_input() ) {
-      auto onode = node->alt_node();
-      hvar = gvar(onode);
-    }
-    else {
-      hvar = mSolver.new_variable(true);
-    }
+    auto hvar = mSolver.new_variable(true);
+
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << "hvar(Node#" << node->id() << ") = " << hvar << endl;
+      DEBUG_OUT << node_name(node)
+		<< ": hvar = " << hvar
+		<< endl;
     }
+  }
+
+  if ( debug_dtpg ) {
+    DEBUG_OUT << "DtpgEngine::prepare_vars() end" << endl;
   }
 }
 
@@ -249,32 +257,38 @@ DtpgEngine::gen_good_cnf()
   //////////////////////////////////////////////////////////////////////
   GateEnc gval_enc{mSolver, mGvarMap};
   for ( auto node: mTfiList ) {
-    gval_enc.make_cnf(node);
-
-    if ( debug_dtpg ) {
-      DEBUG_OUT << "Node#" << node->id() << ": gvar("
-		<< gvar(node) << ") := " << node->gate_type()
-		<< "(";
-      for ( auto inode: node->fanin_list() ) {
-	DEBUG_OUT << " " << gvar(inode);
+    {
+      auto olit = gvar(node);
+      if ( olit == SatLiteral::X ) {
+	cout << node_name(node) << ": gvar = X" << endl;
+	abort();
       }
-      DEBUG_OUT << ")" << endl;
+      for ( auto inode: node->fanin_list() ) {
+	auto ilit = gvar(inode);
+	if ( ilit == SatLiteral::X ) {
+	  cout << node_name(inode) << ": gvar = X" << endl;
+	  abort();
+	}
+      }
     }
+    gval_enc.make_cnf(node);
   }
 
   GateEnc hval_enc{mSolver, mHvarMap};
   for ( auto node: mTfi2List ) {
-    hval_enc.make_cnf(node);
-
-    if ( debug_dtpg ) {
-      DEBUG_OUT << "Node#" << node->id() << ": hvar("
-		<< hvar(node) << ") := " << node->gate_type()
-		<< "(";
-      for ( auto inode: node->fanin_list() ) {
-	DEBUG_OUT << " " << hvar(inode);
-      }
-      DEBUG_OUT << ")" << endl;
+    if ( hvar(node) == SatLiteral::X ) {
+      cout << node_name(node) << ": hvar = X" << endl;
+      abort();
     }
+    hval_enc.make_cnf(node);
+  }
+
+  // DFF の入力と出力の値を一致させる．
+  for ( auto node: mDffInputList ) {
+    auto onode = node->alt_node();
+    auto ilit = hvar(node);
+    auto olit = gvar(onode);
+    mSolver.add_buffgate(olit, ilit);
   }
 }
 
@@ -289,17 +303,6 @@ DtpgEngine::gen_faulty_cnf()
   for ( auto node: mTfoList ) {
     if ( node != mRoot ) {
       fval_enc.make_cnf(node);
-
-      if ( debug_dtpg ) {
-	DEBUG_OUT << "Node#" << node->id() << ": fvar("
-		  << fvar(node) << ") := " << node->gate_type()
-		  << "(";
-	for ( auto inode: node->fanin_list() ) {
-	  DEBUG_OUT << " " << fvar(inode);
-	}
-
-	DEBUG_OUT << ")" << endl;
-      }
     }
     make_dchain_cnf(node);
   }
@@ -336,8 +339,8 @@ DtpgEngine::make_dchain_cnf(
   mSolver.add_clause( glit,  flit, ~dlit);
 
   if ( debug_dtpg ) {
-    DEBUG_OUT << "dvar(Node#" << node->id() << ") -> "
-	      << glit << " XOR " << flit << endl;
+    DEBUG_OUT << node_name(node) << ": dvar(" << dlit << ") -> "
+	      << glit << " != " << flit << endl;
   }
 
   if ( node->is_ppo() ) {
@@ -345,15 +348,15 @@ DtpgEngine::make_dchain_cnf(
     mSolver.add_clause( glit, ~flit,  dlit);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << "!dvar(Node#" << node->id() << ") -> "
-		<< glit << " = " << flit << endl;
+      DEBUG_OUT << node_name(node) << ": !dvar(" << dlit << ") -> "
+		<< glit << " == " << flit << endl;
     }
   }
   else {
     // dlit -> ファンアウト先のノードの dlit の一つが 1
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << "dvar(Node#" << node->id() << ") -> ";
+      DEBUG_OUT << node_name(node) << "dvar(" << dlit << ") -> ";
     }
     int nfo = node->fanout_num();
     if ( nfo == 1 ) {
@@ -387,7 +390,7 @@ DtpgEngine::make_dchain_cnf(
 	mSolver.add_clause(~dlit, odlit);
 
 	if ( debug_dtpg ) {
-	  DEBUG_OUT << "dvar(Node#" << node->id() << ") -> "
+	  DEBUG_OUT << node_name(node) << "dvar(" << dlit << ") -> "
 		    << odlit << endl;
 	}
       }
@@ -669,6 +672,15 @@ DtpgEngine::_add_negation_sub(
 
   ASSERT_NOT_REACHED;
   return SatLiteral();
+}
+
+// @brief ノード名を返す．
+string
+DtpgEngine::node_name(
+  const TpgNode* node
+)
+{
+  return mNetwork.node_name(node->id());
 }
 
 END_NAMESPACE_DRUID

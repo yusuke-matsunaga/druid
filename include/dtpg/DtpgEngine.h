@@ -404,6 +404,12 @@ protected:
   void
   gen_faulty_cnf();
 
+  /// @brief ノード名を返す．
+  string
+  node_name(
+    const TpgNode* node ///< [in] ノード
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -482,6 +488,9 @@ private:
 
   // TFIノードを入れておくリスト
   vector<const TpgNode*> mTfiList;
+
+  // mTfiList に関連する DFF の入力のリスト
+  vector<const TpgNode*> mDffInputList;
 
   // 1時刻前関係するノードを入れておくリスト
   vector<const TpgNode*> mTfi2List;
