@@ -18,6 +18,7 @@ BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 static const bool debug_gate_enc = false;
+static const bool verify_gate_enc = false;
 END_NONAMESPACE
 
 // @brief コンストラクタ
@@ -52,7 +53,10 @@ GateEnc::make_cnf(
 {
   SizeType ni = node->fanin_num();
   const auto& fanin_array = node->fanin_list();
-  {
+  if ( verify_gate_enc ) {
+    if ( olit == SatLiteral::X ) {
+      abort();
+    }
     for ( auto inode: fanin_array ) {
       auto ilit = lit(inode);
       if ( ilit == SatLiteral::X ) {
