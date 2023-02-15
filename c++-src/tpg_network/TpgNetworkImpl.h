@@ -17,10 +17,6 @@
 #include "ym/logic.h"
 #include "ym/Array.h"
 
-//#include "TpgDFF.h"
-//#include "TpgMFFC.h"
-//#include "TpgFFR.h"
-
 #include "DFFImpl.h"
 #include "MFFCImpl.h"
 #include "FFRImpl.h"
@@ -338,6 +334,12 @@ public:
   node_rep_fault(
     SizeType id,  ///< [in] ID番号 ( 0 <= id < node_num() )
     SizeType pos  ///< [in] 位置番号 ( 0 <= pos < node_rep_fault_num(id) )
+  ) const;
+
+  /// @brief ノードに関係した代表故障のリストを返す．
+  const vector<const TpgFault*>&
+  node_rep_fault_list(
+    SizeType id ///< [in] ノードのID番号 ( 0 <= id < node_num() )
   ) const;
 
 

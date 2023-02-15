@@ -331,6 +331,12 @@ public:
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < node_rep_fault_num(id) )
   ) const;
 
+  /// @brief ノードに関係した代表故障のリストを返す．
+  const vector<const TpgFault*>&
+  node_rep_fault_list(
+    SizeType id ///< [in] ノードのID番号 ( 0 <= id < node_num() )
+  ) const;
+
 
 private:
   //////////////////////////////////////////////////////////////////////

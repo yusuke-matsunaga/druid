@@ -176,6 +176,17 @@ TpgNetworkImpl::node_rep_fault(
   return mAuxInfoArray[id].fault(pos);
 }
 
+// @brief ノードに関係した代表故障のリストを返す．
+const vector<const TpgFault*>&
+TpgNetworkImpl::node_rep_fault_list(
+  SizeType id
+) const
+{
+  ASSERT_COND( id >= 0 && id < node_num() );
+
+  return mAuxInfoArray[id].fault_list();
+}
+
 // @brief 出力の故障を得る．
 TpgFaultBase*
 TpgNetworkImpl::_node_output_fault(

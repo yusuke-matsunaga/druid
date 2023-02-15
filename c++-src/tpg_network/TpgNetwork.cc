@@ -319,6 +319,15 @@ TpgNetwork::node_rep_fault(
   return mImpl->node_rep_fault(id, pos);
 }
 
+// @brief ノードに関係した代表故障のリストを返す．
+const vector<const TpgFault*>&
+TpgNetwork::node_rep_fault_list(
+  SizeType id
+) const
+{
+  return mImpl->node_rep_fault_list(id);
+}
+
 // @brief TpgNetwork の内容を出力する関数
 void
 print_network(
