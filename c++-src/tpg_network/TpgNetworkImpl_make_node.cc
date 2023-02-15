@@ -82,7 +82,7 @@ TpgNetworkImpl::make_output_node(
   // 入力位置の故障を生成
   SizeType ipos = 0;
   for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo(node, ipos), nullptr);
+    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
   }
 
   mPPOArray.push_back(node);
@@ -107,7 +107,7 @@ TpgNetworkImpl::make_dff_input_node(
   // 入力位置の故障を生成
   SizeType ipos = 0;
   for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo(node, ipos), nullptr);
+    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
   }
 
   mPPOArray.push_back(node);
@@ -154,7 +154,7 @@ TpgNetworkImpl::make_dff_clock_node(
   // 入力位置の故障を生成
   SizeType ipos = 0;
   for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo(node, ipos), nullptr);
+    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
   }
 
   return node;
@@ -176,7 +176,7 @@ TpgNetworkImpl::make_dff_clear_node(
   // 入力位置の故障を生成
   SizeType ipos = 0;
   for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo(node, ipos), nullptr);
+    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
   }
 
   return node;
@@ -198,7 +198,7 @@ TpgNetworkImpl::make_dff_preset_node(
   // 入力位置の故障を生成
   SizeType ipos = 0;
   for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo(node, ipos), nullptr);
+    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
   }
 
   return node;
