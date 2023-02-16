@@ -71,13 +71,30 @@ private:
     const TpgNode* node ///< [in] 対象のノード
   );
 
+  /// @brief ノードの種類を求める．
+  /// @retval 1 故障差が伝搬している．
+  /// @retval 2 故障差が伝搬していない．
+  /// @retval 3 fcone の外側
+  int
+  type(
+    const TpgNode* node ///< [in] 対象のノード
+  )
+  {
+    if ( mFconeMark.count(node->id()) > 0 ) {
+      if ( gval(node) != fval(node) ) {
+	return 1;
+      }
+      return 2;
+    }
+    return 3;
+  }
+
   /// @brief 故障の影響の伝搬する値割当を記録する．
   ///
   /// node は TFO 内のノードでかつ故障差が伝搬している．
   void
   record_sensitized_node(
-    const TpgNode* node,     ///< [in] 対象のノード
-    NodeValList& assign_list ///< [out] 値割当を記録するリスト
+    const TpgNode* node ///< [in] 対象のノード
   );
 
   /// @brief 故障の影響の伝搬を阻害する値割当を記録する．
@@ -85,26 +102,18 @@ private:
   /// node は TFO 内のノードかつ故障差が伝搬していない．
   void
   record_masking_node(
-    const TpgNode* node,     ///< [in] 対象のノード
-    NodeValList& assign_list ///< [out] 値割当を記録するリスト
+    const TpgNode* node ///< [in] 対象のノード
   );
 
-  /// @brief side input の値を記録する．
-  ///
-  /// node は TFO 外のノード
   void
-  record_side_input(
-    const TpgNode* node,     ///< [in] 対象のノード
-    NodeValList& assign_list ///< [out] 値割当を記録するリスト
+  put_queue(
+    const TpgNode* node,
+    int mark
   )
   {
-    ASSERT_COND( mFconeMark.count(node->id()) == 0 );
-
-    if ( mRecorded.count(node->id()) == 0 ) {
-      mRecorded.emplace(node->id());
-
-      bool val = (gval(node) == Val3::_1);
-      assign_list.add(node, 1, val);
+    if ( mMarks.count(node->id()) == 0 ) {
+      mMarks.emplace(node->id(), mark);
+      mQueue.push_back(node);
     }
   }
 
@@ -144,11 +153,14 @@ private:
   // 故障の fanout cone のマーク
   unordered_set<SizeType> mFconeMark;
 
-  // 記録済みノード番号を保持するハッシュ表
-  unordered_set<SizeType> mRecorded;
-
   // 故障差の伝搬している外部出力のリスト
   vector<const TpgNode*> mSpoList;
+
+  // 処理対象のノードをためておくキュー
+  vector<const TpgNode*> mQueue;
+
+  // キューに積んだノードの印
+  unordered_map<SizeType, SizeType> mMarks;
 
 };
 

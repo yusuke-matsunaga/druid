@@ -48,6 +48,10 @@ Extractor::get_assignment(
   // root の TFO (fault cone) に印をつける．
   // 同時に故障差の伝搬している外部出力のリストを作る．
   mFconeMark.clear();
+  mSpoList.clear();
+  mQueue.clear();
+  mMarks.clear();
+
   for ( auto root: root_list ) {
     mark_tfo(root);
   }
@@ -57,11 +61,22 @@ Extractor::get_assignment(
   const TpgNode* spo = mSpoList[0];
 
   // その経路の side input の値を記録する．
-  mRecorded.clear();
-
   NodeValList assign_list;
-
-  record_sensitized_node(spo, assign_list);
+  put_queue(spo, 1);
+  for ( SizeType rpos = 0; rpos < mQueue.size(); ++ rpos ) {
+    auto node = mQueue[rpos];
+    int mark = mMarks.at(node->id());
+    switch ( mark ) {
+    case 1: record_sensitized_node(node); break;
+    case 2: record_masking_node(node); break;
+    case 3:
+      {
+	bool val = (gval(node) == Val3::_1);
+	assign_list.add(node, 1, val);
+      }
+      break;
+    }
+  }
 
   if ( debug ) {
     ostream& dbg_out = cout;
@@ -116,59 +131,31 @@ Extractor::mark_tfo(
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
 void
 Extractor::record_sensitized_node(
-  const TpgNode* node,
-  NodeValList& assign_list
+  const TpgNode* node
 )
 {
-  if ( mRecorded.count(node->id()) > 0 ) {
-    return;
-  }
-  mRecorded.emplace(node->id());
-
-  ASSERT_COND( gval(node) != fval(node) );
-
   for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.count(inode->id()) > 0 ) {
-      if ( gval(inode) != fval(inode) ) {
-	record_sensitized_node(inode, assign_list);
-      }
-      else {
-	record_masking_node(inode, assign_list);
-      }
-    }
-    else {
-      record_side_input(inode, assign_list);
-    }
+    int t = type(inode);
+    put_queue(inode, t);
   }
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
 void
 Extractor::record_masking_node(
-  const TpgNode* node,
-  NodeValList& assign_list
+  const TpgNode* node
 )
 {
-  if ( mRecorded.count(node->id()) > 0 ) {
-    return;
-  }
-  mRecorded.emplace(node->id());
-
-  ASSERT_COND ( gval(node) == fval(node) );
-
-  // ファンインには sensitized node があって
-  // side input がある場合．
   bool has_cval = false;
   bool has_snode = false;
   const TpgNode* cnode = nullptr;
   for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.count(inode->id()) > 0 ) {
-      if ( gval(inode) != fval(inode) ) {
-	// このノードには故障差が伝搬している．
-	has_snode = true;
-      }
+    int t = type(inode);
+    if ( t == 1 ) {
+      // このノードには故障差が伝搬している．
+      has_snode = true;
     }
-    else {
+    else if ( t == 3 ) {
       if ( node->cval() == gval(inode) ) {
 	// このノードは制御値を持っている．
 	has_cval = true;
@@ -179,7 +166,9 @@ Extractor::record_masking_node(
       // node のファンインに故障差が伝搬しており，
       // 他のファンインの制御値でブロックされている場合，
       // その制御値を持つノードの値を確定させる．
-      record_side_input(cnode, assign_list);
+      // 制御値を持つファンインが2つ以上ある場合には
+      // 異なる結果になる可能性がある．
+      put_queue(cnode, 3);
       return;
     }
   }
@@ -187,19 +176,7 @@ Extractor::record_masking_node(
   // ここに来たということは全てのファンインに故障差が伝搬していないか
   // 複数のファンインの故障差が打ち消し合っているのですべてのファンイン
   // に再帰する．
-  for ( auto inode: node->fanin_list() ) {
-    if ( mFconeMark.count(inode->id()) > 0 ) {
-      if ( gval(inode) != fval(inode) ) {
-	record_sensitized_node(inode, assign_list);
-      }
-      else {
-	record_masking_node(inode, assign_list);
-      }
-    }
-    else {
-      record_side_input(inode, assign_list);
-    }
-  }
+  record_sensitized_node(node);
 }
 
 END_NAMESPACE_DRUID
