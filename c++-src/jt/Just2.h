@@ -42,15 +42,13 @@ private:
   /// @brief 初期化処理
   void
   just_init(
-    const NodeValList& assign_list, ///< [in] 割当リスト
-    const JustData& jd		    ///< [in] justify 用のデータ
+    const NodeValList& assign_list ///< [in] 割当リスト
   ) override;
 
   /// @brief 制御値を持つファンインを一つ選ぶ．
   /// @return 選んだファンインのノードを返す．
   const TpgNode*
   select_cval_node(
-    const JustData& jd,  ///< [in] justiry用のデータ
     const TpgNode* node, ///< [in] 対象のノード
     int time		 ///< [in] 時刻 ( 0 or 1 )
   ) override;
@@ -68,7 +66,6 @@ private:
   /// @brief 重みの計算を行う．
   void
   add_weight(
-    const JustData& jd,  ///< [in] 対象のノード
     const TpgNode* node, ///< [in] タイムフレーム ( 0 or 1 )
     int time
   );
@@ -76,7 +73,6 @@ private:
   /// @brief 見積もり値の計算を行う．
   void
   calc_value(
-    const JustData& jd,  ///< [in] 対象のノード
     const TpgNode* node, ///< [in] タイムフレーム ( 0 or 1 )
     int time
   );

@@ -10,7 +10,8 @@
 
 #include "druid.h"
 #include "TpgNode.h"
-#include "ym/SatBool3.h"
+#include "NodeVal.h"
+#include "ym/SatModel.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -60,23 +61,41 @@ public:
   );
 
 
+protected:
+  //////////////////////////////////////////////////////////////////////
+  // 継承クラスから用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief JustData を得る．
+  const JustData&
+  just_data()
+  {
+    return *mJustDataPtr;
+  }
+
+
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief justify の実際の処理
+  NodeValList
+  _justify(
+    const JustData& jd,
+    const NodeValList& assign_list
+  );
+
   /// @brief 初期化処理
   virtual
   void
   just_init(
-    const NodeValList& assign_list, ///< [in] 割当リスト
-    const JustData& jd		    ///< [in] justify 用のデータ
+    const NodeValList& assign_list ///< [in] 割当リスト
   ) = 0;
 
   /// @brief 正当化処理
   void
   just_main(
-    const JustData& jd,         ///< [in] justiry用のデータ
     const TpgNode* node,	///< [in] 対象のノード
     int time,			///< [in] 時刻 ( 0 or 1 )
     NodeValList& pi_assign_list	///< [in] 結果の割当を保持するリスト
@@ -87,7 +106,6 @@ private:
   virtual
   const TpgNode*
   select_cval_node(
-    const JustData& jd,  ///< [in] justiry用のデータ
     const TpgNode* node, ///< [in] 対象のノード
     int time		 ///< [in] 時刻 ( 0 or 1 )
   ) = 0;
@@ -100,8 +118,21 @@ private:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
+  // マークに関するアクセス関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief キューに追加する
+  void
+  put_queue(
+    const TpgNode* node, ///< [in] 対象のノード
+    int time		 ///< [in] タイムフレーム ( 0 or 1 )
+  )
+  {
+    if ( !mark(node, time) ) {
+      set_mark(node, time);
+      mQueue.push_back(NodeVal{node, time, false});
+    }
+  }
 
   /// @brief justified マークをつけ，mJustifiedNodeList に加える．
   void
@@ -127,10 +158,6 @@ private:
     return mMarkArray[node->id()][time];
   }
 
-  /// @brief 全てのマークを消す．
-  void
-  clear_mark();
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -139,6 +166,12 @@ private:
 
   // 個々のノードのマークを表す配列
   vector<bitset<2>> mMarkArray;
+
+  // JustData
+  const JustData* mJustDataPtr{nullptr};
+
+  // 対象のノードを入れるキュー
+  vector<NodeVal> mQueue;
 
 };
 

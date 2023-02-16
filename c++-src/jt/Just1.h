@@ -41,15 +41,13 @@ private:
   /// @brief 初期化処理
   void
   just_init(
-    const NodeValList& assign_list, ///< [in] 割当リスト
-    const JustData& jd		    ///< [in] justify 用のデータ
+    const NodeValList& assign_list ///< [in] 割当リスト
   ) override;
 
   /// @brief 制御値を持つファンインを一つ選ぶ．
   /// @return 選んだファンインのノードを返す．
   const TpgNode*
   select_cval_node(
-    const JustData& jd,  ///< [in] justiry用のデータ
     const TpgNode* node, ///< [in] 対象のノード
     int time		 ///< [in] 時刻 ( 0 or 1 )
   ) override;

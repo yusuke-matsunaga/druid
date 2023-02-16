@@ -38,8 +38,7 @@ Just1::~Just1()
 // @brief 初期化処理
 void
 Just1::just_init(
-  const NodeValList& assign_list,
-  const JustData& jd
+  const NodeValList& assign_list
 )
 {
   // なにもしない．
@@ -48,7 +47,6 @@ Just1::just_init(
 // @brief 制御値を持つファンインを一つ選ぶ．
 const TpgNode*
 Just1::select_cval_node(
-  const JustData& jd,
   const TpgNode* node,
   int time
 )
@@ -56,7 +54,7 @@ Just1::select_cval_node(
   // cval を持つ最初のファンインをたどる．
   Val3 cval = node->cval();
   for ( auto inode: node->fanin_list() ) {
-    Val3 ival = jd.val(inode, time);
+    Val3 ival = just_data().val(inode, time);
     if ( ival == cval ) {
       return inode;
     }
