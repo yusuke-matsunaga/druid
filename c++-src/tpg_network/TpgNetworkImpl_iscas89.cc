@@ -11,7 +11,7 @@
 #include "TpgNode.h"
 #include "TpgGateInfo.h"
 #include "NodeMap.h"
-#include "ym/Iscas89Parser.h"
+#include "ym/Iscas89ExParser.h"
 #include "ym/Iscas89Model.h"
 
 
@@ -37,7 +37,7 @@ TpgNetwork::read_iscas89(
   const string& clock
 )
 {
-  Iscas89Parser parser;
+  Iscas89ExParser parser;
   Iscas89Model model;
   if ( !parser.read(filename, model) ) {
     throw std::invalid_argument("read failed");
@@ -60,17 +60,38 @@ TpgNetworkImpl::set(
   // まずクリアしておく．
   clear();
 
+  //////////////////////////////////////////////////////////////////////
+  // NodeInfoMgr にノードの論理関数を登録する．
+  //////////////////////////////////////////////////////////////////////
   TpgGateInfoMgr node_info_mgr;
+  vector<const TpgGateInfo*> node_info_list;
+  node_info_list.reserve(model.expr_list().size());
+  for ( auto expr: model.expr_list() ) {
+    SizeType ni = expr.input_size();
+    auto node_info = node_info_mgr.new_info(ni, expr);
+    node_info_list.push_back(node_info);
+  }
 
   //////////////////////////////////////////////////////////////////////
   // 追加で生成されるノード数を数える．
   //////////////////////////////////////////////////////////////////////
   SizeType extra_node_num = 0;
   for ( auto src_id: model.gate_list() ) {
-    auto gate_type = model.node_gate_type(src_id);
-    if ( gate_type == PrimType::Xor || gate_type == PrimType::Xnor ) {
-      SizeType ni = model.node_fanin_num(src_id);
-      extra_node_num += (ni - 2);
+    auto type = model.node_type(src_id);
+    if ( type == Iscas89Type::Gate ) {
+      auto gate_type = model.node_gate_type(src_id);
+      if ( gate_type == PrimType::Xor || gate_type == PrimType::Xnor ) {
+	SizeType ni = model.node_fanin_num(src_id);
+	extra_node_num += (ni - 2);
+      }
+    }
+    else if ( type == Iscas89Type::Complex ) {
+      auto expr_id = model.node_expr_id(src_id);
+      auto node_info = node_info_list[expr_id];
+      extra_node_num += node_info->extra_node_num();
+    }
+    else {
+      ASSERT_NOT_REACHED;
     }
   }
 
@@ -135,8 +156,16 @@ TpgNetworkImpl::set(
   // 結果として TpgNode もトポロジカル順に並べられる．
   //////////////////////////////////////////////////////////////////////
   for ( auto id: model.gate_list() ) {
-    auto prim_type = model.node_gate_type(id);
-    auto node_info = node_info_mgr.simple_type(prim_type);
+    auto type = model.node_type(id);
+    const TpgGateInfo* node_info = nullptr;
+    if ( type == Iscas89Type::Gate ) {
+      auto prim_type = model.node_gate_type(id);
+      node_info = node_info_mgr.simple_type(prim_type);
+    }
+    else if ( type == Iscas89Type::Complex ) {
+      auto expr_id = model.node_expr_id(id);
+      node_info = node_info_list[expr_id];
+    }
 
     // ファンインのノードを取ってくる．
     vector<const TpgNode*> fanin_array;

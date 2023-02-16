@@ -340,10 +340,32 @@ endif ()
 
 add_executable ( tpg_read_blif_test
   read_blif/read_blif_test.cc
-  $<TARGET_OBJECTS:druid_common_obj>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj>
-  ${YM_SUBMODULE_OBJ_LIST}
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_compile_options ( tpg_read_blif_test
+  PRIVATE "-g"
+  )
+
+# ===================================================================
+#  read_iscas89_test
+# ===================================================================
+
+add_executable ( tpg_read_iscas89_test
+  read_iscas89/read_iscas89_test.cc
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_compile_options ( tpg_read_iscas89_test
+  PRIVATE "-g"
   )
