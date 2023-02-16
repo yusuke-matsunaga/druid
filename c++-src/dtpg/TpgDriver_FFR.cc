@@ -8,6 +8,7 @@
 
 #include "TpgDriver_FFR.h"
 #include "DtpgFFR.h"
+#include "TpgFault.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -39,8 +40,12 @@ TpgDriver_FFR::run()
     DtpgFFR dtpg{mNetwork, mFaultType, ffr, mJustType, mSolverType};
     for ( auto fault: ffr.fault_list() ) {
       if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
-	auto result = dtpg.gen_pattern(fault);
-	_update(fault, result);
+	if ( fault->str() == "R2358_U435:I2:1" ) {
+	  cout << fault << endl;
+	  auto result = dtpg.gen_pattern(fault);
+	  _update(fault, result);
+	  cout << endl;
+	}
       }
     }
     _merge_stats(dtpg.stats());
