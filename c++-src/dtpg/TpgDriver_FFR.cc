@@ -37,15 +37,23 @@ void
 TpgDriver_FFR::run()
 {
   for ( auto ffr: mNetwork.ffr_list() ) {
+    bool found = false;
+    for ( auto fault: ffr.fault_list() ) {
+      if ( fault->str() == "R2358_U435:I2:1" ) {
+	found = true;
+	break;
+      }
+    }
+    if ( !found ) {
+      continue;
+    }
     DtpgFFR dtpg{mNetwork, mFaultType, ffr, mJustType, mSolverType};
     for ( auto fault: ffr.fault_list() ) {
       if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
-	if ( fault->str() == "R2358_U435:I2:1" ) {
-	  cout << fault << endl;
-	  auto result = dtpg.gen_pattern(fault);
-	  _update(fault, result);
-	  cout << endl;
-	}
+	cout << fault << endl;
+	auto result = dtpg.gen_pattern(fault);
+	_update(fault, result);
+	cout << endl;
       }
     }
     _merge_stats(dtpg.stats());
