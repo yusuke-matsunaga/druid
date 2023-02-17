@@ -1,8 +1,8 @@
-#ifndef TPGDRIVER_H
-#define TPGDRIVER_H
+#ifndef DTPGDRIVER_H
+#define DTPGDRIVER_H
 
-/// @file TpgDriver.h
-/// @brief TpgDriver のヘッダファイル
+/// @file DtpgDriver.h
+/// @brief DtpgDriver のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
@@ -16,12 +16,12 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgDriver TpgDriver.h "TpgDriver.h"
+/// @class DtpgDriver DtpgDriver.h "DtpgDriver.h"
 /// @brief テストパタン生成を行うクラス
 ///
 /// インターフェイスを定義するだけの純粋仮想クラス
 //////////////////////////////////////////////////////////////////////
-class TpgDriver
+class DtpgDriver
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   static
-  TpgDriver*
+  DtpgDriver*
   new_driver(
     TpgMgr& mgr,                     ///< [in] 親のマネージャ
     const string& dtpg_type,         ///< [in] DTPGのタイプ
@@ -46,7 +46,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief コンストラクタ
-  TpgDriver(
+  DtpgDriver(
     TpgMgr& mgr ///< [in] 親のマネージャ
   ) : mMgr{mgr}
   {
@@ -54,7 +54,7 @@ public:
 
   /// @brief デストラクタ
   virtual
-  ~TpgDriver() = default;
+  ~DtpgDriver() = default;
 
 
 public:
@@ -113,4 +113,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // TPGDRIVER_H
+#endif // DTPGDRIVER_H

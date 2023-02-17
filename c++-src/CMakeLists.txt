@@ -67,11 +67,11 @@ set (dtpg_SOURCES
   dtpg/DtpgFFR.cc
   dtpg/DtpgMFFC.cc
   dtpg/TpgMgr.cc
-  dtpg/TpgDriver.cc
-  dtpg/TpgDriver_FFR.cc
-  dtpg/TpgDriver_MFFC.cc
-  dtpg/TpgDriver_FFR_se.cc
-  dtpg/TpgDriver_MFFC_se.cc
+  dtpg/DtpgDriver.cc
+  dtpg/DtpgDriver_FFR.cc
+  dtpg/DtpgDriver_MFFC.cc
+  dtpg/DtpgDriver_FFR_se.cc
+  dtpg/DtpgDriver_MFFC_se.cc
 
   dtpg_old/Dtpg_se.cc
   )

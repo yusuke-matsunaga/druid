@@ -17,7 +17,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class TpgDriver;
+class DtpgDriver;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgMgr TpgMgr.h "TpgMgr.h"
@@ -197,7 +197,7 @@ private:
   DtpgStats mStats;
 
   // テストパタン生成を行う本体
-  TpgDriver* mDriver{nullptr};
+  DtpgDriver* mDriver{nullptr};
 
   // DetectOp のリスト
   vector<DetectOp*> mDopList;

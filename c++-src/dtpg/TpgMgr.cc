@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "TpgMgr.h"
-#include "TpgDriver.h"
+#include "DtpgDriver.h"
 #include "DtpgResult.h"
 #include "DetectOp.h"
 #include "UntestOp.h"
@@ -29,9 +29,9 @@ TpgMgr::TpgMgr(
 ) : mNetwork{network},
     mFaultStatusMgr{network},
     mFsim{network, fault_type, true},
-    mDriver{TpgDriver::new_driver(*this, dtpg_type,
-				  network, fault_type,
-				  just_type, solver_type)}
+    mDriver{DtpgDriver::new_driver(*this, dtpg_type,
+				   network, fault_type,
+				   just_type, solver_type)}
 {
 }
 

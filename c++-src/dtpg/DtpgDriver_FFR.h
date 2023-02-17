@@ -1,30 +1,30 @@
-#ifndef TPGDRIVER_FFR_H
-#define TPGDRIVER_FFR_H
+#ifndef DTPGDRIVER_FFR_H
+#define DTPGDRIVER_FFR_H
 
-/// @file TpgDriver_FFR.h
-/// @brief TpgDriver_FFR のヘッダファイル
+/// @file DtpgDriver_FFR.h
+/// @brief DtpgDriver_FFR のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "TpgDriver.h"
+#include "DtpgDriver.h"
 #include "ym/SatSolverType.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgDriver_FFR TpgDriver_FFR.h "TpgDriver_FFR.h"
+/// @class DtpgDriver_FFR DtpgDriver_FFR.h "DtpgDriver_FFR.h"
 /// @brief
 //////////////////////////////////////////////////////////////////////
-class TpgDriver_FFR :
-  public TpgDriver
+class DtpgDriver_FFR :
+  public DtpgDriver
 {
 public:
 
   /// @brief コンストラクタ
-  TpgDriver_FFR(
+  DtpgDriver_FFR(
     TpgMgr& mgr,                     ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
@@ -33,7 +33,7 @@ public:
   );
 
   /// @brief デストラクタ
-  ~TpgDriver_FFR() = default;
+  ~DtpgDriver_FFR() = default;
 
 
 public:
@@ -67,4 +67,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // TPGDRIVER_FFR_H
+#endif // DTPGDRIVER_FFR_H

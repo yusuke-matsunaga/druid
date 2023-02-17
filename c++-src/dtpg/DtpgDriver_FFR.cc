@@ -1,12 +1,12 @@
 
-/// @file TpgDriver_FFR.cc
-/// @brief TpgDriver_FFR の実装ファイル
+/// @file DtpgDriver_FFR.cc
+/// @brief DtpgDriver_FFR の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "TpgDriver_FFR.h"
+#include "DtpgDriver_FFR.h"
 #include "DtpgFFR.h"
 #include "TpgFault.h"
 
@@ -14,17 +14,17 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// TpgDriver_FFR
+// DtpgDriver_FFR
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-TpgDriver_FFR::TpgDriver_FFR(
+DtpgDriver_FFR::DtpgDriver_FFR(
   TpgMgr& mgr,
   const TpgNetwork& network,
   FaultType fault_type,
   const string& just_type,
   const SatSolverType& solver_type
-) : TpgDriver{mgr},
+) : DtpgDriver{mgr},
     mNetwork{network},
     mFaultType{fault_type},
     mJustType{just_type},
@@ -34,7 +34,7 @@ TpgDriver_FFR::TpgDriver_FFR(
 
 // @brief テスト生成を行う．
 void
-TpgDriver_FFR::run()
+DtpgDriver_FFR::run()
 {
   for ( auto ffr: mNetwork.ffr_list() ) {
     DtpgFFR dtpg{mNetwork, mFaultType, ffr, mJustType, mSolverType};
