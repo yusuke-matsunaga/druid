@@ -12,7 +12,7 @@
 #include "PropCone.h"
 
 
-BEGIN_NAMESPACE_DRUID_STRUCTENC
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class MffcPropCone MffcPropCone.h "MffcPropCone.h"
@@ -24,15 +24,10 @@ class MffcPropCone :
 public:
 
   /// @brief コンストラクタ
-  ///
-  /// ブロックノードより先のノードは含めeない．
-  /// 通常 block_node は nullptr か root_node の dominator
-  /// となっているはず．
   MffcPropCone(
-    StructEnc& struct_enc,     ///< [in] StructEnc
-    const TpgMFFC& mffc,       ///< [in] MFFC の情報
-    const TpgNode* block_node, ///< [in] ブロックノード
-    bool detect		       ///< [in] 故障を検出する時に true にするフラグ
+    StructEnc& struct_enc, ///< [in] StructEnc
+    const TpgMFFC& mffc,   ///< [in] MFFC の情報
+    bool detect		   ///< [in] 故障を検出する時に true にするフラグ
   );
 
   /// @brief デストラクタ
@@ -98,6 +93,6 @@ private:
 
 };
 
-END_NAMESPACE_DRUID_STRUCTENC
+END_NAMESPACE_DRUID
 
 #endif // MFFCPROPCONE_H

@@ -26,7 +26,7 @@
 #include "ym/Range.h"
 
 
-BEGIN_NAMESPACE_DRUID_STRUCTENC
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -67,11 +67,10 @@ StructEnc::~StructEnc()
 SizeType
 StructEnc::add_simple_cone(
   const TpgNode* fnode,
-  const TpgNode* bnode,
   bool detect
 )
 {
-  auto focone = new SimplePropCone{*this, fnode, bnode, detect};
+  auto focone = new SimplePropCone{*this, fnode, detect};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{focone});
   return cone_id;
@@ -81,11 +80,10 @@ StructEnc::add_simple_cone(
 SizeType
 StructEnc::add_mffc_cone(
   const TpgMFFC& mffc,
-  const TpgNode* bnode,
   bool detect
 )
 {
-  auto mffccone = new MffcPropCone{*this, mffc, bnode, detect};
+  auto mffccone = new MffcPropCone{*this, mffc, detect};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{mffccone});
   return cone_id;
@@ -280,8 +278,9 @@ StructEnc::extract_prop_condition(
 {
   ASSERT_COND( cone_id < mConeList.size() );
   return mConeList[cone_id]->extract_condition(model, ffr_root);
- }
+}
 
+#if 0
 // @brief 外部入力の値割り当てを求める．
 TestVector
 StructEnc::justify(
@@ -303,6 +302,7 @@ StructEnc::justify(
 
   return testvect;
 }
+#endif
 
 // @brief ノード名を得る．
 string
@@ -313,4 +313,4 @@ StructEnc::node_name(
   return mNetwork.node_name(node->id());
 }
 
-END_NAMESPACE_DRUID_STRUCTENC
+END_NAMESPACE_DRUID

@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "MF_Dtpg.h"
-#include "Extractor.h"
 #include "TpgDFF.h"
 #include "TpgFault.h"
 #include "GateEnc.h"
@@ -449,8 +448,10 @@ MF_Dtpg::make_dchain_cnf(
 NodeValList
 MF_Dtpg::get_sufficient_condition()
 {
-  Extractor extractor{mGvarMap, mFvarMap, mSatModel};
-  auto suf_cond = extractor.get_assignment(mRootList);
+  // 嘘，本当は mRootList を渡す．
+  //Extractor extractor{mRootList[0], mGvarMap, mFvarMap, mSatModel};
+  //auto suf_cond = extractor.get_assignment();
+  NodeValList suf_cond;
 
   for ( auto fault: mFaultList ) {
     auto onode = fault->tpg_onode();

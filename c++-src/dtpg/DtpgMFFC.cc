@@ -8,7 +8,6 @@
 
 #include "DtpgMFFC.h"
 
-#include "Extractor.h"
 #include "TpgFault.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"

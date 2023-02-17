@@ -12,7 +12,7 @@
 #include "NodeValList.h"
 #include "VidMap.h"
 #include "Val3.h"
-#include "ym/SatBool3.h"
+//#include "ym/SatBool3.h"
 #include "ym/SatModel.h"
 
 
@@ -38,13 +38,14 @@ public:
 
   /// @brief コンストラクタ
   Extractor(
+    const TpgNode* root,    ///< [in] 起点となるノード
     const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
     const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
     const SatModel& model   ///< [in] SATソルバの作ったモデル
   );
 
   /// @brief デストラクタ
-  ~Extractor();
+  ~Extractor() = default;
 
 
 public:
@@ -55,21 +56,13 @@ public:
   /// @brief 値割り当てを１つ求める．
   /// @return 値の割当リスト
   NodeValList
-  get_assignment(
-    const vector<const TpgNode*>& root_list ///< [in] 起点となるノードのリスト
-  );
+  get_assignment();
 
 
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
-  void
-  mark_tfo(
-    const TpgNode* node ///< [in] 対象のノード
-  );
 
   /// @brief ノードの種類を求める．
   /// @retval 1 故障差が伝搬している．
@@ -140,6 +133,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // 起点となるノード
+  const TpgNode* mRoot;
 
   // 正常値を表す変数のマップ
   const VidMap& mGvarMap;

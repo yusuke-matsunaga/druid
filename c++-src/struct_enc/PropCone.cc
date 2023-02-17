@@ -8,14 +8,14 @@
 
 #include "PropCone.h"
 #include "StructEnc.h"
-#include "Extractor.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "NodeValList.h"
 #include "GateEnc.h"
+#include "TpgNodeSet.h"
 
 
-BEGIN_NAMESPACE_DRUID_STRUCTENC
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -36,11 +36,20 @@ struct Lt
 
 END_NONAMESPACE
 
+extern
+NodeValList
+extract_sufficient_condition(
+  const TpgNode* root,
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+);
+
+
 // @brief コンストラクタ
 PropCone::PropCone(
   StructEnc& struct_enc,
   const TpgNode* root_node,
-  const TpgNode* block_node,
   bool detect
 ) : mStructEnc{struct_enc},
     mDetect{detect},
@@ -49,40 +58,22 @@ PropCone::PropCone(
     mFvarMap(max_id()),
     mDvarMap(max_id())
 {
-  if ( block_node != nullptr ) {
-    set_end_mark(block_node);
-  }
+  mNodeList = TpgNodeSet::get_tfo_list(max_id(), root_node,
+				       [&](const TpgNode* node) {
+					 if ( node->is_ppo() ) {
+					   set_end_mark(node);
+					   mOutputList.push_back(node);
+					 }
+					 mTfoMark.emplace(node->id());
+				       });
 
-  mNodeList.reserve(max_id());
-  mark_tfo(root_node);
+  // 出力のリストを output_id2() の昇順に整列しておく．
+  sort(mOutputList.begin(), mOutputList.end(), Lt());
 }
 
 // @brief デストラクタ
 PropCone::~PropCone()
 {
-}
-
-// @brief 指定されたノードの TFO に印をつける．
-void
-PropCone::mark_tfo(
-  const TpgNode* node
-)
-{
-  set_tfo_mark(node);
-
-  for ( SizeType rpos = 0; rpos < mNodeList.size(); ++ rpos ) {
-    auto node = mNodeList[rpos];
-    if ( end_mark(node) ) {
-      // ここで止まる．
-      continue;
-    }
-    for ( auto fonode: node->fanout_list() ) {
-      set_tfo_mark(fonode);
-    }
-  }
-
-  // 出力のリストを output_id2() の昇順に整列しておく．
-  sort(mOutputList.begin(), mOutputList.end(), Lt());
 }
 
 // @brief 関係するノードの変数を作る．
@@ -114,14 +105,12 @@ PropCone::make_vars(
 void
 PropCone::make_cnf()
 {
-  GateEnc gate_enc(solver(), fvar_map());
-  for ( SizeType i = 0; i < mNodeList.size(); ++ i ) {
-    auto node = mNodeList[i];
-    if ( i > 0 ) {
+  GateEnc gate_enc{solver(), fvar_map()};
+  for ( auto node: mNodeList ) {
+    if ( node != root_node() ) {
       // 故障回路のゲートの入出力関係を表すCNFを作る．
       gate_enc.make_cnf(node);
     }
-
     if ( mDetect ) {
       // D-Chain 制約を作る．
       make_dchain_cnf(node);
@@ -137,7 +126,7 @@ PropCone::make_cnf()
   }
   solver().add_clause(odiff);
 
-  auto root = mNodeList[0];
+  auto root = root_node();
   if ( !root->is_ppo() ) {
     // root の dlit が1でなければならない．
     auto dlit = dvar(root);
@@ -152,8 +141,7 @@ PropCone::extract_condition(
   const TpgNode* root
 )
 {
-  Extractor extractor{gvar_map(), fvar_map(), model};
-  return extractor.get_assignment({root});
+  return extract_sufficient_condition(root, gvar_map(), fvar_map(), model);
 }
 
 // @brief node に関する故障伝搬条件を作る．
@@ -206,4 +194,4 @@ PropCone::node_name(
   return mStructEnc.node_name(node);
 }
 
-END_NAMESPACE_DRUID_STRUCTENC
+END_NAMESPACE_DRUID

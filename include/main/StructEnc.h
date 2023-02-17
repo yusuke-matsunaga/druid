@@ -8,7 +8,7 @@
 /// Copyright (C) 2015, 2016, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "structenc_nsdef.h"
+#include "druid.h"
 #include "FaultType.h"
 #include "VidMap.h"
 #include "TpgNode.h"
@@ -16,7 +16,9 @@
 #include "ym/SatSolver.h"
 
 
-BEGIN_NAMESPACE_DRUID_STRUCTENC
+BEGIN_NAMESPACE_DRUID
+
+class PropCone;
 
 //////////////////////////////////////////////////////////////////////
 /// @class StructEnc StructEnc.h "StructEnc.h"
@@ -110,20 +112,6 @@ public:
   add_simple_cone(
     const TpgNode* fnode, ///< [in] 故障のあるノード
     bool detect		  ///< [in] 故障を検出する時に true にするフラグ
-  )
-  {
-    return add_simple_cone(fnode, nullptr, detect);
-  }
-
-  /// @brief fault cone を追加する．
-  /// @return 作成されたコーン番号を返す．
-  ///
-  /// bnode までの故障伝搬条件を考える．
-  SizeType
-  add_simple_cone(
-    const TpgNode* fnode, ///< [in] 故障のあるノード
-    const TpgNode* bnode, ///< [in] ブロックノード
-    bool detect		  ///< [in] 故障を検出する時に true にするフラグ
   );
 
   /// @brief MFFC cone を追加する．
@@ -134,20 +122,6 @@ public:
   add_mffc_cone(
     const TpgMFFC& mffc, ///< [in] MFFC の情報
     bool detect		 ///< [in] 故障を検出する時に true にするフラグ
-  )
-  {
-    return add_mffc_cone(mffc, nullptr, detect);
-  }
-
-  /// @brief MFFC cone を追加する．
-  /// @return 作成されたコーン番号を返す．
-  ///
-  /// bnode までの故障伝搬条件を考える．
-  SizeType
-  add_mffc_cone(
-    const TpgMFFC& mffc,  ///< [in] MFFC の情報
-    const TpgNode* bnode, ///< [in] ブロックノード
-    bool detect		  ///< [in] 故障を検出する時に true にするフラグ
   );
 
   /// @brief 故障の伝搬条件を求める．
@@ -232,6 +206,7 @@ public:
     const SatModel& model    ///< [in] SAT のモデル
   );
 
+#if 0
   /// @brief 外部入力の値割り当てを求める．
   ///
   /// このクラスでの仕事はValMapに関する適切なオブジェクトを生成して
@@ -242,6 +217,7 @@ public:
     const NodeValList& assign_list, ///< [in] 値割り当てのリスト
     Justifier& justifier	    ///< [in] 正当化を行うファンクタ
   );
+#endif
 
   /// @brief デバッグ用のフラグをセットする．
   void
@@ -376,6 +352,6 @@ private:
 
 };
 
-END_NAMESPACE_DRUID_STRUCTENC
+END_NAMESPACE_DRUID
 
 #endif // STRUCTENC_H

@@ -13,7 +13,6 @@
 #include "TpgDFF.h"
 #include "GateEnc.h"
 #include "NodeValList.h"
-#include "Extractor.h"
 #include "MultiExtractor.h"
 #include "Justifier.h"
 #include "TestVector.h"
@@ -26,17 +25,26 @@
 //#define DEBUG_DTPG
 
 #define DEBUG_OUT cout
+
 BEGIN_NONAMESPACE
 #ifdef DEBUG_DTPG
 const int debug_dtpg = 1;
 #else
 const int debug_dtpg = 0;
 #endif
-
 END_NONAMESPACE
 
 
 BEGIN_NAMESPACE_DRUID
+
+extern
+NodeValList
+extract_sufficient_condition(
+  const TpgNode* root,
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+);
 
 // @brief コンストラクタ
 DtpgEngine::DtpgEngine(
@@ -547,8 +555,7 @@ DtpgEngine::get_sufficient_condition(
   const TpgNode* ffr_root
 )
 {
-  Extractor extractor{mGvarMap, mFvarMap, mSatModel};
-  return extractor.get_assignment({ffr_root});
+  return extract_sufficient_condition(ffr_root, mGvarMap, mFvarMap, mSatModel);
 }
 
 // @brief 複数の十分条件を取り出す．

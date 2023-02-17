@@ -13,7 +13,7 @@
 #include "NodeValList.h"
 
 
-BEGIN_NAMESPACE_DRUID_STRUCTENC
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -25,9 +25,8 @@ END_NONAMESPACE
 SimplePropCone::SimplePropCone(
   StructEnc& struct_enc,
   const TpgNode* root_node,
-  const TpgNode* block_node,
   bool detect
-) : PropCone{struct_enc, root_node, block_node, detect}
+) : PropCone{struct_enc, root_node, detect}
 {
 }
 
@@ -61,4 +60,4 @@ SimplePropCone::make_condition(
   return {};
 }
 
-END_NAMESPACE_DRUID_STRUCTENC
+END_NAMESPACE_DRUID

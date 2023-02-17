@@ -16,7 +16,7 @@
 #include "GateEnc.h"
 
 
-BEGIN_NAMESPACE_DRUID_STRUCTENC
+BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
@@ -30,18 +30,18 @@ END_NONAMESPACE
 MffcPropCone::MffcPropCone(
   StructEnc& struct_sat,
   const TpgMFFC& mffc,
-  const TpgNode* block_node,
   bool detect
-) : PropCone{struct_sat, mffc.root(), block_node, detect},
+) : PropCone{struct_sat, mffc.root(), detect},
     mElemArray(mffc.ffr_num()),
     mElemVarArray(mffc.ffr_num())
 {
-  for ( SizeType i = 0; i < mffc.ffr_num(); ++ i ) {
-    auto ffr = mffc.ffr(i);
+  SizeType ffr_id = 0;
+  for ( auto ffr: mffc.ffr_list() ) {
     auto root = ffr.root();
     ASSERT_COND( root != nullptr );
-    mElemArray[i] = root;
-    mElemPosMap.emplace(root->id(), i);
+    mElemArray[ffr_id] = root;
+    mElemPosMap.emplace(root->id(), ffr_id);
+    ++ ffr_id;
   }
 }
 
@@ -212,4 +212,4 @@ MffcPropCone::make_condition(
   }
 }
 
-END_NAMESPACE_DRUID_STRUCTENC
+END_NAMESPACE_DRUID

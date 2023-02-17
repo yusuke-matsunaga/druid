@@ -7,9 +7,8 @@
 /// All rights reserved.
 
 #include "Extractor.h"
-#include "TpgFault.h"
 #include "TpgNode.h"
-#include "NodeValList.h"
+#include "TpgNodeSet.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,45 +19,61 @@ int debug = false;
 
 END_NONAMESPACE
 
+NodeValList
+extract_sufficient_condition(
+  const TpgNode* root,
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
+)
+{
+  Extractor ex{root, gvar_map, fvar_map, model};
+  return ex.get_assignment();
+}
+
+
 //////////////////////////////////////////////////////////////////////
 // クラス Extractor
 //////////////////////////////////////////////////////////////////////
 
 Extractor::Extractor(
+  const TpgNode* root,
   const VidMap& gvar_map,
   const VidMap& fvar_map,
   const SatModel& model
-) : mGvarMap{gvar_map},
+) : mRoot{root},
+    mGvarMap{gvar_map},
     mFvarMap{fvar_map},
     mSatModel{model}
 {
-}
-
-// @brief デストラクタ
-Extractor::~Extractor()
-{
+  // root の TFO (fault cone) に印をつける．
+  // 同時に故障差の伝搬している外部出力のリストを作る．
+  vector<const TpgNode*> tmp_list;
+  mFconeMark.emplace(root->id());
+  tmp_list.push_back(root);
+  for ( SizeType rpos = 0; rpos < tmp_list.size(); ++ rpos ) {
+    auto node = tmp_list[rpos];
+    if ( node->is_ppo() ) {
+      if ( gval(node) != fval(node) ) {
+	mSpoList.push_back(node);
+      }
+    }
+    for ( auto onode: node->fanout_list() ) {
+      if ( mFconeMark.count(onode->id()) == 0 ) {
+	mFconeMark.emplace(onode->id());
+	tmp_list.push_back(onode);
+      }
+    }
+  }
 }
 
 // @brief 値割り当てを１つ求める．
 NodeValList
-Extractor::get_assignment(
-  const vector<const TpgNode*>& root_list
-)
+Extractor::get_assignment()
 {
-  // root の TFO (fault cone) に印をつける．
-  // 同時に故障差の伝搬している外部出力のリストを作る．
-  mFconeMark.clear();
-  mSpoList.clear();
-  mQueue.clear();
-  mMarks.clear();
-
-  for ( auto root: root_list ) {
-    mark_tfo(root);
-  }
-
   // 故障差の伝搬している経路を探す．
   ASSERT_COND( mSpoList.size() > 0 );
-  const TpgNode* spo = mSpoList[0];
+  auto spo = mSpoList[0];
 
   // その経路の side input の値を記録する．
   NodeValList assign_list;
@@ -82,11 +97,7 @@ Extractor::get_assignment(
     ostream& dbg_out = cout;
     dbg_out << "Extract at ";
     const char* comma = "";
-    for ( auto root: root_list ) {
-      dbg_out << comma << "Node#" << root->id();
-      comma = ", ";
-    }
-    dbg_out << endl;
+    dbg_out << comma << "Node#" << mRoot->id() << endl;
     comma = "";
     for ( auto nv: assign_list ) {
       const TpgNode* node = nv.node();
@@ -104,28 +115,6 @@ Extractor::get_assignment(
   }
 
   return assign_list;
-}
-
-// @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
-void
-Extractor::mark_tfo(
-  const TpgNode* node
-)
-{
-  if ( mFconeMark.count(node->id()) > 0 ) {
-    return;
-  }
-  mFconeMark.emplace(node->id());
-
-  if ( node->is_ppo() ) {
-    if ( gval(node) != fval(node) ) {
-      mSpoList.push_back(node);
-    }
-  }
-
-  for ( auto onode: node->fanout_list() ) {
-    mark_tfo(onode);
-  }
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．

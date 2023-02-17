@@ -12,7 +12,7 @@
 #include "PropCone.h"
 
 
-BEGIN_NAMESPACE_DRUID_STRUCTENC
+BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class SimplePropCone SimplePropCone.h "SimplePropCone.h"
@@ -24,15 +24,10 @@ class SimplePropCone :
 public:
 
   /// @brief コンストラクタ
-  ///
-  /// ブロックノードより先のノードは含めない．
-  /// 通常 block_node は nullptr か root_node の dominator
-  /// となっているはず．
   SimplePropCone(
-    StructEnc& struct_enc,     ///< [in] StructEnc ソルバ
-    const TpgNode* root_node,  ///< [in] FFRの根のノード
-    const TpgNode* block_node, ///< [in] ブロックノード
-    bool detect		       ///< [in] 故障を検出する時に true にするフラグ
+    StructEnc& struct_enc,    ///< [in] StructEnc ソルバ
+    const TpgNode* root_node, ///< [in] FFRの根のノード
+    bool detect		      ///< [in] 故障を検出する時に true にするフラグ
   );
 
   /// @brief デストラクタ
@@ -63,6 +58,6 @@ public:
 
 };
 
-END_NAMESPACE_DRUID_STRUCTENC
+END_NAMESPACE_DRUID
 
 #endif // SIMPLEPROPCONE_H
