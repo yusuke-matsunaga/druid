@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "DtpgDriver_MFFC_se.h"
-#include "Dtpg_se.h"
+#include "StructEnc.h"
 #include "TpgNetwork.h"
 
 
@@ -24,11 +24,7 @@ DtpgDriver_MFFC_se::DtpgDriver_MFFC_se(
   FaultType fault_type,
   const string& just_type,
   const SatSolverType& solver_type
-) : DtpgDriver{mgr},
-    mNetwork{network},
-    mFaultType{fault_type},
-    mJustType{just_type},
-    mSolverType{solver_type}
+) : DtpgDriver_se{mgr, network, fault_type, just_type, solver_type}
 {
 }
 
@@ -37,14 +33,23 @@ void
 DtpgDriver_MFFC_se::run()
 {
   for ( auto mffc: mNetwork.mffc_list() ) {
-    Dtpg_se dtpg{mNetwork, mFaultType, mffc, mJustType, mSolverType};
+    cnf_begin();
+    StructEnc enc{mNetwork, mFaultType, mSolverType};
+    if ( mffc.ffr_num() > 1 ) {
+      enc.add_mffc_cone(mffc, true);
+    }
+    else {
+      enc.add_simple_cone(mffc.root(), true);
+    }
+    enc.make_vars();
+    enc.make_cnf();
+    cnf_end();
     for ( auto fault: mffc.fault_list() ) {
       if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
-	auto result = dtpg.gen_pattern(fault);
-	_update(fault, result);
+	gen_pattern(enc, fault);
       }
     }
-    _merge_stats(dtpg.stats());
+    update_sat_stats(enc.solver().get_stats());
   }
 }
 

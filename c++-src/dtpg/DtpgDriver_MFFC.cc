@@ -46,7 +46,7 @@ DtpgDriver_MFFC::run()
 	  _update(fault, result);
 	}
       }
-      _merge_stats(dtpg.stats());
+      //_merge_stats(dtpg.stats());
     }
     else {
       DtpgMFFC dtpg{mNetwork, mFaultType, mffc, mJustType, mSolverType};
@@ -56,7 +56,7 @@ DtpgDriver_MFFC::run()
 	  _update(fault, result);
 	}
       }
-      _merge_stats(dtpg.stats());
+      //_merge_stats(dtpg.stats());
     }
   }
 }

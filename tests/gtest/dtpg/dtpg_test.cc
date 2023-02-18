@@ -3,13 +3,15 @@
 /// @brief DtpgTest の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "gtest/gtest.h"
-
-#include "DtpgTest.h"
+#include "TpgMgr.h"
+#include "TpgNetwork.h"
+#include "ym/SatSolverType.h"
+#include "DetectOp.h"
+#include "DopVerifyResult.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -77,13 +79,14 @@ TestData mydata2[] = {
   TestData{"s5378.blif", 4603, 4563, 4253, 40, 350}
 };
 
-class DtpgTestWithParam :
+
+class DtpgTestWithParam2 :
   public ::testing::TestWithParam<std::tuple<TestData, string, string, FaultType, string>>
 {
 public:
 
   /// @brief コンストラクタ
-  DtpgTestWithParam();
+  DtpgTestWithParam2();
 
   /// @brief テストを行う．
   void
@@ -143,18 +146,20 @@ private:
 
   TpgNetwork* mNetwork_p{nullptr};
 
-  DtpgTest* mDtpgTest{nullptr};
+  TpgMgr* mTpgMgr{nullptr};
+
+  DopVerifyResult mVerifyResult;
 
 };
 
 
-DtpgTestWithParam::DtpgTestWithParam()
+DtpgTestWithParam2::DtpgTestWithParam2()
 {
 }
 
 // @brief 初期化を行う．
 void
-DtpgTestWithParam::SetUp()
+DtpgTestWithParam2::SetUp()
 {
   auto network = TpgNetwork::read_blif(filename());
   mNetwork_p = new TpgNetwork{std::move(network)};
@@ -163,34 +168,34 @@ DtpgTestWithParam::SetUp()
 
   auto solver_type = SatSolverType{sat_type()};
 
-  mDtpgTest = DtpgTest::new_test(mode, *mNetwork_p, fault_type(), just_type(), solver_type);
+  mTpgMgr = new TpgMgr{*mNetwork_p, fault_type(), mode, just_type(), solver_type};
+
+  mTpgMgr->add_verify_dop(mVerifyResult);
 }
 
 // @brief 終了処理を行う．
 void
-DtpgTestWithParam::TearDown()
+DtpgTestWithParam2::TearDown()
 {
   delete mNetwork_p;
-  delete mDtpgTest;
-  mDtpgTest = nullptr;
+  delete mTpgMgr;
 }
 
 void
-DtpgTestWithParam::do_test()
+DtpgTestWithParam2::do_test()
 {
-  auto count = mDtpgTest->do_test(false);
+  mTpgMgr->run();
 
   EXPECT_EQ( total_fault_num(), mNetwork_p->rep_fault_num() );
-  EXPECT_EQ( detect_fault_num(), count.mDetCount );
-  EXPECT_EQ( untest_fault_num(), count.mUntestCount );
+  EXPECT_EQ( detect_fault_num(), mTpgMgr->detect_count() );
+  EXPECT_EQ( untest_fault_num(), mTpgMgr->untest_count() );
 
-  const auto& result = mDtpgTest->verify_result();
-  EXPECT_EQ( 0, result.error_count() );
+  EXPECT_EQ( 0, mVerifyResult.error_count() );
 }
 
 // @brief テストパラメータからファイル名を取り出す．
 string
-DtpgTestWithParam::filename()
+DtpgTestWithParam2::filename()
 {
   const TestData& data = std::get<0>(GetParam());
   return DATAPATH + data.mFileName;
@@ -198,7 +203,7 @@ DtpgTestWithParam::filename()
 
 // @brief テストパラメータから総故障数を取り出す．
 int
-DtpgTestWithParam::total_fault_num()
+DtpgTestWithParam2::total_fault_num()
 {
   const TestData& data = std::get<0>(GetParam());
   return data.mTotalFaultNum;
@@ -206,7 +211,7 @@ DtpgTestWithParam::total_fault_num()
 
 // @brief テストパラメータから検出可能故障数を取り出す．
 int
-DtpgTestWithParam::detect_fault_num()
+DtpgTestWithParam2::detect_fault_num()
 {
   const TestData& data = std::get<0>(GetParam());
   if ( fault_type() == FaultType::StuckAt ) {
@@ -219,7 +224,7 @@ DtpgTestWithParam::detect_fault_num()
 
 // @brief テストパラメータから検出不能故障数を取り出す．
 int
-DtpgTestWithParam::untest_fault_num()
+DtpgTestWithParam2::untest_fault_num()
 {
   const TestData& data = std::get<0>(GetParam());
   if ( fault_type() == FaultType::StuckAt ) {
@@ -232,38 +237,38 @@ DtpgTestWithParam::untest_fault_num()
 
 // @brief テストパラメータから SATタイプを取り出す．
 string
-DtpgTestWithParam::sat_type()
+DtpgTestWithParam2::sat_type()
 {
   return std::get<1>(GetParam());
 }
 
 // @brief テストパラメータからテストモードを取り出す．
 string
-DtpgTestWithParam::test_mode()
+DtpgTestWithParam2::test_mode()
 {
   return std::get<2>(GetParam());
 }
 
 // @brief テストパラメータから FaultType を取り出す．
 FaultType
-DtpgTestWithParam::fault_type()
+DtpgTestWithParam2::fault_type()
 {
   return std::get<3>(GetParam());
 }
 
 // @brief テストパラメータから just_type を取り出す．
 string
-DtpgTestWithParam::just_type()
+DtpgTestWithParam2::just_type()
 {
   return std::get<4>(GetParam());
 }
 
-TEST_P(DtpgTestWithParam, test1)
+TEST_P(DtpgTestWithParam2, test1)
 {
   do_test();
 }
 
-INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam,
+INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam2,
 			 ::testing::Combine(::testing::ValuesIn(mydata1),
 					    ::testing::Values("lingeling",
 							      "minisat2", "minisat",
@@ -273,7 +278,7 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam,
 					    ::testing::Values(FaultType::StuckAt),
 					    ::testing::Values("just1")));
 
-INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam,
+INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
 			 ::testing::Combine(::testing::ValuesIn(mydata2),
 					    ::testing::Values("ymsat2"),
 					    ::testing::Values("ffr",    "ffr_se",

@@ -33,7 +33,6 @@ public:
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,	     ///< [in] pe 故障の種類
     const SatSolverType& solver_type ///< [in] SATソルバの種類
-    = SatSolverType{}
   );
 
   /// @brief デストラクタ

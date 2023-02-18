@@ -6,14 +6,12 @@
 /// Copyright (C) 2017, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgTest.h"
 #include "TpgNetwork.h"
-#include "TpgMFFC.h"
-#include "TpgFFR.h"
+#include "TpgMgr.h"
 #include "TpgFault.h"
-#include "NodeValList.h"
-#include "Fsim.h"
 #include "DopVerifyResult.h"
+#include "ym/SatSolverType.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -38,6 +36,85 @@ read_network(
     return TpgNetwork::read_blif(filename);
   }
   return TpgNetwork::read_iscas89(filename);
+}
+
+// @brief 統計情報を出力する．
+void
+print_stats(
+  const TpgNetwork& network,
+  SizeType detect_num,
+  SizeType untest_num,
+  double time,
+  const DtpgStats& stats
+)
+{
+  cout << "# of inputs             = " << network.input_num() << endl
+       << "# of outputs            = " << network.output_num() << endl
+       << "# of DFFs               = " << network.dff_num() << endl
+       << "# of logic gates        = " << network.node_num() - network.ppi_num() << endl
+       << "# of MFFCs              = " << network.mffc_num() << endl
+       << "# of FFRs               = " << network.ffr_num() << endl
+       << "# of total faults       = " << network.rep_fault_num() << endl
+       << "# of detected faults    = " << detect_num << endl
+       << "# of untestable faults  = " << untest_num << endl
+       << "Total CPU time(s)       = " << (time / 1000.0) << endl;
+
+  ios::fmtflags save = cout.flags();
+  cout.setf(ios::fixed, ios::floatfield);
+  if ( stats.detect_count() > 0 ) {
+    cout << endl
+	 << "*** SAT instances (" << stats.detect_count() << ") ***" << endl
+	 << "Total CPU time  (s)            = "
+	 << setw(10) << (stats.detect_time() / 1000.0) << endl
+	 << "Average CPU time (ms)          = "
+	 << setw(10) << (stats.detect_time() / stats.detect_count()) << endl;
+  }
+  if ( stats.untest_count() > 0 ) {
+    cout << endl
+	 << "*** UNSAT instances (" << stats.untest_count() << ") ***" << endl
+	 << "Total CPU time  (s)            = "
+	 << setw(10) << (stats.untest_time() / 1000.0) << endl
+	 << "Average CPU time (ms)          = "
+	 << setw(10) << stats.untest_time() / stats.untest_count() << endl;
+  }
+  if ( stats.abort_count() > 0 ) {
+    cout << endl
+	 << "*** ABORT instances ***" << endl
+	 << "  " << setw(10) << stats.abort_count()
+	 << "  " << stats.abort_time()
+	 << "  " << setw(8) << stats.abort_time() / stats.abort_count() << endl;
+  }
+
+  cout << endl
+       << "SAT statistics" << endl
+       << endl
+       << "CNF generation" << endl
+       << "  " << setw(10) << stats.cnfgen_count()
+       << "  " << (stats.cnfgen_time() / 1000.0)
+       << "  " << setw(8) << stats.cnfgen_time() / stats.cnfgen_count()
+       << endl
+       << endl
+       << "# of restarts (Ave./Max)       = "
+       << setw(10) << (double) stats.sat_stats().mRestart / stats.total_count()
+       << " / " << setw(8) << stats.sat_stats_max().mRestart << endl
+
+       << "# of conflicts (Ave./Max)      = "
+       << setw(10) << (double) stats.sat_stats().mConflictNum / stats.total_count()
+       << " / " << setw(8) << stats.sat_stats_max().mConflictNum << endl
+
+       << "# of decisions (Ave./Max)      = "
+       << setw(10) << (double) stats.sat_stats().mDecisionNum / stats.total_count()
+       << " / " << setw(8) << stats.sat_stats_max().mDecisionNum << endl
+
+       << "# of implications (Ave./Max)   = "
+       << setw(10) << (double) stats.sat_stats().mPropagationNum / stats.total_count()
+       << " / " << setw(8) << stats.sat_stats_max().mPropagationNum << endl;
+
+  cout << endl
+       << "*** backtrace time ***" << endl
+       << "  " << (stats.backtrace_time() / 1000.0)
+       << "  " << setw(8) << stats.backtrace_time() / stats.detect_count() << endl;
+  cout.flags(save);
 }
 
 int
@@ -68,23 +145,9 @@ dtpg_test(
   int pos = 1;
   for ( ; pos < argc; ++ pos) {
     if ( argv[pos][0] == '-' ) {
-      if ( strcmp(argv[pos], "--ffr_se") == 0 ) {
+      if ( strcmp(argv[pos], "--ffr") == 0 ) {
 	if ( mode != string{} ) {
-	  cerr << "--ffr_se and --" << mode << " are mutually exclusive" << endl;
-	  return -1;
-	}
-	mode = "ffr_se";
-      }
-      else if ( strcmp(argv[pos], "--mffc_se") == 0 ) {
-	if ( mode != string{} ) {
-	  cerr << "--mffc_se and --" << mode << " are mutually exclusive" << endl;
-	  return -1;
-	}
-	mode = "mffc_se";
-      }
-      else if ( strcmp(argv[pos], "--ffr") == 0 ) {
-	if ( mode != string{} ) {
-	  cerr << "--ffr  and --" << mode << " are mutually exclusive" << endl;
+	  cerr << "--ffr and --" << mode << " are mutually exclusive" << endl;
 	  return -1;
 	}
 	mode = "ffr";
@@ -95,6 +158,20 @@ dtpg_test(
 	  return -1;
 	}
 	mode = "mffc";
+      }
+      else if ( strcmp(argv[pos], "--ffr_se") == 0 ) {
+	if ( mode != string{} ) {
+	  cerr << "--ffr_se  and --" << mode << " are mutually exclusive" << endl;
+	  return -1;
+	}
+	mode = "ffr_se";
+      }
+      else if ( strcmp(argv[pos], "--mffc_se") == 0 ) {
+	if ( mode != string{} ) {
+	  cerr << "--mffc_new and --" << mode << " are mutually exclusive" << endl;
+	  return -1;
+	}
+	mode = "mffc_se";
       }
       else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
 	++ pos;
@@ -197,12 +274,32 @@ dtpg_test(
   }
 
   SatSolverType solver_type{sat_type, sat_option, sat_outp};
-  auto test = DtpgTest::new_test(mode, network, fault_type, just_type, solver_type);
 
-  auto count = test->do_test(verbose);
+  TpgMgr mgr{network, fault_type, mode, just_type, solver_type};
 
-  const DopVerifyResult& verify_result = test->verify_result();
-  int n = verify_result.error_count();
+  DopVerifyResult verify_result;
+  mgr.add_verify_dop(verify_result);
+
+  Timer timer;
+  timer.start();
+
+  mgr.run();
+
+  timer.stop();
+  auto time = timer.get_time();
+
+  if ( verbose ) {
+    print_stats(network, mgr.detect_count(), mgr.untest_count(),
+		time, mgr.dtpg_stats());
+  }
+
+  SizeType n = verify_result.error_count();
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto f = verify_result.error_fault(i);
+    auto tv = verify_result.error_testvector(i);
+    cout << "Error: " << f->str() << " is not detected with "
+	 << tv << endl;
+  }
 
   return n;
 }

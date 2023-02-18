@@ -10,7 +10,6 @@
 /// All rights reserved.
 
 #include "druid.h"
-
 #include "ym/SatStats.h"
 
 
@@ -31,25 +30,90 @@ struct DtpgStats
     clear();
   }
 
+  /// @brief デストラクタ
+  ~DtpgStats() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 取得用の関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief トータルの計算回数
+  SizeType
+  total_count() const
+  {
+    return mDetCount + mUntestCount + mAbortCount;
+  }
+
+  /// @brief テスト生成が成功した回数を返す．
+  SizeType
+  detect_count() const { return mDetCount; }
+
+  /// @brief テスト生成が成功した時の計算時間の合計を返す．
+  double
+  detect_time() const { return mDetTime; }
+
+  /// @brief 冗長故障を特定した回数を返す．
+  SizeType
+  untest_count() const { return mUntestCount; }
+
+  /// @brief 冗長故障を特定した時の計算時間の合計を返す．
+  double
+  untest_time() const { return mUntestTime; }
+
+  /// @brief アボートした回数を返す．
+  SizeType
+  abort_count() const { return mAbortCount; }
+
+  /// @brief アボートした時の計算時間の合計を返す．
+  double
+  abort_time() const { return mAbortTime; }
+
+  /// @brief CNF の生成回数を返す．
+  SizeType
+  cnfgen_count() const { return mCnfGenCount; }
+
+  /// @brief CNF の生成にかかった計算時間の合計を返す．
+  double
+  cnfgen_time() const { return mCnfGenTime; }
+
+  /// @brief SAT の統計情報を返す．
+  const SatStats&
+  sat_stats() const { return mSatStats; }
+
+  /// @brief SAT の統計情報の最大値を返す．
+  const SatStats&
+  sat_stats_max() const { return mSatStatsMax; }
+
+  /// @brief バックトレースにかかった計算時間の合計を返す．
+  double
+  backtrace_time() const { return mBackTraceTime; }
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 設定用の関数
+  //////////////////////////////////////////////////////////////////////
+
   /// @brief 初期化する．
   void
   clear()
   {
-    mCnfGenCount = 0;
-    mCnfGenTime = 0.0;
-
     mDetCount = 0;
     mDetTime = 0.0;
-    mDetStats.clear();
-    mDetStatsMax.clear();
 
-    mRedCount = 0;
-    mRedTime = 0.0;
-    mRedStats.clear();
-    mRedStatsMax.clear();
+    mUntestCount = 0;
+    mUntestTime = 0.0;
 
     mAbortCount = 0;
     mAbortTime = 0.0;
+
+    mCnfGenCount = 0;
+    mCnfGenTime = 0.0;
+
+    mSatStats.clear();
+    mSatStatsMax.clear();
 
     mBackTraceTime = 0.0;
   }
@@ -57,100 +121,111 @@ struct DtpgStats
   /// @brief DetStats を更新する
   void
   update_det(
-    const SatStats& sat_stats,
-    double time
+    double sat_time,      ///< [in] SATにかかった時間
+    double backtrace_time ///< [in] バックトレースにかかった時間
   )
   {
     ++ mDetCount;
-    mDetTime += time;
-    mDetStats += sat_stats;
-    mDetStatsMax.max_assign(sat_stats);
+    mDetTime += sat_time;
+    mBackTraceTime += backtrace_time;
   }
 
   /// @brief RedStats を更新する
   void
-  update_red(
-    const SatStats& sat_stats,
-    double time
+  update_untest(
+    double time ///< [in] SATにかかった時間
   )
   {
-    ++ mRedCount;
-    mRedTime += time;
-    mRedStats += sat_stats;
-    mRedStatsMax.max_assign(sat_stats);
+    ++ mUntestCount;
+    mUntestTime += time;
   }
 
   /// @brief AbortStats を更新する
   void
   update_abort(
-    const SatStats& sat_stats,
-    double time
+    double time ///< [in] SATにかかった時間
   )
   {
     ++ mAbortCount;
     mAbortTime += time;
   }
 
-  /// @brief マージする．
+  /// @brief CNF 生成の情報を更新する．
+  void
+  update_cnf(
+    double time ///< [in] CNF生成にかかった時間
+  )
+  {
+    ++ mCnfGenCount;
+    mCnfGenTime += time;
+  }
+
+  /// @brief 情報をマージする．
   void
   merge(
     const DtpgStats& src
   )
   {
-    mCnfGenCount += src.mCnfGenCount;
-    mCnfGenTime += src.mCnfGenTime;
     mDetCount += src.mDetCount;
     mDetTime += src.mDetTime;
-    mDetStats += src.mDetStats;
-    mDetStatsMax.max_assign(src.mDetStatsMax);
-    mRedCount += src.mRedCount;
-    mRedTime += src.mRedTime;
-    mRedStats += src.mRedStats;
-    mRedStatsMax.max_assign(src.mRedStatsMax);
+    mUntestCount += src.mUntestCount;
+    mUntestTime += src.mUntestTime;
     mAbortCount += src.mAbortCount;
     mAbortTime += src.mAbortTime;
+    mCnfGenCount += src.mCnfGenCount;
+    mCnfGenTime += src.mCnfGenTime;
+    mSatStats += src.mSatStats;
+    mSatStatsMax.max_assign(src.mSatStatsMax);
     mBackTraceTime += src.mBackTraceTime;
   }
 
-  /// @brief CNF 式を生成した回数
-  int mCnfGenCount;
+  /// @brief SAT の統計情報を更新する．
+  void
+  update_sat_stats(
+    const SatStats& src_stats
+  )
+  {
+    mSatStats += src_stats;
+    mSatStatsMax.max_assign(src_stats);
+  }
 
-  /// @brief CNF 式の生成に費やした時間
-  double mCnfGenTime;
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
 
   /// @brief テスト生成に成功した回数．
-  int mDetCount;
+  SizeType mDetCount;
 
   /// @brief テスト生成に成功した時の SAT に要した時間
   double mDetTime;
 
-  /// @brief テスト生成に成功した時の SATソルバの統計情報の和
-  SatStats mDetStats;
-
-  /// @brief テスト生成に成功した時の SATソルバの統計情報の最大値
-  ///
-  /// 個々の値は同時に起こったわけではない．
-  SatStats mDetStatsMax;
-
   /// @brief 冗長故障と判定した回数
-  int mRedCount;
+  SizeType mUntestCount;
 
   /// @brief 冗長故障と判定した時の SAT に要した時間
-  double mRedTime;
-
-  /// @brief 冗長故障と判定した時の SATソルバの統計情報の和
-  SatStats mRedStats;
-
-  /// @brief 冗長故障と判定した時の SATソルバの統計情報の最大値
-  ///
-  /// 個々の値は同時に起こったわけではない．
-  SatStats mRedStatsMax;
+  double mUntestTime;
 
   /// @brief アボートした回数
-  int mAbortCount;
+  SizeType mAbortCount;
 
   /// @brief アボートした時の SAT に要した時間
   double mAbortTime;
+
+  /// @brief CNF 式を生成した回数
+  SizeType mCnfGenCount;
+
+  /// @brief SATソルバの統計情報の和
+  SatStats mSatStats;
+
+  /// @brief SATソルバの統計情報の最大値
+  ///
+  /// 個々の値は同時に起こったわけではない．
+  SatStats mSatStatsMax;
+
+  /// @brief CNF 式の生成に費やした時間
+  double mCnfGenTime;
 
   /// @brief バックトレースに要した時間
   double mBackTraceTime;

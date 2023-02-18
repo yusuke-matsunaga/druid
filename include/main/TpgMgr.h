@@ -122,21 +122,21 @@ public:
   SizeType
   detect_count() const
   {
-    return mDetCount;
+    return mStats.detect_count();
   }
 
   /// @brief 検出不能故障数を返す．
   SizeType
   untest_count() const
   {
-    return mUntestCount;
+    return mStats.untest_count();
   }
 
   /// @brief アボート故障数を返す．
   SizeType
   abort_count() const
   {
-    return mAbortCount;
+    return mStats.abort_count();
   }
 
   /// @brief テストパタンのリストを返す．
@@ -153,11 +153,45 @@ public:
     return mStats;
   }
 
-  /// @brief テストパタン生成後の情報の更新を行う．
+  /// @brief テストパタン生成が成功した時の結果を更新する．
+  void
+  update_det(
+    const TpgFault* fault, ///< [in] 対象の故障
+    const TestVector& tv,  ///< [in] テストパタン
+    double sat_time,       ///< [in] SATにかかった時間
+    double backtrace_time  ///< [in] バックトレースにかかった時間
+  );
+
+  /// @brief 冗長故障の特定が行えた時の結果を更新する．
+  void
+  update_untest(
+    const TpgFault* fault, ///< [in] 対象の故障
+    double sat_time        ///< [in] SATにかかった時間
+  );
+
+  /// @brief アボートした時の結果を更新する．
+  void
+  update_abort(
+    const TpgFault* fault, ///< [in] 対象の故障
+    double sat_time        ///< [in] SATにかかった時間
+  );
+
+  /// @brief CNF 生成に関する情報を更新する．
+  void
+  update_cnf(
+    double time ///< [in] 計算時間
+  );
+
+  /// @brief SATの統計情報を更新する．
+  void
+  update_sat_stats(
+    const SatStats& sat_stats ///< [in] 統計情報
+  );
+
   void
   _update(
-    const TpgFault* fault,   ///< [in] 故障
-    const DtpgResult& result ///< [in] テストパタン生成の結果
+    const TpgFault* fault,
+    const DtpgResult& result
   );
 
   /// @brief DTPG の統計情報をマージする．
@@ -180,15 +214,6 @@ private:
 
   // 故障シミュレータ
   Fsim mFsim;
-
-  // 検出故障数
-  SizeType mDetCount;
-
-  // 検出不能故障数
-  SizeType mUntestCount;
-
-  // アボート故障数
-  SizeType mAbortCount;
 
   // 生成されたテストパタンのリスト
   vector<TestVector> mTVList;

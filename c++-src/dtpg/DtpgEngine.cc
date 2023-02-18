@@ -118,8 +118,7 @@ void
 DtpgEngine::cnf_end()
 {
   auto time = timer_stop();
-  mStats.mCnfGenTime += time;
-  ++ mStats.mCnfGenCount;
+  mStats.update_cnf(time);
 }
 
 // @brief 時間計測を開始する．
@@ -451,7 +450,7 @@ DtpgEngine::backtrace(
   auto testvect = mJustifier(mFaultType, suf_cond, mHvarMap, mGvarMap, mSatModel);
 
   timer.stop();
-  mStats.mBackTraceTime += timer.get_time();
+  //mStats.mBackTraceTime += timer.get_time();
 
   return testvect;
 }
@@ -493,28 +492,23 @@ DtpgEngine::check(
   Timer timer;
   timer.start();
 
-  auto prev_stats = mSolver.get_stats();
-
   auto ans = mSolver.solve(assumptions);
 
   timer.stop();
   auto time = timer.get_time();
 
-  auto sat_stats = mSolver.get_stats();
-  //sat_stats -= prev_stats;
-
   if ( ans == SatBool3::True ) {
     // パタンが求まった．
     mSatModel = mSolver.model();
-    mStats.update_det(sat_stats, time);
+    mStats.update_det(time, 0.0);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    mStats.update_red(sat_stats, time);
+    mStats.update_untest(time);
   }
   else {
     // ans == SatBool3::X つまりアボート
-    mStats.update_abort(sat_stats, time);
+    mStats.update_abort(time);
   }
 
   return ans;

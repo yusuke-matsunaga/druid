@@ -8,18 +8,17 @@
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgDriver.h"
-#include "ym/SatSolverType.h"
+#include "DtpgDriver_se.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgDriver_FFR_se DtpgDriver_FFR_se.h "DtpgDriver_FFR_se.h"
-/// @brief
+/// @brief FFR モードの DtpgDriver_se
 //////////////////////////////////////////////////////////////////////
 class DtpgDriver_FFR_se :
-  public DtpgDriver
+  public DtpgDriver_se
 {
 public:
 
@@ -44,24 +43,6 @@ public:
   /// @brief テスト生成を行う．
   void
   run() override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 対象のネットワーク
-  const TpgNetwork& mNetwork;
-
-  // 故障の種類
-  FaultType mFaultType;
-
-  // 正当化のタイプ
-  string mJustType;
-
-  // SATソルバのタイプ
-  SatSolverType mSolverType;
 
 };
 

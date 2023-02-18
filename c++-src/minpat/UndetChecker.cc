@@ -113,8 +113,7 @@ void
 UndetChecker::cnf_end()
 {
   auto time = timer_stop();
-  mStats.mCnfGenTime += time;
-  ++ mStats.mCnfGenCount;
+  mStats.update_cnf(time);
 }
 
 // @brief 時間計測を開始する．
@@ -357,15 +356,15 @@ UndetChecker::solve(const vector<SatLiteral>& assumptions)
 
   if ( ans == SatBool3::True ) {
     // パタンが求まった．
-    mStats.update_det(sat_stats, time);
+    mStats.update_det(time, 0.0);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    mStats.update_red(sat_stats, time);
+    mStats.update_untest(time);
   }
   else {
     // ans == SatBool3::X つまりアボート
-    mStats.update_abort(sat_stats, time);
+    mStats.update_abort(time);
   }
 
   return ans;

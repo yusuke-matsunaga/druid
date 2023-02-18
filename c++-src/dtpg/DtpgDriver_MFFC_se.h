@@ -8,7 +8,7 @@
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgDriver.h"
+#include "DtpgDriver_se.h"
 #include "ym/SatSolverType.h"
 
 
@@ -19,7 +19,7 @@ BEGIN_NAMESPACE_DRUID
 /// @brief
 //////////////////////////////////////////////////////////////////////
 class DtpgDriver_MFFC_se :
-  public DtpgDriver
+  public DtpgDriver_se
 {
 public:
 
@@ -44,24 +44,6 @@ public:
   /// @brief テスト生成を行う．
   void
   run() override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 対象のネットワーク
-  const TpgNetwork& mNetwork;
-
-  // 故障の種類
-  FaultType mFaultType;
-
-  // 正当化のタイプ
-  string mJustType;
-
-  // SATソルバのタイプ
-  SatSolverType mSolverType;
 
 };
 

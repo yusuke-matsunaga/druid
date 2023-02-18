@@ -44,7 +44,7 @@ DtpgDriver_FFR::run()
 	_update(fault, result);
       }
     }
-    _merge_stats(dtpg.stats());
+    //_merge_stats(dtpg.stats());
   }
 }
 

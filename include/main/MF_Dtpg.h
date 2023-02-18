@@ -99,7 +99,7 @@ private:
   ///
   /// mSolver.solve() を呼び出すだけだが統計情報の更新を行っている．
   /// SATだった場合のモデルは mSatModel に格納される．
-  SatBool3
+  DtpgResult
   solve(
     const vector<SatLiteral>& assumptions  ///< [in] 値の決まっている変数のリスト
   );

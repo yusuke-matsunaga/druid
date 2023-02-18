@@ -135,18 +135,7 @@ MF_Dtpg::gen_pattern(
 
   cnf_end();
 
-  SatBool3 sat_res = solve({});
-  if ( sat_res == SatBool3::True ) {
-    NodeValList suf_cond = get_sufficient_condition();
-    TestVector testvect = backtrace(suf_cond);
-    return DtpgResult{testvect};
-  }
-  else if ( sat_res == SatBool3::False ) {
-    return DtpgResult{FaultStatus::Untestable};
-  }
-  else { // sat_res == SatBool3::X
-    return DtpgResult{FaultStatus::Undetected};
-  }
+  return solve({});
 }
 
 // @brief タイマーをスタートする．
@@ -161,8 +150,7 @@ void
 MF_Dtpg::cnf_end()
 {
   double time = timer_stop();
-  mStats.mCnfGenTime += time;
-  ++ mStats.mCnfGenCount;
+  mStats.update_cnf(time);
 }
 
 // @brief 時間計測を開始する．
@@ -495,13 +483,13 @@ MF_Dtpg::backtrace(const NodeValList& suf_cond)
   auto testvect = mJustifier(mFaultType, suf_cond, mHvarMap, mGvarMap, mSatModel);
 
   timer.stop();
-  mStats.mBackTraceTime += timer.get_time();
+  //mStats.mBackTraceTime += timer.get_time();
 
   return testvect;
 }
 
 // @brief 一つの SAT問題を解く．
-SatBool3
+DtpgResult
 MF_Dtpg::solve(
   const vector<SatLiteral>& assumptions
 )
@@ -509,31 +497,33 @@ MF_Dtpg::solve(
   Timer timer;
   timer.start();
 
-  auto prev_stats = mSolver.get_stats();
-
   SatBool3 ans = mSolver.solve(assumptions);
 
   timer.stop();
   auto time = timer.get_time();
 
-  auto sat_stats = mSolver.get_stats();
-  //sat_stats -= prev_stats;
-
   if ( ans == SatBool3::True ) {
     // パタンが求まった．
     mSatModel = mSolver.model();
-    mStats.update_det(sat_stats, time);
+    timer.reset();
+    timer.start();
+    auto suf_cond = get_sufficient_condition();
+    auto testvect = backtrace(suf_cond);
+    timer.stop();
+    auto bt_time = timer.get_time();
+    mStats.update_det(time, bt_time);
+    return DtpgResult{testvect};
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    mStats.update_red(sat_stats, time);
+    mStats.update_untest(time);
+    return DtpgResult{FaultStatus::Untestable};
   }
   else {
     // ans == SatBool3::X つまりアボート
-    mStats.update_abort(sat_stats, time);
+    mStats.update_abort(time);
+    return DtpgResult{FaultStatus::Undetected};
   }
-
-  return ans;
 }
 
 // @brief SAT問題が充足可能か調べる．
@@ -547,27 +537,22 @@ MF_Dtpg::check(const vector<SatLiteral>& assumptions)
   Timer timer;
   timer.start();
 
-  auto prev_stats = mSolver.get_stats();
-
   SatBool3 ans = mSolver.solve(assumptions);
 
   timer.stop();
   auto time = timer.get_time();
 
-  auto sat_stats = mSolver.get_stats();
-  //sat_stats -= prev_stats;
-
   if ( ans == SatBool3::True ) {
     // パタンが求まった．
-    mStats.update_det(sat_stats, time);
+    mStats.update_det(time, 0.0);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    mStats.update_red(sat_stats, time);
+    mStats.update_untest(time);
   }
   else {
     // ans == SatBool3::X つまりアボート
-    mStats.update_abort(sat_stats, time);
+    mStats.update_abort(time);
   }
 
   return ans;

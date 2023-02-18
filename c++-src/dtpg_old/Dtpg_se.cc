@@ -141,14 +141,10 @@ Dtpg_se::gen_pattern(
     assign_list.merge(assign_list2);
 
     // assign_list の条件を正当化する．
-#if 0
-    auto testvect = mStructEnc.justify(model, assign_list, mJustifier);
-#else
     auto testvect = mJustifier(mStructEnc.fault_type(), assign_list,
 			       mStructEnc.hvar_map(),
 			       mStructEnc.gvar_map(),
 			       model);
-#endif
 
     timer.stop();
     mStats.mBackTraceTime += timer.get_time();

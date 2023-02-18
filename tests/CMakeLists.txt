@@ -16,7 +16,6 @@ include_directories(
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory ( common )
 add_subdirectory ( gtest )
 add_subdirectory ( py_druid )
 add_subdirectory ( test-programs )

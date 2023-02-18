@@ -41,7 +41,47 @@ DtpgDriver::new_driver(
   return new DtpgDriver_FFR{mgr, network, fault_type, just_type, solver_type};
 }
 
-// @brief テストパタン生成の結果を更新する．
+// @brief テストパタン生成が成功した時の結果を更新する．
+void
+DtpgDriver::update_det(
+  const TpgFault* fault,
+  const TestVector& tv,
+  double sat_time,
+  double backtrace_time
+)
+{
+  mgr().update_det(fault, tv, sat_time, backtrace_time);
+}
+
+// @brief 冗長故障の特定が行えた時の結果を更新する．
+void
+DtpgDriver::update_untest(
+  const TpgFault* fault,
+  double sat_time
+)
+{
+  mgr().update_untest(fault, sat_time);
+}
+
+// @brief アボートした時の結果を更新する．
+void
+DtpgDriver::update_abort(
+  const TpgFault* fault,
+  double sat_time
+)
+{
+  mgr().update_abort(fault, sat_time);
+}
+
+// @brief SATの統計情報を更新する．
+void
+DtpgDriver::update_sat_stats(
+  const SatStats& sat_stats
+)
+{
+  mgr().update_sat_stats(sat_stats);
+}
+
 void
 DtpgDriver::_update(
   const TpgFault* fault,

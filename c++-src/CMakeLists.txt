@@ -70,10 +70,11 @@ set (dtpg_SOURCES
   dtpg/DtpgDriver.cc
   dtpg/DtpgDriver_FFR.cc
   dtpg/DtpgDriver_MFFC.cc
+  dtpg/DtpgDriver_se.cc
   dtpg/DtpgDriver_FFR_se.cc
   dtpg/DtpgDriver_MFFC_se.cc
 
-  dtpg_old/Dtpg_se.cc
+  #dtpg_old/Dtpg_se.cc
   )
 
 set (dop_SOURCES

@@ -45,9 +45,7 @@ TpgMgr::~TpgMgr()
 void
 TpgMgr::run()
 {
-  mDetCount = 0;
-  mUntestCount = 0;
-  mAbortCount = 0;
+  mStats.clear();
 
   mDriver->run();
 }
@@ -89,7 +87,62 @@ TpgMgr::add_base_uop()
   add_uop(new_UopBase(fault_status_mgr()));
 }
 
-// @brief テストパタン生成後の情報の更新を行う．
+// @brief テストパタン生成が成功した時の結果を更新する．
+void
+TpgMgr::update_det(
+  const TpgFault* fault,
+  const TestVector& tv,
+  double sat_time,
+  double backtrace_time
+)
+{
+  for ( auto dop: mDopList ) {
+    (*dop)(fault, tv);
+  }
+  mStats.update_det(sat_time, backtrace_time);
+}
+
+// @brief 冗長故障の特定が行えた時の結果を更新する．
+void
+TpgMgr::update_untest(
+  const TpgFault* fault,
+  double sat_time
+)
+{
+  for ( auto uop: mUopList ) {
+    (*uop)(fault);
+  }
+  mStats.update_untest(sat_time);
+}
+
+// @brief アボートした時の結果を更新する．
+void
+TpgMgr::update_abort(
+  const TpgFault* fault,
+  double sat_time
+)
+{
+  mStats.update_abort(sat_time);
+}
+
+// @brief CNF 生成に関する情報を更新する．
+void
+TpgMgr::update_cnf(
+  double time
+)
+{
+  mStats.update_cnf(time);
+}
+
+// @brief SATの統計情報を更新する．
+void
+TpgMgr::update_sat_stats(
+  const SatStats& sat_stats
+)
+{
+  mStats.update_sat_stats(sat_stats);
+}
+
 void
 TpgMgr::_update(
   const TpgFault* fault,
@@ -98,21 +151,13 @@ TpgMgr::_update(
 {
   switch ( result.status() ) {
   case FaultStatus::Detected:
-    for ( auto dop: mDopList ) {
-      (*dop)(fault, result.testvector());
-    }
-    ++ mDetCount;
+    update_det(fault, result.testvector(), 0.0, 0.0);
     break;
-
   case FaultStatus::Untestable:
-    for ( auto uop: mUopList ) {
-      (*uop)(fault);
-    }
-    ++ mUntestCount;
+    update_untest(fault, 0.0);
     break;
-
   case FaultStatus::Undetected:
-    ++ mAbortCount;
+    update_abort(fault, 0.0);
     break;
   }
 }
