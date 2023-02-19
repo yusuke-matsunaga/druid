@@ -5,13 +5,12 @@
 /// @brief StructEnc のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2016, 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2015, 2016, 2017, 2018, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "FaultType.h"
 #include "VidMap.h"
-#include "TpgNode.h"
 #include "NodeValList.h"
 #include "ym/SatSolver.h"
 
@@ -23,6 +22,10 @@ class PropCone;
 //////////////////////////////////////////////////////////////////////
 /// @class StructEnc StructEnc.h "StructEnc.h"
 /// @brief TpgNetwork の構造に基づく SAT ソルバ
+///
+/// おおまかには SAT ソルバにネットワーク中のノードに対する変数
+/// リテラルの割り当てを記録した辞書を加えたもの．
+/// ノードに対する値の割り当てを与えると内部ではリテラルに変換される．
 //////////////////////////////////////////////////////////////////////
 class StructEnc
 {
@@ -41,7 +44,7 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
+  // データメンバに対するアクセス関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief SATソルバを返す．
@@ -104,20 +107,18 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief fault cone を追加する．
-  /// @return 作成されたコーン番号を返す．
   ///
   /// fnode から到達可能な外部出力までの故障伝搬条件を考える．
-  SizeType
+  void
   add_simple_cone(
     const TpgNode* fnode, ///< [in] 故障のあるノード
     bool detect		  ///< [in] 故障を検出する時に true にするフラグ
   );
 
   /// @brief MFFC cone を追加する．
-  /// @return 作成されたコーン番号を返す．
   ///
   /// fnode から到達可能な外部出力までの故障伝搬条件を考える．
-  SizeType
+  void
   add_mffc_cone(
     const TpgMFFC& mffc, ///< [in] MFFC の情報
     bool detect		 ///< [in] 故障を検出する時に true にするフラグ
@@ -126,19 +127,7 @@ public:
   /// @brief 故障の伝搬条件を求める．
   vector<SatLiteral>
   make_prop_condition(
-    const TpgNode* ffr_root, ///< [in] FFR の根のノード
-    SizeType cone_id 	     ///< [in] コーン番号
-  );
-
-  /// @brief FFR内の故障の伝搬条件を割当リストに追加する．
-  ///
-  /// * fault の影響が root_node の出力に伝搬する条件を assumptions に加える．
-  /// * 内部で add_fault_condition() を呼ぶ．
-  void
-  add_ffr_condition(
-    const TpgNode* root_node, ///< [in] FFRの根のノード
-    const TpgFault* fault,    ///< [in] 故障
-    NodeValList& assign_list  ///< [out] 条件を表す割当リスト
+    const TpgNode* ffr_root ///< [in] FFR の根のノード
   );
 
   /// @brief 割当リストの内容を節に加える．
@@ -147,7 +136,7 @@ public:
   /// 必要に応じて使われているリテラルに関するCNFを追加する．
   void
   add_assignments(
-    const NodeValList& assignment  ///< [in] 割当リスト
+    const NodeValList& assignments ///< [in] 割当リスト
   );
 
   /// @brief 割当リストの否定の節を加える．
@@ -156,7 +145,7 @@ public:
   /// 必要に応じて使われているリテラルに関するCNFを追加する．
   void
   add_negation(
-    const NodeValList& assignment  ///< [in] 割当リスト
+    const NodeValList& assignments ///< [in] 割当リスト
   );
 
   /// @brief 割当リストを仮定のリテラルに変換する．
@@ -165,10 +154,6 @@ public:
   conv_to_literal_list(
     const NodeValList& assign_list ///< [in]  割当リスト
   );
-
-  /// @brief 関係あるノードに変数を割り当てる．
-  void
-  make_vars();
 
   /// @brief 関係あるノードの入出力の関係を表すCNFを作る．
   void
@@ -197,26 +182,26 @@ public:
     const NodeValList& assign_list2  ///< [in] 割当リスト2
   );
 
-  /// @brief 伝搬条件を求める．
-  NodeValList
-  extract_prop_condition(
-    const TpgNode* ffr_root, ///< [in] FFR の根のノード
-    SizeType cone_id,	     ///< [in] コーン番号
-    const SatModel& model    ///< [in] SAT のモデル
+  /// @brief 割当リストのもとでチェックを行う．
+  SatBool3
+  check_sat(
+    const vector<SatLiteral>& assumptions, ///< [in] 割当リスト1
+    const NodeValList& assign_list         ///< [in] 割当リスト2
   );
 
-#if 0
-  /// @brief 外部入力の値割り当てを求める．
+  /// @brief 伝搬条件を求める．
   ///
-  /// このクラスでの仕事はValMapに関する適切なオブジェクトを生成して
-  /// justifier を呼ぶこと．
-  TestVector
-  justify(
-    const SatModel& model,          ///< [in] SAT のモデル
-    const NodeValList& assign_list, ///< [in] 値割り当てのリスト
-    Justifier& justifier	    ///< [in] 正当化を行うファンクタ
+  /// check_sat() の実行結果が SatBool3::True の時のみ意味がある．
+  NodeValList
+  extract_prop_condition(
+    const TpgNode* ffr_root ///< [in] FFR の根のノード
   );
-#endif
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // デバッグ用の関数
+  //////////////////////////////////////////////////////////////////////
 
   /// @brief デバッグ用のフラグをセットする．
   void
@@ -245,6 +230,10 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief 関係あるノードに変数を割り当てる．
+  void
+  make_vars();
 
   /// @brief ノードの値割り当てに対応するリテラルを返す．
   SatLiteral
@@ -345,6 +334,9 @@ private:
 
   // propagation cone のリスト
   vector<unique_ptr<PropCone>> mConeList;
+
+  // FFR の根のノード番号をキーにして Cone 番号を格納する辞書
+  unordered_map<SizeType, SizeType> mConeDict;
 
   // デバッグ用のフラグ
   ymuint mDebugFlag;

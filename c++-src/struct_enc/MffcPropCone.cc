@@ -3,7 +3,7 @@
 /// @brief MffcPropCone の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012-2014, 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2005-2010, 2012-2014, 2017, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "MffcPropCone.h"
@@ -12,18 +12,15 @@
 #include "TpgFFR.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "NodeValList.h"
 #include "GateEnc.h"
+
+#define DEBUG_OUT cout
 
 
 BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
-
 bool debug_mffccone = false;
-
-#define DEBUG_OUT cout
-
 END_NONAMESPACE
 
 // @brief コンストラクタ
@@ -77,26 +74,7 @@ MffcPropCone::make_cnf()
 
   // mElemArray[] に含まれるノードと root の間にあるノードを
   // 求め，同時に変数を割り当てる．
-  vector<const TpgNode*> node_list;
-  unordered_map<int, int> ffr_map;
-  for ( SizeType i = 0; i < mElemArray.size(); ++ i ) {
-    auto node = mElemArray[i];
-    ffr_map.emplace(node->id(), i);
-    if ( node == root_node() ) {
-      continue;
-    }
-    for ( auto onode: node->fanout_list() ) {
-      if ( fvar(onode) == gvar(onode) ) {
-	auto var = solver().new_variable(true);
-	set_fvar(onode, var);
-	node_list.push_back(onode);
-
-	if ( debug_mffccone ) {
-	  DEBUG_OUT << node_name(onode) << "fvar = " << var << endl;
-	}
-      }
-    }
-  }
+  auto node_list = mElemArray;
   for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
     auto node = node_list[rpos];
     if ( node == root_node() ) {
@@ -118,8 +96,8 @@ MffcPropCone::make_cnf()
 
   // 最も入力よりにある FFR の根のノードの場合
   // 正常回路と制御変数のXORをとったものを故障値とする．
-  for ( SizeType i = 0; i < mElemArray.size(); ++ i ) {
-    auto node = mElemArray[i];
+  for ( SizeType ffr_id = 0; ffr_id < mElemArray.size(); ++ ffr_id ) {
+    auto node = mElemArray[ffr_id];
     if ( fvar(node) != gvar(node) ) {
       // このノードは入力側ではない．
       continue;
@@ -128,19 +106,19 @@ MffcPropCone::make_cnf()
     auto fvar = solver().new_variable(true);
     set_fvar(node, fvar);
 
-    inject_fault(i, gvar(node));
+    inject_fault(ffr_id, gvar(node));
   }
 
   // node_list に含まれるノードの入出力の関係を表すCNF式を作る．
   GateEnc gate_enc{solver(), fvar_map()};
   for ( auto node: node_list ) {
     auto ovar = fvar(node);
-    if ( ffr_map.count(node->id()) > 0 ) {
-      auto ffr_pos = ffr_map.at(node->id());
+    if ( mElemPosMap.count(node->id()) > 0 ) {
+      auto ffr_id = mElemPosMap.at(node->id());
       // 実際のゲートの出力と ovar の間に XOR ゲートを挿入する．
       // XORの一方の入力は mElemVarArray[ffr_pos]
       ovar = solver().new_variable();
-      inject_fault(ffr_pos, ovar);
+      inject_fault(ffr_id, ovar);
       // ovar が fvar(node) ではない！
       gate_enc.make_cnf(node, ovar);
     }
@@ -163,20 +141,20 @@ MffcPropCone::make_cnf()
 // @brief 故障挿入回路のCNFを作る．
 void
 MffcPropCone::inject_fault(
-  SizeType ffr_pos,
+  SizeType ffr_id,
   SatLiteral ovar
 )
 {
   auto lit1 = ovar;
-  auto lit2 = mElemVarArray[ffr_pos];
-  auto node = mElemArray[ffr_pos];
+  auto lit2 = mElemVarArray[ffr_id];
+  auto node = mElemArray[ffr_id];
   auto olit = fvar(node);
 
   solver().add_xorgate(lit1, lit2, olit);
 
   if ( debug_mffccone ) {
-    DEBUG_OUT << "inject fault: " << ovar << " -> " << fvar(node)
-	      << " with cvar = " << mElemVarArray[ffr_pos] << endl;
+    DEBUG_OUT << "inject fault: " << ovar << " -> " << olit
+	      << " with cvar = " << lit2 << endl;
   }
 }
 
@@ -196,7 +174,7 @@ MffcPropCone::make_condition(
   SizeType ffr_num = mElemArray.size();
   if ( ffr_num > 1 ) {
     // FFR の根の出力に故障を挿入する．
-    int ffr_id = mElemPosMap.at(root->id());
+    SizeType ffr_id = mElemPosMap.at(root->id());
     vector<SatLiteral> assumptions;
     assumptions.reserve(ffr_num);
     for ( SizeType i = 0; i < ffr_num; ++ i ) {

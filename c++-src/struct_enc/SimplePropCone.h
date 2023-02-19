@@ -31,7 +31,6 @@ public:
   );
 
   /// @brief デストラクタ
-  virtual
   ~SimplePropCone();
 
 

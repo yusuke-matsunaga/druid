@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "StructEnc.h"
@@ -80,25 +80,6 @@ public:
   {
     return mNodeList[0];
   }
-
-#if 0
-  /// @brief TFO ノード数を得る．
-  SizeType
-  tfo_num() const
-  {
-    return mNodeList.size();
-  }
-
-  /// @brief TFO ノードを得る．
-  const TpgNode*
-  tfo_node(
-    SizeType pos   ///<  [in] 位置番号 ( 0 <= pos < tfo_num() )
-  ) const
-  {
-    ASSERT_COND( pos < tfo_num() );
-    return mNodeList[pos];
-  }
-#endif
 
   /// @brief TFO ノードのリストを得る．
   const vector<const TpgNode*>&

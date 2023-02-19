@@ -3,27 +3,21 @@
 /// @brief StructEnc の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2015, 2017, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "StructEnc.h"
 #include "SimplePropCone.h"
 #include "MffcPropCone.h"
-#include "Justifier.h"
 #include "NodeValList.h"
-#include "TestVector.h"
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "TpgNode.h"
-#include "TpgDFF.h"
 #include "TpgMFFC.h"
 #include "TpgNodeSet.h"
-
 #include "GateEnc.h"
-
 #include "Val3.h"
-#include "ym/Range.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -64,7 +58,7 @@ StructEnc::~StructEnc()
 }
 
 // @brief fault cone を追加する．
-SizeType
+void
 StructEnc::add_simple_cone(
   const TpgNode* fnode,
   bool detect
@@ -73,41 +67,48 @@ StructEnc::add_simple_cone(
   auto focone = new SimplePropCone{*this, fnode, detect};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{focone});
-  return cone_id;
+  mConeDict.emplace(fnode->id(), cone_id);
 }
 
 // @brief MFFC cone を追加する．
-SizeType
+void
 StructEnc::add_mffc_cone(
   const TpgMFFC& mffc,
   bool detect
 )
 {
+  if ( mffc.ffr_num() == 1 ) {
+    // FFRモードで作る．
+    return add_simple_cone(mffc.root(), detect);
+  }
   auto mffccone = new MffcPropCone{*this, mffc, detect};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{mffccone});
-  return cone_id;
+  for ( auto ffr: mffc.ffr_list() ) {
+    auto root = ffr.root();
+    mConeDict.emplace(root->id(), cone_id);
+  }
 }
 
-/// @brief 故障の伝搬条件を求める．
+// @brief 故障の伝搬条件を求める．
 vector<SatLiteral>
 StructEnc::make_prop_condition(
-  const TpgNode* ffr_root,
-  SizeType cone_id
+  const TpgNode* ffr_root
 )
 {
-  /// FFR より出力側の故障伝搬条件を assumptions に入れる．
-  ASSERT_COND( cone_id < mConeList.size() );
+  ASSERT_COND( mConeDict.count(ffr_root->id()) > 0 );
+  auto cone_id = mConeDict.at(ffr_root->id());
+  // FFR より出力側の故障伝搬条件を assumptions に入れる．
   return mConeList[cone_id]->make_condition(ffr_root);
 }
 
 // @brief 割当リストに従って値を固定する．
 void
 StructEnc::add_assignments(
-  const NodeValList& assignment
+  const NodeValList& assignments
 )
 {
-  for ( auto nv: assignment ) {
+  for ( auto nv: assignments ) {
     auto alit = nv_to_lit(nv);
     mSolver.add_clause(alit);
   }
@@ -116,12 +117,12 @@ StructEnc::add_assignments(
 // @brief 割当リストの否定の節を加える．
 void
 StructEnc::add_negation(
-  const NodeValList& assignment
+  const NodeValList& assignments
 )
 {
   vector<SatLiteral> tmp_lits;
-  tmp_lits.reserve(assignment.size());
-  for ( auto nv: assignment ) {
+  tmp_lits.reserve(assignments.size());
+  for ( auto nv: assignments ) {
     auto alit = nv_to_lit(nv);
     tmp_lits.push_back(~alit);
   }
@@ -204,6 +205,9 @@ StructEnc::make_vars()
 void
 StructEnc::make_cnf()
 {
+  // 変数の割り当てを行う．
+  make_vars();
+
   GateEnc gate_enc1(mSolver, gvar_map());
   for ( auto node: mCurNodeList ) {
     gate_enc1.make_cnf(node);
@@ -248,7 +252,7 @@ StructEnc::check_sat()
 // こちらは結果のみを返す．
 SatBool3
 StructEnc::check_sat(
-  const NodeValList& assign_list  ///< [in] 割当リスト
+  const NodeValList& assign_list
 )
 {
   auto assumptions = conv_to_literal_list(assign_list);
@@ -258,8 +262,8 @@ StructEnc::check_sat(
 // @brief 割当リストのもとでチェックを行う．
 SatBool3
 StructEnc::check_sat(
-  const NodeValList& assign_list1, ///< [in] 割当リスト1
-  const NodeValList& assign_list2  ///< [in] 割当リスト2
+  const NodeValList& assign_list1,
+  const NodeValList& assign_list2
 )
 {
   auto assumptions = conv_to_literal_list(assign_list1);
@@ -268,41 +272,30 @@ StructEnc::check_sat(
   return mSolver.solve(assumptions);
 }
 
+// @brief 割当リストのもとでチェックを行う．
+SatBool3
+StructEnc::check_sat(
+  const vector<SatLiteral>& assumptions,
+  const NodeValList& assign_list
+)
+{
+  auto tmp_list1 = conv_to_literal_list(assign_list);
+  auto tmp_list = assumptions;
+  tmp_list.insert(tmp_list.end(), tmp_list1.begin(), tmp_list1.end());
+  return mSolver.solve(tmp_list);
+}
+
 // @brief 伝搬条件を求める．
 NodeValList
 StructEnc::extract_prop_condition(
-  const TpgNode* ffr_root,
-  SizeType cone_id,
-  const SatModel& model
+  const TpgNode* ffr_root
 )
 {
-  ASSERT_COND( cone_id < mConeList.size() );
+  ASSERT_COND( mConeDict.count(ffr_root->id()) > 0 );
+  auto cone_id = mConeDict.at(ffr_root->id());
+  auto& model = mSolver.model();
   return mConeList[cone_id]->extract_condition(model, ffr_root);
 }
-
-#if 0
-// @brief 外部入力の値割り当てを求める．
-TestVector
-StructEnc::justify(
-  const SatModel& model,
-  const NodeValList& assign_list,
-  Justifier& justifier
-)
-{
-  if ( debug() & debug_justify ) {
-    cout << endl
-	 << "StructEnc::justify(" << assign_list << ")" << endl;
-  }
-
-  auto testvect = justifier(mFaultType, assign_list, hvar_map(), gvar_map(), model);
-
-  if ( debug() & debug_justify ) {
-    cout << " => " << testvect.bin_str() << endl;
-  }
-
-  return testvect;
-}
-#endif
 
 // @brief ノード名を得る．
 string

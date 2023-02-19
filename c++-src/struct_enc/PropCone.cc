@@ -117,20 +117,22 @@ PropCone::make_cnf()
     }
   }
 
-  // 外部出力へ故障の影響が伝搬する条件を作る．
-  vector<SatLiteral> odiff;
-  odiff.reserve(mOutputList.size());
-  for ( auto node: mOutputList ) {
-    auto dlit = dvar(node);
-    odiff.push_back(dlit);
-  }
-  solver().add_clause(odiff);
+  if ( mDetect ) {
+    // 外部出力へ故障の影響が伝搬する条件を作る．
+    vector<SatLiteral> odiff;
+    odiff.reserve(mOutputList.size());
+    for ( auto node: mOutputList ) {
+      auto dlit = dvar(node);
+      odiff.push_back(dlit);
+    }
+    solver().add_clause(odiff);
 
-  auto root = root_node();
-  if ( !root->is_ppo() ) {
-    // root の dlit が1でなければならない．
-    auto dlit = dvar(root);
-    solver().add_clause(dlit);
+    auto root = root_node();
+    if ( !root->is_ppo() ) {
+      // root の dlit が1でなければならない．
+      auto dlit = dvar(root);
+      solver().add_clause(dlit);
+    }
   }
 }
 

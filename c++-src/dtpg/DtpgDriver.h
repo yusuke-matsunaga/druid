@@ -111,27 +111,39 @@ protected:
     const TestVector& tv,  ///< [in] テストパタン
     double sat_time,       ///< [in] SATにかかった時間
     double backtrace_time  ///< [in] バックトレースにかかった時間
-  );
+  )
+  {
+    mgr().update_det(fault, tv, sat_time, backtrace_time);
+  }
 
   /// @brief 冗長故障の特定が行えた時の結果を更新する．
   void
   update_untest(
     const TpgFault* fault, ///< [in] 対象の故障
     double sat_time        ///< [in] SATにかかった時間
-  );
+  )
+  {
+    mgr().update_untest(fault, sat_time);
+  }
 
   /// @brief アボートした時の結果を更新する．
   void
   update_abort(
     const TpgFault* fault, ///< [in] 対象の故障
     double sat_time        ///< [in] SATにかかった時間
-  );
+  )
+  {
+    mgr().update_abort(fault, sat_time);
+  }
 
   /// @brief SATの統計情報を更新する．
   void
   update_sat_stats(
     const SatStats& sat_stats ///< [in] 統計情報
-  );
+  )
+  {
+    mgr().update_sat_stats(sat_stats);
+  }
 
   void
   _update(

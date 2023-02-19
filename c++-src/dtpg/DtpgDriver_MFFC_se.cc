@@ -35,13 +35,7 @@ DtpgDriver_MFFC_se::run()
   for ( auto mffc: mNetwork.mffc_list() ) {
     cnf_begin();
     StructEnc enc{mNetwork, mFaultType, mSolverType};
-    if ( mffc.ffr_num() > 1 ) {
-      enc.add_mffc_cone(mffc, true);
-    }
-    else {
-      enc.add_simple_cone(mffc.root(), true);
-    }
-    enc.make_vars();
+    enc.add_mffc_cone(mffc, true);
     enc.make_cnf();
     cnf_end();
     for ( auto fault: mffc.fault_list() ) {

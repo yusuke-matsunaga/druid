@@ -33,10 +33,11 @@ void
 DtpgDriver_FFR_se::run()
 {
   for ( auto ffr: mNetwork.ffr_list() ) {
+    cnf_begin();
     StructEnc enc{mNetwork, mFaultType, mSolverType};
     enc.add_simple_cone(ffr.root(), true);
-    enc.make_vars();
     enc.make_cnf();
+    cnf_end();
     for ( auto fault: ffr.fault_list() ) {
       if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
 	gen_pattern(enc, fault);

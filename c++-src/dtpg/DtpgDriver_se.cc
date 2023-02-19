@@ -49,22 +49,17 @@ DtpgDriver_se::gen_pattern(
   auto ffr_root = fault->tpg_onode()->ffr_root();
 
   // FFR より出力側の故障伝搬条件を assumptions に入れる．
-  auto assumptions = enc.make_prop_condition(ffr_root, 0);
+  auto assumptions = enc.make_prop_condition(ffr_root);
 
   // FFR 内の故障伝搬条件を assign_list に入れる．
   auto assign_list = fault->ffr_propagate_condition(mFaultType);
 
-  // assign_list を変換して assumptions に追加する．
-  auto as2 = enc.conv_to_literal_list(assign_list);
-  assumptions.insert(assumptions.end(), as2.begin(), as2.end());
-
   // SAT問題を解く
-  auto ans = enc.solver().solve(assumptions);
+  auto ans = enc.check_sat(assumptions, assign_list);
 
   timer.stop();
   auto sat_time = timer.get_time();
 
-  DtpgResult result;
   if ( ans == SatBool3::True ) {
     // パタンが求まった．
 
@@ -74,7 +69,7 @@ DtpgDriver_se::gen_pattern(
     const auto& model = enc.solver().model();
 
     // ffr_root より先の伝搬条件を求める．
-    auto assign_list2 = enc.extract_prop_condition(ffr_root, 0, model);
+    auto assign_list2 = enc.extract_prop_condition(ffr_root);
     assign_list.merge(assign_list2);
 
     // assign_list の条件を正当化する．
@@ -87,7 +82,7 @@ DtpgDriver_se::gen_pattern(
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    update_untest(fault, sat_time);;
+    update_untest(fault, sat_time);
   }
   else {
     // ans == SatBool3::X つまりアボート
