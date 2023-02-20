@@ -34,15 +34,11 @@ public:
   /// @brief デストラクタ
   ~FFREngine();
 
-#if 0
+
 protected:
   //////////////////////////////////////////////////////////////////////
   // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief make_cnf() の追加処理
-  void
-  opt_make_cnf() override;
 
   /// @brief gen_pattern() で用いる検出条件を作る．
   ///
@@ -51,7 +47,6 @@ protected:
   gen_assumptions(
     const TpgFault* fault ///< [in] 対象の故障
   ) override;
-#endif
 
 };
 

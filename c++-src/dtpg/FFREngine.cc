@@ -26,4 +26,13 @@ FFREngine::~FFREngine()
 {
 }
 
+// @brief gen_pattern() で用いる検出条件を作る．
+vector<SatLiteral>
+FFREngine::gen_assumptions(
+  const TpgFault* fault
+)
+{
+  return {};
+}
+
 END_NAMESPACE_DRUID
