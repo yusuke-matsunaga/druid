@@ -1,12 +1,12 @@
 ﻿
-/// @file DtpgEngine.cc
-/// @brief DtpgEngine の実装ファイル
+/// @file DtpgEngine2.cc
+/// @brief DtpgEngine2 の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2017, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgEngine.h"
+#include "DtpgEngine2.h"
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
@@ -46,7 +46,7 @@ extract_sufficient_condition(
 );
 
 // @brief コンストラクタ
-DtpgEngine::DtpgEngine(
+DtpgEngine2::DtpgEngine2(
   const TpgNetwork& network,
   FaultType fault_type,
   const TpgNode* root,
@@ -66,7 +66,7 @@ DtpgEngine::DtpgEngine(
 
 // @brief CNF の生成を行う．
 void
-DtpgEngine::make_cnf()
+DtpgEngine2::make_cnf()
 {
   // 変数割り当て
   prepare_vars();
@@ -101,11 +101,11 @@ DtpgEngine::make_cnf()
 
 // @brief 対象の部分回路の関係を表す変数を用意する．
 void
-DtpgEngine::prepare_vars()
+DtpgEngine2::prepare_vars()
 {
   if ( debug_dtpg ) {
     DEBUG_OUT << endl;
-    DEBUG_OUT << "DtpgEngine::prepare_vars() begin" << endl;
+    DEBUG_OUT << "DtpgEngine2::prepare_vars() begin" << endl;
     DEBUG_OUT << " Root = " << node_name(mRoot) << endl;
   }
 
@@ -189,7 +189,7 @@ DtpgEngine::prepare_vars()
     if ( mDchain ) {
       auto dvar = mSolver.new_variable(true);
       mDvarMap.set_vid(node, dvar);
-      if ( debug_dtpg ) {
+      if ( mDchain ) {
 	DEBUG_OUT << node_name(node) << ": dvar = " << dvar << endl;
       }
     }
@@ -209,13 +209,13 @@ DtpgEngine::prepare_vars()
   }
 
   if ( debug_dtpg ) {
-    DEBUG_OUT << "DtpgEngine::prepare_vars() end" << endl;
+    DEBUG_OUT << "DtpgEngine2::prepare_vars() end" << endl;
   }
 }
 
 // @brief 対象の部分回路の正常値の関係を表す CNF 式を作る．
 void
-DtpgEngine::gen_good_cnf()
+DtpgEngine2::gen_good_cnf()
 {
   //////////////////////////////////////////////////////////////////////
   // 正常回路の CNF を生成
@@ -259,7 +259,7 @@ DtpgEngine::gen_good_cnf()
 
 // @brief 対象の部分回路の故障値の関係を表す CNF 式を作る．
 void
-DtpgEngine::gen_faulty_cnf()
+DtpgEngine2::gen_faulty_cnf()
 {
   //////////////////////////////////////////////////////////////////////
   // 故障回路の CNF を生成
@@ -277,13 +277,13 @@ DtpgEngine::gen_faulty_cnf()
 
 // @brief make_cnf() の追加処理
 void
-DtpgEngine::opt_make_cnf()
+DtpgEngine2::opt_make_cnf()
 {
 }
 
 // @brief gen_pattern() で用いる検出条件を作る．
 vector<SatLiteral>
-DtpgEngine::gen_assumptions(
+DtpgEngine2::gen_assumptions(
   const TpgFault*
 )
 {
@@ -292,7 +292,7 @@ DtpgEngine::gen_assumptions(
 
 // @brief 故障伝搬条件を表すCNF式を生成する．
 void
-DtpgEngine::make_dchain_cnf(
+DtpgEngine2::make_dchain_cnf(
   const TpgNode* node
 )
 {
@@ -367,7 +367,7 @@ DtpgEngine::make_dchain_cnf(
 
 // @brief 値割り当てをリテラルに変換する．
 SatLiteral
-DtpgEngine::conv_to_literal(
+DtpgEngine2::conv_to_literal(
   NodeVal node_val
 )
 {
@@ -379,7 +379,7 @@ DtpgEngine::conv_to_literal(
 
 // @brief 値割り当てをリテラルのリストに変換する．
 void
-DtpgEngine::add_to_literal_list(
+DtpgEngine2::add_to_literal_list(
   const NodeValList& assign_list,
   vector<SatLiteral>& lit_list
 )
@@ -395,7 +395,7 @@ DtpgEngine::add_to_literal_list(
 
 // @brief SAT問題が充足可能か調べる．
 SatBool3
-DtpgEngine::check(
+DtpgEngine2::check(
   const vector<SatLiteral>& assumptions
 )
 {
@@ -420,7 +420,7 @@ DtpgEngine::check(
 //
 // この関数では単純に外部入力の値を記録する．
 TestVector
-DtpgEngine::get_tv()
+DtpgEngine2::get_tv()
 {
   NodeValList assign_list;
   if ( mFaultType == FaultType::StuckAt ) {
@@ -446,7 +446,7 @@ DtpgEngine::get_tv()
 
 // @brief 十分条件を取り出す．
 NodeValList
-DtpgEngine::get_sufficient_condition(
+DtpgEngine2::get_sufficient_condition(
   const TpgNode* ffr_root
 )
 {
@@ -455,7 +455,7 @@ DtpgEngine::get_sufficient_condition(
 
 // @brief 必要条件を取り出す．
 NodeValList
-DtpgEngine::get_mandatory_condition(
+DtpgEngine2::get_mandatory_condition(
   const NodeValList& ffr_cond,
   const NodeValList& suf_cond
 )
@@ -481,7 +481,7 @@ DtpgEngine::get_mandatory_condition(
 #if 0
 // @brief SATソルバに論理式の否定を追加する．
 void
-DtpgEngine::add_negation(
+DtpgEngine2::add_negation(
   const Expr& expr,
   SatLiteral clit
 )
@@ -523,7 +523,7 @@ DtpgEngine::add_negation(
 
 // @brief add_negation の下請け関数
 SatLiteral
-DtpgEngine::_add_negation_sub(
+DtpgEngine2::_add_negation_sub(
   const Expr& expr
 )
 {
@@ -568,7 +568,7 @@ DtpgEngine::_add_negation_sub(
 
 // @brief ノード名を返す．
 string
-DtpgEngine::node_name(
+DtpgEngine2::node_name(
   const TpgNode* node
 )
 {

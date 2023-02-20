@@ -7,10 +7,10 @@
 /// All rights reserved.
 
 #include "DtpgDriver.h"
-#include "DtpgDriver_FFR.h"
-#include "DtpgDriver_MFFC.h"
-#include "DtpgDriver_FFR_se.h"
-#include "DtpgDriver_MFFC_se.h"
+#include "DtpgEngineDriver_FFR.h"
+#include "DtpgEngineDriver_MFFC.h"
+#include "StructEncDriver_FFR.h"
+#include "StructEncDriver_MFFC.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -26,19 +26,32 @@ DtpgDriver::new_driver(
 )
 {
   if ( dtpg_type == "ffr" ) {
-    return new DtpgDriver_FFR{mgr, network, fault_type, just_type, solver_type};
+    return new DtpgEngineDriver_FFR{mgr, network, fault_type, just_type, solver_type};
   }
   if ( dtpg_type == "mffc" ) {
-    return new DtpgDriver_MFFC{mgr, network, fault_type, just_type, solver_type};
+    return new DtpgEngineDriver_MFFC{mgr, network, fault_type, just_type, solver_type};
   }
   if ( dtpg_type == "ffr_se" ) {
-    return new DtpgDriver_FFR_se{mgr, network, fault_type, just_type, solver_type};
+    return new StructEncDriver_FFR{mgr, network, fault_type, just_type, solver_type};
   }
   if ( dtpg_type == "mffc_se" ) {
-    return new DtpgDriver_MFFC_se{mgr, network, fault_type, just_type, solver_type};
+    return new StructEncDriver_MFFC{mgr, network, fault_type, just_type, solver_type};
   }
   // デフォルトフォールバック
-  return new DtpgDriver_FFR{mgr, network, fault_type, just_type, solver_type};
+  return new DtpgEngineDriver_FFR{mgr, network, fault_type, just_type, solver_type};
+}
+
+// @brief 正当化を行う．
+TestVector
+DtpgDriver::justify(
+  const NodeValList& assign_list,
+  const VidMap& hvar_map,
+  const VidMap& gvar_map,
+  const SatModel& sat_model
+)
+{
+  return mJustifier(mFaultType, assign_list,
+		    hvar_map, gvar_map, sat_model);
 }
 
 void

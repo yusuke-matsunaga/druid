@@ -1,8 +1,8 @@
-﻿#ifndef DTPGMFFC_H
-#define DTPGMFFC_H
+﻿#ifndef MFFCENGINE_H
+#define MFFCENGINE_H
 
-/// @file DtpgMFFC.h
-/// @brief DtpgMFFC のヘッダファイル
+/// @file MFFCEngine.h
+/// @brief MFFCEngine のヘッダファイル
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
@@ -15,26 +15,24 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class DtpgMFFC DtpgMFFC.h "DtpgMFFC.h"
+/// @class MFFCEngine MFFCEngine.h "MFFCEngine.h"
 /// @brief MFFC 単位で DTPG の基本的な処理を行うクラス
 //////////////////////////////////////////////////////////////////////
-class DtpgMFFC :
+class MFFCEngine :
   public DtpgEngine
 {
 public:
 
   /// @brief コンストラクタ
-  DtpgMFFC(
+  MFFCEngine(
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,	     ///< [in] 故障の種類
     const TpgMFFC& mffc,	     ///< [in] 故障伝搬の起点となる MFFC
-    const string& just_type,	     ///< [in] Justifier の種類を表す文字列
     const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
-    = SatSolverType()
   );
 
   /// @brief デストラクタ
-  ~DtpgMFFC();
+  ~MFFCEngine();
 
 
 protected:
@@ -53,6 +51,12 @@ protected:
   gen_assumptions(
     const TpgFault* fault ///< [in] 対象の故障
   ) override;
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障挿入回路のCNFを作る．
   void
@@ -85,4 +89,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // DTPGMFFC_H
+#endif // MFFCENGINE_H

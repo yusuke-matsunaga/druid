@@ -64,17 +64,16 @@ set (struct_enc_SOURCES
 
 set (dtpg_SOURCES
   dtpg/DtpgEngine.cc
-  dtpg/DtpgFFR.cc
-  dtpg/DtpgMFFC.cc
+  dtpg/FFREngine.cc
+  dtpg/MFFCEngine.cc
   dtpg/TpgMgr.cc
   dtpg/DtpgDriver.cc
-  dtpg/DtpgDriver_FFR.cc
-  dtpg/DtpgDriver_MFFC.cc
-  dtpg/DtpgDriver_se.cc
-  dtpg/DtpgDriver_FFR_se.cc
-  dtpg/DtpgDriver_MFFC_se.cc
-
-  #dtpg_old/Dtpg_se.cc
+  dtpg/DtpgEngineDriver.cc
+  dtpg/DtpgEngineDriver_FFR.cc
+  dtpg/DtpgEngineDriver_MFFC.cc
+  dtpg/StructEncDriver.cc
+  dtpg/StructEncDriver_FFR.cc
+  dtpg/StructEncDriver_MFFC.cc
   )
 
 set (dop_SOURCES
@@ -115,6 +114,8 @@ set (minpat_SOURCES
   minpat/MpColGraph.cc
   minpat/MatrixGen.cc
   minpat/Analyzer.cc
+  minpat/DtpgEngine2.cc
+  minpat/DtpgFFR.cc
   minpat/FaultReducer.cc
   minpat/UndetChecker.cc
   minpat/DomChecker.cc

@@ -1,12 +1,12 @@
-﻿#ifndef DTPGENGINE_H
-#define DTPGENGINE_H
+﻿#ifndef DTPGENGINE2_H
+#define DTPGENGINE2_H
 
-/// @file DtpgEngine.h
-/// @brief DtpgEngine のヘッダファイル
+/// @file DtpgEngine2.h
+/// @brief DtpgEngine2 のヘッダファイル
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -16,43 +16,37 @@
 #include "DtpgResult.h"
 #include "DtpgStats.h"
 #include "FaultType.h"
-#include "Justifier.h"
 #include "Val3.h"
+#include "VidMap.h"
 
-#include "ym/Expr.h"
-#include "ym/sat.h"
 #include "ym/SatBool3.h"
 #include "ym/SatLiteral.h"
 #include "ym/SatSolver.h"
-#include "ym/Timer.h"
-
-#include "VidMap.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class DtpgEngine DtpgEngine.h "DtpgEngine.h"
+/// @class DtpgEngine2 DtpgEngine2.h "DtpgEngine2.h"
 /// @brief DTPG の基本的な処理を行うクラス
 ///
 /// 基本的には get_pattern(fault) で対象のテストパタンを求める．
 //////////////////////////////////////////////////////////////////////
-class DtpgEngine
+class DtpgEngine2
 {
 public:
 
   /// @brief コンストラクタ
-  DtpgEngine(
+  DtpgEngine2(
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,	     ///< [in] 故障の種類
     const TpgNode* root,	     ///< [in] 故障伝搬の起点となるノード
-    const string& just_type,	     ///< [in] justifier の種類を表す文字列
+    bool make_dchain,                ///< [in] dchain を作る時 true にする．
     const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
-    = SatSolverType("ymsat2")
   );
 
   /// @brief デストラクタ
-  ~DtpgEngine() = default;
+  ~DtpgEngine2() = default;
 
 
 public:
@@ -66,26 +60,6 @@ public:
   /// 条件を表す CNF を作る．
   void
   make_cnf();
-
-  /// @brief テストパタンを求める．
-  DtpgResult
-  gen_pattern(
-    const TpgFault* fault  ///< [in] 対象の故障
-  );
-
-  /// @brief 統計情報を得る．
-  const DtpgStats&
-  stats() const
-  {
-    return mStats;
-  }
-
-  /// @brief 故障の影響がFFRの根のノードまで伝搬する条件を作る．
-  /// @return 結果の値割り当てリスト
-  NodeValList
-  make_ffr_condition(
-    const TpgFault* fault  ///< [in] 対象の故障
-  );
 
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
@@ -137,6 +111,15 @@ public:
     SatLiteral clit   ///< [in] 制御用のリテラル
   );
 
+  /// @brief gen_pattern() で用いる検出条件を作る．
+  ///
+  /// デフォルトでは空を返す．
+  virtual
+  vector<SatLiteral>
+  gen_assumptions(
+    const TpgFault* fault ///< [in] 対象の故障
+  );
+
   /// @brief SAT問題が充足可能か調べる．
   /// @return 結果を返す．
   SatBool3
@@ -160,14 +143,6 @@ public:
     const TpgNode* ffr_root ///< [in] FFRの根のノード
   );
 
-  /// @brief 複数の十分条件を取り出す．
-  ///
-  /// * FFR内の故障伝搬条件は含まない．
-  Expr
-  get_sufficient_conditions(
-    const TpgNode* ffr_root ///< [in] FFRの根のノード
-  );
-
   /// @brief 必要条件を取り出す．
   /// @return 必要条件を返す．
   NodeValList
@@ -176,16 +151,16 @@ public:
     const NodeValList& suf_cond	 ///< [in] 十分条件
   );
 
-  /// @brief バックトレースを行う．
-  /// @return テストパタンを返す．
-  TestVector
-  backtrace(
-    const TpgNode* ffr_root,    ///< [in] FFRの根のノード
-    const NodeValList& ffr_cond ///< [in] FFR内の伝搬条件
-  );
+  /// @brief SATの統計情報を返す．
+  SatStats
+  sat_stats() const { return mSolver.get_stats(); }
+
+  /// @brief SATの計算時間を返す．
+  double
+  sat_time() const { return mSatTime; }
 
 
-protected:
+public:
   //////////////////////////////////////////////////////////////////////
   // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
@@ -210,22 +185,6 @@ protected:
   {
     return network().node_num();
   }
-
-  /// @brief CNF 作成を開始する．
-  void
-  cnf_begin();
-
-  /// @brief CNF 作成を終了する．
-  void
-  cnf_end();
-
-  /// @brief 時間計測を開始する．
-  void
-  timer_start();
-
-  /// @brief 時間計測を終了する．
-  double
-  timer_stop();
 
   /// @brief SATソルバを返す．
   SatSolver&
@@ -423,15 +382,6 @@ private:
   void
   opt_make_cnf();
 
-  /// @brief gen_pattern() で用いる検出条件を作る．
-  ///
-  /// デフォルトでは空を返す．
-  virtual
-  vector<SatLiteral>
-  gen_assumptions(
-    const TpgFault* fault ///< [in] 対象の故障
-  );
-
   /// @brief 故障伝搬条件を表すCNF式を生成する．
   void
   make_dchain_cnf(
@@ -468,9 +418,6 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 統計情報
-  DtpgStats mStats;
-
   // SATソルバ
   SatSolver mSolver;
 
@@ -482,6 +429,9 @@ private:
 
   // 故障伝搬の起点となるノード
   const TpgNode* mRoot;
+
+  // dchain を生成するとき true にするフラグ
+  bool mDchain{false};
 
   // TFOノードを入れておくリスト
   vector<const TpgNode*> mTfoList;
@@ -519,17 +469,11 @@ private:
   // SATの解を保持する配列
   SatModel mSatModel;
 
-  // バックトレーサー
-  Justifier mJustifier;
-
-  // 時間計測を行なうかどうかの制御フラグ
-  bool mTimerEnable;
-
-  // 時間計測用のタイマー
-  Timer mTimer;
+  // SAT時間
+  double mSatTime;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // DTPGENGINE_H
+#endif // DTPGENGINE2_H

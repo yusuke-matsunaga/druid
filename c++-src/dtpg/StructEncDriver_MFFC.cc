@@ -1,12 +1,12 @@
 
-/// @file DtpgDriver_MFFC_se.cc
-/// @brief DtpgDriver_MFFC_se の実装ファイル
+/// @file StructEncDriver_MFFC.cc
+/// @brief StructEncDriver_MFFC の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgDriver_MFFC_se.h"
+#include "StructEncDriver_MFFC.h"
 #include "StructEnc.h"
 #include "TpgNetwork.h"
 
@@ -14,27 +14,16 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// DtpgDriver_MFFC_se
+// StructEncDriver_MFFC
 //////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-DtpgDriver_MFFC_se::DtpgDriver_MFFC_se(
-  TpgMgr& mgr,
-  const TpgNetwork& network,
-  FaultType fault_type,
-  const string& just_type,
-  const SatSolverType& solver_type
-) : DtpgDriver_se{mgr, network, fault_type, just_type, solver_type}
-{
-}
 
 // @brief テスト生成を行う．
 void
-DtpgDriver_MFFC_se::run()
+StructEncDriver_MFFC::run()
 {
-  for ( auto mffc: mNetwork.mffc_list() ) {
+  for ( auto mffc: network().mffc_list() ) {
     cnf_begin();
-    StructEnc enc{mNetwork, mFaultType, mSolverType};
+    StructEnc enc{network(), fault_type(), sat_type()};
     enc.add_mffc_cone(mffc, true);
     enc.make_cnf();
     cnf_end();

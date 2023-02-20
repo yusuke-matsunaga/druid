@@ -183,9 +183,9 @@ FaultReducer::init(
 
   // 各々の故障のテストベクタをもとめる(故障シミュレーション用)
   std::mt19937 rg;
+  SatSolverType sat_type{"ymsat2"};
   for ( auto ffr: mNetwork.ffr_list() ) {
-    string just_type;
-    DtpgFFR dtpg(mNetwork, mFaultType, ffr, just_type);
+    DtpgFFR dtpg(mNetwork, mFaultType, ffr, sat_type);
     for ( auto fault: ffr.fault_list() ) {
       auto& fi = mFaultInfoArray[fault->id()];
       if ( !fi.mDeleted ) {
@@ -367,6 +367,7 @@ FaultReducer::ffr_reduction()
     mTimer.start();
   }
 
+  SatSolverType sat_type{"ymsat2"};
   for ( auto ffr: mNetwork.ffr_list() ) {
     // FFR ごとに検出可能な故障をもとめる．
     vector<const TpgFault*> tmp_fault_list;
@@ -380,8 +381,7 @@ FaultReducer::ffr_reduction()
       continue;
     }
 
-    string just_type;
-    DtpgFFR dtpg(mNetwork, mFaultType, ffr, just_type);
+    DtpgFFR dtpg(mNetwork, mFaultType, ffr, sat_type);
 
     // 支配関係を調べ，代表故障のみを残す．
     int nf = tmp_fault_list.size();

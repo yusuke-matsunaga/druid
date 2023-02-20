@@ -9,7 +9,7 @@
 /// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgEngine.h"
+#include "DtpgEngine2.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -21,7 +21,7 @@ BEGIN_NAMESPACE_DRUID
 /// こちらは故障を検出しない条件を調べるために用いる．
 //////////////////////////////////////////////////////////////////////
 class DtpgFFR2 :
-  public DtpgEngine
+  public DtpgEngine2
 {
 public:
 
@@ -31,7 +31,6 @@ public:
     const string& sat_option,  ///< [in] SATソルバに渡すオプション文字列
     ostream* sat_outp,	       ///< [in] SATソルバ用の出力ストリーム
     FaultType fault_type,      ///< [in] 故障の種類
-    const string& just_type,   ///< [in] Justifier の種類を表す文字列
     const TpgNetwork& network, ///< [in] 象のネットワーク
     const TpgFFR& ffr	       ///< [in] 故障伝搬の起点となる FFR
   );

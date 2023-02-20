@@ -10,6 +10,7 @@
 #include "FaultInfo.h"
 #include "DtpgFFR.h"
 #include "DtpgFFR2.h"
+#include "Justifier.h"
 #include "UndetChecker.h"
 #include "DomChecker.h"
 #include "TpgFFR.h"
@@ -128,9 +129,11 @@ Analyzer::gen_fault_list(
   std::mt19937 randgen;
   int n0 = 0;
   int n1 = 0;
+  SatSolverType sat_type{"ymsat2"};
+  Justifier justify{just_type, mNetwork};
   for ( auto ffr: mNetwork.ffr_list() ) {
     // FFR ごとに検出可能な故障をもとめる．
-    DtpgFFR dtpg{mNetwork, mFaultType, ffr, just_type};
+    DtpgFFR dtpg{mNetwork, mFaultType, ffr, sat_type};
     vector<FaultInfo*> tmp_fi_list;
     for ( auto fault: ffr.fault_list() ) {
       if ( !mark[fault->id()] ) {
@@ -140,9 +143,13 @@ Analyzer::gen_fault_list(
       auto assumptions = dtpg.conv_to_literal_list(ffr_cond);
       SatBool3 sat_res = dtpg.check(assumptions);
       if ( sat_res == SatBool3::True ) {
-	auto testvect = dtpg.backtrace(fault->tpg_onode()->ffr_root(), ffr_cond);
+	auto suf_cond = dtpg.get_sufficient_condition(ffr.root());
+	auto assign_list = ffr_cond;
+	assign_list.merge(suf_cond);
+	auto testvect = justify(mFaultType, assign_list,
+				dtpg.hvar_map(), dtpg.gvar_map(),
+				dtpg.solver().model());
 	testvect.fix_x_from_random(randgen);
-	auto suf_cond = dtpg.get_sufficient_condition(fault->tpg_onode()->ffr_root());
 	FaultInfo* fi = new FaultInfo(fault, ffr_cond, suf_cond, testvect);
 	tmp_fi_list.push_back(fi);
 	++ n0;
@@ -415,16 +422,15 @@ Analyzer::init(
   int loop_limit
 )
 {
-  string just_type;
-
   nex_num = 0;
   vector<bool> mark(mNetwork.max_fault_id(), false);
   vector<NodeValList> ffr_cond_array(mNetwork.max_fault_id());
   vector<FaultInfo*> tmp_fi_map(mNetwork.max_fault_id(), nullptr);
   int n1 = 0;
+  SatSolverType sat_type{"ymsat2"};
   for ( auto ffr: mNetwork.ffr_list() ) {
     // FFR ごとに検出可能な故障をもとめる．
-    DtpgFFR dtpg(mNetwork, mFaultType, ffr, just_type);
+    DtpgFFR dtpg(mNetwork, mFaultType, ffr, sat_type);
     vector<const TpgFault*> fault_list;
     vector<NodeValList> ffr_cond_list;
     vector<NodeValList> suf_cond_list;

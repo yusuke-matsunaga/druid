@@ -22,18 +22,13 @@ DtpgFFR::DtpgFFR(
   const TpgNetwork& network,
   FaultType fault_type,
   const TpgFFR& ffr,
-  const string& just_type,
   const SatSolverType& solver_type
-) : DtpgEngine{network, fault_type, ffr.root(), just_type, solver_type}
+) : DtpgEngine2{network, fault_type, ffr.root(), true, solver_type}
 {
   make_cnf();
 }
 
-// @brief デストラクタ
-DtpgFFR::~DtpgFFR()
-{
-}
-
+#if 0
 // @brief テスト生成を行なう．
 DtpgResult
 DtpgFFR::gen_k_patterns(
@@ -146,5 +141,6 @@ DtpgFFR::gen_core_expr(
 
   return expr;
 }
+#endif
 
 END_NAMESPACE_DRUID

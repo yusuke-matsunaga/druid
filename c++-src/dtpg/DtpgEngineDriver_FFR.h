@@ -1,39 +1,41 @@
-#ifndef DTPGDRIVER_MFFC_H
-#define DTPGDRIVER_MFFC_H
+#ifndef DTPGENGINEDRIVER_FFR_H
+#define DTPGENGINEDRIVER_FFR_H
 
-/// @file DtpgDriver_MFFC.h
-/// @brief DtpgDriver_MFFC のヘッダファイル
+/// @file DtpgEngineDriver_FFR.h
+/// @brief DtpgEngineDriver_FFR のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgDriver.h"
+#include "DtpgEngineDriver.h"
 #include "ym/SatSolverType.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class DtpgDriver_MFFC DtpgDriver_MFFC.h "DtpgDriver_MFFC.h"
+/// @class DtpgEngineDriver_FFR DtpgEngineDriver_FFR.h "DtpgEngineDriver_FFR.h"
 /// @brief
 //////////////////////////////////////////////////////////////////////
-class DtpgDriver_MFFC :
-  public DtpgDriver
+class DtpgEngineDriver_FFR :
+  public DtpgEngineDriver
 {
 public:
 
   /// @brief コンストラクタ
-  DtpgDriver_MFFC(
+  DtpgEngineDriver_FFR(
     TpgMgr& mgr,                     ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
     const string& just_type,         ///< [in] 正当化のタイプ
     const SatSolverType& solver_type ///< [in] SATソルバのタイプ
-  );
+  ) : DtpgEngineDriver{mgr, network, fault_type, just_type, solver_type}
+  {
+  }
 
   /// @brief デストラクタ
-  ~DtpgDriver_MFFC() = default;
+  ~DtpgEngineDriver_FFR() = default;
 
 
 public:
@@ -45,26 +47,8 @@ public:
   void
   run() override;
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 対象のネットワーク
-  const TpgNetwork& mNetwork;
-
-  // 故障の種類
-  FaultType mFaultType;
-
-  // 正当化のタイプ
-  string mJustType;
-
-  // SATソルバのタイプ
-  SatSolverType mSolverType;
-
 };
 
 END_NAMESPACE_DRUID
 
-#endif // DTPGDRIVER_MFFC_H
+#endif // DTPGENGINEDRIVER_FFR_H

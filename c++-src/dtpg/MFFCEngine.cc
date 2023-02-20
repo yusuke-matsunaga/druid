@@ -1,12 +1,12 @@
 ﻿
-/// @file DtpgMFFC.cc
-/// @brief DtpgMFFC の実装ファイル
+/// @file MFFCEngine.cc
+/// @brief MFFCEngine の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgMFFC.h"
+#include "MFFCEngine.h"
 
 #include "TpgFault.h"
 #include "TpgMFFC.h"
@@ -17,43 +17,40 @@
 #include "ym/Range.h"
 
 //#define DEBUG_DTPG
-
 #define DEBUG_OUT cout
+
 BEGIN_NONAMESPACE
 #ifdef DEBUG_DTPG
 int debug_mffc = 1;
 #else
 const int debug_mffc = 0;
 #endif
-
 END_NONAMESPACE
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-DtpgMFFC::DtpgMFFC(
+MFFCEngine::MFFCEngine(
   const TpgNetwork& network,
   FaultType fault_type,
   const TpgMFFC& mffc,
-  const string& just_type,
   const SatSolverType& solver_type
-) : DtpgEngine{network, fault_type, mffc.root(), just_type, solver_type},
+) : DtpgEngine{network, fault_type, mffc.root(), true, solver_type},
     mMFFC{mffc},
     mRootArray(mffc.ffr_num()),
     mEvarArray(mffc.ffr_num())
 {
-  make_cnf();
 }
 
 // @brief デストラクタ
-DtpgMFFC::~DtpgMFFC()
+MFFCEngine::~MFFCEngine()
 {
 }
 
 // @brief make_cnf() の追加処理
 void
-DtpgMFFC::opt_make_cnf()
+MFFCEngine::opt_make_cnf()
 {
   SizeType ffr_id = 0;
   for ( auto ffr: mMFFC.ffr_list() ) {
@@ -73,13 +70,7 @@ DtpgMFFC::opt_make_cnf()
 
   // mRootArray[] に含まれるノードと root の間にあるノードを
   // 求め，同時に変数を割り当てる．
-  vector<const TpgNode*> node_list;
-  unordered_map<SizeType, SizeType> ffr_map;
-  for ( SizeType i = 0; i < mRootArray.size(); ++ i ) {
-    auto node = mRootArray[i];
-    ffr_map.emplace(node->id(), i);
-    node_list.push_back(node);
-  }
+  auto node_list = mRootArray;
   for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
     auto node = node_list[rpos];
     if ( node == root_node() ) {
@@ -118,8 +109,8 @@ DtpgMFFC::opt_make_cnf()
   GateEnc fval_enc{solver(), fvar_map()};
   for ( auto node: node_list ) {
     auto ovar = fvar(node);
-    if ( ffr_map.count(node->id()) > 0 ) {
-      SizeType ffr_pos = ffr_map.at(node->id());
+    if ( mFfrIdMap.count(node->id()) > 0 ) {
+      SizeType ffr_pos = mFfrIdMap.at(node->id());
       // 実際のゲートの出力と ovar の間に XOR ゲートを挿入する．
       // XORの一方の入力は mEvarArray[ffr_pos]
       ovar = solver().new_variable();
@@ -145,7 +136,7 @@ DtpgMFFC::opt_make_cnf()
 
 // @brief gen_pattern() で用いる検出条件を作る．
 vector<SatLiteral>
-DtpgMFFC::gen_assumptions(
+MFFCEngine::gen_assumptions(
   const TpgFault* fault
 )
 {
@@ -154,7 +145,7 @@ DtpgMFFC::gen_assumptions(
   if ( ffr_root != root_node() ) {
     // ffr_root のある FFR を活性化する条件を作る．
     if ( mFfrIdMap.count(ffr_root->id()) == 0 ) {
-      cerr << "Error[DtpgMFFC::dtpg()]: "
+      cerr << "Error[MFFCEngine::dtpg()]: "
 	   << ffr_root->id() << " is not within the MFFC" << endl;
       ASSERT_NOT_REACHED;
       return {};
@@ -179,7 +170,7 @@ DtpgMFFC::gen_assumptions(
 
 // @brief 故障挿入回路のCNFを作る．
 void
-DtpgMFFC::inject_fault(
+MFFCEngine::inject_fault(
   SizeType ffr_id,
   SatLiteral ovar
 )
@@ -192,8 +183,8 @@ DtpgMFFC::inject_fault(
   solver().add_xorgate(lit1, lit2, olit);
 
   if ( debug_mffc ) {
-    DEBUG_OUT << "inject fault: " << ovar << " -> " << fvar(node)
-	      << " with cvar = " << mEvarArray[ffr_id] << endl;
+    DEBUG_OUT << "inject fault: " << ovar << " -> " << olit
+	      << " with cvar = " << lit2 << endl;
   }
 }
 

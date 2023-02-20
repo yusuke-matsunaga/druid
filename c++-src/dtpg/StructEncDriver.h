@@ -1,30 +1,31 @@
-#ifndef DTPGDRIVER_FFR_H
-#define DTPGDRIVER_FFR_H
+#ifndef STRUCTENCDRIVER_H
+#define STRUCTENCDRIVER_H
 
-/// @file DtpgDriver_FFR.h
-/// @brief DtpgDriver_FFR のヘッダファイル
+/// @file StructEncDriver.h
+/// @brief StructEncDriver のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "DtpgDriver.h"
-#include "ym/SatSolverType.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
+class StructEnc;
+
 //////////////////////////////////////////////////////////////////////
-/// @class DtpgDriver_FFR DtpgDriver_FFR.h "DtpgDriver_FFR.h"
+/// @class StructEncDriver StructEncDriver.h "StructEncDriver.h"
 /// @brief
 //////////////////////////////////////////////////////////////////////
-class DtpgDriver_FFR :
+class StructEncDriver :
   public DtpgDriver
 {
 public:
 
   /// @brief コンストラクタ
-  DtpgDriver_FFR(
+  StructEncDriver(
     TpgMgr& mgr,                     ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
@@ -33,38 +34,23 @@ public:
   );
 
   /// @brief デストラクタ
-  ~DtpgDriver_FFR() = default;
+  ~StructEncDriver() = default;
 
 
-public:
+protected:
   //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
+  // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief テスト生成を行う．
+  /// @brief テスト生成を行なう．
   void
-  run() override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 対象のネットワーク
-  const TpgNetwork& mNetwork;
-
-  // 故障の種類
-  FaultType mFaultType;
-
-  // 正当化のタイプ
-  string mJustType;
-
-  // SATソルバのタイプ
-  SatSolverType mSolverType;
+  gen_pattern(
+    StructEnc& enc,       ///< [in] 回路構造をエンコードしたもの
+    const TpgFault* fault ///< [in] 対象の故障
+  );
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // DTPGDRIVER_FFR_H
+#endif // STRUCTENCDRIVER_H

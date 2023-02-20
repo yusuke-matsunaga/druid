@@ -11,6 +11,8 @@
 #include "druid.h"
 #include "TpgMgr.h"
 #include "DtpgStats.h"
+#include "Justifier.h"
+#include "ym/SatSolverType.h"
 #include "ym/Timer.h"
 
 
@@ -48,8 +50,16 @@ public:
 
   /// @brief コンストラクタ
   DtpgDriver(
-    TpgMgr& mgr ///< [in] 親のマネージャ
-  ) : mMgr{mgr}
+    TpgMgr& mgr,                     ///< [in] 親のマネージャ
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    FaultType fault_type,            ///< [in] 故障の種類
+    const string& just_type,         ///< [in] 正当化のタイプ
+    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
+  ) : mMgr{mgr},
+      mNetwork{network},
+      mFaultType{fault_type},
+      mJustifier{just_type, network},
+      mSolverType{solver_type}
   {
   }
 
@@ -86,6 +96,36 @@ protected:
   fault_status_mgr()
   {
     return mMgr.fault_status_mgr();
+  }
+
+  /// @brief ネットワークを返す．
+  const TpgNetwork&
+  network() const
+  {
+    return mNetwork;
+  }
+
+  /// @brief 故障の種類を返す．
+  FaultType
+  fault_type() const
+  {
+    return mFaultType;
+  }
+
+  /// @brief 正当化を行う．
+  TestVector
+  justify(
+    const NodeValList& assign_list, ///< [in] 割り当てリスト
+    const VidMap& hvar_map,         ///< [in] 1時刻前の変数マップ
+    const VidMap& gvar_map,         ///< [in] 現時刻の変数マップ
+    const SatModel& sat_model       ///< [in] SATのモデル
+  );
+
+  /// @brief SATソルバのタイプを返す．
+  SatSolverType
+  sat_type() const
+  {
+    return mSolverType;
   }
 
   /// @brief CNF の生成開始
@@ -165,6 +205,18 @@ private:
 
   // 親の TpgMgr
   TpgMgr& mMgr;
+
+  // 対象のネットワーク
+  const TpgNetwork& mNetwork;
+
+  // 故障の種類
+  FaultType mFaultType;
+
+  // 正当化を行うファンクタ
+  Justifier mJustifier;
+
+  // SATソルバのタイプ
+  SatSolverType mSolverType;
 
   // 時間計測用のタイマー
   Timer mTimer;
