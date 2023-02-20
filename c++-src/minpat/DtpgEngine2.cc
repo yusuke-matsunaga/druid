@@ -15,6 +15,7 @@
 #include "NodeValList.h"
 #include "TestVector.h"
 #include "TpgNodeSet.h"
+#include "extract.h"
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
@@ -35,15 +36,6 @@ END_NONAMESPACE
 
 
 BEGIN_NAMESPACE_DRUID
-
-extern
-NodeValList
-extract_sufficient_condition(
-  const TpgNode* root,
-  const VidMap& gvar_map,
-  const VidMap& fvar_map,
-  const SatModel& model
-);
 
 // @brief コンストラクタ
 DtpgEngine2::DtpgEngine2(
@@ -450,7 +442,7 @@ DtpgEngine2::get_sufficient_condition(
   const TpgNode* ffr_root
 )
 {
-  return extract_sufficient_condition(ffr_root, mGvarMap, mFvarMap, mSatModel);
+  return extract_sufficient_condition("simple", ffr_root, mGvarMap, mFvarMap, mSatModel);
 }
 
 // @brief 必要条件を取り出す．

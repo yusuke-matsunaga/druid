@@ -80,7 +80,6 @@ set (dop_SOURCES
   dop/DopBase.cc
   dop/DopDrop.cc
   dop/DopDummy.cc
-  dop/DopList.cc
   dop/DopTvList.cc
   dop/DopVerify.cc
   dop/DopVerifyResult.cc
@@ -89,12 +88,12 @@ set (dop_SOURCES
 set (uop_SOURCES
   uop/UopBase.cc
   uop/UopDummy.cc
-  uop/UopList.cc
   uop/UopSkip.cc
   )
 
 set (ex_SOURCES
   ex/Extractor.cc
+  ex/ExtSimple.cc
   ex/MultiExtractor.cc
   )
 

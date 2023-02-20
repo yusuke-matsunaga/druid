@@ -3,31 +3,35 @@
 /// @brief Extractor の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "Extractor.h"
+#include "ExtSimple.h"
 #include "TpgNode.h"
-#include "TpgNodeSet.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
-
 int debug = false;
-
 END_NONAMESPACE
 
 NodeValList
 extract_sufficient_condition(
+  const string& mode,
   const TpgNode* root,
   const VidMap& gvar_map,
   const VidMap& fvar_map,
   const SatModel& model
 )
 {
-  Extractor ex{root, gvar_map, fvar_map, model};
+  if ( mode == "simple" ) {
+    ExtSimple ex{root, gvar_map, fvar_map, model};
+    return ex.get_assignment();
+  }
+  // デフォルトフォールバック
+  ExtSimple ex{root, gvar_map, fvar_map, model};
   return ex.get_assignment();
 }
 
@@ -73,7 +77,7 @@ Extractor::get_assignment()
 {
   // 故障差の伝搬している経路を探す．
   ASSERT_COND( mSpoList.size() > 0 );
-  auto spo = mSpoList[0];
+  auto spo = select_output(mSpoList);
 
   // その経路の side input の値を記録する．
   NodeValList assign_list;
@@ -135,9 +139,8 @@ Extractor::record_masking_node(
   const TpgNode* node
 )
 {
-  bool has_cval = false;
   bool has_snode = false;
-  const TpgNode* cnode = nullptr;
+  vector<const TpgNode*> cnode_list;
   for ( auto inode: node->fanin_list() ) {
     int t = type(inode);
     if ( t == 1 ) {
@@ -147,19 +150,19 @@ Extractor::record_masking_node(
     else if ( t == 3 ) {
       if ( node->cval() == gval(inode) ) {
 	// このノードは制御値を持っている．
-	has_cval = true;
-	cnode = inode;
+	cnode_list.push_back(inode);
       }
     }
-    if ( has_snode && has_cval ) {
-      // node のファンインに故障差が伝搬しており，
-      // 他のファンインの制御値でブロックされている場合，
-      // その制御値を持つノードの値を確定させる．
-      // 制御値を持つファンインが2つ以上ある場合には
-      // 異なる結果になる可能性がある．
-      put_queue(cnode, 3);
-      return;
-    }
+  }
+  if ( has_snode && cnode_list.size() > 0 ) {
+    // node のファンインに故障差が伝搬しており，
+    // 他のファンインの制御値でブロックされている場合，
+    // その制御値を持つノードの値を確定させる．
+    // 制御値を持つファンインが2つ以上ある場合には
+    // 異なる結果になる可能性がある．
+    auto cnode = select_cnode(cnode_list);
+    put_queue(cnode, 3);
+    return;
   }
 
   // ここに来たということは全てのファンインに故障差が伝搬していないか

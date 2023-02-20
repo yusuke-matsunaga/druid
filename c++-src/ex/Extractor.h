@@ -5,14 +5,13 @@
 /// @brief Extractor のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2014, 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "NodeValList.h"
 #include "VidMap.h"
 #include "Val3.h"
-//#include "ym/SatBool3.h"
 #include "ym/SatModel.h"
 
 
@@ -45,6 +44,7 @@ public:
   );
 
   /// @brief デストラクタ
+  virtual
   ~Extractor() = default;
 
 
@@ -57,6 +57,26 @@ public:
   /// @return 値の割当リスト
   NodeValList
   get_assignment();
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 動作結果に影響を及ぼすヒューリスティックを実現する関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief バックトレース対象の出力を選ぶ．
+  virtual
+  const TpgNode*
+  select_output(
+    const vector<const TpgNode*>& output_list ///< [in] 対象の出力ノードのリスト
+  ) = 0;
+
+  /// @brief 制御値を持つ入力を選ぶ．
+  virtual
+  const TpgNode*
+  select_cnode(
+    const vector<const TpgNode*>& node_list ///< [in] 候補のノードのリスト
+  ) = 0;
 
 
 private:
