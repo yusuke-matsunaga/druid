@@ -29,19 +29,7 @@ DtpgEngineDriver::gen_pattern(
   Timer timer;
   timer.start();
 
-  // 故障が属している FFR の根のノード
-  auto ffr_root = fault->tpg_onode()->ffr_root();
-
-  // fault の活性化条件を求める．
-  auto assumptions = engine.gen_assumptions(fault);
-
-  // FFR 内の故障伝搬条件を求める．
-  auto assign_list = fault->ffr_propagate_condition(fault_type());
-
-  engine.add_to_literal_list(assign_list, assumptions);
-
-  // SAT問題を解く
-  auto ans = engine.check(assumptions);
+  auto ans = engine.solve(fault);
 
   timer.stop();
   auto sat_time = timer.get_time();
@@ -52,13 +40,8 @@ DtpgEngineDriver::gen_pattern(
     timer.reset();
     timer.start();
 
-
+    auto assign_list = engine.get_sufficient_condition(fault);
     const auto& model = engine.solver().model();
-
-    // ffr_root より先の伝搬条件を求める．
-    auto assign_list2 = engine.get_sufficient_condition(ffr_root);
-    assign_list.merge(assign_list2);
-
     auto testvect = justify(assign_list, engine.hvar_map(), engine.gvar_map(), model);
 
     timer.stop();

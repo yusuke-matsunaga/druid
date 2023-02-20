@@ -115,16 +115,6 @@ DtpgEngine::prepare_vars()
 					if ( node->is_ppo() ) {
 					  mOutputList.push_back(node);
 					}
-					if ( mFaultType == FaultType::TransitionDelay ) {
-					  if ( node->is_primary_input() ) {
-					    mAuxInputList.push_back(node);
-					  }
-					}
-					else {
-					  if ( node->is_ppi() ) {
-					    mPPIList.push_back(node);
-					  }
-					}
 				      });
 
   // TFO の TFI を mTfiList に入れる．
@@ -134,14 +124,6 @@ DtpgEngine::prepare_vars()
 					if ( mFaultType == FaultType::TransitionDelay ) {
 					  if ( node->is_dff_output() ) {
 					    mDffInputList.push_back(node->alt_node());
-					  }
-					  else if ( node->is_primary_input() ) {
-					    mAuxInputList.push_back(node);
-					  }
-					}
-					else {
-					  if ( node->is_ppi() ) {
-					    mPPIList.push_back(node);
 					  }
 					}
 				      });
@@ -154,12 +136,7 @@ DtpgEngine::prepare_vars()
     // mRoot の1時刻前も必要なので tmp_list に入れておく．
     tmp_list.push_back(mRoot);
     // tmp_list の TFI を mTfi2List に入れる．
-    mTfi2List = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list,
-					 [&](const TpgNode* node) {
-					   if ( node->is_ppi() ) {
-					     mPPIList.push_back(node);
-					   }
-					 });
+    mTfi2List = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list);
   }
 
   // 正常回路の変数を作る．
@@ -393,178 +370,36 @@ DtpgEngine::add_to_literal_list(
   }
 }
 
-// @brief SAT問題が充足可能か調べる．
+// @brief テストパタン生成を行う．
 SatBool3
-DtpgEngine::check(
-  const vector<SatLiteral>& assumptions
+DtpgEngine::solve(
+  const TpgFault* fault
 )
 {
-  Timer timer;
-  timer.start();
-
-  auto ans = mSolver.solve(assumptions);
-
-  timer.stop();
-  mSatTime = timer.get_time();
-
-  if ( ans == SatBool3::True ) {
-    // パタンが求まった．
-    mSatModel = mSolver.model();
-  }
-
-  return ans;
-}
-
-// @brief 直前の solve() の結果からテストベクタを作る．
-// @return 作成したテストベクタを返す．
-//
-// この関数では単純に外部入力の値を記録する．
-TestVector
-DtpgEngine::get_tv()
-{
-  NodeValList assign_list;
-  if ( mFaultType == FaultType::StuckAt ) {
-    for ( auto node: mPPIList ) {
-      bool val = gval(node) == Val3::_1;
-      assign_list.add(node, 1, val);
-    }
-  }
-  else {
-    for ( auto node: mPPIList ) {
-      bool val = hval(node) == Val3::_1;
-      assign_list.add(node, 0, val);
-    }
-    for ( auto node: mAuxInputList ) {
-      bool val = gval(node) == Val3::_1;
-      assign_list.add(node, 1, val);
-    }
-  }
-  TestVector tv{mNetwork.input_num(), mNetwork.dff_num(), mFaultType};
-  tv.set_from_assign_list(assign_list);
-  return tv;
+  // FFR 内の伝搬条件
+  auto ffr_cond = fault->ffr_propagate_condition(fault_type());
+  // fault の活性化条件を求める．
+  auto assumptions = gen_assumptions(fault);
+  add_to_literal_list(ffr_cond, assumptions);
+  return mSolver.solve(assumptions);
 }
 
 // @brief 十分条件を取り出す．
+// @return 十分条件を表す割当リストを返す．
 NodeValList
 DtpgEngine::get_sufficient_condition(
-  const TpgNode* ffr_root
+  const TpgFault* fault
 )
 {
-  return extract_sufficient_condition(ffr_root, mGvarMap, mFvarMap, mSatModel);
+  // FFR 内の伝搬条件
+  auto ffr_cond = fault->ffr_propagate_condition(fault_type());
+  // FFR の根の先の伝搬条件
+  auto ffr_root = fault->tpg_onode()->ffr_root();
+  const auto& model = mSolver.model();
+  auto suf_cond = extract_sufficient_condition(ffr_root, mGvarMap, mFvarMap, model);
+  suf_cond.merge(ffr_cond);
+  return suf_cond;
 }
-
-// @brief 必要条件を取り出す．
-NodeValList
-DtpgEngine::get_mandatory_condition(
-  const NodeValList& ffr_cond,
-  const NodeValList& suf_cond
-)
-{
-  NodeValList mand_cond;
-  auto assumptions = conv_to_literal_list(ffr_cond);
-  for ( auto nv: suf_cond ) {
-    auto lit = conv_to_literal(nv);
-    auto assumptions1 = assumptions;
-    assumptions1.push_back(~lit);
-    auto tmp_res = check(assumptions1);
-    if ( tmp_res == SatBool3::False ) {
-      mand_cond.add(nv);
-      assumptions.push_back(lit);
-    }
-  }
-  // ffr_cond も mandatory_condition に加える．
-  mand_cond.merge(ffr_cond);
-
-  return mand_cond;
-}
-
-#if 0
-// @brief SATソルバに論理式の否定を追加する．
-void
-DtpgEngine::add_negation(
-  const Expr& expr,
-  SatLiteral clit
-)
-{
-  if ( expr.is_posi_literal() ) {
-    int id = expr.varid();
-    auto node = mNetwork.node(id);
-    auto lit = gvar(node);
-    solver().add_clause(~clit, ~lit);
-  }
-  else if ( expr.is_nega_literal() ) {
-    int id = expr.varid();
-    auto node = mNetwork.node(id);
-    auto lit = gvar(node);
-    solver().add_clause(~clit,  lit);
-  }
-  else if ( expr.is_and() ) {
-    SizeType n = expr.operand_num();
-    ASSERT_COND( n > 0 );
-    vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(n + 1);
-    tmp_lits.push_back(~clit);
-    for ( auto expr1: expr.operand_list() ) {
-      auto lit1 = _add_negation_sub(expr1);
-      tmp_lits.push_back(~lit1);
-    }
-    solver().add_clause(tmp_lits);
-  }
-  else if ( expr.is_or() ) {
-    for ( auto expr1: expr.operand_list() ) {
-      auto lit1 = _add_negation_sub(expr1);
-      solver().add_clause(~clit, ~lit1);
-    }
-  }
-  else {
-    ASSERT_NOT_REACHED;
-  }
-}
-
-// @brief add_negation の下請け関数
-SatLiteral
-DtpgEngine::_add_negation_sub(
-  const Expr& expr
-)
-{
-  if ( expr.is_posi_literal() ) {
-    int id = expr.varid();
-    auto node = mNetwork.node(id);
-    auto lit = gvar(node);
-    return lit;
-  }
-  else if ( expr.is_nega_literal() ) {
-    int id = expr.varid();
-    auto node = mNetwork.node(id);
-    auto lit = gvar(node);
-    return ~lit;
-  }
-  else if ( expr.is_and() ) {
-    SizeType n = expr.operand_num();
-    auto nlit = solver().new_variable();
-    vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(n + 1);
-    tmp_lits.push_back(nlit);
-    for ( auto expr1: expr.operand_list() ) {
-      auto lit1 = _add_negation_sub(expr1);
-      tmp_lits.push_back(~lit1);
-    }
-    solver().add_clause(tmp_lits);
-    return nlit;
-  }
-  else if ( expr.is_or() ) {
-    auto nlit = solver().new_variable();
-    for ( auto expr1: expr.operand_list() ) {
-      auto lit1 = _add_negation_sub(expr1);
-      solver().add_clause(nlit, ~lit1);
-    }
-    return nlit;
-  }
-
-  ASSERT_NOT_REACHED;
-  return SatLiteral();
-}
-#endif
 
 // @brief ノード名を返す．
 string

@@ -101,63 +101,22 @@ public:
     solver().add_clause(lits);
   }
 
-  /// @brief SATソルバに論理式の否定を追加する．
-  ///
-  /// clit が true の時に与えられた論理式が false となる条件を追加する．
-  /// 論理式の変数番号はノード番号に対応している．
-  void
-  add_negation(
-    const Expr& expr, ///< [in] 対象の論理式
-    SatLiteral clit   ///< [in] 制御用のリテラル
-  );
-
-  /// @brief gen_pattern() で用いる検出条件を作る．
-  ///
-  /// デフォルトでは空を返す．
-  virtual
-  vector<SatLiteral>
-  gen_assumptions(
-    const TpgFault* fault ///< [in] 対象の故障
-  );
-
-  /// @brief SAT問題が充足可能か調べる．
-  /// @return 結果を返す．
+  /// @brief テストパタン生成を行う．
   SatBool3
-  check(
-    const vector<SatLiteral>& assumptions  ///< [in] 値の決まっている変数のリスト
+  solve(
+    const TpgFault* fault ///< [in] 故障
   );
-
-  /// @brief 直前の solve() の結果からテストベクタを作る．
-  /// @return 作成したテストベクタを返す．
-  ///
-  /// この関数では単純に外部入力の値を記録する．
-  TestVector
-  get_tv();
 
   /// @brief 十分条件を取り出す．
   /// @return 十分条件を表す割当リストを返す．
-  ///
-  /// * FFR内の故障伝搬条件は含まない．
   NodeValList
   get_sufficient_condition(
-    const TpgNode* ffr_root ///< [in] FFRの根のノード
-  );
-
-  /// @brief 必要条件を取り出す．
-  /// @return 必要条件を返す．
-  NodeValList
-  get_mandatory_condition(
-    const NodeValList& ffr_cond, ///< [in] FFR内の伝搬条件
-    const NodeValList& suf_cond	 ///< [in] 十分条件
+    const TpgFault* fault ///< [in] 故障
   );
 
   /// @brief SATの統計情報を返す．
   SatStats
   sat_stats() const { return mSolver.get_stats(); }
-
-  /// @brief SATの計算時間を返す．
-  double
-  sat_time() const { return mSatTime; }
 
 
 public:
@@ -292,43 +251,6 @@ public:
     return mFvarMap;
   }
 
-  /// @brief 1時刻前の正常値を得る．
-  Val3
-  hval(
-    const TpgNode* node  ///< [in] 対象のノード
-  ) const
-  {
-    auto var = hvar(node);
-    return get_val(var);
-  }
-
-  /// @brief 正常値を得る．
-  Val3
-  gval(
-    const TpgNode* node  ///< [in] 対象のノード
-  ) const
-  {
-    auto var = gvar(node);
-    return get_val(var);
-  }
-
-  /// @brief 故障値を得る．
-  Val3
-  fval(
-    const TpgNode* node  ///< [in] 対象のノード
-  ) const
-  {
-    auto var = fvar(node);
-    return get_val(var);
-  }
-
-  /// @brief 直前の solve() の解を返す．
-  const SatModel&
-  sat_model() const
-  {
-    return mSatModel;
-  }
-
   /// @brief 起点となるノードを返す．
   const TpgNode*
   root_node() const
@@ -382,35 +304,20 @@ private:
   void
   opt_make_cnf();
 
+  /// @brief gen_pattern() で用いる検出条件を作る．
+  ///
+  /// デフォルトでは空を返す．
+  virtual
+  vector<SatLiteral>
+  gen_assumptions(
+    const TpgFault* fault ///< [in] 対象の故障
+  );
+
   /// @brief 故障伝搬条件を表すCNF式を生成する．
   void
   make_dchain_cnf(
     const TpgNode* node  ///< [in] 対象のノード
   );
-
-  /// @brief add_negation の下請け関数
-  SatLiteral
-  _add_negation_sub(
-    const Expr& expr  ///< [in] 論理式
-  );
-
-  /// @brief SATモデルから値を取り出す．
-  Val3
-  get_val(
-    SatLiteral var  ///< [in] 変数番号
-  ) const
-  {
-    auto sat_val = mSatModel[var];
-    if ( sat_val == SatBool3::True ) {
-      return Val3::_1;
-    }
-    else if ( sat_val == SatBool3::False ) {
-      return Val3::_0;
-    }
-    else {
-      return Val3::_X;
-    }
-  }
 
 
 private:
@@ -448,12 +355,6 @@ private:
   // 関係する出力ノードを入れておくリスト
   vector<const TpgNode*> mOutputList;
 
-  // 関係する１時刻目の外部入力ノードを入れておくリスト
-  vector<const TpgNode*> mAuxInputList;
-
-  // 関係する擬似外部入力ノードを入れておくリスト
-  vector<const TpgNode*> mPPIList;
-
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;
 
@@ -465,12 +366,6 @@ private:
 
   // 故障伝搬条件を表す変数のマップ
   VidMap mDvarMap;
-
-  // SATの解を保持する配列
-  SatModel mSatModel;
-
-  // SAT時間
-  double mSatTime;
 
 };
 
