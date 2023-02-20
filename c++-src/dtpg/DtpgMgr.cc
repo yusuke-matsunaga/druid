@@ -73,11 +73,9 @@ DtpgMgr::add_tvlist_dop()
 
 // @brief 'verify' タイプの DetectOp を登録する．
 void
-DtpgMgr::add_verify_dop(
-  DopVerifyResult& verify_result
-)
+DtpgMgr::add_verify_dop()
 {
-  add_dop(new_DopVerify(fsim(), verify_result));
+  add_dop(new_DopVerify(fsim(), mVerifyResult));
 }
 
 // @brief 'base' タイプの UntestOp を登録する．

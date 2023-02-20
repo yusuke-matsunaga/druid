@@ -277,8 +277,7 @@ dtpg_test(
 
   DtpgMgr mgr{network, fault_type, mode, just_type, solver_type};
 
-  DopVerifyResult verify_result;
-  mgr.add_verify_dop(verify_result);
+  mgr.add_verify_dop();
 
   Timer timer;
   timer.start();
@@ -293,6 +292,7 @@ dtpg_test(
 		time, mgr.dtpg_stats());
   }
 
+  auto& verify_result = mgr.verify_result();
   SizeType n = verify_result.error_count();
   for ( SizeType i = 0; i < n; ++ i ) {
     auto f = verify_result.error_fault(i);

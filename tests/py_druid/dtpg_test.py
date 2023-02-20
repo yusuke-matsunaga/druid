@@ -10,7 +10,7 @@
 import pytest
 import os
 from druid.types import TpgNetwork, FaultType, FaultStatus
-from druid.dtpg import DtpgFFR, DtpgMFFC
+from druid.dtpg import DtpgMgr
 
 
 def test_dtpg():
@@ -18,22 +18,10 @@ def test_dtpg():
     filename = os.path.join(TESTDATA_DIR, 's27.blif')
     network = TpgNetwork.read_blif(filename)
     fault_type = FaultType.TransitionDelay
-    n_faults = 0
-    n_detected = 0
-    n_untestable = 0
-    n_abort = 0
-    for mffc in network.mffc_list:
-        dtpg = DtpgMFFC(network, fault_type, mffc)
-        for fault in mffc.fault_list:
-            r, tv = dtpg.gen_pattern(fault)
-            n_faults += 1
-            if r == FaultStatus.Detected:
-                n_detected += 1
-            elif r == FaultStatus.Untestable:
-                n_untestable += 1
-            else:
-                n_abort += 1
-    assert n_faults == 32
-    assert n_detected == 32
-    assert n_untestable == 0
-    assert n_abort == 0
+    mgr = DtpgMgr(network, fault_type, "mffc")
+    mgr.add_base_dop()
+    mgr.add_base_uop()
+    mgr.run()
+    assert mgr.detect_count == 32
+    assert mgr.untest_count == 0
+    assert mgr.abort_count == 0

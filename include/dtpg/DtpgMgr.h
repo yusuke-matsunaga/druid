@@ -13,6 +13,7 @@
 #include "Fsim.h"
 #include "TestVector.h"
 #include "DtpgStats.h"
+#include "DopVerifyResult.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -80,9 +81,7 @@ public:
 
   /// @brief 'verify' タイプの DetectOp を登録する．
   void
-  add_verify_dop(
-    DopVerifyResult& verify_result ///< [in] 検証結果を格納するオブジェクト
-  );
+  add_verify_dop();
 
   /// @brief UntestOp を登録する．
   void
@@ -153,6 +152,13 @@ public:
     return mStats;
   }
 
+  /// @brief 検証結果を返す．
+  const DopVerifyResult
+  verify_result() const
+  {
+    return mVerifyResult;
+  }
+
   /// @brief テストパタン生成が成功した時の結果を更新する．
   void
   update_det(
@@ -208,6 +214,9 @@ private:
 
   // DTPG の統計情報
   DtpgStats mStats;
+
+  // 検証結果
+  DopVerifyResult mVerifyResult;
 
   // テストパタン生成を行う本体
   DtpgDriver* mDriver{nullptr};

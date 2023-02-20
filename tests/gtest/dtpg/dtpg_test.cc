@@ -170,7 +170,7 @@ DtpgTestWithParam2::SetUp()
 
   mDtpgMgr = new DtpgMgr{*mNetwork_p, fault_type(), mode, just_type(), solver_type};
 
-  mDtpgMgr->add_verify_dop(mVerifyResult);
+  mDtpgMgr->add_verify_dop();
 }
 
 // @brief 終了処理を行う．
@@ -190,7 +190,7 @@ DtpgTestWithParam2::do_test()
   EXPECT_EQ( detect_fault_num(), mDtpgMgr->detect_count() );
   EXPECT_EQ( untest_fault_num(), mDtpgMgr->untest_count() );
 
-  EXPECT_EQ( 0, mVerifyResult.error_count() );
+  EXPECT_EQ( 0, mDtpgMgr->verify_result().error_count() );
 }
 
 // @brief テストパラメータからファイル名を取り出す．

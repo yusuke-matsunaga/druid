@@ -8,8 +8,10 @@
 
 #include "PyDtpgMgr.h"
 #include "pym/PyModule.h"
+#include "PyFsim.h"
 #include "PyTpgNetwork.h"
 #include "PyFaultType.h"
+#include "PyTestVector.h"
 #include "ym/SatSolverType.h"
 
 
@@ -92,8 +94,8 @@ DtpgMgr_run(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto& tpgmgr = PyDtpgMgr::Get(self);
-  tpgmgr.run();
+  auto& mgr = PyDtpgMgr::Get(self);
+  mgr.run();
   Py_RETURN_NONE;
 }
 
@@ -103,7 +105,62 @@ DtpgMgr_add_dop(
   PyObject* args
 )
 {
-  auto& tpgmgr = PyDtpgMgr::Get(self);
+  auto& mgr = PyDtpgMgr::Get(self);
+  Py_RETURN_NONE;
+}
+
+PyObject*
+DtpgMgr_add_base_dop(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  mgr.add_base_dop();
+  Py_RETURN_NONE;
+}
+
+PyObject*
+DtpgMgr_add_drop_dop(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  mgr.add_drop_dop();
+  Py_RETURN_NONE;
+}
+
+PyObject*
+DtpgMgr_add_tvlist_dop(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  mgr.add_tvlist_dop();
+  Py_RETURN_NONE;
+}
+
+PyObject*
+DtpgMgr_add_verify_dop(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  mgr.add_verify_dop();
+  Py_RETURN_NONE;
+}
+
+PyObject*
+DtpgMgr_add_base_uop(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  mgr.add_base_uop();
   Py_RETURN_NONE;
 }
 
@@ -113,26 +170,96 @@ PyMethodDef DtpgMgr_methods[] = {
    PyDoc_STR("run")},
   {"add_dop", DtpgMgr_add_dop, METH_VARARGS,
    PyDoc_STR("add DetectOp")},
+  {"add_base_dop", DtpgMgr_add_base_dop, METH_NOARGS,
+   PyDoc_STR("add BaseDetectOp")},
+  {"add_drop_dop", DtpgMgr_add_drop_dop, METH_NOARGS,
+   PyDoc_STR("add DropDetectOp")},
+  {"add_tvlist_dop", DtpgMgr_add_tvlist_dop, METH_NOARGS,
+   PyDoc_STR("add TvListDetectOp")},
+  {"add_verify_dop", DtpgMgr_add_verify_dop, METH_NOARGS,
+   PyDoc_STR("add VerifyDetectOp")},
+  {"add_base_uop", DtpgMgr_add_base_uop, METH_NOARGS,
+   PyDoc_STR("add BaseUntestOp")},
   {nullptr, nullptr, 0, nullptr}
 };
 
-#if 0
-// get() 関数の例
 PyObject*
-DtpgMgr_get(
+DtpgMgr_detect_count(
   PyObject* self,
   void* Py_UNUSED(closure)
 )
 {
-  auto val = PyDtpgMgr::_get(self);
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto val = mgr.detect_count();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+DtpgMgr_untest_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto val = mgr.untest_count();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+DtpgMgr_abort_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto val = mgr.abort_count();
+  return PyLong_FromLong(val);
+}
+
+PyObject*
+DtpgMgr_tv_list(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto& tv_list = mgr.tv_list();
+  SizeType n = tv_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto& tv = tv_list[i];
+    auto obj1 = PyTestVector::ToPyObject(tv);
+    PyList_SetItem(ans_obj, i, obj1);
+  }
+  return ans_obj;
+}
+
+PyObject*
+DtpgMgr_stats(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto& stats = mgr.dtpg_stats();
+  // 未完
+  Py_RETURN_NONE;
 }
 
 // get/set 関数定義
 PyGetSetDef DtpgMgr_getset[] = {
-  {"member", DtpgMgr_get, nullptr, PyDoc_STR("member getter"), nullptr},
-  {nullptr, nullptr, nullptr, nullptr, nullptr},
+  {"detect_count", DtpgMgr_detect_count, nullptr,
+   PyDoc_STR("# of detected faults")},
+  {"untest_count", DtpgMgr_untest_count, nullptr,
+   PyDoc_STR("# of untestable faults")},
+  {"abort_count", DtpgMgr_abort_count, nullptr,
+   PyDoc_STR("# of aborted faults")},
+  {"tv_list", DtpgMgr_tv_list, nullptr,
+   PyDoc_STR("list of TestVector")},
+  {"dtpg_stats", DtpgMgr_stats, nullptr,
+   PyDoc_STR("statistics of DTPG operation")},
+  {nullptr, nullptr, 0, nullptr}
 };
-#endif
 
 END_NONAMESPACE
 
@@ -150,8 +277,8 @@ PyDtpgMgr::init(
   DtpgMgrType.tp_flags = Py_TPFLAGS_DEFAULT;
   DtpgMgrType.tp_doc = PyDoc_STR("DtpgMgr object");
   DtpgMgrType.tp_methods = DtpgMgr_methods;
-  //DtpgMgrType.tp_getset = DtpgMgr_getset;
   DtpgMgrType.tp_new = DtpgMgr_new;
+  DtpgMgrType.tp_getset = DtpgMgr_getset;
 
   // 型オブジェクトの登録
   if ( !PyModule::reg_type(m, "DtpgMgr", &DtpgMgrType) ) {
