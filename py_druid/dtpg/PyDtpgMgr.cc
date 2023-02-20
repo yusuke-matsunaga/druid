@@ -1,12 +1,12 @@
 
-/// @file PyTpgMgr.cc
-/// @brief Python TpgMgr の実装ファイル
+/// @file PyDtpgMgr.cc
+/// @brief Python DtpgMgr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyTpgMgr.h"
+#include "PyDtpgMgr.h"
 #include "pym/PyModule.h"
 #include "PyTpgNetwork.h"
 #include "PyFaultType.h"
@@ -18,20 +18,20 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 // Python 用のオブジェクト定義
-struct TpgMgrObject
+struct DtpgMgrObject
 {
   PyObject_HEAD
-  TpgMgr* mVal;
+  DtpgMgr* mVal;
 };
 
 // Python 用のタイプ定義
-PyTypeObject TpgMgrType = {
+PyTypeObject DtpgMgrType = {
   PyVarObject_HEAD_INIT(nullptr, 0)
 };
 
 // 生成関数
 PyObject*
-TpgMgr_new(
+DtpgMgr_new(
   PyTypeObject* type,
   PyObject* args,
   PyObject* kwds
@@ -70,48 +70,48 @@ TpgMgr_new(
     solver_type = SatSolverType{sat_type_str};
   }
   auto self = type->tp_alloc(type, 0);
-  auto tpgmgr_obj = reinterpret_cast<TpgMgrObject*>(self);
-  tpgmgr_obj->mVal = new TpgMgr{network, fault_type, dtpg_type_str, just_type, solver_type};
+  auto tpgmgr_obj = reinterpret_cast<DtpgMgrObject*>(self);
+  tpgmgr_obj->mVal = new DtpgMgr{network, fault_type, dtpg_type_str, just_type, solver_type};
   return self;
 }
 
 // 終了関数
 void
-TpgMgr_dealloc(
+DtpgMgr_dealloc(
   PyObject* self
 )
 {
-  auto tpgmgr_obj = reinterpret_cast<TpgMgrObject*>(self);
+  auto tpgmgr_obj = reinterpret_cast<DtpgMgrObject*>(self);
   delete tpgmgr_obj->mVal;
   Py_TYPE(self)->tp_free(self);
 }
 
 PyObject*
-TpgMgr_run(
+DtpgMgr_run(
   PyObject* self,
   PyObject* Py_UNUSED(args)
 )
 {
-  auto& tpgmgr = PyTpgMgr::Get(self);
+  auto& tpgmgr = PyDtpgMgr::Get(self);
   tpgmgr.run();
   Py_RETURN_NONE;
 }
 
 PyObject*
-TpgMgr_add_dop(
+DtpgMgr_add_dop(
   PyObject* self,
   PyObject* args
 )
 {
-  auto& tpgmgr = PyTpgMgr::Get(self);
+  auto& tpgmgr = PyDtpgMgr::Get(self);
   Py_RETURN_NONE;
 }
 
 // メソッド定義
-PyMethodDef TpgMgr_methods[] = {
-  {"run", TpgMgr_run, METH_NOARGS,
+PyMethodDef DtpgMgr_methods[] = {
+  {"run", DtpgMgr_run, METH_NOARGS,
    PyDoc_STR("run")},
-  {"add_dop", TpgMgr_add_dop, METH_VARARGS,
+  {"add_dop", DtpgMgr_add_dop, METH_VARARGS,
    PyDoc_STR("add DetectOp")},
   {nullptr, nullptr, 0, nullptr}
 };
@@ -119,17 +119,17 @@ PyMethodDef TpgMgr_methods[] = {
 #if 0
 // get() 関数の例
 PyObject*
-TpgMgr_get(
+DtpgMgr_get(
   PyObject* self,
   void* Py_UNUSED(closure)
 )
 {
-  auto val = PyTpgMgr::_get(self);
+  auto val = PyDtpgMgr::_get(self);
 }
 
 // get/set 関数定義
-PyGetSetDef TpgMgr_getset[] = {
-  {"member", TpgMgr_get, nullptr, PyDoc_STR("member getter"), nullptr},
+PyGetSetDef DtpgMgr_getset[] = {
+  {"member", DtpgMgr_get, nullptr, PyDoc_STR("member getter"), nullptr},
   {nullptr, nullptr, nullptr, nullptr, nullptr},
 };
 #endif
@@ -137,24 +137,24 @@ PyGetSetDef TpgMgr_getset[] = {
 END_NONAMESPACE
 
 
-// @brief 'TpgMgr' オブジェクトを使用可能にする．
+// @brief 'DtpgMgr' オブジェクトを使用可能にする．
 bool
-PyTpgMgr::init(
+PyDtpgMgr::init(
   PyObject* m
 )
 {
-  TpgMgrType.tp_name = "TpgMgr";
-  TpgMgrType.tp_basicsize = sizeof(TpgMgrObject);
-  TpgMgrType.tp_itemsize = 0;
-  TpgMgrType.tp_dealloc = TpgMgr_dealloc;
-  TpgMgrType.tp_flags = Py_TPFLAGS_DEFAULT;
-  TpgMgrType.tp_doc = PyDoc_STR("TpgMgr object");
-  TpgMgrType.tp_methods = TpgMgr_methods;
-  //TpgMgrType.tp_getset = TpgMgr_getset;
-  TpgMgrType.tp_new = TpgMgr_new;
+  DtpgMgrType.tp_name = "DtpgMgr";
+  DtpgMgrType.tp_basicsize = sizeof(DtpgMgrObject);
+  DtpgMgrType.tp_itemsize = 0;
+  DtpgMgrType.tp_dealloc = DtpgMgr_dealloc;
+  DtpgMgrType.tp_flags = Py_TPFLAGS_DEFAULT;
+  DtpgMgrType.tp_doc = PyDoc_STR("DtpgMgr object");
+  DtpgMgrType.tp_methods = DtpgMgr_methods;
+  //DtpgMgrType.tp_getset = DtpgMgr_getset;
+  DtpgMgrType.tp_new = DtpgMgr_new;
 
   // 型オブジェクトの登録
-  if ( !PyModule::reg_type(m, "TpgMgr", &TpgMgrType) ) {
+  if ( !PyModule::reg_type(m, "DtpgMgr", &DtpgMgrType) ) {
     goto error;
   }
 
@@ -165,30 +165,30 @@ PyTpgMgr::init(
   return false;
 }
 
-// @brief PyObject が TpgMgr タイプか調べる．
+// @brief PyObject が DtpgMgr タイプか調べる．
 bool
-PyTpgMgr::Check(
+PyDtpgMgr::Check(
   PyObject* obj
 )
 {
   return Py_IS_TYPE(obj, _typeobject());
 }
 
-// @brief TpgMgr を表す PyObject から TpgMgr を取り出す．
-TpgMgr&
-PyTpgMgr::Get(
+// @brief DtpgMgr を表す PyObject から DtpgMgr を取り出す．
+DtpgMgr&
+PyDtpgMgr::Get(
   PyObject* obj
 )
 {
-  auto tpgmgr_obj = reinterpret_cast<TpgMgrObject*>(obj);
+  auto tpgmgr_obj = reinterpret_cast<DtpgMgrObject*>(obj);
   return *tpgmgr_obj->mVal;
 }
 
-// @brief TpgMgr を表すオブジェクトの型定義を返す．
+// @brief DtpgMgr を表すオブジェクトの型定義を返す．
 PyTypeObject*
-PyTpgMgr::_typeobject()
+PyDtpgMgr::_typeobject()
 {
-  return &TpgMgrType;
+  return &DtpgMgrType;
 }
 
 END_NAMESPACE_DRUID

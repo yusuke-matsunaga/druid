@@ -43,9 +43,7 @@ set ( py_druid_SOURCES
   fsim/PyFsim.cc
 
   dtpg/dtpg_module.cc
-  #dtpg/PyDtpgFFR.cc
-  #dtpg/PyDtpgMFFC.cc
-  dtpg/PyTpgMgr.cc
+  dtpg/PyDtpgMgr.cc
   )
 
 

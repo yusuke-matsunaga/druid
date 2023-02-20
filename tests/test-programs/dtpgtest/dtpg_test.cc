@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "TpgNetwork.h"
-#include "TpgMgr.h"
+#include "DtpgMgr.h"
 #include "TpgFault.h"
 #include "DopVerifyResult.h"
 #include "ym/SatSolverType.h"
@@ -275,7 +275,7 @@ dtpg_test(
 
   SatSolverType solver_type{sat_type, sat_option, sat_outp};
 
-  TpgMgr mgr{network, fault_type, mode, just_type, solver_type};
+  DtpgMgr mgr{network, fault_type, mode, just_type, solver_type};
 
   DopVerifyResult verify_result;
   mgr.add_verify_dop(verify_result);

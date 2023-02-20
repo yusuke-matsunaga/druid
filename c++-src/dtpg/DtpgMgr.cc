@@ -1,12 +1,12 @@
 
-/// @file TpgMgr.cc
-/// @brief TpgMgr の実装ファイル
+/// @file DtpgMgr.cc
+/// @brief DtpgMgr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "TpgMgr.h"
+#include "DtpgMgr.h"
 #include "DtpgDriver.h"
 #include "DtpgResult.h"
 #include "DetectOp.h"
@@ -16,11 +16,11 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgMgr
+// クラス DtpgMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-TpgMgr::TpgMgr(
+DtpgMgr::DtpgMgr(
   const TpgNetwork& network,
   FaultType fault_type,
   const string& dtpg_type,
@@ -36,14 +36,14 @@ TpgMgr::TpgMgr(
 }
 
 // @brief デストラクタ
-TpgMgr::~TpgMgr()
+DtpgMgr::~DtpgMgr()
 {
   delete mDriver;
 }
 
 // @brief テスト生成を行う．
 void
-TpgMgr::run()
+DtpgMgr::run()
 {
   mStats.clear();
 
@@ -52,28 +52,28 @@ TpgMgr::run()
 
 // @brief 'base' タイプの DetectOp を登録する．
 void
-TpgMgr::add_base_dop()
+DtpgMgr::add_base_dop()
 {
   add_dop(new_DopBase(fault_status_mgr()));
 }
 
 // @brief 'drop' タイプの DetectOp を登録する．
 void
-TpgMgr::add_drop_dop()
+DtpgMgr::add_drop_dop()
 {
   add_dop(new_DopDrop(fault_status_mgr(), fsim()));
 }
 
 // @brief 'tvlist' タイプの DetectOp を登録する．
 void
-TpgMgr::add_tvlist_dop()
+DtpgMgr::add_tvlist_dop()
 {
   add_dop(new_DopTvList(mTVList));
 }
 
 // @brief 'verify' タイプの DetectOp を登録する．
 void
-TpgMgr::add_verify_dop(
+DtpgMgr::add_verify_dop(
   DopVerifyResult& verify_result
 )
 {
@@ -82,14 +82,14 @@ TpgMgr::add_verify_dop(
 
 // @brief 'base' タイプの UntestOp を登録する．
 void
-TpgMgr::add_base_uop()
+DtpgMgr::add_base_uop()
 {
   add_uop(new_UopBase(fault_status_mgr()));
 }
 
 // @brief テストパタン生成が成功した時の結果を更新する．
 void
-TpgMgr::update_det(
+DtpgMgr::update_det(
   const TpgFault* fault,
   const TestVector& tv,
   double sat_time,
@@ -104,7 +104,7 @@ TpgMgr::update_det(
 
 // @brief 冗長故障の特定が行えた時の結果を更新する．
 void
-TpgMgr::update_untest(
+DtpgMgr::update_untest(
   const TpgFault* fault,
   double sat_time
 )
@@ -117,7 +117,7 @@ TpgMgr::update_untest(
 
 // @brief アボートした時の結果を更新する．
 void
-TpgMgr::update_abort(
+DtpgMgr::update_abort(
   const TpgFault* fault,
   double sat_time
 )
@@ -127,7 +127,7 @@ TpgMgr::update_abort(
 
 // @brief CNF 生成に関する情報を更新する．
 void
-TpgMgr::update_cnf(
+DtpgMgr::update_cnf(
   double time
 )
 {
@@ -136,39 +136,11 @@ TpgMgr::update_cnf(
 
 // @brief SATの統計情報を更新する．
 void
-TpgMgr::update_sat_stats(
+DtpgMgr::update_sat_stats(
   const SatStats& sat_stats
 )
 {
   mStats.update_sat_stats(sat_stats);
-}
-
-void
-TpgMgr::_update(
-  const TpgFault* fault,
-  const DtpgResult& result
-)
-{
-  switch ( result.status() ) {
-  case FaultStatus::Detected:
-    update_det(fault, result.testvector(), 0.0, 0.0);
-    break;
-  case FaultStatus::Untestable:
-    update_untest(fault, 0.0);
-    break;
-  case FaultStatus::Undetected:
-    update_abort(fault, 0.0);
-    break;
-  }
-}
-
-// @brief DTPG の統計情報をマージする．
-void
-TpgMgr::_merge_stats(
-  const DtpgStats& stats
-)
-{
-  mStats.merge(stats);
 }
 
 END_NAMESPACE_DRUID

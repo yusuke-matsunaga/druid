@@ -8,12 +8,6 @@
 
 #include "FFREngine.h"
 
-//#include "TpgFault.h"
-//#include "TpgFFR.h"
-//#include "NodeValList.h"
-//#include "TestVector.h"
-//#include "ym/Range.h"
-
 
 BEGIN_NAMESPACE_DRUID
 
@@ -31,22 +25,5 @@ FFREngine::FFREngine(
 FFREngine::~FFREngine()
 {
 }
-
-#if 0
-// @brief make_cnf() の追加処理
-void
-FFREngine::opt_make_cnf()
-{
-}
-
-// @brief gen_pattern() で用いる検出条件を作る．
-vector<SatLiteral>
-FFREngine::gen_assumptions(
-  const TpgFault* fault ///< [in] 対象の故障
-)
-{
-  return {};
-}
-#endif
 
 END_NAMESPACE_DRUID

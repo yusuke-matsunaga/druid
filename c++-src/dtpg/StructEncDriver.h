@@ -26,12 +26,14 @@ public:
 
   /// @brief コンストラクタ
   StructEncDriver(
-    TpgMgr& mgr,                     ///< [in] 親のマネージャ
+    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
     const string& just_type,         ///< [in] 正当化のタイプ
     const SatSolverType& solver_type ///< [in] SATソルバのタイプ
-  );
+  ) : DtpgDriver{mgr, network, fault_type, just_type, solver_type}
+  {
+  }
 
   /// @brief デストラクタ
   ~StructEncDriver() = default;

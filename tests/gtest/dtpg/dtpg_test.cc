@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "gtest/gtest.h"
-#include "TpgMgr.h"
+#include "DtpgMgr.h"
 #include "TpgNetwork.h"
 #include "ym/SatSolverType.h"
 #include "DetectOp.h"
@@ -146,7 +146,7 @@ private:
 
   TpgNetwork* mNetwork_p{nullptr};
 
-  TpgMgr* mTpgMgr{nullptr};
+  DtpgMgr* mDtpgMgr{nullptr};
 
   DopVerifyResult mVerifyResult;
 
@@ -168,9 +168,9 @@ DtpgTestWithParam2::SetUp()
 
   auto solver_type = SatSolverType{sat_type()};
 
-  mTpgMgr = new TpgMgr{*mNetwork_p, fault_type(), mode, just_type(), solver_type};
+  mDtpgMgr = new DtpgMgr{*mNetwork_p, fault_type(), mode, just_type(), solver_type};
 
-  mTpgMgr->add_verify_dop(mVerifyResult);
+  mDtpgMgr->add_verify_dop(mVerifyResult);
 }
 
 // @brief 終了処理を行う．
@@ -178,17 +178,17 @@ void
 DtpgTestWithParam2::TearDown()
 {
   delete mNetwork_p;
-  delete mTpgMgr;
+  delete mDtpgMgr;
 }
 
 void
 DtpgTestWithParam2::do_test()
 {
-  mTpgMgr->run();
+  mDtpgMgr->run();
 
   EXPECT_EQ( total_fault_num(), mNetwork_p->rep_fault_num() );
-  EXPECT_EQ( detect_fault_num(), mTpgMgr->detect_count() );
-  EXPECT_EQ( untest_fault_num(), mTpgMgr->untest_count() );
+  EXPECT_EQ( detect_fault_num(), mDtpgMgr->detect_count() );
+  EXPECT_EQ( untest_fault_num(), mDtpgMgr->untest_count() );
 
   EXPECT_EQ( 0, mVerifyResult.error_count() );
 }

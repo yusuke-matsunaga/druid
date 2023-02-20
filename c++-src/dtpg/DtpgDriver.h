@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "TpgMgr.h"
+#include "DtpgMgr.h"
 #include "DtpgStats.h"
 #include "Justifier.h"
 #include "ym/SatSolverType.h"
@@ -34,7 +34,7 @@ public:
   static
   DtpgDriver*
   new_driver(
-    TpgMgr& mgr,                     ///< [in] 親のマネージャ
+    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
     const string& dtpg_type,         ///< [in] DTPGのタイプ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
@@ -50,7 +50,7 @@ public:
 
   /// @brief コンストラクタ
   DtpgDriver(
-    TpgMgr& mgr,                     ///< [in] 親のマネージャ
+    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
     const string& just_type,         ///< [in] 正当化のタイプ
@@ -85,7 +85,7 @@ protected:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 親のマネージャを返す．
-  TpgMgr&
+  DtpgMgr&
   mgr()
   {
     return mMgr;
@@ -185,26 +185,14 @@ protected:
     mgr().update_sat_stats(sat_stats);
   }
 
-  void
-  _update(
-    const TpgFault* fault,
-    const DtpgResult& result
-  );
-
-  /// @breif DTPG の統計情報をマージする．
-  void
-  _merge_stats(
-    const DtpgStats& stats
-  );
-
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 親の TpgMgr
-  TpgMgr& mMgr;
+  // 親の DtpgMgr
+  DtpgMgr& mMgr;
 
   // 対象のネットワーク
   const TpgNetwork& mNetwork;

@@ -1,8 +1,8 @@
-#ifndef PYTPGMGR_H
-#define PYTPGMGR_H
+#ifndef PYDTPGMGR_H
+#define PYDTPGMGR_H
 
-/// @file PyTpgMgr.h
-/// @brief PyTpgMgr のヘッダファイル
+/// @file PyDtpgMgr.h
+/// @brief PyDtpgMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
@@ -11,18 +11,18 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "TpgMgr.h"
+#include "DtpgMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyTpgMgr PyTpgMgr.h "PyTpgMgr.h"
-/// @brief Python 用の TpgMgr 拡張
+/// @class PyDtpgMgr PyDtpgMgr.h "PyDtpgMgr.h"
+/// @brief Python 用の DtpgMgr 拡張
 ///
 /// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
 //////////////////////////////////////////////////////////////////////
-class PyTpgMgr
+class PyDtpgMgr
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -37,24 +37,24 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief PyObject が TpgMgr タイプか調べる．
+  /// @brief PyObject が DtpgMgr タイプか調べる．
   static
   bool
   Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
-  /// @brief TpgMgr を表す PyObject から TpgMgr を取り出す．
-  /// @return TpgMgr を返す．
+  /// @brief DtpgMgr を表す PyObject から DtpgMgr を取り出す．
+  /// @return DtpgMgr を返す．
   ///
   /// Check(obj) == true であると仮定している．
   static
-  TpgMgr&
+  DtpgMgr&
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 
-  /// @brief TpgMgr を表すオブジェクトの型定義を返す．
+  /// @brief DtpgMgr を表すオブジェクトの型定義を返す．
   static
   PyTypeObject*
   _typeobject();
@@ -63,4 +63,4 @@ public:
 
 END_NAMESPACE_DRUID
 
-#endif // PYTPGMGR_H
+#endif // PYDTPGMGR_H

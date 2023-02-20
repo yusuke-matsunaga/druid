@@ -19,17 +19,6 @@ BEGIN_NAMESPACE_DRUID
 // クラス DtpgEngineDriver
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-DtpgEngineDriver::DtpgEngineDriver(
-  TpgMgr& mgr,
-  const TpgNetwork& network,
-  FaultType fault_type,
-  const string& just_type,
-  const SatSolverType& solver_type
-) : DtpgDriver{mgr, network, fault_type, just_type, solver_type}
-{
-}
-
 // @brief テスト生成を行なう．
 void
 DtpgEngineDriver::gen_pattern(

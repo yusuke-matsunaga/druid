@@ -27,12 +27,14 @@ public:
 
   /// @brief コンストラクタ
   DtpgEngineDriver(
-    TpgMgr& mgr,                     ///< [in] 親のマネージャ
+    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,	     ///< [in] 故障の種類
     const string& just_type,	     ///< [in] Justifier の種類を表す文字列
     const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
-  );
+  ) : DtpgDriver{mgr, network, fault_type, just_type, solver_type}
+  {
+  }
 
   /// @brief デストラクタ
   ~DtpgEngineDriver() = default;

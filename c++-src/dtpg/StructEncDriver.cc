@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "StructEncDriver.h"
-//#include "DtpgResult.h"
 #include "StructEnc.h"
 #include "TpgFault.h"
 #include "ym/Timer.h"
@@ -18,17 +17,6 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 // クラス StructEncDriver
 //////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-StructEncDriver::StructEncDriver(
-  TpgMgr& mgr,
-  const TpgNetwork& network,
-  FaultType fault_type,
-  const string& just_type,
-  const SatSolverType& solver_type
-) : DtpgDriver{mgr, network, fault_type, just_type, solver_type}
-{
-}
 
 // @brief テスト生成を行なう．
 void

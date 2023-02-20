@@ -17,7 +17,7 @@ BEGIN_NAMESPACE_DRUID
 
 DtpgDriver*
 DtpgDriver::new_driver(
-  TpgMgr& mgr,
+  DtpgMgr& mgr,
   const string& dtpg_type,
   const TpgNetwork& network,
   FaultType fault_type,
@@ -52,24 +52,6 @@ DtpgDriver::justify(
 {
   return mJustifier(mFaultType, assign_list,
 		    hvar_map, gvar_map, sat_model);
-}
-
-void
-DtpgDriver::_update(
-  const TpgFault* fault,
-  const DtpgResult& result
-)
-{
-  mgr()._update(fault, result);
-}
-
-// @breif DTPG の統計情報をマージする．
-void
-DtpgDriver::_merge_stats(
-  const DtpgStats& stats
-)
-{
-  mgr()._merge_stats(stats);
 }
 
 END_NAMESPACE_DRUID

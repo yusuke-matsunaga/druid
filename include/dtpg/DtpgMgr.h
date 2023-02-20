@@ -1,8 +1,8 @@
-#ifndef TPGMGR_H
-#define TPGMGR_H
+#ifndef DTPGMGR_H
+#define DTPGMGR_H
 
-/// @file TpgMgr.h
-/// @brief TpgMgr のヘッダファイル
+/// @file DtpgMgr.h
+/// @brief DtpgMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
@@ -20,17 +20,17 @@ BEGIN_NAMESPACE_DRUID
 class DtpgDriver;
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgMgr TpgMgr.h "TpgMgr.h"
+/// @class DtpgMgr DtpgMgr.h "DtpgMgr.h"
 /// @brief テストパタン生成を行う本体
 ///
 /// 実際の処理は個々の部品クラスが行う．
 //////////////////////////////////////////////////////////////////////
-class TpgMgr
+class DtpgMgr
 {
 public:
 
   /// @brief コンストラクタ
-  TpgMgr(
+  DtpgMgr(
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
     const string& dtpg_type,         ///< [in] DTPGのタイプ
@@ -39,7 +39,7 @@ public:
   );
 
   /// @brief デストラクタ
-  ~TpgMgr();
+  ~DtpgMgr();
 
 
 public:
@@ -188,18 +188,6 @@ public:
     const SatStats& sat_stats ///< [in] 統計情報
   );
 
-  void
-  _update(
-    const TpgFault* fault,
-    const DtpgResult& result
-  );
-
-  /// @brief DTPG の統計情報をマージする．
-  void
-  _merge_stats(
-    const DtpgStats& stats ///< [in] DTPG の統計情報
-  );
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -234,4 +222,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // TPGMGR_H
+#endif // DTPGMGR_H

@@ -24,7 +24,7 @@ public:
 
   /// @brief コンストラクタ
   StructEncDriver_FFR(
-    TpgMgr& mgr,                     ///< [in] 親のマネージャ
+    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
     FaultType fault_type,            ///< [in] 故障の種類
     const string& just_type,         ///< [in] 正当化のタイプ

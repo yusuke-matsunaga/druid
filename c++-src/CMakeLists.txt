@@ -63,10 +63,10 @@ set (struct_enc_SOURCES
   )
 
 set (dtpg_SOURCES
+  dtpg/DtpgMgr.cc
   dtpg/DtpgEngine.cc
   dtpg/FFREngine.cc
   dtpg/MFFCEngine.cc
-  dtpg/TpgMgr.cc
   dtpg/DtpgDriver.cc
   dtpg/DtpgEngineDriver.cc
   dtpg/DtpgEngineDriver_FFR.cc
