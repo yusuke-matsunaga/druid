@@ -120,6 +120,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 要素数を返す．
+  SizeType
+  size() const
+  {
+    return mNum;
+  }
+
   /// @brief 先頭の反復子を返す．
   iterator
   begin() const

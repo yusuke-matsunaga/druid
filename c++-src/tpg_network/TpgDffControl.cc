@@ -7,9 +7,6 @@
 /// All rights reserved.
 
 #include "TpgDffControl.h"
-#include "TpgDffClock.h"
-#include "TpgDffClear.h"
-#include "TpgDffPreset.h"
 #include "TpgDFF.h"
 
 
@@ -29,9 +26,6 @@ TpgDffControl::TpgDffControl(
 }
 
 // @brief 接続している DFF を返す．
-//
-// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
-// の時に意味を持つ．
 SizeType
 TpgDffControl::dff_id() const
 {

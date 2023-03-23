@@ -36,13 +36,6 @@ BEGIN_NAMESPACE_DRUID
 class TpgNode
 {
 public:
-
-  /// @brief デストラクタ
-  virtual
-  ~TpgNode() = default;
-
-
-protected:
   //////////////////////////////////////////////////////////////////////
   // コンストラクタ/デストラクタ
   //////////////////////////////////////////////////////////////////////
@@ -66,6 +59,10 @@ protected:
   /// @brief ムーブ代入演算子も禁止
   TpgNode&
   operator=(TpgNode&& src) = delete;
+
+  /// @brief デストラクタ
+  virtual
+  ~TpgNode() = default;
 
 
 public:

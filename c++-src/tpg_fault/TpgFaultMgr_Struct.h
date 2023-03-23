@@ -13,6 +13,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class TpgGate;
 class TpgFaultImpl;
 
 //////////////////////////////////////////////////////////////////////
@@ -60,11 +61,19 @@ private:
   /// 結果は mNodeInfoArray に格納する．
   void
   gen_ifault(
+    const TpgGate& gate,     ///< [in] ゲート情報
     const TpgNode* node,     ///< [in] ノード
     const string& node_name, ///< [in] ノード名
-    SizeType ipos,           ///< [in] 入力位置
-    Val3 oval0,
-    Val3 oval1
+    SizeType ipos            ///< [in] 入力位置
+  );
+
+/// @brief 入力の故障を作る(PPO用)．
+  ///
+  /// 結果は mNodeInfoArray に格納する．
+  void
+  gen_ifault(
+    const TpgNode* node,    ///< [in] ノード
+    const string& node_name ///< [in] ノード名
   );
 
 

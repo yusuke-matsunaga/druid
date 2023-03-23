@@ -25,6 +25,8 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class TpgPPI;
+class TpgPPO;
 class TpgGateImpl;
 
 //////////////////////////////////////////////////////////////////////
@@ -382,14 +384,14 @@ public:
 
   /// @brief 入力ノードを生成する．
   /// @return 生成したノードを返す．
-  TpgNode*
+  TpgPPI*
   make_input_node(
     const string& name ///< [in] ノード名
   );
 
   /// @brief 出力ノードを生成する．
   /// @return 生成したノードを返す．
-  TpgNode*
+  TpgPPO*
   make_output_node(
     const string& name,  ///< [in] ノード名
     const TpgNode* inode ///< [in] 入力のノード
@@ -397,7 +399,7 @@ public:
 
   /// @brief DFFの入力ノードを生成する．
   /// @return 生成したノードを返す．
-  TpgNode*
+  TpgPPO*
   make_dff_input_node(
     SizeType dff_id,     ///< [in] DFF番号
     const string& name,  ///< [in] ノード名
@@ -406,7 +408,7 @@ public:
 
   /// @brief DFFの出力ノードを生成する．
   /// @return 生成したノードを返す．
-  TpgNode*
+  TpgPPI*
   make_dff_output_node(
     SizeType dff_id,   ///< [in] DFF番号
     const string& name ///< [in] ノード名
@@ -501,14 +503,14 @@ public:
   /// @brief PPI系のノードの登録
   void
   reg_ppi(
-    TpgNode* node,     ///< [in] ノード
+    TpgPPI* node,      ///< [in] ノード
     const string& name ///< [in] 名前
   );
 
   /// @brief PPO系のノードの登録
   void
   reg_ppo(
-    TpgNode* node,     ///< [in] ノード
+    TpgPPO* node,      ///< [in] ノード
     const string& name ///< [in] 名前
   );
 

@@ -8,6 +8,8 @@
 
 #include "gtest/gtest.h"
 #include "TpgNode.h"
+#include "TpgPPI.h"
+#include "TpgPPO.h"
 #include "TpgNetworkImpl.h"
 #include "Val3.h"
 

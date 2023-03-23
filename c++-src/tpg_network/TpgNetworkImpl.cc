@@ -8,13 +8,15 @@
 
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
-#include "TpgDffInput.h"
-#include "TpgDffOutput.h"
+#include "TpgPPI.h"
+#include "TpgPPO.h"
+#include "TpgDffControl.h"
 #include "TpgFault.h"
 #include "TpgGateImpl.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
 #include "GateType.h"
+#include "Fval2.h"
 #include "ym/Range.h"
 
 
@@ -255,8 +257,8 @@ TpgNetworkImpl::post_op(
   for ( auto _dff: mDFFArray ) {
     auto input = reinterpret_cast<TpgDffInput*>(_dff.mInput);
     auto output = reinterpret_cast<TpgDffOutput*>(_dff.mOutput);
-    input->mAltNode = output;
-    output->mAltNode = input;
+    input->set_alt_node(output);
+    output->set_alt_node(input);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -541,17 +543,20 @@ TpgGate::branch_info(
   return gate->branch_info(pos);
 }
 
-// @brief 制御値を返す．
-Val3
-TpgGate::cval(
+// @brief 代表故障かどうか調べる．
+bool
+TpgGate::is_rep(
   SizeType pos,
-  Val3 val
+  Fval2 fval
 ) const
 {
   ASSERT_COND( mNetwork != nullptr );
 
   auto gate = mNetwork->_gate(mId);
-  return gate->gate_type()->cval(pos, val);
+  // 具体的には pos の val が制御値でない時に
+  // 代表故障となる．
+  auto val = fval == Fval2::zero ? Val3::_0 : Val3::_1;
+  return gate->gate_type()->cval(pos, val) == Val3::_X;
 }
 
 

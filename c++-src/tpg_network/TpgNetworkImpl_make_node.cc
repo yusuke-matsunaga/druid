@@ -13,25 +13,10 @@
 #include "TpgFault.h"
 #include "TpgGateImpl.h"
 
-#include "TpgInput.h"
-#include "TpgOutput.h"
-
-#include "TpgDffInput.h"
-#include "TpgDffOutput.h"
-#include "TpgDffClock.h"
-#include "TpgDffClear.h"
-#include "TpgDffPreset.h"
-
-#include "TpgLogicC0.h"
-#include "TpgLogicC1.h"
-#include "TpgLogicBUFF.h"
-#include "TpgLogicNOT.h"
-#include "TpgLogicAND.h"
-#include "TpgLogicNAND.h"
-#include "TpgLogicOR.h"
-#include "TpgLogicNOR.h"
-#include "TpgLogicXOR.h"
-#include "TpgLogicXNOR.h"
+#include "TpgPPI.h"
+#include "TpgPPO.h"
+#include "TpgDffControl.h"
+#include "TpgLogic.h"
 
 #include "Val3.h"
 
@@ -46,44 +31,39 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief 入力ノードを生成する．
-TpgNode*
+TpgPPI*
 TpgNetworkImpl::make_input_node(
   const string& name
 )
 {
-  SizeType id = mPPIArray.size();
-
-  auto node = new TpgInput{id};
+  auto node = new TpgInput;
   reg_ppi(node, name);
 
   return node;
 }
 
 // @brief 出力ノードを生成する．
-TpgNode*
+TpgPPO*
 TpgNetworkImpl::make_output_node(
   const string& name,
   const TpgNode* inode
 )
 {
-  SizeType id = mPPOArray.size();
-
-  auto node = new TpgOutput{id, inode};
+  auto node = new TpgOutput{inode};
   reg_ppo(node, name);
 
   return node;
 }
 
 // @brief DFFの入力ノードを生成する．
-TpgNode*
+TpgPPO*
 TpgNetworkImpl::make_dff_input_node(
   SizeType dff_id,
   const string& name,
   const TpgNode* inode
 )
 {
-  SizeType id = mPPOArray.size();
-  auto node = new TpgDffInput{id, dff_id, inode};
+  auto node = new TpgDffInput{dff_id, inode};
   reg_ppo(node, name);
 
   auto& dff = mDFFArray[dff_id];
@@ -93,14 +73,13 @@ TpgNetworkImpl::make_dff_input_node(
 }
 
 // @brief DFFの出力ノードを生成する．
-TpgNode*
+TpgPPI*
 TpgNetworkImpl::make_dff_output_node(
   SizeType dff_id,
   const string& name
 )
 {
-  SizeType id = mPPIArray.size();
-  auto node = new TpgDffOutput{id, dff_id};
+  auto node = new TpgDffOutput{dff_id};
   reg_ppi(node, name);
 
   auto& dff = mDFFArray[dff_id];
@@ -426,11 +405,13 @@ TpgNetworkImpl::make_logic(
 // @brief PPI系のノードの登録
 void
 TpgNetworkImpl::reg_ppi(
-  TpgNode* node,
+  TpgPPI* node,
   const string& name
 )
 {
   reg_node(node);
+  SizeType id = mPPIArray.size();
+  node->set_input_id(id);
   mPPIArray.push_back(node);
   mPPINameArray.push_back(name);
 }
@@ -438,11 +419,13 @@ TpgNetworkImpl::reg_ppi(
 // @brief PPO系のノードの登録
 void
 TpgNetworkImpl::reg_ppo(
-  TpgNode* node,
+  TpgPPO* node,
   const string& name
 )
 {
   reg_node(node);
+  SizeType id = mPPOArray.size();
+  node->set_output_id(id);
   mPPOArray.push_back(node);
   mPPONameArray.push_back(name);
 }

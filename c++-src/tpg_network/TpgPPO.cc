@@ -3,12 +3,10 @@
 /// @brief TpgPPO の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgPPO.h"
-#include "TpgOutput.h"
-#include "TpgDffInput.h"
 #include "TpgDFF.h"
 
 
@@ -17,16 +15,6 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 // クラス TpgPPO
 //////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-TpgPPO::TpgPPO(
-  SizeType output_id,
-  const TpgNode* fanin
-) : TpgNode{{fanin}},
-    mOutputId{output_id}
-{
-  mOutputId2 = 0;
-}
 
 // @brief 出力タイプの時 true を返す．
 //
@@ -83,9 +71,8 @@ TpgPPO::set_output_id2(
 
 // @brief コンストラクタ
 TpgOutput::TpgOutput(
-  SizeType output_id,
   const TpgNode* fanin
-) : TpgPPO{output_id, fanin}
+) : TpgPPO{fanin}
 {
 }
 
@@ -103,10 +90,9 @@ TpgOutput::is_primary_output() const
 
 // @brief コンストラクタ
 TpgDffInput::TpgDffInput(
-  SizeType output_id,
   SizeType dff_id,
   const TpgNode* fanin
-) : TpgPPO{output_id, fanin},
+) : TpgPPO{fanin},
     mDffId{dff_id}
 {
 }

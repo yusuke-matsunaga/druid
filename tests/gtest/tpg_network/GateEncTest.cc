@@ -11,6 +11,7 @@
 #include "TpgNetworkImpl.h"
 #include "GateType.h"
 #include "TpgNode.h"
+#include "TpgPPI.h"
 #include "VidMap.h"
 #include "ym/Range.h"
 

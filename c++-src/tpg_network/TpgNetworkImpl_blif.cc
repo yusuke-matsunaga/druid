@@ -9,6 +9,8 @@
 #include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
+#include "TpgPPI.h"
+#include "TpgPPO.h"
 #include "GateType.h"
 #include "NodeMap.h"
 

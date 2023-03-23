@@ -3,12 +3,10 @@
 /// @brief TpgPPI の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgPPI.h"
-#include "TpgInput.h"
-#include "TpgDffOutput.h"
 #include "TpgDFF.h"
 
 
@@ -17,14 +15,6 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 // クラス TpgPPI
 //////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-TpgPPI::TpgPPI(
-  SizeType input_id
-) : TpgNode{{}},
-    mInputId{input_id}
-{
-}
 
 // @brief 入力タイプの時 true を返す．
 //
@@ -58,13 +48,6 @@ TpgPPI::gate_type() const
 // クラス TpgInput
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-TpgInput::TpgInput(
-  SizeType input_id
-) : TpgPPI{input_id}
-{
-}
-
 // @brief 外部入力タイプの時 true を返す．
 bool
 TpgInput::is_primary_input() const
@@ -79,10 +62,8 @@ TpgInput::is_primary_input() const
 
 // @brief コンストラクタ
 TpgDffOutput::TpgDffOutput(
-  SizeType input_id,
   SizeType dff_id
-) : TpgPPI{input_id},
-    mDffId{dff_id}
+) : mDffId{dff_id}
 {
 }
 

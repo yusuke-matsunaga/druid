@@ -95,8 +95,6 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 ) : mFaultMgr{fmgr}
 {
   mPatMap = PV_ALL0;
-  mPPIArray = nullptr;
-  mPPOArray = nullptr;
 
   set_network(network);
 }
@@ -104,7 +102,14 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 // @brief デストラクタ
 FSIM_CLASSNAME::~FSIM_CLASSNAME()
 {
-  clear();
+  // mNodeArray が全てのノードを持っている
+  for ( auto node: mNodeArray ) {
+    delete node;
+  }
+
+  for ( auto fault: mFaultList ) {
+    delete fault;
+  }
 }
 
 // @brief ネットワークをセットする関数
@@ -127,8 +132,10 @@ FSIM_CLASSNAME::set_network(
   // 対応付けを行うマップの初期化
   vector<SimNode*> simmap(nn);
 
-  mPPIArray = new SimNode*[ni];
-  mPPOArray = new SimNode*[no];
+  mPPIList.clear();
+  mPPIList.resize(ni);
+  mPPOList.clear();
+  mPPOList.resize(no);
 #if FSIM_TD
   mPrevValArray.clear();
   mPrevValArray.resize(nn);
@@ -147,7 +154,7 @@ FSIM_CLASSNAME::set_network(
     if ( tpgnode->is_ppi() ) {
       // 外部入力に対応する SimNode の生成
       node = make_input();
-      mPPIArray[tpgnode->input_id()] = node;
+      mPPIList[tpgnode->input_id()] = node;
     }
     else if ( tpgnode->is_ppo() ) {
       // 外部出力に対応する SimNode の生成
@@ -155,7 +162,7 @@ FSIM_CLASSNAME::set_network(
       // 実際にはバッファタイプのノードに出力の印をつけるだけ．
       node = make_gate(PrimType::Buff, {inode});
       node->set_output();
-      mPPOArray[tpgnode->output_id()] = node;
+      mPPOList[tpgnode->output_id()] = node;
     }
     else if ( tpgnode->is_dff_clock() ||
 	      tpgnode->is_dff_clear() ||
@@ -239,7 +246,7 @@ FSIM_CLASSNAME::set_network(
 
   // 最大レベルを求め，イベントキューを初期化する．
   auto max_level = 0;
-  for ( auto inode: Array<SimNode*>(mPPOArray, 0, no) ) {
+  for ( auto inode: mPPOList ) {
     if ( max_level < inode->level() ) {
       max_level = inode->level();
     }
@@ -588,8 +595,8 @@ FSIM_CLASSNAME::set_state(
 
   // DFF の出力の値を入力にコピーする．
   for ( auto i: Range(mDffNum) ) {
-    auto onode = mPPOArray[i + mOutputNum];
-    auto inode = mPPIArray[i + mInputNum];
+    auto onode = mPPOList[i + mOutputNum];
+    auto inode = mPPIList[i + mInputNum];
     inode->set_val(onode->val());
   }
 }
@@ -647,8 +654,8 @@ FSIM_CLASSNAME::calc_wsa(
 
   // DFF の出力の値を入力にコピーする．
   for ( auto i: Range(mDffNum) ) {
-    auto onode = mPPOArray[i + mOutputNum];
-    auto inode = mPPIArray[i + mInputNum];
+    auto onode = mPPOList[i + mOutputNum];
+    auto inode = mPPIList[i + mInputNum];
     inode->set_val(onode->val());
   }
 
@@ -764,8 +771,8 @@ FSIM_CLASSNAME::_calc_gval(
 
   // DFF の出力の値を入力にコピーする．
   for ( auto i: Range(mDffNum) ) {
-    auto onode = mPPOArray[i + mOutputNum];
-    auto inode = mPPIArray[i + mInputNum];
+    auto onode = mPPOList[i + mOutputNum];
+    auto inode = mPPIList[i + mInputNum];
     inode->set_val(onode->val());
   }
 
@@ -852,27 +859,6 @@ FSIM_CLASSNAME::_fault_sweep(
       add_det_array(pat, ff);
     }
   }
-}
-
-// @brief 現在保持している SimNode のネットワークを破棄する．
-void
-FSIM_CLASSNAME::clear()
-{
-  // mNodeArray が全てのノードを持っている
-  for ( auto node: mNodeArray ) {
-    delete node;
-  }
-  mNodeArray.clear();
-
-  delete [] mPPIArray;
-  delete [] mPPOArray;
-
-  mLogicArray.clear();
-
-  for ( auto fault: mFaultList ) {
-    delete fault;
-  }
-  mFaultList.clear();
 }
 
 // @brief 外部入力ノードを作る．

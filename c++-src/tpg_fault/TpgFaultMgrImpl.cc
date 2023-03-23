@@ -143,16 +143,14 @@ TpgFaultMgr_Struct::gen_all_faults(
       auto binfo = gate.branch_info(i);
       auto inode = binfo.node;
       SizeType ipos = binfo.ipos;
-      auto oval0 = gate.cval(ipos, Val3::_0);
-      auto oval1 = gate.cval(ipos, Val3::_1);
-      gen_ifault(inode, node_name, ipos, oval0, oval1);
+      gen_ifault(gate, inode, node_name, ipos);
     }
   }
 
   // PPO の入力の故障
   for ( auto node: network.ppo_list() ) {
     auto node_name = network.ppo_name(node->output_id());
-    gen_ifault(node, node_name, 0, Val3::_X, Val3::_X);
+    gen_ifault(node, node_name);
   }
 }
 
@@ -170,35 +168,32 @@ TpgFaultMgr_Struct::gen_ofault(
   }
 }
 
-/// @brief 入力の故障を作る．
+// @brief 入力の故障を作る．
 void
 TpgFaultMgr_Struct::gen_ifault(
+  const TpgGate& gate,
   const TpgNode* node,
   const string& node_name,
-  SizeType ipos,
-  Val3 oval0,
-  Val3 oval1
+  SizeType ipos
 )
 {
   for ( auto fval: {Fval2::zero, Fval2::one} ) {
     auto f = new_ifault(node, node_name, ipos, fval);
-    bool rep = false;
-    if ( node->is_ppo() ) {
-      rep = true;
-    }
-    else {
-      if ( fval == Fval2::zero ) {
-	if ( oval0 == Val3::_X ) {
-	  rep = true;
-	}
-      }
-      else {
-	if ( oval1 == Val3::_X ) {
-	  rep = true;
-	}
-      }
-    }
+    bool rep = gate.is_rep(ipos, fval);
     reg_fault(f, rep);
+  }
+}
+
+/// @brief 入力の故障を作る(PPO用)．
+void
+TpgFaultMgr_Struct::gen_ifault(
+  const TpgNode* node,
+  const string& node_name
+)
+{
+  for ( auto fval: {Fval2::zero, Fval2::one} ) {
+    auto f = new_ifault(node, node_name, 0, fval);
+    reg_fault(f, true);
   }
 }
 

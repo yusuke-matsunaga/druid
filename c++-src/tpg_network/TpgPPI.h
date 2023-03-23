@@ -24,8 +24,9 @@ protected:
 
   /// @brief コンストラクタ
   TpgPPI(
-    SizeType input_id ///< [in] 入力番号
-  );
+  ) : TpgNode{{}}
+  {
+  }
 
   /// @brief デストラクタ
   ~TpgPPI() = default;
@@ -55,6 +56,21 @@ public:
   gate_type() const override;
 
 
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 設定用の関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 入力番号を設定する．
+  void
+  set_input_id(
+    SizeType id
+  )
+  {
+    mInputId = id;
+  }
+
+
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
@@ -62,6 +78,98 @@ private:
 
   // 入力番号
   SizeType mInputId;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgInput TpgInput.h "TpgInput.h"
+/// @brief 入力ノードを表すクラス
+//////////////////////////////////////////////////////////////////////
+class TpgInput :
+  public TpgPPI
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgInput() = default;
+
+  /// @brief デストラクタ
+  ~TpgInput() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 外部入力タイプの時 true を返す．
+  bool
+  is_primary_input() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgDffOutput TpgDffOutput.h "TpgDffOutput.h"
+/// @brief DFF の出力ノードを表すクラス
+//////////////////////////////////////////////////////////////////////
+class TpgDffOutput :
+  public TpgPPI
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgDffOutput(
+    SizeType dff_id    ///< [in] 接続しているDFFのID番号
+  );
+
+  /// @brief デストラクタ
+  ~TpgDffOutput() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief DFF の出力に接続している外部入力タイプの時 true を返す．
+  bool
+  is_dff_output() const override;
+
+  /// @brief 接続している DFF を返す．
+  ///
+  /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
+  /// の時に意味を持つ．
+  SizeType
+  dff_id() const override;
+
+  /// @brief DFFに関する相方のノードを返す．
+  ///
+  /// is_dff_input() | is_dff_output() の時に意味を持つ．
+  const TpgNode*
+  alt_node() const override;
+
+  /// @brief alt_node を設定する．
+  void
+  set_alt_node(
+    const TpgNode* node
+  )
+  {
+    mAltNode = node;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 対応する DFF 番号
+  SizeType mDffId;
+
+  // 相方のノード
+  const TpgNode* mAltNode{nullptr};
 
 };
 

@@ -3,21 +3,10 @@
 /// @brief TpgLogic の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgLogic.h"
-#include "TpgLogicC0.h"
-#include "TpgLogicC1.h"
-#include "TpgLogicBUFF.h"
-#include "TpgLogicNOT.h"
-#include "TpgLogicAND.h"
-#include "TpgLogicNAND.h"
-#include "TpgLogicOR.h"
-#include "TpgLogicNOR.h"
-#include "TpgLogicXOR.h"
-#include "TpgLogicXNOR.h"
-
 #include "Val3.h"
 
 

@@ -7,8 +7,6 @@
 /// All rights reserved.
 
 #include "GateType.h"
-#include "GateType_Simple.h"
-#include "GateType_Cplx.h"
 #include "Val3.h"
 #include "ym/Range.h"
 

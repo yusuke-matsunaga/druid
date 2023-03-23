@@ -18,6 +18,7 @@
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "TestVector.h"
+#include "SimNodeList.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -264,28 +265,28 @@ public:
   {
     ASSERT_COND( id >= 0 && id < ppi_num() );
 
-    return mPPIArray[id];
+    return mPPIList[id];
   }
 
   /// @brief 外部入力ノードのリストを返す．
-  Array<SimNode*>
+  SimNodeList
   input_list() const
   {
-    return Array<SimNode*>(mPPIArray, 0, input_num());
+    return SimNodeList{mPPIList.begin(), mPPIList.begin() + input_num()};
   }
 
   /// @brief DFFの出力ノードのリストを返す．
-  Array<SimNode*>
+  SimNodeList
   dff_output_list() const
   {
-    return Array<SimNode*>(mPPIArray, input_num(), ppi_num());
+    return SimNodeList{mPPIList.begin() + input_num(), mPPIList.end()};
   }
 
   /// @brief PPI のノードのリストを返す．
-  Array<SimNode*>
+  SimNodeList
   ppi_list() const
   {
-    return Array<SimNode*>(mPPIArray, 0, ppi_num());
+    return SimNodeList{mPPIList.begin(), mPPIList.end()};
   }
 
 
@@ -478,11 +479,6 @@ private:
   // SimNode / SimFault の設定に関する関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 現在保持している SimNode のネットワークを破棄する．
-  /// 内部で clear_faults() を呼ぶ．
-  void
-  clear();
-
   /// @brief 外部入力ノードを作る．
   SimNode*
   make_input();
@@ -517,11 +513,11 @@ private:
 
   // PPIに対応する SimNode を納めた配列
   // サイズは mInputNum + mDffNum
-  SimNode** mPPIArray;
+  vector<SimNode*> mPPIList;
 
   // PPOに対応する SimNode を納めた配列
   // サイズは mOutputNum + mDffNum
-  SimNode** mPPOArray;
+  vector<SimNode*> mPPOList;
 
   // 入力からのトポロジカル順に並べた logic ノードの配列
   vector<SimNode*> mLogicArray;
