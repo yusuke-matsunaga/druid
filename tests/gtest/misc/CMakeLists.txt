@@ -16,9 +16,9 @@
 ym_add_gtest(Val3Test
   Val3Test.cc
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )

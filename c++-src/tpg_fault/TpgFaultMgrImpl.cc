@@ -252,6 +252,23 @@ TpgFaultMgr_Td::fault_type() const
   return FaultType::TransitionDelay;
 }
 
+BEGIN_NONAMESPACE
+
+// 遷移故障を表す文字列を作る．
+inline
+string
+td_name(
+  Fval2 fval
+)
+{
+  switch ( fval ) {
+  case Fval2::zero: return "RISE";
+  case Fval2::one:  return "FALL";
+  }
+}
+
+END_NONAMESPACE
+
 // @brief 出力の故障を作る．
 TpgFaultImpl*
 TpgFaultMgr_Td::new_ofault(
@@ -261,7 +278,7 @@ TpgFaultMgr_Td::new_ofault(
 )
 {
   ostringstream buf;
-  buf << node_name << ":O:TD" << fval;
+  buf << node_name << ":O:" << td_name(fval);
   auto name = buf.str();
   auto f = new TpgFault_TdStem{node, name, fval};
   return f;
@@ -277,7 +294,7 @@ TpgFaultMgr_Td::new_ifault(
 )
 {
   ostringstream buf;
-  buf << node_name << ":I" << ipos << ":TD" << fval;
+  buf << node_name << ":I" << ipos << ":" << td_name(fval);
   auto name = buf.str();
   auto f = new TpgFault_TdBranch{node, name, ipos, fval};
   return f;

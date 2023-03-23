@@ -6,13 +6,12 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "FaultType.h"
 #include "PackedVal.h"
-#include "ym/Array.h"
 
 
 BEGIN_NAMESPACE_DRUID

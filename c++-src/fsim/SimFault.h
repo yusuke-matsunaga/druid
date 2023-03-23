@@ -58,7 +58,7 @@ public:
   PackedVal
   excitation_condition() const;
 
-#if FSIM_TD
+#if FSIM_BSIDE
   /// @brief 遷移故障用の1時刻前の条件を求める．
   PackedVal
   previous_condition() const;
@@ -158,7 +158,7 @@ private:
   // 故障の励起条件のリスト
   vector<NodeVal> mExCondList;
 
-#if FSIM_TD
+#if FSIM_BSIDE
   // 遷移故障用の1時刻前の値割り当て
   vector<NodeVal> mPrevCondList;
 #endif

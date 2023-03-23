@@ -400,9 +400,9 @@ private:
     // FFR 内の故障伝搬を行う．
     auto lobs = cval & _ffr_prop(fault);
 
-#if FSIM_SA
+#if FSIM_COMBI
     return lobs;
-#elif FSIM_TD
+#elif FSIM_BSIDE
     // 1時刻前の条件を求める．
     auto pval = fault->previous_condition();
 
@@ -522,7 +522,7 @@ private:
   // 入力からのトポロジカル順に並べた logic ノードの配列
   vector<SimNode*> mLogicArray;
 
-#if FSIM_TD
+#if FSIM_BSIDE
   // ブロードサイド方式用の１時刻前の値を保持する配列
   // サイズは mNodeArray.size()
   vector<FSIM_VALTYPE> mPrevValArray;

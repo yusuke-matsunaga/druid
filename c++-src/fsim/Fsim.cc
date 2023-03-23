@@ -14,28 +14,28 @@
 
 BEGIN_NAMESPACE_DRUID
 
-namespace nsFsimSa2 {
+namespace nsFsimCombi2 {
   std::unique_ptr<FsimImpl> new_Fsim(
     const TpgNetwork& network,
     TpgFaultMgr& fmgr
   );
 }
 
-namespace nsFsimSa3 {
+namespace nsFsimCombi3 {
   std::unique_ptr<FsimImpl> new_Fsim(
     const TpgNetwork& network,
     TpgFaultMgr& fmgr
   );
 }
 
-namespace nsFsimTd2 {
+namespace nsFsimBside2 {
   std::unique_ptr<FsimImpl> new_Fsim(
     const TpgNetwork& network,
     TpgFaultMgr& fmgr
   );
 }
 
-namespace nsFsimTd3 {
+namespace nsFsimBside3 {
   std::unique_ptr<FsimImpl> new_Fsim(
     const TpgNetwork& network,
     TpgFaultMgr& fmgr
@@ -57,20 +57,20 @@ new_impl(
     // 3値バージョン
     if ( fault_type == FaultType::StuckAt ||
 	 fault_type == FaultType::GateExaustive ) {
-      return nsFsimSa3::new_Fsim(network, fmgr);
+      return nsFsimCombi3::new_Fsim(network, fmgr);
     }
     if ( fault_type == FaultType::TransitionDelay ) {
-      return nsFsimTd3::new_Fsim(network, fmgr);
+      return nsFsimBside3::new_Fsim(network, fmgr);
     }
   }
   else {
     // 2値バージョン
     if ( fault_type == FaultType::StuckAt ||
 	 fault_type == FaultType::GateExaustive ) {
-      return nsFsimSa2::new_Fsim(network, fmgr);
+      return nsFsimCombi2::new_Fsim(network, fmgr);
     }
     if ( fault_type == FaultType::TransitionDelay ) {
-      return nsFsimTd2::new_Fsim(network, fmgr);
+      return nsFsimBside2::new_Fsim(network, fmgr);
     }
   }
   ASSERT_NOT_REACHED;

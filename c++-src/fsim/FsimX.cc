@@ -136,7 +136,7 @@ FSIM_CLASSNAME::set_network(
   mPPIList.resize(ni);
   mPPOList.clear();
   mPPOList.resize(no);
-#if FSIM_TD
+#if FSIM_BSIDE
   mPrevValArray.clear();
   mPrevValArray.resize(nn);
 #endif
@@ -561,7 +561,7 @@ FSIM_CLASSNAME::_ppsfp()
   return mDetNum;
 }
 
-#if FSIM_TD
+#if FSIM_BSIDE
 // @brief 状態を設定する．
 void
 FSIM_CLASSNAME::set_state(
@@ -734,7 +734,7 @@ FSIM_CLASSNAME::calc_wsa(
 }
 #endif
 
-#if FSIM_SA
+#if FSIM_COMBI
 // @brief 正常値の計算を行う．(縮退故障用)
 void
 FSIM_CLASSNAME::_calc_gval(
@@ -749,7 +749,7 @@ FSIM_CLASSNAME::_calc_gval(
 }
 #endif
 
-#if FSIM_TD
+#if FSIM_BSIDE
 // @brief 正常値の計算を行う．(遷移故障用)
 void
 FSIM_CLASSNAME::_calc_gval(
@@ -906,7 +906,7 @@ SimFault::SimFault(
     if ( nodeval.time() == 1 ) {
       mExCondList.push_back({simnode, val});
     }
-#if FSIM_TD
+#if FSIM_BSIDE
     else {
       mPrevCondList.push_back({simnode, val});
     }
@@ -938,7 +938,7 @@ SimFault::excitation_condition() const
   return cond;
 }
 
-#if FSIM_TD
+#if FSIM_BSIDE
 // @brief 遷移故障用の1時刻前の条件を求める．
 PackedVal
 SimFault::previous_condition() const

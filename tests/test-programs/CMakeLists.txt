@@ -27,10 +27,10 @@ set ( TpgNetworkTest_SOURCES
 add_executable ( TpgNetworkTest
   ${TpgNetworkTest_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -60,10 +60,10 @@ endif ()
 add_executable ( TpgNetworkTest_d
   ${TpgNetworkTest_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
@@ -97,10 +97,10 @@ set ( TpgFaultMgrTest_SOURCES
 add_executable ( TpgFaultMgrTest
   ${TpgFaultMgrTest_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -130,10 +130,10 @@ endif ()
 add_executable ( TpgFaultMgrTest_d
   ${TpgFaultMgrTest_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
@@ -167,10 +167,10 @@ set ( FsimTest_SOURCES
 add_executable ( FsimTest
   ${FsimTest_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -196,10 +196,10 @@ endif ()
 add_executable ( FsimTest_d
   ${FsimTest_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
@@ -225,10 +225,10 @@ endif ()
 add_executable ( dtpg_test
   dtpgtest/dtpg_test.cc
   $<TARGET_OBJECTS:druid_common_obj>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -254,10 +254,10 @@ endif ()
 add_executable ( dtpg_test_d
   dtpgtest/dtpg_test.cc
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
@@ -288,10 +288,10 @@ set ( mf_comp_SOURCES
 add_executable ( mf_comp
   ${mf_comp_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -317,10 +317,10 @@ endif ()
 add_executable ( mf_comp_d
   ${mf_comp_SOURCES}
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
@@ -347,10 +347,10 @@ endif ( 0 )
 add_executable ( tpg_read_blif_test
   read_blif/read_blif_test.cc
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
@@ -365,10 +365,10 @@ target_compile_options ( tpg_read_blif_test
 add_executable ( tpg_read_iscas89_test
   read_iscas89/read_iscas89_test.cc
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 

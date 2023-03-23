@@ -59,10 +59,10 @@ add_executable ( py_druid
   $<TARGET_OBJECTS:py_ymcell_obj>
   $<TARGET_OBJECTS:py_ymsat_obj>
   $<TARGET_OBJECTS:druid_common_obj>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -82,10 +82,10 @@ add_executable ( py_druid_d
   $<TARGET_OBJECTS:py_ymcell_obj_d>
   $<TARGET_OBJECTS:py_ymsat_obj_d>
   $<TARGET_OBJECTS:druid_common_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
-  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 

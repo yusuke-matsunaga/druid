@@ -12,36 +12,36 @@
 #include "druid.h"
 
 // ちょっと特殊なマクロ定義
-// 2値/3値の切り替えと縮退故障/遷移故障の切り替えを
+// 2値/3値の切り替えと1時刻前の値を持つかどうかの切り替えを
 // マクロの定義で行って計4つのクラスを1つのソースファイル
 // から生成する．
 //
 // FSIM_VAL2: 2値の故障シミュレータ
 // FSIM_VAL3: 3値の故障シミュレータ
 //
-// FSIM_SA: 縮退故障用の故障シミュレータ
-// FSIM_TD: 遷移故障用の故障シミュレータ
+// FSIM_COMBI: 組み合わせ回路用の故障シミュレータ
+// FSIM_BSIDE: broad-side 方式の故障シミュレータ
 
 #if FSIM_VAL2
-#  if FSIM_SA
-#    define FSIM_NAMESPACE nsFsimSa2
-#    define FSIM_CLASSNAME FsimSa2
-#  elif FSIM_TD
-#    define FSIM_NAMESPACE nsFsimTd2
-#    define FSIM_CLASSNAME FsimTd2
+#  if FSIM_COMBI
+#    define FSIM_NAMESPACE nsFsimCombi2
+#    define FSIM_CLASSNAME FsimCombi2
+#  elif FSIM_BSIDE
+#    define FSIM_NAMESPACE nsFsimBside2
+#    define FSIM_CLASSNAME FsimBside2
 #  else
-#    error "Neither FSIM_SA nor FSIM_TD are not set"
+#    error "Neither FSIM_COMBI nor FSIM_BSIDE are not set"
 #  endif
 #  define FSIM_VALTYPE PackedVal
 #elif FSIM_VAL3
-#  if FSIM_SA
-#    define FSIM_NAMESPACE nsFsimSa3
-#    define FSIM_CLASSNAME FsimSa3
-#  elif FSIM_TD
-#    define FSIM_NAMESPACE nsFsimTd3
-#    define FSIM_CLASSNAME FsimTd3
+#  if FSIM_COMBI
+#    define FSIM_NAMESPACE nsFsimCombi3
+#    define FSIM_CLASSNAME FsimCombi3
+#  elif FSIM_BSIDE
+#    define FSIM_NAMESPACE nsFsimBside3
+#    define FSIM_CLASSNAME FsimBside3
 #  else
-#    error "Neither FSIM_SA nor FSIM_TD are not set"
+#    error "Neither FSIM_COMBI nor FSIM_BSIDE are not set"
 #  endif
 #  define FSIM_VALTYPE PackedVal3
 #else
