@@ -136,10 +136,6 @@ FSIM_CLASSNAME::set_network(
   mPPIList.resize(ni);
   mPPOList.clear();
   mPPOList.resize(no);
-#if FSIM_BSIDE
-  mPrevValArray.clear();
-  mPrevValArray.resize(nn);
-#endif
 
   SizeType max_node_id = 0;
   SizeType nf = 0;
@@ -587,10 +583,8 @@ FSIM_CLASSNAME::set_state(
   _calc_val();
 
   // 1時刻シフトする．
-
-  // mPrevValArray に値をコピーする．
   for ( auto node: mNodeArray ) {
-    mPrevValArray[node->id()] = node->val();
+    node->shift_val();
   }
 
   // DFF の出力の値を入力にコピーする．
@@ -646,10 +640,8 @@ FSIM_CLASSNAME::calc_wsa(
   }
 
   // 1時刻シフトする．
-
-  // mPrevValArray に値をコピーする．
   for ( auto node: mNodeArray ) {
-    mPrevValArray[node->id()] = node->val();
+    node->shift_val();
   }
 
   // DFF の出力の値を入力にコピーする．
@@ -686,7 +678,7 @@ FSIM_CLASSNAME::_calc_wsa(
 )
 {
   SizeType wsa = 0;
-  if ( mPrevValArray[node->id()] != node->val() ) {
+  if ( node->prev_val() != node->val() ) {
     wsa = 1;
     if ( weighted ) {
       wsa += node->fanout_num();
@@ -763,10 +755,8 @@ FSIM_CLASSNAME::_calc_gval(
   _calc_val();
 
   // 1時刻シフトする．
-
-  // mPrevValArray に値をコピーする．
   for ( auto node: mNodeArray ) {
-    mPrevValArray[node->id()] = node->val();
+    node->shift_val();
   }
 
   // DFF の出力の値を入力にコピーする．
@@ -924,7 +914,7 @@ SimFault::excitation_condition() const
     auto val0 = tmp.val();
 #if FSIM_VAL2
     auto val = node->val();
-    if ( !val ) {
+    if ( !val0 ) {
       val = ~val;
     }
 #elif FSIM_VAL3
@@ -946,15 +936,15 @@ SimFault::previous_condition() const
   auto cond = PV_ALL1;
   for ( auto& tmp: mPrevCondList ) {
     auto node = tmp.node();
-    auto pol = tmp.val();
+    auto val0 = tmp.val();
 #if FSIM_VAL2
-    auto val = node->val();
-    if ( pol ) {
+    auto val = node->prev_val();
+    if ( !val0 ) {
       val = ~val;
     }
 #elif FSIM_VAL3
-    auto val3 = node->val();
-    auto val = pol ? val3.val0() : val3.val1();
+    auto val3 = node->prev_val();
+    auto val = val0 ? val3.val1() : val3.val0();
 #else
 #error "Neither FSIM_VAL2 nor FSIM_VAL3 are defined"
 #endif

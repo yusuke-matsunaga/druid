@@ -258,6 +258,22 @@ public:
     set_val(_calc_val(), mask);
   }
 
+#if FSIM_BSIDE
+  /// @brief 1時刻前の出力値を得る．
+  FSIM_VALTYPE
+  prev_val() const
+  {
+    return mPrevVal;
+  }
+
+  /// @brief 今の値を1時刻前の値にシフトする．
+  void
+  shift_val()
+  {
+    mPrevVal = mVal;
+  }
+#endif
+
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -372,6 +388,9 @@ private:
 
   // 出力値
   FSIM_VALTYPE mVal;
+
+  // 1時刻前の値
+  FSIM_VALTYPE mPrevVal;
 
 };
 

@@ -240,6 +240,48 @@ TEST(TpgNetworkTest, dff1)
   mod.set_output_src(dff_clk, clk);
   mod.set_output_src(x, dff_out);
 
+  BnNetwork bn_net1{mod};
+  auto tpg_network = TpgNetwork{bn_net1};
+
+  tpg_network.print(cout);
+
+  TpgFaultMgr fmgr;
+  fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
+
+  ostringstream buf;
+  print_faults(fmgr, cout);
+
+}
+
+TEST(TpgNetworkTest, dff2)
+{
+  // D-FF 1つからなるネットワークを作る．
+  BnModifier mod;
+  auto port_a = mod.new_input_port("a");
+  auto port_clk = mod.new_input_port("clk");
+  auto port_x = mod.new_output_port("x");
+  auto a = port_a.bit(0);
+  auto clk = port_clk.bit(0);
+  auto x = port_x.bit(0);
+  auto dff = mod.new_dff("dff1");
+  auto dff_in = dff.data_in();
+  auto dff_out = dff.data_out();
+  auto dff_clk = dff.clock();
+  mod.set_output_src(dff_in, a);
+  mod.set_output_src(dff_clk, clk);
+  mod.set_output_src(x, dff_out);
+
+  BnNetwork bn_net1{mod};
+  auto tpg_network = TpgNetwork{bn_net1};
+
+  tpg_network.print(cout);
+
+  TpgFaultMgr fmgr;
+  fmgr.gen_fault_list(tpg_network, FaultType::TransitionDelay);
+
+  ostringstream buf;
+  print_faults(fmgr, cout);
+
 }
 
 END_NAMESPACE_DRUID
