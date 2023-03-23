@@ -40,13 +40,13 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 DtpgEngine::DtpgEngine(
   const TpgNetwork& network,
-  FaultType fault_type,
+  bool has_prev_state,
   const TpgNode* root,
   bool make_dchain,
   const SatSolverType& solver_type
 ) : mSolver{solver_type},
     mNetwork{network},
-    mFaultType{fault_type},
+    mHasPrevState{has_prev_state},
     mRoot{root},
     mDchain{make_dchain},
     mHvarMap{network.node_num()},
@@ -113,14 +113,13 @@ DtpgEngine::prepare_vars()
   // そのうちの DFF の出力に対応するDFFの入力を tmp_list に入れておく．
   mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList,
 				      [&](const TpgNode* node) {
-					if ( mFaultType == FaultType::TransitionDelay ) {
-					  if ( node->is_dff_output() ) {
-					    mDffInputList.push_back(node->alt_node());
-					  }
+					if ( mHasPrevState &&
+					     node->is_dff_output() ) {
+					  mDffInputList.push_back(node->alt_node());
 					}
 				      });
 
-  if ( mFaultType == FaultType::TransitionDelay ) {
+if ( mHasPrevState ) {
     auto tmp_list = mDffInputList;
     if ( mRoot->is_dff_output() ) {
       tmp_list.push_back(mRoot->alt_node());
@@ -387,7 +386,8 @@ DtpgEngine::get_sufficient_condition(
   // FFR の根の先の伝搬条件
   const auto& model = mSolver.model();
   auto ffr_root = fault.ffr_root();
-  auto suf_cond = extract_sufficient_condition("simple", ffr_root, mGvarMap, mFvarMap, model);
+  auto suf_cond = extract_sufficient_condition("simple", ffr_root,
+					       mGvarMap, mFvarMap, model);
   suf_cond.merge(ffr_cond);
   return suf_cond;
 }

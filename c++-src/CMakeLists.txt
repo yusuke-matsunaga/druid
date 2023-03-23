@@ -68,11 +68,7 @@ set (dtpg_SOURCES
   dtpg/MFFCEngine.cc
   dtpg/DtpgDriver.cc
   dtpg/DtpgEngineDriver.cc
-  dtpg/DtpgEngineDriver_FFR.cc
-  dtpg/DtpgEngineDriver_MFFC.cc
   dtpg/StructEncDriver.cc
-  dtpg/StructEncDriver_FFR.cc
-  dtpg/StructEncDriver_MFFC.cc
   )
 
 set (dop_SOURCES

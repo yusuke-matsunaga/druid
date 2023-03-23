@@ -33,10 +33,10 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 MFFCEngine::MFFCEngine(
   const TpgNetwork& network,
-  FaultType fault_type,
+  bool has_prev_state,
   const TpgMFFC& mffc,
   const SatSolverType& solver_type
-) : DtpgEngine{network, fault_type, mffc.root(), true, solver_type},
+) : DtpgEngine{network, has_prev_state, mffc.root(), true, solver_type},
     mMFFC{mffc},
     mRootArray(mffc.ffr_num()),
     mEvarArray(mffc.ffr_num())

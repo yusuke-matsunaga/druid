@@ -92,7 +92,6 @@ class VidMap;
 class Fsim;
 
 enum class FaultType : ymuint8;
-//enum class GateType : ymuint8;
 enum class Val3 : ymuint8;
 enum class Fval2 : ymuint8;
 

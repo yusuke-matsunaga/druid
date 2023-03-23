@@ -14,10 +14,10 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 FFREngine::FFREngine(
   const TpgNetwork& network,
-  FaultType fault_type,
+  bool has_prev_state,
   const TpgFFR& ffr,
   const SatSolverType& solver_type
-) : DtpgEngine{network, fault_type, ffr.root(), true, solver_type}
+) : DtpgEngine{network, has_prev_state, ffr.root(), true, solver_type}
 {
 }
 

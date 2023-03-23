@@ -39,28 +39,23 @@ TestVector_new(
 {
   SizeType input_num = 0;
   SizeType dff_num = 0;
-  PyObject* fault_type_obj = nullptr;
+  int tmp = 0;
   static const char* kwlist[] = {
     "input_num",
     "dff_num",
-    "fault_type",
+    "has_prev_state",
     nullptr
   };
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "i|i$O!",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "i|ib",
 				    const_cast<char**>(kwlist),
-				    &input_num, &dff_num,
-				    PyFaultType::_typeobject(), &fault_type_obj) ) {
+				    &input_num, &dff_num, &tmp) ) {
     return nullptr;
-  }
-
-  auto fault_type = FaultType::StuckAt;
-  if ( fault_type_obj != nullptr ) {
-    fault_type = PyFaultType::Get(fault_type_obj);
   }
 
   auto self = type->tp_alloc(type, 0);
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(self);
-  testvector_obj->mPtr = new TestVector{input_num, dff_num, fault_type};
+  bool has_prev_state = static_cast<bool>(tmp);
+  testvector_obj->mPtr = new TestVector{input_num, dff_num, has_prev_state};
   return self;
 }
 
@@ -139,17 +134,6 @@ TestVector_has_aux_input(
   auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
   bool ans = tv_obj->mPtr->has_aux_input();
   return PyBool_FromLong(ans);
-}
-
-PyObject*
-TestVector_fault_type(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto fault_type = tv_obj->mPtr->fault_type();
-  return PyFaultType::ToPyObject(fault_type);
 }
 
 PyObject*
@@ -397,8 +381,6 @@ PyMethodDef TestVector_methods[] = {
    PyDoc_STR("returns a number of PPIs")},
   {"has_aux_input", TestVector_has_aux_input, METH_NOARGS,
    PyDoc_STR("returns True if having auxially inputs")},
-  {"fault_type", TestVector_fault_type, METH_NOARGS,
-   PyDoc_STR("return 'FaultType' of this vector")},
   {"val", TestVector_val, METH_VARARGS,
    PyDoc_STR("returns a value of the specified bit")},
   {"ppi_val", TestVector_ppi_val, METH_VARARGS,

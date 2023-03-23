@@ -61,24 +61,21 @@ Justifier::~Justifier()
 // @brief 正当化に必要な割当を求める
 TestVector
 Justifier::operator()(
-  FaultType fault_type,
+  bool has_prev_state,
   const NodeValList& assign_list,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model
 )
 {
-  TestVector tv{mNetwork.input_num(), mNetwork.dff_num(), fault_type};
-  if ( fault_type == FaultType::StuckAt ) {
-    auto pi_assign_list = mImpl->justify(assign_list, var2_map, model);
-    tv.set_from_assign_list(pi_assign_list);
-  }
-  else if ( fault_type == FaultType::TransitionDelay ) {
+  TestVector tv{mNetwork.input_num(), mNetwork.dff_num(), has_prev_state};
+  if ( has_prev_state ) {
     auto pi_assign_list = mImpl->justify(assign_list, var1_map, var2_map, model);
     tv.set_from_assign_list(pi_assign_list);
   }
   else {
-    ASSERT_NOT_REACHED;
+    auto pi_assign_list = mImpl->justify(assign_list, var2_map, model);
+    tv.set_from_assign_list(pi_assign_list);
   }
   return tv;
 }

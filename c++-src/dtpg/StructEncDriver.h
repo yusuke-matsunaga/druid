@@ -28,10 +28,10 @@ public:
   StructEncDriver(
     DtpgMgr& mgr,                    ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    FaultType fault_type,            ///< [in] 故障の種類
+    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
     const string& just_type,         ///< [in] 正当化のタイプ
     const SatSolverType& solver_type ///< [in] SATソルバのタイプ
-  ) : DtpgDriver{mgr, network, fault_type, just_type, solver_type}
+  ) : DtpgDriver{mgr, network, has_prev_state, just_type, solver_type}
   {
   }
 
@@ -50,6 +50,78 @@ protected:
     StructEnc& enc,       ///< [in] 回路構造をエンコードしたもの
     const TpgFault& fault ///< [in] 対象の故障
   );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class StructEncDriver_FFR StructEncDriver_FFR.h "StructEncDriver_FFR.h"
+/// @brief FFR モードの DtpgDriver_se
+//////////////////////////////////////////////////////////////////////
+class StructEncDriver_FFR :
+  public StructEncDriver
+{
+public:
+
+  /// @brief コンストラクタ
+  StructEncDriver_FFR(
+    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
+    const string& just_type,         ///< [in] 正当化のタイプ
+    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
+  ) : StructEncDriver{mgr, network, has_prev_state, just_type, solver_type}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~StructEncDriver_FFR() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief テスト生成を行う．
+  void
+  run() override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class StructEncDriver_MFFC StructEncDriver_MFFC.h "StructEncDriver_MFFC.h"
+/// @brief
+//////////////////////////////////////////////////////////////////////
+class StructEncDriver_MFFC :
+  public StructEncDriver
+{
+public:
+
+  /// @brief コンストラクタ
+  StructEncDriver_MFFC(
+    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
+    const string& just_type,         ///< [in] 正当化のタイプ
+    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
+  ) : StructEncDriver{mgr, network, has_prev_state, just_type, solver_type}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~StructEncDriver_MFFC() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief テスト生成を行う．
+  void
+  run() override;
 
 };
 

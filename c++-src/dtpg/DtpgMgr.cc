@@ -28,7 +28,7 @@ DtpgMgr::DtpgMgr(
   const SatSolverType& solver_type
 ) : mNetwork{network},
     mDriver{DtpgDriver::new_driver(*this, dtpg_type,
-				   network, fault_type,
+				   network, fault_type == FaultType::TransitionDelay,
 				   just_type, solver_type)}
 {
   mFaultMgr.gen_fault_list(network, fault_type);

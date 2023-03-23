@@ -180,7 +180,7 @@ randgen(
   URNG& rg,
   int input_num,
   int dff_num,
-  FaultType fault_type,
+  bool has_prev_state,
   int nv,
   vector<TestVector>& tv_list
 )
@@ -188,7 +188,7 @@ randgen(
   tv_list.clear();
   tv_list.reserve(nv);
   for ( int i = 0; i < nv; ++ i ) {
-    TestVector tv(input_num, dff_num, fault_type);
+    TestVector tv(input_num, dff_num, has_prev_state);
     tv.set_from_random(rg);
     tv_list.push_back(std::move(tv));
   }
@@ -329,16 +329,19 @@ fsim2test(
   string filename = argv[pos];
   auto network = TpgNetwork::read_network(filename, format);
 
+  FaultType fault_type = FaultType::None;
   if ( !sa_mode && !td_mode ) {
     sa_mode = true;
+    fault_type = FaultType::StuckAt;
   }
   if ( td_mode && network.dff_num() == 0 ) {
     cerr << "Network(" << filename << ") is not sequential,"
 	 << " --transition-delay option is ignored." << endl;
     td_mode = false;
     sa_mode = true;
+    fault_type = FaultType::TransitionDelay;
   }
-  FaultType fault_type = sa_mode ? FaultType::StuckAt : FaultType::TransitionDelay;
+  bool has_prev_state = td_mode;
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(network, fault_type);
@@ -351,7 +354,7 @@ fsim2test(
 
   int input_num = network.input_num();
   int dff_num = network.dff_num();
-  randgen(rg, input_num, dff_num, fault_type, npat, tv_list);
+  randgen(rg, input_num, dff_num, has_prev_state, npat, tv_list);
 
   Timer timer;
   timer.start();

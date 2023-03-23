@@ -6,11 +6,8 @@
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgDriver.h"
-#include "DtpgEngineDriver_FFR.h"
-#include "DtpgEngineDriver_MFFC.h"
-#include "StructEncDriver_FFR.h"
-#include "StructEncDriver_MFFC.h"
+#include "DtpgEngineDriver.h"
+#include "StructEncDriver.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,25 +17,25 @@ DtpgDriver::new_driver(
   DtpgMgr& mgr,
   const string& dtpg_type,
   const TpgNetwork& network,
-  FaultType fault_type,
+  bool has_prev_state,
   const string& just_type,
   const SatSolverType& solver_type
 )
 {
   if ( dtpg_type == "ffr" ) {
-    return new DtpgEngineDriver_FFR{mgr, network, fault_type, just_type, solver_type};
+    return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, solver_type};
   }
   if ( dtpg_type == "mffc" ) {
-    return new DtpgEngineDriver_MFFC{mgr, network, fault_type, just_type, solver_type};
+    return new DtpgEngineDriver_MFFC{mgr, network, has_prev_state, just_type, solver_type};
   }
   if ( dtpg_type == "ffr_se" ) {
-    return new StructEncDriver_FFR{mgr, network, fault_type, just_type, solver_type};
+    return new StructEncDriver_FFR{mgr, network, has_prev_state, just_type, solver_type};
   }
   if ( dtpg_type == "mffc_se" ) {
-    return new StructEncDriver_MFFC{mgr, network, fault_type, just_type, solver_type};
+    return new StructEncDriver_MFFC{mgr, network, has_prev_state, just_type, solver_type};
   }
   // デフォルトフォールバック
-  return new DtpgEngineDriver_FFR{mgr, network, fault_type, just_type, solver_type};
+  return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, solver_type};
 }
 
 // @brief 正当化を行う．
@@ -50,7 +47,7 @@ DtpgDriver::justify(
   const SatModel& sat_model
 )
 {
-  return mJustifier(mFaultType, assign_list,
+  return mJustifier(mHasPrevState, assign_list,
 		    hvar_map, gvar_map, sat_model);
 }
 

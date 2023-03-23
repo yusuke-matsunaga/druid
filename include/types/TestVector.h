@@ -45,19 +45,15 @@ public:
   TestVector(
   ) : mInputNum{0},
       mDffNum{0},
-      mFaultType{FaultType::StuckAt},
       mVector{_calc_vect_len()}
   {
   }
 
   /// @brief コンストラクタ(組み合わせ回路用)
-  ///
-  /// 故障タイプは StuckAt
   TestVector(
     SizeType input_num  ///< [in] 入力数
   ) : mInputNum{input_num},
       mDffNum{0},
-      mFaultType{FaultType::StuckAt},
       mVector{_calc_vect_len()}
   {
   }
@@ -66,10 +62,10 @@ public:
   TestVector(
     SizeType input_num,  ///< [in] 入力数
     SizeType dff_num,	 ///< [in] DFF数
-    FaultType fault_type ///< [in] 故障の種類
+    bool has_prev_state  ///< [in] 1時刻前の回路を持つ時 true
   ) : mInputNum{input_num},
       mDffNum{dff_num},
-      mFaultType{fault_type},
+      mHasPrevState{has_prev_state},
       mVector{_calc_vect_len()}
   {
   }
@@ -79,7 +75,7 @@ public:
     const TestVector& src///< [in] コピー元のソース
   ) : mInputNum{src.mInputNum},
       mDffNum{src.mDffNum},
-      mFaultType{src.mFaultType},
+      mHasPrevState{src.mHasPrevState},
       mVector{src.mVector}
   {
   }
@@ -92,7 +88,7 @@ public:
   {
     mInputNum = src.mInputNum;
     mDffNum = src.mDffNum;
-    mFaultType = src.mFaultType;
+    mHasPrevState = src.mHasPrevState;
     mVector = src.mVector;
 
     return *this;
@@ -150,14 +146,7 @@ public:
   bool
   has_aux_input() const
   {
-    return fault_type() == FaultType::TransitionDelay;
-  }
-
-  /// @brief 故障の種類を返す．
-  FaultType
-  fault_type() const
-  {
-    return mFaultType;
+    return mHasPrevState;
   }
 
   /// @brief PPIの値を得る．
@@ -427,7 +416,7 @@ private:
   SizeType
   _calc_vect_len() const
   {
-    SizeType x = mFaultType == FaultType::StuckAt ? 1 : 2;
+    SizeType x = mHasPrevState ? 2 : 1;
     return mInputNum * x + mDffNum;
   }
 
@@ -443,8 +432,8 @@ private:
   // DFF数
   SizeType mDffNum;
 
-  // 故障のタイプ
-  FaultType mFaultType;
+  // 1時刻前のの回路を持つ時 true にするフラグ
+  bool mHasPrevState{false};
 
   // 本体のビットベクタ
   BitVector mVector;

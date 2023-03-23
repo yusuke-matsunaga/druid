@@ -38,10 +38,10 @@ END_NONAMESPACE
 // @brief コンストラクタ
 StructEnc::StructEnc(
   const TpgNetwork& network,
-  FaultType fault_type,
+  bool has_prev_state,
   const SatSolverType& solver_type
 ) : mNetwork{network},
-    mFaultType{fault_type},
+    mHasPrevState{has_prev_state},
     mSolver{solver_type},
     mMaxId{network.node_num()},
     mGvarMap(mMaxId),
@@ -156,7 +156,7 @@ StructEnc::make_vars()
     tmp_list.insert(tmp_list.end(), src_list.begin(), src_list.end());
   }
 
-  if ( fault_type() == FaultType::TransitionDelay ) {
+  if ( mHasPrevState ) {
     // tmp_list の TFI を mCurNodeList に入れる．
     // そのうちの DFF の出力に対しては対応する入力を mDffInputList に入れる．
     mCurNodeList = TpgNodeSet::get_tfi_list(max_node_id(), tmp_list,

@@ -8,6 +8,7 @@
 
 #include "StructEncDriver.h"
 #include "StructEnc.h"
+#include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "ym/Timer.h"
 
@@ -69,6 +70,54 @@ StructEncDriver::gen_pattern(
   else {
     // ans == SatBool3::X つまりアボート
     update_abort(fault, sat_time);
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// StructEncDriver_FFR
+//////////////////////////////////////////////////////////////////////
+
+// @brief テスト生成を行う．
+void
+StructEncDriver_FFR::run()
+{
+  for ( auto ffr: network().ffr_list() ) {
+    cnf_begin();
+    StructEnc enc{network(), has_prev_state(), sat_type()};
+    enc.add_simple_cone(ffr.root(), true);
+    enc.make_cnf();
+    cnf_end();
+    for ( auto fault: fault_mgr().ffr_fault_list(ffr.id()) ) {
+      if ( fault_mgr().get_status(fault) == FaultStatus::Undetected ) {
+	gen_pattern(enc, fault);
+      }
+    }
+    update_sat_stats(enc.solver().get_stats());
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// StructEncDriver_MFFC
+//////////////////////////////////////////////////////////////////////
+
+// @brief テスト生成を行う．
+void
+StructEncDriver_MFFC::run()
+{
+  for ( auto mffc: network().mffc_list() ) {
+    cnf_begin();
+    StructEnc enc{network(), has_prev_state(), sat_type()};
+    enc.add_mffc_cone(mffc, true);
+    enc.make_cnf();
+    cnf_end();
+    for ( auto fault: fault_mgr().mffc_fault_list(mffc.id()) ) {
+      if ( fault_mgr().get_status(fault) == FaultStatus::Undetected ) {
+	gen_pattern(enc, fault);
+      }
+    }
+    update_sat_stats(enc.solver().get_stats());
   }
 }
 

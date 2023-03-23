@@ -26,10 +26,7 @@ TestVector::set_from_assign_list(
 
     auto val = nv.val() ? Val3::_1 : Val3::_0;
 
-    if ( fault_type() == FaultType::StuckAt ) {
-      set_ppi_val(node->input_id(), val);
-    }
-    else if ( fault_type() == FaultType::TransitionDelay ) {
+    if ( mHasPrevState ) {
       int time = nv.time();
       if ( time == 0 ) {
 	set_ppi_val(node->input_id(), val);
@@ -39,6 +36,9 @@ TestVector::set_from_assign_list(
 
 	set_aux_input_val(node->input_id(), val);
       }
+    }
+    else {
+      set_ppi_val(node->input_id(), val);
     }
   }
 }

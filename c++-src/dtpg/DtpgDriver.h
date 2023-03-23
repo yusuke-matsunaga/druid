@@ -37,7 +37,7 @@ public:
     DtpgMgr& mgr,                    ///< [in] 親のマネージャ
     const string& dtpg_type,         ///< [in] DTPGのタイプ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    FaultType fault_type,            ///< [in] 故障の種類
+    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
     const string& just_type,         ///< [in] 正当化のタイプ
     const SatSolverType& solver_type ///< [in] SATソルバのタイプ
   );
@@ -52,12 +52,12 @@ public:
   DtpgDriver(
     DtpgMgr& mgr,                    ///< [in] 親のマネージャ
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    FaultType fault_type,            ///< [in] 故障の種類
+    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
     const string& just_type,         ///< [in] 正当化のタイプ
     const SatSolverType& solver_type ///< [in] SATソルバのタイプ
   ) : mMgr{mgr},
       mNetwork{network},
-      mFaultType{fault_type},
+      mHasPrevState{has_prev_state},
       mJustifier{just_type, network},
       mSolverType{solver_type}
   {
@@ -105,11 +105,11 @@ protected:
     return mNetwork;
   }
 
-  /// @brief 故障の種類を返す．
-  FaultType
-  fault_type() const
+  /// @brief 1時刻前の回路を持つ時 true を返す．
+  bool
+  has_prev_state() const
   {
-    return mFaultType;
+    return mHasPrevState;
   }
 
   /// @brief 正当化を行う．
@@ -197,8 +197,8 @@ private:
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
 
-  // 故障の種類
-  FaultType mFaultType;
+  // 1時刻前のの回路を持つ時 true にするフラグ
+  bool mHasPrevState;
 
   // 正当化を行うファンクタ
   Justifier mJustifier;

@@ -8,6 +8,8 @@
 
 #include "DtpgEngineDriver.h"
 #include "DtpgEngine.h"
+#include "FFREngine.h"
+#include "MFFCEngine.h"
 #include "TpgFault.h"
 #include "TpgNode.h"
 #include "NodeValList.h"
@@ -55,6 +57,67 @@ DtpgEngineDriver::gen_pattern(
   else {
     // ans == SatBool3::X つまりアボート
     update_abort(fault, sat_time);
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// DtpgEngineDriver_FFR
+//////////////////////////////////////////////////////////////////////
+
+// @brief テスト生成を行う．
+void
+DtpgEngineDriver_FFR::run()
+{
+  for ( auto ffr: network().ffr_list() ) {
+    FFREngine engine{network(), has_prev_state(), ffr, sat_type()};
+    cnf_begin();
+    engine.make_cnf();
+    cnf_end();
+    for ( auto fault: fault_mgr().ffr_fault_list(ffr.id()) ) {
+      if ( fault_mgr().get_status(fault) == FaultStatus::Undetected ) {
+	gen_pattern(engine, fault);
+      }
+    }
+    update_sat_stats(engine.sat_stats());
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// DtpgEngineDriver_MFFC
+//////////////////////////////////////////////////////////////////////
+
+// @brief テスト生成を行う．
+void
+DtpgEngineDriver_MFFC::run()
+{
+  for ( auto mffc: network().mffc_list() ) {
+    if ( mffc.ffr_num() == 1 ) {
+      auto ffr = mffc.ffr(0);
+      FFREngine engine{network(), has_prev_state(), ffr, sat_type()};
+      cnf_begin();
+      engine.make_cnf();
+      cnf_end();
+      for ( auto fault: fault_mgr().ffr_fault_list(ffr.id()) ) {
+	if ( fault_mgr().get_status(fault) == FaultStatus::Undetected ) {
+	  gen_pattern(engine, fault);
+	}
+      }
+      update_sat_stats(engine.solver().get_stats());
+    }
+    else {
+      MFFCEngine engine{network(), has_prev_state(), mffc, sat_type()};
+      cnf_begin();
+      engine.make_cnf();
+      cnf_end();
+      for ( auto fault: fault_mgr().mffc_fault_list(mffc.id()) ) {
+	if ( fault_mgr().get_status(fault) == FaultStatus::Undetected ) {
+	  gen_pattern(engine, fault);
+	}
+      }
+      update_sat_stats(engine.solver().get_stats());
+    }
   }
 }
 

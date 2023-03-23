@@ -34,7 +34,7 @@ public:
   /// @brief コンストラクタ
   StructEnc(
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    FaultType fault_type,	     ///< [in] pe 故障の種類
+    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
     const SatSolverType& solver_type ///< [in] SATソルバの種類
   );
 
@@ -52,13 +52,6 @@ public:
   solver()
   {
     return mSolver;
-  }
-
-  /// @brief 故障の種類を返す．
-  FaultType
-  fault_type() const
-  {
-    return mFaultType;
   }
 
   /// @brief ノード番号の最大値を返す．
@@ -311,8 +304,8 @@ private:
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
 
-  // 故障の種類
-  FaultType mFaultType;
+  // 1時刻前のの回路を持つ時 true にするフラグ
+  bool mHasPrevState;
 
   // SAT ソルバ
   SatSolver mSolver;

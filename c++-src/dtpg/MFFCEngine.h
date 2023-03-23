@@ -26,7 +26,7 @@ public:
   /// @brief コンストラクタ
   MFFCEngine(
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    FaultType fault_type,	     ///< [in] 故障の種類
+    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
     const TpgMFFC& mffc,	     ///< [in] 故障伝搬の起点となる MFFC
     const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
   );
