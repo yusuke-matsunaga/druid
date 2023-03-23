@@ -11,6 +11,7 @@
 
 #include "druid.h"
 #include "FaultType.h"
+#include "TpgFaultList.h"
 #include "PackedVal.h"
 #include "ym/Array.h"
 
@@ -36,11 +37,7 @@ class Fsim
 public:
 
   /// @brief コンストラクタ
-  Fsim(
-    const TpgNetwork& network, ///< [in] ネットワーク
-    FaultType fault_type,      ///< [in] 故障の型
-    bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
-  );
+  Fsim();
 
   /// @brief コピーコンストラクタは禁止
   Fsim(const Fsim& src) = delete;
@@ -62,6 +59,20 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
+  // 初期化
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 初期化を行う．
+  void
+  initialize(
+    const TpgNetwork& network, ///< [in] ネットワーク
+    TpgFaultMgr& fmgr,         ///< [in] 故障マネージャ
+    bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
+  );
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
   // 故障を設定する関数
   //////////////////////////////////////////////////////////////////////
 
@@ -72,7 +83,7 @@ public:
   /// @brief 故障にスキップマークをつける．
   void
   set_skip(
-    const TpgFault* f  ///< [in] 対象の故障
+    const TpgFault& f  ///< [in] 対象の故障
   );
 
   /// @brief 複数の故障にスキップマークをつける．
@@ -80,8 +91,16 @@ public:
   /// fault_list に含まれない故障のスキップマークは消される．
   void
   set_skip(
-    const vector<const TpgFault*>& fault_list  ///< [in] 故障のリスト
+    const TpgFaultList& fault_list  ///< [in] 故障のリスト
 
+  );
+
+  /// @brief 複数の故障にスキップマークをつける．
+  ///
+  /// fault_list に含まれない故障のスキップマークは消される．
+  void
+  set_skip(
+    const vector<TpgFault>& fault_list  ///< [in] 故障のリスト
   );
 
   /// @brief 全ての故障のスキップマークを消す．
@@ -91,7 +110,7 @@ public:
   /// @brief 故障のスキップマークを消す．
   void
   clear_skip(
-    const TpgFault* f  ///< [in] 対象の故障
+    const TpgFault& f  ///< [in] 対象の故障
   );
 
   /// @brief 複数の故障のスキップマークを消す．
@@ -99,7 +118,15 @@ public:
   /// fault_list に含まれない故障のスキップマークは付けられる．
   void
   clear_skip(
-    const vector<const TpgFault*>& fault_list  ///< [in] 故障のリスト
+    const TpgFaultList& fault_list  ///< [in] 故障のリスト
+  );
+
+  /// @brief 複数の故障のスキップマークを消す．
+  ///
+  /// fault_list に含まれない故障のスキップマークは付けられる．
+  void
+  clear_skip(
+    const vector<TpgFault>& fault_list  ///< [in] 故障のリスト
   );
 
 
@@ -114,7 +141,7 @@ public:
   bool
   spsfp(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault* f	  ///< [in] 対象の故障
+    const TpgFault& f	  ///< [in] 対象の故障
   );
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -123,7 +150,7 @@ public:
   bool
   spsfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault* f		    ///< [in] 対象の故障
+    const TpgFault& f		    ///< [in] 対象の故障
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -229,13 +256,13 @@ public:
   det_fault_num();
 
   /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-  const TpgFault*
+  TpgFault
   det_fault(
     SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
   );
 
   /// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
-  Array<const TpgFault*>
+  vector<TpgFault>
   det_fault_list();
 
   /// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
@@ -245,7 +272,7 @@ public:
   );
 
   /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
-  Array<PackedVal>
+  const vector<PackedVal>&
   det_fault_pat_list();
 
 

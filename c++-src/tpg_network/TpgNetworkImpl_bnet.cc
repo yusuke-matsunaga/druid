@@ -9,7 +9,7 @@
 #include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
-#include "TpgGateInfo.h"
+#include "GateType.h"
 
 #include "NodeMap.h"
 
@@ -52,14 +52,13 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // NodeInfoMgr にノードの論理関数を登録する．
   //////////////////////////////////////////////////////////////////////
-  TpgGateInfoMgr node_info_mgr;
-  vector<const TpgGateInfo*> node_info_list;
-  node_info_list.reserve(network.expr_num());
+  vector<const GateType*> gate_type_list;
+  gate_type_list.reserve(network.expr_num());
   for ( SizeType i: Range(network.expr_num()) ) {
     auto expr = network.expr(i);
     SizeType ni = expr.input_size();
-    auto node_info = node_info_mgr.new_info(ni, expr);
-    node_info_list.push_back(node_info);
+    auto gate_type = mGateTypeMgr.new_type(ni, expr);
+    gate_type_list.push_back(gate_type);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -69,15 +68,8 @@ TpgNetworkImpl::set(
   for ( auto src_node: network.logic_list() ) {
     auto logic_type = src_node.type();
     if ( logic_type == BnNodeType::Expr ) {
-      auto node_info = node_info_list[src_node.expr_id()];
-      extra_node_num += node_info->extra_node_num();
-    }
-    else if ( logic_type == BnNodeType::Prim ) {
-      auto prim_type = src_node.primitive_type();
-      if ( prim_type == PrimType::Xor || prim_type == PrimType::Xnor ) {
-	SizeType ni = src_node.fanin_num();
-	extra_node_num += (ni - 2);
-      }
+      auto gate_type = gate_type_list[src_node.expr_id()];
+      extra_node_num += gate_type->extra_node_num();
     }
   }
 
@@ -157,14 +149,14 @@ TpgNetworkImpl::set(
   // 結果として TpgNode もトポロジカル順に並べられる．
   //////////////////////////////////////////////////////////////////////
   for ( auto src_node: network.logic_list() ) {
-    const TpgGateInfo* node_info = nullptr;
+    const GateType* gate_type = nullptr;
     auto logic_type = src_node.type();
     if ( logic_type == BnNodeType::Expr ) {
-      node_info = node_info_list[src_node.expr_id()];
+      gate_type = gate_type_list[src_node.expr_id()];
     }
     else if ( logic_type == BnNodeType::Prim ) {
-      auto gate_type = src_node.primitive_type();
-      node_info = node_info_mgr.simple_type(gate_type);
+      auto prim_type = src_node.primitive_type();
+      gate_type = mGateTypeMgr.simple_type(prim_type);
     }
     else {
       ASSERT_NOT_REACHED;
@@ -176,7 +168,7 @@ TpgNetworkImpl::set(
     for ( auto inode: src_node.fanin_list() ) {
       fanin_array.push_back(node_map.get(inode.id()));
     }
-    auto node = make_logic_node(src_node.name(), node_info, fanin_array,
+    auto node = make_logic_node(src_node.name(), gate_type, fanin_array,
 				connection_list);
 
     // ノードを登録する．

@@ -98,7 +98,7 @@ DtpgEngine2::prepare_vars()
   if ( debug_dtpg ) {
     DEBUG_OUT << endl;
     DEBUG_OUT << "DtpgEngine2::prepare_vars() begin" << endl;
-    DEBUG_OUT << " Root = " << node_name(mRoot) << endl;
+    DEBUG_OUT << " Root = " << mRoot->str() << endl;
   }
 
   // root の TFO を mTfoList に入れる．
@@ -162,7 +162,7 @@ DtpgEngine2::prepare_vars()
     mFvarMap.set_vid(node, gvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << node_name(node)
+      DEBUG_OUT << node->str()
 		<< ": gvar|fvar = "
 		<< gvar << endl;
     }
@@ -174,7 +174,7 @@ DtpgEngine2::prepare_vars()
     mFvarMap.set_vid(node, fvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT	<< node_name(node)
+      DEBUG_OUT	<< node->str()
 		<< ": fvar = " << fvar << endl;
     }
 
@@ -182,7 +182,7 @@ DtpgEngine2::prepare_vars()
       auto dvar = mSolver.new_variable(true);
       mDvarMap.set_vid(node, dvar);
       if ( mDchain ) {
-	DEBUG_OUT << node_name(node) << ": dvar = " << dvar << endl;
+	DEBUG_OUT << node->str() << ": dvar = " << dvar << endl;
       }
     }
   }
@@ -194,7 +194,7 @@ DtpgEngine2::prepare_vars()
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << node_name(node)
+      DEBUG_OUT << node->str()
 		<< ": hvar = " << hvar
 		<< endl;
     }
@@ -217,13 +217,13 @@ DtpgEngine2::gen_good_cnf()
     {
       auto olit = gvar(node);
       if ( olit == SatLiteral::X ) {
-	cout << node_name(node) << ": gvar = X" << endl;
+	cout << node->str() << ": gvar = X" << endl;
 	abort();
       }
       for ( auto inode: node->fanin_list() ) {
 	auto ilit = gvar(inode);
 	if ( ilit == SatLiteral::X ) {
-	  cout << node_name(inode) << ": gvar = X" << endl;
+	  cout << inode->str() << ": gvar = X" << endl;
 	  abort();
 	}
       }
@@ -234,7 +234,7 @@ DtpgEngine2::gen_good_cnf()
   GateEnc hval_enc{mSolver, mHvarMap};
   for ( auto node: mTfi2List ) {
     if ( hvar(node) == SatLiteral::X ) {
-      cout << node_name(node) << ": hvar = X" << endl;
+      cout << node->str() << ": hvar = X" << endl;
       abort();
     }
     hval_enc.make_cnf(node);
@@ -298,7 +298,7 @@ DtpgEngine2::make_dchain_cnf(
   mSolver.add_clause( glit,  flit, ~dlit);
 
   if ( debug_dtpg ) {
-    DEBUG_OUT << node_name(node) << ": dvar(" << dlit << ") -> "
+    DEBUG_OUT << node->str() << ": dvar(" << dlit << ") -> "
 	      << glit << " != " << flit << endl;
   }
 
@@ -307,7 +307,7 @@ DtpgEngine2::make_dchain_cnf(
     mSolver.add_clause( glit, ~flit,  dlit);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << node_name(node) << ": !dvar(" << dlit << ") -> "
+      DEBUG_OUT << node->str() << ": !dvar(" << dlit << ") -> "
 		<< glit << " == " << flit << endl;
     }
   }
@@ -315,7 +315,7 @@ DtpgEngine2::make_dchain_cnf(
     // dlit -> ファンアウト先のノードの dlit の一つが 1
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << node_name(node) << "dvar(" << dlit << ") -> ";
+      DEBUG_OUT << node->str() << "dvar(" << dlit << ") -> ";
     }
     int nfo = node->fanout_num();
     if ( nfo == 1 ) {
@@ -349,7 +349,7 @@ DtpgEngine2::make_dchain_cnf(
 	mSolver.add_clause(~dlit, odlit);
 
 	if ( debug_dtpg ) {
-	  DEBUG_OUT << node_name(node) << "dvar(" << dlit << ") -> "
+	  DEBUG_OUT << node->str() << "dvar(" << dlit << ") -> "
 		    << odlit << endl;
 	}
       }
@@ -557,14 +557,5 @@ DtpgEngine2::_add_negation_sub(
   return SatLiteral();
 }
 #endif
-
-// @brief ノード名を返す．
-string
-DtpgEngine2::node_name(
-  const TpgNode* node
-)
-{
-  return mNetwork.node_name(node->id());
-}
 
 END_NAMESPACE_DRUID

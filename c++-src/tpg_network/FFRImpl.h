@@ -47,9 +47,9 @@ public:
   const vector<const TpgNode*>&
   input_list() const { return mInputList; }
 
-  /// @brief 故障の配列を返す．
-  const vector<const TpgFault*>&
-  fault_list() const { return mFaultList; }
+  /// @brief このFFRに含まれるノードのリストを返す．
+  const vector<const TpgNode*>&
+  node_list() const { return mNodeList; }
 
 
 private:
@@ -66,8 +66,8 @@ private:
   // 葉のノードの配列
   vector<const TpgNode*> mInputList;
 
-  // 故障の配列
-  vector<const TpgFault*> mFaultList;
+  // ノードの配列
+  vector<const TpgNode*> mNodeList;
 
 };
 

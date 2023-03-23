@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "TpgFault.h"
 #include "TestVector.h"
 
 
@@ -37,47 +38,41 @@ public:
   /// @brief 成功結果を追加する．
   void
   add_good(
-    const TpgFault* f ///< [in] 故障
+    const TpgFault& f ///< [in] 故障
   );
 
   /// @brief エラー結果を追加する．
   void
   add_error(
-    const TpgFault* f,   ///< [in] 故障
+    const TpgFault& f,   ///< [in] 故障
     const TestVector& tv ///< [in] テストベクタ
   );
 
   /// @brief 成功回数を得る．
-  int
+  SizeType
   good_count() const;
 
   /// @brief 成功した故障を得る．
-  const TpgFault*
+  TpgFault
   good_fault(
-    int pos  ///< [in] 位置版号 ( 0 <= pos < good_count() )
+    SizeType pos  ///< [in] 位置版号 ( 0 <= pos < good_count() )
   ) const;
 
   /// @brief エラー回数を得る．
-  int
+  SizeType
   error_count() const;
 
   /// @brief エラーの故障を得る．
-  const TpgFault*
+  TpgFault
   error_fault(
-    int pos  ///< [in] 位置版号 ( 0 <= pos < error_count() )
+    SizeType pos  ///< [in] 位置版号 ( 0 <= pos < error_count() )
   ) const;
 
   /// @brief エラーとなったテストベクタを得る．
   TestVector
   error_testvector(
-    int pos  ///< [in] 位置版号 ( 0 <= pos < error_count() )
+    SizeType pos  ///< [in] 位置版号 ( 0 <= pos < error_count() )
   ) const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:
@@ -89,12 +84,12 @@ private:
   {
     // コンストラクタ
     ErrorCase(
-      const TpgFault* f,
+      const TpgFault& f,
       const TestVector& tv
     );
 
     // 故障
-    const TpgFault* mFault;
+    TpgFault mFault;
 
     // テストベクタ
     TestVector mTestVector;
@@ -108,7 +103,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 成功した故障のリスト
-  vector<const TpgFault*> mGoodList;
+  vector<TpgFault> mGoodList;
 
   // エラーのリスト
   vector<ErrorCase> mErrorList;

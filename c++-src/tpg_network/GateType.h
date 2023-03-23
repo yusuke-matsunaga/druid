@@ -1,11 +1,11 @@
-﻿#ifndef TPGGATEINFO_H
-#define TPGGATEINFO_H
+﻿#ifndef GATETYPE_H
+#define GATETYPE_H
 
-/// @file TpgGateInfo.h
-/// @brief TpgGateInfo のヘッダファイル
+/// @file GateType.h
+/// @brief GateType のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -16,20 +16,22 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgGateInfo TpgGateInfo.h "TpgGateInfo.h"
-/// @brief TpgNode の論理関数の情報を格納するクラス
+/// @class GateType GateType.h "GateType.h"
+/// @brief ゲートの種類を表すクラス
 ///
 /// - 追加ノード数
 /// - 制御値
 /// の情報を持つ．
+///
+/// ただしこのクラスはインターフェイスの定義のみ
 //////////////////////////////////////////////////////////////////////
-class TpgGateInfo
+class GateType
 {
 public:
 
   /// @brief デストラクタ
   virtual
-  ~TpgGateInfo() = default;
+  ~GateType() = default;
 
 
 public:
@@ -56,7 +58,7 @@ public:
   /// 組み込みタイプ(is_simple() = true)のときのみ意味を持つ．
   virtual
   PrimType
-  gate_type() const = 0;
+  primitive_type() const = 0;
 
   /// @brief 論理式を返す．
   ///
@@ -82,18 +84,18 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgGateInfoMgr TpgGateInfoMgr.h "TpgGateInfoMgr.h"
-/// @brief TpgGateInfo を管理するクラス
+/// @class GateTypeMgr GateTypeMgr.h "GateTypeMgr.h"
+/// @brief GateType を管理するクラス
 //////////////////////////////////////////////////////////////////////
-class TpgGateInfoMgr
+class GateTypeMgr
 {
 public:
 
   /// @brief コンストラクタ
-  TpgGateInfoMgr();
+  GateTypeMgr();
 
   /// @brief デストラクタ
-  ~TpgGateInfoMgr();
+  ~GateTypeMgr();
 
 
 public:
@@ -101,21 +103,27 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief TpgGateInfo を登録する．
-  const TpgGateInfo*
-  new_info(
+  /// @brief GateType を登録する．
+  const GateType*
+  new_type(
     SizeType ni,     ///< [in] 入力数
     const Expr& expr ///< [in] 論理式
   );
 
   /// @brief 組み込み型のオブジェクトを返す．
-  const TpgGateInfo*
+  const GateType*
   simple_type(
     PrimType gate_type ///< [in] ゲートタイプ
   );
 
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
   /// @brief 複合型のオブジェクトを返す．
-  const TpgGateInfo*
+  const GateType*
   complex_type(
     SizeType ni,     ///< [in] 入力数
     const Expr& expr ///< [in] 論理式
@@ -128,13 +136,13 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 組み込み型のオブジェクトの配列
-  TpgGateInfo* mSimpleType[10];
+  GateType* mSimpleType[10];
 
   // 普通のオブジェクトのリスト
-  vector<TpgGateInfo*> mList;
+  vector<GateType*> mList;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // TPGGATEINFO_H
+#endif // GATETYPE_H

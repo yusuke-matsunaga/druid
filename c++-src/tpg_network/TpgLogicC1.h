@@ -20,9 +20,7 @@ BEGIN_NAMESPACE_DRUID
 class TpgLogicC1 :
   public TpgLogic
 {
-  friend class TpgNetworkImpl;
-
-private:
+public:
 
   /// @brief コンストラクタ
   TpgLogicC1();

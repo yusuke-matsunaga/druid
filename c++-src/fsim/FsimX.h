@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012-2013, 2016, 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "FsimImpl.h"
@@ -26,36 +26,6 @@ class SimFFR;
 class SimNode;
 class InputVals;
 
-BEGIN_NONAMESPACE
-
-// 故障の活性化条件を返す．
-inline
-PackedVal
-_fault_diff(const TpgFault* f,
-	    FSIM_VALTYPE val)
-{
-#if FSIM_VAL2
-  return ( f->val() == Fval2::one ) ? ~val : val;
-#elif FSIM_VAL3
-  return ( f->val() == Fval2::one ) ? val.val0() : val.val1();
-#endif
-}
-
-// 遷移故障の初期化条件を返す．
-inline
-PackedVal
-_fault_eq(const TpgFault* f,
-	  FSIM_VALTYPE val)
-{
-#if FSIM_VAL2
-  return ( f->val() == Fval2::one) ? val : ~val;
-#elif FSIM_VAL3
-  return ( f->val() == Fval2::one ) ? val.val1() : val.val0();
-#endif
-}
-
-END_NONAMESPACE
-
 //////////////////////////////////////////////////////////////////////
 /// @class FSIM_CLASSNAME FsimX.h "FsimX.h"
 /// @brief 故障シミュレーションを行うモジュール
@@ -69,7 +39,8 @@ public:
 
   /// @brief コンストラクタ
   FSIM_CLASSNAME (
-    const TpgNetwork& network ///< [in] ネットワーク
+    const TpgNetwork& network, ///< [in] ネットワーク
+    TpgFaultMgr& fmgr          ///< [in] 故障マネージャ
   );
 
   /// @brief デストラクタ
@@ -88,7 +59,7 @@ public:
   /// @brief 故障にスキップマークをつける．
   void
   set_skip(
-    const TpgFault* f ///< [in] 対象の故障
+    const TpgFault& f ///< [in] 対象の故障
   ) override;
 
   /// @brief 全ての故障のスキップマークを消す．
@@ -98,7 +69,7 @@ public:
   /// @brief 故障のスキップマークを消す．
   void
   clear_skip(
-    const TpgFault* f ///< [in] 対象の故障
+    const TpgFault& f ///< [in] 対象の故障
   ) override;
 
 
@@ -113,7 +84,7 @@ public:
   bool
   spsfp(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault* f     ///< [in] 対象の故障
+    const TpgFault& f     ///< [in] 対象の故障
   ) override;
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -122,7 +93,7 @@ public:
   bool
   spsfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault* f               ///< [in] 対象の故障
+    const TpgFault& f               ///< [in] 対象の故障
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -237,22 +208,14 @@ public:
   }
 
   /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-  const TpgFault*
+  TpgFault
   det_fault(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  ) override
-  {
-    ASSERT_COND( pos >= 0 && pos < det_fault_num() );
-
-    return mDetFaultArray[pos];
-  }
+  ) override;
 
   /// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
-  Array<const TpgFault*>
-  det_fault_list() override
-  {
-    return Array<const TpgFault*>(mDetFaultArray, 0, mDetNum);
-  }
+  vector<TpgFault>
+  det_fault_list() override;
 
   /// @brief 直前の ppsfp で検出された故障に対する検出パタンを返す．
   PackedVal
@@ -266,10 +229,10 @@ public:
   }
 
   /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
-  Array<PackedVal>
+  const vector<PackedVal>&
   det_fault_pat_list() override
   {
-    return Array<PackedVal>(mDetPatArray, 0, mDetNum);
+    return mDetPatArray;
   }
 
 
@@ -340,7 +303,7 @@ private:
   );
 
   /// @brief FFR のリストを返す．
-  Array<SimFFR>
+  const vector<SimFFR>&
   _ffr_list() const;
 
   /// @brief SPSFP故障シミュレーションの本体
@@ -348,7 +311,7 @@ private:
   /// @retval false 故障の検出が行えなかった．
   bool
   _spsfp(
-    const TpgFault* f ///< [in] 対象の故障
+    const TpgFault& f ///< [in] 対象の故障
   );
 
   /// @brief SPPFP故障シミュレーションの本体
@@ -413,19 +376,12 @@ private:
   {
     auto lobs = PV_ALL1;
 
-    auto f_node = fault->mNode;
-    for ( auto node = f_node; !node->is_ffr_root(); ) {
+    auto f_node = fault->origin_node();
+    for ( auto node = f_node; !node->ffr_root(); ) {
       auto onode = node->fanout_top();
       auto pos = node->fanout_ipos();
       lobs &= onode->_calc_gobs(pos);
       node = onode;
-    }
-
-    auto f = fault->mOrigF;
-    if ( f->is_branch_fault() ) {
-      // 入力の故障
-      auto ipos = fault->mIpos;
-      lobs &= f_node->_calc_gobs(ipos);
     }
 
     return lobs;
@@ -438,21 +394,55 @@ private:
   )
   {
     // 故障の活性化条件を求める．
-    auto cval = _fault_cond(fault);
+    auto cval = fault->excitation_condition();
 
     // FFR 内の故障伝搬を行う．
-    auto lobs = _ffr_prop(fault);
+    auto lobs = cval & _ffr_prop(fault);
 
 #if FSIM_SA
-    return cval & lobs;
+    return lobs;
 #elif FSIM_TD
     // 1時刻前の条件を求める．
-    auto pval = _fault_prev_cond(fault);
+    auto pval = fault->previous_condition();
 
-    return lobs & cval & pval;
+    return lobs & pval;
 #else
     return 0UL;
 #endif
+  }
+
+  /// @brief 結果の配列をクリアする．
+  void
+  clear_det_array()
+  {
+    mDetFaultArray.clear();
+    mDetPatArray.clear();
+    mDetNum = 0;
+  }
+
+  /// @brief 結果を追加する(sppfp用)．
+  void
+  add_det_array(
+    SimFault* f ///< [in] 故障
+  )
+  {
+    auto fid = f->id();
+    mDetFaultArray.push_back(fid);
+    ++ mDetNum;
+  }
+
+  /// @brief 結果を追加する(pppfp用)．
+  void
+  add_det_array(
+    PackedVal pat, ///< [in] パタン
+    SimFault* f    ///< [in] 故障
+  )
+  {
+    auto fid = f->id();
+    auto pat1 = pat & mPatMap;
+    mDetFaultArray.push_back(fid);
+    mDetPatArray.push_back(pat1);
+    ++ mDetNum;
   }
 
   /// @brief 個々の故障の故障伝搬条件を計算する．
@@ -461,34 +451,6 @@ private:
   _foreach_faults(
     const vector<SimFault*>& fault_list ///< [in] 故障のリスト
   );
-
-  /// @brief 故障の活性化条件を求める．
-  PackedVal
-  _fault_cond(
-    SimFault* fault ///< [in] 対象の故障
-  )
-  {
-    // 故障の入力側のノードの値
-    auto ival = fault->mInode->val();
-
-    // それが故障値と異なっていることが条件
-    auto valdiff = _fault_diff(fault->mOrigF, ival);
-
-    return valdiff;
-  }
-
-  /// @brief 故障の活性化条件を求める．(遷移故障用)
-  PackedVal
-  _fault_prev_cond(
-    SimFault* fault ///< [in] 対象の故障
-  )
-  {
-    // １時刻前の値が故障値と同じである必要がある．
-    auto pval = mPrevValArray[fault->mInode->id()];
-    auto valeq = _fault_eq(fault->mOrigF, pval);
-
-    return valeq;
-  }
 
   /// @brief シミュレーションを行って sppfp 用の _fault_sweep() を呼ぶ出す．
   void
@@ -538,6 +500,9 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
+  // 故障マネージャ
+  TpgFaultMgr& mFaultMgr;
+
   // 外部入力数
   SizeType mInputNum;
 
@@ -561,19 +526,18 @@ private:
   // 入力からのトポロジカル順に並べた logic ノードの配列
   vector<SimNode*> mLogicArray;
 
+#if FSIM_TD
   // ブロードサイド方式用の１時刻前の値を保持する配列
   // サイズは mNodeArray.size()
-  FSIM_VALTYPE* mPrevValArray;
+  vector<FSIM_VALTYPE> mPrevValArray;
+#endif
 
   // FFR 数
   SizeType mFFRNum;
 
   // FFR を納めた配列
   // サイズは mFFRNum
-  SimFFR* mFFRArray;
-
-  // SimNode->id() をキーにして所属する FFR を納めた配列
-  SimFFR** mFFRMap;
+  vector<SimFFR> mFFRArray;
 
   // パタンの設定状況を表すビットベクタ
   PackedVal mPatMap;
@@ -591,20 +555,18 @@ private:
   // 故障数
   SizeType mFaultNum;
 
-  // 故障シミュレーション用の故障の配列
-  // サイズは mFaultNum
-  SimFault* mSimFaults;
+  // 全ての SimFault のリスト
+  vector<SimFault*> mFaultList;
 
   // TpgFault::id() をキーとして SimFault を格納する配列
-  SimFault** mFaultArray;
+  vector<SimFault*> mFaultMap;
 
-  // 検出された故障を格納する配列
-  // サイズは常に mFaultNum
-  const TpgFault** mDetFaultArray;
+  // 検出された故障番号を格納する配列
+  vector<SizeType> mDetFaultArray;
 
   // 故障を検出するビットパタンを格納する配列
   // サイズは常に mFaultNum
-  PackedVal* mDetPatArray;
+  vector<PackedVal> mDetPatArray;
 
   // 検出された故障数
   SizeType mDetNum;

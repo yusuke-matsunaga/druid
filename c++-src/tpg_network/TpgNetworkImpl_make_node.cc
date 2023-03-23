@@ -7,12 +7,11 @@
 /// All rights reserved.
 
 #include "TpgNetworkImpl.h"
+#include "TpgGate.h"
 #include "TpgNode.h"
-#include "TpgGateInfo.h"
+#include "GateType.h"
 #include "TpgFault.h"
-#include "TpgStemFault.h"
-#include "TpgBranchFault.h"
-#include "AuxNodeInfo.h"
+#include "TpgGateImpl.h"
 
 #include "TpgInput.h"
 #include "TpgOutput.h"
@@ -55,14 +54,7 @@ TpgNetworkImpl::make_input_node(
   SizeType id = mPPIArray.size();
 
   auto node = new TpgInput{id};
-  make_node_common(node, name, 0);
-
-  // 出力位置の故障を生成
-  for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ofault(name, val, node);
-  }
-
-  mPPIArray.push_back(node);
+  reg_ppi(node, name);
 
   return node;
 }
@@ -77,15 +69,7 @@ TpgNetworkImpl::make_output_node(
   SizeType id = mPPOArray.size();
 
   auto node = new TpgOutput{id, inode};
-  make_node_common(node, name, 1);
-
-  // 入力位置の故障を生成
-  SizeType ipos = 0;
-  for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
-  }
-
-  mPPOArray.push_back(node);
+  reg_ppo(node, name);
 
   return node;
 }
@@ -100,17 +84,10 @@ TpgNetworkImpl::make_dff_input_node(
 {
   SizeType id = mPPOArray.size();
   auto node = new TpgDffInput{id, dff_id, inode};
-  make_node_common(node, name, 1);
+  reg_ppo(node, name);
+
   auto& dff = mDFFArray[dff_id];
   dff.mInput = node;
-
-  // 入力位置の故障を生成
-  SizeType ipos = 0;
-  for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
-  }
-
-  mPPOArray.push_back(node);
 
   return node;
 }
@@ -124,16 +101,10 @@ TpgNetworkImpl::make_dff_output_node(
 {
   SizeType id = mPPIArray.size();
   auto node = new TpgDffOutput{id, dff_id};
-  make_node_common(node, name, 0);
+  reg_ppi(node, name);
+
   auto& dff = mDFFArray[dff_id];
   dff.mOutput = node;
-
-  // 出力位置の故障を生成
-  for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ofault(name, val, node);
-  }
-
-  mPPIArray.push_back(node);
 
   return node;
 }
@@ -147,15 +118,10 @@ TpgNetworkImpl::make_dff_clock_node(
 )
 {
   auto node = new TpgDffClock{dff_id, inode};
-  make_node_common(node, name, 1);
+  reg_node(node);
+
   auto& dff = mDFFArray[dff_id];
   dff.mClock = node;
-
-  // 入力位置の故障を生成
-  SizeType ipos = 0;
-  for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
-  }
 
   return node;
 }
@@ -169,15 +135,10 @@ TpgNetworkImpl::make_dff_clear_node(
 )
 {
   auto node = new TpgDffClear{dff_id, inode};
-  make_node_common(node, name, 1);
+  reg_node(node);
+
   auto& dff = mDFFArray[dff_id];
   dff.mClear = node;
-
-  // 入力位置の故障を生成
-  SizeType ipos = 0;
-  for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
-  }
 
   return node;
 }
@@ -191,15 +152,10 @@ TpgNetworkImpl::make_dff_preset_node(
 )
 {
   auto node = new TpgDffPreset{dff_id, inode};
-  make_node_common(node, name, 1);
+  reg_node(node);
+
   auto& dff = mDFFArray[dff_id];
   dff.mPreset = node;
-
-  // 入力位置の故障を生成
-  SizeType ipos = 0;
-  for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ifault(name, ipos, val, InodeInfo{node, ipos}, nullptr);
-  }
 
   return node;
 }
@@ -208,77 +164,27 @@ TpgNetworkImpl::make_dff_preset_node(
 TpgNode*
 TpgNetworkImpl::make_logic_node(
   const string& src_name,
-  const TpgGateInfo* node_info,
+  const GateType* gate_type,
   const vector<const TpgNode*>& fanin_list,
   vector<vector<const TpgNode*>>& connection_list
 )
 {
-  SizeType ni = fanin_list.size();
-
-  // 複合型の場合の入力ノードを納める配列
-  vector<InodeInfo> inode_array(ni);
 
   TpgNode* node = nullptr;
-  if ( node_info->is_simple() ) {
+  TpgGateImpl* gate = nullptr;
+  if ( gate_type->is_simple() ) {
     // 組み込み型の場合．
-    // 2入力以上の XOR/XNOR ゲートを2入力に分解する．
-    auto gate_type = node_info->gate_type();
-    if ( gate_type == PrimType::Xor && ni > 2 ) {
-      vector<const TpgNode*> tmp_list(2);
-      tmp_list[0] = fanin_list[0];
-      tmp_list[1] = fanin_list[1];
-      auto tmp_node = make_prim_node(string{}, PrimType::Xor, tmp_list,
-				     connection_list);
-      inode_array[0].set(tmp_node, 0);
-      inode_array[1].set(tmp_node, 1);
-      for ( auto i: Range(2, ni) ) {
-	tmp_list[0] = tmp_node;
-	tmp_list[1] = fanin_list[i];
-	if ( i < ni - 1 ) {
-	  tmp_node = make_prim_node(string(), PrimType::Xor, tmp_list,
-				    connection_list);
-	}
-	else {
-	  tmp_node = make_prim_node(src_name, PrimType::Xor, tmp_list,
-				    connection_list);
-	}
-	inode_array[i].set(tmp_node, 1);
-      }
-      node = tmp_node;
-    }
-    else if ( gate_type == PrimType::Xnor && ni > 2 ) {
-      vector<const TpgNode*> tmp_list(2);
-      tmp_list[0] = fanin_list[0];
-      tmp_list[1] = fanin_list[1];
-      auto tmp_node = make_prim_node(string{}, PrimType::Xor, tmp_list,
-				     connection_list);
-      inode_array[0].set(tmp_node, 0);
-      inode_array[1].set(tmp_node, 1);
-      for ( auto i: Range(2, ni) ) {
-	tmp_list[0] = tmp_node;
-	tmp_list[1] = fanin_list[i];
-	if ( i < ni - 1 ) {
-	  tmp_node = make_prim_node(string{}, PrimType::Xor, tmp_list,
-				    connection_list);
-	}
-	else {
-	  tmp_node = make_prim_node(src_name, PrimType::Xnor, tmp_list,
-				    connection_list);
-	}
-	inode_array[i].set(tmp_node, i);
-      }
-      node = tmp_node;
-    }
-    else {
-      node = make_prim_node(src_name, gate_type, fanin_list,
-			    connection_list);
-      for ( auto i: Range(ni) ) {
-	inode_array[i].set(node, i);
-      }
-    }
+    auto prim_type = gate_type->primitive_type();
+    node = make_prim_node(src_name, prim_type, fanin_list,
+			  connection_list);
+    gate = new TpgGate_Simple{src_name, gate_type, node};
   }
   else {
-    auto expr = node_info->expr();
+    auto expr = gate_type->expr();
+
+    // ブランチの情報
+    SizeType ni = fanin_list.size();
+    vector<TpgGate::BranchInfo> branch_info(ni);
 
     // 論理式の葉(リテラル)に対応するノードを入れる配列．
     // pos * 2 + 0: 肯定のリテラル
@@ -293,6 +199,9 @@ TpgNetworkImpl::make_logic_node(
 	  // 肯定のリテラルが1回だけ現れている場合
 	  // 本当のファンインを直接つなぐ
 	  leaf_nodes[i * 2 + 0] = inode;
+	  // この時点では branch_info に設定すべきノードが
+	  // 生成されていないので空にしておく．
+	  // make_cplx_node 中で設定される．
 	}
 	else {
 	  // 肯定のリテラルが2回以上現れている場合
@@ -301,7 +210,7 @@ TpgNetworkImpl::make_logic_node(
 					   connection_list);
 	  leaf_nodes[i * 2 + 0] = dummy_buff;
 	  // このバッファの入力が故障位置となる．
-	  inode_array[i].set(dummy_buff, 0);
+	  branch_info[i] = TpgGate::BranchInfo{dummy_buff, 0};
 	}
       }
       else {
@@ -319,49 +228,21 @@ TpgNetworkImpl::make_logic_node(
 				      connection_list);
 	leaf_nodes[i * 2 + 1] = not_gate;
 
-	if ( p_num > 0 ) {
-	  inode_array[i].set(inode, 0);
+	if ( p_num == 0 ) {
+	  inode = not_gate;
 	}
-	else {
-	  inode_array[i].set(not_gate, 0);
-	}
+
+	branch_info[i] = TpgGate::BranchInfo{inode, 0};
       }
     }
 
     // expr の内容を表す TpgNode の木を作る．
-    node = make_cplx_node(src_name, expr, leaf_nodes, inode_array,
+    node = make_cplx_node(src_name, expr, leaf_nodes, branch_info,
 			  connection_list);
+    gate = new TpgGate_Cplx{src_name, gate_type, node, branch_info};
   }
 
-  // 出力位置の故障を生成
-  for ( auto val: {Fval2::zero, Fval2::one} ) {
-    new_ofault(src_name, val, node);
-  }
-
-  // 入力位置の故障を生成
-  // 制御値を考慮して代表故障の設定を行う．
-  for ( auto i: Range(ni) ) {
-    Val3 oval0 = node_info->cval(i, Val3::_0);
-    Val3 oval1 = node_info->cval(i, Val3::_1);
-
-    TpgFault* rep0 = nullptr;
-    if ( oval0 == Val3::_0 ) {
-      rep0 = _node_output_fault(node->id(), Fval2::zero);
-    }
-    else if ( oval0 == Val3::_1 ) {
-      rep0 = _node_output_fault(node->id(), Fval2::one);
-    }
-    new_ifault(src_name, i, Fval2::zero, inode_array[i], rep0);
-
-    TpgFault* rep1 = nullptr;
-    if ( oval1 == Val3::_0 ) {
-      rep1 = _node_output_fault(node->id(), Fval2::zero);
-    }
-    else if ( oval1 == Val3::_1 ) {
-      rep1 = _node_output_fault(node->id(), Fval2::one);
-    }
-    new_ifault(src_name, i, Fval2::one, inode_array[i], rep1);
-  }
+  mGateArray.push_back(gate);
 
   return node;
 }
@@ -372,7 +253,7 @@ TpgNetworkImpl::make_cplx_node(
   const string& name,
   const Expr& expr,
   const vector<const TpgNode*>& leaf_nodes,
-  vector<InodeInfo>& inode_array,
+  vector<TpgGate::BranchInfo>& branch_info,
   vector<vector<const TpgNode*>>& connection_list
 )
 {
@@ -406,7 +287,7 @@ TpgNetworkImpl::make_cplx_node(
       inode = leaf_nodes[iid * 2 + 1];
     }
     else {
-      inode = make_cplx_node(string{}, expr1, leaf_nodes, inode_array,
+      inode = make_cplx_node(string{}, expr1, leaf_nodes, branch_info,
 			     connection_list);
     }
     ASSERT_COND( inode != nullptr );
@@ -424,8 +305,8 @@ TpgNetworkImpl::make_cplx_node(
     // 美しくないけどスマートなやり方を思いつかない．
     if ( expr1.is_posi_literal() ) {
       SizeType iid = expr1.varid();
-      if ( inode_array[iid].mNode == nullptr ) {
-	inode_array[iid].set(node, ipos);
+      if ( branch_info[iid].node == nullptr ) {
+	branch_info[iid] = TpgGate::BranchInfo{node, ipos};
       }
     }
     ++ ipos;
@@ -468,7 +349,7 @@ TpgNetworkImpl::make_prim_node(
 )
 {
   auto node = make_logic(type, fanin_list);
-  make_node_common(node, name, fanin_list.size());
+  reg_node(node);
 
   for ( auto inode: fanin_list ) {
     connection_list[inode->id()].push_back(node);
@@ -528,15 +409,11 @@ TpgNetworkImpl::make_logic(
     break;
 
   case PrimType::Xor:
-    ASSERT_COND( ni == 2 );
-
-    node = new TpgLogicXOR2{inode_list};
+    node = new TpgLogicXOR{inode_list};
     break;
 
   case PrimType::Xnor:
-    ASSERT_COND( ni == 2 );
-
-    node = new TpgLogicXNOR2{inode_list};
+    node = new TpgLogicXNOR{inode_list};
     break;
 
   default:
@@ -546,51 +423,39 @@ TpgNetworkImpl::make_logic(
   return node;
 }
 
-// @brief make_XXX_node の共通処理
+// @brief PPI系のノードの登録
 void
-TpgNetworkImpl::make_node_common(
+TpgNetworkImpl::reg_ppi(
   TpgNode* node,
-  const string& name,
-  SizeType ni
+  const string& name
+)
+{
+  reg_node(node);
+  mPPIArray.push_back(node);
+  mPPINameArray.push_back(name);
+}
+
+// @brief PPO系のノードの登録
+void
+TpgNetworkImpl::reg_ppo(
+  TpgNode* node,
+  const string& name
+)
+{
+  reg_node(node);
+  mPPOArray.push_back(node);
+  mPPONameArray.push_back(name);
+}
+
+// @brief 全てのノードの登録
+void
+TpgNetworkImpl::reg_node(
+  TpgNode* node
 )
 {
   SizeType id = mNodeArray.size();
   mNodeArray.push_back(node);
   node->set_id(id);
-
-  ASSERT_COND( mAuxInfoArray.size() == id );
-  mAuxInfoArray.push_back({name, ni});
-}
-
-// @brief 出力の故障を作る．
-void
-TpgNetworkImpl::new_ofault(
-  const string& name,
-  Fval2 val,
-  const TpgNode* node
-)
-{
-  auto f = new TpgStemFault(mFaultNum, val, node, name, nullptr);
-  mAuxInfoArray[node->id()].set_output_fault(val, f);
-  ++ mFaultNum;
-}
-
-// @brief 入力の故障を作る．
-void
-TpgNetworkImpl::new_ifault(
-  const string& name,
-  SizeType ipos,
-  Fval2 val,
-  const InodeInfo& inode_info,
-  TpgFault* rep
-)
-{
-  auto node = inode_info.mNode;
-  SizeType inode_pos = inode_info.mPos;
-  auto inode = node->fanin(inode_pos);
-  auto f = new TpgBranchFault(mFaultNum, val, node, name, ipos, inode, inode_pos, rep);
-  mAuxInfoArray[node->id()].set_input_fault(inode_pos, val, f);
-  ++ mFaultNum;
 }
 
 END_NAMESPACE_DRUID

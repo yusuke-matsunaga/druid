@@ -27,12 +27,12 @@ DtpgMgr::DtpgMgr(
   const string& just_type,
   const SatSolverType& solver_type
 ) : mNetwork{network},
-    mFaultStatusMgr{network},
-    mFsim{network, fault_type, true},
     mDriver{DtpgDriver::new_driver(*this, dtpg_type,
 				   network, fault_type,
 				   just_type, solver_type)}
 {
+  mFaultMgr.gen_fault_list(network, fault_type);
+  mFsim.initialize(network, mFaultMgr, true);
 }
 
 // @brief デストラクタ
@@ -54,14 +54,14 @@ DtpgMgr::run()
 void
 DtpgMgr::add_base_dop()
 {
-  add_dop(new_DopBase(fault_status_mgr()));
+  add_dop(new_DopBase(fault_mgr()));
 }
 
 // @brief 'drop' タイプの DetectOp を登録する．
 void
 DtpgMgr::add_drop_dop()
 {
-  add_dop(new_DopDrop(fault_status_mgr(), fsim()));
+  add_dop(new_DopDrop(fault_mgr(), fsim()));
 }
 
 // @brief 'tvlist' タイプの DetectOp を登録する．
@@ -82,13 +82,13 @@ DtpgMgr::add_verify_dop()
 void
 DtpgMgr::add_base_uop()
 {
-  add_uop(new_UopBase(fault_status_mgr()));
+  add_uop(new_UopBase(fault_mgr()));
 }
 
 // @brief テストパタン生成が成功した時の結果を更新する．
 void
 DtpgMgr::update_det(
-  const TpgFault* fault,
+  const TpgFault& fault,
   const TestVector& tv,
   double sat_time,
   double backtrace_time
@@ -103,7 +103,7 @@ DtpgMgr::update_det(
 // @brief 冗長故障の特定が行えた時の結果を更新する．
 void
 DtpgMgr::update_untest(
-  const TpgFault* fault,
+  const TpgFault& fault,
   double sat_time
 )
 {
@@ -116,7 +116,7 @@ DtpgMgr::update_untest(
 // @brief アボートした時の結果を更新する．
 void
 DtpgMgr::update_abort(
-  const TpgFault* fault,
+  const TpgFault& fault,
   double sat_time
 )
 {

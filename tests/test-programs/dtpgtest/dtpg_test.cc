@@ -42,19 +42,21 @@ read_network(
 void
 print_stats(
   const TpgNetwork& network,
-  SizeType detect_num,
-  SizeType untest_num,
-  double time,
-  const DtpgStats& stats
+  DtpgMgr& mgr,
+  double time
 )
 {
+  SizeType fault_num = mgr.fault_num();
+  SizeType detect_num = mgr.detect_count();
+  SizeType untest_num = mgr.untest_count();
+  const DtpgStats& stats = mgr.dtpg_stats();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
        << "# of DFFs               = " << network.dff_num() << endl
        << "# of logic gates        = " << network.node_num() - network.ppi_num() << endl
        << "# of MFFCs              = " << network.mffc_num() << endl
        << "# of FFRs               = " << network.ffr_num() << endl
-       << "# of total faults       = " << network.rep_fault_num() << endl
+       << "# of total faults       = " << fault_num << endl
        << "# of detected faults    = " << detect_num << endl
        << "# of untestable faults  = " << untest_num << endl
        << "Total CPU time(s)       = " << (time / 1000.0) << endl;
@@ -270,7 +272,7 @@ dtpg_test(
   FaultType fault_type = sa_mode ? FaultType::StuckAt : FaultType::TransitionDelay;
 
   if ( dump ) {
-    print_network(cout, network);
+    network.print(cout);
   }
 
   SatSolverType solver_type{sat_type, sat_option, sat_outp};
@@ -288,8 +290,7 @@ dtpg_test(
   auto time = timer.get_time();
 
   if ( verbose ) {
-    print_stats(network, mgr.detect_count(), mgr.untest_count(),
-		time, mgr.dtpg_stats());
+    print_stats(network, mgr, time);
   }
 
   auto& verify_result = mgr.verify_result();
@@ -297,7 +298,7 @@ dtpg_test(
   for ( SizeType i = 0; i < n; ++ i ) {
     auto f = verify_result.error_fault(i);
     auto tv = verify_result.error_testvector(i);
-    cout << "Error: " << f->str() << " is not detected with "
+    cout << "Error: " << f << " is not detected with "
 	 << tv << endl;
   }
 

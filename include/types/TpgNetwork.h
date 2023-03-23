@@ -16,10 +16,12 @@
 #include "TpgDFFList.h"
 #include "TpgMFFCList.h"
 #include "TpgFFRList.h"
+#include "TpgGateList.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
+class TpgGate;
 class TpgNetworkImpl;
 
 //////////////////////////////////////////////////////////////////////
@@ -27,21 +29,27 @@ class TpgNetworkImpl;
 /// @brief DRUID 用のネットワークを表すクラス
 /// @sa TpgNode
 /// @sa TpgDff
-/// @sa TpgFault
 ///
 /// 基本的には TpgNode のネットワーク(DAG)を表す．
+///
 /// ただし，順序回路を扱うために TpgDff というクラスを持つ．
-/// TpgDff の入出力はそれぞれ疑似出力，疑似入力の TpgNode を持つ．<br>
-/// 本当の入力と疑似入力をあわせて PPI(Pseudo Primary Input) と呼ぶ．<br>
-/// 本当の出力と疑似出力をあわせて PPO(Pseudo Primary Output) と呼ぶ．<br>
+/// TpgDff の入出力はそれぞれ疑似出力，疑似入力の TpgNode を持つ．
+///
+/// 本当の入力と疑似入力をあわせて PPI(Pseudo Primary Input) と呼ぶ．
+///
+/// 本当の出力と疑似出力をあわせて PPO(Pseudo Primary Output) と呼ぶ．
+///
 /// クロック系の回路の情報も保持されるが，一般のノードとは区別される．
 /// セット/リセット系の回路は通常の論理系の回路とみなす．
-/// このクラスは const BnNetwork& から設定され，以降，一切変更されない．
-/// 設定用の便利関数として blif フォーマットと isca89(.bench) フォーマットの
-/// ファイルを読み込んで内容を設定する関数もある．<br>
+///
+/// TpgNode は全て単純な型の論理ゲートを表す．
+/// もとのゲートが複合ゲートの場合には複数のノードに分解される．
+/// そこで，オリジナルのネットワーク中のゲートを「ゲート」，分解された
+/// TpgNode を「ノード」と呼んで区別することにする．
+///
 /// 内容が設定されると同時に故障も定義される．
 /// 構造的に等価な故障の中で一つ代表故障を決めて代表故障のリストを作る．
-/// 代表故障はネットワーク全体，FFR，ノードごとにリスト化される．<br>
+/// 代表故障はネットワーク全体，FFR，ノードごとにリスト化される．
 //////////////////////////////////////////////////////////////////////
 class TpgNetwork
 {
@@ -75,6 +83,11 @@ public:
   TpgNetwork&
   operator=(
     TpgNetwork&& src ///< [in] ムーブ元
+  );
+
+  /// @brief BnNetwork からの変換コンストラクタ
+  TpgNetwork(
+    const BnNetwork& network ///< [in] 設定元のネットワーク
   );
 
   /// @brief blif ファイルを読み込む．
@@ -114,12 +127,11 @@ public:
   static
   TpgNetwork
   read_network(
-    const string& filename,             ///< [in] ファイル名
-    const string& format,               ///< [in] ファイルの形式を表す文字列
-    const ClibCellLibrary& cell_library ///< [in] セルライブラリ
-    = ClibCellLibrary{},
-    const string& clock_name = {},       ///< [in] クロック入力名
-    const string& reset_name = {}        ///< [in] リセット入力名
+    const string& filename,                   ///< [in] ファイル名
+    const string& format,                     ///< [in] ファイルの形式を表す文字列
+    const ClibCellLibrary& cell_library = {}, ///< [in] セルライブラリ
+    const string& clock_name = {},            ///< [in] クロック入力名
+    const string& reset_name = {}             ///< [in] リセット入力名
   );
 
   /// @brief デストラクタ
@@ -149,12 +161,6 @@ public:
   /// @brief 全ノードのリストを得る．
   const vector<const TpgNode*>&
   node_list() const;
-
-  /// @brief ノード名を得る．
-  const string&
-  node_name(
-    SizeType id ///< [in] ID番号 ( 0 <= id < node_num() )
-  ) const;
 
   /// @brief 外部入力数を得る．
   SizeType
@@ -222,6 +228,12 @@ public:
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < ppi_num() )
   ) const;
 
+  /// @brief PPI の名前を返す．
+  string
+  ppi_name(
+    SizeType input_id ///< [in] 入力番号
+  ) const;
+
   /// @brief 擬似外部入力のリストを得る．
   const vector<const TpgNode*>&
   ppi_list() const;
@@ -241,6 +253,12 @@ public:
   const TpgNode*
   ppo(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < ppo_num() )
+  ) const;
+
+  /// @brief PPO の名前を返す．
+  string
+  ppo_name(
+    SizeType output_id ///< [in] 出力番号
   ) const;
 
   /// @brief 擬似外部出力のリストを得る．
@@ -300,53 +318,46 @@ public:
   TpgDFFList
   dff_list() const;
 
-  /// @brief 故障IDの最大値+1を返す．
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // オリジナルのゲートに関する情報を得る関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief ゲート数を返す．
   SizeType
-  max_fault_id() const;
+  gate_num() const;
 
-  /// @brief 全代表故障数を返す．
-  SizeType
-  rep_fault_num() const;
-
-  /// @brief 代表故障を返す．
-  const TpgFault*
-  rep_fault(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < rep_fault_num() )
+  /// @brief ゲート情報を得る．
+  TpgGate
+  gate(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < gate_num() )
   ) const;
 
-  /// @brief 代表故障のリストを返す．
-  const vector<const TpgFault*>&
-  rep_fault_list() const;
+  /// @brief ゲート情報のリストを得る．
+  TpgGateList
+  gate_list() const
+  {
+    return TpgGateList{mImpl.get(), gate_num()};
+  }
 
-  /// @brief ノードに関係した代表故障数を返す．
-  SizeType
-  node_rep_fault_num(
-    SizeType id ///< [in] ID番号 ( 0 <= id < node_num() )
-  ) const;
 
-  /// @brief ノードに関係した代表故障を返す．
-  const TpgFault*
-  node_rep_fault(
-    SizeType id, ///< [in] ノードのID番号 ( 0 <= id < node_num() )
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < node_rep_fault_num(id) )
-  ) const;
+public:
+  //////////////////////////////////////////////////////////////////////
+  // その他
+  //////////////////////////////////////////////////////////////////////
 
-  /// @brief ノードに関係した代表故障のリストを返す．
-  const vector<const TpgFault*>&
-  node_rep_fault_list(
-    SizeType id ///< [in] ノードのID番号 ( 0 <= id < node_num() )
-  ) const;
+  /// @brief TpgNetwork の内容を出力する関数(デバッグ用)
+  void
+  print(
+    ostream& s ///< [in] 出力先のストリーム
+  );
 
 
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部でのみ用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief BnNetwork からの変換コンストラクタ
-  TpgNetwork(
-    const BnNetwork& network ///< [in] 設定元のネットワーク
-  );
 
   /// @brief BlifModel からの変換コンストラクタ
   TpgNetwork(
@@ -371,13 +382,6 @@ private:
   std::unique_ptr<TpgNetworkImpl> mImpl;
 
 };
-
-/// @brief TpgNetwork の内容を出力する関数
-void
-print_network(
-  ostream& s,               ///< [in] 出力先のストリーム
-  const TpgNetwork& network ///< [in] 対象のネットワーク
-);
 
 END_NAMESPACE_DRUID
 

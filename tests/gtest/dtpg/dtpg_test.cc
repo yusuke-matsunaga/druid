@@ -186,7 +186,7 @@ DtpgTestWithParam2::do_test()
 {
   mDtpgMgr->run();
 
-  EXPECT_EQ( total_fault_num(), mNetwork_p->rep_fault_num() );
+  EXPECT_EQ( total_fault_num(), mDtpgMgr->fault_num() );
   EXPECT_EQ( detect_fault_num(), mDtpgMgr->detect_count() );
   EXPECT_EQ( untest_fault_num(), mDtpgMgr->untest_count() );
 

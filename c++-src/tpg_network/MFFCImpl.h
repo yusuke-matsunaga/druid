@@ -47,10 +47,6 @@ public:
   const vector<TpgFFR>&
   ffr_list() const { return mFFRList; }
 
-  /// @brief 故障の配列
-  const vector<const TpgFault*>&
-  fault_list() const { return mFaultList; }
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -65,9 +61,6 @@ private:
 
   // FFRの配列
   vector<TpgFFR> mFFRList;
-
-  // 故障の配列
-  vector<const TpgFault*> mFaultList;
 
 };
 

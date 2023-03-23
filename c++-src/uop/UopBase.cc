@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "UopBase.h"
-#include "FaultStatusMgr.h"
+#include "TpgFaultMgr.h"
 #include "TpgFault.h"
 
 
@@ -16,10 +16,10 @@ BEGIN_NAMESPACE_DRUID
 // @brief 'base' タイプを生成する．
 UntestOp*
 new_UopBase(
-  FaultStatusMgr& fsmgr
+  TpgFaultMgr& fmgr
 )
 {
-  return new UopBase{fsmgr};
+  return new UopBase{fmgr};
 }
 
 
@@ -29,8 +29,8 @@ new_UopBase(
 
 // @brief コンストラクタ
 UopBase::UopBase(
-  FaultStatusMgr& fsmgr
-) : mMgr{fsmgr}
+  TpgFaultMgr& fmgr
+) : mMgr{fmgr}
 {
 }
 
@@ -42,10 +42,10 @@ UopBase::~UopBase()
 // @brief テスト不能故障と判定された時の処理
 void
 UopBase::operator()(
-  const TpgFault* f
+  const TpgFault& f
 )
 {
-  mMgr.set(f, FaultStatus::Untestable);
+  mMgr.set_status(f, FaultStatus::Untestable);
 }
 
 END_NAMESPACE_DRUID

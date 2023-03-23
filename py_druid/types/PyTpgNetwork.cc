@@ -9,7 +9,6 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgMFFC.h"
 #include "PyTpgFFR.h"
-#include "PyTpgFault.h"
 #include "pym/PyClibCellLibrary.h"
 #include "pym/PyModule.h"
 
@@ -121,9 +120,11 @@ TpgNetwork_read_bench(
 // メソッド定義
 PyMethodDef TpgNetwork_methods[] = {
   {"read_blif", reinterpret_cast<PyCFunction>(TpgNetwork_read_blif),
-   METH_VARARGS | METH_STATIC, PyDoc_STR("read 'blif' format")},
+   METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+   PyDoc_STR("read 'blif' format")},
   {"read_bench", TpgNetwork_read_bench,
-   METH_VARARGS | METH_STATIC, PyDoc_STR("read 'iscas89(.bench)' format")},
+   METH_VARARGS | METH_STATIC,
+   PyDoc_STR("read 'iscas89(.bench)' format")},
   {nullptr, nullptr, 0, nullptr}
 };
 
@@ -249,6 +250,7 @@ TpgNetwork_ffr_list(
   return ans_obj;
 }
 
+#if 0
 PyObject*
 TpgNetwork_rep_fault_list(
   PyObject* self,
@@ -268,6 +270,7 @@ TpgNetwork_rep_fault_list(
   }
   return ans_obj;
 }
+#endif
 
 // get/set 関数定義
 PyGetSetDef TpgNetwork_getset[] = {
@@ -281,8 +284,10 @@ PyGetSetDef TpgNetwork_getset[] = {
   {"dff_num", TpgNetwork_dff_num, nullptr, PyDoc_STR("# of D-FFs"), nullptr},
   {"mffc_list", TpgNetwork_mffc_list, nullptr, PyDoc_STR("list for all MFFCs"), nullptr},
   {"ffr_list", TpgNetwork_ffr_list, nullptr, PyDoc_STR("list for all FFRs"), nullptr},
+#if 0
   {"rep_fault_list", TpgNetwork_rep_fault_list, nullptr,
    PyDoc_STR("list for all representative faults"), nullptr},
+#endif
   {nullptr, nullptr, nullptr, nullptr, nullptr},
 };
 

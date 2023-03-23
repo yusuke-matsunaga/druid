@@ -297,13 +297,4 @@ StructEnc::extract_prop_condition(
   return mConeList[cone_id]->extract_condition(model, ffr_root);
 }
 
-// @brief ノード名を得る．
-string
-StructEnc::node_name(
-  const TpgNode* node
-)
-{
-  return mNetwork.node_name(node->id());
-}
-
 END_NAMESPACE_DRUID

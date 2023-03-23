@@ -43,16 +43,8 @@ public:
   virtual
   void
   set_skip(
-    const TpgFault* f ///< [in] 対象の故障
+    const TpgFault& f ///< [in] 対象の故障
   ) = 0;
-
-  /// @brief 複数の故障にスキップマークをつける．
-  ///
-  /// fault_list に含まれない故障のスキップマークは消される．
-  void
-  set_skip(
-    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
-  );
 
   /// @brief 全ての故障のスキップマークを消す．
   virtual
@@ -63,16 +55,8 @@ public:
   virtual
   void
   clear_skip(
-    const TpgFault* f ///< [in] 対象の故障
+    const TpgFault& f ///< [in] 対象の故障
   ) = 0;
-
-  /// @brief 複数の故障のスキップマークを消す．
-  ///
-  /// fault_list に含まれない故障のスキップマークは付けられる．
-  void
-  clear_skip(
-    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
-  );
 
 
 public:
@@ -87,7 +71,7 @@ public:
   bool
   spsfp(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault* f     ///< [in] 対象の故障
+    const TpgFault& f     ///< [in] 対象の故障
   ) = 0;
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -97,7 +81,7 @@ public:
   bool
   spsfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault* f               ///< [in] 対象の故障
+    const TpgFault& f               ///< [in] 対象の故障
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -217,14 +201,14 @@ public:
 
   /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
   virtual
-  const TpgFault*
+  TpgFault
   det_fault(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
   ) = 0;
 
   /// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
   virtual
-  Array<const TpgFault*>
+  vector<TpgFault>
   det_fault_list() = 0;
 
   /// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
@@ -236,15 +220,10 @@ public:
 
   /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
   virtual
-  Array<PackedVal>
+  const vector<PackedVal>&
   det_fault_pat_list() = 0;
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
 
 END_NAMESPACE_DRUID
 

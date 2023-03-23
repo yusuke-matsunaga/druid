@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "FaultStatusMgr.h"
+#include "TpgFaultMgr.h"
 #include "Fsim.h"
 #include "TestVector.h"
 #include "DtpgStats.h"
@@ -104,10 +104,10 @@ public:
   }
 
   /// @brief 故障マネージャを返す．
-  FaultStatusMgr&
-  fault_status_mgr()
+  TpgFaultMgr&
+  fault_mgr()
   {
-    return mFaultStatusMgr;
+    return mFaultMgr;
   }
 
   /// @brief 故障シミュレーターを返す．
@@ -115,6 +115,13 @@ public:
   fsim()
   {
     return mFsim;
+  }
+
+  /// @brief 全故障数を返す．
+  SizeType
+  fault_num() const
+  {
+    return mFaultMgr.rep_fault_list().size();
   }
 
   /// @brief 検出故障数を返す．
@@ -162,7 +169,7 @@ public:
   /// @brief テストパタン生成が成功した時の結果を更新する．
   void
   update_det(
-    const TpgFault* fault, ///< [in] 対象の故障
+    const TpgFault& fault, ///< [in] 対象の故障
     const TestVector& tv,  ///< [in] テストパタン
     double sat_time,       ///< [in] SATにかかった時間
     double backtrace_time  ///< [in] バックトレースにかかった時間
@@ -171,14 +178,14 @@ public:
   /// @brief 冗長故障の特定が行えた時の結果を更新する．
   void
   update_untest(
-    const TpgFault* fault, ///< [in] 対象の故障
+    const TpgFault& fault, ///< [in] 対象の故障
     double sat_time        ///< [in] SATにかかった時間
   );
 
   /// @brief アボートした時の結果を更新する．
   void
   update_abort(
-    const TpgFault* fault, ///< [in] 対象の故障
+    const TpgFault& fault, ///< [in] 対象の故障
     double sat_time        ///< [in] SATにかかった時間
   );
 
@@ -204,7 +211,7 @@ private:
   const TpgNetwork& mNetwork;
 
   // 故障マネージャ
-  FaultStatusMgr mFaultStatusMgr;
+  TpgFaultMgr mFaultMgr;
 
   // 故障シミュレータ
   Fsim mFsim;

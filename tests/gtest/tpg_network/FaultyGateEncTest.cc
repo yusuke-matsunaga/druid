@@ -9,10 +9,11 @@
 #include "gtest/gtest.h"
 #include "FaultyGateEnc.h"
 #include "TpgNetworkImpl.h"
-#include "TpgGateInfo.h"
+#include "GateType.h"
 #include "TpgNode.h"
-#include "TpgFaultBase.h"
+//#include "TpgFaultBase.h"
 #include "VidMap.h"
+#include "Fval2.h"
 #include "ym/Range.h"
 
 
@@ -90,7 +91,7 @@ FaultyGateEncTest::check_ofault(
 {
   mNetworkImpl.set_size(input_num, 0, 0, 1, 0);
 
-  TpgGateInfoMgr gimgr;
+  GateTypeMgr gimgr;
 
   // 入力ノードを作る．
   vector<const TpgNode*> input_list(input_num);
@@ -171,7 +172,7 @@ FaultyGateEncTest::check_ifault(
 {
   mNetworkImpl.set_size(input_num, 0, 0, 1, 0);
 
-  TpgGateInfoMgr gimgr;
+  GateTypeMgr gimgr;
 
   // 入力ノードを作る．
   vector<const TpgNode*> input_list(input_num);

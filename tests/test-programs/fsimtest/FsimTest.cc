@@ -8,6 +8,7 @@
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
+#include "TpgFaultMgr.h"
 #include "TestVector.h"
 #include "Fsim.h"
 #include <random>
@@ -22,12 +23,12 @@ bool verbose = false;
 // 故障を検出したときの出力
 void
 print_fault(
-  const TpgFault* f,
+  const TpgFault& f,
   int tv_id
 )
 {
   if ( verbose ) {
-    cout << setw(7) << tv_id << ": " << f->str() << endl;
+    cout << setw(7) << tv_id << ": " << f << endl;
   }
 }
 
@@ -35,24 +36,24 @@ print_fault(
 pair<int, int>
 spsfp_test(
   const TpgNetwork& network,
+  TpgFaultMgr& fmgr,
   Fsim& fsim,
   const vector<TestVector>& tv_list
 )
 {
-  vector<bool> mark(network.max_fault_id(), false);
   int det_num = 0;
   int nepat = 0;
   int i = 0;
   for ( auto tv: tv_list ) {
     bool detect = false;
-    for ( auto f: network.rep_fault_list() ) {
-      if ( mark[f->id()] ) {
+    for ( auto f: fmgr.fault_list() ) {
+      if ( fmgr.get_status(f) == FaultStatus::Detected ) {
 	continue;
       }
       if ( fsim.spsfp(tv, f) ) {
 	++ det_num;
 	detect = true;
-	mark[f->id()] = true;
+	fmgr.set_status(f, FaultStatus::Detected);
 	print_fault(f, i);
       }
     }
@@ -114,7 +115,7 @@ ppsfp_test(
       PackedVal dpat_all = 0ULL;
       det_num += n;
       for ( int j = 0; j < n; ++ j ) {
-	const TpgFault* f = fsim.det_fault(j);
+	auto f = fsim.det_fault(j);
 	PackedVal dpat = fsim.det_fault_pat(j);
 	fsim.set_skip(f);
 	// dpat の最初の1のビットを求める．
@@ -144,7 +145,7 @@ ppsfp_test(
     PackedVal dpat_all = 0ULL;
     det_num += n;
     for ( int j = 0; j < n; ++ j ) {
-      const TpgFault* f = fsim.det_fault(j);
+      auto f = fsim.det_fault(j);
       PackedVal dpat = fsim.det_fault_pat(j);
       fsim.set_skip(f);
       // dpat の最初の1のビットを求める．
@@ -339,7 +340,11 @@ fsim2test(
   }
   FaultType fault_type = sa_mode ? FaultType::StuckAt : FaultType::TransitionDelay;
 
-  Fsim fsim{network, fault_type, fsim3};
+  TpgFaultMgr fmgr;
+  fmgr.gen_fault_list(network, fault_type);
+
+  Fsim fsim;
+  fsim.initialize(network, fmgr, fsim3);
 
   std::mt19937 rg;
   vector<TestVector> tv_list;
@@ -360,7 +365,7 @@ fsim2test(
   }
   else {
     // デフォルトフォールバックは SPSFP
-    dpnum = spsfp_test(network, fsim, tv_list);
+    dpnum = spsfp_test(network, fmgr, fsim, tv_list);
   }
 
   int det_num = dpnum.first;
@@ -369,6 +374,7 @@ fsim2test(
   timer.stop();
   auto time = timer.get_time();
 
+  SizeType nf = fmgr.fault_list().size();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
        << "# of DFFs               = " << network.dff_num() << endl
@@ -377,9 +383,9 @@ fsim2test(
        << "# of FFRs               = " << network.ffr_num() << endl
        << "# of simulated patterns = " << npat << endl
        << "# of effective patterns = " << nepat << endl
-       << "# of total faults       = " << network.rep_fault_num() << endl
+       << "# of total faults       = " << nf << endl
        << "# of detected faults    = " << det_num << endl
-       << "# of undetected faults  = " << network.rep_fault_num() - det_num << endl
+       << "# of undetected faults  = " << nf - det_num << endl
        << "Total CPU time          = " << time << endl;
 
   return 0;

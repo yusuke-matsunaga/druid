@@ -28,8 +28,8 @@ DtpgEngineDriver_MFFC::run()
       cnf_begin();
       engine.make_cnf();
       cnf_end();
-      for ( auto fault: ffr.fault_list() ) {
-	if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
+      for ( auto fault: fault_mgr().ffr_fault_list(ffr.id()) ) {
+	if ( fault_mgr().get_status(fault) == FaultStatus::Undetected ) {
 	  gen_pattern(engine, fault);
 	}
       }
@@ -40,8 +40,8 @@ DtpgEngineDriver_MFFC::run()
       cnf_begin();
       engine.make_cnf();
       cnf_end();
-      for ( auto fault: mffc.fault_list() ) {
-	if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
+      for ( auto fault: fault_mgr().mffc_fault_list(mffc.id()) ) {
+	if ( fault_mgr().get_status(fault) == FaultStatus::Undetected ) {
 	  gen_pattern(engine, fault);
 	}
       }

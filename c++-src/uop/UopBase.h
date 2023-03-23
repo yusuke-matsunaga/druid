@@ -24,7 +24,7 @@ public:
 
   /// @brief コンストラクタ
   UopBase(
-    FaultStatusMgr& fmgr ///< [in] 故障マネージャ
+    TpgFaultMgr& fmgr ///< [in] 故障マネージャ
   );
 
   /// @brief デストラクタ
@@ -39,7 +39,7 @@ public:
   /// @brief テスト不能故障と判定された時の処理
   void
   operator()(
-    const TpgFault* f ///< [in] 故障
+    const TpgFault& f ///< [in] 故障
   ) override;
 
 
@@ -48,8 +48,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // FaultStatusMgr
-  FaultStatusMgr& mMgr;
+  // 故障マネージャ
+  TpgFaultMgr& mMgr;
 
 };
 

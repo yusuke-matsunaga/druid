@@ -280,10 +280,9 @@ faulty_cnf_dfs(
     ilit_list[i] = ilit;
   }
 
+#if 0
   // 故障挿入回路を作る．
-  SizeType nf = network.node_rep_fault_num(node->id());
-  for ( auto i: Range(nf) ) {
-    auto f = network.node_rep_fault(node->id(), i);
+  for ( auto f: node->rep_fault_list() ) {
     ASSERT_COND( fault_varmap.count(f->id()) > 0 );
     auto flit = fault_varmap.at(f->id());
     if ( f->is_branch_fault() ) {
@@ -320,6 +319,9 @@ faulty_cnf_dfs(
       olit = tmp_lit;
     }
   }
+#else
+#warning "TODO"
+#endif
 
   // 実際のゲートの入出力関係を表すCNFを作る．
   gate_enc(solver, node->gate_type(), ilit_list, olit);

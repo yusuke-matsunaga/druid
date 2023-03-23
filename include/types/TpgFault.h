@@ -9,29 +9,21 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "Fval2.h"
-#include "Val3.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+class TpgFaultMgrImpl;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgFault TpgFault.h "TpgFault.h"
 /// @brief 故障を表すクラス
 ///
-/// 正確には故障位置を表すものである．
-/// - stem fault の場合
-///   故障位置の出力に対応する TpgNode* を持つ．
-///   tpg_inode() と tpg_onode() が同じノードを返す．
-/// - branch fault の場合
-///   故障位置の入力側と出力側のノードをそれぞれ
-///   tpg_inode() と tpg_onode() で表す．
-///   通常は故障の入力位置と tpg_inode() のファンイン位置は
-///   一致するが，もともとのゲートが complex タイプで
-///   複数の TpgNode に分解されていた場合，この入力位置は
-///   一致しない．
-///   そのため前者を fault_pos()，後者を tpog_ipos()
-///   名付けて区別している．
+/// 正確には故障検出条件を表している．
+/// - origin_node(): 故障差の現れる起点となるノード
+/// - excitation_condition(): origin_node() に故障差が現れる条件
+///
+/// 縮退故障，遷移故障，ゲート網羅故障の区別はない．
 //////////////////////////////////////////////////////////////////////
 class TpgFault
 {
@@ -40,30 +32,16 @@ public:
   /// @brief 空のコンストラクタ
   TpgFault() = default;
 
-  /// @brief コピーコンストラクタは禁止
+  /// @brief 内容を指定したコンストラクタ
   TpgFault(
-    const TpgFault& src
-  ) = delete;
-
-  /// @brief コピー代入演算子も禁止
-  TpgFault&
-  operator=(
-    const TpgFault& src
-  ) = delete;
-
-  /// @brief ムーブコンストラクタは禁止
-  TpgFault(
-    TpgFault&& src
-  ) = delete;
-
-  /// @brief ムーブ代入演算子も禁止
-  TpgFault&
-  operator=(
-    TpgFault&& src
-  ) = delete;
+    TpgFaultMgrImpl* mgr, ///< [in] 故障マネージャ
+    SizeType id           ///< [in] ID番号
+  ) : mMgr{mgr},
+      mId{id}
+  {
+  }
 
   /// @brief デストラクタ
-  virtual
   ~TpgFault() = default;
 
 
@@ -73,96 +51,61 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief ID番号を返す．
-  virtual
   SizeType
-  id() const = 0;
-
-  /// @brief 故障の入力側の TpgNode を返す．
-  virtual
-  const TpgNode*
-  tpg_inode() const = 0;
-
-  /// @brief 故障の出力側の TpgNode を返す．
-  ///
-  /// is_stem_fault() == true の時は tpg_inode() と同じになる．
-  virtual
-  const TpgNode*
-  tpg_onode() const = 0;
-
-  /// @brief ステムの故障の時 true を返す．
-  virtual
-  bool
-  is_stem_fault() const = 0;
-
-  /// @brief ブランチの故障の時 true を返す．
-  bool
-  is_branch_fault() const
+  id() const
   {
-    return !is_stem_fault();
+    return mId;
   }
 
-  /// @brief ブランチの入力位置を返す．
-  ///
-  /// is_branch_fault() == true の時のみ意味を持つ．
-  virtual
-  SizeType
-  fault_pos() const = 0;
+  /// @brief 故障伝搬の起点となるノードを返す．
+  const TpgNode*
+  origin_node() const;
 
-  /// @brief tpg_onode 上の故障位置を返す．
-  ///
-  /// is_branch_fault() == true の時のみ意味を持つ．
-  /// tpg_onode()->fanin(tpg_pos()) == tpg_inode() が成り立つ．
-  virtual
-  SizeType
-  tpg_pos() const = 0;
-
-  /// @brief 故障値を返す．
-  virtual
-  Fval2
-  val() const = 0;
-
-  /// @brief 故障値を3値型で返す．
-  Val3
-  val3() const
-  {
-    switch ( val() ) {
-    case Fval2::zero: return Val3::_0;
-    case Fval2::one:  return Val3::_1;
-    }
-    ASSERT_NOT_REACHED;
-    return Val3::_0;
-  }
-
-  /// @brief 故障が励起してノードの出力まで伝搬する条件を求める．
+  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
   NodeValList
-  node_propagate_condition(
-    FaultType fault_type   ///< [in] 故障の種類
-  ) const;
+  excitation_condition() const;
+
+  /// @brief origin_node を含む FFR の根のノードを返す．
+  const TpgNode*
+  ffr_root() const;
 
   /// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
   NodeValList
-  ffr_propagate_condition(
-    FaultType fault_type   ///< [in] 故障の種類
-  ) const;
+  ffr_propagate_condition() const;
 
   /// @brief 故障の内容を表す文字列を返す．
-  virtual
   string
-  str() const = 0;
+  str() const;
 
-  /// @brief 代表故障の時 true を返す．
+  /// @brief 等価比較演算
   bool
-  is_rep() const
+  operator==(
+    const TpgFault& right
+  ) const
   {
-    return rep_fault() == this;
+    return mMgr == right.mMgr && mId == right.mId;
   }
 
-  /// @brief 代表故障を返す．
-  ///
-  /// 代表故障の時は自分自身を返す．
-  virtual
-  const TpgFault*
-  rep_fault() const = 0;
+  /// @brief 非等価比較演算
+  bool
+  operator!=(
+    const TpgFault& right
+  ) const
+  {
+    return !operator==(right);
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 故障マネージャ
+  TpgFaultMgrImpl* mMgr{nullptr};
+
+  // ID番号
+  SizeType mId{0};
 
 };
 
@@ -172,26 +115,26 @@ inline
 ostream&
 operator<<(
   ostream& s,       ///< [in] 出力先のストリーム
-  const TpgFault* f ///< [in] 故障
+  const TpgFault& f ///< [in] 故障
 )
 {
-  return s << f->str();
+  return s << f.str();
 }
 
 END_NAMESPACE_DRUID
 
 BEGIN_NAMESPACE_STD
 
-// TpgFault へのポインタをキーにしたハッシュ関数クラスの定義
+// TpgFault キーにしたハッシュ関数クラスの定義
 template <>
-struct hash<DRUID_NAMESPACE::TpgFault*>
+struct hash<DRUID_NAMESPACE::TpgFault>
 {
   SizeType
   operator()(
-    DRUID_NAMESPACE::TpgFault* fault
+    const DRUID_NAMESPACE::TpgFault& fault
   ) const
   {
-    return fault->id();
+    return fault.id();
   }
 };
 

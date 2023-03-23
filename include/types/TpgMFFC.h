@@ -21,13 +21,11 @@ class TpgNetworkImpl;
 /// @brief TpgNetwork の MFFC(Maximal Fanout Free Cone) の情報を表すクラス
 /// @sa TpgNetwork
 /// @sa TpgNode
-/// @sa TpgFault
 /// @sa TpgFFR
 ///
 /// 具体的には以下の情報を持つ．
 /// - MFFC の根のノード
 /// - MFFC に含まれる FFR のリスト
-/// - MFFC に含まれる代表故障のリスト
 /// 一度設定されたら不変のオブジェクトとなる．
 //////////////////////////////////////////////////////////////////////
 class TpgMFFC
@@ -87,28 +85,6 @@ public:
   /// @brief このMFFCに含まれるFFRのリストを返す．
   const vector<TpgFFR>&
   ffr_list() const;
-
-  /// @brief このMFFCに含まれる代表故障の数を返す．
-  SizeType
-  fault_num() const
-  {
-    return fault_list().size();
-  }
-
-  /// @brief このFFRに含まれる代表故障を返す．
-  const TpgFault*
-  fault(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < fault_num() )
-  ) const
-  {
-    ASSERT_COND( pos >= 0 && pos < fault_num() );
-
-    return fault_list()[pos];
-  }
-
-  /// @brief このFFRに含まれる代表故障のリストを返す．
-  const vector<const TpgFault*>&
-  fault_list() const;
 
   /// @brief 等価比較演算子
   bool

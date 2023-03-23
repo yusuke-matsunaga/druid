@@ -139,7 +139,7 @@ Analyzer::gen_fault_list(
       if ( !mark[fault->id()] ) {
 	continue;
       }
-      auto ffr_cond = fault->ffr_propagate_condition(mFaultType);
+      auto ffr_cond = fault->ffr_propagate_condition();
       auto assumptions = dtpg.conv_to_literal_list(ffr_cond);
       SatBool3 sat_res = dtpg.check(assumptions);
       if ( sat_res == SatBool3::True ) {
@@ -267,13 +267,13 @@ Analyzer::dom_reduction1(
       }
       auto fi2 = fi_list[i2];
       auto fault2 = fi2->fault();
-      if ( fault1->tpg_onode()->ffr_root() == fault2->tpg_onode()->ffr_root() ) {
+      if ( fault1->origin_node()->ffr_root() == fault2->origin_node()->ffr_root() ) {
 	// 同じ FFR ならチェック済み
 	continue;
       }
 
       ++ check_num;
-      NodeValList ffr_cond = fault2->ffr_propagate_condition(mFaultType);
+      auto ffr_cond = fault2->ffr_propagate_condition();
       SatBool3 res = undet_checker.check(ffr_cond);
       if ( res == SatBool3::False ) {
 	++ success_num;
@@ -350,7 +350,7 @@ Analyzer::dom_reduction2(
       col_mark[col] = true;
     }
     for ( auto ffr2: mNetwork.ffr_list() ) {
-      if ( ffr2.root() == fault1->tpg_onode()->ffr_root() ) {
+      if ( ffr2.root() == fault1->origin_node()->ffr_root() ) {
 	continue;
       }
       vector<const TpgFault*> fault2_list;
@@ -435,7 +435,7 @@ Analyzer::init(
     vector<NodeValList> ffr_cond_list;
     vector<NodeValList> suf_cond_list;
     for ( auto fault: ffr.fault_list() ) {
-      NodeValList ffr_cond = fault->ffr_propagate_condition(mFaultType);
+      auto ffr_cond = fault->ffr_propagate_condition();
       auto assumptions = dtpg.conv_to_literal_list(ffr_cond);
       SatBool3 sat_res = dtpg.check(assumptions);
       if ( sat_res == SatBool3::True ) {
@@ -532,7 +532,7 @@ Analyzer::init(
 	      continue;
 	    }
 	  }
-	  NodeValList ffr_cond = fault2->ffr_propagate_condition(mFaultType);
+	  auto ffr_cond = fault2->ffr_propagate_condition();
 	  SatBool3 res = undet_checker.check(ffr_cond);
 	  if ( res == SatBool3::False ) {
 	    // fault2 が検出可能の条件のもとで fault が検出不能となることはない．
@@ -694,7 +694,7 @@ Analyzer::analyze_fault(
 {
 #if 0
   // FFR 内の伝搬条件をリテラルに変換して加えたSAT問題を解く．
-  NodeValList ffr_cond = fault->ffr_propagate_condition(mFaultType);
+  auto ffr_cond = fault->ffr_propagate_condition();
   SatBool3 sat_res;
   vector<SatBool3> model;
   {

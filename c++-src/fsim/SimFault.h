@@ -5,10 +5,11 @@
 /// @brief SimFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
+#include "TpgFault.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -23,63 +24,150 @@ class SimFault
 {
 public:
 
-  /// @brief 空のコンストラクタ
-  SimFault() = default;
-
-  /// @brief コピーコンストラクタは禁止
-  SimFault(const SimFault& src) = delete;
-
-  /// @brief 代入演算子も禁止
-  const SimFault&
-  operator=(const SimFault& src) = delete;
+  /// @brief コンストラクタ
+  SimFault(
+    const TpgFault& f,             ///< [in] オリジナルの故障
+    SimNode* node,                 ///< [in] 故障伝搬の起点となるノード
+    const vector<SimNode*>& simmap ///< [in] TpgNode と SimNode の対応関係
+  );
 
   /// @brief デストラクタ
   ~SimFault() = default;
 
 
 public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
 
-  /// @brief 内容を設定する便利関数
-  ///
-  /// ipos と inode は f が入力の故障の時のみ意味を持つ．
+  /// @brief 故障番号を返す．
+  SizeType
+  id() const
+  {
+    return mId;
+  }
+
+  /// @brief 故障伝搬の起点となるノードを返す．
+  SimNode*
+  origin_node() const
+  {
+    return mNode;
+  }
+
+  /// @brief 故障の活性化条件を求める．
+  PackedVal
+  excitation_condition() const;
+
+#if FSIM_TD
+  /// @brief 遷移故障用の1時刻前の条件を求める．
+  PackedVal
+  previous_condition() const;
+#endif
+
+  /// @brief 故障伝搬マスクを得る．
+  PackedVal
+  obs_mask() const
+  {
+    return mObsMask;
+  }
+
+  /// @brief 故障伝搬マスクを設定する．
   void
-  set(
-    const TpgFault* f, ///< [in] オリジナルの故障
-    SimNode* node,     ///< [in] 対応する SimNode
-    SizeType ipos,     ///< [in] 入力番号
-    SimNode* inode     ///< [in] 入力に対応する SimNode
+  set_obs_mask(
+    PackedVal val ///< [in] 設定する値
   )
   {
-    mOrigF = f;
-    mNode = node;
-    mIpos = ipos;
-    mInode = inode;
-    mSkip = true;
+    mObsMask = val;
+  }
+
+  /// @brief スキップフラグを得る．
+  bool
+  skip() const
+  {
+    return mSkip;
+  }
+
+  /// @brief スキップフラグを設定する．
+  void
+  set_skip(
+    bool flag ///< [in] 設定する値
+  )
+  {
+    mSkip = flag;
   }
 
 
-public:
+private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 元の故障
-  const TpgFault* mOrigF;
+  /// @brief ノードと値をパックした構造体
+  class NodeVal
+  {
+  public:
 
-  // 故障のあるゲート
+    NodeVal() = default;
+
+    NodeVal(
+      SimNode* node,
+      bool val
+    ) : mBody{reinterpret_cast<ympuint>(node) | static_cast<ympuint>(val)}
+    {
+    }
+
+    ~NodeVal() = default;
+
+
+  public:
+    //////////////////////////////////////////////////////////////////////
+    // 外部インターフェイス
+    //////////////////////////////////////////////////////////////////////
+
+    /// @brief ノードを取り出す．
+    SimNode*
+    node() const
+    {
+      return reinterpret_cast<SimNode*>(mBody & ~1UL);
+    }
+
+    /// @brief 値を取り出す．
+    bool
+    val() const
+    {
+      return static_cast<bool>(mBody & 1);
+    }
+
+
+  private:
+    //////////////////////////////////////////////////////////////////////
+    // データメンバ
+    //////////////////////////////////////////////////////////////////////
+
+    // ノードと値をパックしたもの
+    ympuint mBody{0};
+
+  };
+
+  // 故障番号
+  SizeType mId;
+
+  // 故障伝搬の起点となるノード
   SimNode* mNode;
 
-  // 入力の故障の場合の入力位置
-  SizeType mIpos;
+  // 故障の励起条件のリスト
+  vector<NodeVal> mExCondList;
 
-  // 入力の故障の場合の入力のゲート
-  SimNode* mInode;
+#if FSIM_TD
+  // 遷移故障用の1時刻前の値割り当て
+  vector<NodeVal> mPrevCondList;
+#endif
 
   // 現在計算中のローカルな故障伝搬マスク
-  PackedVal mObsMask;
+  PackedVal mObsMask{0};
 
   // スキップフラグ
-  bool mSkip;
+  bool mSkip{false};
 
 };
 

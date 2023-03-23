@@ -18,9 +18,10 @@ BEGIN_NAMESPACE_DRUID
 /// @brief 故障の種類を表す列挙型
 //////////////////////////////////////////////////////////////////////
 enum class FaultType : ymuint8 {
-  None,           ///< 不正な値
-  StuckAt,        ///< 縮退故障
-  TransitionDelay ///< 遷移故障
+  None,            ///< 不正な値
+  StuckAt,         ///< 縮退故障
+  TransitionDelay, ///< 遷移故障
+  GateExaustive    ///< ゲート網羅故障
 };
 
 /// @brief FaultType のストリーム出力演算子
@@ -32,9 +33,10 @@ operator<<(
 )
 {
   switch ( ftype ) {
-  case FaultType::None:             s << "NONE"; break;
-  case FaultType::StuckAt :         s << "stuck-at fault"; break;
-  case FaultType::TransitionDelay : s << "transition-delay fault"; break;
+  case FaultType::None:            s << "NONE"; break;
+  case FaultType::StuckAt:         s << "stuck-at fault"; break;
+  case FaultType::TransitionDelay: s << "transition-delay fault"; break;
+  case FaultType::GateExaustive:   s << "gate-exaustive fault"; break;
   }
   return s;
 }

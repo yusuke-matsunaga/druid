@@ -92,10 +92,10 @@ protected:
   }
 
   /// @brief 故障マネージャを返す．
-  FaultStatusMgr&
-  fault_status_mgr()
+  TpgFaultMgr&
+  fault_mgr()
   {
-    return mMgr.fault_status_mgr();
+    return mMgr.fault_mgr();
   }
 
   /// @brief ネットワークを返す．
@@ -147,7 +147,7 @@ protected:
   /// @brief テストパタン生成が成功した時の結果を更新する．
   void
   update_det(
-    const TpgFault* fault, ///< [in] 対象の故障
+    const TpgFault& fault, ///< [in] 対象の故障
     const TestVector& tv,  ///< [in] テストパタン
     double sat_time,       ///< [in] SATにかかった時間
     double backtrace_time  ///< [in] バックトレースにかかった時間
@@ -159,7 +159,7 @@ protected:
   /// @brief 冗長故障の特定が行えた時の結果を更新する．
   void
   update_untest(
-    const TpgFault* fault, ///< [in] 対象の故障
+    const TpgFault& fault, ///< [in] 対象の故障
     double sat_time        ///< [in] SATにかかった時間
   )
   {
@@ -169,7 +169,7 @@ protected:
   /// @brief アボートした時の結果を更新する．
   void
   update_abort(
-    const TpgFault* fault, ///< [in] 対象の故障
+    const TpgFault& fault, ///< [in] 対象の故障
     double sat_time        ///< [in] SATにかかった時間
   )
   {

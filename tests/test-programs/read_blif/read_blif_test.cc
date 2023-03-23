@@ -21,7 +21,7 @@ read_blif_test(
     return 10;
   }
   auto network = TpgNetwork::read_blif(argv[1]);
-  print_network(cout, network);
+  network.print(cout);
 
   return 0;
 }

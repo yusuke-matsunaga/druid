@@ -66,28 +66,9 @@ TpgFFR_ffr_id(
   return PyLong_FromLong(val.id());
 }
 
-PyObject*
-TpgFFR_fault_list(
-  PyObject* self,
-  void* Py_UNUSED(closure)
-)
-{
-  auto val = PyTpgFFR::Get(self);
-  auto& fault_list = val.fault_list();
-  SizeType n = fault_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto fault = fault_list[i];
-    auto obj1 = PyTpgFault::ToPyObject(fault);
-    PyList_SetItem(ans_obj, i, obj1);
-  }
-  return ans_obj;
-}
-
 // get/set 関数定義
 PyGetSetDef TpgFFR_getset[] = {
   {"ffr_id", TpgFFR_ffr_id, nullptr, PyDoc_STR("FFR ID"), nullptr},
-  {"fault_list", TpgFFR_fault_list, nullptr, PyDoc_STR("fault list"), nullptr},
   {nullptr, nullptr, nullptr, nullptr, nullptr},
 };
 

@@ -7,7 +7,9 @@
 /// All rights reserved.
 
 #include "PyTpgFault.h"
+#include "PyTpgNode.h"
 #include "TpgNode.h"
+#include "NodeValList.h"
 #include "pym/PyModule.h"
 
 
@@ -19,7 +21,7 @@ BEGIN_NONAMESPACE
 struct TpgFaultObject
 {
   PyObject_HEAD
-  const TpgFault* mFault;
+  TpgFault mVal;
 };
 
 // Python 用のタイプ定義
@@ -45,7 +47,7 @@ TpgFault_dealloc(
   PyObject* self
 )
 {
-  // mFault は borrowed reference なので開放しない．
+  // mVal は borrowed reference なので開放しない．
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -55,48 +57,12 @@ TpgFault_str(
   PyObject* self
 )
 {
-  auto tmp_str = reinterpret_cast<TpgFaultObject*>(self)->mFault->str();
+  auto tmp_str = reinterpret_cast<TpgFaultObject*>(self)->mVal.str();
   return Py_BuildValue("s", tmp_str.c_str());
-}
-
-PyObject*
-TpgFault_is_stem_fault(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto fault = PyTpgFault::Get(self);
-  return PyBool_FromLong(fault->is_stem_fault());
-}
-
-PyObject*
-TpgFault_is_branch_fault(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto fault = PyTpgFault::Get(self);
-  return PyBool_FromLong(fault->is_branch_fault());
-}
-
-PyObject*
-TpgFault_is_rep(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto fault = PyTpgFault::Get(self);
-  return PyBool_FromLong(fault->is_rep());
 }
 
 // メソッド定義
 PyMethodDef TpgFault_methods[] = {
-  {"is_stem_fault", TpgFault_is_stem_fault, METH_NOARGS,
-   PyDoc_STR("True if STEM fault")},
-  {"is_branch_fault", TpgFault_is_branch_fault, METH_NOARGS,
-   PyDoc_STR("True if BRANCH fault")},
-  {"is_rep", TpgFault_is_rep, METH_NOARGS,
-   PyDoc_STR("True if representative fault")},
   {nullptr, nullptr, 0, nullptr}
 };
 
@@ -108,92 +74,92 @@ TpgFault_id(
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto id = fault->id();
+  auto id = fault.id();
   return PyLong_FromLong(id);
 }
 
-// tpg_inode を返す．
 PyObject*
-TpgFault_tpg_inode(
+TpgFault_origin_node(
   PyObject* self,
   void* Py_UNUSED(closure)
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto node = fault->tpg_inode();
-  return PyLong_FromLong(node->id());
+  auto node = fault.origin_node();
+  return PyTpgNode::ToPyObject(node);
 }
 
-// tpg_onode を返す．
 PyObject*
-TpgFault_tpg_onode(
+TpgFault_ffr_root(
   PyObject* self,
   void* Py_UNUSED(closure)
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto node = fault->tpg_onode();
-  return PyLong_FromLong(node->id());
+  auto node = fault.ffr_root();
+  return PyTpgNode::ToPyObject(node);
 }
 
-// fault_pos を返す．
+BEGIN_NONAMESPACE
+
 PyObject*
-TpgFault_fault_pos(
-  PyObject* self,
-  void* Py_UNUSED(closure)
+assign_list_to_pyobj(
+  const NodeValList& assign_list
 )
 {
-  auto fault = PyTpgFault::Get(self);
-  auto pos = fault->fault_pos();
-  return PyLong_FromLong(pos);
+  SizeType n = assign_list.size();
+  auto ans_obj = PyList_New(n);
+  if ( !ans_obj ) {
+    return nullptr;
+  }
+  Py_INCREF(ans_obj);
+  SizeType index = 0;
+  for ( auto nodeval: assign_list ) {
+    auto node = nodeval.node();
+    int time = nodeval.time();
+    bool val = nodeval.val();
+    auto nodeval_obj = Py_BuildValue("(Oib)", node, time, val);
+    PyList_SetItem(ans_obj, index, nodeval_obj);
+    ++ index;
+  }
+  return ans_obj;
 }
 
-// tpg_pos を返す．
+END_NONAMESPACE
+
 PyObject*
-TpgFault_tpg_pos(
+TpgFault_excitation_condition(
   PyObject* self,
   void* Py_UNUSED(closure)
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto pos = fault->tpg_pos();
-  return PyLong_FromLong(pos);
+  auto assign_list = fault.excitation_condition();
+  return assign_list_to_pyobj(assign_list);
 }
 
-// val を返す．
 PyObject*
-TpgFault_val(
+TpgFault_ffr_propagate_condition(
   PyObject* self,
   void* Py_UNUSED(closure)
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto val = fault->val();
-  auto ival = val == Fval2::zero ? 0 : 1;
-  return PyLong_FromLong(ival);
-}
-
-// rep_fault を返す．
-PyObject*
-TpgFault_rep_fault(
-  PyObject* self,
-  void* Py_UNUSED(closure)
-)
-{
-  auto fault = PyTpgFault::Get(self);
-  auto node = fault->rep_fault();
-  return PyLong_FromLong(node->id());
+  auto assign_list = fault.ffr_propagate_condition();
+  return assign_list_to_pyobj(assign_list);
 }
 
 // getset メソッド定義
 PyGetSetDef TpgFault_getsetters[] = {
   {"id", TpgFault_id, nullptr, PyDoc_STR("ID")},
-  {"tpg_inode", TpgFault_tpg_inode, nullptr, PyDoc_STR("input node")},
-  {"tpg_onode", TpgFault_tpg_onode, nullptr, PyDoc_STR("output node")},
-  {"fault_pos", TpgFault_fault_pos, nullptr, PyDoc_STR("fault's position")},
-  {"tpg_pos", TpgFault_tpg_pos, nullptr, PyDoc_STR("position in TpgNode's fanin")},
-  {"val", TpgFault_val, nullptr, PyDoc_STR("fault value")},
-  {"rep_fault", TpgFault_rep_fault, nullptr, PyDoc_STR("representative fault")},
+  {"origin_node", TpgFault_origin_node, nullptr,
+   PyDoc_STR("origin node for fault propagation")},
+  {"ffr_root", TpgFault_ffr_root, nullptr,
+   PyDoc_STR("FFR's root node")},
+  {"excitation_condition", TpgFault_excitation_condition, nullptr,
+   PyDoc_STR("fault excitation condition")},
+  {"ffr_propagation_condition", TpgFault_ffr_propagate_condition, nullptr,
+   PyDoc_STR("fault propagation condition for FFR")},
   {nullptr, nullptr, nullptr, nullptr}
 };
 
@@ -232,12 +198,12 @@ PyTpgFault::init(
 // @brief TpgFault を PyObject に変換する．
 PyObject*
 PyTpgFault::ToPyObject(
-  const TpgFault* val
+  const TpgFault& val
 )
 {
   auto obj = TpgFaultType.tp_alloc(&TpgFaultType, 0);
   auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(obj);
-  tpgfault_obj->mFault = val;
+  tpgfault_obj->mVal = val;
   return obj;
 }
 
@@ -251,13 +217,13 @@ PyTpgFault::Check(
 }
 
 // @brief TpgFault を表す PyObject から TpgFault を取り出す．
-const TpgFault*
+TpgFault
 PyTpgFault::Get(
   PyObject* obj
 )
 {
   auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(obj);
-  return tpgfault_obj->mFault;
+  return tpgfault_obj->mVal;
 }
 
 // @brief TpgFault を表すオブジェクトの型定義を返す．

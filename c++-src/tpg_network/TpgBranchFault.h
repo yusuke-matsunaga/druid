@@ -8,6 +8,7 @@
 /// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
+#error "obsolete"
 #include "TpgFaultBase.h"
 
 
@@ -51,6 +52,7 @@ public:
   const TpgNode*
   tpg_onode() const override;
 
+#if 0
   /// @brief ステムの故障の時 true を返す．
   bool
   is_stem_fault() const override;
@@ -66,6 +68,17 @@ public:
   /// is_branch_fault() == true の時のみ意味を持つ．
   SizeType
   tpg_pos() const override;
+#endif
+
+  /// @brief 故障伝搬の起点となるノードを返す．
+  const TpgNode*
+  origin_node() const override;
+
+  /// @brief 故障が励起してノードの出力まで伝搬する条件を求める．
+  NodeValList
+  node_propagate_condition(
+    FaultType fault_type   ///< [in] 故障の種類
+  ) const override;
 
   /// @brief 故障の内容を表す文字列を返す．
   string

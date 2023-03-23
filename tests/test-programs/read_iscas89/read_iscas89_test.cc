@@ -21,7 +21,7 @@ read_iscas89_test(
     return 10;
   }
   auto network = TpgNetwork::read_iscas89(argv[1]);
-  print_network(cout, network);
+  network.print(cout);
 
   return 0;
 }

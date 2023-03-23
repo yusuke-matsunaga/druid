@@ -128,6 +128,9 @@ Extractor::record_sensitized_node(
 )
 {
   for ( auto inode: node->fanin_list() ) {
+    // 値に応じてタイプ分けを行う．
+    // 実は XOR の side-input は X でよいが
+    // なにも考えずに現在の値を要求している．
     int t = type(inode);
     put_queue(inode, t);
   }

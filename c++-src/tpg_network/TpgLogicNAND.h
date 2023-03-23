@@ -8,7 +8,7 @@
 /// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "TpgLogic.h"
+#include "TpgLogicAND.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -18,11 +18,9 @@ BEGIN_NAMESPACE_DRUID
 /// @brief NANDゲートを表すクラス
 //////////////////////////////////////////////////////////////////////
 class TpgLogicNAND :
-  public TpgLogic
+  public TpgLogicAND
 {
-  friend class TpgNetworkImpl;
-
-private:
+public:
 
   /// @brief コンストラクタ
   TpgLogicNAND(
@@ -43,20 +41,6 @@ public:
   /// is_logic() が false の場合の返り値は不定
   PrimType
   gate_type() const override;
-
-  /// @brief controling value を得る．
-  ///
-  /// is_logic() が false の場合の返り値は不定
-  /// ない場合は Val3::_X を返す．
-  Val3
-  cval() const override;
-
-  /// @brief noncontroling valueを得る．
-  ///
-  /// is_logic() が false の場合の返り値は不定
-  /// ない場合は Val3::_X を返す．
-  Val3
-  nval() const override;
 
   /// @brief controling output value を得る．
   ///

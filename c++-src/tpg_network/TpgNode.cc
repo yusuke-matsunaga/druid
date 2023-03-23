@@ -164,7 +164,6 @@ TpgNode::gate_type() const
 }
 
 // @brief controling value を得る．
-// @note ない場合は Val3::_X を返す．
 Val3
 TpgNode::cval() const
 {
@@ -174,7 +173,6 @@ TpgNode::cval() const
 }
 
 // @brief noncontroling valueを得る．
-// @note ない場合は kValX を返す．
 Val3
 TpgNode::nval() const
 {
@@ -184,7 +182,6 @@ TpgNode::nval() const
 }
 
 // @brief controling output value を得る．
-// @note ない場合は kValX を返す．
 Val3
 TpgNode::coval() const
 {
@@ -194,12 +191,18 @@ TpgNode::coval() const
 }
 
 // @brief noncontroling output value を得る．
-// @note ない場合は kValX を返す．
 Val3
 TpgNode::noval() const
 {
   ASSERT_COND( is_ppo() );
 
+  return Val3::_X;
+}
+
+// @brief side-input の値を得る．
+Val3
+TpgNode::side_val() const
+{
   return Val3::_X;
 }
 

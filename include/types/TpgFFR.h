@@ -20,12 +20,10 @@ class TpgNetworkImpl;
 /// @brief TpgNetwork の FFR の情報を表すクラス
 /// @sa TpgNetwork
 /// @sa TpgNode
-/// @sa TpgFault
 /// @sa TpgMFFC
 ///
 /// 具体的には以下の情報を持つ．
 /// - FFR の根のノード
-/// - FFR に含まれる代表故障のリスト
 /// 一度設定された不変のオブジェクトとなる．
 //////////////////////////////////////////////////////////////////////
 class TpgFFR
@@ -86,27 +84,27 @@ public:
   const vector<const TpgNode*>&
   input_list() const;
 
-  /// @brief このFFRに含まれる代表故障の数を返す．
+  /// @brief このFFRに含まれるノード数を返す．
   SizeType
-  fault_num() const
+  node_num() const
   {
-    return fault_list().size();
+    return node_list().size();
   }
 
-  /// @brief このFFRに含まれる代表故障を返す．
-  const TpgFault*
-  fault(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < fault_num() )
+  /// @brief このFFRに含まれるノードを返す．
+  const TpgNode*
+  node(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < node_num() )
   ) const
   {
-    ASSERT_COND( pos >= 0 && pos < fault_num() );
+    ASSERT_COND( 0 <= pos && pos < node_num() );
 
-    return fault_list()[pos];
+    return node_list()[pos];
   }
 
-  /// @brief このFFRに含まれる代表故障のリストを返す．
-  const vector<const TpgFault*>&
-  fault_list() const;
+  /// @brief このFFRに含まれるノードのリストを返す．
+  const vector<const TpgNode*>&
+  node_list() const;
 
   /// @brief 等価比較演算子
   bool

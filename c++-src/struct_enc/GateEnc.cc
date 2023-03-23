@@ -312,28 +312,86 @@ GateEnc::make_cnf(
     break;
 
   case PrimType::Xor:
-    ASSERT_COND( ni == 2 );
-    {
-      auto ilit0 = lit(fanin_array[0]);
-      auto ilit1 = lit(fanin_array[1]);
-      mSolver.add_xorgate( olit, ilit0, ilit1);
-      if ( debug_gate_enc ) {
-	cout << "Xor: " << olit << " = " << ilit0
-	     << " ^ " << ilit1  << endl;
+    switch ( ni ) {
+    case 2:
+      {
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	mSolver.add_xorgate( olit, ilit0, ilit1);
       }
+      break;
+
+    case 3:
+      {
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	mSolver.add_xorgate( olit, ilit0, ilit1, ilit2);
+      }
+      break;
+
+    default:
+      ASSERT_COND( ni > 3 );
+      {
+	vector<SatLiteral> ilits(ni);
+	for (int i = 0; i < ni; ++ i) {
+	  ilits[i] = lit(fanin_array[i]);
+	}
+	mSolver.add_xorgate( olit, ilits);
+      }
+      break;
+    }
+    if ( debug_gate_enc ) {
+      cout << "Xor: " << olit << " = (";
+      const char* amp = "";
+      for ( auto inode: fanin_array ) {
+	auto ilit = lit(inode);
+	cout << amp << ilit;
+	amp = " ^ ";
+      }
+      cout << ")" << endl;
     }
     break;
 
   case PrimType::Xnor:
-    ASSERT_COND( ni == 2 );
-    {
-      auto ilit0 = lit(fanin_array[0]);
-      auto ilit1 = lit(fanin_array[1]);
-      mSolver.add_xnorgate( olit, ilit0, ilit1);
-      if ( debug_gate_enc ) {
-	cout << "Xnor: " << olit << " = ~(" << ilit0
-	     << " ^ " << ilit1 << ")" << endl;
+    switch ( ni ) {
+    case 2:
+      {
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	mSolver.add_xnorgate( olit, ilit0, ilit1);
       }
+      break;
+
+    case 3:
+      {
+	auto ilit0 = lit(fanin_array[0]);
+	auto ilit1 = lit(fanin_array[1]);
+	auto ilit2 = lit(fanin_array[2]);
+	mSolver.add_xnorgate( olit, ilit0, ilit1, ilit2);
+      }
+      break;
+
+    default:
+      ASSERT_COND( ni > 3 );
+      {
+	vector<SatLiteral> ilits(ni);
+	for (int i = 0; i < ni; ++ i) {
+	  ilits[i] = lit(fanin_array[i]);
+	}
+	mSolver.add_xnorgate( olit, ilits);
+      }
+      break;
+    }
+    if ( debug_gate_enc ) {
+      cout << "Xnor: " << olit << " = ~(";
+      const char* amp = "";
+      for ( auto inode: fanin_array ) {
+	auto ilit = lit(inode);
+	cout << amp << ilit;
+	amp = " ^ ";
+      }
+      cout << ")" << endl;
     }
     break;
 

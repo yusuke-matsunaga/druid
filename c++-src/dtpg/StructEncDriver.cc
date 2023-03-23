@@ -22,20 +22,20 @@ BEGIN_NAMESPACE_DRUID
 void
 StructEncDriver::gen_pattern(
   StructEnc& enc,
-  const TpgFault* fault
+  const TpgFault& fault
 )
 {
   Timer timer;
   timer.start();
 
   // 故障が属している FFR の根のノード
-  auto ffr_root = fault->tpg_onode()->ffr_root();
+  auto ffr_root = fault.ffr_root();
 
   // FFR より出力側の故障伝搬条件を assumptions に入れる．
   auto assumptions = enc.make_prop_condition(ffr_root);
 
   // FFR 内の故障伝搬条件を assign_list に入れる．
-  auto assign_list = fault->ffr_propagate_condition(fault_type());
+  auto assign_list = fault.ffr_propagate_condition();
 
   // SAT問題を解く
   auto ans = enc.check_sat(assumptions, assign_list);

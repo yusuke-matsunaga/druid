@@ -1,14 +1,14 @@
 
-/// @file TpgGateInfo.cc
-/// @brief TpgGateInfo の実装ファイル
+/// @file GateType.cc
+/// @brief GateType の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "TpgGateInfo.h"
-#include "SimpleGateInfo.h"
-#include "CplxGateInfo.h"
+#include "GateType.h"
+#include "GateType_Simple.h"
+#include "GateType_Cplx.h"
 #include "Val3.h"
 #include "ym/Range.h"
 
@@ -208,40 +208,35 @@ END_NONAMESPACE
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス SimpleGateInfo
+// クラス GateType_Simple
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-SimpleGateInfo::SimpleGateInfo(
-  PrimType gate_type
-) : mGateType{gate_type}
+GateType_Simple::GateType_Simple(
+  PrimType prim_type
+) : mPrimType{prim_type}
 {
-  mCVal[0] = c_val(gate_type, Val3::_0);
-  mCVal[1] = c_val(gate_type, Val3::_1);
-}
-
-// @brief デストラクタ
-SimpleGateInfo::~SimpleGateInfo()
-{
+  mCVal[0] = c_val(prim_type, Val3::_0);
+  mCVal[1] = c_val(prim_type, Val3::_1);
 }
 
 // @brief 組み込みタイプのときに true を返す．
 bool
-SimpleGateInfo::is_simple() const
+GateType_Simple::is_simple() const
 {
   return true;
 }
 
 // @brief ゲートタイプを返す．
 PrimType
-SimpleGateInfo::gate_type() const
+GateType_Simple::primitive_type() const
 {
-  return mGateType;
+  return mPrimType;
 }
 
 // @brief 論理式を返す．
 Expr
-SimpleGateInfo::expr() const
+GateType_Simple::expr() const
 {
   // ダミー
   return Expr::make_invalid();
@@ -249,14 +244,14 @@ SimpleGateInfo::expr() const
 
 // @brief 追加ノード数を返す．
 SizeType
-SimpleGateInfo::extra_node_num() const
+GateType_Simple::extra_node_num() const
 {
   return 0;
 }
 
 // @brief 制御値を返す．
 Val3
-SimpleGateInfo::cval(
+GateType_Simple::cval(
   SizeType pos,
   Val3 val
 ) const
@@ -267,11 +262,11 @@ SimpleGateInfo::cval(
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス CplxGateInfo
+// クラス GateType_Cplx
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-CplxGateInfo::CplxGateInfo(
+GateType_Cplx::GateType_Cplx(
   SizeType ni,
   const Expr& expr
 ) : mExpr{expr},
@@ -284,21 +279,16 @@ CplxGateInfo::CplxGateInfo(
   }
 }
 
-// @brief デストラクタ
-CplxGateInfo::~CplxGateInfo()
-{
-}
-
 // @brief 組み込みタイプのときに true を返す．
 bool
-CplxGateInfo::is_simple() const
+GateType_Cplx::is_simple() const
 {
   return false;
 }
 
 // @brief ゲートタイプを返す．
 PrimType
-CplxGateInfo::gate_type() const
+GateType_Cplx::primitive_type() const
 {
   // ダミー
   return PrimType::None;
@@ -306,21 +296,21 @@ CplxGateInfo::gate_type() const
 
 // @brief 論理式を返す．
 Expr
-CplxGateInfo::expr() const
+GateType_Cplx::expr() const
 {
   return mExpr;
 }
 
 // @brief 追加ノード数を返す．
 SizeType
-CplxGateInfo::extra_node_num() const
+GateType_Cplx::extra_node_num() const
 {
   return mExtraNodeNum;
 }
 
 // @brief 制御値を返す．
 Val3
-CplxGateInfo::cval(
+GateType_Cplx::cval(
   SizeType pos,
   Val3 val
 ) const
@@ -331,26 +321,26 @@ CplxGateInfo::cval(
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgGateInfoMgr
+// クラス GateTypeMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-TpgGateInfoMgr::TpgGateInfoMgr()
+GateTypeMgr::GateTypeMgr()
 {
-  mSimpleType[0] = new SimpleGateInfo(PrimType::C0);
-  mSimpleType[1] = new SimpleGateInfo(PrimType::C1);
-  mSimpleType[2] = new SimpleGateInfo(PrimType::Buff);
-  mSimpleType[3] = new SimpleGateInfo(PrimType::Not);
-  mSimpleType[4] = new SimpleGateInfo(PrimType::And);
-  mSimpleType[5] = new SimpleGateInfo(PrimType::Nand);
-  mSimpleType[6] = new SimpleGateInfo(PrimType::Or);
-  mSimpleType[7] = new SimpleGateInfo(PrimType::Nor);
-  mSimpleType[8] = new SimpleGateInfo(PrimType::Xor);
-  mSimpleType[9] = new SimpleGateInfo(PrimType::Xnor);
+  mSimpleType[0] = new GateType_Simple{PrimType::C0};
+  mSimpleType[1] = new GateType_Simple{PrimType::C1};
+  mSimpleType[2] = new GateType_Simple{PrimType::Buff};
+  mSimpleType[3] = new GateType_Simple{PrimType::Not};
+  mSimpleType[4] = new GateType_Simple{PrimType::And};
+  mSimpleType[5] = new GateType_Simple{PrimType::Nand};
+  mSimpleType[6] = new GateType_Simple{PrimType::Or};
+  mSimpleType[7] = new GateType_Simple{PrimType::Nor};
+  mSimpleType[8] = new GateType_Simple{PrimType::Xor};
+  mSimpleType[9] = new GateType_Simple{PrimType::Xnor};
 }
 
 // @brief デストラクタ
-TpgGateInfoMgr::~TpgGateInfoMgr()
+GateTypeMgr::~GateTypeMgr()
 {
   for ( int i: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9} ) {
     delete mSimpleType[i];
@@ -360,9 +350,9 @@ TpgGateInfoMgr::~TpgGateInfoMgr()
   }
 }
 
-// @brief TpgGateInfo を登録する．
-const TpgGateInfo*
-TpgGateInfoMgr::new_info(
+// @brief GateType を登録する．
+const GateType*
+GateTypeMgr::new_type(
   SizeType ni,
   const Expr& expr
 )
@@ -377,8 +367,8 @@ TpgGateInfoMgr::new_info(
 }
 
 // @brief 組み込み型のオブジェクトを返す．
-const TpgGateInfo*
-TpgGateInfoMgr::simple_type(
+const GateType*
+GateTypeMgr::simple_type(
   PrimType prim_type
 )
 {
@@ -400,13 +390,13 @@ TpgGateInfoMgr::simple_type(
 }
 
 // @brief 複合型のオブジェクトを返す．
-const TpgGateInfo*
-TpgGateInfoMgr::complex_type(
+const GateType*
+GateTypeMgr::complex_type(
   SizeType ni,
   const Expr& expr
 )
 {
-  auto node_info = new CplxGateInfo(ni, expr);
+  auto node_info = new GateType_Cplx{ni, expr};
   mList.push_back(node_info);
   return node_info;
 }

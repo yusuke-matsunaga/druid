@@ -189,7 +189,7 @@ FaultReducer::init(
     for ( auto fault: ffr.fault_list() ) {
       auto& fi = mFaultInfoArray[fault->id()];
       if ( !fi.mDeleted ) {
-	fi.mFFRCond = fault->ffr_propagate_condition(mFaultType);
+	fi.mFFRCond = fault->ffr_propagate_condition();
 	auto assumptions = dtpg.conv_to_literal_list(fi.mFFRCond);
 	SatBool3 sat_res = dtpg.check(assumptions);
 	ASSERT_COND( sat_res == SatBool3::True );
@@ -393,7 +393,7 @@ FaultReducer::ffr_reduction()
       }
       auto assumptions = dtpg.conv_to_literal_list(fi1.mFFRCond);
       for ( auto fault2: fi1.mDomCandList ) {
-	if ( fault2->tpg_onode()->ffr_root() != fault1->tpg_onode()->ffr_root() ) {
+	if ( fault2->ffr_root() != fault1->ffr_root() ) {
 	  continue;
 	}
 	auto& fi2 = mFaultInfoArray[fault2->id()];
@@ -457,12 +457,12 @@ FaultReducer::dom_reduction1(
       if ( fault2 == fault1 || fi2.mDeleted ) {
 	continue;
       }
-      if ( fault1->tpg_onode()->ffr_root() == fault2->tpg_onode()->ffr_root() ) {
+      if ( fault1->ffr_root() == fault2->ffr_root() ) {
 	// 同じ FFR ならチェック済み
 	continue;
       }
 
-      if ( !undet_checker.has_gvar(fault2->tpg_onode()) ) {
+      if ( !undet_checker.has_gvar(fault2->origin_node()) ) {
 	continue;
       }
       // fault1 が fault2 の mDomCandList に含まれるか調べる．
@@ -518,7 +518,7 @@ FaultReducer::dom_reduction2()
       continue;
     }
     for ( auto ffr2: mNetwork.ffr_list() ) {
-      if ( ffr2.root() == fault1->tpg_onode()->ffr_root() ) {
+      if ( ffr2.root() == fault1->ffr_root() ) {
 	continue;
       }
       vector<const TpgFault*> fault2_list;
@@ -596,7 +596,7 @@ FaultReducer::dom_reduction3(
     }
     UndetChecker undet_checker(mNetwork, mFaultType, fault1, mSolverType);
     for ( auto ffr2: mNetwork.ffr_list() ) {
-      if ( ffr2.root() == fault1->tpg_onode()->ffr_root() ) {
+      if ( ffr2.root() == fault1->ffr_root() ) {
 	continue;
       }
       vector<const TpgFault*> fault2_list;
@@ -621,7 +621,7 @@ FaultReducer::dom_reduction3(
 	continue;
       }
       for ( auto fault2: fault2_list ) {
-	if ( undet_checker.has_gvar(fault2->tpg_onode()) ) {
+	if ( undet_checker.has_gvar(fault2->origin_node()) ) {
 	  ++ u_check_num;
 	  auto& fi2 = mFaultInfoArray[fault2->id()];
 	  const auto& cond = simple ? fi2.mFFRCond : fi2.mMandCond;

@@ -44,7 +44,7 @@ public:
   static
   PyObject*
   ToPyObject(
-    const TpgFault* val ///< [in] 値
+    const TpgFault& val ///< [in] 値
   );
 
   /// @brief PyObject が TpgFault タイプか調べる．
@@ -59,7 +59,7 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  const TpgFault*
+  TpgFault
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );

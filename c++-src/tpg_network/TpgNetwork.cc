@@ -103,15 +103,6 @@ TpgNetwork::node_list() const
   return mImpl->node_list();
 }
 
-// @brief ノード名を得る．
-const string&
-TpgNetwork::node_name(
-  SizeType id
-) const
-{
-  return mImpl->node_name(id);
-}
-
 // @brief 外部入力数を得る．
 SizeType
 TpgNetwork::input_num() const
@@ -183,6 +174,15 @@ TpgNetwork::ppi(
   return mImpl->ppi(pos);
 }
 
+// @brief PPI の名前を返す．
+string
+TpgNetwork::ppi_name(
+  SizeType input_id
+) const
+{
+  return mImpl->ppi_name(input_id);
+}
+
 // @brief 擬似外部入力のリストを得る．
 const vector<const TpgNode*>&
 TpgNetwork::ppi_list() const
@@ -204,6 +204,15 @@ TpgNetwork::ppo(
 ) const
 {
   return mImpl->ppo(pos);
+}
+
+// @brief PPO の名前を返す．
+string
+TpgNetwork::ppo_name(
+  SizeType output_id
+) const
+{
+  return mImpl->ppo_name(output_id);
 }
 
 // @brief 擬似外部出力のリストを得る．
@@ -269,76 +278,31 @@ TpgNetwork::dff_list() const
   return TpgDFFList{mImpl->dff_list()};
 }
 
-// @brief 故障IDの最大値+1を返す．
+// @brief ゲート数を返す．
 SizeType
-TpgNetwork::max_fault_id() const
+TpgNetwork::gate_num() const
 {
-  return mImpl->max_fault_id();
+  return mImpl->gate_num();
 }
 
-// @brief 全代表故障数を返す．
-SizeType
-TpgNetwork::rep_fault_num() const
-{
-  return mImpl->rep_fault_num();
-}
-
-// @brief 代表故障を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < rep_fault_num() )
-const TpgFault*
-TpgNetwork::rep_fault(
+// @brief ゲート情報を得る．
+TpgGate
+TpgNetwork::gate(
   SizeType pos
 ) const
 {
-  return mImpl->rep_fault(pos);
-}
-
-// @brief 代表故障のリストを返す．
-const vector<const TpgFault*>&
-TpgNetwork::rep_fault_list() const
-{
-  return mImpl->rep_fault_list();
-}
-
-// @brief ノードに関係した代表故障数を返す．
-SizeType
-TpgNetwork::node_rep_fault_num(
-  SizeType id
-) const
-{
-  return mImpl->node_rep_fault_num(id);
-}
-
-// @brief ノードに関係した代表故障を返す．
-const TpgFault*
-TpgNetwork::node_rep_fault(
-  SizeType id,
-  SizeType pos
-) const
-{
-  return mImpl->node_rep_fault(id, pos);
-}
-
-// @brief ノードに関係した代表故障のリストを返す．
-const vector<const TpgFault*>&
-TpgNetwork::node_rep_fault_list(
-  SizeType id
-) const
-{
-  return mImpl->node_rep_fault_list(id);
+  return TpgGate{mImpl.get(), pos};
 }
 
 // @brief TpgNetwork の内容を出力する関数
 void
-print_network(
-  ostream& s,
-  const TpgNetwork& network
+TpgNetwork::print(
+  ostream& s
 )
 {
-  int n = network.node_num();
-  for ( auto node: network.node_list() ) {
-    print_node(s, network, node);
-    s << ": ";
+  for ( auto node: node_list() ) {
+    s << node->str()
+      << ": ";
     if ( node->is_primary_input() ) {
       s << "INPUT#" << node->input_id();
     }
@@ -348,16 +312,14 @@ print_network(
     }
     else if ( node->is_primary_output() ) {
       s << "OUTPUT#" << node->output_id();
-      const TpgNode* inode = node->fanin(0);
-      s << " = ";
-      print_node(s, network, inode);
+      auto inode = node->fanin(0);
+      s << " = " << inode->str();
     }
     else if ( node->is_dff_input() ) {
       s << "OUTPUT#" << node->output_id()
 	<< "(DFF#" << node->dff_id() << ".input)";
-      const TpgNode* inode = node->fanin(0);
-      s << " = ";
-      print_node(s, network, inode);
+      auto inode = node->fanin(0);
+      s << " = " << inode->str();
     }
     else if ( node->is_dff_clock() ) {
       s << "DFF#" << node->dff_id() << ".clock";
@@ -370,12 +332,11 @@ print_network(
     }
     else if ( node->is_logic() ) {
       s << node->gate_type();
-      int ni = node->fanin_num();
+      SizeType ni = node->fanin_num();
       if ( ni > 0 ) {
 	s << "(";
 	for ( auto inode: node->fanin_list() ) {
-	  s << " ";
-	  print_node(s, network, inode);
+	  s << " " << inode->str();
 	}
 	s << " )";
       }
@@ -386,17 +347,68 @@ print_network(
     s << endl;
   }
   s << endl;
-}
 
-// @brief ノード名を出力する
-void
-print_node(
-  ostream& s,
-  const TpgNetwork& network,
-  const TpgNode* node
-)
-{
-  s << "NODE#" << node->id() << ": " << network.node_name(node->id());
+  for ( auto ffr: ffr_list() ) {
+    s << "FFR#" << ffr.id() << endl
+      << "  ROOT: " << ffr.root()->str()
+      << endl;
+    SizeType ni = ffr.input_num();
+    for ( SizeType i = 0; i < ni; ++ i ) {
+      s << "  INPUT#" << i << ": "
+	<< ffr.input(i)->str()
+	<< endl;
+    }
+    SizeType nn = ffr.node_num();
+    for ( SizeType i = 0; i < nn; ++ i ) {
+      s << "  " << ffr.node(i)->str()
+	<< endl;
+    }
+  }
+  s << endl;
+
+  for ( auto mffc: mffc_list() ) {
+    s << "MFFC#" << mffc.id()
+      << endl
+      << "  ROOT: " << mffc.root()->str()
+      << endl;
+    SizeType nf = mffc.ffr_num();
+    for ( auto ffr: mffc.ffr_list() ) {
+      s << "  FFR#" << ffr.id() << endl;
+    }
+  }
+  s << endl;
+
+  for ( SizeType i = 0; i < ppi_num(); ++ i ) {
+    auto name = ppi_name(i);
+    s << "PPI#" << i << ": " << name
+      << ": " << ppi(i)->str()
+      << endl;
+  }
+  s << endl;
+
+  for ( SizeType i = 0; i < ppo_num(); ++ i ) {
+    auto name = ppo_name(i);
+    s << "PPO#" << i << ": " << name
+      << ": " << ppo(i)->str()
+      << endl;
+  }
+  s << endl;
+
+  for ( auto gate: gate_list() ) {
+    s << "GATE#" << gate.id()
+      << ": " << gate.name() << endl
+      << "  Output: " << gate.output_node()->str()
+      << endl;
+    SizeType ni = gate.input_num();
+    for ( SizeType i = 0; i < ni; ++ i ) {
+      auto binfo = gate.branch_info(i);
+      s << "  Input#" << i << ": "
+	<< binfo.node->str()
+	<< "[" << binfo.ipos << "]"
+	<< endl;
+    }
+    s << endl;
+  }
 }
 
 END_NAMESPACE_DRUID

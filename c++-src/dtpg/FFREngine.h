@@ -45,7 +45,7 @@ protected:
   /// デフォルトでは空を返す．
   vector<SatLiteral>
   gen_assumptions(
-    const TpgFault* fault ///< [in] 対象の故障
+    const TpgFault& fault ///< [in] 対象の故障
   ) override;
 
 };

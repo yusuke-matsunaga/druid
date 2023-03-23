@@ -10,12 +10,11 @@
 #include "TpgNode.h"
 #include "TpgDffInput.h"
 #include "TpgDffOutput.h"
-#include "TpgFaultBase.h"
-#include "TpgDFF.h"
+#include "TpgFault.h"
+#include "TpgGateImpl.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
-
-#include "AuxNodeInfo.h"
+#include "GateType.h"
 #include "ym/Range.h"
 
 
@@ -62,7 +61,6 @@ struct Lt
   }
 
 };
-
 
 void
 check_network_connection(
@@ -137,98 +135,56 @@ TpgNetworkImpl::clear()
   for ( auto node: mNodeArray ) {
     delete node;
   }
-  for ( auto fault: mRepFaultArray ) {
-    delete fault;
+  for ( auto gate: mGateArray ) {
+    delete gate;
   }
-}
-
-// @brief ノード名を得る．
-const string&
-TpgNetworkImpl::node_name(
-  SizeType id
-) const
-{
-  ASSERT_COND( id >= 0 && id < node_num() );
-
-  return mAuxInfoArray[id].name();
-}
-
-// @brief ノードに関係した代表故障数を返す．
-SizeType
-TpgNetworkImpl::node_rep_fault_num(
-  SizeType id
-) const
-{
-  ASSERT_COND( id >= 0 && id < node_num() );
-
-  return mAuxInfoArray[id].fault_num();
-}
-
-// @brief ノードに関係した代表故障を返す．
-const TpgFault*
-TpgNetworkImpl::node_rep_fault(
-  SizeType id,
-  SizeType pos
-) const
-{
-  ASSERT_COND( id >= 0 && id < node_num() );
-
-  return mAuxInfoArray[id].fault(pos);
-}
-
-// @brief ノードに関係した代表故障のリストを返す．
-const vector<const TpgFault*>&
-TpgNetworkImpl::node_rep_fault_list(
-  SizeType id
-) const
-{
-  ASSERT_COND( id >= 0 && id < node_num() );
-
-  return mAuxInfoArray[id].fault_list();
-}
-
-// @brief 出力の故障を得る．
-TpgFaultBase*
-TpgNetworkImpl::_node_output_fault(
-  SizeType id,
-  Fval2 val
-)
-{
-  ASSERT_COND( id >= 0 && id < node_num() );
-
-  return mAuxInfoArray[id].output_fault(val);
-}
-
-// @brief 入力の故障を得る．
-TpgFaultBase*
-TpgNetworkImpl::_node_input_fault(
-  SizeType id,
-  Fval2 val,
-  SizeType pos
-)
-{
-  ASSERT_COND( id >= 0 && id < node_num() );
-
-  return mAuxInfoArray[id].input_fault(pos, val);
 }
 
 BEGIN_NONAMESPACE
 
 // @brief ノードの TFI にマークをつける．
-SizeType
-tfimark(
-  const TpgNode* node,
-  vector<bool>& mark
+void
+mark_datapath(
+  const TpgNode* node
 )
 {
-  if ( mark[node->id()] ) {
-    return 0;
+  if ( node->is_datapath() ) {
+    return;
   }
+  const_cast<TpgNode*>(node)->set_datapath(true);
+
+  for ( auto inode: node->fanin_list() ) {
+    mark_datapath(inode);
+  }
+}
+
+// @brief TFI のノード数を数える．
+SizeType
+count_tfi(
+  const TpgNode* node,
+  SizeType node_num
+)
+{
+  // 再帰呼び出し用のスタック
+  vector<const TpgNode*> stack;
+  stack.reserve(node_num);
+  // マーク
+  vector<bool> mark(node_num, false);
+
+  SizeType n = 0;
+  stack.push_back(node);
   mark[node->id()] = true;
 
-  SizeType n = 1;
-  for ( auto inode: node->fanin_list() ) {
-    n += tfimark(inode, mark);
+  while ( !stack.empty() ) {
+    auto node = stack.back();
+    stack.pop_back();
+    ++ n;
+    for ( auto inode: node->fanin_list() ) {
+      if ( !mark[inode->id()] ) {
+	stack.push_back(inode);
+	mark[inode->id()] = true;
+      }
+    }
   }
   return n;
 }
@@ -257,8 +213,8 @@ TpgNetworkImpl::set_size(
 
   mNodeArray.clear();
   mNodeArray.reserve(node_num);
-  mAuxInfoArray.clear();
-  mAuxInfoArray.reserve(node_num);
+  mGateArray.clear();
+  mGateArray.reserve(gate_num);
 
   SizeType nppi = mInputNum + dff_num;
   mPPIArray.clear();
@@ -293,7 +249,6 @@ TpgNetworkImpl::post_op(
     check_network_connection(this);
   }
 
-
   //////////////////////////////////////////////////////////////////////
   // DFF の入力と出力を結びつける．
   //////////////////////////////////////////////////////////////////////
@@ -307,34 +262,8 @@ TpgNetworkImpl::post_op(
   //////////////////////////////////////////////////////////////////////
   // データ系のノードに印をつける．
   //////////////////////////////////////////////////////////////////////
-  vector<bool> dmarks(node_num(), false);
   for ( auto node: ppo_list() ) {
-    tfimark(node, dmarks);
-  }
-
-  //////////////////////////////////////////////////////////////////////
-  // 代表故障を求める．
-  //////////////////////////////////////////////////////////////////////
-  SizeType rep_num = 0;
-  for ( auto i: Range(node_num()) ) {
-    // ノードごとに代表故障を設定する．
-    // この処理は出力側から行う必要がある．
-    auto node = mNodeArray[node_num() - i - 1];
-    if ( dmarks[node->id()] ) {
-      SizeType nf = set_rep_faults(node);
-      rep_num += nf;
-    }
-  }
-
-  mRepFaultArray.clear();
-  mRepFaultArray.reserve(rep_num);
-  for ( auto i: Range(node_num()) ) {
-    auto& aux_node_info = mAuxInfoArray[i];
-    SizeType nf = aux_node_info.fault_num();
-    for ( auto j: Range(nf) ) {
-      auto fault = aux_node_info.fault(j);
-      mRepFaultArray.push_back(fault);
-    }
+    mark_datapath(node);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -346,8 +275,7 @@ TpgNetworkImpl::post_op(
   for ( SizeType i: Range(npo) ) {
     auto onode = ppo(i);
     // onode の TFI のノード数を計算する．
-    vector<bool> mark(node_num(), false);
-    SizeType n = tfimark(onode, mark);
+    SizeType n = count_tfi(onode, node_num());
     tmp_list[i] = make_pair(n, i);
   }
 
@@ -390,7 +318,7 @@ TpgNetworkImpl::post_op(
   vector<const TpgNode*> ffr_root_list;
   vector<const TpgNode*> mffc_root_list;
   for ( auto node: node_list() ) {
-    if ( !dmarks[node->id()] ) {
+    if ( !node->is_datapath() ) {
       // データ系のノードでなければスキップ
       continue;
     }
@@ -410,9 +338,13 @@ TpgNetworkImpl::post_op(
   SizeType ffr_num = ffr_root_list.size() ;
   mFFRArray.clear();
   mFFRArray.resize(ffr_num);
+  // ノード番号をキーにしてFFR番号を格納する辞書
+  // FFRの根のノードだけ設定する．
+  unordered_map<SizeType, SizeType> ffr_map;
   for ( SizeType i: Range(ffr_num) ) {
     auto node = ffr_root_list[i];
     set_ffr(i, node);
+    ffr_map.emplace(node->id(), i);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -423,102 +355,8 @@ TpgNetworkImpl::post_op(
   mMFFCArray.resize(mffc_num);
   for ( SizeType i: Range(mffc_num) ) {
     auto node = mffc_root_list[i];
-    set_mffc(i, node);
+    set_mffc(i, node, ffr_map);
   }
-}
-
-// @brief 代表故障を設定する．
-SizeType
-TpgNetworkImpl::set_rep_faults(
-  const TpgNode* node
-)
-{
-  vector<const TpgFault*> fault_list;
-
-  if ( node->fanout_num() == 1 ) {
-    auto onode = node->fanout_list()[0];
-    // ファンアウト先が一つならばそのファンイン
-    // ブランチの故障と出力の故障は等価
-    SizeType ipos = 0;
-    for ( auto inode: onode->fanin_list() ) {
-      if ( inode == node ) {
-	break;
-      }
-      ++ ipos;
-    }
-    ASSERT_COND( ipos < onode->fanin_num() );
-
-    auto rep0 = _node_input_fault(onode->id(), Fval2::zero, ipos);
-    auto of0 = _node_output_fault(node->id(), Fval2::zero);
-    if ( of0 != nullptr ) {
-      of0->set_rep(rep0);
-    }
-
-    auto rep1 = _node_input_fault(onode->id(), Fval2::one, ipos);
-    auto of1 = _node_output_fault(node->id(), Fval2::one);
-    if ( of1 != nullptr ){
-      of1->set_rep(rep1);
-    }
-  }
-
-  if ( !node->is_ppo() ) {
-    // of0, of1 の代表故障が設定されていない場合には自分自身を代表故障とする．
-    auto of0 = _node_output_fault(node->id(), Fval2::zero);
-    if ( of0 != nullptr ) {
-      auto rep0 = of0->rep_fault();
-      if ( rep0 == nullptr ) {
-	of0->set_rep(of0);
-	fault_list.push_back(of0);
-      }
-      else {
-	of0->set_rep(rep0->rep_fault());
-      }
-    }
-
-    auto of1 = _node_output_fault(node->id(), Fval2::one);
-    if ( of1 != nullptr ) {
-      auto rep1 = of1->rep_fault();
-      if ( rep1 == nullptr ) {
-	of1->set_rep(of1);
-	fault_list.push_back(of1);
-      }
-      else {
-	of1->set_rep(rep1->rep_fault());
-      }
-    }
-  }
-
-  for ( auto i: Range(node->fanin_num()) ) {
-    // if0, if1 の代表故障が設定されていない場合には自分自身を代表故障とする．
-    auto if0 = _node_input_fault(node->id(), Fval2::zero, i);
-    if ( if0 != nullptr ) {
-      auto rep0 = if0->rep_fault();
-      if ( rep0 == nullptr ) {
-	if0->set_rep(if0);
-	fault_list.push_back(if0);
-      }
-      else {
-	if0->set_rep(rep0->rep_fault());
-      }
-    }
-
-    auto if1 = _node_input_fault(node->id(), Fval2::one, i);
-    if ( if1 != nullptr ) {
-      auto rep1 = if1->rep_fault();
-      if ( rep1 == nullptr ) {
-	if1->set_rep(if1);
-	fault_list.push_back(if1);
-      }
-      else {
-	if1->set_rep(rep1->rep_fault());
-      }
-    }
-  }
-
-  // node の代表故障をセットする．
-  mAuxInfoArray[node->id()].set_fault_list(fault_list);
-
-  return fault_list.size();
 }
 
 // @brief FFR の情報を設定する．
@@ -532,40 +370,38 @@ TpgNetworkImpl::set_ffr(
 
   ffr.mRoot = root;
 
-  // input_list の重複チェック用のハッシュ表
-  unordered_set<int> input_hash;
+  // input_list の重複チェック用のハッシュ表のふりをした配列
+  vector<bool> input_hash(node_num(), false);
 
   // DFS を行うためのスタック
   vector<const TpgNode*> node_stack;
   node_stack.push_back(root);
+  ffr.mNodeList.push_back(root);
   while ( !node_stack.empty() ) {
     auto node = node_stack.back();
     node_stack.pop_back();
-
-    mAuxInfoArray[node->id()].add_to_fault_list(ffr.mFaultList);
-
     for ( auto inode: node->fanin_list() ) {
       if ( inode->ffr_root() == inode || inode->is_ppi() ) {
 	// inode は他の FFR の根
-	if ( input_hash.count(inode->id()) == 0 ) {
-	  input_hash.emplace(inode->id());
+	if ( !input_hash[inode->id()] ) {
+	  input_hash[inode->id()] = true;
 	  ffr.mInputList.push_back(inode);
 	}
       }
       else {
 	node_stack.push_back(inode);
+	ffr.mNodeList.push_back(inode);
       }
     }
   }
-
-  mAuxInfoArray[root->id()].set_ffr(id);
 }
 
 // @brief MFFC の情報を設定する．
 void
 TpgNetworkImpl::set_mffc(
   SizeType id,
-  const TpgNode* root
+  const TpgNode* root,
+  const unordered_map<SizeType, SizeType>& ffr_map
 )
 {
   auto& mffc = mMFFCArray[id];
@@ -573,7 +409,7 @@ TpgNetworkImpl::set_mffc(
   mffc.mRoot = root;
 
   // root を根とする MFFC の情報を得る．
-  vector<bool> mark(node_num());
+  vector<bool> mark(node_num(), false);
   vector<const TpgNode*> node_list;
 
   node_list.push_back(root);
@@ -583,11 +419,10 @@ TpgNetworkImpl::set_mffc(
     node_list.pop_back();
 
     if ( node->ffr_root() == node ) {
-      auto ffr_id = mAuxInfoArray[node->id()].ffr();
+      ASSERT_COND( ffr_map.count(node->id()) > 0 );
+      auto ffr_id = ffr_map.at(node->id());
       mffc.mFFRList.push_back(TpgFFR{this, ffr_id});
     }
-
-    mAuxInfoArray[node->id()].add_to_fault_list(mffc.mFaultList);
 
     for ( auto inode: node->fanin_list() ) {
       if ( !mark[inode->id()] &&
@@ -597,6 +432,185 @@ TpgNetworkImpl::set_mffc(
       }
     }
   }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgMFFC
+//////////////////////////////////////////////////////////////////////
+
+// @brief 根のノードを返す．
+const TpgNode*
+TpgMFFC::root() const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto& mffc = mNetwork->_mffc(mId);
+  return mffc.root();
+}
+
+// @brief このMFFCに含まれるFFR番号のリストを返す．
+const vector<TpgFFR>&
+TpgMFFC::ffr_list() const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto& mffc = mNetwork->_mffc(mId);
+  return mffc.ffr_list();
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgFFR
+//////////////////////////////////////////////////////////////////////
+
+// @brief 根のノードを返す．
+const TpgNode*
+TpgFFR::root() const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto& ffr = mNetwork->_ffr(mId);
+  return ffr.root();
+}
+
+// @brief 葉(FFRの入力)のリストを返す．
+const vector<const TpgNode*>&
+TpgFFR::input_list() const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto& ffr = mNetwork->_ffr(mId);
+  return ffr.input_list();
+}
+
+// @brief このFFRに含まれるノードのリストを返す．
+const vector<const TpgNode*>&
+TpgFFR::node_list() const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto& ffr = mNetwork->_ffr(mId);
+  return ffr.node_list();
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgGate
+//////////////////////////////////////////////////////////////////////
+
+// @brief 名前を返す．
+string
+TpgGate::name() const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto gate = mNetwork->_gate(mId);
+  return gate->name();
+}
+
+// @brief 出力に対応するノードを返す．
+const TpgNode*
+TpgGate::output_node() const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto gate = mNetwork->_gate(mId);
+  return gate->output_node();
+}
+
+// @brief 入力数を返す．
+SizeType
+TpgGate::input_num() const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto gate = mNetwork->_gate(mId);
+  return gate->input_num();
+}
+
+// @brief ブランチの情報を返す．
+TpgGate::BranchInfo
+TpgGate::branch_info(
+  SizeType pos
+) const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto gate = mNetwork->_gate(mId);
+  return gate->branch_info(pos);
+}
+
+// @brief 制御値を返す．
+Val3
+TpgGate::cval(
+  SizeType pos,
+  Val3 val
+) const
+{
+  ASSERT_COND( mNetwork != nullptr );
+
+  auto gate = mNetwork->_gate(mId);
+  return gate->gate_type()->cval(pos, val);
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgGate_Simple
+//////////////////////////////////////////////////////////////////////
+
+// @brief 出力に対応するノードを返す．
+const TpgNode*
+TpgGate_Simple::output_node() const
+{
+  return mNode;
+}
+
+// @brief 入力数を返す．
+SizeType
+TpgGate_Simple::input_num() const
+{
+  return mNode->fanin_num();
+}
+
+// @brief ブランチの情報を返す．
+TpgGate::BranchInfo
+TpgGate_Simple::branch_info(
+  SizeType pos
+) const
+{
+  ASSERT_COND( 0 <= pos && pos < input_num() );
+
+  return BranchInfo{mNode, pos};
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgGate_Cplx
+//////////////////////////////////////////////////////////////////////
+
+// @brief 出力に対応するノードを返す．
+const TpgNode*
+TpgGate_Cplx::output_node() const
+{
+  return mOutputNode;
+}
+
+// @brief 入力数を返す．
+SizeType
+TpgGate_Cplx::input_num() const
+{
+  return mBranchInfoList.size();
+}
+
+// @brief ブランチの情報を返す．
+TpgGate::BranchInfo
+TpgGate_Cplx::branch_info(
+  SizeType pos
+) const
+{
+  ASSERT_COND( 0 <= pos && pos < input_num() );
+  return mBranchInfoList[pos];
 }
 
 END_NAMESPACE_DRUID

@@ -84,7 +84,7 @@ TEST(DruidTest, read_blif_1)
     EXPECT_TRUE( dff.clock() != nullptr );
   }
 
-  print_network(cout, network);
+  network.print(cout);
 }
 
 TEST(DruidTest, bad_read_blif_1)

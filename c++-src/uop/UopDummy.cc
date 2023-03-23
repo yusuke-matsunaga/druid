@@ -36,7 +36,7 @@ UopDummy::~UopDummy()
 // @brief テスト不能故障と判定された時の処理
 void
 UopDummy::operator()(
-  const TpgFault* f
+  const TpgFault& f
 )
 {
 }

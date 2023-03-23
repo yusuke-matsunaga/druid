@@ -32,6 +32,9 @@ PyObject* FaultType_StuckAt = nullptr;
 // 定数 "transition-delay"
 PyObject* FaultType_TransitionDelay = nullptr;
 
+// 定数 "gate-exaustive"
+PyObject* FaultType_GateExaustive = nullptr;
+
 // 生成関数
 PyObject*
 FaultType_new(
@@ -49,6 +52,7 @@ FaultType_new(
   // - 文字列型
   //   * "stuck-at"|"s-a" -> FaultType::StuckAt
   //   * "transition-delay"|"t-d" -> FaultType::TransitionDelay
+  //   * "gate-exaustive"|"g-ex" -> FaultType::GateExaustive
   // それ以外は TypeError
   static const char* kwlist[] = {
     "name",
@@ -70,9 +74,14 @@ FaultType_new(
 	    strcmp(val_str, "t-d") == 0 ) {
     fault_type = FaultType::TransitionDelay;
   }
+  else if ( strcmp(val_str, "gate-exaustive") == 0 ||
+	    strcmp(val_str, "g-ex") == 0 ) {
+    fault_type = FaultType::GateExaustive;
+  }
   else {
     PyErr_SetString(PyExc_ValueError,
-		    "1st argument should be either 'stuck-at' or 'transition-delay'");
+		    "1st argument should be either 'stuck-at', 'transition-delay'"
+		    ", or 'gate-exaustive'");
     return nullptr;
   }
   return PyFaultType::ToPyObject(fault_type);
@@ -101,6 +110,7 @@ FaultType_repr(
   case FaultType::None: tmp_str = "---"; break;
   case FaultType::StuckAt: tmp_str = "stuck-at"; break;
   case FaultType::TransitionDelay: tmp_str = "transition-delay"; break;
+  case FaultType::GateExaustive: tmp_str = "gate-exaustive"; break;
   }
   return Py_BuildValue("s", tmp_str);
 }
@@ -163,12 +173,16 @@ PyFaultType::init(
   // 定数オブジェクトの生成
   FaultType_StuckAt = new_const(FaultType::StuckAt);
   FaultType_TransitionDelay = new_const(FaultType::TransitionDelay);
+  FaultType_GateExaustive = new_const(FaultType::GateExaustive);
 
   // 定数オブジェクトの登録
   if ( !reg_const("StuckAt", FaultType_StuckAt) ) {
     goto error;
   }
   if ( !reg_const("TransitionDelay", FaultType_TransitionDelay) ) {
+    goto error;
+  }
+  if ( !reg_const("GateExaustive", FaultType_GateExaustive) ) {
     goto error;
   }
 
@@ -178,6 +192,7 @@ PyFaultType::init(
 
   Py_XDECREF(FaultType_StuckAt);
   Py_XDECREF(FaultType_TransitionDelay);
+  Py_XDECREF(FaultType_GateExaustive);
 
   return false;
 }
@@ -207,6 +222,7 @@ PyFaultType::ToPyObject(
   switch ( val ) {
   case FaultType::StuckAt: obj = FaultType_StuckAt; break;
   case FaultType::TransitionDelay: obj = FaultType_TransitionDelay; break;
+  case FaultType::GateExaustive: obj = FaultType_GateExaustive; break;
   default: ASSERT_NOT_REACHED; break;
   }
   Py_INCREF(obj);

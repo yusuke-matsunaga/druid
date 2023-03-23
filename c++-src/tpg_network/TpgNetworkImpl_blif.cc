@@ -9,7 +9,7 @@
 #include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
-#include "TpgGateInfo.h"
+#include "GateType.h"
 #include "NodeMap.h"
 
 #include "ym/BlifModel.h"
@@ -68,15 +68,14 @@ TpgNetworkImpl::set(
   // 複雑な形のゲートを調べる．
   //////////////////////////////////////////////////////////////////////
   SizeType nc = model.cover_num();
-  TpgGateInfoMgr node_info_mgr;
-  vector<const TpgGateInfo*> node_info_list;
-  node_info_list.reserve(nc);
+  vector<const GateType*> gate_type_list;
+  gate_type_list.reserve(nc);
   for ( SizeType i = 0; i < nc; ++ i ) {
     auto& cover = model.cover(i);
     SizeType ni = cover.input_num();
     auto expr = cover.expr();
-    auto node_info = node_info_mgr.new_info(ni, expr);
-    node_info_list.push_back(node_info);
+    auto gate_type = mGateTypeMgr.new_type(ni, expr);
+    gate_type_list.push_back(gate_type);
   }
 
   SizeType input_num = model.input_list().size();
@@ -113,8 +112,8 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   for ( auto src_id: model.logic_list() ) {
     SizeType cover_id = model.node_cover_id(src_id);
-    auto node_info = node_info_list[cover_id];
-    gate_num += node_info->extra_node_num();
+    auto gate_type = gate_type_list[cover_id];
+    gate_num += gate_type->extra_node_num();
   }
 
   // ノード数の見積もり
@@ -176,7 +175,7 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   for ( auto src_id: model.logic_list() ) {
     SizeType cover_id = model.node_cover_id(src_id);
-    auto node_info = node_info_list[cover_id];
+    auto gate_type = gate_type_list[cover_id];
 
     // ファンインのノードを取ってくる．
     auto& src_fanin_list = model.node_fanin_list(src_id);
@@ -188,7 +187,7 @@ TpgNetworkImpl::set(
       fanin_array.push_back(inode);
     }
     auto name = model.node_name(src_id);
-    auto node = make_logic_node(name, node_info, fanin_array, connection_list);
+    auto node = make_logic_node(name, gate_type, fanin_array, connection_list);
 
     // ノードを登録する．
     node_map.reg(src_id, node);

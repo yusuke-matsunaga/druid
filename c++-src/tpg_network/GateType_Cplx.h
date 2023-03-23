@@ -1,34 +1,35 @@
-#ifndef SIMPLEGATEINFO_H
-#define SIMPLEGATEINFO_H
+#ifndef GATETYPE_CPLX_H
+#define GATETYPE_CPLX_H
 
-/// @file SimpleGateInfo.h
-/// @brief SimpleGateInfo のヘッダファイル
+/// @file CplxGateInfo.h
+/// @brief CplxGateInfo のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "TpgGateInfo.h"
+#include "GateType.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class SimpleGateInfo SimpleGateInfo.h "SimpleGateInfo.h"
-/// @brief 組み込み型の TpgGateInfo
+/// @class GateType_Cplx GateType_Cplx.h "GateType_Cplx.h"
+/// @brief 複合型の GateType
 //////////////////////////////////////////////////////////////////////
-class SimpleGateInfo :
-  public TpgGateInfo
+class GateType_Cplx :
+  public GateType
 {
 public:
 
   /// @brief コンストラクタ
-  SimpleGateInfo(
-    PrimType gate_type ///< [in] ゲートタイプ
+  GateType_Cplx(
+    SizeType ni,     ///< [in] 入力数
+    const Expr& expr ///< [in] 論理式
   );
 
   /// @brief デストラクタ
-  ~SimpleGateInfo();
+  ~GateType_Cplx() = default;
 
 
 public:
@@ -42,7 +43,7 @@ public:
 
   /// @brief ゲートタイプを返す．
   PrimType
-  gate_type() const override;
+  primitive_type() const override;
 
   /// @brief 論理式を返す．
   Expr
@@ -65,14 +66,17 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // ゲートタイプ
-  PrimType mGateType;
+  // 論理式
+  Expr mExpr;
 
-  // 制御値
-  Val3 mCVal[2];
+  // 追加のノード数
+  SizeType mExtraNodeNum;
+
+  // 制御値の配列
+  vector<Val3> mCVal;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // SIMPLEGATEINFO_H
+#endif // GATETYPE_CPLX_H

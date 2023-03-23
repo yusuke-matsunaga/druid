@@ -27,8 +27,8 @@ StructEncDriver_MFFC::run()
     enc.add_mffc_cone(mffc, true);
     enc.make_cnf();
     cnf_end();
-    for ( auto fault: mffc.fault_list() ) {
-      if ( fault_status_mgr().get(fault) == FaultStatus::Undetected ) {
+    for ( auto fault: fault_mgr().mffc_fault_list(mffc.id()) ) {
+      if ( fault_mgr().get_status(fault) == FaultStatus::Undetected ) {
 	gen_pattern(enc, fault);
       }
     }

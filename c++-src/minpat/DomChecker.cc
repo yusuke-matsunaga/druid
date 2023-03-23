@@ -56,7 +56,7 @@ DomChecker::DomChecker(const TpgNetwork& network,
   mTimerEnable(true)
 {
   mRoot[0] = root;
-  mRoot[1] = fault->tpg_onode();
+  mRoot[1] = fault->origin_node();
   mTfiList.reserve(network.node_num());
   mPrevTfiList.reserve(network.node_num());
   for ( int pos: { 0, 1 } ) {
@@ -110,12 +110,12 @@ DomChecker::~DomChecker()
 }
 
 // @brief テスト生成を行なう．
-// @param[in] fault 対象の故障
-// @return 結果を返す．
 SatBool3
-DomChecker::check_detectable(const TpgFault* fault)
+DomChecker::check_detectable(
+  const TpgFault* fault
+)
 {
-  NodeValList ffr_cond = fault->ffr_propagate_condition(mFaultType);
+  auto ffr_cond = fault->ffr_propagate_condition();
 
   vector<SatLiteral> assumptions;
   conv_to_assumptions(ffr_cond, assumptions);
@@ -214,9 +214,8 @@ DomChecker::prepare_vars()
     mFvarMap[1].set_vid(node, gvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << "gvar(";
-      print_node(DEBUG_OUT, mNetwork, node);
-      DEBUG_OUT << ") = " << gvar << endl;
+      DEBUG_OUT << "gvar(" << node->str() << ") = " << gvar
+		<< endl;
     }
   }
 
@@ -232,16 +231,15 @@ DomChecker::prepare_vars()
       }
 
       if ( debug_dtpg ) {
-	DEBUG_OUT << "gvar(";
-	print_node(DEBUG_OUT, mNetwork, node);
-	DEBUG_OUT << ") = " << gvar(node) << endl;
-	DEBUG_OUT << "fvar[" << pos << "](";
-	print_node(DEBUG_OUT, mNetwork, node);
-	DEBUG_OUT << ") = " << fvar << endl;
+	DEBUG_OUT << "gvar(" << node->str() << ") = " << gvar(node)
+		  << endl;
+	DEBUG_OUT << "fvar[" << pos << "]("
+		  << node->str()
+		  << ") = " << fvar << endl;
 	if ( pos == 0 ) {
-	  DEBUG_OUT << "dvar(";
-	  print_node(DEBUG_OUT, mNetwork, node);
-	  DEBUG_OUT << ") = " << dvar(node) << endl;
+	  DEBUG_OUT << "dvar("
+		    << node->str()
+		    << ") = " << dvar(node) << endl;
 	}
       }
     }
@@ -253,9 +251,9 @@ DomChecker::prepare_vars()
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << "hvar(";
-      print_node(DEBUG_OUT, mNetwork, node);
-      DEBUG_OUT << ") = " << hvar << endl;
+      DEBUG_OUT << "hvar("
+		<< node->str()
+		<< ") = " << hvar << endl;
     }
   }
 }
@@ -272,12 +270,13 @@ DomChecker::gen_good_cnf()
     gval_enc.make_cnf(node);
 
     if ( debug_dtpg ) {
-      print_node(DEBUG_OUT, mNetwork, node);
-      DEBUG_OUT << ": gvar(" << gvar(node) << ") := " << node->gate_type() << "(";
+      DEBUG_OUT << node->str()
+		<< ": gvar(" << gvar(node)
+		<< ") := " << node->gate_type() << "(";
       for ( auto inode: node->fanin_list() ) {
-	DEBUG_OUT << " ";
-	print_node(DEBUG_OUT, mNetwork, inode);
-	DEBUG_OUT << ": gvar(" << gvar(inode) << ")";
+	DEBUG_OUT << " "
+		  << node->str()
+		  << ": gvar(" << gvar(inode) << ")";
       }
       DEBUG_OUT << ")" << endl;
     }
@@ -295,12 +294,13 @@ DomChecker::gen_good_cnf()
     hval_enc.make_cnf(node);
 
     if ( debug_dtpg ) {
-      print_node(DEBUG_OUT, mNetwork, node);
-      DEBUG_OUT << ": hvar(" << hvar(node) << ") := " << node->gate_type() << "(";
+      DEBUG_OUT << node->str()
+		<< ": hvar(" << hvar(node)
+		<< ") := " << node->gate_type() << "(";
       for ( auto inode: node->fanin_list() ) {
-	DEBUG_OUT << " ";
-	print_node(DEBUG_OUT, mNetwork, inode);
-	DEBUG_OUT << ": hvar(" << hvar(inode) << ")";
+	DEBUG_OUT << " "
+		  << inode->str()
+		  << ": hvar(" << hvar(inode) << ")";
       }
       DEBUG_OUT << ")" << endl;
     }
@@ -324,13 +324,15 @@ DomChecker::gen_faulty_cnf()
 	fval_enc.make_cnf(node);
 
 	if ( debug_dtpg ) {
-	  print_node(DEBUG_OUT, mNetwork, node);
-	  DEBUG_OUT << ": fvar[" << pos << "](" << fvar(node, pos) << ") := "
+	  DEBUG_OUT << node->str()
+		    << ": fvar[" << pos << "]("
+		    << fvar(node, pos) << ") := "
 		    << node->gate_type() << "(";
 	  for ( auto inode: node->fanin_list() ) {
-	    DEBUG_OUT << " ";
-	    print_node(DEBUG_OUT, mNetwork, node);
-	    DEBUG_OUT << ": fvar[" << pos << "](" << fvar(inode, pos) << ")";
+	    DEBUG_OUT << " "
+		      << node->str()
+		      << ": fvar[" << pos << "]("
+		      << fvar(inode, pos) << ")";
 	  }
 	  DEBUG_OUT << ")" << endl;
 	}
@@ -357,8 +359,9 @@ DomChecker::make_dchain_cnf(const TpgNode* node)
   mSolver.add_clause( glit,  flit, ~dlit);
 
   if ( debug_dtpg ) {
-    print_node(DEBUG_OUT, mNetwork, node);
-    DEBUG_OUT << ": dvar -> " << glit << " != " << flit << endl;
+    DEBUG_OUT << node->str()
+	      << ": dvar -> " << glit
+	      << " != " << flit << endl;
   }
 
   if ( node->is_ppo() ) {
@@ -366,16 +369,17 @@ DomChecker::make_dchain_cnf(const TpgNode* node)
     mSolver.add_clause( glit, ~flit,  dlit);
 
     if ( debug_dtpg ) {
-      print_node(DEBUG_OUT, mNetwork, node);
-      DEBUG_OUT << ": !dvar -> " << glit << " == " << flit << endl;
+      DEBUG_OUT << node->str()
+		<< ": !dvar -> " << glit
+		<< " == " << flit << endl;
     }
   }
   else {
     // dlit -> ファンアウト先のノードの dlit の一つが 1
 
     if ( debug_dtpg ) {
-      print_node(DEBUG_OUT, mNetwork, node);
-      DEBUG_OUT << ": dvar -> ";
+      DEBUG_OUT << node->str()
+		<< ": dvar -> ";
     }
     int nfo = node->fanout_num();
     if ( nfo == 1 ) {
@@ -384,8 +388,8 @@ DomChecker::make_dchain_cnf(const TpgNode* node)
       mSolver.add_clause(~dlit, odlit);
 
       if ( debug_dtpg ) {
-	print_node(DEBUG_OUT, mNetwork, onode);
-	DEBUG_OUT << ": " << odlit << endl;
+	DEBUG_OUT << node->str()
+		  << ": " << odlit << endl;
       }
     }
     else {
@@ -396,9 +400,9 @@ DomChecker::make_dchain_cnf(const TpgNode* node)
 	tmp_lits.push_back(dlit1);
 
 	if ( debug_dtpg ) {
-	  DEBUG_OUT << " ";
-	  print_node(DEBUG_OUT, mNetwork, onode);
-	  DEBUG_OUT << ": " << dlit1;
+	  DEBUG_OUT << " "
+		    << node->str()
+		    << ": " << dlit1;
 	}
       }
 
@@ -414,10 +418,10 @@ DomChecker::make_dchain_cnf(const TpgNode* node)
 	mSolver.add_clause(~dlit, odlit);
 
 	if ( debug_dtpg ) {
-	  print_node(DEBUG_OUT, mNetwork, node);
-	  DEBUG_OUT << ": dvar -> ";
-	  print_node(DEBUG_OUT, mNetwork, imm_dom);
-	  DEBUG_OUT << ": " << odlit << endl;
+	  DEBUG_OUT << node->id()
+		    << ": dvar -> "
+		    << imm_dom->str()
+		    << ": " << odlit << endl;
 	}
       }
     }

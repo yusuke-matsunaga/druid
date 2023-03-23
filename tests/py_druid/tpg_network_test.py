@@ -25,10 +25,6 @@ def test_read_blif():
     assert network.mffc_num == 4689
     assert network.ffr_num == 5676
     assert network.dff_num == 1452
-
-    for ffr in network.ffr_list:
-        for fault in ffr.fault_list:
-            print(fault)
             
 def test_read_bench():
     TESTDATA_DIR = os.environ.get('TESTDATA_DIR')

@@ -23,7 +23,7 @@ BEGIN_NAMESPACE_DRUID
 void
 DtpgEngineDriver::gen_pattern(
   DtpgEngine& engine,
-  const TpgFault* fault
+  const TpgFault& fault
 )
 {
   Timer timer;
@@ -40,8 +40,8 @@ DtpgEngineDriver::gen_pattern(
     timer.reset();
     timer.start();
 
-    auto assign_list = engine.get_sufficient_condition(fault);
     const auto& model = engine.solver().model();
+    auto assign_list = engine.get_sufficient_condition(fault);
     auto testvect = justify(assign_list, engine.hvar_map(), engine.gvar_map(), model);
 
     timer.stop();

@@ -3,31 +3,43 @@
 /// @brief Fsim の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Fsim.h"
 #include "FsimImpl.h"
+#include "TpgFaultMgr.h"
 #include "TestVector.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 namespace nsFsimSa2 {
-  std::unique_ptr<FsimImpl> new_Fsim(const TpgNetwork& network);
+  std::unique_ptr<FsimImpl> new_Fsim(
+    const TpgNetwork& network,
+    TpgFaultMgr& fmgr
+  );
 }
 
 namespace nsFsimSa3 {
-  std::unique_ptr<FsimImpl> new_Fsim(const TpgNetwork& network);
+  std::unique_ptr<FsimImpl> new_Fsim(
+    const TpgNetwork& network,
+    TpgFaultMgr& fmgr
+  );
 }
 
 namespace nsFsimTd2 {
-  std::unique_ptr<FsimImpl> new_Fsim(const TpgNetwork& network);
+  std::unique_ptr<FsimImpl> new_Fsim(
+    const TpgNetwork& network,
+    TpgFaultMgr& fmgr
+  );
 }
 
 namespace nsFsimTd3 {
-  std::unique_ptr<FsimImpl> new_Fsim(const TpgNetwork& network);
+  std::unique_ptr<FsimImpl> new_Fsim(
+    const TpgNetwork& network,
+    TpgFaultMgr& fmgr
+  );
 }
 
 BEGIN_NONAMESPACE
@@ -36,26 +48,29 @@ inline
 std::unique_ptr<FsimImpl>
 new_impl(
   const TpgNetwork& network,
-  FaultType fault_type,
+  TpgFaultMgr& fmgr,
   bool has_x
 )
 {
+  auto fault_type = fmgr.fault_type();
   if ( has_x ) {
     // 3値バージョン
-    if ( fault_type == FaultType::StuckAt ) {
-      return nsFsimSa3::new_Fsim(network);
+    if ( fault_type == FaultType::StuckAt ||
+	 fault_type == FaultType::GateExaustive ) {
+      return nsFsimSa3::new_Fsim(network, fmgr);
     }
     if ( fault_type == FaultType::TransitionDelay ) {
-      return nsFsimTd3::new_Fsim(network);
+      return nsFsimTd3::new_Fsim(network, fmgr);
     }
   }
   else {
     // 2値バージョン
-    if ( fault_type == FaultType::StuckAt ) {
-      return nsFsimSa2::new_Fsim(network);
+    if ( fault_type == FaultType::StuckAt ||
+	 fault_type == FaultType::GateExaustive ) {
+      return nsFsimSa2::new_Fsim(network, fmgr);
     }
     if ( fault_type == FaultType::TransitionDelay ) {
-      return nsFsimTd2::new_Fsim(network);
+      return nsFsimTd2::new_Fsim(network, fmgr);
     }
   }
   ASSERT_NOT_REACHED;
@@ -70,17 +85,24 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-Fsim::Fsim(
-  const TpgNetwork& network,
-  FaultType fault_type,
-  bool has_x
-) : mImpl{new_impl(network, fault_type, has_x)}
+Fsim::Fsim()
 {
 }
 
 // @brief デストラクタ
 Fsim::~Fsim()
 {
+}
+
+// @brief 初期化
+void
+Fsim::initialize(
+  const TpgNetwork& network,
+  TpgFaultMgr& fmgr,
+  bool has_x
+)
+{
+  mImpl = new_impl(network, fmgr, has_x);
 }
 
 // @brief 全ての故障にスキップマークをつける．
@@ -93,7 +115,7 @@ Fsim::set_skip_all()
 // @brief 故障にスキップマークをつける．
 void
 Fsim::set_skip(
-  const TpgFault* f
+  const TpgFault& f
 )
 {
   mImpl->set_skip(f);
@@ -102,7 +124,19 @@ Fsim::set_skip(
 // @brief 複数の故障にスキップマークをつける．
 void
 Fsim::set_skip(
-  const vector<const TpgFault*>& fault_list
+  const TpgFaultList& fault_list
+)
+{
+  clear_skip_all();
+  for ( auto f: fault_list ) {
+    set_skip(f);
+  }
+}
+
+// @brief 複数の故障にスキップマークをつける．
+void
+Fsim::set_skip(
+  const vector<TpgFault>& fault_list
 )
 {
   clear_skip_all();
@@ -121,7 +155,7 @@ Fsim::clear_skip_all()
 // @brief 故障のスキップマークを消す．
 void
 Fsim::clear_skip(
-  const TpgFault* f
+  const TpgFault& f
 )
 {
   mImpl->clear_skip(f);
@@ -130,7 +164,19 @@ Fsim::clear_skip(
 // @brief 複数の故障のスキップマークを消す．
 void
 Fsim::clear_skip(
-  const vector<const TpgFault*>& fault_list
+  const TpgFaultList& fault_list
+)
+{
+  set_skip_all();
+  for ( auto f: fault_list ) {
+    clear_skip(f);
+  }
+}
+
+// @brief 複数の故障のスキップマークを消す．
+void
+Fsim::clear_skip(
+  const vector<TpgFault>& fault_list
 )
 {
   set_skip_all();
@@ -143,7 +189,7 @@ Fsim::clear_skip(
 bool
 Fsim::spsfp(
   const TestVector& tv,
-  const TpgFault* f
+  const TpgFault& f
 )
 {
   return mImpl->spsfp(tv, f);
@@ -153,7 +199,7 @@ Fsim::spsfp(
 bool
 Fsim::spsfp(
   const NodeValList& assign_list,
-  const TpgFault* f
+  const TpgFault& f
 )
 {
   return mImpl->spsfp(assign_list, f);
@@ -259,7 +305,7 @@ Fsim::det_fault_num()
 
 // @brief 直前の sppfp/ppsfp で検出された故障を返す．
 // @param[in] pos 位置番号 ( 0 <= pos < det_fault_num() )
-const TpgFault*
+TpgFault
 Fsim::det_fault(
   SizeType pos
 )
@@ -268,7 +314,7 @@ Fsim::det_fault(
 }
 
 // @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
-Array<const TpgFault*>
+vector<TpgFault>
 Fsim::det_fault_list()
 {
   return mImpl->det_fault_list();
@@ -285,7 +331,7 @@ Fsim::det_fault_pat(
 }
 
 // @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
-Array<PackedVal>
+const vector<PackedVal>&
 Fsim::det_fault_pat_list()
 {
   return mImpl->det_fault_pat_list();

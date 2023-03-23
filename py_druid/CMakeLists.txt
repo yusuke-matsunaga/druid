@@ -35,7 +35,9 @@ set ( py_druid_SOURCES
   types/PyInputVector.cc
   types/PyDffVector.cc
   types/PyTpgFault.cc
+  types/PyTpgFaultMgr.cc
   types/PyTpgNetwork.cc
+  types/PyTpgNode.cc
   types/PyTpgMFFC.cc
   types/PyTpgFFR.cc
 

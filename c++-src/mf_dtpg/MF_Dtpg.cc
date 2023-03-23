@@ -74,7 +74,7 @@ MF_Dtpg::gen_pattern(
   mRootList.clear();
   mRootList.reserve(fault_list.size());
   for ( auto fault: fault_list ) {
-    auto root = fault->tpg_onode();
+    auto root = fault->origin_node();
     set_root_mark(root);
     mRootList.push_back(root);
   }
@@ -119,7 +119,8 @@ MF_Dtpg::gen_pattern(
     vector<SatLiteral> tmp_lits;
     tmp_lits.reserve(root_node_list().size());
     for ( auto fault: mFaultList ) {
-      auto root = fault->tpg_onode();
+      auto root = fault->origin_node();
+#if 0
       auto inode = fault->tpg_inode();
       SatLiteral glit(gvar(inode));
       SatLiteral hlit(hvar(inode));
@@ -129,6 +130,9 @@ MF_Dtpg::gen_pattern(
       solver().add_clause(~glit, ~hlit, ~xlit);
       solver().add_clause( dlit, ~xlit);
       tmp_lits.push_back(xlit);
+#else
+#warning "TODO"
+#endif
     }
     solver().add_clause(tmp_lits);
   }
@@ -442,7 +446,8 @@ MF_Dtpg::get_sufficient_condition()
   NodeValList suf_cond;
 
   for ( auto fault: mFaultList ) {
-    auto onode = fault->tpg_onode();
+    auto onode = fault->origin_node();
+#if 0
     if ( fault->is_branch_fault() ) {
       // ブランチの故障の場合はファンインの割当を条件に加える．
       for ( int i: Range(onode->fanin_num()) ) {
@@ -456,16 +461,23 @@ MF_Dtpg::get_sufficient_condition()
       bool val = (gval(onode) == Val3::_1);
       suf_cond.add(onode, 1, val);
     }
+#else
+#warning "TODO"
+#endif
   }
   if ( mFaultType == FaultType::TransitionDelay ) {
     // 遷移故障の場合は１時刻前の値も条件に加える．
     for ( auto fault: mFaultList ) {
+#if 0
       auto inode = fault->tpg_inode();
       if ( gval(inode) != hval(inode) ) {
 	// ただし異なっているときのみ
 	bool val = (hval(inode) == Val3::_1);
 	suf_cond.add(inode, 0, val);
       }
+#else
+#warning "TODO"
+#endif
     }
   }
 

@@ -13,6 +13,7 @@
 #include "PyDffVector.h"
 #include "PyFaultType.h"
 #include "PyTpgFault.h"
+#include "PyTpgFaultMgr.h"
 #include "pym/PyModule.h"
 
 
@@ -40,40 +41,18 @@ Fsim_new(
   PyObject* kwds
 )
 {
+  // 位置引数もキーワード引数も受け取らない．
   static const char* kwlist[] = {
-    "network",
-    "fault_type",
-    "val_type",
     nullptr
   };
-  PyObject* network_obj = nullptr;
-  PyObject* fault_type_obj = nullptr;
-  int val_type = 0;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!i",
-				    const_cast<char**>(kwlist),
-				    PyTpgNetwork::_typeobject(), &network_obj,
-				    PyFaultType::_typeobject(), &fault_type_obj,
-				    &val_type) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "",
+				    const_cast<char**>(kwlist)) ) {
     return nullptr;
   }
 
-  auto& network = PyTpgNetwork::Get(network_obj);
-  auto fault_type = PyFaultType::Get(fault_type_obj);
-
-  bool has_x = false;
-  if ( val_type == 2 ) {
-    ;
-  }
-  else if ( val_type == 3 ) {
-    has_x = true;
-  }
-  else {
-    PyErr_SetString(PyExc_ValueError, "argument 3 must be 2 or 3");
-    return nullptr;
-  }
   auto self = type->tp_alloc(type, 0);
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  fsim_obj->mPtr = new Fsim{network, fault_type, has_x};
+  fsim_obj->mPtr = new Fsim;
   return self;
 }
 
@@ -86,6 +65,49 @@ Fsim_dealloc(
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
   delete fsim_obj->mPtr;
   Py_TYPE(self)->tp_free(self);
+}
+
+PyObject*
+Fsim_initialize(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "network",
+    "fault_mgr",
+    "val_type",
+    nullptr
+  };
+  PyObject* network_obj = nullptr;
+  PyObject* fault_mgr_obj = nullptr;
+  int val_type = 0;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!i",
+				    const_cast<char**>(kwlist),
+				    PyTpgNetwork::_typeobject(), &network_obj,
+				    PyTpgFaultMgr::_typeobject(), &fault_mgr_obj,
+				    &val_type) ) {
+    return nullptr;
+  }
+
+  auto& network = PyTpgNetwork::Get(network_obj);
+  auto& fault_mgr = PyTpgFaultMgr::Get(fault_mgr_obj);
+
+  bool has_x = false;
+  if ( val_type == 2 ) {
+    ;
+  }
+  else if ( val_type == 3 ) {
+    has_x = true;
+  }
+  else {
+    PyErr_SetString(PyExc_ValueError, "argument 3 must be 2 or 3");
+    return nullptr;
+  }
+  auto fsim_obj = reinterpret_cast<FsimObject*>(self);
+  fsim_obj->mPtr->initialize(network, fault_mgr, has_x);
+  Py_RETURN_NONE;
 }
 
 PyObject*
@@ -113,7 +135,7 @@ Fsim_set_skip(
   auto fsim = PyFsim::Get(self);
   if ( PySequence_Check(obj) ) {
     SizeType n = PySequence_Size(obj);
-    vector<const TpgFault*> fault_list;
+    vector<TpgFault> fault_list;
     fault_list.reserve(n);
     for ( SizeType i = 0; i < n; ++ i ) {
       auto obj1 = PySequence_GetItem(obj, i);
@@ -162,7 +184,7 @@ Fsim_clear_skip(
   auto fsim = PyFsim::Get(self);
   if ( PySequence_Check(obj) ) {
     SizeType n = PySequence_Size(obj);
-    vector<const TpgFault*> fault_list;
+    vector<TpgFault> fault_list;
     fault_list.reserve(n);
     for ( SizeType i = 0; i < n; ++ i ) {
       auto obj1 = PySequence_GetItem(obj, i);
@@ -366,12 +388,13 @@ Fsim_det_fault_list(
 {
   auto fsim = PyFsim::Get(self);
   auto fault_list = fsim->det_fault_list();
-  SizeType n = fault_list.num();
+  SizeType n = fault_list.size();
   auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto f = fault_list[i];
+  SizeType index = 0;
+  for ( auto f: fault_list ) {
     auto obj1 = PyTpgFault::ToPyObject(f);
-    PyList_SET_ITEM(ans_obj, i, obj1);
+    PyList_SET_ITEM(ans_obj, index, obj1);
+    ++ index;
   }
   return ans_obj;
 }
@@ -399,7 +422,7 @@ Fsim_det_fault_pat_list(
 {
   auto fsim = PyFsim::Get(self);
   auto pat_list = fsim->det_fault_pat_list();
-  SizeType n = pat_list.num();
+  SizeType n = pat_list.size();
   auto ans_obj = PyList_New(n);
   for ( SizeType i = 0; i < n; ++ i ) {
     auto pat = pat_list[i];
@@ -411,6 +434,9 @@ Fsim_det_fault_pat_list(
 
 // メソッド定義
 PyMethodDef Fsim_methods[] = {
+  {"initialize", reinterpret_cast<PyCFunction>(Fsim_initialize),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("initialize")},
   {"set_skip_all", Fsim_set_skip_all, METH_NOARGS,
    PyDoc_STR("set skip mark for all fatuls")},
   {"set_skip", Fsim_set_skip, METH_VARARGS,

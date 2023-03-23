@@ -8,17 +8,18 @@
 
 
 #include "DopBase.h"
-#include "FaultStatusMgr.h"
+#include "TpgFaultMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief 'base' タイプを生成する．
-// @param[in] fsmgr 故障マネージャ
 DetectOp*
-new_DopBase(FaultStatusMgr& fsmgr)
+new_DopBase(
+  TpgFaultMgr& fmgr
+)
 {
-  return new DopBase(fsmgr);
+  return new DopBase{fmgr};
 }
 
 
@@ -27,9 +28,9 @@ new_DopBase(FaultStatusMgr& fsmgr)
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] fsmgr 故障マネージャ
-DopBase::DopBase(FaultStatusMgr& fsmgr) :
-  mFaultStatusMgr(fsmgr)
+DopBase::DopBase(
+  TpgFaultMgr& fmgr
+) : mFaultMgr{fmgr}
 {
 }
 
@@ -39,13 +40,13 @@ DopBase::~DopBase()
 }
 
 // @brief テストパタンが見つかった時の処理
-// @param[in] f 故障
-// @param[in] tv テストベクタ
 void
-DopBase::operator()(const TpgFault* f,
-		    const TestVector& tv)
+DopBase::operator()(
+  const TpgFault& f,
+  const TestVector& tv
+)
 {
-  mFaultStatusMgr.set(f, FaultStatus::Detected);
+  mFaultMgr.set_status(f, FaultStatus::Detected);
 }
 
 END_NAMESPACE_DRUID

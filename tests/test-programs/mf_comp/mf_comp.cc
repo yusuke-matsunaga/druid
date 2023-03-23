@@ -6,11 +6,11 @@
 /// Copyright (C) 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgNetwork.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
+#include "TpgFaultMgr.h"
 #include "TpgNode.h"
 #include "MF_FaultComp.h"
 #include "ym/Range.h"
@@ -23,6 +23,7 @@ BEGIN_NONAMESPACE
 void
 ffr_decomp(
   const TpgNetwork& network,
+  TpgFaultMgr& fmgr,
   const TpgNode* root,
   int limit,
   SatSolverType solver_type,
@@ -37,15 +38,14 @@ ffr_decomp(
   node_stack.push_back(root);
   while ( !node_stack.empty() ) {
     auto node = node_stack.back();
-    int nf1 = network.node_rep_fault_num(node->id());
+    int nf1 = fmgr.node_fault_list(node->id()).size();
     ASSERT_COND( nf1 <= limit );
     if ( fault_list.size() + nf1 > limit ) {
       // 容量オーバー
       break;
     }
     else {
-      for ( int i: Range(nf1) ) {
-	auto f = network.node_rep_fault(node->id(), i);
+      for ( auto f: fmgr.node_fault_list(node->id()) ) {
 	fault_list.push_back(f);
       }
       node_stack.pop_back();
@@ -88,7 +88,7 @@ ffr_decomp(
     if ( root1->is_ppi() || root1->ffr_root() == root1 ) {
       continue;
     }
-    ffr_decomp(network, root1, limit, solver_type, comp_bits);
+    ffr_decomp(network, fmgr, root1, limit, solver_type, comp_bits);
   }
 }
 
@@ -157,8 +157,11 @@ mf_comp(
   auto network = TpgNetwork::read_network(filename, format);
 
   if ( dump ) {
-    print_network(cout, network);
+    network.print(cout);
   }
+
+  TpgFaultMgr fmgr;
+  fmgr.gen_fault_list(network, FaultType::StuckAt);
 
   SatSolverType solver_type(sat_type, sat_option, sat_outp);
 
@@ -166,28 +169,27 @@ mf_comp(
   int comp_bits = 0;
   for ( SizeType ffr_id = 0; ffr_id < network.ffr_num(); ++ ffr_id ) {
     auto ffr = network.ffr(ffr_id);
-    int obits1 = ffr.fault_num();
+    int obits1 = fmgr.ffr_fault_list(ffr_id).size();
     int cbits1 = obits1;
 
     if ( verbose ) {
       cout << "NF:   " << obits1 << endl;
     }
 
-    if ( ffr.fault_num() <= limit ) {
+    SizeType nf = fmgr.ffr_fault_list(ffr_id).size();
+    if ( nf <= limit ) {
       int ni = ffr.input_num();
       vector<const TpgNode*> input_list(ni);
       for ( int i: Range(ni) ) {
 	auto node = ffr.input(i);
 	input_list[i] = node;
       }
-      int nf = ffr.fault_num();
-      vector<const TpgFault*> fault_list(nf);
-      for ( int i: Range(nf) ) {
-	auto f = ffr.fault(i);
-	fault_list[i] = f;
+      vector<const TpgFault*> fault_list;
+      fault_list.reserve(nf);
+      for ( auto f: fmgr.ffr_fault_list(ffr_id) ) {
+	fault_list.push_back(f);
       }
-      vector<vector<const TpgFault*>> faults_list =
-	MF_FaultComp::get_faults_list(network, ffr.root(), input_list, fault_list, solver_type);
+      auto faults_list = MF_FaultComp::get_faults_list(network, ffr.root(), input_list, fault_list, solver_type);
       int cnum = faults_list.size();
       cbits1 = 1;
       while ( (1 << cbits1) <= cnum ) {
@@ -196,7 +198,7 @@ mf_comp(
     }
     else {
       cbits1 = 0;
-      ffr_decomp(network, ffr.root(), limit, solver_type, cbits1);
+      ffr_decomp(network, fmgr, ffr.root(), limit, solver_type, cbits1);
     }
 
     if ( verbose ) {

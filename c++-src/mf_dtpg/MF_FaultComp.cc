@@ -111,11 +111,13 @@ END_NONAMESPACE
 // @param[in] fault_list FFR内の代表故障のリスト
 // @param[in] solver_type SATソルバの実装タイプ
 vector<vector<const TpgFault*>>
-MF_FaultComp::get_faults_list(const TpgNetwork& network,
-			      const TpgNode* root,
-			      const vector<const TpgNode*>& input_list,
-			      const vector<const TpgFault*>& f_list,
-			      SatSolverType solver_type)
+MF_FaultComp::get_faults_list(
+  const TpgNetwork& network,
+  const TpgNode* root,
+  const vector<const TpgNode*>& input_list,
+  const vector<const TpgFault*>& f_list,
+  SatSolverType solver_type
+)
 {
 
   SatSolver solver{solver_type};

@@ -98,7 +98,7 @@ DtpgEngine::prepare_vars()
   if ( debug_dtpg ) {
     DEBUG_OUT << endl;
     DEBUG_OUT << "DtpgEngine::prepare_vars() begin" << endl;
-    DEBUG_OUT << " Root = " << node_name(mRoot) << endl;
+    DEBUG_OUT << " Root = " << mRoot->str() << endl;
   }
 
   // root の TFO を mTfoList に入れる．
@@ -139,7 +139,7 @@ DtpgEngine::prepare_vars()
     mFvarMap.set_vid(node, gvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << node_name(node)
+      DEBUG_OUT << node->str()
 		<< ": gvar|fvar = "
 		<< gvar << endl;
     }
@@ -151,7 +151,7 @@ DtpgEngine::prepare_vars()
     mFvarMap.set_vid(node, fvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT	<< node_name(node)
+      DEBUG_OUT	<< node->id()
 		<< ": fvar = " << fvar << endl;
     }
 
@@ -159,7 +159,7 @@ DtpgEngine::prepare_vars()
       auto dvar = mSolver.new_variable(true);
       mDvarMap.set_vid(node, dvar);
       if ( debug_dtpg ) {
-	DEBUG_OUT << node_name(node) << ": dvar = " << dvar << endl;
+	DEBUG_OUT << node->str() << ": dvar = " << dvar << endl;
       }
     }
   }
@@ -171,7 +171,7 @@ DtpgEngine::prepare_vars()
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << node_name(node)
+      DEBUG_OUT << node->str()
 		<< ": hvar = " << hvar
 		<< endl;
     }
@@ -194,13 +194,13 @@ DtpgEngine::gen_good_cnf()
     {
       auto olit = gvar(node);
       if ( olit == SatLiteral::X ) {
-	cout << node_name(node) << ": gvar = X" << endl;
+	cout << node->str() << ": gvar = X" << endl;
 	abort();
       }
       for ( auto inode: node->fanin_list() ) {
 	auto ilit = gvar(inode);
 	if ( ilit == SatLiteral::X ) {
-	  cout << node_name(inode) << ": gvar = X" << endl;
+	  cout << inode->str() << ": gvar = X" << endl;
 	  abort();
 	}
       }
@@ -211,7 +211,7 @@ DtpgEngine::gen_good_cnf()
   GateEnc hval_enc{mSolver, mHvarMap};
   for ( auto node: mTfi2List ) {
     if ( hvar(node) == SatLiteral::X ) {
-      cout << node_name(node) << ": hvar = X" << endl;
+      cout << node->str() << ": hvar = X" << endl;
       abort();
     }
     hval_enc.make_cnf(node);
@@ -253,7 +253,7 @@ DtpgEngine::opt_make_cnf()
 // @brief gen_pattern() で用いる検出条件を作る．
 vector<SatLiteral>
 DtpgEngine::gen_assumptions(
-  const TpgFault*
+  const TpgFault&
 )
 {
   return {};
@@ -275,7 +275,7 @@ DtpgEngine::make_dchain_cnf(
   mSolver.add_clause( glit,  flit, ~dlit);
 
   if ( debug_dtpg ) {
-    DEBUG_OUT << node_name(node) << ": dvar(" << dlit << ") -> "
+    DEBUG_OUT << node->str() << ": dvar(" << dlit << ") -> "
 	      << glit << " != " << flit << endl;
   }
 
@@ -284,7 +284,7 @@ DtpgEngine::make_dchain_cnf(
     mSolver.add_clause( glit, ~flit,  dlit);
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << node_name(node) << ": !dvar(" << dlit << ") -> "
+      DEBUG_OUT << node->str() << ": !dvar(" << dlit << ") -> "
 		<< glit << " == " << flit << endl;
     }
   }
@@ -292,7 +292,7 @@ DtpgEngine::make_dchain_cnf(
     // dlit -> ファンアウト先のノードの dlit の一つが 1
 
     if ( debug_dtpg ) {
-      DEBUG_OUT << node_name(node) << "dvar(" << dlit << ") -> ";
+      DEBUG_OUT << node->str() << "dvar(" << dlit << ") -> ";
     }
     int nfo = node->fanout_num();
     if ( nfo == 1 ) {
@@ -326,7 +326,7 @@ DtpgEngine::make_dchain_cnf(
 	mSolver.add_clause(~dlit, odlit);
 
 	if ( debug_dtpg ) {
-	  DEBUG_OUT << node_name(node) << "dvar(" << dlit << ") -> "
+	  DEBUG_OUT << node->str() << "dvar(" << dlit << ") -> "
 		    << odlit << endl;
 	}
       }
@@ -365,11 +365,11 @@ DtpgEngine::add_to_literal_list(
 // @brief テストパタン生成を行う．
 SatBool3
 DtpgEngine::solve(
-  const TpgFault* fault
+  const TpgFault& fault
 )
 {
   // FFR 内の伝搬条件
-  auto ffr_cond = fault->ffr_propagate_condition(fault_type());
+  auto ffr_cond = fault.ffr_propagate_condition();
   // fault の活性化条件を求める．
   auto assumptions = gen_assumptions(fault);
   add_to_literal_list(ffr_cond, assumptions);
@@ -377,29 +377,19 @@ DtpgEngine::solve(
 }
 
 // @brief 十分条件を取り出す．
-// @return 十分条件を表す割当リストを返す．
 NodeValList
 DtpgEngine::get_sufficient_condition(
-  const TpgFault* fault
+  const TpgFault& fault
 )
 {
   // FFR 内の伝搬条件
-  auto ffr_cond = fault->ffr_propagate_condition(fault_type());
+  auto ffr_cond = fault.ffr_propagate_condition();
   // FFR の根の先の伝搬条件
-  auto ffr_root = fault->tpg_onode()->ffr_root();
   const auto& model = mSolver.model();
+  auto ffr_root = fault.ffr_root();
   auto suf_cond = extract_sufficient_condition("simple", ffr_root, mGvarMap, mFvarMap, model);
   suf_cond.merge(ffr_cond);
   return suf_cond;
-}
-
-// @brief ノード名を返す．
-string
-DtpgEngine::node_name(
-  const TpgNode* node
-)
-{
-  return mNetwork.node_name(node->id());
 }
 
 END_NAMESPACE_DRUID

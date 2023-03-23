@@ -18,20 +18,20 @@ BEGIN_NAMESPACE_DRUID
 /// @class TpgNode TpgNode.h "TpgNode.h"
 /// @brief DRUID 用のノードを表すクラス
 /// @sa TpgNetwork
-/// @sa TpgFault
 /// @sa TpgMFFC
 /// @sa TpgFFR
 ///
 /// 基本的には一つのゲート(セル)に対応しているが，
 /// もとのゲートが組み込み型でない場合には複数の TpgNode を組み合わ
 /// せてもとのゲートを表す．
+///
 /// そうする理由は side input の値に対する controlling value，
 /// non-controlling value が定まっていたほうがバックトレースが
 /// やりやすいから．SAT に関しては complex タイプでも問題なく
 /// 処理できる．
+///
 /// そのため，場合によってはファンインの故障を表すための仮想的な
 /// ノードを挿入する場合もある．
-/// このクラス(の派生クラス)は TpgNodeFactory のみが生成できる．
 //////////////////////////////////////////////////////////////////////
 class TpgNode
 {
@@ -79,6 +79,12 @@ public:
   {
     return mId;
   }
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 入出力ノードに関係する関数
+  //////////////////////////////////////////////////////////////////////
 
   /// @brief 外部入力タイプの時 true を返す．
   virtual
@@ -176,6 +182,12 @@ public:
   const TpgNode*
   alt_node() const;
 
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 論理ノードに関係する関数
+  //////////////////////////////////////////////////////////////////////
+
   /// @brief ゲートタイプを得る．
   ///
   /// - is_logic() が true の時はゲートタイプを返す．
@@ -216,6 +228,11 @@ public:
   virtual
   Val3
   noval() const;
+
+  /// @brief side-input の値を得る．
+  virtual
+  Val3
+  side_val() const;
 
   /// @brief ファンイン数を得る．
   SizeType
@@ -302,6 +319,13 @@ public:
     return mImmDom;
   }
 
+  /// @brief データパス系のノードの時 true を返す．
+  bool
+  is_datapath() const
+  {
+    return mDataPath;
+  }
+
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -341,6 +365,30 @@ public:
     const TpgNode* dom  ///< [in] dominator ノード
   );
 
+  /// @brief datapath の印をセットする．
+  void
+  set_datapath(
+    bool val ///< [in] 値
+  )
+  {
+    mDataPath = val;
+  }
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // デバッグ用の関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief ノード名を表す文字列(Node#id)を返す．
+  string
+  str() const
+  {
+    ostringstream buf;
+    buf << "Node#" << id();
+    return buf.str();
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -359,16 +407,10 @@ private:
   // immediate dominator
   const TpgNode* mImmDom{nullptr};
 
-};
+  // データパスの印
+  bool mDataPath{false};
 
-/// @relates TpgNode
-/// @brief ノード名を出力する
-void
-print_node(
-  ostream& s,                ///< [in] 出力先のストリーム
-  const TpgNetwork& network, ///< [in] 対象のネットワーク
-  const TpgNode* node	     ///< [in] 対象のノード
-);
+};
 
 END_NAMESPACE_DRUID
 

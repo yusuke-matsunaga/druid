@@ -35,7 +35,7 @@ public:
   virtual
   void
   operator()(
-    const TpgFault* f ///< [in] 故障
+    const TpgFault& f ///< [in] 故障
   ) = 0;
 
 };
@@ -45,7 +45,7 @@ public:
 /// fmgr に登録する．
 UntestOp*
 new_UopBase(
-  FaultStatusMgr& fmgr ///< [in] 故障マネージャ
+  TpgFaultMgr& fmgr ///< [in] 故障マネージャ
 );
 
 /// @brief 'skip' タイプを生成する．

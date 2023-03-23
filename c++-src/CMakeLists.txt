@@ -23,7 +23,7 @@ add_subdirectory ( fsim )
 # ===================================================================
 
 set (tpg_network_SOURCES
-  tpg_network/FaultStatusMgr.cc
+  tpg_network/GateType.cc
   tpg_network/NodeValList.cc
   tpg_network/TpgNodeSet.cc
   tpg_network/TpgNetwork.cc
@@ -33,20 +33,19 @@ set (tpg_network_SOURCES
   tpg_network/TpgNetworkImpl_iscas89.cc
   tpg_network/TpgNetworkImpl_make_node.cc
   tpg_network/TpgDFF.cc
-  tpg_network/TpgFFR.cc
-  tpg_network/TpgMFFC.cc
-  tpg_network/TpgGateInfo.cc
   tpg_network/TpgNode.cc
   tpg_network/TpgPPI.cc
   tpg_network/TpgPPO.cc
   tpg_network/TpgDffControl.cc
   tpg_network/TpgLogic.cc
-  tpg_network/TpgFault.cc
 
   tvect/BitVector.cc
   tvect/BitVectorRep.cc
   tvect/TestVector.cc
 
+  tpg_fault/TpgFault.cc
+  tpg_fault/TpgFaultMgr.cc
+  tpg_fault/TpgFaultMgrImpl.cc
   )
 
 set (fsim_SOURCES
@@ -55,7 +54,7 @@ set (fsim_SOURCES
 
 set (struct_enc_SOURCES
   struct_enc/GateEnc.cc
-  struct_enc/FaultyGateEnc.cc
+  #struct_enc/FaultyGateEnc.cc
   struct_enc/PropCone.cc
   struct_enc/SimplePropCone.cc
   struct_enc/MffcPropCone.cc
@@ -171,8 +170,8 @@ ym_add_object_library ( druid_common
   ${ex_SOURCES}
   ${jt_SOURCES}
   ${colcov_SOURCES}
-  ${minpat_SOURCES}
-  ${mf_SOURCES}
+#  ${minpat_SOURCES}
+#  ${mf_SOURCES}
 #  ${sa_SOURCES}
 #  ${td_SOURCES}
   )

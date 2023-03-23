@@ -27,68 +27,76 @@ DopVerifyResult::~DopVerifyResult()
 }
 
 // @brief 成功結果を追加する．
-// @param[in] f 故障
 void
-DopVerifyResult::add_good(const TpgFault* f)
+DopVerifyResult::add_good(
+  const TpgFault& f
+)
 {
   mGoodList.push_back(f);
 }
 
 // @brief エラー結果を追加する．
-// @param[in] f 故障
-// @param[in] tv テストベクタ
 void
-DopVerifyResult::add_error(const TpgFault* f,
-			   const TestVector& tv)
+DopVerifyResult::add_error(
+  const TpgFault& f,
+  const TestVector& tv
+)
 {
   mErrorList.push_back(ErrorCase(f, tv));
 }
 
 // @brief 成功回数を得る．
-int
+SizeType
 DopVerifyResult::good_count() const
 {
   return mGoodList.size();
 }
 
 // @brief 成功した故障を得る．
-// @param[in] pos 位置版号 ( 0 <= pos < good_count() )
-const TpgFault*
-DopVerifyResult::good_fault(int pos) const
+TpgFault
+DopVerifyResult::good_fault(
+  SizeType pos
+) const
 {
   ASSERT_COND( pos < good_count() );
+
   return mGoodList[pos];
 }
 
 // @brief エラー回数を得る．
-int
+SizeType
 DopVerifyResult::error_count() const
 {
   return mErrorList.size();
 }
 
 // @brief エラーの故障を得る．
-// @param[in] pos 位置版号 ( 0 <= pos < error_count() )
-const TpgFault*
-DopVerifyResult::error_fault(int pos) const
+TpgFault
+DopVerifyResult::error_fault(
+  SizeType pos
+) const
 {
   ASSERT_COND( pos < error_count() );
+
   return mErrorList[pos].mFault;
 }
 
 // @brief エラーとなったテストベクタを得る．
-// @param[in] pos 位置版号 ( 0 <= pos < error_count() )
 TestVector
-DopVerifyResult::error_testvector(int pos) const
+DopVerifyResult::error_testvector(
+  SizeType pos
+) const
 {
   ASSERT_COND( pos < error_count() );
+
   return mErrorList[pos].mTestVector;
 }
 
-DopVerifyResult::ErrorCase::ErrorCase(const TpgFault* f,
-				      const TestVector& tv) :
-  mFault(f),
-  mTestVector(tv)
+DopVerifyResult::ErrorCase::ErrorCase(
+  const TpgFault& f,
+  const TestVector& tv
+) : mFault{f},
+    mTestVector{tv}
 {
 }
 

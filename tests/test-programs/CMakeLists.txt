@@ -87,6 +87,76 @@ endif ()
 
 
 # ===================================================================
+#  TpgFaultMgrTest
+# ===================================================================
+
+set ( TpgFaultMgrTest_SOURCES
+  tpgfaultmgrtest/TpgFaultMgrTest.cc
+  )
+
+add_executable ( TpgFaultMgrTest
+  ${TpgFaultMgrTest_SOURCES}
+  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj>
+  ${YM_SUBMODULE_OBJ_LIST}
+  )
+
+target_include_directories ( TpgFaultMgrTest
+  PRIVATE ${PROJECT_SOURCE_DIR}/c++-src/tpg_network
+  )
+
+target_compile_options ( TpgFaultMgrTest
+  PRIVATE "-O3"
+  )
+
+target_compile_definitions ( TpgFaultMgrTest
+  PRIVATE "-DNDEBUG"
+  )
+
+target_link_libraries ( TpgFaultMgrTest
+  ${YM_LIB_DEPENDS}
+  )
+
+if ( GPERFTOOLS_FOUND )
+  target_link_libraries ( TpgFaultMgrTest
+    ${GPERFTOOLS_LIBRARIES}
+    )
+endif ()
+
+
+add_executable ( TpgFaultMgrTest_d
+  ${TpgFaultMgrTest_SOURCES}
+  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimsa3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimtd3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_include_directories ( TpgFaultMgrTest_d
+  PRIVATE ${PROJECT_SOURCE_DIR}/c++-src/tpg_network
+  )
+
+target_compile_options ( TpgFaultMgrTest_d
+  PRIVATE "-g"
+  )
+
+target_link_libraries ( TpgFaultMgrTest_d
+  ${YM_LIB_DEPENDS}
+  )
+
+if ( GPERFTOOLS_FOUND )
+  target_link_libraries ( TpgFaultMgrTest_d
+    ${GPERFTOOLS_LIBRARIES}
+    )
+endif ()
+
+
+# ===================================================================
 #  FsimTest
 # ===================================================================
 
@@ -206,6 +276,7 @@ if ( GPERFTOOLS_FOUND )
 endif ()
 
 
+if ( 0 )
 # ===================================================================
 #  mf_comp
 # ===================================================================
@@ -266,6 +337,8 @@ if ( GPERFTOOLS_FOUND )
     ${GPERFTOOLS_LIBRARIES}
     )
 endif ()
+
+endif ( 0 )
 
 # ===================================================================
 #  read_blif_test

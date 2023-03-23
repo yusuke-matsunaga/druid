@@ -29,8 +29,6 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgEngine DtpgEngine.h "DtpgEngine.h"
 /// @brief DTPG の基本的な処理を行うクラス
-///
-/// 基本的には get_pattern(fault) で対象のテストパタンを求める．
 //////////////////////////////////////////////////////////////////////
 class DtpgEngine
 {
@@ -104,14 +102,14 @@ public:
   /// @brief テストパタン生成を行う．
   SatBool3
   solve(
-    const TpgFault* fault ///< [in] 故障
+    const TpgFault& fault ///< [in] 故障
   );
 
   /// @brief 十分条件を取り出す．
   /// @return 十分条件を表す割当リストを返す．
   NodeValList
   get_sufficient_condition(
-    const TpgFault* fault ///< [in] 故障
+    const TpgFault& fault ///< [in] 故障
   );
 
   /// @brief SATの統計情報を返す．
@@ -285,12 +283,6 @@ public:
   void
   gen_faulty_cnf();
 
-  /// @brief ノード名を返す．
-  string
-  node_name(
-    const TpgNode* node ///< [in] ノード
-  );
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -310,7 +302,7 @@ private:
   virtual
   vector<SatLiteral>
   gen_assumptions(
-    const TpgFault* fault ///< [in] 対象の故障
+    const TpgFault& fault ///< [in] 対象の故障
   );
 
   /// @brief 故障伝搬条件を表すCNF式を生成する．

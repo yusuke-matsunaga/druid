@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 #include "GateEnc.h"
 #include "TpgNetworkImpl.h"
-#include "TpgGateInfo.h"
+#include "GateType.h"
 #include "TpgNode.h"
 #include "VidMap.h"
 #include "ym/Range.h"
@@ -76,7 +76,7 @@ GateEncTest::check(
 {
   mNetworkImpl.set_size(input_num, 0, 0, 1, 0);
 
-  TpgGateInfoMgr gimgr;
+  GateTypeMgr gimgr;
 
   // 入力ノードを作る．
   vector<const TpgNode*> input_list(input_num);

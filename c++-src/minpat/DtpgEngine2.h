@@ -363,12 +363,6 @@ public:
   void
   gen_faulty_cnf();
 
-  /// @brief ノード名を返す．
-  string
-  node_name(
-    const TpgNode* node ///< [in] ノード
-  );
-
 
 private:
   //////////////////////////////////////////////////////////////////////

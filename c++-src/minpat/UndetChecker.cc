@@ -53,7 +53,7 @@ UndetChecker::UndetChecker(
     mFvalEnc(mSolver, mFvarMap),
     mTimerEnable(true)
 {
-  mRoot = fault->tpg_onode();
+  mRoot = fault->origin_node();
   mTfiList.reserve(network.node_num());
   mPrevTfiList.reserve(network.node_num());
   mTfoList.reserve(network.node_num());

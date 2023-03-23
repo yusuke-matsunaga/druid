@@ -6,9 +6,8 @@
 /// Copyright (C) 2017 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "TpgNetwork.h"
-#include "FaultStatusMgr.h"
+#include "TpgFaultMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -26,7 +25,8 @@ loop_test(
       cout.flush();
       try {
 	auto network = TpgNetwork::read_iscas89(filename);
-	FaultStatusMgr fmgr(network);
+	TpgFaultMgr fmgr;
+	fmgr.gen_fault_list(network, FaultType::StuckAt);
       }
       catch ( std::invalid_argument ) {
 	cerr << "Error in reading " << filename << endl;

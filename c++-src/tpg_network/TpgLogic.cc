@@ -54,8 +54,6 @@ TpgLogicC0::TpgLogicC0(
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
 TpgLogicC0::gate_type() const
 {
@@ -74,8 +72,6 @@ TpgLogicC1::TpgLogicC1(
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
 TpgLogicC1::gate_type() const
 {
@@ -95,8 +91,6 @@ TpgLogicBUFF::TpgLogicBUFF(
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
 TpgLogicBUFF::gate_type() const
 {
@@ -104,9 +98,6 @@ TpgLogicBUFF::gate_type() const
 }
 
 // @brief controling value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicBUFF::cval() const
 {
@@ -114,9 +105,6 @@ TpgLogicBUFF::cval() const
 }
 
 // @brief noncontroling valueを得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicBUFF::nval() const
 {
@@ -124,9 +112,6 @@ TpgLogicBUFF::nval() const
 }
 
 // @brief controling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicBUFF::coval() const
 {
@@ -134,9 +119,6 @@ TpgLogicBUFF::coval() const
 }
 
 // @brief noncontroling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicBUFF::noval() const
 {
@@ -156,8 +138,6 @@ TpgLogicNOT::TpgLogicNOT(
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
 TpgLogicNOT::gate_type() const
 {
@@ -165,9 +145,6 @@ TpgLogicNOT::gate_type() const
 }
 
 // @brief controling value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicNOT::cval() const
 {
@@ -175,9 +152,6 @@ TpgLogicNOT::cval() const
 }
 
 // @brief noncontroling valueを得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicNOT::nval() const
 {
@@ -185,9 +159,6 @@ TpgLogicNOT::nval() const
 }
 
 // @brief controling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicNOT::coval() const
 {
@@ -195,9 +166,6 @@ TpgLogicNOT::coval() const
 }
 
 // @brief noncontroling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicNOT::noval() const
 {
@@ -217,8 +185,6 @@ TpgLogicAND::TpgLogicAND(
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
 TpgLogicAND::gate_type() const
 {
@@ -226,9 +192,6 @@ TpgLogicAND::gate_type() const
 }
 
 // @brief controling value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicAND::cval() const
 {
@@ -236,9 +199,6 @@ TpgLogicAND::cval() const
 }
 
 // @brief noncontroling valueを得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicAND::nval() const
 {
@@ -246,9 +206,6 @@ TpgLogicAND::nval() const
 }
 
 // @brief controling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicAND::coval() const
 {
@@ -256,11 +213,15 @@ TpgLogicAND::coval() const
 }
 
 // @brief noncontroling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicAND::noval() const
+{
+  return Val3::_1;
+}
+
+// @brief side-input の値を得る．
+Val3
+TpgLogicAND::side_val() const
 {
   return Val3::_1;
 }
@@ -273,43 +234,18 @@ TpgLogicAND::noval() const
 // @brief コンストラクタ
 TpgLogicNAND::TpgLogicNAND(
   const vector<const TpgNode*>& fanin_list
-) : TpgLogic{fanin_list}
+) : TpgLogicAND{fanin_list}
 {
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
 TpgLogicNAND::gate_type() const
 {
   return PrimType::Nand;
 }
 
-// @brief controling value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
-Val3
-TpgLogicNAND::cval() const
-{
-  return Val3::_0;
-}
-
-// @brief noncontroling valueを得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
-Val3
-TpgLogicNAND::nval() const
-{
-  return Val3::_1;
-}
-
 // @brief controling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicNAND::coval() const
 {
@@ -317,9 +253,6 @@ TpgLogicNAND::coval() const
 }
 
 // @brief noncontroling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicNAND::noval() const
 {
@@ -339,8 +272,6 @@ TpgLogicOR::TpgLogicOR(
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
 TpgLogicOR::gate_type() const
 {
@@ -348,9 +279,6 @@ TpgLogicOR::gate_type() const
 }
 
 // @brief controling value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicOR::cval() const
 {
@@ -358,9 +286,6 @@ TpgLogicOR::cval() const
 }
 
 // @brief noncontroling valueを得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicOR::nval() const
 {
@@ -368,9 +293,6 @@ TpgLogicOR::nval() const
 }
 
 // @brief controling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicOR::coval() const
 {
@@ -378,60 +300,39 @@ TpgLogicOR::coval() const
 }
 
 // @brief noncontroling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicOR::noval() const
 {
   return Val3::_0;
 }
 
+// @brief side-input の値を得る．
+Val3
+TpgLogicOR::side_val() const
+{
+  return Val3::_0;
+}
+
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogicNOR2
+// クラス TpgLogicNOR
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
 TpgLogicNOR::TpgLogicNOR(
   const vector<const TpgNode*>& fanin_list
-) : TpgLogic{fanin_list}
+) : TpgLogicOR{fanin_list}
 {
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
 TpgLogicNOR::gate_type() const
 {
   return PrimType::Nor;
 }
 
-// @brief controling value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
-Val3
-TpgLogicNOR::cval() const
-{
-  return Val3::_1;
-}
-
-// @brief noncontroling valueを得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
-Val3
-TpgLogicNOR::nval() const
-{
-  return Val3::_0;
-}
-
 // @brief controling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicNOR::coval() const
 {
@@ -439,9 +340,6 @@ TpgLogicNOR::coval() const
 }
 
 // @brief noncontroling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
 TpgLogicNOR::noval() const
 {
@@ -450,124 +348,75 @@ TpgLogicNOR::noval() const
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogicXOR2
+// クラス TpgLogicXOR
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-TpgLogicXOR2::TpgLogicXOR2(
+TpgLogicXOR::TpgLogicXOR(
   const vector<const TpgNode*>& fanin_list
 ) : TpgLogic{fanin_list}
 {
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
-TpgLogicXOR2::gate_type() const
+TpgLogicXOR::gate_type() const
 {
   return PrimType::Xor;
 }
 
 // @brief controling value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
-TpgLogicXOR2::cval() const
+TpgLogicXOR::cval() const
 {
   return Val3::_X;
 }
 
 // @brief noncontroling valueを得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
-TpgLogicXOR2::nval() const
+TpgLogicXOR::nval() const
 {
   return Val3::_X;
 }
 
 // @brief controling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
-TpgLogicXOR2::coval() const
+TpgLogicXOR::coval() const
 {
   return Val3::_X;
 }
 
 // @brief noncontroling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
 Val3
-TpgLogicXOR2::noval() const
+TpgLogicXOR::noval() const
+{
+  return Val3::_X;
+}
+
+// @brief side-input の値を得る．
+Val3
+TpgLogicXOR::side_val() const
 {
   return Val3::_X;
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス TpgLogicXNOR2
+// クラス TpgLogicXNOR
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-TpgLogicXNOR2::TpgLogicXNOR2(
+TpgLogicXNOR::TpgLogicXNOR(
   const vector<const TpgNode*>& fanin_list
-) : TpgLogic{fanin_list}
+) : TpgLogicXOR{fanin_list}
 {
 }
 
 // @brief ゲートタイプを得る．
-//
-// is_logic() が false の場合の返り値は不定
 PrimType
-TpgLogicXNOR2::gate_type() const
+TpgLogicXNOR::gate_type() const
 {
   return PrimType::Xnor;
-}
-
-// @brief controling value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
-Val3
-TpgLogicXNOR2::cval() const
-{
-  return Val3::_X;
-}
-
-// @brief noncontroling valueを得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
-Val3
-TpgLogicXNOR2::nval() const
-{
-  return Val3::_X;
-}
-
-// @brief controling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
-Val3
-TpgLogicXNOR2::coval() const
-{
-  return Val3::_X;
-}
-
-// @brief noncontroling output value を得る．
-//
-// is_logic() が false の場合の返り値は不定
-// ない場合は Val3::_X を返す．
-Val3
-TpgLogicXNOR2::noval() const
-{
-  return Val3::_X;
 }
 
 END_NAMESPACE_DRUID

@@ -178,13 +178,4 @@ PropCone::make_dchain_cnf(
   }
 }
 
-// @brief ノード名を返す．
-string
-PropCone::node_name(
-  const TpgNode* node
-)
-{
-  return mStructEnc.node_name(node);
-}
-
 END_NAMESPACE_DRUID

@@ -47,6 +47,7 @@ FaultyGateEnc::make_cnf(
   SatLiteral olit
 )
 {
+#if 0
   auto fval = mFault->val();
   if ( mFault->is_stem_fault() ) {
     // 出力の故障の場合，ゲートの種類は関係ない．
@@ -70,7 +71,7 @@ FaultyGateEnc::make_cnf(
   const auto& fanin_array = node->fanin_list();
   vector<SatLiteral> ilits;
   ilits.reserve(ni - 1);
-  SizeType fpos = mFault->tpg_pos();
+    SizeType fpos = mFault->tpg_pos();
   for ( int i: Range(ni) ) {
     if ( i != fpos ) {
       ilits.push_back(lit(fanin_array[i]));
@@ -194,6 +195,9 @@ FaultyGateEnc::make_cnf(
     ASSERT_NOT_REACHED;
     break;
   }
+#else
+#warning "TODO"
+#endif
 }
 
 // @brief ノードに対応するリテラルを返す．

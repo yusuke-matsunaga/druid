@@ -2,7 +2,7 @@
 #define TPGLOGICXOR_H
 
 /// @file TpgLogicXOR.h
-/// @brief TpgLogicXOR[x] のヘッダファイル
+/// @brief TpgLogicXOR のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
@@ -15,24 +15,20 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgLogicXOR2 TpgLogicXOR.h "TpgLogicXOR.h"
-/// @brief 2入力XORを表すクラス
+/// @brief XORを表すクラス
 //////////////////////////////////////////////////////////////////////
-class TpgLogicXOR2 :
+class TpgLogicXOR :
   public TpgLogic
 {
-  friend class TpgNetworkImpl;
-
-private:
+public:
 
   /// @brief コンストラクタ
-  ///
-  /// fanin_list.size() == 2 であることを仮定している．
-  TpgLogicXOR2(
+  TpgLogicXOR(
     const vector<const TpgNode*>& fanin_list ///< [in] ファンインのリスト
   );
 
   /// @brief デストラクタ
-  ~TpgLogicXOR2() = default;
+  ~TpgLogicXOR() = default;
 
 
 public:
@@ -73,6 +69,10 @@ public:
   /// ない場合は Val3::_X を返す．
   Val3
   noval() const override;
+
+  /// @brief side-input の値を得る．
+  Val3
+  side_val() const override;
 
 };
 

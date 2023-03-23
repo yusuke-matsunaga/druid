@@ -45,13 +45,13 @@ UopSkip::~UopSkip()
 // @brief テスト不能故障と判定された時の処理
 void
 UopSkip::operator()(
-  const TpgFault* f
+  const TpgFault& f
 )
 {
-  SizeType& untest_count = mUntestCountArray[f->id()];
+  SizeType& untest_count = mUntestCountArray[f.id()];
   if ( untest_count == 0 ) {
     // はじめて検出不能になった．
-    mUntestList.push_back(f->id());
+    mUntestList.push_back(f.id());
   }
 
   // 検出不能回数を1増やす．
@@ -59,7 +59,7 @@ UopSkip::operator()(
 
   if ( untest_count >= mThreshold ) {
     // 検出不能回数がしきい値を越えたのでスキップする．
-    mSkipList.push_back(f->id());
+    mSkipList.push_back(f.id());
   }
 }
 

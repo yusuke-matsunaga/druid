@@ -137,11 +137,11 @@ MFFCEngine::opt_make_cnf()
 // @brief gen_pattern() で用いる検出条件を作る．
 vector<SatLiteral>
 MFFCEngine::gen_assumptions(
-  const TpgFault* fault
+  const TpgFault& fault
 )
 {
   vector<SatLiteral> assumptions;
-  auto ffr_root = fault->tpg_onode()->ffr_root();
+  auto ffr_root = fault.origin_node()->ffr_root();
   if ( ffr_root != root_node() ) {
     // ffr_root のある FFR を活性化する条件を作る．
     if ( mFfrIdMap.count(ffr_root->id()) == 0 ) {

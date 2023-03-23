@@ -219,11 +219,14 @@ public:
     return mDebugFlag;
   }
 
-  /// @brief ノード名を得る．
+  /// @brief ノード名を返す．
   string
   node_name(
-    const TpgNode* node ///< [in] ノード
-  );
+    const TpgNode* node
+  )
+  {
+    return node->str();
+  }
 
 
 private:
