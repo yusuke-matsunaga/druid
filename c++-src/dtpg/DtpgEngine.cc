@@ -296,7 +296,7 @@ DtpgEngine::make_dchain_cnf(
     }
     int nfo = node->fanout_num();
     if ( nfo == 1 ) {
-      auto odlit = mDvarMap(node->fanout_list()[0]);
+      auto odlit = mDvarMap(node->fanout(0));
       mSolver.add_clause(~dlit, odlit);
 
       if ( debug_dtpg ) {
