@@ -51,10 +51,6 @@ public:
   const TpgNode*
   output() const;
 
-  /// @brief クロック端子のノードを返す．
-  const TpgNode*
-  clock() const;
-
   /// @brief クリア端子のノードを返す．
   const TpgNode*
   clear() const;

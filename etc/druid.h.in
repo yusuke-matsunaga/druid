@@ -65,6 +65,7 @@ BEGIN_NAMESPACE_DRUID
 class TpgNetwork;
 class TpgDFF;
 class TpgNode;
+class TpgGate;
 class TpgMFFC;
 class TpgFFR;
 
@@ -78,8 +79,6 @@ class InputVector;
 class DffVector;
 class TestVector;
 
-class DtpgFFR;
-class DtpgMFFC;
 class DtpgResult;
 class DetectOp;
 class DopVerifyResult;

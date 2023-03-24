@@ -20,10 +20,10 @@ TEST(DruidTest, read_blif_1)
   string path = DATAPATH + filename;
   auto network = TpgNetwork::read_blif(path);
 
-  EXPECT_EQ( 23900, network.node_num() );
-  EXPECT_EQ( 13, network.input_num() );
+  EXPECT_EQ( 22447, network.node_num() );
+  EXPECT_EQ( 12, network.input_num() );
   EXPECT_EQ( 278, network.output_num() );
-  EXPECT_EQ( 1465, network.ppi_num() );
+  EXPECT_EQ( 1464, network.ppi_num() );
   EXPECT_EQ( 1730, network.ppo_num() );
   EXPECT_EQ( 4689, network.mffc_num() );
   EXPECT_EQ( 5676, network.ffr_num() );
@@ -81,7 +81,6 @@ TEST(DruidTest, read_blif_1)
     EXPECT_EQ( i, dff.id() );
     EXPECT_TRUE( dff.input() != nullptr );
     EXPECT_TRUE( dff.output() != nullptr );
-    EXPECT_TRUE( dff.clock() != nullptr );
   }
 
   network.print(cout);

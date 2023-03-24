@@ -94,21 +94,16 @@ TpgNetworkImpl::set(
   SizeType input_num = model.input_list().size();
   SizeType output_num = model.output_list().size();
   SizeType dff_num = model.dff_list().size();
-  SizeType gate_num = model.gate_list().size() + extra_node_num;
+  SizeType gate_num = model.gate_list().size();
 
-  // .bench はクロックが明示的に指定されていない．
-  if ( dff_num > 0 ) {
-    ++ input_num;
-  }
-  // .bench はクロックしか持たない．
-  SizeType dff_control_num = dff_num;
+  // .bench はDFFのクロックやリセット端子を持たない．
 
   // 生成されるノード数を見積もる．
   SizeType nn = set_size(input_num, output_num, dff_num,
-			 gate_num, dff_control_num);
+			 gate_num, extra_node_num);
 
   NodeMap node_map;
-  vector<vector<const TpgNode*>> connection_list(nn);
+  TpgConnectionList connection_list(nn);
 
   //////////////////////////////////////////////////////////////////////
   // 外部入力ノードを作成する．
@@ -117,16 +112,6 @@ TpgNetworkImpl::set(
     auto name = model.node_name(id);
     auto node = make_input_node(name);
     node_map.reg(id, node);
-  }
-
-  // .bench には外部クロック端子の記述がないので生成する
-  TpgNode* clock_node = nullptr;
-  if ( dff_num > 0 ) {
-    auto name = clock_name;
-    if ( name == string{} ) {
-      name = "__clock__";
-    }
-    clock_node = make_input_node(name);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -193,11 +178,6 @@ TpgNetworkImpl::set(
     string input_name = dff_name + ".input";
     auto node = make_dff_input_node(dff_id, input_name, inode);
     connection_list[inode->id()].push_back(node);
-
-    // クロック端子を作る．
-    string clock_name = dff_name + ".clock";
-    auto clock = make_dff_clock_node(dff_id, clock_name, clock_node);
-    connection_list[clock_node->id()].push_back(clock);
   }
 
   ASSERT_COND( node_num() == nn );

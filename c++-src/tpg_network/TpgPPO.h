@@ -132,13 +132,55 @@ public:
 
 };
 
+//////////////////////////////////////////////////////////////////////
+/// @class TpgDffControl TpgPPO.h "TpgPPO.h"
+/// @brief DFFの制御端子を表すクラス
+//////////////////////////////////////////////////////////////////////
+class TpgDffControl :
+  public TpgPPO
+{
+protected:
+
+  /// @brief コンストラクタ
+  TpgDffControl(
+    SizeType dff_id,     ///< [in] 接続しているDFFのID番号
+    const TpgNode* fanin ///< [in] ファンインのノード
+  );
+
+  /// @brief デストラクタ
+  ~TpgDffControl() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 接続している DFF を返す．
+  ///
+  /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
+  /// の時に意味を持つ．
+  SizeType
+  dff_id() const override;
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 対応する DFF 番号
+  SizeType mDffId;
+
+};
+
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgDffInput TpgDffInput.h "TpgDffInput.h"
+/// @class TpgDffInput TpgPPO.h "TpgPPO.h"
 /// @brief DFFの入力を表すクラス
 //////////////////////////////////////////////////////////////////////
 class TpgDffInput :
-  public TpgPPO
+  public TpgDffControl
 {
 public:
 
@@ -161,13 +203,6 @@ public:
   bool
   is_dff_input() const override;
 
-  /// @brief 接続している DFF 番号を返す．
-  ///
-  /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
-  /// の時に意味を持つ．
-  SizeType
-  dff_id() const override;
-
   /// @brief DFFに関する相方のノードを返す．
   ///
   /// is_dff_input() | is_dff_output() の時に意味を持つ．
@@ -189,11 +224,70 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 対応する DFF 番号
-  SizeType mDffId;
-
   // 相方のノード
   const TpgNode* mAltNode{nullptr};
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgDffClear TpgPPO.h "TpgPPO.h"
+/// @brief DFFのクリア端子を表すクラス
+//////////////////////////////////////////////////////////////////////
+class TpgDffClear :
+  public TpgDffControl
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgDffClear(
+    SizeType dff_id,     ///< [in] 接続しているDFFのID番号
+    const TpgNode* fanin ///< [in] ファンインのノード
+  );
+
+  /// @brief デストラクタ
+  ~TpgDffClear() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief DFF のクリア端子に接続している力タイプの時 true を返す．
+  bool
+  is_dff_clear() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgDffPreset TpgDffPreset.h "TpgDffPreset.h"
+/// @brief DFFのプリセット端子を表すクラス
+//////////////////////////////////////////////////////////////////////
+class TpgDffPreset :
+  public TpgDffControl
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgDffPreset(
+    SizeType dff_id,     ///< [in] 接続しているDFFのID番号
+    const TpgNode* fanin ///< [in] ファンインのノード
+  );
+
+  /// @brief デストラクタ
+  ~TpgDffPreset() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief DFF のプリセット端子に接続している出力タイプの時 true を返す．
+  bool
+  is_dff_preset() const override;
 
 };
 

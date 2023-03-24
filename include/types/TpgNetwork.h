@@ -5,7 +5,7 @@
 /// @brief TpgNetwork のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -21,7 +21,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class TpgGate;
 class TpgNetworkImpl;
 
 //////////////////////////////////////////////////////////////////////
@@ -39,8 +38,9 @@ class TpgNetworkImpl;
 ///
 /// 本当の出力と疑似出力をあわせて PPO(Pseudo Primary Output) と呼ぶ．
 ///
-/// クロック系の回路の情報も保持されるが，一般のノードとは区別される．
+/// クロック系の回路は無視される．
 /// セット/リセット系の回路は通常の論理系の回路とみなす．
+/// セット/リセット端子も PPO となる．
 ///
 /// TpgNode は全て単純な型の論理ゲートを表す．
 /// もとのゲートが複合ゲートの場合には複数のノードに分解される．

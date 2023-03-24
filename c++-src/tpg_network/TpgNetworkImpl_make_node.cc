@@ -15,7 +15,6 @@
 
 #include "TpgPPI.h"
 #include "TpgPPO.h"
-#include "TpgDffControl.h"
 #include "TpgLogic.h"
 
 #include "Val3.h"
@@ -88,23 +87,6 @@ TpgNetworkImpl::make_dff_output_node(
   return node;
 }
 
-// @brief DFFのクロック端子を生成する．
-TpgNode*
-TpgNetworkImpl::make_dff_clock_node(
-  SizeType dff_id,
-  const string& name,
-  const TpgNode* inode
-)
-{
-  auto node = new TpgDffClock{dff_id, inode};
-  reg_node(node);
-
-  auto& dff = mDFFArray[dff_id];
-  dff.mClock = node;
-
-  return node;
-}
-
 // @brief DFFのクリア端子を生成する．
 TpgNode*
 TpgNetworkImpl::make_dff_clear_node(
@@ -114,7 +96,7 @@ TpgNetworkImpl::make_dff_clear_node(
 )
 {
   auto node = new TpgDffClear{dff_id, inode};
-  reg_node(node);
+  reg_ppo(node, name);
 
   auto& dff = mDFFArray[dff_id];
   dff.mClear = node;
@@ -131,7 +113,7 @@ TpgNetworkImpl::make_dff_preset_node(
 )
 {
   auto node = new TpgDffPreset{dff_id, inode};
-  reg_node(node);
+  reg_ppo(node, name);
 
   auto& dff = mDFFArray[dff_id];
   dff.mPreset = node;

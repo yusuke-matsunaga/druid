@@ -88,21 +88,15 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // DFF のコントロール端子の数を数える．
   //////////////////////////////////////////////////////////////////////
-  SizeType dff_control_num = 0;
   bool has_clear = false;
   for ( auto src_id: model.dff_list() ) {
     // クロック端子
-    ++ dff_control_num;
     char rval = model.node_rval(src_id);
     if ( rval == '0' || rval == '1' ) {
       // リセット or プリセット端子
       has_clear = true;
-      ++ dff_control_num;
+      ++ output_num;
     }
-  }
-  if ( dff_num > 0 ) {
-    // クロック用の外部入力
-    ++ input_num;
   }
   if ( has_clear ) {
     // クリア用の外部入力
@@ -112,18 +106,19 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // 追加で生成されるノード数を数える．
   //////////////////////////////////////////////////////////////////////
+  SizeType extra_node_num = 0;
   for ( auto src_id: model.logic_list() ) {
     SizeType cover_id = model.node_cover_id(src_id);
     auto gate_type = gate_type_list[cover_id];
-    gate_num += gate_type->extra_node_num();
+    extra_node_num += gate_type->extra_node_num();
   }
 
   // ノード数の見積もり
   SizeType nn = set_size(input_num, output_num, dff_num,
-			 gate_num, dff_control_num);
+			 gate_num, extra_node_num);
 
   NodeMap node_map;
-  vector<vector<const TpgNode*>> connection_list(nn);
+  TpgConnectionList connection_list(nn);
 
   // BlifModel の ID と DFF 番号の対応表
   unordered_map<SizeType, SizeType> dff_dict;
@@ -135,16 +130,6 @@ TpgNetworkImpl::set(
     auto name = model.node_name(id);
     auto node = make_input_node(name);
     node_map.reg(id, node);
-  }
-
-  TpgNode* clock_input = nullptr;
-  if ( dff_num > 0 ) {
-    // クロック入力の生成
-    auto name = clock_name;
-    if ( name == string{} ) {
-      name = "__clock__";
-    }
-    clock_input = make_input_node(name);
   }
 
   TpgNode* reset_input = nullptr;
@@ -218,11 +203,6 @@ TpgNetworkImpl::set(
     string input_name = dff_name + ".input";
     auto node = make_dff_input_node(dff_id, input_name, inode);
     connection_list[inode->id()].push_back(node);
-
-    // クロック端子を作る．
-    string clock_name = dff_name + ".clock";
-    auto clock = make_dff_clock_node(dff_id, clock_name, clock_input);
-    connection_list[clock_input->id()].push_back(clock);
 
     char rval = model.node_rval(src_id);
     if ( rval == '0' ) {

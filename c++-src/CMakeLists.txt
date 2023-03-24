@@ -36,7 +36,6 @@ set (tpg_network_SOURCES
   tpg_network/TpgNode.cc
   tpg_network/TpgPPI.cc
   tpg_network/TpgPPO.cc
-  tpg_network/TpgDffControl.cc
   tpg_network/TpgLogic.cc
 
   tvect/BitVector.cc

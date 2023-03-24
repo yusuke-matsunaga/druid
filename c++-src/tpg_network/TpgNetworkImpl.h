@@ -35,6 +35,12 @@ class TpgGateImpl;
 //////////////////////////////////////////////////////////////////////
 class TpgNetworkImpl
 {
+private:
+
+  // ノードの接続を表すクラス
+  using TpgConnectionList = vector<vector<const TpgNode*>>;
+
+
 public:
   //////////////////////////////////////////////////////////////////////
   // コンストラクタ/デストラクタ
@@ -363,13 +369,13 @@ public:
     SizeType output_num,
     SizeType dff_num,
     SizeType gate_num,
-    SizeType dff_control_num
+    SizeType extra_node_num
   );
 
   /// @brief set() の後処理
   void
   post_op(
-    const vector<vector<const TpgNode*>>& connection_list ///< [in] 接続リスト
+    const TpgConnectionList& connection_list ///< [in] 接続リスト
   );
 
 
@@ -414,15 +420,6 @@ public:
     const string& name ///< [in] ノード名
   );
 
-  /// @brief DFFのクロック端子を生成する．
-  /// @return 生成したノードを返す．
-  TpgNode*
-  make_dff_clock_node(
-    SizeType dff_id,     ///< [in] DFF番号
-    const string& name,  ///< [in] ノード名
-    const TpgNode* inode ///< [in] 入力のノード
-  );
-
   /// @brief DFFのクリア端子を生成する．
   /// @return 生成したノードを返す．
   TpgNode*
@@ -445,10 +442,10 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_logic_node(
-    const string& name,                             ///< [in] ノード名
-    const GateType* gate_type,                      ///< [in] ゲートの種類
-    const vector<const TpgNode*>& fanin_list,       ///< [in] ファンインのリスト
-    vector<vector<const TpgNode*>>& connection_list ///< [in] 接続リスト
+    const string& name,                       ///< [in] ノード名
+    const GateType* gate_type,                ///< [in] ゲートの種類
+    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
+    TpgConnectionList& connection_list        ///< [in] 接続リスト
   );
 
   /// @brief 論理式から TpgNode の木を生成する．
@@ -457,20 +454,20 @@ public:
   /// 該当する変数の肯定/否定のリテラルが入っている．
   TpgNode*
   make_cplx_node(
-    const string& name,                             ///< [in] ノード名
-    const Expr& expr,			            ///< [in] 式
-    const vector<const TpgNode*>& leaf_nodes,       ///< [in] 式のリテラルに対応するノードの配列
-    vector<TpgGate::BranchInfo>& branch_info,       ///< [in] ブランチの情報
-    vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
+    const string& name,                       ///< [in] ノード名
+    const Expr& expr,			      ///< [in] 式
+    const vector<const TpgNode*>& leaf_nodes, ///< [in] 式のリテラルに対応するノードの配列
+    vector<TpgGate::BranchInfo>& branch_info, ///< [in] ブランチの情報
+    TpgConnectionList& connection_list        ///< [out] 接続リスト
   );
 
   /// @brief バッファを生成する．
   /// @return 生成したノードを返す．
   TpgNode*
   make_buff_node(
-    const string& name,                             ///< [in] ノード名
-    const TpgNode* fanin,	   	            ///< [in] ファンインのノード
-    vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
+    const string& name,                ///< [in] ノード名
+    const TpgNode* fanin,	       ///< [in] ファンインのノード
+    TpgConnectionList& connection_list ///< [out] 接続リスト
   );
 
   /// @brief インバーターを生成する．
@@ -479,17 +476,17 @@ public:
   make_not_node(
     const string& name,                             ///< [in] ノード名
     const TpgNode* fanin,		            ///< [in] ファンインのノード
-    vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
+    TpgConnectionList& connection_list ///< [out] 接続リスト
   );
 
   /// @brief 組み込み型の論理ゲートを生成する．
   /// @return 生成したノードを返す．
   TpgNode*
   make_prim_node(
-    const string& name,                             ///< [in] ノード名
-    PrimType type,			            ///< [in] ゲートの型
-    const vector<const TpgNode*>& fanin_list,       ///< [in] ファンインのリスト
-    vector<vector<const TpgNode*>>& connection_list ///< [out] 接続リスト
+    const string& name,                       ///< [in] ノード名
+    PrimType type,			      ///< [in] ゲートの型
+    const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
+    TpgConnectionList& connection_list        ///< [out] 接続リスト
   );
 
   /// @brief 論理ノードを作る．

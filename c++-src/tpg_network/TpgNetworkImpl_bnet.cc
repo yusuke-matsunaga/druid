@@ -100,27 +100,25 @@ TpgNetworkImpl::set(
   SizeType input_num = input_map.size();
   SizeType output_num = output_map.size();
   SizeType dff_num = network.dff_num();
-  SizeType gate_num = network.logic_num() + extra_node_num;
-  SizeType dff_control_num = 0;
+  SizeType gate_num = network.logic_num();
+  SizeType dff_clock_num = 0;
   for ( auto dff: network.dff_list() ) {
-    // まずクロックで一つ
-    ++ dff_control_num;
     if ( dff.clear().is_valid() ) {
-      // クリア端子で一つ
-      ++ dff_control_num;
+      // クリア端子
+      ++ output_num;
     }
+
     if ( dff.preset().is_valid() ) {
-      // プリセット端子で一つ
-      ++ dff_control_num;
+      // プリセット端子
+      ++ output_num;
     }
   }
 
   // ノード数の見積もり
-  SizeType nn = set_size(input_num, output_num, dff_num,
-			 gate_num, dff_control_num);
+  SizeType nn = set_size(input_num, output_num, dff_num, gate_num, extra_node_num);
 
   NodeMap node_map;
-  vector<vector<const TpgNode*>> connection_list(nn);
+  TpgConnectionList connection_list(nn);
 
   //////////////////////////////////////////////////////////////////////
   // 入力ノードを作成する．
@@ -202,13 +200,6 @@ TpgNetworkImpl::set(
     string input_name = dff_name + ".input";
     auto node = make_dff_input_node(i, input_name, inode);
     connection_list[inode->id()].push_back(node);
-
-    // クロック端子を作る．
-    auto src_clock = src_dff.clock();
-    auto clock_fanin = node_map.get(src_clock.output_src().id());
-    string clock_name = dff_name + ".clock";
-    auto clock = make_dff_clock_node(i, clock_name, clock_fanin);
-    connection_list[clock_fanin->id()].push_back(clock);
 
     // クリア端子を作る．
     if ( src_dff.clear().is_valid() ) {

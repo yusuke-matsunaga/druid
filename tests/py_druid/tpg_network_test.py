@@ -17,10 +17,10 @@ def test_read_blif():
     filename = os.path.join(TESTDATA_DIR, 's38584.blif')
     network = TpgNetwork.read_blif(filename)
 
-    assert network.node_num == 23900
-    assert network.input_num == 13
+    assert network.node_num == 22447
+    assert network.input_num == 12
     assert network.output_num == 278
-    assert network.ppi_num == 1465
+    assert network.ppi_num == 1464
     assert network.ppo_num == 1730
     assert network.mffc_num == 4689
     assert network.ffr_num == 5676
@@ -31,10 +31,10 @@ def test_read_bench():
     filename = os.path.join(TESTDATA_DIR, 'b01.bench')
     network = TpgNetwork.read_bench(filename)
     
-    assert network.node_num == 60
-    assert network.input_num == 3
+    assert network.node_num == 54
+    assert network.input_num == 2
     assert network.output_num == 2
-    assert network.ppi_num == 8
+    assert network.ppi_num == 7
     assert network.ppo_num == 7
     assert network.mffc_num == 21
     assert network.ffr_num == 24

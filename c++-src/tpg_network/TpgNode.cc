@@ -53,13 +53,6 @@ TpgNode::is_dff_output() const
   return false;
 }
 
-// @brief DFF のクロック端子に接続している出力タイプの時 true を返す．
-bool
-TpgNode::is_dff_clock() const
-{
-  return false;
-}
-
 // @brief DFF のクリア端子に接続している出力タイプの時 true を返す．
 bool
 TpgNode::is_dff_clear() const

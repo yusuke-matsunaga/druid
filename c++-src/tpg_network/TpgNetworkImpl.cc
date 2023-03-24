@@ -10,7 +10,6 @@
 #include "TpgNode.h"
 #include "TpgPPI.h"
 #include "TpgPPO.h"
-#include "TpgDffControl.h"
 #include "TpgFault.h"
 #include "TpgGateImpl.h"
 #include "TpgMFFC.h"
@@ -200,7 +199,7 @@ TpgNetworkImpl::set_size(
   SizeType output_num,
   SizeType dff_num,
   SizeType gate_num,
-  SizeType dff_control_num
+  SizeType extra_node_num
 )
 {
   mInputNum = input_num;
@@ -211,7 +210,7 @@ TpgNetworkImpl::set_size(
     mDFFArray[i].mId = i;
   }
 
-  SizeType node_num = input_num + output_num + dff_num * 2 + gate_num + dff_control_num;
+  SizeType node_num = input_num + output_num + dff_num * 2 + gate_num + extra_node_num;
 
   mNodeArray.clear();
   mNodeArray.reserve(node_num);
@@ -234,7 +233,7 @@ TpgNetworkImpl::set_size(
 // @brief set() の後処理
 void
 TpgNetworkImpl::post_op(
-  const vector<vector<const TpgNode*>>& connection_list
+  const TpgConnectionList& connection_list
 )
 {
   //////////////////////////////////////////////////////////////////////

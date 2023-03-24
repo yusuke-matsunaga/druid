@@ -107,11 +107,6 @@ public:
   bool
   is_dff_output() const;
 
-  /// @brief DFF のクロック端子に接続している出力タイプの時 true を返す．
-  virtual
-  bool
-  is_dff_clock() const;
-
   /// @brief DFF のクリア端子に接続している出力タイプの時 true を返す．
   virtual
   bool
@@ -166,7 +161,7 @@ public:
 
   /// @brief 接続している DFF 番号を返す．
   ///
-  /// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
+  /// is_dff_input() | is_dff_output() | is_dff_clear() | is_dff_preset()
   /// の時に意味を持つ．
   virtual
   SizeType

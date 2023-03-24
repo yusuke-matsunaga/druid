@@ -321,9 +321,6 @@ TpgNetwork::print(
       auto inode = node->fanin(0);
       s << " = " << inode->str();
     }
-    else if ( node->is_dff_clock() ) {
-      s << "DFF#" << node->dff_id() << ".clock";
-    }
     else if ( node->is_dff_clear() ) {
       s << "DFF#" << node->dff_id() << ".clear";
     }

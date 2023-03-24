@@ -160,8 +160,7 @@ FSIM_CLASSNAME::set_network(
       node->set_output();
       mPPOList[tpgnode->output_id()] = node;
     }
-    else if ( tpgnode->is_dff_clock() ||
-	      tpgnode->is_dff_clear() ||
+    else if ( tpgnode->is_dff_clear() ||
 	      tpgnode->is_dff_preset() ) {
       // DFFの制御端子に対応する SimNode の生成
       auto inode = simmap[tpgnode->fanin(0)->id()];

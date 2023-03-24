@@ -85,6 +85,27 @@ TpgOutput::is_primary_output() const
 
 
 //////////////////////////////////////////////////////////////////////
+// クラス TpgDffControl
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgDffControl::TpgDffControl(
+  SizeType dff_id,
+  const TpgNode* fanin
+) : TpgPPO{fanin},
+    mDffId{dff_id}
+{
+}
+
+// @brief 接続している DFF を返す．
+SizeType
+TpgDffControl::dff_id() const
+{
+  return mDffId;
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // クラス TpgDffInput
 //////////////////////////////////////////////////////////////////////
 
@@ -92,8 +113,7 @@ TpgOutput::is_primary_output() const
 TpgDffInput::TpgDffInput(
   SizeType dff_id,
   const TpgNode* fanin
-) : TpgPPO{fanin},
-    mDffId{dff_id}
+) : TpgDffControl{dff_id, fanin}
 {
 }
 
@@ -104,21 +124,51 @@ TpgDffInput::is_dff_input() const
   return true;
 }
 
-// @brief 接続している DFF を返す．
-//
-// is_dff_input() | is_dff_output() | is_dff_clock() | is_dff_clear() | is_dff_preset()
-// の時に意味を持つ．
-SizeType
-TpgDffInput::dff_id() const
-{
-  return mDffId;
-}
-
 // @brief DFFに関する相方のノードを返す．
 const TpgNode*
 TpgDffInput::alt_node() const
 {
   return mAltNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgDffClear
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgDffClear::TpgDffClear(
+  SizeType dff_id,
+  const TpgNode* fanin
+) : TpgDffControl{dff_id, fanin}
+{
+}
+
+// @brief DFF のクリア端子に接続している力タイプの時 true を返す．
+bool
+TpgDffClear::is_dff_clear() const
+{
+  return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス TpgDffPreset
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+TpgDffPreset::TpgDffPreset(
+  SizeType dff_id,
+  const TpgNode* fanin
+) : TpgDffControl{dff_id, fanin}
+{
+}
+
+// @brief DFF のプリセット端子に接続している力タイプの時 true を返す．
+bool
+TpgDffPreset::is_dff_preset() const
+{
+  return true;
 }
 
 END_NAMESPACE_DRUID

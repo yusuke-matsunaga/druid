@@ -44,15 +44,6 @@ TpgDFF::output() const
   return mImpl->output();
 }
 
-// @brief クロック端子のノードを返す．
-const TpgNode*
-TpgDFF::clock() const
-{
-  ASSERT_COND( mImpl != nullptr );
-
-  return mImpl->clock();
-}
-
 // @brief クリア端子のノードを返す．
 const TpgNode*
 TpgDFF::clear() const
