@@ -56,7 +56,7 @@ new_impl(
   if ( has_x ) {
     // 3値バージョン
     if ( fault_type == FaultType::StuckAt ||
-	 fault_type == FaultType::GateExaustive ) {
+	 fault_type == FaultType::GateExhaustive ) {
       return nsFsimCombi3::new_Fsim(network, fmgr);
     }
     if ( fault_type == FaultType::TransitionDelay ) {
@@ -66,7 +66,7 @@ new_impl(
   else {
     // 2値バージョン
     if ( fault_type == FaultType::StuckAt ||
-	 fault_type == FaultType::GateExaustive ) {
+	 fault_type == FaultType::GateExhaustive ) {
       return nsFsimCombi2::new_Fsim(network, fmgr);
     }
     if ( fault_type == FaultType::TransitionDelay ) {

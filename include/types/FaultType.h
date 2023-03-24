@@ -21,7 +21,7 @@ enum class FaultType : ymuint8 {
   None,            ///< 不正な値
   StuckAt,         ///< 縮退故障
   TransitionDelay, ///< 遷移故障
-  GateExaustive    ///< ゲート網羅故障
+  GateExhaustive   ///< ゲート網羅故障
 };
 
 /// @brief FaultType のストリーム出力演算子
@@ -36,7 +36,7 @@ operator<<(
   case FaultType::None:            s << "NONE"; break;
   case FaultType::StuckAt:         s << "stuck-at fault"; break;
   case FaultType::TransitionDelay: s << "transition-delay fault"; break;
-  case FaultType::GateExaustive:   s << "gate-exaustive fault"; break;
+  case FaultType::GateExhaustive:  s << "gate-exhaustive fault"; break;
   }
   return s;
 }

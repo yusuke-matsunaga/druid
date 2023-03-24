@@ -38,7 +38,7 @@ TpgFaultMgrImpl::new_obj(
     obj = new TpgFaultMgr_Td{network};
     break;
 
-  case FaultType::GateExaustive:
+  case FaultType::GateExhaustive:
     obj = new TpgFaultMgr_Ex{network};
     break;
 
@@ -319,15 +319,18 @@ TpgFaultMgr_Ex::gen_all_faults(
       continue;
     }
     SizeType ni = gate.input_num();
+    if ( ni < 2 ) {
+      continue;
+    }
     SizeType ni_exp = 1 << ni;
     for ( SizeType b = 0; b < ni_exp; ++ b ) {
-      vector<bool> ivals(ni, 0);
+      vector<bool> ivals(ni, false);
       for ( SizeType i = 0; i < ni; ++ i ) {
 	if ( b & (1 << i) ) {
 	  ivals[i] = true;
 	}
-	new_fault(onode, node_name, ivals);
       }
+      new_fault(onode, node_name, ivals);
     }
   }
 }
@@ -336,7 +339,7 @@ TpgFaultMgr_Ex::gen_all_faults(
 FaultType
 TpgFaultMgr_Ex::fault_type() const
 {
-  return FaultType::GateExaustive;
+  return FaultType::GateExhaustive;
 }
 
 // @brief 故障を作る．
