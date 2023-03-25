@@ -123,9 +123,7 @@ TpgFaultMgr_Struct::gen_all_faults(
   // PPI の出力の故障
   for ( auto node: network.ppi_list() ) {
     auto node_name = network.ppi_name(node->input_id());
-    if ( node->is_datapath() ) {
-      gen_ofault(node, node_name);
-    }
+    gen_ofault(node, node_name);
   }
 
   // 論理ゲートの入出力の故障
@@ -133,9 +131,6 @@ TpgFaultMgr_Struct::gen_all_faults(
     auto node_name = gate.name();
     // 出力の故障
     auto onode = gate.output_node();
-    if ( !onode->is_datapath() ) {
-      continue;
-    }
     gen_ofault(onode, node_name);
     // 入力の故障
     SizeType ni = gate.input_num();
@@ -315,9 +310,6 @@ TpgFaultMgr_Ex::gen_all_faults(
   for ( auto gate: network.gate_list() ) {
     auto node_name = gate.name();
     auto onode = gate.output_node();
-    if ( !onode->is_datapath() ) {
-      continue;
-    }
     SizeType ni = gate.input_num();
     if ( ni < 2 ) {
       continue;

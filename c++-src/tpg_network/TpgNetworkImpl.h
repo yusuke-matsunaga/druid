@@ -420,24 +420,6 @@ public:
     const string& name ///< [in] ノード名
   );
 
-  /// @brief DFFのクリア端子を生成する．
-  /// @return 生成したノードを返す．
-  TpgNode*
-  make_dff_clear_node(
-    SizeType dff_id,     ///< [in] DFF番号
-    const string& name,  ///< [in] ノード名
-    const TpgNode* inode ///< [in] 入力のノード
-  );
-
-  /// @brief DFFのプリセット端子を生成する．
-  /// @return 生成したノードを返す．
-  TpgNode*
-  make_dff_preset_node(
-    SizeType dff_id,     ///< [in] DFF番号
-    const string& name,  ///< [in] ノード名
-    const TpgNode* inode ///< [in] 入力のノード
-  );
-
   /// @brief 論理ノードを生成する．
   /// @return 生成したノードを返す．
   TpgNode*

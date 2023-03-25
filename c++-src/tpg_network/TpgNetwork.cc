@@ -321,12 +321,6 @@ TpgNetwork::print(
       auto inode = node->fanin(0);
       s << " = " << inode->str();
     }
-    else if ( node->is_dff_clear() ) {
-      s << "DFF#" << node->dff_id() << ".clear";
-    }
-    else if ( node->is_dff_preset() ) {
-      s << "DFF#" << node->dff_id() << ".preset";
-    }
     else if ( node->is_logic() ) {
       s << node->gate_type();
       SizeType ni = node->fanin_num();

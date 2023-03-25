@@ -107,16 +107,6 @@ public:
   bool
   is_dff_output() const;
 
-  /// @brief DFF のクリア端子に接続している出力タイプの時 true を返す．
-  virtual
-  bool
-  is_dff_clear() const;
-
-  /// @brief DFF のプリセット端子に接続している出力タイプの時 true を返す．
-  virtual
-  bool
-  is_dff_preset() const;
-
   /// @brief 入力タイプの時 true を返す．
   ///
   /// 具体的には is_primary_input() || is_dff_output()
@@ -161,8 +151,7 @@ public:
 
   /// @brief 接続している DFF 番号を返す．
   ///
-  /// is_dff_input() | is_dff_output() | is_dff_clear() | is_dff_preset()
-  /// の時に意味を持つ．
+  /// is_dff_input() | is_dff_output() の時に意味を持つ．
   virtual
   SizeType
   dff_id() const;
@@ -311,13 +300,6 @@ public:
     return mImmDom;
   }
 
-  /// @brief データパス系のノードの時 true を返す．
-  bool
-  is_datapath() const
-  {
-    return mDataPath;
-  }
-
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -357,15 +339,6 @@ public:
     const TpgNode* dom  ///< [in] dominator ノード
   );
 
-  /// @brief datapath の印をセットする．
-  void
-  set_datapath(
-    bool val ///< [in] 値
-  )
-  {
-    mDataPath = val;
-  }
-
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -398,9 +371,6 @@ private:
 
   // immediate dominator
   const TpgNode* mImmDom{nullptr};
-
-  // データパスの印
-  bool mDataPath{false};
 
 };
 

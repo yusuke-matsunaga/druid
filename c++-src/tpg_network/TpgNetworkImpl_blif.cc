@@ -86,24 +86,6 @@ TpgNetworkImpl::set(
   SizeType gate_num = model.logic_list().size();
 
   //////////////////////////////////////////////////////////////////////
-  // DFF のコントロール端子の数を数える．
-  //////////////////////////////////////////////////////////////////////
-  bool has_clear = false;
-  for ( auto src_id: model.dff_list() ) {
-    // クロック端子
-    char rval = model.node_rval(src_id);
-    if ( rval == '0' || rval == '1' ) {
-      // リセット or プリセット端子
-      has_clear = true;
-      ++ output_num;
-    }
-  }
-  if ( has_clear ) {
-    // クリア用の外部入力
-    ++ input_num;
-  }
-
-  //////////////////////////////////////////////////////////////////////
   // 追加で生成されるノード数を数える．
   //////////////////////////////////////////////////////////////////////
   SizeType extra_node_num = 0;
@@ -130,16 +112,6 @@ TpgNetworkImpl::set(
     auto name = model.node_name(id);
     auto node = make_input_node(name);
     node_map.reg(id, node);
-  }
-
-  TpgNode* reset_input = nullptr;
-  if ( has_clear ) {
-    // クリア入力の生成
-    auto name = reset_name;
-    if ( name == string{} ) {
-      name = "__reset__";
-    }
-    reset_input = make_input_node(name);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -203,19 +175,6 @@ TpgNetworkImpl::set(
     string input_name = dff_name + ".input";
     auto node = make_dff_input_node(dff_id, input_name, inode);
     connection_list[inode->id()].push_back(node);
-
-    char rval = model.node_rval(src_id);
-    if ( rval == '0' ) {
-      string clear_name = dff_name + ".clear";
-      auto clear = make_dff_clear_node(dff_id, clear_name, reset_input);
-      connection_list[reset_input->id()].push_back(clear);
-    }
-    else if ( rval == '1' ) {
-      // プリセット端子を作る．
-      string preset_name = dff_name + ".preset";
-      auto preset = make_dff_preset_node(dff_id, preset_name, reset_input);
-      connection_list[reset_input->id()].push_back(preset);
-    }
   }
 
   ASSERT_COND( node_num() == nn );

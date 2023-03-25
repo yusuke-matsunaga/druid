@@ -101,18 +101,6 @@ TpgNetworkImpl::set(
   SizeType output_num = output_map.size();
   SizeType dff_num = network.dff_num();
   SizeType gate_num = network.logic_num();
-  SizeType dff_clock_num = 0;
-  for ( auto dff: network.dff_list() ) {
-    if ( dff.clear().is_valid() ) {
-      // クリア端子
-      ++ output_num;
-    }
-
-    if ( dff.preset().is_valid() ) {
-      // プリセット端子
-      ++ output_num;
-    }
-  }
 
   // ノード数の見積もり
   SizeType nn = set_size(input_num, output_num, dff_num, gate_num, extra_node_num);
@@ -200,24 +188,6 @@ TpgNetworkImpl::set(
     string input_name = dff_name + ".input";
     auto node = make_dff_input_node(i, input_name, inode);
     connection_list[inode->id()].push_back(node);
-
-    // クリア端子を作る．
-    if ( src_dff.clear().is_valid() ) {
-      auto src_clear = src_dff.clear();
-      auto clear_fanin = node_map.get(src_clear.output_src().id());
-      string clear_name = dff_name + ".clear";
-      auto clear = make_dff_clear_node(i, clear_name, clear_fanin);
-      connection_list[clear_fanin->id()].push_back(clear);
-    }
-
-    // プリセット端子を作る．
-    if ( src_dff.preset().is_valid() ) {
-      auto src_preset = src_dff.preset();
-      auto preset_fanin = node_map.get(src_preset.output_src().id());
-      string preset_name = dff_name + ".preset";
-      auto preset = make_dff_preset_node(i, preset_name, preset_fanin);
-      connection_list[preset_fanin->id()].push_back(preset);
-    }
   }
 
   ASSERT_COND( node_num() == nn );

@@ -96,8 +96,6 @@ TpgNetworkImpl::set(
   SizeType dff_num = model.dff_list().size();
   SizeType gate_num = model.gate_list().size();
 
-  // .bench はDFFのクロックやリセット端子を持たない．
-
   // 生成されるノード数を見積もる．
   SizeType nn = set_size(input_num, output_num, dff_num,
 			 gate_num, extra_node_num);

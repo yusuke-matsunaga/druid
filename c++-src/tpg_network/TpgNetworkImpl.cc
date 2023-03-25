@@ -8,6 +8,7 @@
 
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
+#include "TpgNodeSet.h"
 #include "TpgPPI.h"
 #include "TpgPPO.h"
 #include "TpgFault.h"
@@ -141,57 +142,6 @@ TpgNetworkImpl::clear()
   }
 }
 
-BEGIN_NONAMESPACE
-
-// @brief ノードの TFI にマークをつける．
-void
-mark_datapath(
-  const TpgNode* node
-)
-{
-  if ( node->is_datapath() ) {
-    return;
-  }
-  const_cast<TpgNode*>(node)->set_datapath(true);
-
-  for ( auto inode: node->fanin_list() ) {
-    mark_datapath(inode);
-  }
-}
-
-// @brief TFI のノード数を数える．
-SizeType
-count_tfi(
-  const TpgNode* node,
-  SizeType node_num
-)
-{
-  // 再帰呼び出し用のスタック
-  vector<const TpgNode*> stack;
-  stack.reserve(node_num);
-  // マーク
-  vector<bool> mark(node_num, false);
-
-  SizeType n = 0;
-  stack.push_back(node);
-  mark[node->id()] = true;
-
-  while ( !stack.empty() ) {
-    auto node = stack.back();
-    stack.pop_back();
-    ++ n;
-    for ( auto inode: node->fanin_list() ) {
-      if ( !mark[inode->id()] ) {
-	stack.push_back(inode);
-	mark[inode->id()] = true;
-      }
-    }
-  }
-  return n;
-}
-
-END_NONAMESPACE
-
 // @brief サイズを設定する．
 SizeType
 TpgNetworkImpl::set_size(
@@ -261,10 +211,12 @@ TpgNetworkImpl::post_op(
   }
 
   //////////////////////////////////////////////////////////////////////
-  // データ系のノードに印をつける．
+  // PPO に到達可能でないノードがないか調べる．
   //////////////////////////////////////////////////////////////////////
-  for ( auto node: ppo_list() ) {
-    mark_datapath(node);
+  auto tfi_list = TpgNodeSet::get_tfi_list(node_num(), ppo_list());
+  if ( tfi_list.size() < node_num() ) {
+    cerr << "warning: some nodes cannot reach to the outputs" << endl;
+    // テスト不能故障になるだけ
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -276,7 +228,11 @@ TpgNetworkImpl::post_op(
   for ( SizeType i: Range(npo) ) {
     auto onode = ppo(i);
     // onode の TFI のノード数を計算する．
-    SizeType n = count_tfi(onode, node_num());
+    SizeType n = 0;
+    TpgNodeSet::get_tfi_list(node_num(), {onode},
+			     [&](const TpgNode*) {
+			       ++ n;
+			     });
     tmp_list[i] = make_pair(n, i);
   }
 
@@ -319,10 +275,6 @@ TpgNetworkImpl::post_op(
   vector<const TpgNode*> ffr_root_list;
   vector<const TpgNode*> mffc_root_list;
   for ( auto node: node_list() ) {
-    if ( !node->is_datapath() ) {
-      // データ系のノードでなければスキップ
-      continue;
-    }
     if ( node->ffr_root() == node ) {
       ffr_root_list.push_back(node);
 

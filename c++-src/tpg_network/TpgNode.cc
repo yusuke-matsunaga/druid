@@ -53,20 +53,6 @@ TpgNode::is_dff_output() const
   return false;
 }
 
-// @brief DFF のクリア端子に接続している出力タイプの時 true を返す．
-bool
-TpgNode::is_dff_clear() const
-{
-  return false;
-}
-
-// @brief DFF のプリセット端子に接続している出力タイプの時 true を返す．
-bool
-TpgNode::is_dff_preset() const
-{
-  return false;
-}
-
 // @brief 入力タイプの時 true を返す．
 //
 // 具体的には is_input() || is_dff_output()
