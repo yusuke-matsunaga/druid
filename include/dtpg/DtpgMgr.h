@@ -33,7 +33,7 @@ public:
   /// @brief コンストラクタ
   DtpgMgr(
     const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    FaultType fault_type,            ///< [in] 故障の種類
+    TpgFaultMgr& fault_mgr,          ///< [in] 故障マネージャ
     const string& dtpg_type,         ///< [in] DTPGのタイプ
     const string& just_type,         ///< [in] 正当化のタイプ
     const SatSolverType& solver_type ///< [in] SATソルバのタイプ
@@ -211,7 +211,7 @@ private:
   const TpgNetwork& mNetwork;
 
   // 故障マネージャ
-  TpgFaultMgr mFaultMgr;
+  TpgFaultMgr& mFaultMgr;
 
   // 故障シミュレータ
   Fsim mFsim;

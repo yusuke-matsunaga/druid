@@ -10,7 +10,7 @@
 #include "pym/PyModule.h"
 #include "PyFsim.h"
 #include "PyTpgNetwork.h"
-#include "PyFaultType.h"
+#include "PyTpgFaultMgr.h"
 #include "PyTestVector.h"
 #include "ym/SatSolverType.h"
 
@@ -41,28 +41,28 @@ DtpgMgr_new(
 {
   static const char* kw_list[] = {
     "network",
-    "fault_type",
+    "fault_mgr",
     "dtpg_type",
     "just_type",
     "sat_type",
     nullptr
   };
   PyObject* network_obj = nullptr;
-  PyObject* fault_type_obj = nullptr;
+  PyObject* fault_mgr_obj = nullptr;
   const char* dtpg_type_str = nullptr;
   const char* just_type_str = nullptr;
   const char* sat_type_str = nullptr;
   if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!s|ss",
 				    const_cast<char**>(kw_list),
 				    PyTpgNetwork::_typeobject(), &network_obj,
-				    PyFaultType::_typeobject(), &fault_type_obj,
+				    PyTpgFaultMgr::_typeobject(), &fault_mgr_obj,
 				    &dtpg_type_str,
 				    &just_type_str,
 				    &sat_type_str) ) {
     return nullptr;
   }
   auto& network = PyTpgNetwork::Get(network_obj);
-  auto fault_type = PyFaultType::Get(fault_type_obj);
+  auto& fault_mgr = PyTpgFaultMgr::Get(fault_mgr_obj);
   string just_type;
   if ( just_type_str != nullptr ) {
     just_type = just_type_str;
@@ -73,7 +73,7 @@ DtpgMgr_new(
   }
   auto self = type->tp_alloc(type, 0);
   auto tpgmgr_obj = reinterpret_cast<DtpgMgrObject*>(self);
-  tpgmgr_obj->mVal = new DtpgMgr{network, fault_type, dtpg_type_str, just_type, solver_type};
+  tpgmgr_obj->mVal = new DtpgMgr{network, fault_mgr, dtpg_type_str, just_type, solver_type};
   return self;
 }
 

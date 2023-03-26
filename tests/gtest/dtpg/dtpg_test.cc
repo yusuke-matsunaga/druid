@@ -146,6 +146,8 @@ private:
 
   TpgNetwork* mNetwork_p{nullptr};
 
+  TpgFaultMgr mFaultMgr;
+
   DtpgMgr* mDtpgMgr{nullptr};
 
   DopVerifyResult mVerifyResult;
@@ -168,7 +170,9 @@ DtpgTestWithParam2::SetUp()
 
   auto solver_type = SatSolverType{sat_type()};
 
-  mDtpgMgr = new DtpgMgr{*mNetwork_p, fault_type(), mode, just_type(), solver_type};
+  mFaultMgr.gen_fault_list(*mNetwork_p, fault_type());
+
+  mDtpgMgr = new DtpgMgr{*mNetwork_p, mFaultMgr, mode, just_type(), solver_type};
 
   mDtpgMgr->add_verify_dop();
 }

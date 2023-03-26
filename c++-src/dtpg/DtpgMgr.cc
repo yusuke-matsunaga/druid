@@ -22,16 +22,16 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 DtpgMgr::DtpgMgr(
   const TpgNetwork& network,
-  FaultType fault_type,
+  TpgFaultMgr& fault_mgr,
   const string& dtpg_type,
   const string& just_type,
   const SatSolverType& solver_type
 ) : mNetwork{network},
+    mFaultMgr{fault_mgr},
     mDriver{DtpgDriver::new_driver(*this, dtpg_type,
-				   network, fault_type == FaultType::TransitionDelay,
+				   network, mFaultMgr.fault_type() == FaultType::TransitionDelay,
 				   just_type, solver_type)}
 {
-  mFaultMgr.gen_fault_list(network, fault_type);
   mFsim.initialize(network, mFaultMgr, true);
 }
 

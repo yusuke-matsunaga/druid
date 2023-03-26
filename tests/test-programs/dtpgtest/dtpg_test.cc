@@ -275,9 +275,12 @@ dtpg_test(
     network.print(cout);
   }
 
+  TpgFaultMgr fault_mgr;
+  fault_mgr.gen_fault_list(network, fault_type);
+
   SatSolverType solver_type{sat_type, sat_option, sat_outp};
 
-  DtpgMgr mgr{network, fault_type, mode, just_type, solver_type};
+  DtpgMgr mgr{network, fault_mgr, mode, just_type, solver_type};
 
   mgr.add_verify_dop();
 
