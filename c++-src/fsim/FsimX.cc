@@ -155,9 +155,7 @@ FSIM_CLASSNAME::set_network(
     else if ( tpgnode->is_ppo() ) {
       // 外部出力に対応する SimNode の生成
       auto inode = simmap[tpgnode->fanin(0)->id()];
-      // 実際にはバッファタイプのノードに出力の印をつけるだけ．
-      node = make_gate(PrimType::Buff, {inode});
-      node->set_output();
+      node = make_output(inode);
       mPPOList[tpgnode->output_id()] = node;
     }
     else if ( tpgnode->is_logic() ) {
