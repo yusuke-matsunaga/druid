@@ -66,11 +66,11 @@ public:
     return mStr;
   }
 
-  /// @brief 代表故障を返す．
-  TpgFaultImpl*
-  rep_fault() const
+  /// @brief 支配故障のリストを返す．
+  const vector<TpgFaultImpl*>&
+  dom_fault_list() const
   {
-    return mRepFault;
+    return mDomFaultList;
   }
 
 
@@ -88,13 +88,13 @@ public:
     mId = id;
   }
 
-  /// @brief 代表故障をセットする．
+  /// @brief 支配故障を追加する．
   void
-  set_rep_fault(
-    TpgFaultImpl* rep ///< [in] 代表故障
+  add_dom_fault(
+    TpgFaultImpl* dom ///< [in] 支配故障
   )
   {
-    mRepFault = rep;
+    mDomFaultList.push_back(dom);
   }
 
 
@@ -112,10 +112,11 @@ private:
   // 故障を表す文字列
   string mStr;
 
-  // 代表故障
-  TpgFaultImpl* mRepFault{nullptr};
+  // 支配故障のリスト
+  vector<TpgFaultImpl*> mDomFaultList;
 
 };
+
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgFault_SaStem TpgFaultImpl.h "TpgFaultImpl.h"

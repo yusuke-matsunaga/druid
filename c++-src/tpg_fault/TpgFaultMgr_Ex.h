@@ -52,8 +52,9 @@ private:
 
   /// @brief 全ての故障を作る．
   void
-  gen_all_faults(
-    const TpgNetwork& network ///< [in] 対象のネットワーク
+  _gen_all_faults(
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    unordered_set<SizeType>& rep_map ///< [in] 代表故障番号を表す辞書
   ) override;
 
   /// @brief 故障を作る．

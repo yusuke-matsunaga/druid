@@ -30,7 +30,8 @@ public:
   unique_ptr<TpgFaultMgrImpl>
   new_obj(
     const TpgNetwork& network, ///< [in] 対象のネットワーク
-    FaultType fault_type       ///< [in] 故障の種類
+    FaultType fault_type,      ///< [in] 故障の種類
+    const string& red_mode     ///< [in] 縮約化のモード名
   );
 
   /// @brief コンストラクタ
@@ -135,18 +136,31 @@ protected:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障リストを作る．
-  virtual
   void
   gen_all_faults(
-    const TpgNetwork& network ///< [in] 対象のネットワーク
-  ) = 0;
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const string& red_mode     ///< [in] 縮約化モード
+  );
 
   /// @brief 故障を登録する．
   void
   reg_fault(
-    TpgFaultImpl* fault, ///< [in] 故障
-    bool rep             ///< [in] 代表故障のとき true
+    TpgFaultImpl* fault ///< [in] 故障
   );
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 継承クラスが実装する仮想関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障リストを作る．
+  virtual
+  void
+  _gen_all_faults(
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
+    unordered_set<SizeType>& rep_map ///< [in] 代表故障番号を表す集合
+  ) = 0;
 
 
 private:

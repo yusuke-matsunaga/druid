@@ -30,10 +30,11 @@ TpgFaultMgr::~TpgFaultMgr()
 void
 TpgFaultMgr::gen_fault_list(
   const TpgNetwork& network,
-  FaultType fault_type
+  FaultType fault_type,
+  const string& red_mode
 )
 {
-  mImpl = TpgFaultMgrImpl::new_obj(network, fault_type);
+  mImpl = TpgFaultMgrImpl::new_obj(network, fault_type, red_mode);
 }
 
 // @brief 故障番号から故障を得る．
