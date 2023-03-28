@@ -25,8 +25,7 @@ BEGIN_NAMESPACE_DRUID
 unique_ptr<TpgFaultMgrImpl>
 TpgFaultMgrImpl::new_obj(
   const TpgNetwork& network,
-  FaultType fault_type,
-  const string& red_mode
+  FaultType fault_type
 )
 {
   TpgFaultMgrImpl* obj = nullptr;
@@ -48,7 +47,7 @@ TpgFaultMgrImpl::new_obj(
     break;
   }
 
-  obj->gen_all_faults(network, red_mode);
+  obj->gen_all_faults(network);
 
   return unique_ptr<TpgFaultMgrImpl>{obj};
 }
@@ -73,45 +72,11 @@ TpgFaultMgrImpl::~TpgFaultMgrImpl()
 // @brief 故障リストを作る．
 void
 TpgFaultMgrImpl::gen_all_faults(
-  const TpgNetwork& network,
-  const string& red_mode
+  const TpgNetwork& network
 )
 {
-  extern void ffr_reduction(
-    const TpgNetwork& network,
-    const vector<TpgFaultImpl*>& fault_array,
-    unordered_set<SizeType>& rep_map
-  );
-
   // 故障の生成を行う．
-  // 構造情報に基づいた代表故障を rep_map に入れる．
-  unordered_set<SizeType> rep_map;
-  _gen_all_faults(network, rep_map);
-
-  if ( red_mode == "none" ) {
-    // 全ての故障を代表故障にする．
-    for ( auto f: mFaultArray ) {
-      rep_map.emplace(f->id());
-    }
-  }
-  else if ( red_mode == "struct" ) {
-    // rep_map をそのまま使う．
-    ;
-  }
-  else if ( red_mode == "ffr" ) {
-    // FFR モードで代表故障を求める．
-    ffr_reduction(network, mFaultArray, rep_map);
-  }
-
-  // rep_map に基づいて代表故障の設定を行う．
-  for ( auto f: mFaultArray ) {
-    SizeType fid = f->id();
-    if ( rep_map.count(fid) > 0 ) {
-      mRepFaultList.push_back(fid);
-      auto node = f->origin_node();
-      mNodeFaultList[node->id()].push_back(fid);
-    }
-  }
+  _gen_all_faults(network);
 
   for ( auto ffr: network.ffr_list() ) {
     auto& ffr_fault_list = mFFRFaultList[ffr.id()];
@@ -135,13 +100,19 @@ TpgFaultMgrImpl::gen_all_faults(
 // @brief 故障を登録する．
 void
 TpgFaultMgrImpl::reg_fault(
-  TpgFaultImpl* fault
+  TpgFaultImpl* fault,
+  bool rep
 )
 {
   SizeType id = mFaultArray.size();
   fault->set_id(id);
   mFaultArray.push_back(fault);
   mStatusArray.push_back(FaultStatus::Undetected);
+  if ( rep ) {
+    mRepFaultList.push_back(id);
+    auto node = fault->origin_node();
+    mNodeFaultList[node->id()].push_back(id);
+  }
 }
 
 
@@ -152,8 +123,7 @@ TpgFaultMgrImpl::reg_fault(
 // @brief 全ての故障を作る．
 void
 TpgFaultMgr_Struct::_gen_all_faults(
-  const TpgNetwork& network,
-  unordered_set<SizeType>& rep_map
+  const TpgNetwork& network
 )
 {
   // 等価故障のルール
@@ -163,7 +133,7 @@ TpgFaultMgr_Struct::_gen_all_faults(
   // PPI の出力の故障
   for ( auto node: network.ppi_list() ) {
     auto node_name = network.ppi_name(node->input_id());
-    gen_ofault(node, node_name, rep_map);
+    gen_ofault(node, node_name);
   }
 
   // 論理ゲートの入出力の故障
@@ -171,21 +141,21 @@ TpgFaultMgr_Struct::_gen_all_faults(
     auto node_name = gate.name();
     // 出力の故障
     auto onode = gate.output_node();
-    gen_ofault(onode, node_name, rep_map);
+    gen_ofault(onode, node_name);
     // 入力の故障
     SizeType ni = gate.input_num();
     for ( SizeType i = 0; i < ni; ++ i ) {
       auto binfo = gate.branch_info(i);
       auto inode = binfo.node;
       SizeType ipos = binfo.ipos;
-      gen_ifault(gate, inode, node_name, ipos, rep_map);
+      gen_ifault(gate, inode, node_name, ipos);
     }
   }
 
   // PPO の入力の故障
   for ( auto node: network.ppo_list() ) {
     auto node_name = network.ppo_name(node->output_id());
-    gen_ifault(node, node_name, rep_map);
+    gen_ifault(node, node_name);
   }
 }
 
@@ -193,17 +163,13 @@ TpgFaultMgr_Struct::_gen_all_faults(
 void
 TpgFaultMgr_Struct::gen_ofault(
   const TpgNode* node,
-  const string& node_name,
-  unordered_set<SizeType>& rep_map
+  const string& node_name
 )
 {
   bool rep = node->fanout_num() >= 2;
   for ( auto fval: {Fval2::zero, Fval2::one} ) {
     auto f = new_ofault(node, node_name, fval);
-    reg_fault(f);
-    if ( rep ) {
-      rep_map.emplace(f->id());
-    }
+    reg_fault(f, rep);
   }
 }
 
@@ -213,17 +179,13 @@ TpgFaultMgr_Struct::gen_ifault(
   const TpgGate& gate,
   const TpgNode* node,
   const string& node_name,
-  SizeType ipos,
-  unordered_set<SizeType>& rep_map
+  SizeType ipos
 )
 {
   for ( auto fval: {Fval2::zero, Fval2::one} ) {
     auto f = new_ifault(node, node_name, ipos, fval);
     bool rep = gate.is_rep(ipos, fval);
-    reg_fault(f);
-    if ( rep ) {
-      rep_map.emplace(f->id());
-    }
+    reg_fault(f, rep);
   }
 }
 
@@ -231,14 +193,12 @@ TpgFaultMgr_Struct::gen_ifault(
 void
 TpgFaultMgr_Struct::gen_ifault(
   const TpgNode* node,
-  const string& node_name,
-  unordered_set<SizeType>& rep_map
+  const string& node_name
 )
 {
   for ( auto fval: {Fval2::zero, Fval2::one} ) {
     auto f = new_ifault(node, node_name, 0, fval);
-    reg_fault(f);
-    rep_map.emplace(f->id());
+    reg_fault(f, true);
   }
 }
 
@@ -353,8 +313,7 @@ TpgFaultMgr_Td::new_ifault(
 // @brief 全ての故障を作る．
 void
 TpgFaultMgr_Ex::_gen_all_faults(
-  const TpgNetwork& network,
-  unordered_set<SizeType>& rep_map
+  const TpgNetwork& network
 )
 {
   // ゲート網羅故障には自明な等価故障はない．
@@ -374,7 +333,6 @@ TpgFaultMgr_Ex::_gen_all_faults(
 	}
       }
       auto f = new_fault(onode, node_name, ivals);
-      rep_map.emplace(f->id());
     }
   }
 }
@@ -401,7 +359,7 @@ TpgFaultMgr_Ex::new_fault(
   }
   auto name = buf.str();
   auto f = new TpgFault_Ex{node, name, ivals};
-  reg_fault(f);
+  reg_fault(f, true);
   return f;
 }
 

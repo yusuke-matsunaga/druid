@@ -45,6 +45,7 @@ set (tpg_network_SOURCES
   tpg_fault/TpgFault.cc
   tpg_fault/TpgFaultMgr.cc
   tpg_fault/TpgFaultMgrImpl.cc
+  tpg_fault/ffr_reduction.cc
   )
 
 set (fsim_SOURCES

@@ -44,8 +44,7 @@ private:
   /// @brief 全ての故障を作る．
   void
   _gen_all_faults(
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    unordered_set<SizeType>& rep_map ///< [in] 代表故障番号を表す辞書
+    const TpgNetwork& network ///< [in] 対象のネットワーク
   ) override;
 
   /// @brief 出力の故障を作る．
@@ -53,9 +52,8 @@ private:
   /// 結果は mNodeInfoArray に格納する．
   void
   gen_ofault(
-    const TpgNode* node,             ///< [in] ノード
-    const string& node_name,         ///< [in] ノード名
-    unordered_set<SizeType>& rep_map ///< [in] 代表故障番号を表す辞書
+    const TpgNode* node,    ///< [in] ノード
+    const string& node_name ///< [in] ノード名
   );
 
   /// @brief 入力の故障を作る．
@@ -63,11 +61,10 @@ private:
   /// 結果は mNodeInfoArray に格納する．
   void
   gen_ifault(
-    const TpgGate& gate,             ///< [in] ゲート情報
-    const TpgNode* node,             ///< [in] ノード
-    const string& node_name,         ///< [in] ノード名
-    SizeType ipos,                   ///< [in] 入力位置
-    unordered_set<SizeType>& rep_map ///< [in] 代表故障番号を表す辞書
+    const TpgGate& gate,     ///< [in] ゲート情報
+    const TpgNode* node,     ///< [in] ノード
+    const string& node_name, ///< [in] ノード名
+    SizeType ipos            ///< [in] 入力位置
   );
 
   /// @brief 入力の故障を作る(PPO用)．
@@ -75,9 +72,8 @@ private:
   /// 結果は mNodeInfoArray に格納する．
   void
   gen_ifault(
-    const TpgNode* node,             ///< [in] ノード
-    const string& node_name,         ///< [in] ノード名
-    unordered_set<SizeType>& rep_map ///< [in] 代表故障番号を表す辞書
+    const TpgNode* node,    ///< [in] ノード
+    const string& node_name ///< [in] ノード名
   );
 
 
