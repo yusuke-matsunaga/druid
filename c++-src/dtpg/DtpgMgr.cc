@@ -32,7 +32,9 @@ DtpgMgr::DtpgMgr(
 				   network, mFaultMgr.fault_type() == FaultType::TransitionDelay,
 				   just_type, solver_type)}
 {
-  mFsim.initialize(network, mFaultMgr, true);
+  bool has_previous_state = mFaultMgr.fault_type() == FaultType::TransitionDelay;
+  mFsim.initialize(network, has_previous_state, true);
+  mFsim.set_fault_list(mFaultMgr.rep_fault_list());
 }
 
 // @brief デストラクタ

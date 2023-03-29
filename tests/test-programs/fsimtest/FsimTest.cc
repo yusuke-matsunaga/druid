@@ -46,7 +46,7 @@ spsfp_test(
   int i = 0;
   for ( auto tv: tv_list ) {
     bool detect = false;
-    for ( auto f: fmgr.fault_list() ) {
+    for ( auto f: fmgr.rep_fault_list() ) {
       if ( fmgr.get_status(f) == FaultStatus::Detected ) {
 	continue;
       }
@@ -93,7 +93,7 @@ sppfp_test(
 }
 
 // PPSFP のテスト
-pair<int, int>
+pair<SizeType, SizeType>
 ppsfp_test(
   Fsim& fsim,
   const vector<TestVector>& tv_list
@@ -101,71 +101,31 @@ ppsfp_test(
 {
   int nv = tv_list.size();
 
-  fsim.clear_patterns();
-  int wpos = 0;
-  int det_num = 0;
-  int nepat = 0;
-  for ( auto tv: tv_list ) {
-    fsim.set_pattern(wpos, tv);
-    ++ wpos;
-    if ( wpos == PV_BITLEN ) {
-      int n = fsim.ppsfp();
-
-      int nb = wpos;
-      PackedVal dpat_all = 0ULL;
-      det_num += n;
-      for ( int j = 0; j < n; ++ j ) {
-	auto f = fsim.det_fault(j);
-	PackedVal dpat = fsim.det_fault_pat(j);
-	fsim.set_skip(f);
-	// dpat の最初の1のビットを求める．
-	int first = 0;
-	for ( ; first < nb; ++ first) {
-	  if ( dpat & (1ULL << first) ) {
-	    break;
-	  }
-	}
-	ASSERT_COND( first < nb );
-	dpat_all |= (1ULL << first);
-	print_fault(f, j - wpos + first + 1);
-      }
-      for ( int i = 0; i < nb; ++ i ) {
-	if ( dpat_all & (1ULL << i) ) {
-	  ++ nepat;
-	}
-      }
-      fsim.clear_patterns();
-      wpos = 0;
-    }
-  }
-  if ( wpos > 0 ) {
-    int n = fsim.ppsfp();
-
-    int nb = wpos;
+  SizeType nepat = 0;
+  SizeType det_num = fsim.ppsfp(tv_list, [&](Fsim& fsim, SizeType np, SizeType nf) -> bool {
     PackedVal dpat_all = 0ULL;
-    det_num += n;
-    for ( int j = 0; j < n; ++ j ) {
+    for ( int j = 0; j < nf; ++ j ) {
       auto f = fsim.det_fault(j);
       PackedVal dpat = fsim.det_fault_pat(j);
       fsim.set_skip(f);
       // dpat の最初の1のビットを求める．
       int first = 0;
-      for ( ; first < nb; ++ first) {
+      for ( ; first < np; ++ first) {
 	if ( dpat & (1ULL << first) ) {
 	  break;
 	}
       }
-      ASSERT_COND( first < nb );
+      ASSERT_COND( first < np );
       dpat_all |= (1ULL << first);
-      print_fault(f, nv - wpos + first + 1);
+      print_fault(f, j - np + first + 1);
     }
-    for ( int i = 0; i < nb; ++ i) {
+    for ( int i = 0; i < np; ++ i ) {
       if ( dpat_all & (1ULL << i) ) {
 	++ nepat;
       }
     }
-  }
-
+    return true;
+  });
   return make_pair(det_num, nepat);
 }
 
@@ -346,8 +306,11 @@ fsim2test(
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(network, fault_type);
 
+  bool prev_state = fault_type == FaultType::TransitionDelay;
   Fsim fsim;
-  fsim.initialize(network, fmgr, fsim3);
+  fsim.initialize(network, prev_state, fsim3);
+
+  fsim.set_fault_list(fmgr.rep_fault_list());
 
   std::mt19937 rg;
   vector<TestVector> tv_list;
@@ -377,7 +340,7 @@ fsim2test(
   timer.stop();
   auto time = timer.get_time();
 
-  SizeType nf = fmgr.fault_list().size();
+  SizeType nf = fmgr.rep_fault_list().size();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
        << "# of DFFs               = " << network.dff_num() << endl

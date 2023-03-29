@@ -50,6 +50,7 @@ set (tpg_network_SOURCES
 
 set (fsim_SOURCES
   fsim/Fsim.cc
+  fsim/Verifier.cc
   )
 
 set (struct_enc_SOURCES

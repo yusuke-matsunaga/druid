@@ -33,6 +33,13 @@ public:
   // 故障を設定する関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 対象の故障をセットする．
+  virtual
+  void
+  set_fault_list(
+    const vector<TpgFault>& fault_list ///< [in] 故障のリスト
+  ) = 0;
+
   /// @brief 全ての故障にスキップマークをつける．
   virtual
   void

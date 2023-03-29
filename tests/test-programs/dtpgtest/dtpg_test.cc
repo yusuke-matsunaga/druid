@@ -283,6 +283,8 @@ dtpg_test(
   DtpgMgr mgr{network, fault_mgr, mode, just_type, solver_type};
 
   mgr.add_verify_dop();
+  mgr.add_base_dop();
+  mgr.add_base_uop();
 
   Timer timer;
   timer.start();
@@ -303,6 +305,14 @@ dtpg_test(
     auto tv = verify_result.error_testvector(i);
     cout << "Error: " << f << " is not detected with "
 	 << tv << endl;
+  }
+
+  {
+    for ( auto f: fault_mgr.rep_fault_list() ) {
+      if ( fault_mgr.get_status(f) == FaultStatus::Untestable ) {
+	cout << f << endl;
+      }
+    }
   }
 
   return n;

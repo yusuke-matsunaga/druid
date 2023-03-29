@@ -76,23 +76,22 @@ Fsim_initialize(
 {
   static const char* kwlist[] = {
     "network",
-    "fault_mgr",
+    "prev_state",
     "val_type",
     nullptr
   };
   PyObject* network_obj = nullptr;
-  PyObject* fault_mgr_obj = nullptr;
+  int i_prev_state = 0;
   int val_type = 0;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!i",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!bi",
 				    const_cast<char**>(kwlist),
 				    PyTpgNetwork::_typeobject(), &network_obj,
-				    PyTpgFaultMgr::_typeobject(), &fault_mgr_obj,
-				    &val_type) ) {
+				    &i_prev_state, &val_type) ) {
     return nullptr;
   }
 
   auto& network = PyTpgNetwork::Get(network_obj);
-  auto& fault_mgr = PyTpgFaultMgr::Get(fault_mgr_obj);
+  bool prev_state = static_cast<bool>(i_prev_state);
 
   bool has_x = false;
   if ( val_type == 2 ) {
@@ -106,7 +105,7 @@ Fsim_initialize(
     return nullptr;
   }
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  fsim_obj->mPtr->initialize(network, fault_mgr, has_x);
+  fsim_obj->mPtr->initialize(network, prev_state, has_x);
   Py_RETURN_NONE;
 }
 
@@ -248,12 +247,35 @@ Fsim_sppfp(
 PyObject*
 Fsim_ppsfp(
   PyObject* self,
-  PyObject* Py_UNUSED(args)
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kwlist[] = {
+    "tv_list",
+    "callback",
+    nullptr
+  };
+  PyObject* tv_list_obj = nullptr;
+  PyObject* callback_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
+				    const_cast<char**>(kwlist),
+				    PyList_Type, &tv_list_obj,
+				    PyFunction_Type, &callback_obj) ) {
+    return nullptr;
+  }
+
+  SizeType n = PyList_Size(tv_list_obj);
+  vector<TestVector> tv_list(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto tmp_obj = PyList_GetItem(tv_list_obj, i);
+    auto tv = PyTestVector::Get(tmp_obj);
+    tv_list[i] = tv;
+  }
   auto fsim = PyFsim::Get(self);
-  SizeType n = fsim->ppsfp();
-  return PyLong_FromLong(n);
+  // 未完，コールバックを呼び出していない．
+  SizeType ans = fsim->ppsfp(tv_list, [&](Fsim&, SizeType, SizeType)->bool{ return true; });
+  return PyLong_FromLong(ans);
 }
 
 PyObject*
@@ -308,50 +330,6 @@ Fsim_get_state(
   auto obj1 = PyInputVector::ToPyObject(iv);
   auto obj2 = PyDffVector::ToPyObject(dv);
   return Py_BuildValue("OO", obj1, obj2);
-}
-
-PyObject*
-Fsim_clear_patterns(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto fsim = PyFsim::Get(self);
-  fsim->clear_patterns();
-  Py_RETURN_NONE;
-}
-
-PyObject*
-Fsim_set_pattern(
-  PyObject* self,
-  PyObject* args
-)
-{
-  SizeType pos = 0;
-  PyObject* obj1 = nullptr;
-  if ( !PyArg_ParseTuple(args, "iO!", &pos,
-			 PyTestVector::_typeobject(), &obj1) ) {
-    return nullptr;
-  }
-  auto tv = PyTestVector::Get(obj1);
-  auto fsim = PyFsim::Get(self);
-  fsim->set_pattern(pos, tv);
-  Py_RETURN_NONE;
-}
-
-PyObject*
-Fsim_get_pattern(
-  PyObject* self,
-  PyObject* args
-)
-{
-  SizeType pos = 0;
-  if ( !PyArg_ParseTuple(args, "i", &pos) ) {
-    return nullptr;
-  }
-  auto fsim = PyFsim::Get(self);
-  auto tv = fsim->get_pattern(pos);
-  return PyTestVector::ToPyObject(tv);
 }
 
 PyObject*
@@ -449,7 +427,8 @@ PyMethodDef Fsim_methods[] = {
    PyDoc_STR("do Single Pattern Single Fault Propagation simulation")},
   {"sppfp", Fsim_sppfp, METH_VARARGS,
    PyDoc_STR("do Single Pattern Parallel Fault Propagation simulation")},
-  {"ppsfp", Fsim_ppsfp, METH_NOARGS,
+  {"ppsfp", reinterpret_cast<PyCFunction>(Fsim_ppsfp),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do Parallel Pattern Single Fault Propagation simulation")},
   {"calc_wsa", Fsim_calc_wsa, METH_NOARGS,
    PyDoc_STR("calculate weighted sum of activities")},
@@ -457,12 +436,6 @@ PyMethodDef Fsim_methods[] = {
    PyDoc_STR("set the internal state")},
   {"get_state", Fsim_get_state, METH_NOARGS,
    PyDoc_STR("get the internal state")},
-  {"clear_patterns", Fsim_clear_patterns, METH_NOARGS,
-   PyDoc_STR("clear patterns for ppsfp")},
-  {"set_pattern", Fsim_set_pattern, METH_VARARGS,
-   PyDoc_STR("set pattern for ppsfp")},
-  {"get_pattern", Fsim_get_pattern, METH_VARARGS,
-   PyDoc_STR("get pattern for ppsfp")},
   {"det_fault_num", Fsim_det_fault_num, METH_NOARGS,
    PyDoc_STR("return the number of detected faults")},
   {"det_fault", Fsim_det_fault, METH_VARARGS,

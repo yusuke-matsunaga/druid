@@ -44,7 +44,14 @@ public:
   SizeType
   id() const
   {
-    return mId;
+    return mTpgFault.id();
+  }
+
+  /// @brief オリジナルの故障を返す．
+  TpgFault
+  tpg_fault() const
+  {
+    return mTpgFault;
   }
 
   /// @brief 故障伝搬の起点となるノードを返す．
@@ -149,8 +156,8 @@ private:
 
   };
 
-  // 故障番号
-  SizeType mId;
+  // 故障
+  TpgFault mTpgFault;
 
   // 故障伝搬の起点となるノード
   SimNode* mNode;

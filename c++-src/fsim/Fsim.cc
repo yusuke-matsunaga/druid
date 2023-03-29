@@ -16,29 +16,25 @@ BEGIN_NAMESPACE_DRUID
 
 namespace nsFsimCombi2 {
   std::unique_ptr<FsimImpl> new_Fsim(
-    const TpgNetwork& network,
-    TpgFaultMgr& fmgr
+    const TpgNetwork& network
   );
 }
 
 namespace nsFsimCombi3 {
   std::unique_ptr<FsimImpl> new_Fsim(
-    const TpgNetwork& network,
-    TpgFaultMgr& fmgr
+    const TpgNetwork& network
   );
 }
 
 namespace nsFsimBside2 {
   std::unique_ptr<FsimImpl> new_Fsim(
-    const TpgNetwork& network,
-    TpgFaultMgr& fmgr
+    const TpgNetwork& network
   );
 }
 
 namespace nsFsimBside3 {
   std::unique_ptr<FsimImpl> new_Fsim(
-    const TpgNetwork& network,
-    TpgFaultMgr& fmgr
+    const TpgNetwork& network
   );
 }
 
@@ -48,29 +44,26 @@ inline
 std::unique_ptr<FsimImpl>
 new_impl(
   const TpgNetwork& network,
-  TpgFaultMgr& fmgr,
+  bool has_previous_state,
   bool has_x
 )
 {
-  auto fault_type = fmgr.fault_type();
   if ( has_x ) {
     // 3値バージョン
-    if ( fault_type == FaultType::StuckAt ||
-	 fault_type == FaultType::GateExhaustive ) {
-      return nsFsimCombi3::new_Fsim(network, fmgr);
+    if ( has_previous_state ) {
+      return nsFsimBside3::new_Fsim(network);
     }
-    if ( fault_type == FaultType::TransitionDelay ) {
-      return nsFsimBside3::new_Fsim(network, fmgr);
+    else {
+      return nsFsimCombi3::new_Fsim(network);
     }
   }
   else {
     // 2値バージョン
-    if ( fault_type == FaultType::StuckAt ||
-	 fault_type == FaultType::GateExhaustive ) {
-      return nsFsimCombi2::new_Fsim(network, fmgr);
+    if ( has_previous_state ) {
+      return nsFsimBside2::new_Fsim(network);
     }
-    if ( fault_type == FaultType::TransitionDelay ) {
-      return nsFsimBside2::new_Fsim(network, fmgr);
+    else {
+      return nsFsimCombi2::new_Fsim(network);
     }
   }
   ASSERT_NOT_REACHED;
@@ -98,11 +91,34 @@ Fsim::~Fsim()
 void
 Fsim::initialize(
   const TpgNetwork& network,
-  TpgFaultMgr& fmgr,
+  bool has_previous_state,
   bool has_x
 )
 {
-  mImpl = new_impl(network, fmgr, has_x);
+  mImpl = new_impl(network, has_previous_state, has_x);
+}
+
+// @brief 対象の故障をセットする．
+void
+Fsim::set_fault_list(
+  const vector<TpgFault>& fault_list ///< [in] 故障のリスト
+)
+{
+  mImpl->set_fault_list(fault_list);
+}
+
+// @brief 対象の故障をセットする．
+void
+Fsim::set_fault_list(
+  const TpgFaultList& fault_list ///< [in] 故障のリスト
+)
+{
+  vector<TpgFault> tmp_list;
+  tmp_list.reserve(fault_list.size());
+  for ( auto f: fault_list ) {
+    tmp_list.push_back(f);
+  }
+  mImpl->set_fault_list(tmp_list);
 }
 
 // @brief 全ての故障にスキップマークをつける．
@@ -225,9 +241,33 @@ Fsim::sppfp(
 
 // @brief 複数のパタンで故障シミュレーションを行う．
 SizeType
-Fsim::ppsfp()
+Fsim::ppsfp(
+  const vector<TestVector>& tv_list,
+  cbtype callback
+)
 {
-  return mImpl->ppsfp();
+  SizeType index = 0;
+  SizeType nd = 0;
+  for ( auto tv: tv_list ) {
+    set_pattern(index, tv);
+    ++ index;
+    if ( index == PV_BITLEN ) {
+      auto nd1 = mImpl->ppsfp();
+      auto go_on = callback(*this, index, nd1);
+      nd += nd1;
+      clear_patterns();
+      index = 0;
+      if ( !go_on ) {
+	break;
+      }
+    }
+  }
+  if ( index > 0 ) {
+    auto nd1 = mImpl->ppsfp();
+    callback(*this, index, nd1);
+    nd += nd1;
+  }
+  return nd;
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．

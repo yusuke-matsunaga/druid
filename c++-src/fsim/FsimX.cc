@@ -76,11 +76,10 @@ END_NONAMESPACE
 
 std::unique_ptr<FsimImpl>
 new_Fsim(
-  const TpgNetwork& network,
-  TpgFaultMgr& fmgr
+  const TpgNetwork& network
 )
 {
-  return static_cast<std::unique_ptr<FsimImpl>>(new FSIM_CLASSNAME(network, fmgr));
+  return static_cast<std::unique_ptr<FsimImpl>>(new FSIM_CLASSNAME{network});
 }
 
 
@@ -90,26 +89,15 @@ new_Fsim(
 
 // @brief コンストラクタ
 FSIM_CLASSNAME::FSIM_CLASSNAME(
-  const TpgNetwork& network,
-  TpgFaultMgr& fmgr
-) : mFaultMgr{fmgr}
+  const TpgNetwork& network
+)
 {
-  mPatMap = PV_ALL0;
-
   set_network(network);
 }
 
 // @brief デストラクタ
 FSIM_CLASSNAME::~FSIM_CLASSNAME()
 {
-  // mNodeArray が全てのノードを持っている
-  for ( auto node: mNodeArray ) {
-    delete node;
-  }
-
-  for ( auto fault: mFaultList ) {
-    delete fault;
-  }
 }
 
 // @brief ネットワークをセットする関数
@@ -130,21 +118,14 @@ FSIM_CLASSNAME::set_network(
   ASSERT_COND( no == mOutputNum + mDffNum );
 
   // 対応付けを行うマップの初期化
-  vector<SimNode*> simmap(nn);
+  mSimNodeMap.resize(nn);
 
   mPPIList.clear();
   mPPIList.resize(ni);
   mPPOList.clear();
   mPPOList.resize(no);
 
-  SizeType max_node_id = 0;
-  SizeType nf = 0;
   for ( auto tpgnode: network.node_list() ) {
-    for ( auto f: mFaultMgr.node_fault_list(tpgnode->id()) ) {
-      max_node_id = std::max(max_node_id, f.id());
-      ++ nf;
-    }
-
     SimNode* node = nullptr;
 
     if ( tpgnode->is_ppi() ) {
@@ -154,7 +135,7 @@ FSIM_CLASSNAME::set_network(
     }
     else if ( tpgnode->is_ppo() ) {
       // 外部出力に対応する SimNode の生成
-      auto inode = simmap[tpgnode->fanin(0)->id()];
+      auto inode = mSimNodeMap[tpgnode->fanin(0)->id()];
       node = make_output(inode);
       mPPOList[tpgnode->output_id()] = node;
     }
@@ -166,7 +147,7 @@ FSIM_CLASSNAME::set_network(
       vector<SimNode*> inputs;
       inputs.reserve(ni);
       for ( auto itpgnode: tpgnode->fanin_list() ) {
-	auto inode = simmap[itpgnode->id()];
+	auto inode = mSimNodeMap[itpgnode->id()];
 	ASSERT_COND( inode != nullptr );
 
 	inputs.push_back(inode);
@@ -177,32 +158,31 @@ FSIM_CLASSNAME::set_network(
       node = make_gate(type, inputs);
     }
     // 対応表に登録しておく．
-    simmap[tpgnode->id()] = node;
+    mSimNodeMap[tpgnode->id()] = node;
   }
-  ++ max_node_id;
 
   // 各ノードのファンアウトリストの設定
   auto node_num = mNodeArray.size();
   {
     vector<vector<SimNode*> > fanout_lists(node_num);
     vector<int> ipos(node_num);
-    for ( auto node: mNodeArray ) {
+    for ( auto& node: mNodeArray ) {
       auto ni = node->fanin_num();
       for ( auto i: Range(0, ni) ) {
 	auto inode = node->fanin(i);
-	fanout_lists[inode->id()].push_back(node);
+	fanout_lists[inode->id()].push_back(node.get());
 	ipos[inode->id()] = i;
       }
     }
     for ( auto i: Range(node_num) ) {
-      auto node = mNodeArray[i];
+      auto& node = mNodeArray[i];
       node->set_fanout_list(fanout_lists[i], ipos[i]);
     }
   }
 
   // FFR の設定
   auto ffr_num = 0;
-  for ( auto node: mNodeArray ) {
+  for ( auto& node: mNodeArray ) {
     if ( node->is_output() || node->fanout_num() != 1 ) {
       ++ ffr_num;
     }
@@ -211,21 +191,21 @@ FSIM_CLASSNAME::set_network(
   mFFRNum = ffr_num;
   mFFRArray.clear();
   mFFRArray.resize(ffr_num);
-  vector<SimFFR*> ffr_map(mNodeArray.size());
+  mFFRMap.resize(mNodeArray.size());
   ffr_num = 0;
   for ( int i = node_num; -- i >= 0; ) {
-    auto node = mNodeArray[i];
+    auto& node = mNodeArray[i];
     if ( node->is_output() || node->fanout_num() != 1 ) {
       auto ffr = &mFFRArray[ffr_num];
       node->set_ffr_root();
-      ffr_map[node->id()] = ffr;
-      ffr->set_root(node);
+      mFFRMap[node->id()] = ffr;
+      ffr->set_root(node.get());
       ++ ffr_num;
     }
     else {
       auto fo_node = node->fanout_top();
-      auto ffr = ffr_map[fo_node->id()];
-      ffr_map[node->id()] = ffr;
+      auto ffr = mFFRMap[fo_node->id()];
+      mFFRMap[node->id()] = ffr;
     }
   }
 
@@ -237,32 +217,6 @@ FSIM_CLASSNAME::set_network(
     }
   }
   mEventQ.init(max_level, mNodeArray.size());
-
-  //////////////////////////////////////////////////////////////////////
-  // 故障リストの設定
-  //////////////////////////////////////////////////////////////////////
-
-  // 同時に各 SimFFR 内の故障リストも再構築する．
-  mFaultNum = nf;
-  mFaultList.clear();
-  mFaultMap.clear();
-  mDetFaultArray.clear();
-  mDetPatArray.clear();
-  mFaultList.reserve(nf);
-  mFaultMap.resize(max_node_id, nullptr);
-  mDetFaultArray.reserve(nf);
-  mDetPatArray.reserve(nf);
-  for ( auto tpgnode: network.node_list() ) {
-    auto simnode = simmap[tpgnode->id()];
-    auto ffr = ffr_map[simnode->id()];
-    for ( auto fault: mFaultMgr.node_fault_list(tpgnode->id()) ) {
-      auto ff = new SimFault{fault, simnode, simmap};
-      mFaultList.push_back(ff);
-      mFaultMap[fault.id()] = ff;
-      ff->set_skip(false);
-      ffr->add_fault(ff);
-    }
-  }
 }
 
 // @brief FFR のリストを返す．
@@ -272,11 +226,44 @@ FSIM_CLASSNAME::_ffr_list() const
   return mFFRArray;
 }
 
+// @brief 対象の故障をセットする．
+void
+FSIM_CLASSNAME::set_fault_list(
+  const vector<TpgFault>& fault_list
+)
+{
+  SizeType nf = fault_list.size();
+  SizeType max_fid = 0;
+  for ( auto fault: fault_list ) {
+    max_fid = std::max(max_fid, fault.id());
+  }
+  ++ max_fid;
+  mFaultList.clear();
+  mFaultMap.clear();
+  mDetFaultArray.clear();
+  mDetPatArray.clear();
+  mFaultList.reserve(nf);
+  mFaultMap.resize(max_fid, nullptr);
+  mDetFaultArray.reserve(nf);
+  mDetPatArray.reserve(nf);
+
+  for ( auto fault: fault_list ) {
+    auto tpgnode = fault.origin_node();
+    auto simnode = mSimNodeMap[tpgnode->id()];
+    auto sim_f = new SimFault{fault, simnode, mSimNodeMap};
+    mFaultList.push_back(unique_ptr<SimFault>{sim_f});
+    mFaultMap[fault.id()] = sim_f;
+    sim_f->set_skip(false);
+    auto ffr = mFFRMap[simnode->id()];
+    ffr->add_fault(sim_f);
+  }
+}
+
 // @brief 全ての故障にスキップマークをつける．
 void
 FSIM_CLASSNAME::set_skip_all()
 {
-  for ( auto f: mFaultList ) {
+  for ( auto& f: mFaultList ) {
     f->set_skip(true);
   }
 }
@@ -294,7 +281,7 @@ FSIM_CLASSNAME::set_skip(
 void
 FSIM_CLASSNAME::clear_skip_all()
 {
-  for ( auto f: mFaultList ) {
+  for ( auto& f: mFaultList ) {
     f->set_skip(false);
   }
 }
@@ -435,19 +422,14 @@ FSIM_CLASSNAME::det_fault(
 {
   ASSERT_COND( pos >= 0 && pos < det_fault_num() );
 
-  return mFaultMgr.fault(mDetFaultArray[pos]);
+  return mDetFaultArray[pos];
 }
 
 // @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
 vector<TpgFault>
 FSIM_CLASSNAME::det_fault_list()
 {
-  vector<TpgFault> fault_list;
-  fault_list.reserve(det_fault_num());
-  for ( auto fid: mDetFaultArray ) {
-    fault_list.push_back(mFaultMgr.fault(fid));
-  }
-  return fault_list;
+  return mDetFaultArray;
 }
 
 // @brief SPSFP故障シミュレーションの本体
@@ -572,7 +554,7 @@ FSIM_CLASSNAME::set_state(
   _calc_val();
 
   // 1時刻シフトする．
-  for ( auto node: mNodeArray ) {
+  for ( auto& node: mNodeArray ) {
     node->shift_val();
   }
 
@@ -624,12 +606,12 @@ FSIM_CLASSNAME::calc_wsa(
 
   // 遷移回数を数える．
   SizeType wsa = 0;
-  for ( auto node: mNodeArray ) {
-    wsa += _calc_wsa(node, weighted);
+  for ( auto& node: mNodeArray ) {
+    wsa += _calc_wsa(node.get(), weighted);
   }
 
   // 1時刻シフトする．
-  for ( auto node: mNodeArray ) {
+  for ( auto& node: mNodeArray ) {
     node->shift_val();
   }
 
@@ -744,7 +726,7 @@ FSIM_CLASSNAME::_calc_gval(
   _calc_val();
 
   // 1時刻シフトする．
-  for ( auto node: mNodeArray ) {
+  for ( auto& node: mNodeArray ) {
     node->shift_val();
   }
 
@@ -846,7 +828,7 @@ FSIM_CLASSNAME::make_input()
 {
   auto id = mNodeArray.size();
   auto node = SimNode::new_input(id);
-  mNodeArray.push_back(node);
+  mNodeArray.push_back(unique_ptr<SimNode>{node});
   return node;
 }
 
@@ -859,7 +841,7 @@ FSIM_CLASSNAME::make_gate(
 {
   auto id = mNodeArray.size();
   auto node = SimNode::new_gate(id, type, inputs);
-  mNodeArray.push_back(node);
+  mNodeArray.push_back(unique_ptr<SimNode>{node});
   mLogicArray.push_back(node);
   return node;
 }
@@ -874,7 +856,7 @@ SimFault::SimFault(
   const TpgFault& f,
   SimNode* node,
   const vector<SimNode*>& simmap
-) : mId{f.id()},
+) : mTpgFault{f},
     mNode{node}
 {
   // もとの excitation_condition を SimNode に置き換える．

@@ -66,7 +66,7 @@ public:
   void
   initialize(
     const TpgNetwork& network, ///< [in] ネットワーク
-    TpgFaultMgr& fmgr,         ///< [in] 故障マネージャ
+    bool has_previous_state,   ///< [in] 1時刻前の値を持つ時 true にする．
     bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
   );
 
@@ -75,6 +75,18 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 故障を設定する関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief 対象の故障をセットする．
+  void
+  set_fault_list(
+    const vector<TpgFault>& fault_list ///< [in] 故障のリスト
+  );
+
+  /// @brief 対象の故障をセットする．
+  void
+  set_fault_list(
+    const TpgFaultList& fault_list ///< [in] 故障のリスト
+  );
 
   /// @brief 全ての故障にスキップマークをつける．
   void
@@ -171,13 +183,23 @@ public:
     const NodeValList& assign_list  ///< [in] 値の割当リスト
   );
 
+  /// @brief ppsfp で用いるコールバック関数の型定義
+  using cbtype = std::function<bool(Fsim&, SizeType, SizeType)>;
+
   /// @brief 複数のパタンで故障シミュレーションを行う．
   /// @return 検出された故障数を返す．
   ///
   /// 検出された故障は det_fault() で取得する．<br>
   /// 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
   SizeType
-  ppsfp();
+  ppsfp(
+    const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    cbtype callback                    ///< [in] 1回のシミュレーションごとに
+                                       ///<      呼び出される関数
+                                       ///<      2番目の引数はパタン数
+                                       ///<      3番目の引数は検出された故障数
+                                       ///<      false が返された時には処理を中断する．
+  );
 
 
 public:
@@ -225,29 +247,6 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // ppsfp のテストパタンを設定する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ppsfp 用のパタンバッファをクリアする．
-  void
-  clear_patterns();
-
-  /// @brief ppsfp 用のパタンを設定する．
-  void
-  set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-    const TestVector& tv ///< [in] テストベクタ
-  );
-
-  /// @brief 設定した ppsfp 用のパタンを読み出す．
-  TestVector
-  get_pattern(
-    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-  );
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
   // ppsfp の結果を取得する関数
   //////////////////////////////////////////////////////////////////////
 
@@ -274,6 +273,29 @@ public:
   /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
   const vector<PackedVal>&
   det_fault_pat_list();
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // ppsfp のテストパタンを設定する関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief ppsfp 用のパタンバッファをクリアする．
+  void
+  clear_patterns();
+
+  /// @brief ppsfp 用のパタンを設定する．
+  void
+  set_pattern(
+    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
+    const TestVector& tv ///< [in] テストベクタ
+  );
+
+  /// @brief 設定した ppsfp 用のパタンを読み出す．
+  TestVector
+  get_pattern(
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
+  );
 
 
 private:

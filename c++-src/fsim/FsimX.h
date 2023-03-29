@@ -40,8 +40,7 @@ public:
 
   /// @brief コンストラクタ
   FSIM_CLASSNAME (
-    const TpgNetwork& network, ///< [in] ネットワーク
-    TpgFaultMgr& fmgr          ///< [in] 故障マネージャ
+    const TpgNetwork& network ///< [in] ネットワーク
   );
 
   /// @brief デストラクタ
@@ -50,8 +49,14 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
+  // 故障を設定する関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief 対象の故障をセットする．
+  void
+  set_fault_list(
+    const vector<TpgFault>& fault_list ///< [in] 故障のリスト
+  ) override;
 
   /// @brief 全ての故障にスキップマークをつける．
   void
@@ -376,9 +381,8 @@ private:
   )
   {
     auto lobs = PV_ALL1;
-
     auto f_node = fault->origin_node();
-    for ( auto node = f_node; !node->ffr_root(); ) {
+    for ( auto node = f_node; !node->is_ffr_root(); ) {
       auto onode = node->fanout_top();
       auto pos = node->fanout_ipos();
       lobs &= onode->_calc_gobs(pos);
@@ -424,8 +428,8 @@ private:
     SimFault* f ///< [in] 故障
   )
   {
-    auto fid = f->id();
-    mDetFaultArray.push_back(fid);
+    auto tpg_f = f->tpg_fault();
+    mDetFaultArray.push_back(tpg_f);
     ++ mDetNum;
   }
 
@@ -436,9 +440,9 @@ private:
     SimFault* f    ///< [in] 故障
   )
   {
-    auto fid = f->id();
+    auto tpg_f = f->tpg_fault();
     auto pat1 = pat & mPatMap;
-    mDetFaultArray.push_back(fid);
+    mDetFaultArray.push_back(tpg_f);
     mDetPatArray.push_back(pat1);
     ++ mDetNum;
   }
@@ -505,9 +509,6 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障マネージャ
-  TpgFaultMgr& mFaultMgr;
-
   // 外部入力数
   SizeType mInputNum;
 
@@ -518,7 +519,7 @@ private:
   SizeType mDffNum;
 
   // 全ての SimNode を納めた配列
-  vector<SimNode*> mNodeArray;
+  vector<unique_ptr<SimNode>> mNodeArray;
 
   // PPIに対応する SimNode を納めた配列
   // サイズは mInputNum + mDffNum
@@ -531,6 +532,9 @@ private:
   // 入力からのトポロジカル順に並べた logic ノードの配列
   vector<SimNode*> mLogicArray;
 
+  // TpgNode のノード番号から SimNode を取り出す配列
+  vector<SimNode*> mSimNodeMap;
+
   // FFR 数
   SizeType mFFRNum;
 
@@ -538,8 +542,11 @@ private:
   // サイズは mFFRNum
   vector<SimFFR> mFFRArray;
 
+  // SimNode のノード番号をキーにして対応する SimFFR を格納する配列
+  vector<SimFFR*> mFFRMap;
+
   // パタンの設定状況を表すビットベクタ
-  PackedVal mPatMap;
+  PackedVal mPatMap{PV_ALL0};
 
   // mPatMap の最初の1のビット位置
   // 全て０の場合には PV_BITLEN が入る．
@@ -551,20 +558,16 @@ private:
   // イベントキュー
   EventQ mEventQ;
 
-  // 故障数
-  SizeType mFaultNum;
-
   // 全ての SimFault のリスト
-  vector<SimFault*> mFaultList;
+  vector<unique_ptr<SimFault>> mFaultList;
 
   // TpgFault::id() をキーとして SimFault を格納する配列
   vector<SimFault*> mFaultMap;
 
-  // 検出された故障番号を格納する配列
-  vector<SizeType> mDetFaultArray;
+  // 検出された故障を格納する配列
+  vector<TpgFault> mDetFaultArray;
 
   // 故障を検出するビットパタンを格納する配列
-  // サイズは常に mFaultNum
   vector<PackedVal> mDetPatArray;
 
   // 検出された故障数
