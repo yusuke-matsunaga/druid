@@ -186,6 +186,11 @@ public:
   );
 
   /// @brief ppsfp で用いるコールバック関数の型定義
+  ///
+  /// * 1番目の引数はパタン番号(tv_list中の位置)
+  /// * 2番目の引数はテストパタン
+  /// * 3番目の引数は検出された故障
+  /// * false が返された時には処理を中断する．
   using cbtype = std::function<bool(SizeType, TestVector, TpgFault)>;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
@@ -195,12 +200,7 @@ public:
   bool
   ppsfp(
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    cbtype callback                    ///< [in] 1回のシミュレーションごとに
-                                       ///<      呼び出される関数
-                                       ///<      1番目の引数はパタン番号(tv_list中の位置)
-                                       ///<      2番目の引数はテストパタン
-                                       ///<      3番目の引数は検出された故障
-                                       ///<      false が返された時には処理を中断する．
+    cbtype callback                    ///< [in] コールバック関数
   );
 
 
@@ -245,53 +245,6 @@ public:
 				///< - true : ゲートの出力の遷移回数に
 				///<          (ファンアウト数＋１)を掛けたものの和
   );
-
-#if 0
-private:
-  //////////////////////////////////////////////////////////////////////
-  // ppsfp のテストパタンを設定する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ppsfp の実際の処理を行う．
-  bool
-  _ppsfp(
-    SizeType index, ///< [in] パタン番号
-    cbtype callback ///< [in] コールバック関数
-  );
-
-  /// @brief ppsfp 用のパタンバッファをクリアする．
-  void
-  clear_patterns();
-
-  /// @brief ppsfp 用のパタンを設定する．
-  void
-  set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-    const TestVector& tv ///< [in] テストベクタ
-  );
-
-  /// @brief 設定した ppsfp 用のパタンを読み出す．
-  TestVector
-  get_pattern(
-    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-  );
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障数を返す．
-  SizeType
-  det_fault_num();
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-  TpgFault
-  det_fault(
-    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  );
-
-  /// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
-  PackedVal
-  det_fault_pat(
-    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  );
-#endif
 
 
 private:
