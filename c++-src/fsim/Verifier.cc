@@ -42,12 +42,9 @@ Verifier::check(
   mMarks.resize(max_fid, false);
 
   mFsim.set_fault_list(fault_list);
-  mFsim.ppsfp(tv_list, [&](Fsim& fsim, SizeType, SizeType n) -> bool {
-    for ( SizeType i = 0; i < n; ++ i ) {
-      auto fault = fsim.det_fault(i);
-      mMarks[fault.id()] = true;
-      fsim.set_skip(fault);
-    }
+  mFsim.ppsfp(tv_list, [&](SizeType index, TestVector, TpgFault f) -> bool {
+    mMarks[f.id()] = true;
+    mFsim.set_skip(f);
     return true;
   });
 

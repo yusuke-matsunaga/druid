@@ -78,6 +78,12 @@ public:
     const TpgFault& f ///< [in] 対象の故障
   ) override;
 
+  /// @brief 故障のスキップマークを得る．
+  bool
+  get_skip(
+    const TpgFault& f ///< [in] 対象の故障
+  ) const override;
+
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -329,12 +335,13 @@ private:
   _sppfp();
 
   /// @brief PPSFP故障シミュレーションの本体
-  /// @return 検出された故障数を返す．
-  ///
-  /// 検出された故障は det_fault() で取得する．<br>
-  /// 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
-  SizeType
-  _ppsfp();
+  /// @return callback() が false を返したら false を返す．
+  bool
+  _ppsfp(
+    SizeType base,  ///< [in] パタン番号の起点
+    SizeType npat,  ///< [in] パタン数
+    cbtype callback ///< [in] コールバック関数
+  );
 
   /// @brief 正常値の計算を行う．
   void

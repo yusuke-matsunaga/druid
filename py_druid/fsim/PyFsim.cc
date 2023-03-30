@@ -83,7 +83,7 @@ Fsim_initialize(
   PyObject* network_obj = nullptr;
   int i_prev_state = 0;
   int val_type = 0;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!bi",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!pi",
 				    const_cast<char**>(kwlist),
 				    PyTpgNetwork::_typeobject(), &network_obj,
 				    &i_prev_state, &val_type) ) {
@@ -106,6 +106,29 @@ Fsim_initialize(
   }
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
   fsim_obj->mPtr->initialize(network, prev_state, has_x);
+  Py_RETURN_NONE;
+}
+
+PyObject*
+Fsim_set_fault_list(
+  PyObject* self,
+  PyObject* args
+)
+{
+  PyObject* fault_list_obj = nullptr;
+  if ( PyArg_ParseTuple(args, "O!", PyList_Type, &fault_list_obj) ) {
+    return nullptr;
+  }
+
+  SizeType n = PyList_Size(fault_list_obj);
+  vector<TpgFault> fault_list(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto fault_obj = PyList_GetItem(fault_list_obj, i);
+    auto fault = PyTpgFault::Get(fault_obj);
+    fault_list[i] = fault;
+  }
+  auto fsim = PyFsim::Get(self);
+  fsim->set_fault_list(fault_list);
   Py_RETURN_NONE;
 }
 
@@ -240,8 +263,15 @@ Fsim_sppfp(
   }
   auto tv = PyTestVector::Get(obj1);
   auto fsim = PyFsim::Get(self);
-  SizeType n = fsim->sppfp(tv);
-  return PyLong_FromLong(n);
+  auto fault_list = fsim->sppfp(tv);
+  SizeType n = fault_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto f = fault_list[i];
+    auto f_obj = PyTpgFault::ToPyObject(f);
+    PyList_SetItem(ans_obj, i, f_obj);
+  }
+  return ans_obj;
 }
 
 PyObject*
@@ -273,9 +303,14 @@ Fsim_ppsfp(
     tv_list[i] = tv;
   }
   auto fsim = PyFsim::Get(self);
-  // 未完，コールバックを呼び出していない．
-  SizeType ans = fsim->ppsfp(tv_list, [&](Fsim&, SizeType, SizeType)->bool{ return true; });
-  return PyLong_FromLong(ans);
+  bool ans = fsim->ppsfp(tv_list, [&](SizeType index, TestVector tv, TpgFault f)->bool {
+    auto tv_obj = PyTestVector::ToPyObject(tv);
+    auto fault_obj = PyTpgFault::ToPyObject(f);
+    auto cb_args = Py_BuildValue("kOO", index, tv_obj, fault_obj);
+    auto ans_obj = PyObject_CallObject(callback_obj, cb_args);
+    return PyObject_IsTrue(ans_obj);
+  });
+  return PyBool_FromLong(ans);
 }
 
 PyObject*
@@ -285,15 +320,15 @@ Fsim_calc_wsa(
 )
 {
   PyObject* obj1 = nullptr;
-  bool weighted = false;
-  if ( !PyArg_ParseTuple(args, "O!i",
+  int weighted = false;
+  if ( !PyArg_ParseTuple(args, "O!p",
 			 PyInputVector::_typeobject(), &obj1,
 			 &weighted) ) {
     return nullptr;
   }
   auto iv = PyInputVector::Get(obj1);
   auto fsim = PyFsim::Get(self);
-  SizeType n = fsim->calc_wsa(iv, weighted);
+  SizeType n = fsim->calc_wsa(iv, static_cast<bool>(weighted));
   return PyLong_FromLong(n);
 }
 
@@ -332,89 +367,13 @@ Fsim_get_state(
   return Py_BuildValue("OO", obj1, obj2);
 }
 
-PyObject*
-Fsim_det_fault_num(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto fsim = PyFsim::Get(self);
-  SizeType n = fsim->det_fault_num();
-  return PyLong_FromLong(n);
-}
-
-PyObject*
-Fsim_det_fault(
-  PyObject* self,
-  PyObject* args
-)
-{
-  SizeType pos = 0;
-  if ( !PyArg_ParseTuple(args, "i", &pos) ) {
-    return nullptr;
-  }
-  auto fsim = PyFsim::Get(self);
-  auto f = fsim->det_fault(pos);
-  return PyTpgFault::ToPyObject(f);
-}
-
-PyObject*
-Fsim_det_fault_list(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto fsim = PyFsim::Get(self);
-  auto fault_list = fsim->det_fault_list();
-  SizeType n = fault_list.size();
-  auto ans_obj = PyList_New(n);
-  SizeType index = 0;
-  for ( auto f: fault_list ) {
-    auto obj1 = PyTpgFault::ToPyObject(f);
-    PyList_SET_ITEM(ans_obj, index, obj1);
-    ++ index;
-  }
-  return ans_obj;
-}
-
-PyObject*
-Fsim_det_fault_pat(
-  PyObject* self,
-  PyObject* args
-)
-{
-  SizeType pos = 0;
-  if ( !PyArg_ParseTuple(args, "i", &pos) ) {
-    return nullptr;
-  }
-  auto fsim = PyFsim::Get(self);
-  auto pat = fsim->det_fault_pat(pos);
-  return PyLong_FromLong(pat);
-}
-
-PyObject*
-Fsim_det_fault_pat_list(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto fsim = PyFsim::Get(self);
-  auto pat_list = fsim->det_fault_pat_list();
-  SizeType n = pat_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto pat = pat_list[i];
-    auto obj1 = PyLong_FromLong(pat);
-    PyList_SET_ITEM(ans_obj, i, obj1);
-  }
-  return ans_obj;
-}
-
 // メソッド定義
 PyMethodDef Fsim_methods[] = {
   {"initialize", reinterpret_cast<PyCFunction>(Fsim_initialize),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("initialize")},
+  {"set_fault_list", Fsim_set_fault_list, METH_VARARGS,
+   PyDoc_STR("set fault list")},
   {"set_skip_all", Fsim_set_skip_all, METH_NOARGS,
    PyDoc_STR("set skip mark for all fatuls")},
   {"set_skip", Fsim_set_skip, METH_VARARGS,
@@ -436,16 +395,6 @@ PyMethodDef Fsim_methods[] = {
    PyDoc_STR("set the internal state")},
   {"get_state", Fsim_get_state, METH_NOARGS,
    PyDoc_STR("get the internal state")},
-  {"det_fault_num", Fsim_det_fault_num, METH_NOARGS,
-   PyDoc_STR("return the number of detected faults")},
-  {"det_fault", Fsim_det_fault, METH_VARARGS,
-   PyDoc_STR("return the detected fault")},
-  {"det_fault_list", Fsim_det_fault_list, METH_NOARGS,
-   PyDoc_STR("return the list of all the detected faults")},
-  {"det_fault_pat", Fsim_det_fault_pat, METH_VARARGS,
-   PyDoc_STR("return the detecting pattern bits")},
-  {"det_fault_pat_list", Fsim_det_fault_pat_list, METH_NOARGS,
-   PyDoc_STR("return the list of the detecting pattern bits")},
   {nullptr, nullptr, 0, nullptr}
 };
 

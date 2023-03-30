@@ -64,6 +64,13 @@ public:
     const TpgFault& f ///< [in] 対象の故障
   ) = 0;
 
+  /// @brief 故障のスキップマークを得る．
+  virtual
+  bool
+  get_skip(
+    const TpgFault& f ///< [in] 対象の故障
+  ) const = 0;
+
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -105,6 +112,9 @@ public:
   sppfp(
     const NodeValList& assign_list ///< [in] 値の割当リスト
   ) = 0;
+
+  /// @brief ppsfp で用いるコールバック関数の型定義
+  using cbtype = std::function<bool(SizeType, TestVector, TpgFault)>;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   /// @return 全パタンシミュレーションした場合に true を返す．

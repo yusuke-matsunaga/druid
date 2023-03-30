@@ -77,11 +77,12 @@ sppfp_test(
   int nepat = 0;
   int i = 0;
   for ( auto tv: tv_list ) {
-    int n = fsim.sppfp(tv);
+    auto fault_list = fsim.sppfp(tv);
+    SizeType n = fault_list.size();
     if ( n > 0 ) {
       det_num += n;
       ++ nepat;
-      for ( auto f: fsim.det_fault_list() ) {
+      for ( auto f: fault_list ) {
 	fsim.set_skip(f);
 	print_fault(f, i);
       }
@@ -102,27 +103,17 @@ ppsfp_test(
   int nv = tv_list.size();
 
   SizeType nepat = 0;
-  SizeType det_num = fsim.ppsfp(tv_list, [&](Fsim& fsim, SizeType np, SizeType nf) -> bool {
-    PackedVal dpat_all = 0ULL;
-    for ( int j = 0; j < nf; ++ j ) {
-      auto f = fsim.det_fault(j);
-      PackedVal dpat = fsim.det_fault_pat(j);
+  SizeType det_num = 0;
+  unordered_set<SizeType> pat_dict;
+  fsim.ppsfp(tv_list, [&](SizeType index, TestVector tv, TpgFault f) -> bool {
+    if ( !fsim.get_skip(f) ) {
       fsim.set_skip(f);
-      // dpat の最初の1のビットを求める．
-      int first = 0;
-      for ( ; first < np; ++ first) {
-	if ( dpat & (1ULL << first) ) {
-	  break;
-	}
-      }
-      ASSERT_COND( first < np );
-      dpat_all |= (1ULL << first);
-      print_fault(f, j - np + first + 1);
-    }
-    for ( int i = 0; i < np; ++ i ) {
-      if ( dpat_all & (1ULL << i) ) {
+      ++ det_num;
+      if ( pat_dict.count(index) == 0 ) {
+	pat_dict.emplace(index);
 	++ nepat;
       }
+      print_fault(f, index);
     }
     return true;
   });
@@ -130,10 +121,6 @@ ppsfp_test(
 }
 
 // ランダムにテストパタンを生成する．
-// @param[in] rg 乱数発生器
-// @param[in] tvmgr テストベクタを管理するオブジェクト
-// @param[in] nv 生成するパタン数
-// @param[out] tv_list 生成されたパタンを格納するベクタ
 template<class URNG>
 void
 randgen(

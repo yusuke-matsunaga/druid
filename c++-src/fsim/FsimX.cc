@@ -295,6 +295,15 @@ FSIM_CLASSNAME::clear_skip(
   mFaultMap[f.id()]->set_skip(false);
 }
 
+// @brief 故障のスキップマークを得る．
+bool
+FSIM_CLASSNAME::get_skip(
+  const TpgFault& f
+) const
+{
+  return mFaultMap[f.id()]->skip();
+}
+
 // @brief SPSFP故障シミュレーションを行う．
 bool
 FSIM_CLASSNAME::spsfp(
@@ -358,26 +367,28 @@ FSIM_CLASSNAME::sppfp(
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-SizeType
+bool
 FSIM_CLASSNAME::ppsfp(
   const vector<TestVector>& tv_list,
   cbtype callback
 )
 {
-  SizeType base;
   for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
     auto tv = tv_list[index];
     auto lindex = index % PV_BITLEN;
     set_pattern(lindex, tv);
     if ( lindex == PV_BITLEN - 1 ) {
-
-      // 故障伝搬を行う．
-      return _ppsfp(callback);
+      SizeType base = index - lindex;
+      auto go_on = _ppsfp(base, PV_BITLEN, callback);
+      if ( !go_on ) {
+	return false;
+      }
     }
   }
   auto remainder = tv_list.size() % PV_BITLEN;
   if ( remainder > 0 ) {
-    return _ppsfp(callback);
+    SizeType base = (tv_list.size() / PV_BITLEN) * PV_BITLEN;
+    return _ppsfp(base, remainder, callback);
   }
   return true;
 }
@@ -507,8 +518,12 @@ FSIM_CLASSNAME::_sppfp()
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-SizeType
-FSIM_CLASSNAME::_ppsfp()
+bool
+FSIM_CLASSNAME::_ppsfp(
+  SizeType base,
+  SizeType npat,
+  cbtype callback
+)
 {
   Tv2InputVals iv{mPatMap, mPatBuff};
 
@@ -535,12 +550,22 @@ FSIM_CLASSNAME::_ppsfp()
     _fault_sweep(fault_list, obs);
 
     if ( mDetNum > 0 ) {
-      for ( SizeType i = 0; i < mDetNum; ++ i ) {
+      for ( SizeType i = 0; i < npat; ++ i ) {
+	auto tv = get_pattern(i);
+	for ( SizeType j = 0; j < mDetNum; ++ j ) {
+	  if ( mDetPatArray[j] & (1 << i ) ) {
+	    auto f = mDetFaultArray[j];
+	    auto go_on = callback(base + i, tv, f);
+	    if ( !go_on ) {
+	      return false;
+	    }
+	  }
+	}
       }
     }
   }
 
-  return mDetNum;
+  return true;
 }
 
 #if FSIM_BSIDE

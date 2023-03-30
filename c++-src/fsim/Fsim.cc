@@ -201,6 +201,15 @@ Fsim::clear_skip(
   }
 }
 
+// @brief 故障のスキップマークを得る．
+bool
+Fsim::get_skip(
+  const TpgFault& f
+) const
+{
+  return mImpl->get_skip(f);
+}
+
 // @brief SPSFP故障シミュレーションを行う．
 bool
 Fsim::spsfp(
@@ -247,24 +256,6 @@ Fsim::ppsfp(
 )
 {
   return mImpl->ppsfp(tv_list, callback);
-
-  SizeType index = 0;
-  for ( auto tv: tv_list ) {
-    set_pattern(index % PV_BITLEN, tv);
-    ++ index;
-    if ( index % PV_BITLEN == 0 ) {
-      auto nd1 = mImpl->ppsfp();
-      auto go_on = _ppsfp(index, callback);
-      clear_patterns();
-      if ( !go_on ) {
-	return false;
-      }
-    }
-  }
-  if ( index % PV_BITLEN != 0 ) {
-    _ppsfp(index, callback);
-  }
-  return true;
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
@@ -305,90 +296,6 @@ Fsim::calc_wsa(
 )
 {
   return mImpl->calc_wsa(i_vect, weighted);
-}
-
-/// @brief ppsfp の実際の処理を行う．
-bool
-Fsim::_ppsfp(
-  SizeType index,
-  cbtype callback
-)
-{
-  auto nd1 = mImpl->ppsfp();
-  if ( nd1 == 0 ) {
-    return true;
-  }
-  SizeType nb = index % PV_BITLEN;
-  if ( nb == 0 ) {
-    nb = PV_BITLEN;
-  }
-  SizeType base = index - nb;
-  for ( SizeType b = 0; b < nb; ++ b ) {
-    auto tv = get_pattern(b);
-    for ( SizeType i = 0; i < nd1; ++ i ) {
-      auto pbits = det_fault_pat(i);
-      if ( pbits & b ) {
-	auto f = det_fault(i);
-	auto go_on = callback(base + b, tv, f);
-	if ( !go_on ) {
-	  return false;
-	}
-      }
-    }
-  }
-  return true;
-}
-
-// @brief ppsfp 用のパタンバッファをクリアする．
-void
-Fsim::clear_patterns()
-{
-  mImpl->clear_patterns();
-}
-
-// @brief ppsfp 用のパタンを設定する．
-void
-Fsim::set_pattern(
-  SizeType pos,
-  const TestVector& tv
-)
-{
-  mImpl->set_pattern(pos, tv);
-}
-
-// @brief 設定した ppsfp 用のパタンを読み出す．
-TestVector
-Fsim::get_pattern(
-  SizeType pos
-)
-{
-  return mImpl->get_pattern(pos);
-}
-
-// @brief 直前の sppfp/ppsfp で検出された故障数を返す．
-SizeType
-Fsim::det_fault_num()
-{
-  return mImpl->det_fault_num();
-}
-
-// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-TpgFault
-Fsim::det_fault(
-  SizeType pos
-)
-{
-  return mImpl->det_fault(pos);
-}
-
-// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
-// @param[in] pos 位置番号 ( 0 <= pos < det_fault_num() )
-PackedVal
-Fsim::det_fault_pat(
-  SizeType pos
-)
-{
-  return mImpl->det_fault_pat(pos);
 }
 
 END_NAMESPACE_DRUID
