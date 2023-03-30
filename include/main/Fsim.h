@@ -184,7 +184,7 @@ public:
   );
 
   /// @brief ppsfp で用いるコールバック関数の型定義
-  using cbtype = std::function<bool(Fsim&, SizeType, SizeType)>;
+  using cbtype = std::function<bool(SizeType, TestVect, TpgFault)>;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   /// @return 検出された故障数を返す．
@@ -196,8 +196,9 @@ public:
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
     cbtype callback                    ///< [in] 1回のシミュレーションごとに
                                        ///<      呼び出される関数
-                                       ///<      2番目の引数はパタン数
-                                       ///<      3番目の引数は検出された故障数
+                                       ///<      1番目の引数はパタン番号(tv_list中の位置)
+                                       ///<      2番目の引数はテストパタン
+                                       ///<      3番目の引数は検出された故障
                                        ///<      false が返された時には処理を中断する．
   );
 
@@ -250,35 +251,17 @@ public:
   // ppsfp の結果を取得する関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 直前の sppfp/ppsfp で検出された故障数を返す．
-  SizeType
-  det_fault_num();
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-  TpgFault
-  det_fault(
-    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  );
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
-  vector<TpgFault>
-  det_fault_list();
-
-  /// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
-  PackedVal
-  det_fault_pat(
-    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  );
-
-  /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
-  const vector<PackedVal>&
-  det_fault_pat_list();
-
 
 private:
   //////////////////////////////////////////////////////////////////////
   // ppsfp のテストパタンを設定する関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief ppsfp の実際の処理を行う．
+  bool
+  _ppsfp(
+    SizeType index ///< [in] パタン番号
+  );
 
   /// @brief ppsfp 用のパタンバッファをクリアする．
   void
@@ -295,6 +278,22 @@ private:
   TestVector
   get_pattern(
     SizeType pos  ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
+  );
+
+  /// @brief 直前の sppfp/ppsfp で検出された故障数を返す．
+  SizeType
+  det_fault_num();
+
+  /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
+  TpgFault
+  det_fault(
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
+  );
+
+  /// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
+  PackedVal
+  det_fault_pat(
+    SizeType pos  ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
   );
 
 

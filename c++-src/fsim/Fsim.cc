@@ -249,22 +249,20 @@ Fsim::ppsfp(
   SizeType index = 0;
   SizeType nd = 0;
   for ( auto tv: tv_list ) {
-    set_pattern(index, tv);
+    set_pattern(index % PV_BITLEN, tv);
     ++ index;
-    if ( index == PV_BITLEN ) {
+    if ( index % PV_BITLEN == 0 ) {
       auto nd1 = mImpl->ppsfp();
-      auto go_on = callback(*this, index, nd1);
+      auto go_on = _ppsfp(index, callback);
       nd += nd1;
       clear_patterns();
-      index = 0;
       if ( !go_on ) {
-	break;
+	return nd;
       }
     }
   }
-  if ( index > 0 ) {
-    auto nd1 = mImpl->ppsfp();
-    callback(*this, index, nd1);
+  if ( index % PV_BITLEN != 0 ) {
+    _ppsfp(index, callback);
     nd += nd1;
   }
   return nd;
@@ -310,6 +308,38 @@ Fsim::calc_wsa(
   return mImpl->calc_wsa(i_vect, weighted);
 }
 
+/// @brief ppsfp の実際の処理を行う．
+bool
+Fsim::_ppsfp(
+  SizeType index,
+  cbtype callback
+)
+{
+  auto nd1 = mImpl->ppsfp();
+  if ( nd1 == 0 ) {
+    return true;
+  }
+  SizeType nb = index % PV_BITLEN;
+  if ( nb == 0 ) {
+    nb = PV_BITLEN;
+  }
+  SizeType base = index - nb;
+  for ( SizeType b = 0; b < nb; ++ b ) {
+    auto tv = get_pattern(b);
+    for ( SizeType i = 0; i < nd1; ++ i ) {
+      auto pbits = det_fault_pat(i);
+      if ( pbits & b ) {
+	auto f = det_fault(i);
+	auto go_on = callback(base + b, tv, f);
+	if ( !go_on ) {
+	  return false;
+	}
+      }
+    }
+  }
+  return true;
+}
+
 // @brief ppsfp 用のパタンバッファをクリアする．
 void
 Fsim::clear_patterns()
@@ -344,20 +374,12 @@ Fsim::det_fault_num()
 }
 
 // @brief 直前の sppfp/ppsfp で検出された故障を返す．
-// @param[in] pos 位置番号 ( 0 <= pos < det_fault_num() )
 TpgFault
 Fsim::det_fault(
   SizeType pos
 )
 {
   return mImpl->det_fault(pos);
-}
-
-// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
-vector<TpgFault>
-Fsim::det_fault_list()
-{
-  return mImpl->det_fault_list();
 }
 
 // @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
@@ -368,13 +390,6 @@ Fsim::det_fault_pat(
 )
 {
   return mImpl->det_fault_pat(pos);
-}
-
-// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
-const vector<PackedVal>&
-Fsim::det_fault_pat_list()
-{
-  return mImpl->det_fault_pat_list();
 }
 
 END_NAMESPACE_DRUID
