@@ -103,30 +103,33 @@ public:
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
-  ///
-  /// 検出された故障は det_fault() で取得する．
-  SizeType
+  /// @return 検出された故障のリストを返す．
+  vector<TpgFault>
   sppfp(
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
-  ///
-  /// 検出された故障は det_fault() で取得する．
-  SizeType
+  /// @return 検出された故障のリストを返す．
+  vector<TpgFault>
   sppfp(
     const NodeValList& assign_list ///< [in] 値の割当リスト
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
+  /// @return 全パタンシミュレーションした場合に true を返す．
   ///
-  /// 検出された故障は det_fault() で取得する．<br>
-  /// 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
-  SizeType
-  ppsfp() override;
+  /// callback 関数が false を返した場合にはこの関数も false を返す．
+  bool
+  ppsfp(
+    const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    cbtype callback                    ///< [in] 1回のシミュレーションごとに
+                                       ///<      呼び出される関数
+                                       ///<      1番目の引数はパタン番号(tv_list中の位置)
+                                       ///<      2番目の引数はテストパタン
+                                       ///<      3番目の引数は検出された故障
+                                       ///<      false が返された時には処理を中断する．
+  ) override;
 
 
 public:
@@ -321,8 +324,8 @@ private:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
-  /// @return 検出された故障数を返す．
-  SizeType
+  /// @return 検出された故障のリストを返す．
+  vector<TpgFault>
   _sppfp();
 
   /// @brief PPSFP故障シミュレーションの本体

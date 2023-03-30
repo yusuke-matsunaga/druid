@@ -166,32 +166,27 @@ public:
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
-  ///
-  /// 検出された故障は det_fault() で取得する．
-  SizeType
+  /// @return 検出された故障のリストを返す．
+  vector<TpgFault>
   sppfp(
     const TestVector& tv  ///< [in] テストベクタ
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
-  ///
-  /// 検出された故障は det_fault() で取得する．
-  SizeType
+  /// @return 検出された故障のリストを返す．
+  vector<TpgFault>
   sppfp(
     const NodeValList& assign_list  ///< [in] 値の割当リスト
   );
 
   /// @brief ppsfp で用いるコールバック関数の型定義
-  using cbtype = std::function<bool(SizeType, TestVect, TpgFault)>;
+  using cbtype = std::function<bool(SizeType, TestVector, TpgFault)>;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
+  /// @return 全パタンシミュレーションした場合に true を返す．
   ///
-  /// 検出された故障は det_fault() で取得する．<br>
-  /// 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
-  SizeType
+  /// callback 関数が false を返した場合にはこの関数も false を返す．
+  bool
   ppsfp(
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
     cbtype callback                    ///< [in] 1回のシミュレーションごとに
@@ -260,7 +255,8 @@ private:
   /// @brief ppsfp の実際の処理を行う．
   bool
   _ppsfp(
-    SizeType index ///< [in] パタン番号
+    SizeType index, ///< [in] パタン番号
+    cbtype callback ///< [in] コールバック関数
   );
 
   /// @brief ppsfp 用のパタンバッファをクリアする．

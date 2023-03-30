@@ -328,7 +328,7 @@ FSIM_CLASSNAME::spsfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-SizeType
+vector<TpgFault>
 FSIM_CLASSNAME::sppfp(
   const TestVector& tv
 )
@@ -343,7 +343,7 @@ FSIM_CLASSNAME::sppfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-SizeType
+vector<TpgFault>
 FSIM_CLASSNAME::sppfp(
   const NodeValList& assign_list
 )
@@ -359,22 +359,27 @@ FSIM_CLASSNAME::sppfp(
 
 // @brief 複数のパタンで故障シミュレーションを行う．
 SizeType
-FSIM_CLASSNAME::ppsfp()
+FSIM_CLASSNAME::ppsfp(
+  const vector<TestVector>& tv_list,
+  cbtype callback
+)
 {
-  clear_det_array();
+  SizeType base;
+  for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
+    auto tv = tv_list[index];
+    auto lindex = index % PV_BITLEN;
+    set_pattern(lindex, tv);
+    if ( lindex == PV_BITLEN - 1 ) {
 
-  if ( mPatMap == PV_ALL0 ) {
-    // パタンが一つも設定されていない．
-    return 0;
+      // 故障伝搬を行う．
+      return _ppsfp(callback);
+    }
   }
-
-  Tv2InputVals iv{mPatMap, mPatBuff};
-
-  // 正常値の計算を行う．
-  _calc_gval(iv);
-
-  // 故障伝搬を行う．
-  return _ppsfp();
+  auto remainder = tv_list.size() % PV_BITLEN;
+  if ( remainder > 0 ) {
+    return _ppsfp(callback);
+  }
+  return true;
 }
 
 // @brief ppsfp 用のパタンバッファをクリアする．
@@ -458,7 +463,7 @@ FSIM_CLASSNAME::_spsfp(
 }
 
 // @brief SPPFP故障シミュレーションの本体
-SizeType
+vector<TpgFault>
 FSIM_CLASSNAME::_sppfp()
 {
   clear_det_array();
@@ -498,13 +503,18 @@ FSIM_CLASSNAME::_sppfp()
     _do_simulation(ffr_buff, bitpos);
   }
 
-  return mDetNum;
+  return mDetFaultArray;
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
 SizeType
 FSIM_CLASSNAME::_ppsfp()
 {
+  Tv2InputVals iv{mPatMap, mPatBuff};
+
+  // 正常値の計算を行う．
+  _calc_gval(iv);
+
   // FFR ごとに処理を行う．
   clear_det_array();
   for ( auto& ffr: _ffr_list() ) {
@@ -523,6 +533,11 @@ FSIM_CLASSNAME::_ppsfp()
     auto obs = _prop_sim(ffr.root(), ffr_req);
 
     _fault_sweep(fault_list, obs);
+
+    if ( mDetNum > 0 ) {
+      for ( SizeType i = 0; i < mDetNum; ++ i ) {
+      }
+    }
   }
 
   return mDetNum;

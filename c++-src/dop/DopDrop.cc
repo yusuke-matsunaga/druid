@@ -52,8 +52,8 @@ DopDrop::operator()(
 )
 {
   mFsim.set_skip(f);
-  SizeType n = mFsim.sppfp(tv); // n は未使用
-  for ( auto f: mFsim.det_fault_list() ) {
+  auto fault_list = mFsim.sppfp(tv); // n は未使用
+  for ( auto f: fault_list ) {
     ASSERT_COND( mFaultMgr.get_status(f) != FaultStatus::Untestable );
 
     mFaultMgr.set_status(f, FaultStatus::Detected);

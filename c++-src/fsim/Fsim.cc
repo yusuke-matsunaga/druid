@@ -222,7 +222,7 @@ Fsim::spsfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-SizeType
+vector<TpgFault>
 Fsim::sppfp(
   const TestVector& tv
 )
@@ -231,7 +231,7 @@ Fsim::sppfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-SizeType
+vector<TpgFault>
 Fsim::sppfp(
   const NodeValList& assign_list
 )
@@ -240,32 +240,31 @@ Fsim::sppfp(
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-SizeType
+bool
 Fsim::ppsfp(
   const vector<TestVector>& tv_list,
   cbtype callback
 )
 {
+  return mImpl->ppsfp(tv_list, callback);
+
   SizeType index = 0;
-  SizeType nd = 0;
   for ( auto tv: tv_list ) {
     set_pattern(index % PV_BITLEN, tv);
     ++ index;
     if ( index % PV_BITLEN == 0 ) {
       auto nd1 = mImpl->ppsfp();
       auto go_on = _ppsfp(index, callback);
-      nd += nd1;
       clear_patterns();
       if ( !go_on ) {
-	return nd;
+	return false;
       }
     }
   }
   if ( index % PV_BITLEN != 0 ) {
     _ppsfp(index, callback);
-    nd += nd1;
   }
-  return nd;
+  return true;
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．

@@ -91,33 +91,36 @@ public:
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
-  ///
-  /// 検出された故障は det_fault() で取得する．
+  /// @return 検出された故障のリストを返す．
   virtual
-  SizeType
+  vector<TpgFault>
   sppfp(
     const TestVector& tv ///< [in] テストベクタ
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
-  ///
-  /// 検出された故障は det_fault() で取得する．
+  /// @return 検出された故障のリストを返す．
   virtual
-  SizeType
+  vector<TpgFault>
   sppfp(
     const NodeValList& assign_list ///< [in] 値の割当リスト
   ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 検出された故障数を返す．
+  /// @return 全パタンシミュレーションした場合に true を返す．
   ///
-  /// 検出された故障は det_fault() で取得する．<br>
-  /// 最低1つのパタンが set_pattern() で設定されている必要がある．<br>
+  /// callback 関数が false を返した場合にはこの関数も false を返す．
   virtual
-  SizeType
-  ppsfp() = 0;
+  bool
+  ppsfp(
+    const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    cbtype callback                    ///< [in] 1回のシミュレーションごとに
+                                       ///<      呼び出される関数
+                                       ///<      1番目の引数はパタン番号(tv_list中の位置)
+                                       ///<      2番目の引数はテストパタン
+                                       ///<      3番目の引数は検出された故障
+                                       ///<      false が返された時には処理を中断する．
+  ) = 0;
 
 
 public:
