@@ -127,6 +127,15 @@ public:
     return mNum;
   }
 
+  /// @brief 要素にアクセスする．
+  TpgMFFC
+  operator[](
+    SizeType index ///< [in] インデックス
+  ) const
+  {
+    return TpgMFFC{mNetwork, index};
+  }
+
   /// @brief 先頭の反復子を返す．
   iterator
   begin() const

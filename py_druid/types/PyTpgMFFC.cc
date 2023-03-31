@@ -139,6 +139,38 @@ PyTpgMFFC::ToPyObject(
   return obj;
 }
 
+// @brief TpgMFFC のリストを表す PyObject を作る．
+PyObject*
+PyTpgMFFC::ToPyList(
+  const vector<TpgMFFC>& val_list
+)
+{
+  SizeType n = val_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto mffc = val_list[i];
+    auto mffc_obj = ToPyObject(mffc);
+    PyList_SET_ITEM(ans_obj, i, mffc_obj);
+  }
+  return ans_obj;
+}
+
+// @brief TpgMFFC のリストを表す PyObject を作る．
+PyObject*
+PyTpgMFFC::ToPyList(
+  const TpgMFFCList& val_list
+)
+{
+  SizeType n = val_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto mffc = val_list[i];
+    auto mffc_obj = ToPyObject(mffc);
+    PyList_SET_ITEM(ans_obj, i, mffc_obj);
+  }
+  return ans_obj;
+}
+
 // @brief PyObject が TpgMFFC タイプか調べる．
 bool
 PyTpgMFFC::Check(

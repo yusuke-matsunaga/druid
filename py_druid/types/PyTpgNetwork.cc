@@ -223,14 +223,8 @@ TpgNetwork_mffc_list(
 )
 {
   auto& network = PyTpgNetwork::Get(self);
-  SizeType n = network.mffc_num();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto mffc = network.mffc(i);
-    auto obj1 = PyTpgMFFC::ToPyObject(mffc);
-    PyList_SET_ITEM(ans_obj, i, obj1);
-  }
-  return ans_obj;
+  auto mffc_list = network.mffc_list();
+  return PyTpgMFFC::ToPyList(mffc_list);
 }
 
 PyObject*
@@ -240,14 +234,8 @@ TpgNetwork_ffr_list(
 )
 {
   auto& network = PyTpgNetwork::Get(self);
-  SizeType n = network.ffr_num();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto ffr = network.ffr(i);
-    auto obj1 = PyTpgFFR::ToPyObject(ffr);
-    PyList_SET_ITEM(ans_obj, i, obj1);
-  }
-  return ans_obj;
+  auto ffr_list = network.ffr_list();
+  return PyTpgFFR::ToPyList(ffr_list);
 }
 
 // get/set 関数定義

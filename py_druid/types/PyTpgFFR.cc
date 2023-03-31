@@ -139,6 +139,38 @@ PyTpgFFR::ToPyObject(
   return obj;
 }
 
+// @brief TpgFFR のリストを表す PyObject を作る．
+PyObject*
+PyTpgFFR::ToPyList(
+  const vector<TpgFFR>& val_list
+)
+{
+  SizeType n = val_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto ffr = val_list[i];
+    auto ffr_obj = ToPyObject(ffr);
+    PyList_SET_ITEM(ans_obj, i, ffr_obj);
+  }
+  return ans_obj;
+}
+
+// @brief TpgFFR のリストを表す PyObject を作る．
+PyObject*
+PyTpgFFR::ToPyList(
+  const TpgFFRList& val_list
+)
+{
+  SizeType n = val_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto ffr = val_list[i];
+    auto ffr_obj = ToPyObject(ffr);
+    PyList_SET_ITEM(ans_obj, i, ffr_obj);
+  }
+  return ans_obj;
+}
+
 // @brief PyObject が TpgFFR タイプか調べる．
 bool
 PyTpgFFR::Check(

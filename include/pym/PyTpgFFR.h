@@ -12,6 +12,7 @@
 #include <Python.h>
 
 #include "TpgFFR.h"
+#include "TpgFFRList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -42,6 +43,26 @@ public:
   PyObject*
   ToPyObject(
     const TpgFFR& val ///< [in] 値
+  );
+
+  /// @brief TpgFFR のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const vector<TpgFFR>& val_list ///< [in] 値のリスト
+  );
+
+  /// @brief TpgFFR のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const TpgFFRList& val_list ///< [in] 値のリスト
   );
 
   /// @brief PyObject が TpgFFR タイプか調べる．
