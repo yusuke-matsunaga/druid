@@ -266,11 +266,10 @@ Fsim_sppfp(
   auto fault_list = fsim->sppfp(tv);
   SizeType n = fault_list.size();
   auto ans_obj = PyList_New(n);
-  Py_IncRef(ans_obj);
   for ( SizeType i = 0; i < n; ++ i ) {
     auto f = fault_list[i];
     auto f_obj = PyTpgFault::ToPyObject(f);
-    PyList_SetItem(ans_obj, i, f_obj);
+    PyList_SET_ITEM(ans_obj, i, f_obj);
   }
   return ans_obj;
 }

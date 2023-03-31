@@ -228,7 +228,7 @@ TpgNetwork_mffc_list(
   for ( SizeType i = 0; i < n; ++ i ) {
     auto mffc = network.mffc(i);
     auto obj1 = PyTpgMFFC::ToPyObject(mffc);
-    PyList_SetItem(ans_obj, i, obj1);
+    PyList_SET_ITEM(ans_obj, i, obj1);
   }
   return ans_obj;
 }
@@ -245,32 +245,10 @@ TpgNetwork_ffr_list(
   for ( SizeType i = 0; i < n; ++ i ) {
     auto ffr = network.ffr(i);
     auto obj1 = PyTpgFFR::ToPyObject(ffr);
-    PyList_SetItem(ans_obj, i, obj1);
+    PyList_SET_ITEM(ans_obj, i, obj1);
   }
   return ans_obj;
 }
-
-#if 0
-PyObject*
-TpgNetwork_rep_fault_list(
-  PyObject* self,
-  void* Py_UNUSED(closure)
-)
-{
-  auto& network = PyTpgNetwork::Get(self);
-  auto& fault_list = network.rep_fault_list();
-  SizeType n = fault_list.size();
-  auto ans_obj = PyList_New(n);
-  Py_IncRef(ans_obj);
-  SizeType index = 0;
-  for ( auto fault: fault_list ) {
-    auto fault_obj = PyTpgFault::ToPyObject(fault);
-    PyList_SET_ITEM(ans_obj, index, fault_obj);
-    ++ index;
-  }
-  return ans_obj;
-}
-#endif
 
 // get/set 関数定義
 PyGetSetDef TpgNetwork_getset[] = {
@@ -284,10 +262,6 @@ PyGetSetDef TpgNetwork_getset[] = {
   {"dff_num", TpgNetwork_dff_num, nullptr, PyDoc_STR("# of D-FFs"), nullptr},
   {"mffc_list", TpgNetwork_mffc_list, nullptr, PyDoc_STR("list for all MFFCs"), nullptr},
   {"ffr_list", TpgNetwork_ffr_list, nullptr, PyDoc_STR("list for all FFRs"), nullptr},
-#if 0
-  {"rep_fault_list", TpgNetwork_rep_fault_list, nullptr,
-   PyDoc_STR("list for all representative faults"), nullptr},
-#endif
   {nullptr, nullptr, nullptr, nullptr, nullptr},
 };
 

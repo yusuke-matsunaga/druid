@@ -112,14 +112,13 @@ assign_list_to_pyobj(
   if ( !ans_obj ) {
     return nullptr;
   }
-  Py_INCREF(ans_obj);
   SizeType index = 0;
   for ( auto nodeval: assign_list ) {
     auto node = nodeval.node();
     int time = nodeval.time();
     bool val = nodeval.val();
     auto nodeval_obj = Py_BuildValue("(Oib)", node, time, val);
-    PyList_SetItem(ans_obj, index, nodeval_obj);
+    PyList_SET_ITEM(ans_obj, index, nodeval_obj);
     ++ index;
   }
   return ans_obj;

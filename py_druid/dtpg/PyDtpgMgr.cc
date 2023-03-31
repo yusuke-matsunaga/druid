@@ -229,7 +229,7 @@ DtpgMgr_tv_list(
   for ( SizeType i = 0; i < n; ++ i ) {
     auto& tv = tv_list[i];
     auto obj1 = PyTestVector::ToPyObject(tv);
-    PyList_SetItem(ans_obj, i, obj1);
+    PyList_SET_ITEM(ans_obj, i, obj1);
   }
   return ans_obj;
 }
