@@ -116,7 +116,7 @@ Fsim_set_fault_list(
 )
 {
   PyObject* fault_list_obj = nullptr;
-  if ( PyArg_ParseTuple(args, "O!", PyList_Type, &fault_list_obj) ) {
+  if ( !PyArg_ParseTuple(args, "O!", &PyList_Type, &fault_list_obj) ) {
     return nullptr;
   }
 
@@ -266,6 +266,7 @@ Fsim_sppfp(
   auto fault_list = fsim->sppfp(tv);
   SizeType n = fault_list.size();
   auto ans_obj = PyList_New(n);
+  Py_IncRef(ans_obj);
   for ( SizeType i = 0; i < n; ++ i ) {
     auto f = fault_list[i];
     auto f_obj = PyTpgFault::ToPyObject(f);
@@ -288,11 +289,15 @@ Fsim_ppsfp(
   };
   PyObject* tv_list_obj = nullptr;
   PyObject* callback_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O",
 				    const_cast<char**>(kwlist),
-				    PyList_Type, &tv_list_obj,
-				    PyFunction_Type, &callback_obj) ) {
+				    &PyList_Type, &tv_list_obj,
+				    &callback_obj) ) {
     return nullptr;
+  }
+  if ( !PyCallable_Check(callback_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "2nd parameter must be callable");
+    return NULL;
   }
 
   SizeType n = PyList_Size(tv_list_obj);
@@ -303,13 +308,24 @@ Fsim_ppsfp(
     tv_list[i] = tv;
   }
   auto fsim = PyFsim::Get(self);
+  bool ng = false;
   bool ans = fsim->ppsfp(tv_list, [&](SizeType index, TestVector tv, TpgFault f)->bool {
     auto tv_obj = PyTestVector::ToPyObject(tv);
     auto fault_obj = PyTpgFault::ToPyObject(f);
     auto cb_args = Py_BuildValue("kOO", index, tv_obj, fault_obj);
     auto ans_obj = PyObject_CallObject(callback_obj, cb_args);
-    return PyObject_IsTrue(ans_obj);
+    Py_DECREF(cb_args);
+    if ( ans_obj == nullptr ) {
+      ng = true;
+      return false;
+    }
+    auto ans = PyObject_IsTrue(ans_obj);
+    Py_DECREF(ans_obj);
+    return ans;
   });
+  if ( ng ) {
+    return nullptr;
+  }
   return PyBool_FromLong(ans);
 }
 

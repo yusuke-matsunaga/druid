@@ -131,6 +131,17 @@ TpgFaultMgr_fault_list(
 }
 
 PyObject*
+TpgFaultMgr_rep_fault_list(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto& fmgr = PyTpgFaultMgr::Get(self);
+  auto fault_list = fmgr.rep_fault_list();
+  return fault_list_to_pyobj(fault_list);
+}
+
+PyObject*
 TpgFaultMgr_node_fault_list(
   PyObject* self,
   PyObject* args
@@ -231,6 +242,18 @@ PyMethodDef TpgFaultMgr_methods[] = {
   {"gen_fault_list", reinterpret_cast<PyCFunction>(TpgFaultMgr_gen_fault_list),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("generate faults list")},
+  {"fault_type", TpgFaultMgr_fault_type, METH_NOARGS,
+   PyDoc_STR("FaultType")},
+  {"fault_list", TpgFaultMgr_fault_list, METH_NOARGS,
+   PyDoc_STR("list of all faults")},
+  {"rep_fault_list", TpgFaultMgr_rep_fault_list, METH_NOARGS,
+   PyDoc_STR("list of all representative faults")},
+  {"node_fault_list", TpgFaultMgr_node_fault_list, METH_VARARGS,
+   PyDoc_STR("list of all faults of the specified node")},
+  {"ffr_fault_list", TpgFaultMgr_ffr_fault_list, METH_VARARGS,
+   PyDoc_STR("list of all faults of the specified FFR")},
+  {"mffc_fault_list", TpgFaultMgr_mffc_fault_list, METH_VARARGS,
+   PyDoc_STR("list of all faults of the specified MFFC")},
   {"set_status", TpgFaultMgr_set, METH_VARARGS,
    PyDoc_STR("set fault status")},
   {"get_status", TpgFaultMgr_get, METH_VARARGS,
