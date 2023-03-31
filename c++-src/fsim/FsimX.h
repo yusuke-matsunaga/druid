@@ -189,70 +189,6 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // ppsfp のテストパタンを設定する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ppsfp 用のパタンバッファをクリアする．
-  void
-  clear_patterns() override;
-
-  /// @brief ppsfp 用のパタンを設定する．
-  void
-  set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-    const TestVector& tv ///< [in] テストベクタ
-  ) override;
-
-  /// @brief 設定した ppsfp 用のパタンを読み出す．
-  TestVector
-  get_pattern(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-  ) override;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // ppsfp の結果を取得する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障数を返す．
-  SizeType
-  det_fault_num() override
-  {
-    return mDetNum;
-  }
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-  TpgFault
-  det_fault(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  ) override;
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
-  vector<TpgFault>
-  det_fault_list() override;
-
-  /// @brief 直前の ppsfp で検出された故障に対する検出パタンを返す．
-  PackedVal
-  det_fault_pat(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  ) override
-  {
-    ASSERT_COND( pos >= 0 && pos < det_fault_num() );
-
-    return mDetPatArray[pos];
-  }
-
-  /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
-  const vector<PackedVal>&
-  det_fault_pat_list() override
-  {
-    return mDetPatArray;
-  }
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
   // 内部のデータ構造にアクセスする関数
   // InputVals が用いる．
   //////////////////////////////////////////////////////////////////////
@@ -326,13 +262,16 @@ private:
   /// @retval false 故障の検出が行えなかった．
   bool
   _spsfp(
-    const TpgFault& f ///< [in] 対象の故障
+    const InputVals& iv, ///< [in] 入力値
+    const TpgFault& f    ///< [in] 対象の故障
   );
 
   /// @brief SPPFP故障シミュレーションの本体
   /// @return 検出された故障のリストを返す．
   vector<TpgFault>
-  _sppfp();
+  _sppfp(
+    const InputVals& iv ///< [in] 入力値
+  );
 
   /// @brief PPSFP故障シミュレーションの本体
   /// @return callback() が false を返したら false を返す．
@@ -384,24 +323,6 @@ private:
     return obs;
   }
 
-  /// @brief FFR内の伝搬条件を求める．
-  PackedVal
-  _ffr_prop(
-    SimFault* fault ///< [in] 対象の故障
-  )
-  {
-    auto lobs = PV_ALL1;
-    auto f_node = fault->origin_node();
-    for ( auto node = f_node; !node->is_ffr_root(); ) {
-      auto onode = node->fanout_top();
-      auto pos = node->fanout_ipos();
-      lobs &= onode->_calc_gobs(pos);
-      node = onode;
-    }
-
-    return lobs;
-  }
-
   /// @brief FFR内の故障シミュレーションを行う．
   PackedVal
   _fault_prop(
@@ -412,49 +333,22 @@ private:
     auto cval = fault->excitation_condition();
 
     // FFR 内の故障伝搬を行う．
-    auto lobs = cval & _ffr_prop(fault);
+    auto lobs = PV_ALL1;
+    auto f_node = fault->origin_node();
+    for ( auto node = f_node; !node->is_ffr_root(); ) {
+      auto onode = node->fanout_top();
+      auto pos = node->fanout_ipos();
+      lobs &= onode->_calc_gobs(pos);
+      node = onode;
+    }
 
 #if FSIM_BSIDE
     // 1時刻前の条件を求める．
     auto pval = fault->previous_condition();
-    lobs &= pval;
+    return cval & pval & lobs;
+#else
+    return cval & lobs;
 #endif
-
-    return lobs;
-  }
-
-  /// @brief 結果の配列をクリアする．
-  void
-  clear_det_array()
-  {
-    mDetFaultArray.clear();
-    mDetPatArray.clear();
-    mDetNum = 0;
-  }
-
-  /// @brief 結果を追加する(sppfp用)．
-  void
-  add_det_array(
-    SimFault* f ///< [in] 故障
-  )
-  {
-    auto tpg_f = f->tpg_fault();
-    mDetFaultArray.push_back(tpg_f);
-    ++ mDetNum;
-  }
-
-  /// @brief 結果を追加する(pppfp用)．
-  void
-  add_det_array(
-    PackedVal pat, ///< [in] パタン
-    SimFault* f    ///< [in] 故障
-  )
-  {
-    auto tpg_f = f->tpg_fault();
-    auto pat1 = pat & mPatMap;
-    mDetFaultArray.push_back(tpg_f);
-    mDetPatArray.push_back(pat1);
-    ++ mDetNum;
   }
 
   /// @brief 個々の故障の故障伝搬条件を計算する．
@@ -477,12 +371,48 @@ private:
     const vector<SimFault*>& fault_list ///< [in] 故障のリスト
   );
 
-  /// @brief 故障をスキャンして結果をセットする(ppsfp用)
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // ppsfp のテストパタンを設定する関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief ppsfp 用のパタンバッファをクリアする．
   void
-  _fault_sweep(
-    const vector<SimFault*>& fault_list, ///< [in] 故障のリスト
-    PackedVal pat                        ///< [in] 検出パタン
-  );
+  clear_patterns()
+  {
+    mPatMap = PV_ALL0;
+    mPatFirstBit = PV_BITLEN;
+  }
+
+  /// @brief ppsfp 用のパタンを設定する．
+  void
+  set_pattern(
+    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
+    const TestVector& tv ///< [in] テストベクタ
+  )
+  {
+    ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
+
+    mPatBuff[pos] = tv;
+    mPatMap |= (1ULL << pos);
+
+    if ( mPatFirstBit > pos ) {
+      mPatFirstBit = pos;
+    }
+  }
+
+  /// @brief 設定した ppsfp 用のパタンを読み出す．
+  TestVector
+  get_pattern(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
+  )
+  {
+    ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
+    ASSERT_COND ( mPatMap & (1ULL << pos) );
+
+    return mPatBuff[pos];
+  }
 
 
 private:
@@ -576,9 +506,6 @@ private:
 
   // 検出された故障を格納する配列
   vector<TpgFault> mDetFaultArray;
-
-  // 故障を検出するビットパタンを格納する配列
-  vector<PackedVal> mDetPatArray;
 
   // 検出された故障数
   SizeType mDetNum;

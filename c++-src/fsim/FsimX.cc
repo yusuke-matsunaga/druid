@@ -241,11 +241,9 @@ FSIM_CLASSNAME::set_fault_list(
   mFaultList.clear();
   mFaultMap.clear();
   mDetFaultArray.clear();
-  mDetPatArray.clear();
   mFaultList.reserve(nf);
   mFaultMap.resize(max_fid, nullptr);
   mDetFaultArray.reserve(nf);
-  mDetPatArray.reserve(nf);
 
   for ( auto fault: fault_list ) {
     auto tpgnode = fault.origin_node();
@@ -313,11 +311,8 @@ FSIM_CLASSNAME::spsfp(
 {
   TvInputVals iv{tv};
 
-  // 正常値の計算を行う．
-  _calc_gval(iv);
-
   // 故障伝搬を行う．
-  return _spsfp(f);
+  return _spsfp(iv, f);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -329,11 +324,8 @@ FSIM_CLASSNAME::spsfp(
 {
   NvlInputVals iv{assign_list};
 
-  // 正常値の計算を行う．
-  _calc_gval(iv);
-
   // 故障伝搬を行う．
-  return _spsfp(f);
+  return _spsfp(iv, f);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -344,11 +336,8 @@ FSIM_CLASSNAME::sppfp(
 {
   TvInputVals iv{tv};
 
-  // 正常値の計算を行う．
-  _calc_gval(iv);
-
   // 故障伝搬を行う．
-  return _sppfp();
+  return _sppfp(iv);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -359,11 +348,8 @@ FSIM_CLASSNAME::sppfp(
 {
   NvlInputVals iv{assign_list};
 
-  // 正常値の計算を行う．
-  _calc_gval(iv);
-
   // 故障伝搬を行う．
-  return _sppfp();
+  return _sppfp(iv);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
@@ -373,6 +359,7 @@ FSIM_CLASSNAME::ppsfp(
   cbtype callback
 )
 {
+  clear_patterns();
   for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
     auto tv = tv_list[index];
     auto lindex = index % PV_BITLEN;
@@ -383,6 +370,7 @@ FSIM_CLASSNAME::ppsfp(
       if ( !go_on ) {
 	return false;
       }
+      clear_patterns();
     }
   }
   auto remainder = tv_list.size() % PV_BITLEN;
@@ -393,67 +381,16 @@ FSIM_CLASSNAME::ppsfp(
   return true;
 }
 
-// @brief ppsfp 用のパタンバッファをクリアする．
-void
-FSIM_CLASSNAME::clear_patterns()
-{
-  mPatMap = PV_ALL0;
-  mPatFirstBit = PV_BITLEN;
-}
-
-// @brief ppsfp 用のパタンを設定する．
-void
-FSIM_CLASSNAME::set_pattern(
-  SizeType pos,
-  const TestVector& tv
-)
-{
-  ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
-
-  mPatBuff[pos] = tv;
-  mPatMap |= (1ULL << pos);
-
-  if ( mPatFirstBit > pos ) {
-    mPatFirstBit = pos;
-  }
-}
-
-// @brief 設定した ppsfp 用のパタンを読み出す．
-TestVector
-FSIM_CLASSNAME::get_pattern(
-  SizeType pos
-)
-{
-  ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
-  ASSERT_COND ( mPatMap & (1ULL << pos) );
-
-  return mPatBuff[pos];
-}
-
-// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-TpgFault
-FSIM_CLASSNAME::det_fault(
-  SizeType pos
-)
-{
-  ASSERT_COND( pos >= 0 && pos < det_fault_num() );
-
-  return mDetFaultArray[pos];
-}
-
-// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
-vector<TpgFault>
-FSIM_CLASSNAME::det_fault_list()
-{
-  return mDetFaultArray;
-}
-
 // @brief SPSFP故障シミュレーションの本体
 bool
 FSIM_CLASSNAME::_spsfp(
+  const InputVals& iv,
   const TpgFault& f
 )
 {
+  // 正常値の計算を行う．
+  _calc_gval(iv);
+
   auto ff = mFaultMap[f.id()];
 
   // FFR の根までの伝搬条件を求める．
@@ -475,9 +412,14 @@ FSIM_CLASSNAME::_spsfp(
 
 // @brief SPPFP故障シミュレーションの本体
 vector<TpgFault>
-FSIM_CLASSNAME::_sppfp()
+FSIM_CLASSNAME::_sppfp(
+  const InputVals& iv
+)
 {
-  clear_det_array();
+  mDetFaultArray.clear();
+
+  // 正常値の計算を行う．
+  _calc_gval(iv);
 
   const SimFFR* ffr_buff[PV_BITLEN];
   auto bitpos = 0;
@@ -531,7 +473,6 @@ FSIM_CLASSNAME::_ppsfp(
   _calc_gval(iv);
 
   // FFR ごとに処理を行う．
-  clear_det_array();
   for ( auto& ffr: _ffr_list() ) {
     auto& fault_list = ffr.fault_list();
     // FFR 内の故障伝搬を行う．
@@ -546,18 +487,22 @@ FSIM_CLASSNAME::_ppsfp(
 
     // FFR の出力の故障伝搬を行う．
     auto obs = _prop_sim(ffr.root(), ffr_req);
-
-    _fault_sweep(fault_list, obs);
-
-    if ( mDetNum > 0 ) {
-      for ( SizeType i = 0; i < npat; ++ i ) {
-	auto tv = get_pattern(i);
-	for ( SizeType j = 0; j < mDetNum; ++ j ) {
-	  if ( mDetPatArray[j] & (1 << i ) ) {
-	    auto f = mDetFaultArray[j];
-	    auto go_on = callback(base + i, tv, f);
-	    if ( !go_on ) {
-	      return false;
+    if ( obs != PV_ALL0 ) {
+      // FFR 内の故障伝搬を行う．
+      for ( auto ff: fault_list ) {
+	if ( ff->skip() ) {
+	  continue;
+	}
+	auto pat = ff->obs_mask() & obs;
+	if ( pat != PV_ALL0 ) {
+	  // 検出された．
+	  for ( SizeType i = 0; i < npat; ++ i ) {
+	    if ( pat & (1 << i) ) {
+	      auto tv = get_pattern(i);
+	      auto go_on = callback(base + i, tv, ff->tpg_fault());
+	      if ( !go_on ) {
+		return false;
+	      }
 	    }
 	  }
 	}
@@ -840,25 +785,8 @@ FSIM_CLASSNAME::_fault_sweep(
     if ( ff->skip() || ff->obs_mask() == PV_ALL0 ) {
       continue;
     }
-    add_det_array(ff);
-  }
-}
-
-// @brief 故障をスキャンして結果をセットする(ppsfp用)
-void
-FSIM_CLASSNAME::_fault_sweep(
-  const vector<SimFault*>& fault_list,
-  PackedVal mask
-)
-{
-  for ( auto ff: fault_list ) {
-    if ( ff->skip() ) {
-      continue;
-    }
-    auto pat = ff->obs_mask() & mask;
-    if ( pat != PV_ALL0 ) {
-      add_det_array(pat, ff);
-    }
+    auto tpg_f = ff->tpg_fault();
+    mDetFaultArray.push_back(tpg_f);
   }
 }
 

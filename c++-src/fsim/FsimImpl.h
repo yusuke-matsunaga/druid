@@ -181,67 +181,6 @@ public:
                                ///          を掛けたものの和
   ) = 0;
 
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // ppsfp のテストパタンを設定する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ppsfp 用のパタンバッファをクリアする．
-  virtual
-  void
-  clear_patterns() = 0;
-
-  /// @brief ppsfp 用のパタンを設定する．
-  virtual
-  void
-  set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-    const TestVector& tv ///< [in] テストベクタ
-  ) = 0;
-
-  /// @brief 設定した ppsfp 用のパタンを読み出す．
-  virtual
-  TestVector
-  get_pattern(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-  ) = 0;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // ppsfp の結果を取得する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障数を返す．
-  virtual
-  SizeType
-  det_fault_num() = 0;
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障を返す．
-  virtual
-  TpgFault
-  det_fault(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  ) = 0;
-
-  /// @brief 直前の sppfp/ppsfp で検出された故障のリストを返す．
-  virtual
-  vector<TpgFault>
-  det_fault_list() = 0;
-
-  /// @brief 直前の ppsfp で検出された故障の検出ビットパタンを返す．
-  virtual
-  PackedVal
-  det_fault_pat(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_fault_num() )
-  ) = 0;
-
-  /// @brief 直前の ppsfp で検出された故障に対する検出パタンのリストを返す．
-  virtual
-  const vector<PackedVal>&
-  det_fault_pat_list() = 0;
-
 };
 
 END_NAMESPACE_DRUID
