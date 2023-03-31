@@ -224,14 +224,7 @@ DtpgMgr_tv_list(
 {
   auto& mgr = PyDtpgMgr::Get(self);
   auto& tv_list = mgr.tv_list();
-  SizeType n = tv_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto& tv = tv_list[i];
-    auto obj1 = PyTestVector::ToPyObject(tv);
-    PyList_SET_ITEM(ans_obj, i, obj1);
-  }
-  return ans_obj;
+  return PyTestVector::ToPyList(tv_list);
 }
 
 PyObject*

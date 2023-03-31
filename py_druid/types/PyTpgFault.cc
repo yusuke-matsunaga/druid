@@ -206,6 +206,38 @@ PyTpgFault::ToPyObject(
   return obj;
 }
 
+// @brief TestVector のリストを表す PyObject を作る．
+PyObject*
+PyTpgFault::ToPyList(
+  const vector<TpgFault>& val_list
+)
+{
+  SizeType n = val_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto f = val_list[i];
+    auto f_obj = ToPyObject(f);
+    PyList_SET_ITEM(ans_obj, i, f_obj);
+  }
+  return ans_obj;
+}
+
+// @brief TpgFault のリストを表す PyObject を作る．
+PyObject*
+PyTpgFault::ToPyList(
+  const TpgFaultList& val_list
+)
+{
+  SizeType n = val_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto fault = val_list[i];
+    auto fault_obj = PyTpgFault::ToPyObject(fault);
+    PyList_SET_ITEM(ans_obj, i, fault_obj);
+  }
+  return ans_obj;
+}
+
 // @brief PyObject が TpgFault タイプか調べる．
 bool
 PyTpgFault::Check(
@@ -223,6 +255,40 @@ PyTpgFault::Get(
 {
   auto tpgfault_obj = reinterpret_cast<TpgFaultObject*>(obj);
   return tpgfault_obj->mVal;
+}
+
+// @brief TpgFault のリストを表す PyObject から TpgFault のリストを取り出す．
+bool
+PyTpgFault::FromPyList(
+  PyObject* obj,
+  vector<TpgFault>& fault_list
+)
+{
+  if ( PySequence_Check(obj) ) {
+    SizeType n = PySequence_Size(obj);
+    fault_list.clear();
+    fault_list.resize(n);
+    for ( SizeType i = 0; i < n; ++ i ) {
+      auto tmp_obj = PySequence_GetItem(obj, i);
+      if ( !Check(tmp_obj) ) {
+	PyErr_SetString(PyExc_TypeError, "parameter must be a sequence of 'TpgFault'");
+	return false;
+      }
+      auto f = PyTpgFault::Get(tmp_obj);
+      fault_list[i] = f;
+    }
+    return true;
+  }
+  if ( Check(obj) ) {
+    auto f = PyTpgFault::Get(obj);
+    fault_list.clear();
+    fault_list.resize(1);
+    fault_list[0] = f;
+    return true;
+  }
+
+  PyErr_SetString(PyExc_TypeError, "parameter must be a sequence of 'TpgFault'");
+  return false;
 }
 
 // @brief TpgFault を表すオブジェクトの型定義を返す．

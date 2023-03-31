@@ -12,6 +12,7 @@
 #include <Python.h>
 
 #include "TpgFault.h"
+#include "TpgFaultList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -47,6 +48,26 @@ public:
     const TpgFault& val ///< [in] 値
   );
 
+  /// @brief TpgFault のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const vector<TpgFault>& val_list ///< [in] 値のリスト
+  );
+
+  /// @brief TpgFault のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const TpgFaultList& val_list ///< [in] 値のリスト
+  );
+
   /// @brief PyObject が TpgFault タイプか調べる．
   static
   bool
@@ -62,6 +83,17 @@ public:
   TpgFault
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
+  );
+
+  /// @brief TpgFault のリストを表す PyObject から TpgFault のリストを取り出す．
+  /// @return 成功したら true を返す．
+  ///
+  /// obj は単一の TpgFault か TpgFault のシーケンスタイプである必要がある．
+  static
+  bool
+  FromPyList(
+    PyObject* obj,               ///< [in] 変換元の PyObject
+    vector<TpgFault>& fault_list ///< [out] 変換結果を格納する変数
   );
 
   /// @brief TpgFault を表すオブジェクトの型定義を返す．

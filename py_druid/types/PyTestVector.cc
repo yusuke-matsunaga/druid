@@ -483,6 +483,22 @@ PyTestVector::ToPyObject(
   return obj;
 }
 
+// @brief TestVector のリストを表す PyObject を作る．
+PyObject*
+PyTestVector::ToPyList(
+  const vector<TestVector>& val_list
+)
+{
+  SizeType n = val_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto tv = val_list[i];
+    auto tv_obj = ToPyObject(tv);
+    PyList_SET_ITEM(ans_obj, i, tv_obj);
+  }
+  return ans_obj;
+}
+
 // @brief PyObject が TestVector タイプか調べる．
 bool
 PyTestVector::Check(
@@ -500,6 +516,40 @@ PyTestVector::Get(
 {
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(obj);
   return *testvector_obj->mPtr;
+}
+
+// @brief TestVector のリストを表す PyObject から TestVector のリストを取り出す．
+bool
+PyTestVector::FromPyList(
+  PyObject* obj,
+  vector<TestVector>& tv_list
+)
+{
+  if ( PySequence_Check(obj) ) {
+    SizeType n = PySequence_Size(obj);
+    tv_list.clear();
+    tv_list.resize(n);
+    for ( SizeType i = 0; i < n; ++ i ) {
+      auto tmp_obj = PySequence_GetItem(obj, i);
+      if ( !Check(tmp_obj) ) {
+	PyErr_SetString(PyExc_TypeError, "parameter must be a sequence of 'TestVector'");
+	return false;
+      }
+      auto tv = PyTestVector::Get(tmp_obj);
+      tv_list[i] = tv;
+    }
+    return true;
+  }
+  if ( Check(obj) ) {
+    auto tv = PyTestVector::Get(obj);
+    tv_list.clear();
+    tv_list.resize(1);
+    tv_list[0] = tv;
+    return true;
+  }
+
+  PyErr_SetString(PyExc_TypeError, "parameter must be a sequence of 'TestVector'");
+  return false;
 }
 
 // @brief TestVector を表すオブジェクトの型定義を返す．

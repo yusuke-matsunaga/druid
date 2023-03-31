@@ -116,16 +116,13 @@ Fsim_set_fault_list(
 )
 {
   PyObject* fault_list_obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O!", &PyList_Type, &fault_list_obj) ) {
+  if ( !PyArg_ParseTuple(args, "O", &fault_list_obj) ) {
     return nullptr;
   }
 
-  SizeType n = PyList_Size(fault_list_obj);
-  vector<TpgFault> fault_list(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto fault_obj = PyList_GetItem(fault_list_obj, i);
-    auto fault = PyTpgFault::Get(fault_obj);
-    fault_list[i] = fault;
+  vector<TpgFault> fault_list;
+  if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
+    return nullptr;
   }
   auto fsim = PyFsim::Get(self);
   fsim->set_fault_list(fault_list);
@@ -154,30 +151,12 @@ Fsim_set_skip(
     return nullptr;
   }
 
+  vector<TpgFault> fault_list;
+  if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
+    return nullptr;
+  }
   auto fsim = PyFsim::Get(self);
-  if ( PySequence_Check(obj) ) {
-    SizeType n = PySequence_Size(obj);
-    vector<TpgFault> fault_list;
-    fault_list.reserve(n);
-    for ( SizeType i = 0; i < n; ++ i ) {
-      auto obj1 = PySequence_GetItem(obj, i);
-      if ( !PyTpgFault::Check(obj1) ) {
-	PyErr_SetString(PyExc_TypeError, "'TpgFault' type expected");
-	return nullptr;
-      }
-      auto fault = PyTpgFault::Get(obj1);
-      fault_list.push_back(fault);
-    }
-    fsim->set_skip(fault_list);
-  }
-  else {
-    if ( !PyTpgFault::Check(obj) ) {
-      PyErr_SetString(PyExc_TypeError, "'TpgFault' type expected");
-      return nullptr;
-    }
-    auto fault = PyTpgFault::Get(obj);
-    fsim->set_skip(fault);
-  }
+  fsim->set_skip(fault_list);
   Py_RETURN_NONE;
 }
 
@@ -203,30 +182,12 @@ Fsim_clear_skip(
     return nullptr;
   }
 
+  vector<TpgFault> fault_list;
+  if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
+    return nullptr;
+  }
   auto fsim = PyFsim::Get(self);
-  if ( PySequence_Check(obj) ) {
-    SizeType n = PySequence_Size(obj);
-    vector<TpgFault> fault_list;
-    fault_list.reserve(n);
-    for ( SizeType i = 0; i < n; ++ i ) {
-      auto obj1 = PySequence_GetItem(obj, i);
-      if ( !PyTpgFault::Check(obj1) ) {
-	PyErr_SetString(PyExc_TypeError, "'TpgFault' type expected");
-	return nullptr;
-      }
-      auto fault = PyTpgFault::Get(obj1);
-      fault_list.push_back(fault);
-    }
-    fsim->clear_skip(fault_list);
-  }
-  else {
-    if ( !PyTpgFault::Check(obj) ) {
-      PyErr_SetString(PyExc_TypeError, "'TpgFault' type expected");
-      return nullptr;
-    }
-    auto fault = PyTpgFault::Get(obj);
-    fsim->clear_skip(fault);
-  }
+  fsim->clear_skip(fault_list);
   Py_RETURN_NONE;
 }
 
@@ -264,14 +225,7 @@ Fsim_sppfp(
   auto tv = PyTestVector::Get(obj1);
   auto fsim = PyFsim::Get(self);
   auto fault_list = fsim->sppfp(tv);
-  SizeType n = fault_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto f = fault_list[i];
-    auto f_obj = PyTpgFault::ToPyObject(f);
-    PyList_SET_ITEM(ans_obj, i, f_obj);
-  }
-  return ans_obj;
+  return PyTpgFault::ToPyList(fault_list);
 }
 
 PyObject*
@@ -288,23 +242,19 @@ Fsim_ppsfp(
   };
   PyObject* tv_list_obj = nullptr;
   PyObject* callback_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "OO",
 				    const_cast<char**>(kwlist),
-				    &PyList_Type, &tv_list_obj,
-				    &callback_obj) ) {
+				    &tv_list_obj, &callback_obj) ) {
     return nullptr;
   }
   if ( !PyCallable_Check(callback_obj) ) {
     PyErr_SetString(PyExc_TypeError, "2nd parameter must be callable");
-    return NULL;
+    return nullptr;
   }
 
-  SizeType n = PyList_Size(tv_list_obj);
-  vector<TestVector> tv_list(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto tmp_obj = PyList_GetItem(tv_list_obj, i);
-    auto tv = PyTestVector::Get(tmp_obj);
-    tv_list[i] = tv;
+  vector<TestVector> tv_list;
+  if ( !PyTestVector::FromPyList(tv_list_obj, tv_list) ) {
+    return nullptr;
   }
   auto fsim = PyFsim::Get(self);
   bool ng = false;

@@ -47,6 +47,16 @@ public:
     TestVector val ///< [in] 値
   );
 
+  /// @brief TestVector のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const vector<TestVector>& val_list ///< [in] 値のリスト
+  );
+
   /// @brief PyObject が TestVector タイプか調べる．
   static
   bool
@@ -62,6 +72,17 @@ public:
   const TestVector&
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
+  );
+
+  /// @brief TestVector のリストを表す PyObject から TestVector のリストを取り出す．
+  /// @return 成功したら true を返す．
+  ///
+  /// obj は単一の TestVector か TestVector のシーケンスタイプである必要がある．
+  static
+  bool
+  FromPyList(
+    PyObject* obj,              ///< [in] 変換元の PyObject
+    vector<TestVector>& tv_list ///< [out] 変換結果を格納する変数
   );
 
   /// @brief TestVector を表すオブジェクトの型定義を返す．

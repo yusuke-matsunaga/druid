@@ -98,27 +98,6 @@ TpgFaultMgr_fault_type(
   return PyFaultType::ToPyObject(fault_type);
 }
 
-BEGIN_NONAMESPACE
-
-PyObject*
-fault_list_to_pyobj(
-  const TpgFaultList& fault_list
-)
-{
-  SizeType n = fault_list.size();
-  auto ans_obj = PyList_New(n);
-  Py_IncRef(ans_obj);
-  SizeType index = 0;
-  for ( auto fault: fault_list ) {
-    auto fault_obj = PyTpgFault::ToPyObject(fault);
-    PyList_SetItem(ans_obj, index, fault_obj);
-    ++ index;
-  }
-  return ans_obj;
-}
-
-END_NONAMESPACE
-
 PyObject*
 TpgFaultMgr_fault_list(
   PyObject* self,
@@ -127,7 +106,7 @@ TpgFaultMgr_fault_list(
 {
   auto& fmgr = PyTpgFaultMgr::Get(self);
   auto fault_list = fmgr.fault_list();
-  return fault_list_to_pyobj(fault_list);
+  return PyTpgFault::ToPyList(fault_list);
 }
 
 PyObject*
@@ -138,7 +117,7 @@ TpgFaultMgr_rep_fault_list(
 {
   auto& fmgr = PyTpgFaultMgr::Get(self);
   auto fault_list = fmgr.rep_fault_list();
-  return fault_list_to_pyobj(fault_list);
+  return PyTpgFault::ToPyList(fault_list);
 }
 
 PyObject*
@@ -153,7 +132,7 @@ TpgFaultMgr_node_fault_list(
   }
   auto& fmgr = PyTpgFaultMgr::Get(self);
   auto fault_list = fmgr.node_fault_list(id);
-  return fault_list_to_pyobj(fault_list);
+  return PyTpgFault::ToPyList(fault_list);
 }
 
 PyObject*
@@ -168,7 +147,7 @@ TpgFaultMgr_ffr_fault_list(
   }
   auto& fmgr = PyTpgFaultMgr::Get(self);
   auto fault_list = fmgr.ffr_fault_list(id);
-  return fault_list_to_pyobj(fault_list);
+  return PyTpgFault::ToPyList(fault_list);
 }
 
 PyObject*
@@ -183,7 +162,7 @@ TpgFaultMgr_mffc_fault_list(
   }
   auto& fmgr = PyTpgFaultMgr::Get(self);
   auto fault_list = fmgr.mffc_fault_list(id);
-  return fault_list_to_pyobj(fault_list);
+  return PyTpgFault::ToPyList(fault_list);
 }
 
 PyObject*
