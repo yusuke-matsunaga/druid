@@ -32,11 +32,11 @@ public:
 
   /// @brief コンストラクタ
   DtpgMgr(
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    TpgFaultMgr& fault_mgr,          ///< [in] 故障マネージャ
-    const string& dtpg_type,         ///< [in] DTPGのタイプ
-    const string& just_type,         ///< [in] 正当化のタイプ
-    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    TpgFaultMgr& fault_mgr,        ///< [in] 故障マネージャ
+    const string& dtpg_type,       ///< [in] DTPGのタイプ
+    const string& just_type,       ///< [in] 正当化のタイプ
+    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
   );
 
   /// @brief デストラクタ

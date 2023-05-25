@@ -12,7 +12,7 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgFaultMgr.h"
 #include "PyTestVector.h"
-#include "ym/SatSolverType.h"
+#include "ym/SatInitParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -67,13 +67,13 @@ DtpgMgr_new(
   if ( just_type_str != nullptr ) {
     just_type = just_type_str;
   }
-  SatSolverType solver_type;
+  SatInitParam init_param;
   if ( sat_type_str != nullptr ) {
-    solver_type = SatSolverType{sat_type_str};
+    init_param = SatInitParam{sat_type_str};
   }
   auto self = type->tp_alloc(type, 0);
   auto tpgmgr_obj = reinterpret_cast<DtpgMgrObject*>(self);
-  tpgmgr_obj->mVal = new DtpgMgr{network, fault_mgr, dtpg_type_str, just_type, solver_type};
+  tpgmgr_obj->mVal = new DtpgMgr{network, fault_mgr, dtpg_type_str, just_type, init_param};
   return self;
 }
 

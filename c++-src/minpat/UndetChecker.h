@@ -302,7 +302,7 @@ private:
   )
   {
     int id = node->id();
-    ymuint8 mask = 1U;
+    std::uint8_t mask = 1U;
     if ( (mMarkArray[id] & mask) == 0U ) {
       mMarkArray[id] |= mask;
       mTfoList.push_back(node);
@@ -322,7 +322,7 @@ private:
   )
   {
     int id = node->id();
-    ymuint8 mask = 2U;
+    std::uint8_t mask = 2U;
     if ( (mMarkArray[id] & mask) == 0U ) {
       mMarkArray[id] |= mask;
       mTfiList.push_back(node);
@@ -341,7 +341,7 @@ private:
   )
   {
     int id = node->id();
-    ymuint8 mask = 4U;
+    std::uint8_t mask = 4U;
     if ( (mMarkArray[id] & mask) == 0U ) {
       mMarkArray[id] |= mask;
       mPrevTfiList.push_back(node);
@@ -406,7 +406,7 @@ private:
   // bit-2: prev TFIマーク
   // bit-3: gvar マーク
   // bit-4: hvar マーク
-  vector<ymuint8> mMarkArray;
+  vector<std::uint8_t> mMarkArray;
 
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;

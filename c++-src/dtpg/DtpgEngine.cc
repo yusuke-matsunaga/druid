@@ -43,8 +43,8 @@ DtpgEngine::DtpgEngine(
   bool has_prev_state,
   const TpgNode* root,
   bool make_dchain,
-  const SatSolverType& solver_type
-) : mSolver{solver_type},
+  const SatInitParam& init_param
+) : mSolver{init_param},
     mNetwork{network},
     mHasPrevState{has_prev_state},
     mRoot{root},

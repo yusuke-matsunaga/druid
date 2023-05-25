@@ -17,7 +17,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @brief 3値を表す列挙型
 //////////////////////////////////////////////////////////////////////
-enum class Val3 : ymuint8 {
+enum class Val3 : std::uint8_t {
   _X = 0, ///< 未定
   _0 = 1, ///< 0
   _1 = 2  ///< 1
@@ -40,7 +40,7 @@ operator~(
   //   2 |    1
   // でビットパタンとしては 01 10 00 = 0x18 となる．
 
-  ymuint d = static_cast<ymuint>(val) * 2;
+  std::uint8_t d = static_cast<std::uint8_t>(val) * 2;
   return static_cast<Val3>((0x18 >> d) & 0x3);
 }
 
@@ -61,9 +61,9 @@ operator&(
   //    2 |   0      1      2
   // でビットパタンとしては 10 01 00 01 01 01 00 01 00 = 0x24544 となる．
 
-  ymuint d1 = static_cast<ymuint>(val1);
-  ymuint d2 = static_cast<ymuint>(val2);
-  ymuint idx = (d1 * 3 + d2) * 2;
+  std::uint8_t d1 = static_cast<std::uint8_t>(val1);
+  std::uint8_t d2 = static_cast<std::uint8_t>(val2);
+  std::uint8_t idx = (d1 * 3 + d2) * 2;
   return static_cast<Val3>((0x24544 >> idx) & 0x3);
 }
 
@@ -84,9 +84,9 @@ operator|(
   //    2 |   2      2      2
   // でビットパタンとしては 10 10 10 10 01 00 10 00 00 = 0x2A920 となる．
 
-  ymuint d1 = static_cast<ymuint>(val1);
-  ymuint d2 = static_cast<ymuint>(val2);
-  ymuint idx = (d1 * 3 + d2) * 2;
+  std::uint8_t d1 = static_cast<std::uint8_t>(val1);
+  std::uint8_t d2 = static_cast<std::uint8_t>(val2);
+  std::uint8_t idx = (d1 * 3 + d2) * 2;
   return static_cast<Val3>((0x2A920 >> idx) & 0x3);
 }
 
@@ -107,9 +107,9 @@ operator^(
   //    2 |   0      2      1
   // でビットパタンとしては 01 10 00 10 01 00 00 00 00 = 0x18900 となる．
 
-  ymuint d1 = static_cast<ymuint>(val1);
-  ymuint d2 = static_cast<ymuint>(val2);
-  ymuint idx = (d1 * 3 + d2) * 2;
+  std::uint8_t d1 = static_cast<std::uint8_t>(val1);
+  std::uint8_t d2 = static_cast<std::uint8_t>(val2);
+  std::uint8_t idx = (d1 * 3 + d2) * 2;
   return static_cast<Val3>((0x18900 >> idx) & 0x3);
 }
 

@@ -47,7 +47,7 @@ Rtpg::~Rtpg()
 // @brief 乱数生成器を初期化する．
 void
 Rtpg::randgen_init(
-  ymuint32 seed
+  std::uint32_t seed
 )
 {
   mRandGen.init(seed);

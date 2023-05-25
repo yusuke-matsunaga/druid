@@ -90,9 +90,9 @@ class VidMap;
 
 class Fsim;
 
-enum class FaultType : ymuint8;
-enum class Val3 : ymuint8;
-enum class Fval2 : ymuint8;
+enum class FaultType : std::uint8_t;
+enum class Val3 : std::uint8_t;
+enum class Fval2 : std::uint8_t;
 
 END_NAMESPACE_DRUID
 

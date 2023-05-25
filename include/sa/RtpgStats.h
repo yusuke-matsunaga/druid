@@ -72,13 +72,13 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 検出した故障数
-  ymuint32 mDetectNum;
+  std::uint32_t mDetectNum;
 
   // 総パタン数
-  ymuint32 mPatNum;
+  std::uint32_t mPatNum;
 
   // 有効パタン数
-  ymuint32 mEfPatNum;
+  std::uint32_t mEfPatNum;
 
   // 計算時間
   USTime mTime;

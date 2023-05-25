@@ -97,7 +97,7 @@ reduce(
   ++ max_id;
 
   // SATソルバ
-  SatSolver solver{SatSolverType{"ymsat2"}};
+  SatSolver solver{SatInitParam{"ymsat2"}};
 
   // FFRに関する関係を表すCNFを作る．
   VidMap varmap{max_id};

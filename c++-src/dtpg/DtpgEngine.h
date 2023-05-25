@@ -36,11 +36,11 @@ public:
 
   /// @brief コンストラクタ
   DtpgEngine(
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
-    const TpgNode* root,	     ///< [in] 故障伝搬の起点となるノード
-    bool make_dchain,                ///< [in] dchain を作る時 true にする．
-    const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
+    const TpgNode* root,	   ///< [in] 故障伝搬の起点となるノード
+    bool make_dchain,              ///< [in] dchain を作る時 true にする．
+    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
   );
 
   /// @brief デストラクタ

@@ -67,10 +67,10 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 元のパタン数
-  ymuint32 mPatNum1;
+  std::uint32_t mPatNum1;
 
   // 最小化後のパタン数
-  ymuint32 mPatNum2;
+  std::uint32_t mPatNum2;
 
   // 計算時間
   USTime mTime;

@@ -35,8 +35,8 @@ MFFCEngine::MFFCEngine(
   const TpgNetwork& network,
   bool has_prev_state,
   const TpgMFFC& mffc,
-  const SatSolverType& solver_type
-) : DtpgEngine{network, has_prev_state, mffc.root(), true, solver_type},
+  const SatInitParam& init_param
+) : DtpgEngine{network, has_prev_state, mffc.root(), true, init_param},
     mMFFC{mffc},
     mRootArray(mffc.ffr_num()),
     mEvarArray(mffc.ffr_num())

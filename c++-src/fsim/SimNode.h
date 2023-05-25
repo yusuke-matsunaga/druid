@@ -375,7 +375,7 @@ private:
   // ファンアウトリストの要素数
   // - 0 - 7 : 最初のファンアウトの入力位置(FFR内のノードのみ意味を持つ)
   // - 8 -   : ファンアウト数
-  ymuint32 mFanoutNum;
+  std::uint32_t mFanoutNum;
 
   // ファンアウトの先頭のノード
   SimNode* mFanoutTop;

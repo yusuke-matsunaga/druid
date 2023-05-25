@@ -87,7 +87,7 @@ McCompactor::run(const vector<const TpgFault*>& fault_list,
   }
 
   // 最終被覆問題を解く
-  vector<ymuint32> solution;
+  vector<std::uint32_t> solution;
   mincov.exact(solution);
 
   // solution の内容から tv_list を作る．

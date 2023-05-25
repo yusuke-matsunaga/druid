@@ -172,7 +172,7 @@ private:
   ymuint mMaxNodeId;
 
   // ノードごとのいくつかのフラグをまとめた配列
-  vector<ymuint8> mMarkArray;
+  vector<std::uint8_t> mMarkArray;
 
   // 故障の TFO のノードリスト
   vector<const TpgNode*> mNodeList;

@@ -39,10 +39,10 @@ END_NONAMESPACE
 StructEnc::StructEnc(
   const TpgNetwork& network,
   bool has_prev_state,
-  const SatSolverType& solver_type
+  const SatInitParam& init_param
 ) : mNetwork{network},
     mHasPrevState{has_prev_state},
-    mSolver{solver_type},
+    mSolver{init_param},
     mMaxId{network.node_num()},
     mGvarMap(mMaxId),
     mHvarMap(mMaxId)

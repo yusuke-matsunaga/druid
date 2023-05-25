@@ -70,7 +70,7 @@ void
 DtpgEngineDriver_FFR::run()
 {
   for ( auto ffr: network().ffr_list() ) {
-    FFREngine engine{network(), has_prev_state(), ffr, sat_type()};
+    FFREngine engine{network(), has_prev_state(), ffr, sat_init_param()};
     cnf_begin();
     engine.make_cnf();
     cnf_end();
@@ -95,7 +95,7 @@ DtpgEngineDriver_MFFC::run()
   for ( auto mffc: network().mffc_list() ) {
     if ( mffc.ffr_num() == 1 ) {
       auto ffr = mffc.ffr(0);
-      FFREngine engine{network(), has_prev_state(), ffr, sat_type()};
+      FFREngine engine{network(), has_prev_state(), ffr, sat_init_param()};
       cnf_begin();
       engine.make_cnf();
       cnf_end();
@@ -107,7 +107,7 @@ DtpgEngineDriver_MFFC::run()
       update_sat_stats(engine.solver().get_stats());
     }
     else {
-      MFFCEngine engine{network(), has_prev_state(), mffc, sat_type()};
+      MFFCEngine engine{network(), has_prev_state(), mffc, sat_init_param()};
       cnf_begin();
       engine.make_cnf();
       cnf_end();

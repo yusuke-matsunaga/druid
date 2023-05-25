@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 #include "DtpgMgr.h"
 #include "TpgNetwork.h"
-#include "ym/SatSolverType.h"
+#include "ym/SatInitParam.h"
 #include "DetectOp.h"
 #include "DopVerifyResult.h"
 
@@ -168,7 +168,7 @@ DtpgTestWithParam2::SetUp()
 
   auto mode = test_mode();
 
-  auto solver_type = SatSolverType{sat_type()};
+  auto solver_type = SatInitParam{sat_type()};
 
   mFaultMgr.gen_fault_list(*mNetwork_p, fault_type());
 

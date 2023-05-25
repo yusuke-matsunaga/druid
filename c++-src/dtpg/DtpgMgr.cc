@@ -25,12 +25,13 @@ DtpgMgr::DtpgMgr(
   TpgFaultMgr& fault_mgr,
   const string& dtpg_type,
   const string& just_type,
-  const SatSolverType& solver_type
+  const SatInitParam& init_param
 ) : mNetwork{network},
     mFaultMgr{fault_mgr},
     mDriver{DtpgDriver::new_driver(*this, dtpg_type,
-				   network, mFaultMgr.fault_type() == FaultType::TransitionDelay,
-				   just_type, solver_type)}
+				   network,
+				   mFaultMgr.fault_type() == FaultType::TransitionDelay,
+				   just_type, init_param)}
 {
   bool has_previous_state = mFaultMgr.fault_type() == FaultType::TransitionDelay;
   mFsim.initialize(network, has_previous_state, true);

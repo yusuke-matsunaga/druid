@@ -26,12 +26,12 @@ public:
 
   /// @brief コンストラクタ
   StructEncDriver(
-    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
-    const string& just_type,         ///< [in] 正当化のタイプ
-    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
-  ) : DtpgDriver{mgr, network, has_prev_state, just_type, solver_type}
+    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
+    const string& just_type,       ///< [in] 正当化のタイプ
+    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
+  ) : DtpgDriver{mgr, network, has_prev_state, just_type, init_param}
   {
   }
 
@@ -65,12 +65,12 @@ public:
 
   /// @brief コンストラクタ
   StructEncDriver_FFR(
-    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
-    const string& just_type,         ///< [in] 正当化のタイプ
-    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
-  ) : StructEncDriver{mgr, network, has_prev_state, just_type, solver_type}
+    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
+    const string& just_type,       ///< [in] 正当化のタイプ
+    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
+  ) : StructEncDriver{mgr, network, has_prev_state, just_type, init_param}
   {
   }
 
@@ -101,12 +101,12 @@ public:
 
   /// @brief コンストラクタ
   StructEncDriver_MFFC(
-    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
-    const string& just_type,         ///< [in] 正当化のタイプ
-    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
-  ) : StructEncDriver{mgr, network, has_prev_state, just_type, solver_type}
+    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
+    const string& just_type,       ///< [in] 正当化のタイプ
+    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
+  ) : StructEncDriver{mgr, network, has_prev_state, just_type, init_param}
   {
   }
 

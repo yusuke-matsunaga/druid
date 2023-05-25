@@ -12,7 +12,7 @@
 #include "DtpgMgr.h"
 #include "DtpgStats.h"
 #include "Justifier.h"
-#include "ym/SatSolverType.h"
+#include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
 
@@ -34,12 +34,12 @@ public:
   static
   DtpgDriver*
   new_driver(
-    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
-    const string& dtpg_type,         ///< [in] DTPGのタイプ
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
-    const string& just_type,         ///< [in] 正当化のタイプ
-    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
+    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
+    const string& dtpg_type,       ///< [in] DTPGのタイプ
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
+    const string& just_type,       ///< [in] 正当化のタイプ
+    const SatInitParam& init_param ///< [in] SATソルバのタイプ
   );
 
 
@@ -50,16 +50,16 @@ public:
 
   /// @brief コンストラクタ
   DtpgDriver(
-    DtpgMgr& mgr,                    ///< [in] 親のマネージャ
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
-    const string& just_type,         ///< [in] 正当化のタイプ
-    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
+    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
+    const string& just_type,       ///< [in] 正当化のタイプ
+    const SatInitParam& init_param ///< [in] SATソルバのタイプ
   ) : mMgr{mgr},
       mNetwork{network},
       mHasPrevState{has_prev_state},
       mJustifier{just_type, network},
-      mSolverType{solver_type}
+      mInitParam{init_param}
   {
   }
 
@@ -121,11 +121,11 @@ protected:
     const SatModel& sat_model       ///< [in] SATのモデル
   );
 
-  /// @brief SATソルバのタイプを返す．
-  SatSolverType
-  sat_type() const
+  /// @brief SATソルバの初期化パラメータを返す．
+  SatInitParam
+  sat_init_param() const
   {
-    return mSolverType;
+    return mInitParam;
   }
 
   /// @brief CNF の生成開始
@@ -203,8 +203,8 @@ private:
   // 正当化を行うファンクタ
   Justifier mJustifier;
 
-  // SATソルバのタイプ
-  SatSolverType mSolverType;
+  // SATソルバの初期化パラメータ
+  SatInitParam mInitParam;
 
   // 時間計測用のタイマー
   Timer mTimer;

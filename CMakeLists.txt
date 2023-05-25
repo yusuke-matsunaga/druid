@@ -45,6 +45,7 @@ endif ()
 
 ym_init ( "" )
 ym_init_python ( ${INIT_PYTHON_ARGS} )
+ym_init_jsoncpp ()
 ym_init_doxygen ()
 ym_init_gperftools ()
 ym_init_ctest ()

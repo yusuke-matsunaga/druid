@@ -314,7 +314,7 @@ private:
   )
   {
     int id = node->id();
-    ymuint8 mask = 1U << pos;
+    std::uint8_t mask = 1U << pos;
     if ( (mMarkArray[id] & mask) == 0U ) {
       mMarkArray[id] |= mask;
       mTfoList[pos].push_back(node);
@@ -334,7 +334,7 @@ private:
   )
   {
     int id = node->id();
-    ymuint8 mask = 4U;
+    std::uint8_t mask = 4U;
     if ( (mMarkArray[id] & mask) == 0U ) {
       mMarkArray[id] |= mask;
       mTfiList.push_back(node);
@@ -353,7 +353,7 @@ private:
   )
   {
     int id = node->id();
-    ymuint8 mask = 8U;
+    std::uint8_t mask = 8U;
     if ( (mMarkArray[id] & mask) == 0U ) {
       mMarkArray[id] |= mask;
       mPrevTfiList.push_back(node);
@@ -401,7 +401,7 @@ private:
 
   // 作業用のマークを入れておく配列
   // サイズは mMaxNodeId
-  vector<ymuint8> mMarkArray;
+  vector<std::uint8_t> mMarkArray;
 
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;

@@ -16,8 +16,8 @@ FFREngine::FFREngine(
   const TpgNetwork& network,
   bool has_prev_state,
   const TpgFFR& ffr,
-  const SatSolverType& solver_type
-) : DtpgEngine{network, has_prev_state, ffr.root(), true, solver_type}
+  const SatInitParam& init_param
+) : DtpgEngine{network, has_prev_state, ffr.root(), true, init_param}
 {
 }
 

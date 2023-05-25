@@ -45,7 +45,7 @@ public:
   /// @brief 乱数生成器を初期化する．
   void
   randgen_init(
-    ymuint32 seed  ///< [in] 乱数の種
+    std::uint32_t seed  ///< [in] 乱数の種
   );
 
   /// @brief 1セット(PV_BITLEN個)のパタンで故障シミュレーションを行う．

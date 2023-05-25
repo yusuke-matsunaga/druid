@@ -17,7 +17,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @brief 故障の種類を表す列挙型
 //////////////////////////////////////////////////////////////////////
-enum class FaultType : ymuint8 {
+enum class FaultType : std::uint8_t {
   None,            ///< 不正な値
   StuckAt,         ///< 縮退故障
   TransitionDelay, ///< 遷移故障

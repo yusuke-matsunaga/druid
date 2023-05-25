@@ -19,23 +19,23 @@ DtpgDriver::new_driver(
   const TpgNetwork& network,
   bool has_prev_state,
   const string& just_type,
-  const SatSolverType& solver_type
+  const SatInitParam& init_param
 )
 {
   if ( dtpg_type == "ffr" ) {
-    return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, solver_type};
+    return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, init_param};
   }
   if ( dtpg_type == "mffc" ) {
-    return new DtpgEngineDriver_MFFC{mgr, network, has_prev_state, just_type, solver_type};
+    return new DtpgEngineDriver_MFFC{mgr, network, has_prev_state, just_type, init_param};
   }
   if ( dtpg_type == "ffr_se" ) {
-    return new StructEncDriver_FFR{mgr, network, has_prev_state, just_type, solver_type};
+    return new StructEncDriver_FFR{mgr, network, has_prev_state, just_type, init_param};
   }
   if ( dtpg_type == "mffc_se" ) {
-    return new StructEncDriver_MFFC{mgr, network, has_prev_state, just_type, solver_type};
+    return new StructEncDriver_MFFC{mgr, network, has_prev_state, just_type, init_param};
   }
   // デフォルトフォールバック
-  return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, solver_type};
+  return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, init_param};
 }
 
 // @brief 正当化を行う．

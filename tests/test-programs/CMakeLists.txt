@@ -358,6 +358,10 @@ target_compile_options ( tpg_read_blif_test
   PRIVATE "-g"
   )
 
+target_link_libraries ( tpg_read_blif_test
+  ${YM_LIB_DEPENDS}
+  )
+
 # ===================================================================
 #  read_iscas89_test
 # ===================================================================
@@ -374,4 +378,8 @@ add_executable ( tpg_read_iscas89_test
 
 target_compile_options ( tpg_read_iscas89_test
   PRIVATE "-g"
+  )
+
+target_link_libraries ( tpg_read_iscas89_test
+  ${YM_LIB_DEPENDS}
   )

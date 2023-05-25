@@ -40,7 +40,7 @@ public:
     const TpgNode* node, ///< [in] ノード
     int time,		 ///< [in] 時刻 ( 0 or 1 )
     bool val		 ///< [in] 値
-  ) : mPackVal{reinterpret_cast<ympuint>(node) | (time << 1) | val}
+  ) : mPackVal{reinterpret_cast<PtrIntType>(node) | (time << 1) | val}
   {
   }
 
@@ -74,7 +74,7 @@ public:
   /// @brief ノードと時刻をパックした値を返す．
   ///
   /// 結果は等価比較のみに用いる．
-  ympuint
+  PtrIntType
   node_time() const
   {
     return mPackVal & ~1UL;
@@ -102,7 +102,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // パックした値
-  ympuint mPackVal;
+  PtrIntType mPackVal;
 
 };
 

@@ -84,7 +84,7 @@ StructEncDriver_FFR::run()
 {
   for ( auto ffr: network().ffr_list() ) {
     cnf_begin();
-    StructEnc enc{network(), has_prev_state(), sat_type()};
+    StructEnc enc{network(), has_prev_state(), sat_init_param()};
     enc.add_simple_cone(ffr.root(), true);
     enc.make_cnf();
     cnf_end();
@@ -108,7 +108,7 @@ StructEncDriver_MFFC::run()
 {
   for ( auto mffc: network().mffc_list() ) {
     cnf_begin();
-    StructEnc enc{network(), has_prev_state(), sat_type()};
+    StructEnc enc{network(), has_prev_state(), sat_init_param()};
     enc.add_mffc_cone(mffc, true);
     enc.make_cnf();
     cnf_end();

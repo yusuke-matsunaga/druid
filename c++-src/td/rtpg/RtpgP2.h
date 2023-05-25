@@ -42,7 +42,7 @@ public:
   /// @param[in] seed 乱数の種
   virtual
   void
-  init(ymuint32 seed);
+  init(std::uint32_t seed);
 
   /// @brief RTPGを行なう．
   /// @param[in] fmgr 故障マネージャ

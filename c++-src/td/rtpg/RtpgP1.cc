@@ -43,7 +43,7 @@ RtpgP1::~RtpgP1()
 // @brief 乱数生成器を初期化する．
 // @param[in] seed 乱数の種
 void
-RtpgP1::init(ymuint32 seed)
+RtpgP1::init(std::uint32_t seed)
 {
   mRandGen.init(seed);
 }

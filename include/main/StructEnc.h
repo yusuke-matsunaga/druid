@@ -33,9 +33,9 @@ public:
 
   /// @brief コンストラクタ
   StructEnc(
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    bool has_prev_state,	     ///< [in] 1時刻前の回路を持つ時 true
-    const SatSolverType& solver_type ///< [in] SATソルバの種類
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
+    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
   );
 
   /// @brief デストラクタ
@@ -199,14 +199,14 @@ public:
   /// @brief デバッグ用のフラグをセットする．
   void
   set_debug(
-    ymuint bits
+    std::uint32_t bits
   )
   {
     mDebugFlag = bits;
   }
 
   /// @brief デバッグ用のフラグを得る．
-  ymuint
+  std::uint32_t
   debug() const
   {
     return mDebugFlag;
@@ -335,7 +335,7 @@ private:
   unordered_map<SizeType, SizeType> mConeDict;
 
   // デバッグ用のフラグ
-  ymuint mDebugFlag;
+  std::uint32_t mDebugFlag;
 
 };
 

@@ -119,7 +119,7 @@ private:
     NodeVal(
       SimNode* node,
       bool val
-    ) : mBody{reinterpret_cast<ympuint>(node) | static_cast<ympuint>(val)}
+    ) : mBody{reinterpret_cast<PtrIntType>(node) | static_cast<PtrIntType>(val)}
     {
     }
 
@@ -152,7 +152,7 @@ private:
     //////////////////////////////////////////////////////////////////////
 
     // ノードと値をパックしたもの
-    ympuint mBody{0};
+    PtrIntType mBody{0};
 
   };
 

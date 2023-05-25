@@ -508,7 +508,7 @@ private:
 
   // 作業用のマークを入れておく配列
   // サイズは mMaxNodeId
-  vector<ymuint8> mMarkArray;
+  vector<std::uint8_t> mMarkArray;
 
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;

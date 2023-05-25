@@ -14,12 +14,12 @@ BEGIN_NAMESPACE_DRUID
 
 void
 loop_test(
-  ymuint loop_count,
+  SizeType loop_count,
   const string& filename
 )
 {
-  for (ymuint i1 = 0; i1 < loop_count; ++ i1) {
-    for (ymuint i2 = 0; i2 < loop_count; ++ i2) {
+  for (SizeType i1 = 0; i1 < loop_count; ++ i1) {
+    for (SizeType i2 = 0; i2 < loop_count; ++ i2) {
       cout << "            "
 	   << "\r" << i1 << ": " << i2 << "\r";
       cout.flush();

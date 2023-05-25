@@ -10,7 +10,7 @@
 #include "DtpgMgr.h"
 #include "TpgFault.h"
 #include "DopVerifyResult.h"
-#include "ym/SatSolverType.h"
+#include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
 
@@ -278,9 +278,10 @@ dtpg_test(
   TpgFaultMgr fault_mgr;
   fault_mgr.gen_fault_list(network, fault_type);
 
-  SatSolverType solver_type{sat_type, sat_option, sat_outp};
+  //SatInitParam solver_type{sat_type, sat_option, sat_outp};
+  SatInitParam init_param{sat_type};
 
-  DtpgMgr mgr{network, fault_mgr, mode, just_type, solver_type};
+  DtpgMgr mgr{network, fault_mgr, mode, just_type, init_param};
 
   mgr.add_verify_dop();
   mgr.add_base_dop();
