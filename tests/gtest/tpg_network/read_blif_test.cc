@@ -17,7 +17,7 @@ BEGIN_NAMESPACE_DRUID
 TEST(DruidTest, read_blif_1)
 {
   string filename = "s38584.blif";
-  string path = DATAPATH + filename;
+  string path = string{TESTDATA_DIR} + "/" + filename;
   auto network = TpgNetwork::read_blif(path);
 
   EXPECT_EQ( 22447, network.node_num() );

@@ -21,7 +21,7 @@ include_directories(
 #  テスト用のターゲットの設定
 # ===================================================================
 
-ym_add_gtest ( SaFsim2SimNodeTest
+ym_add_gtest ( druid_SaFsim2SimNodeTest
   SimNodeTest.cc
   $<TARGET_OBJECTS:druid_common_obj_d>
   $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
@@ -31,6 +31,6 @@ ym_add_gtest ( SaFsim2SimNodeTest
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
-target_compile_definitions ( SaFsim2SimNodeTest
+target_compile_definitions ( druid_SaFsim2SimNodeTest
   PRIVATE "-DFSIM_VAL2" "-DFSIM_COMBI"
   )

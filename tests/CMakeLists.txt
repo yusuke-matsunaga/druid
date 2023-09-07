@@ -16,6 +16,8 @@ include_directories(
 # サブディレクトリの設定
 # ===================================================================
 
+set ( TESTDATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data )
+
 add_subdirectory ( gtest )
 add_subdirectory ( py_druid )
 add_subdirectory ( test-programs )

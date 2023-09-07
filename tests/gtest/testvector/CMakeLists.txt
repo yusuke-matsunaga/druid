@@ -20,7 +20,7 @@ include_directories(
 #  テスト用のターゲットの設定
 # ===================================================================
 
-ym_add_gtest ( BitVectorTest
+ym_add_gtest ( druid_BitVectorTest
   BitVectorTest.cc
   $<TARGET_OBJECTS:druid_common_obj_d>
   $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>

@@ -202,7 +202,7 @@ string
 DtpgTestWithParam2::filename()
 {
   const TestData& data = std::get<0>(GetParam());
-  return DATAPATH + data.mFileName;
+  return string{TESTDATA_DIR} + "/" + data.mFileName;
 }
 
 // @brief テストパラメータから総故障数を取り出す．

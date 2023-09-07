@@ -13,7 +13,7 @@
 # テストターゲットの定義
 # ===================================================================
 
-ym_add_gtest(Val3Test
+ym_add_gtest(druid_Val3Test
   Val3Test.cc
   $<TARGET_OBJECTS:druid_common_obj_d>
   $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>

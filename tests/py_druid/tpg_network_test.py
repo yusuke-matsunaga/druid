@@ -10,11 +10,11 @@
 import pytest
 import os
 from druid.types import TpgNetwork
+from make_filename import make_filename
 
 
 def test_read_blif():
-    TESTDATA_DIR = os.environ.get('TESTDATA_DIR')
-    filename = os.path.join(TESTDATA_DIR, 's38584.blif')
+    filename = make_filename('s38584.blif')
     network = TpgNetwork.read_blif(filename)
 
     assert network.node_num == 22447
@@ -27,8 +27,7 @@ def test_read_blif():
     assert network.dff_num == 1452
             
 def test_read_bench():
-    TESTDATA_DIR = os.environ.get('TESTDATA_DIR')
-    filename = os.path.join(TESTDATA_DIR, 'b01.bench')
+    filename = make_filename('b01.bench')
     network = TpgNetwork.read_bench(filename)
     
     assert network.node_num == 54

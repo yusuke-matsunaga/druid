@@ -42,6 +42,6 @@ target_link_libraries ( TdFsim2SimNodeTest
   ${GTEST_BOTH_LIBRARIES}
   )
 
-add_test ( TdFsim2Test
+add_test ( druid_TdFsim2Test
   TdFsim2SimNodeTest
   )

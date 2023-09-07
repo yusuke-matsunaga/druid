@@ -11,11 +11,11 @@ import pytest
 import os
 from druid.types import TpgNetwork, TpgFaultMgr, FaultType, FaultStatus
 from druid.dtpg import DtpgMgr
+from make_filename import make_filename
 
 
 def test_dtpg():
-    TESTDATA_DIR = os.environ.get('TESTDATA_DIR')
-    filename = os.path.join(TESTDATA_DIR, 's27.blif')
+    filename = make_filename('s27.blif')
     network = TpgNetwork.read_blif(filename)
     fault_mgr = TpgFaultMgr()
     fault_mgr.gen_fault_list(network, FaultType.TransitionDelay)

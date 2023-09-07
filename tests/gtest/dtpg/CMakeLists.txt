@@ -28,5 +28,5 @@ ym_add_gtest ( druid_dtpg_test
   $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
   $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
-  DEFINITIONS "-DDATAPATH=\"${PROJECT_SOURCE_DIR}/tests/data/\""
+  DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
   )

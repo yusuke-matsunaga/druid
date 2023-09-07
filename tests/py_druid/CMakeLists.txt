@@ -33,5 +33,5 @@ add_test ( py_druid_test
   )
 
 set_property ( TEST py_druid_test
-  PROPERTY ENVIRONMENT TESTDATA_DIR=${PROJECT_SOURCE_DIR}/tests/data
+  PROPERTY ENVIRONMENT TESTDATA_DIR=${TESTDATA_DIR}
   )

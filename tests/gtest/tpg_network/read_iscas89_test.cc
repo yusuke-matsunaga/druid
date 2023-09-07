@@ -15,7 +15,7 @@ BEGIN_NAMESPACE_DRUID
 TEST(DruidTest, read_iscas89_1)
 {
   string filename = "b01.bench";
-  string path = DATAPATH + filename;
+  string path = string{TESTDATA_DIR} + "/" + filename;
   auto network = TpgNetwork::read_iscas89(path);
   EXPECT_EQ( 54, network.node_num() );
   EXPECT_EQ( 2, network.input_num() );
