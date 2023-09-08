@@ -6,10 +6,8 @@ include_directories (
   ${PROJECT_SOURCE_DIR}/include/types
   ${PROJECT_SOURCE_DIR}/include/dtpg
   ${PROJECT_SOURCE_DIR}/include/main
-  ${PROJECT_SOURCE_DIR}/include/enc
   ${PROJECT_SOURCE_DIR}/include/pym
   ${PROJECT_BUILD_DIR}/include
-  ${YM_SUBMODULE_INCLUDE_LIST}
   ${Python3_INCLUDE_DIRS}
   )
 
@@ -58,7 +56,10 @@ add_executable ( py_druid
   $<TARGET_OBJECTS:py_ymbase_obj>
   $<TARGET_OBJECTS:py_ymcell_obj>
   $<TARGET_OBJECTS:py_ymsat_obj>
-  $<TARGET_OBJECTS:druid_common_obj>
+  $<TARGET_OBJECTS:druid_types_obj>
+  $<TARGET_OBJECTS:druid_dtpg_obj>
+  $<TARGET_OBJECTS:druid_main_obj>
+  $<TARGET_OBJECTS:druid_fsim_main_obj>
   $<TARGET_OBJECTS:druid_fsimcombi2_obj>
   $<TARGET_OBJECTS:druid_fsimcombi3_obj>
   $<TARGET_OBJECTS:druid_fsimbside2_obj>
@@ -81,7 +82,10 @@ add_executable ( py_druid_d
   $<TARGET_OBJECTS:py_ymbase_obj_d>
   $<TARGET_OBJECTS:py_ymcell_obj_d>
   $<TARGET_OBJECTS:py_ymsat_obj_d>
-  $<TARGET_OBJECTS:druid_common_obj_d>
+  $<TARGET_OBJECTS:druid_types_obj_d>
+  $<TARGET_OBJECTS:druid_dtpg_obj_d>
+  $<TARGET_OBJECTS:druid_main_obj_d>
+  $<TARGET_OBJECTS:druid_fsim_main_obj_d>
   $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
   $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
   $<TARGET_OBJECTS:druid_fsimbside2_obj_d>

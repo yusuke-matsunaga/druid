@@ -23,7 +23,7 @@ include_directories(
 
 add_executable ( TdFsim2SimNodeTest
   SimNodeTest.cc
-  $<TARGET_OBJECTS:druid_common_obj_ad>
+  $<TARGET_OBJECTS:druid_types_obj_ad>
   $<TARGET_OBJECTS:ym_base_obj_ad>
   $<TARGET_OBJECTS:ym_logic_obj_ad>
   $<TARGET_OBJECTS:ym_cell_obj_ad>

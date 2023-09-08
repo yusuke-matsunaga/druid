@@ -28,10 +28,10 @@
 # テストターゲット
 # ===================================================================
 
-add_test ( py_druid_test
+add_test ( druid_py_druid_test
   ${PROJECT_BINARY_DIR}/py_druid/py_druid_d -m pytest ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
-set_property ( TEST py_druid_test
+set_property ( TEST druid_py_druid_test
   PROPERTY ENVIRONMENT TESTDATA_DIR=${TESTDATA_DIR}
   )
