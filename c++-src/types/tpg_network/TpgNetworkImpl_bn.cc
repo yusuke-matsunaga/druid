@@ -15,10 +15,10 @@
 
 #include "NodeMap.h"
 
-#include "ym/BnNetwork.h"
-#include "ym/BnPort.h"
-#include "ym/BnDff.h"
+#include "ym/BnModel.h"
+#include "ym/BnSeq.h"
 #include "ym/BnNode.h"
+#include "ym/BnCover.h"
 
 #include "ym/Range.h"
 
@@ -29,12 +29,36 @@ BEGIN_NAMESPACE_DRUID
 // クラス TpgNetwork
 //////////////////////////////////////////////////////////////////////
 
-// @brief BnNetwork からの変換コンストラクタ
+// @brief blif ファイルを読み込む．
+TpgNetwork
+TpgNetwork::read_blif(
+  const string& filename,
+  const ClibCellLibrary& cell_library,
+  const string& clock_name,
+  const string& reset_name
+)
+{
+  auto model = BnModel::read_blif(filename, cell_library, clock_name, reset_name);
+  return TpgNetwork{model};
+}
+
+// @brief iscas89 形式のファイルを読み込む．
+TpgNetwork
+TpgNetwork::read_iscas89(
+  const string& filename,
+  const string& clock_name
+)
+{
+  auto model = BnModel::read_iscas89(filename, clock_name);
+  return TpgNetwork{model};
+}
+
+// @brief BnModel からの変換コンストラクタ
 TpgNetwork::TpgNetwork(
-  const BnNetwork& network
+  const BnModel& model
 ) : mImpl{new TpgNetworkImpl}
 {
-  mImpl->set(network);
+  mImpl->set(model);
 }
 
 
@@ -45,7 +69,7 @@ TpgNetwork::TpgNetwork(
 // @brief 内容を設定する．
 void
 TpgNetworkImpl::set(
-  const BnNetwork& network
+  const BnModel& model
 )
 {
   // まずクリアしておく．
@@ -54,23 +78,36 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // NodeInfoMgr にノードの論理関数を登録する．
   //////////////////////////////////////////////////////////////////////
-  vector<const GateType*> gate_type_list;
-  gate_type_list.reserve(network.expr_num());
-  for ( SizeType i: Range(network.expr_num()) ) {
-    auto expr = network.expr(i);
+  vector<const GateType*> gate_type_list1;
+  vector<const GateType*> gate_type_list2;
+  gate_type_list1.reserve(model.cover_num());
+  gate_type_list2.reserve(model.expr_num());
+  for ( SizeType i: Range(model.cover_num()) ) {
+    auto& cover = model.cover(i);
+    SizeType ni = cover.input_num();
+    auto expr = cover.expr();
+    auto gate_type = mGateTypeMgr.new_type(ni, expr);
+    gate_type_list1.push_back(gate_type);
+  }
+  for ( SizeType i: Range(model.expr_num()) ) {
+    auto expr = model.expr(i);
     SizeType ni = expr.input_size();
     auto gate_type = mGateTypeMgr.new_type(ni, expr);
-    gate_type_list.push_back(gate_type);
+    gate_type_list2.push_back(gate_type);
   }
 
   //////////////////////////////////////////////////////////////////////
   // 追加で生成されるノード数を数える．
   //////////////////////////////////////////////////////////////////////
   SizeType extra_node_num = 0;
-  for ( auto src_node: network.logic_list() ) {
+  for ( auto src_node: model.logic_list() ) {
     auto logic_type = src_node.type();
-    if ( logic_type == BnNodeType::Expr ) {
-      auto gate_type = gate_type_list[src_node.expr_id()];
+    if ( logic_type == BnNodeType::COVER ) {
+      auto gate_type = gate_type_list1[src_node.cover_id()];
+      extra_node_num += gate_type->extra_node_num();
+    }
+    else if ( logic_type == BnNodeType::EXPR ) {
+      auto gate_type = gate_type_list2[src_node.expr_id()];
       extra_node_num += gate_type->extra_node_num();
     }
   }
@@ -79,28 +116,10 @@ TpgNetworkImpl::set(
   // 要素数を数え，必要なメモリ領域を確保する．
   //////////////////////////////////////////////////////////////////////
 
-  // BnPort は複数ビットの場合があり，さらに入出力が一緒なのでめんどくさい
-  vector<SizeType> input_map;
-  vector<SizeType> output_map;
-  for ( auto port: network.port_list() ) {
-    for ( auto b: Range(port.bit_width() ) ) {
-      auto node = port.bit(b);
-      SizeType id = node.id();
-      if ( node.is_input() ) {
-	input_map.push_back(id);
-      }
-      else if ( node.is_output() ) {
-	output_map.push_back(id);
-      }
-      else {
-	ASSERT_NOT_REACHED;
-      }
-    }
-  }
-  SizeType input_num = input_map.size();
-  SizeType output_num = output_map.size();
-  SizeType dff_num = network.dff_num();
-  SizeType gate_num = network.logic_num();
+  SizeType input_num = model.input_num();
+  SizeType output_num = model.output_num();
+  SizeType dff_num = model.seq_num();
+  SizeType gate_num = model.logic_num();
 
   // ノード数の見積もり
   SizeType nn = set_size(input_num, output_num, dff_num, gate_num, extra_node_num);
@@ -111,24 +130,20 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // 入力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
-  for ( auto i: Range(mInputNum) ) {
-    SizeType id = input_map[i];
-    auto src_node = network.node(id);
-    ASSERT_COND( src_node.is_input() );
+  for ( auto i: Range(input_num) ) {
+    auto src_node = model.input(i);
     auto node = make_input_node(src_node.name());
-    node_map.reg(id, node);
+    node_map.reg(src_node.id(), node);
   }
 
   //////////////////////////////////////////////////////////////////////
   // DFFの出力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
-  SizeType i = 0;
-  for ( auto src_dff: network.dff_list() ) {
-    auto src_node = src_dff.data_out();
-    ASSERT_COND( src_node.is_input() );
+  for ( auto i: Range(dff_num) ) {
+    auto src_dff = model.seq_node(i);
+    auto src_node = src_dff.data_output();
     auto node = make_dff_output_node(i, src_node.name());
     node_map.reg(src_node.id(), node);
-    ++ i;
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -136,13 +151,16 @@ TpgNetworkImpl::set(
   // BnNetwork::logic_id_list() はトポロジカルソートされているので
   // 結果として TpgNode もトポロジカル順に並べられる．
   //////////////////////////////////////////////////////////////////////
-  for ( auto src_node: network.logic_list() ) {
+  for ( auto src_node: model.logic_list() ) {
     const GateType* gate_type = nullptr;
     auto logic_type = src_node.type();
-    if ( logic_type == BnNodeType::Expr ) {
-      gate_type = gate_type_list[src_node.expr_id()];
+    if ( logic_type == BnNodeType::COVER ) {
+      gate_type = gate_type_list1[src_node.cover_id()];
     }
-    else if ( logic_type == BnNodeType::Prim ) {
+    else if ( logic_type == BnNodeType::EXPR ) {
+      gate_type = gate_type_list2[src_node.expr_id()];
+    }
+    else if ( logic_type == BnNodeType::PRIMITIVE ) {
       auto prim_type = src_node.primitive_type();
       gate_type = mGateTypeMgr.simple_type(prim_type);
     }
@@ -166,13 +184,11 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // 出力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
-  for ( auto id: output_map ) {
-    auto src_node = network.node(id);
-    ASSERT_COND( src_node.is_output() );
-    auto inode = node_map.get(src_node.output_src().id());
-    string buf = "*";
-    buf += src_node.name();
-    auto node = make_output_node(buf, inode);
+  for ( auto i: Range(output_num) ) {
+    auto src_node = model.output(i);
+    auto name = model.output_name(i);
+    auto inode = node_map.get(src_node.id());
+    auto node = make_output_node(name, inode);
     connection_list[inode->id()].push_back(node);
   }
 
@@ -180,10 +196,10 @@ TpgNetworkImpl::set(
   // DFFの入力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
   for ( auto i: Range(dff_num) ) {
-    auto src_dff = network.dff(i);
-    auto src_node = src_dff.data_in();
+    auto src_dff = model.seq_node(i);
+    auto src_node = src_dff.data_src();
 
-    auto inode = node_map.get(src_node.output_src().id());
+    auto inode = node_map.get(src_node.id());
     string dff_name = src_dff.name();
     string input_name = dff_name + ".input";
     auto node = make_dff_input_node(i, input_name, inode);

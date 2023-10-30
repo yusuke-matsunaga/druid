@@ -45,8 +45,7 @@ endif ()
 
 ym_init ( "" )
 ym_init_python ( ${INIT_PYTHON_ARGS} )
-ym_init_jsoncpp ()
-ym_init_doxygen ()
+#ym_init_doxygen ()
 ym_init_gperftools ()
 ym_init_ctest ()
 
@@ -81,10 +80,11 @@ configure_file(
 
 ym_init_submodules (
   ym-base
-  ym-bnet
+  ym-bn
   ym-cell
   ym-combopt
   ym-common
+  ym-json
   ym-logic
   ym-sat
   )
@@ -94,7 +94,9 @@ ym_init_submodules (
 # インクルードパスの設定
 # ===================================================================
 include_directories (
+  ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BINARY_DIR}/include
+  ${YM_SUBMODULE_INCLUDE_LIST}
   )
 
 

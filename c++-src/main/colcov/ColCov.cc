@@ -133,7 +133,7 @@ ColCov::mincov_color(
 
   // 列を選ぶ．
   vector<SizeType> sel_cols;
-  mincov.heuristic(sel_cols);
+  mincov.solve(sel_cols, "heuristic");
 
   // 選ばれた列を前に詰める．
   SizeType new_col_size = sel_cols.size();

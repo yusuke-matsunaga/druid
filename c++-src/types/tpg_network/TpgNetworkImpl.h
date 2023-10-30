@@ -10,10 +10,8 @@
 
 #include "druid.h"
 
-#include "ym/bnet.h"
+#include "ym/bn.h"
 #include "ym/clib.h"
-#include "ym/blif_nsdef.h"
-#include "ym/iscas89_nsdef.h"
 #include "ym/logic.h"
 #include "ym/Array.h"
 #include "TpgGate.h"
@@ -341,25 +339,10 @@ public:
   // 内容を設定するための関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief BnNetwork から内容を設定する．
+  /// @brief BnModel から内容を設定する．
   void
   set(
-    const BnNetwork& network
-  );
-
-  /// @brief BlifModel から内容を設定する．
-  void
-  set(
-    const BlifModel& model,
-    const string& clock_name,
-    const string& reset_name
-  );
-
-  /// @brief Iscas89Model から内容を設定する．
-  void
-  set(
-    const Iscas89Model& model,
-    const string& clock_name
+    const BnModel& model
   );
 
   /// @brief サイズを設定する．

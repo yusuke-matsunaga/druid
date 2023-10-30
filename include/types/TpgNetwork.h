@@ -9,9 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "ym/bnet.h"
-#include "ym/blif_nsdef.h"
-#include "ym/iscas89_nsdef.h"
+#include "ym/bn.h"
 #include "ym/ClibCellLibrary.h"
 #include "TpgDFFList.h"
 #include "TpgMFFCList.h"
@@ -84,9 +82,9 @@ public:
     TpgNetwork&& src ///< [in] ムーブ元
   );
 
-  /// @brief BnNetwork からの変換コンストラクタ
+  /// @brief BnModel からの変換コンストラクタ
   TpgNetwork(
-    const BnNetwork& network ///< [in] 設定元のネットワーク
+    const BnModel& src ///< [in] 設定元のネットワーク
   );
 
   /// @brief blif ファイルを読み込む．
@@ -98,7 +96,10 @@ public:
     const string& filename,        ///< [in] ファイル名
     const string& clock_name = {}, ///< [in] クロック入力名
     const string& reset_name = {}  ///< [in] リセット入力名
-  );
+  )
+  {
+    return read_blif(filename, ClibCellLibrary{}, clock_name, reset_name);
+  }
 
   /// @brief blif ファイルを読み込む．
   ///
@@ -350,25 +351,6 @@ public:
   void
   print(
     ostream& s ///< [in] 出力先のストリーム
-  );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部でのみ用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief BlifModel からの変換コンストラクタ
-  TpgNetwork(
-    const BlifModel& model,   ///< [in] 設定元のネットワーク
-    const string& clock_name, ///< [in] クロック入力名
-    const string& reset_name  ///< [in] リセット入力名
-  );
-
-  /// @brief Iscas89Model からの変換コンストラクタ
-  TpgNetwork(
-    const Iscas89Model& model, ///< [in] 設定元のネットワーク
-    const string& clock_name   ///< [in] クロック入力名
   );
 
 

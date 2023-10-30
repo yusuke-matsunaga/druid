@@ -10,7 +10,9 @@
 #include "TpgFaultMgr.h"
 #include "TpgFault.h"
 #include "TpgNetwork.h"
-#include "ym/BnModifier.h"
+#include "ym/BnModel.h"
+#include "ym/BnNode.h"
+#include "ym/BnSeq.h"
 #include "NodeValList.h"
 
 
@@ -41,18 +43,13 @@ print_faults(
 TEST(TpgNetworkTest, and2)
 {
   // 2入力ANDゲート1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_b = mod.new_input_port("b");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto b = port_b.bit(0);
-  auto x = port_x.bit(0);
-  auto node = mod.new_logic_primitive("and1", PrimType::And, {a, b});
-  mod.set_output_src(x, node);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto b = model.new_input("b");
+  auto node = model.new_primitive({a, b}, PrimType::And, "and1");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
@@ -67,10 +64,10 @@ TEST(TpgNetworkTest, and2)
     "9: and1:I1:SA1\n"
     "  ExCond: Node#0@1 = 1 Node#1@1 = 0\n"
     "  PropCond: Node#0@1 = 1 Node#1@1 = 0\n"
-    "10: *x:I0:SA0\n"
+    "10: x:I0:SA0\n"
     "  ExCond: Node#2@1 = 1\n"
     "  PropCond: Node#2@1 = 1\n"
-    "11: *x:I0:SA1\n"
+    "11: x:I0:SA1\n"
     "  ExCond: Node#2@1 = 0\n"
     "  PropCond: Node#2@1 = 0\n"
     "# of rep faults: 4\n";
@@ -81,18 +78,13 @@ TEST(TpgNetworkTest, and2)
 TEST(TpgNetworkTest, or2)
 {
   // 2入力ANDゲート1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_b = mod.new_input_port("b");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto b = port_b.bit(0);
-  auto x = port_x.bit(0);
-  auto node = mod.new_logic_primitive("or1", PrimType::Or, {a, b});
-  mod.set_output_src(x, node);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto b = model.new_input("b");
+  auto node = model.new_primitive({a, b}, PrimType::Or, "or1");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
@@ -107,10 +99,10 @@ TEST(TpgNetworkTest, or2)
     "8: or1:I1:SA0\n"
     "  ExCond: Node#0@1 = 0 Node#1@1 = 1\n"
     "  PropCond: Node#0@1 = 0 Node#1@1 = 1\n"
-    "10: *x:I0:SA0\n"
+    "10: x:I0:SA0\n"
     "  ExCond: Node#2@1 = 1\n"
     "  PropCond: Node#2@1 = 1\n"
-    "11: *x:I0:SA1\n"
+    "11: x:I0:SA1\n"
     "  ExCond: Node#2@1 = 0\n"
     "  PropCond: Node#2@1 = 0\n"
     "# of rep faults: 4\n";
@@ -121,24 +113,17 @@ TEST(TpgNetworkTest, or2)
 TEST(TpgNetworkTest, and_or2)
 {
   // 2入力ANDゲート1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_b = mod.new_input_port("b");
-  auto port_c = mod.new_input_port("c");
-  auto port_d = mod.new_input_port("d");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto b = port_b.bit(0);
-  auto c = port_c.bit(0);
-  auto d = port_d.bit(0);
-  auto x = port_x.bit(0);
-  auto node1 = mod.new_logic_primitive("and1", PrimType::And, {a, b});
-  auto node2 = mod.new_logic_primitive("and2", PrimType::And, {c, d});
-  auto node3 = mod.new_logic_primitive("or1", PrimType::Or, {node1, node2});
-  mod.set_output_src(x, node3);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto b = model.new_input("b");
+  auto c = model.new_input("c");
+  auto d = model.new_input("d");
+  auto node1 = model.new_primitive({a, b}, PrimType::And, "and1");
+  auto node2 = model.new_primitive({c, d}, PrimType::And, "and2");
+  auto node3 = model.new_primitive({node1, node2}, PrimType::Or, "or1");
+  model.new_output(node3, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
@@ -165,10 +150,10 @@ TEST(TpgNetworkTest, and_or2)
     "24: or1:I1:SA0\n"
     "  ExCond: Node#4@1 = 0 Node#5@1 = 1\n"
     "  PropCond: Node#4@1 = 0 Node#5@1 = 1\n"
-    "26: *x:I0:SA0\n"
+    "26: x:I0:SA0\n"
     "  ExCond: Node#6@1 = 1\n"
     "  PropCond: Node#6@1 = 1\n"
-    "27: *x:I0:SA1\n"
+    "27: x:I0:SA1\n"
     "  ExCond: Node#6@1 = 0\n"
     "  PropCond: Node#6@1 = 0\n"
     "# of rep faults: 8\n";
@@ -179,18 +164,13 @@ TEST(TpgNetworkTest, and_or2)
 TEST(TpgNetworkTest, xor2)
 {
   // 2入力XORゲート1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_b = mod.new_input_port("b");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto b = port_b.bit(0);
-  auto x = port_x.bit(0);
-  auto node = mod.new_logic_primitive("xor1", PrimType::Xor, {a, b});
-  mod.set_output_src(x, node);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto b = model.new_input("b");
+  auto node = model.new_primitive({a, b}, PrimType::Xor, "xor1");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
@@ -211,10 +191,10 @@ TEST(TpgNetworkTest, xor2)
     "9: xor1:I1:SA1\n"
     "  ExCond: Node#1@1 = 0\n"
     "  PropCond: Node#1@1 = 0\n"
-    "10: *x:I0:SA0\n"
+    "10: x:I0:SA0\n"
     "  ExCond: Node#2@1 = 1\n"
     "  PropCond: Node#2@1 = 1\n"
-    "11: *x:I0:SA1\n"
+    "11: x:I0:SA1\n"
     "  ExCond: Node#2@1 = 0\n"
     "  PropCond: Node#2@1 = 0\n"
     "# of rep faults: 6\n";
@@ -225,23 +205,16 @@ TEST(TpgNetworkTest, xor2)
 TEST(TpgNetworkTest, dff1)
 {
   // D-FF 1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_clk = mod.new_input_port("clk");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto clk = port_clk.bit(0);
-  auto x = port_x.bit(0);
-  auto dff = mod.new_dff("dff1");
-  auto dff_in = dff.data_in();
-  auto dff_out = dff.data_out();
-  auto dff_clk = dff.clock();
-  mod.set_output_src(dff_in, a);
-  mod.set_output_src(dff_clk, clk);
-  mod.set_output_src(x, dff_out);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto clk = model.new_input("clk");
+  auto dff = model.new_dff(' ', "dff1");
+  auto dff_out = dff.data_output();
+  model.set_data_src(dff, a);
+  model.set_clock(dff, clk);
+  model.new_output(dff_out, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   tpg_network.print(cout);
 
@@ -256,23 +229,16 @@ TEST(TpgNetworkTest, dff1)
 TEST(TpgNetworkTest, dff2)
 {
   // D-FF 1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_clk = mod.new_input_port("clk");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto clk = port_clk.bit(0);
-  auto x = port_x.bit(0);
-  auto dff = mod.new_dff("dff1");
-  auto dff_in = dff.data_in();
-  auto dff_out = dff.data_out();
-  auto dff_clk = dff.clock();
-  mod.set_output_src(dff_in, a);
-  mod.set_output_src(dff_clk, clk);
-  mod.set_output_src(x, dff_out);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto clk = model.new_input("clk");
+  auto dff = model.new_dff(' ', "dff1");
+  auto dff_out = dff.data_output();
+  model.set_data_src(dff, a);
+  model.set_clock(dff, clk);
+  model.new_output(dff_out, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   tpg_network.print(cout);
 

@@ -8,8 +8,9 @@
 
 #include "gtest/gtest.h"
 #include "TpgNetwork.h"
-#include "ym/BnModifier.h"
-#include "ym/BnNetwork.h"
+#include "ym/BnModel.h"
+#include "ym/BnNode.h"
+#include "ym/Expr.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -17,18 +18,13 @@ BEGIN_NAMESPACE_DRUID
 TEST(TpgNetworkTest, xor2)
 {
   // 2入力XORゲート1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_b = mod.new_input_port("b");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto b = port_b.bit(0);
-  auto x = port_x.bit(0);
-  auto node = mod.new_logic_primitive("xor1", PrimType::Xor, {a, b});
-  mod.set_output_src(x, node);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto b = model.new_input("b");
+  auto node = model.new_primitive({a, b}, PrimType::Xor, "xor1");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -53,7 +49,7 @@ TEST(TpgNetworkTest, xor2)
     "PPI#0: a: Node#0\n"
     "PPI#1: b: Node#1\n"
     "\n"
-    "PPO#0: *x: Node#3\n"
+    "PPO#0: x: Node#3\n"
     "\n"
     "GATE#0: xor1\n"
     "  Output: Node#2\n"
@@ -66,20 +62,14 @@ TEST(TpgNetworkTest, xor2)
 TEST(TpgNetworkTest, xor3)
 {
   // 3入力XORゲート1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_b = mod.new_input_port("b");
-  auto port_c = mod.new_input_port("c");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto b = port_b.bit(0);
-  auto c = port_c.bit(0);
-  auto x = port_x.bit(0);
-  auto node = mod.new_logic_primitive("xor1", PrimType::Xor, {a, b, c});
-  mod.set_output_src(x, node);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto b = model.new_input("b");
+  auto c = model.new_input("c");
+  auto node = model.new_primitive({a, b, c}, PrimType::Xor, "xor1");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -107,7 +97,7 @@ TEST(TpgNetworkTest, xor3)
     "PPI#1: b: Node#1\n"
     "PPI#2: c: Node#2\n"
     "\n"
-    "PPO#0: *x: Node#4\n"
+    "PPO#0: x: Node#4\n"
     "\n"
     "GATE#0: xor1\n"
     "  Output: Node#3\n"
@@ -121,22 +111,15 @@ TEST(TpgNetworkTest, xor3)
 TEST(TpgNetworkTest, xor4)
 {
   // 4入力XORゲート1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a = mod.new_input_port("a");
-  auto port_b = mod.new_input_port("b");
-  auto port_c = mod.new_input_port("c");
-  auto port_d = mod.new_input_port("d");
-  auto port_x = mod.new_output_port("x");
-  auto a = port_a.bit(0);
-  auto b = port_b.bit(0);
-  auto c = port_c.bit(0);
-  auto d = port_d.bit(0);
-  auto x = port_x.bit(0);
-  auto node = mod.new_logic_primitive("xor1", PrimType::Xor, {a, b, c, d});
-  mod.set_output_src(x, node);
+  BnModel model;
+  auto a = model.new_input("a");
+  auto b = model.new_input("b");
+  auto c = model.new_input("c");
+  auto d = model.new_input("d");
+  auto node = model.new_primitive({a, b, c, d}, PrimType::Xor, "xor1");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -167,7 +150,7 @@ TEST(TpgNetworkTest, xor4)
     "PPI#2: c: Node#2\n"
     "PPI#3: d: Node#3\n"
     "\n"
-    "PPO#0: *x: Node#5\n"
+    "PPO#0: x: Node#5\n"
     "\n"
     "GATE#0: xor1\n"
     "  Output: Node#4\n"
@@ -182,27 +165,21 @@ TEST(TpgNetworkTest, xor4)
 TEST(TpgNetworkTest, aoi22)
 {
   // AOI221つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a1 = mod.new_input_port("a1");
-  auto port_a2 = mod.new_input_port("a2");
-  auto port_b1 = mod.new_input_port("b1");
-  auto port_b2 = mod.new_input_port("b2");
-  auto port_x = mod.new_output_port("x");
-  auto a1 = port_a1.bit(0);
-  auto a2 = port_a2.bit(0);
-  auto b1 = port_b1.bit(0);
-  auto b2 = port_b2.bit(0);
-  auto x = port_x.bit(0);
+  BnModel model;
+  auto a1 = model.new_input("a1");
+  auto a2 = model.new_input("a2");
+  auto b1 = model.new_input("b1");
+  auto b2 = model.new_input("b2");
   auto a1_lit = Expr::make_posi_literal(0);
   auto a2_lit = Expr::make_posi_literal(1);
   auto b1_lit = Expr::make_posi_literal(2);
   auto b2_lit = Expr::make_posi_literal(3);
   auto aoi22_expr = ~((a1_lit & a2_lit) | (b1_lit & b2_lit));
-  auto node = mod.new_logic_expr("aoi22", aoi22_expr, {a1, a2, b1, b2});
-  mod.set_output_src(x, node);
+  auto expr_id = model.add_expr(aoi22_expr);
+  auto node = model.new_expr({a1, a2, b1, b2}, expr_id, "aoi22");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -245,7 +222,7 @@ TEST(TpgNetworkTest, aoi22)
     "PPI#2: b1: Node#2\n"
     "PPI#3: b2: Node#3\n"
     "\n"
-    "PPO#0: *x: Node#11\n"
+    "PPO#0: x: Node#11\n"
     "\n"
     "GATE#0: aoi22\n"
     "  Output: Node#10\n"
@@ -260,24 +237,19 @@ TEST(TpgNetworkTest, aoi22)
 TEST(TpgNetworkTest, oai21)
 {
   // OAI21 1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a1 = mod.new_input_port("a1");
-  auto port_a2 = mod.new_input_port("a2");
-  auto port_b1 = mod.new_input_port("b1");
-  auto port_x = mod.new_output_port("x");
-  auto a1 = port_a1.bit(0);
-  auto a2 = port_a2.bit(0);
-  auto b1 = port_b1.bit(0);
-  auto x = port_x.bit(0);
+  BnModel model;
+  auto a1 = model.new_input("a1");
+  auto a2 = model.new_input("a2");
+  auto b1 = model.new_input("b1");
   auto a1_lit = Expr::make_posi_literal(0);
   auto a2_lit = Expr::make_posi_literal(1);
   auto b1_lit = Expr::make_posi_literal(2);
   auto oai21_expr = ~((a1_lit | a2_lit) & b1_lit);
-  auto node = mod.new_logic_expr("oai21", oai21_expr, {a1, a2, b1});
-  mod.set_output_src(x, node);
+  auto expr_id = model.add_expr(oai21_expr);
+  auto node = model.new_expr({a1, a2, b1}, expr_id, "oai21");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -313,7 +285,7 @@ TEST(TpgNetworkTest, oai21)
     "PPI#1: a2: Node#1\n"
     "PPI#2: b1: Node#2\n"
     "\n"
-    "PPO#0: *x: Node#8\n"
+    "PPO#0: x: Node#8\n"
     "\n"
     "GATE#0: oai21\n"
     "  Output: Node#7\n"
@@ -327,24 +299,19 @@ TEST(TpgNetworkTest, oai21)
 TEST(TpgNetworkTest, cplx1)
 {
   // OAI21 1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a1 = mod.new_input_port("a1");
-  auto port_a2 = mod.new_input_port("a2");
-  auto port_b1 = mod.new_input_port("b1");
-  auto port_x = mod.new_output_port("x");
-  auto a1 = port_a1.bit(0);
-  auto a2 = port_a2.bit(0);
-  auto b1 = port_b1.bit(0);
-  auto x = port_x.bit(0);
+  BnModel model;
+  auto a1 = model.new_input("a1");
+  auto a2 = model.new_input("a2");
+  auto b1 = model.new_input("b1");
   auto a1_lit = Expr::make_posi_literal(0);
   auto a2_lit = Expr::make_posi_literal(1);
   auto b1_lit = Expr::make_posi_literal(2);
   auto cplx1_expr = (a1_lit | a2_lit) & b1_lit;
-  auto node = mod.new_logic_expr("cplx1", cplx1_expr, {a1, a2, b1});
-  mod.set_output_src(x, node);
+  auto expr_id = model.add_expr(cplx1_expr);
+  auto node = model.new_expr({a1, a2, b1}, expr_id, "cplx1");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -374,7 +341,7 @@ TEST(TpgNetworkTest, cplx1)
     "PPI#1: a2: Node#1\n"
     "PPI#2: b1: Node#2\n"
     "\n"
-    "PPO#0: *x: Node#5\n"
+    "PPO#0: x: Node#5\n"
     "\n"
     "GATE#0: cplx1\n"
     "  Output: Node#4\n"
@@ -388,24 +355,19 @@ TEST(TpgNetworkTest, cplx1)
 TEST(TpgNetworkTest, cplx2)
 {
   // OAI21 1つからなるネットワークを作る．
-  BnModifier mod;
-  auto port_a1 = mod.new_input_port("a1");
-  auto port_a2 = mod.new_input_port("a2");
-  auto port_b1 = mod.new_input_port("b1");
-  auto port_x = mod.new_output_port("x");
-  auto a1 = port_a1.bit(0);
-  auto a2 = port_a2.bit(0);
-  auto b1 = port_b1.bit(0);
-  auto x = port_x.bit(0);
+  BnModel model;
+  auto a1 = model.new_input("a1");
+  auto a2 = model.new_input("a2");
+  auto b1 = model.new_input("b1");
   auto a1_lit = Expr::make_posi_literal(0);
   auto a2_lit = Expr::make_posi_literal(1);
   auto b1_lit = Expr::make_posi_literal(2);
   auto cplx2_expr = (a1_lit & b1_lit ) | (a2_lit & b1_lit);
-  auto node = mod.new_logic_expr("cplx2", cplx2_expr, {a1, a2, b1});
-  mod.set_output_src(x, node);
+  auto expr_id = model.add_expr(cplx2_expr);
+  auto node = model.new_expr({a1, a2, b1}, expr_id, "cplx2");
+  model.new_output(node, "x");
 
-  BnNetwork bn_net1{mod};
-  auto tpg_network = TpgNetwork{bn_net1};
+  auto tpg_network = TpgNetwork{model};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -443,7 +405,7 @@ TEST(TpgNetworkTest, cplx2)
     "PPI#1: a2: Node#1\n"
     "PPI#2: b1: Node#2\n"
     "\n"
-    "PPO#0: *x: Node#7\n"
+    "PPO#0: x: Node#7\n"
     "\n"
     "GATE#0: cplx2\n"
     "  Output: Node#6\n"

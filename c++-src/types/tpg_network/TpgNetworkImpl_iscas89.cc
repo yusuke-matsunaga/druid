@@ -3,7 +3,7 @@
 /// @brief TpgNetworkImpl::set(const Iscas89Model&) の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2019, 2022 Yusuke Matsunaga
+/// Copyright (C) 2018, 2019, 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgNetwork.h"
@@ -13,8 +13,6 @@
 #include "TpgPPO.h"
 #include "GateType.h"
 #include "NodeMap.h"
-#include "ym/Iscas89ExParser.h"
-#include "ym/Iscas89Model.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -22,15 +20,6 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 // クラス TpgNetwork
 //////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-TpgNetwork::TpgNetwork(
-  const Iscas89Model& model,
-  const string& clock_name
-) : mImpl{new TpgNetworkImpl}
-{
-  mImpl->set(model, clock_name);
-}
 
 // @brief iscas89 形式のファイルを読み込む．
 TpgNetwork

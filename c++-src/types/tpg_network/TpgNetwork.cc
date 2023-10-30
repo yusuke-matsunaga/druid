@@ -43,17 +43,6 @@ TpgNetwork::operator=(
   return *this;
 }
 
-// @brief blif ファイルを読み込む．
-TpgNetwork
-TpgNetwork::read_blif(
-  const string& filename,
-  const string& clock_name,
-  const string& reset_name
-)
-{
-  return read_blif(filename, ClibCellLibrary{}, clock_name, reset_name);
-}
-
 // @brief ファイルを読み込む
 TpgNetwork
 TpgNetwork::read_network(

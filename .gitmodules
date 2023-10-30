@@ -22,3 +22,9 @@
 [submodule "ym-combopt"]
 	path = ym-combopt
 	url = git@github.com:yusuke-matsunaga/ym-combopt
+[submodule "ym-bn"]
+	path = ym-bn
+	url = git@github.com:yusuke-matsunaga/ym-bn.git
+[submodule "ym-json"]
+	path = ym-json
+	url = git@github.com:yusuke-matsunaga/ym-json.git
