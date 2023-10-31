@@ -216,14 +216,28 @@ TEST(TpgNetworkTest, dff1)
 
   auto tpg_network = TpgNetwork{model};
 
-  tpg_network.print(cout);
-
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
 
   ostringstream buf;
-  print_faults(fmgr, cout);
+  print_faults(fmgr, buf);
 
+  string exp_str =
+    "4: x:I0:SA0\n"
+    "  ExCond: Node#1@1 = 1\n"
+    "  PropCond: Node#1@1 = 1\n"
+    "5: x:I0:SA1\n"
+    "  ExCond: Node#1@1 = 0\n"
+    "  PropCond: Node#1@1 = 0\n"
+    "6: dff1.input:I0:SA0\n"
+    "  ExCond: Node#0@1 = 1\n"
+    "  PropCond: Node#0@1 = 1\n"
+    "7: dff1.input:I0:SA1\n"
+    "  ExCond: Node#0@1 = 0\n"
+    "  PropCond: Node#0@1 = 0\n"
+    "# of rep faults: 4\n";
+
+  EXPECT_EQ( exp_str, buf.str() );
 }
 
 TEST(TpgNetworkTest, dff2)
@@ -240,14 +254,28 @@ TEST(TpgNetworkTest, dff2)
 
   auto tpg_network = TpgNetwork{model};
 
-  tpg_network.print(cout);
-
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::TransitionDelay);
 
   ostringstream buf;
-  print_faults(fmgr, cout);
+  print_faults(fmgr, buf);
 
+  string exp_str =
+    "4: x:I0:RISE\n"
+    "  ExCond: Node#1@0 = 0 Node#1@1 = 1\n"
+    "  PropCond: Node#1@0 = 0 Node#1@1 = 1\n"
+    "5: x:I0:FALL\n"
+    "  ExCond: Node#1@0 = 1 Node#1@1 = 0\n"
+    "  PropCond: Node#1@0 = 1 Node#1@1 = 0\n"
+    "6: dff1.input:I0:RISE\n"
+    "  ExCond: Node#0@0 = 0 Node#0@1 = 1\n"
+    "  PropCond: Node#0@0 = 0 Node#0@1 = 1\n"
+    "7: dff1.input:I0:FALL\n"
+    "  ExCond: Node#0@0 = 1 Node#0@1 = 0\n"
+    "  PropCond: Node#0@0 = 1 Node#0@1 = 0\n"
+    "# of rep faults: 4\n";
+
+  EXPECT_EQ( exp_str, buf.str() );
 }
 
 END_NAMESPACE_DRUID

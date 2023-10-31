@@ -16,6 +16,76 @@ BEGIN_NAMESPACE_DRUID
 
 TEST(DruidTest, read_blif_1)
 {
+  string filename = "s27.blif";
+  string path = string{TESTDATA_DIR} + "/" + filename;
+  auto network = TpgNetwork::read_blif(path);
+
+  EXPECT_EQ( 21, network.node_num() );
+  EXPECT_EQ( 4, network.input_num() );
+  EXPECT_EQ( 1, network.output_num() );
+  EXPECT_EQ( 7, network.ppi_num() );
+  EXPECT_EQ( 4, network.ppo_num() );
+  EXPECT_EQ( 7, network.mffc_num() );
+  EXPECT_EQ( 8, network.ffr_num() );
+  EXPECT_EQ( 3, network.dff_num() );
+
+  auto nn = network.node_num();
+  for ( SizeType i = 0; i < nn; ++ i ) {
+    auto node = network.node(i);
+    EXPECT_EQ( i, node->id() );
+  }
+
+  auto ni = network.input_num();
+  for ( SizeType i = 0; i < ni; ++ i ) {
+    auto node = network.input(i);
+    EXPECT_EQ( i, node->input_id() );
+  }
+
+  auto no = network.output_num();
+  for ( SizeType i = 0; i < no; ++ i ) {
+    auto node = network.output(i);
+    EXPECT_EQ( i, node->output_id() );
+  }
+  for ( SizeType i = 0; i < no; ++ i ) {
+    auto node = network.output2(i);
+    EXPECT_EQ( i, node->output_id2() );
+  }
+
+  auto npi = network.ppi_num();
+  for ( SizeType i = 0; i < npi; ++ i ) {
+    auto node = network.ppi(i);
+    EXPECT_EQ( i, node->input_id() );
+  }
+
+  auto npo = network.ppo_num();
+  for ( SizeType i = 0; i < npo; ++ i ) {
+    auto node = network.ppo(i);
+    EXPECT_EQ( i, node->output_id() );
+  }
+
+  auto nmffc = network.mffc_num();
+  for ( SizeType i = 0; i < nmffc; ++ i ) {
+    auto mffc = network.mffc(i);
+    EXPECT_EQ( i, mffc.id() );
+  }
+
+  auto nffr = network.ffr_num();
+  for ( SizeType i = 0; i < nffr; ++ i ) {
+    auto ffr = network.ffr(i);
+    EXPECT_EQ( i, ffr.id() );
+  }
+
+  auto nd = network.dff_num();
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto dff = network.dff(i);
+    EXPECT_EQ( i, dff.id() );
+    EXPECT_TRUE( dff.input() != nullptr );
+    EXPECT_TRUE( dff.output() != nullptr );
+  }
+}
+
+TEST(DruidTest, read_blif_2)
+{
   string filename = "s38584.blif";
   string path = string{TESTDATA_DIR} + "/" + filename;
   auto network = TpgNetwork::read_blif(path);
@@ -82,11 +152,9 @@ TEST(DruidTest, read_blif_1)
     EXPECT_TRUE( dff.input() != nullptr );
     EXPECT_TRUE( dff.output() != nullptr );
   }
-
-  network.print(cout);
 }
 
-TEST(DruidTest, bad_read_blif_1)
+TEST(DruidTest, read_blif_bad_1)
 {
   string path = "file_not_exist.blif";
   EXPECT_THROW( {

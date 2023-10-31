@@ -56,25 +56,42 @@ TpgNetwork::read_iscas89(
 // @brief BnModel からの変換コンストラクタ
 TpgNetwork::TpgNetwork(
   const BnModel& model
-) : mImpl{new TpgNetworkImpl}
+) : mImpl{new TpgNetworkImpl{model}}
 {
-  mImpl->set(model);
 }
+
+
+BEGIN_NONAMESPACE
+
+void
+dfs_mark(
+  BnNode node,
+  vector<bool>& mark
+)
+{
+  if ( mark[node.id()] ) {
+    return;
+  }
+  mark[node.id()] = true;
+  if ( node.is_logic() ) {
+    for ( auto inode: node.fanin_list() ) {
+      dfs_mark(inode, mark);
+    }
+  }
+}
+
+END_NONAMESPACE
 
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgNetworkImpl
 //////////////////////////////////////////////////////////////////////
 
-// @brief 内容を設定する．
-void
-TpgNetworkImpl::set(
+// @brief コンストラクタ
+TpgNetworkImpl::TpgNetworkImpl(
   const BnModel& model
 )
 {
-  // まずクリアしておく．
-  clear();
-
   //////////////////////////////////////////////////////////////////////
   // NodeInfoMgr にノードの論理関数を登録する．
   //////////////////////////////////////////////////////////////////////
@@ -116,10 +133,27 @@ TpgNetworkImpl::set(
   // 要素数を数え，必要なメモリ領域を確保する．
   //////////////////////////////////////////////////////////////////////
 
-  SizeType input_num = model.input_num();
   SizeType output_num = model.output_num();
   SizeType dff_num = model.seq_num();
   SizeType gate_num = model.logic_num();
+
+  // druid はクロック系，リセット系の回路は無視する．
+  // そのため，output/DFF src から DFS で印をつける．
+  vector<bool> mark(model.node_num(), false);
+  for ( auto node: model.output_list() ) {
+    dfs_mark(node, mark);
+  }
+  for ( auto seq: model.seq_node_list() ) {
+    dfs_mark(seq.data_src(), mark);
+  }
+  vector<BnNode> input_list;
+  input_list.reserve(model.input_num());
+  for ( auto node: model.input_list() ) {
+    if ( mark[node.id()] ) {
+      input_list.push_back(node);
+    }
+  }
+  SizeType input_num = input_list.size();
 
   // ノード数の見積もり
   SizeType nn = set_size(input_num, output_num, dff_num, gate_num, extra_node_num);
@@ -130,8 +164,7 @@ TpgNetworkImpl::set(
   //////////////////////////////////////////////////////////////////////
   // 入力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
-  for ( auto i: Range(input_num) ) {
-    auto src_node = model.input(i);
+  for ( auto src_node: input_list ) {
     auto node = make_input_node(src_node.name());
     node_map.reg(src_node.id(), node);
   }

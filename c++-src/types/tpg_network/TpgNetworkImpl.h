@@ -47,6 +47,12 @@ public:
   /// @brief コンストラクタ
   TpgNetworkImpl();
 
+  /// @brief コンストラクタ
+  explicit
+  TpgNetworkImpl(
+    const BnModel& model ///< [in] コピー元のモデル
+  );
+
   /// @brief デストラクタ
   ~TpgNetworkImpl();
 
@@ -338,12 +344,6 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 内容を設定するための関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief BnModel から内容を設定する．
-  void
-  set(
-    const BnModel& model
-  );
 
   /// @brief サイズを設定する．
   SizeType

@@ -7,8 +7,6 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include/enc
   ${PROJECT_SOURCE_DIR}/include/main
   ${PROJECT_SOURCE_DIR}/include/types
-  ${PROJECT_BUILD_DIR}/include
-  ${YM_SUBMODULE_INCLUDE_LIST}
   )
 
 
