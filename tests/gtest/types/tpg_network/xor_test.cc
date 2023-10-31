@@ -21,7 +21,7 @@ TEST(TpgNetworkTest, xor2)
   BnModel model;
   auto a = model.new_input("a");
   auto b = model.new_input("b");
-  auto node = model.new_primitive({a, b}, PrimType::Xor, "xor1");
+  auto node = model.new_primitive({a, b}, PrimType::Xor);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -51,7 +51,7 @@ TEST(TpgNetworkTest, xor2)
     "\n"
     "PPO#0: x: Node#3\n"
     "\n"
-    "GATE#0: xor1\n"
+    "GATE#0:\n"
     "  Output: Node#2\n"
     "  Input#0: Node#2[0]\n"
     "  Input#1: Node#2[1]\n"
@@ -66,7 +66,7 @@ TEST(TpgNetworkTest, xor3)
   auto a = model.new_input("a");
   auto b = model.new_input("b");
   auto c = model.new_input("c");
-  auto node = model.new_primitive({a, b, c}, PrimType::Xor, "xor1");
+  auto node = model.new_primitive({a, b, c}, PrimType::Xor);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -99,7 +99,7 @@ TEST(TpgNetworkTest, xor3)
     "\n"
     "PPO#0: x: Node#4\n"
     "\n"
-    "GATE#0: xor1\n"
+    "GATE#0:\n"
     "  Output: Node#3\n"
     "  Input#0: Node#3[0]\n"
     "  Input#1: Node#3[1]\n"
@@ -116,7 +116,7 @@ TEST(TpgNetworkTest, xor4)
   auto b = model.new_input("b");
   auto c = model.new_input("c");
   auto d = model.new_input("d");
-  auto node = model.new_primitive({a, b, c, d}, PrimType::Xor, "xor1");
+  auto node = model.new_primitive({a, b, c, d}, PrimType::Xor);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -152,7 +152,7 @@ TEST(TpgNetworkTest, xor4)
     "\n"
     "PPO#0: x: Node#5\n"
     "\n"
-    "GATE#0: xor1\n"
+    "GATE#0:\n"
     "  Output: Node#4\n"
     "  Input#0: Node#4[0]\n"
     "  Input#1: Node#4[1]\n"
@@ -176,7 +176,7 @@ TEST(TpgNetworkTest, aoi22)
   auto b2_lit = Expr::make_posi_literal(3);
   auto aoi22_expr = ~((a1_lit & a2_lit) | (b1_lit & b2_lit));
   auto expr_id = model.add_expr(aoi22_expr);
-  auto node = model.new_expr({a1, a2, b1, b2}, expr_id, "aoi22");
+  auto node = model.new_expr({a1, a2, b1, b2}, expr_id);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -224,7 +224,7 @@ TEST(TpgNetworkTest, aoi22)
     "\n"
     "PPO#0: x: Node#11\n"
     "\n"
-    "GATE#0: aoi22\n"
+    "GATE#0:\n"
     "  Output: Node#10\n"
     "  Input#0: Node#4[0]\n"
     "  Input#1: Node#5[0]\n"
@@ -246,7 +246,7 @@ TEST(TpgNetworkTest, oai21)
   auto b1_lit = Expr::make_posi_literal(2);
   auto oai21_expr = ~((a1_lit | a2_lit) & b1_lit);
   auto expr_id = model.add_expr(oai21_expr);
-  auto node = model.new_expr({a1, a2, b1}, expr_id, "oai21");
+  auto node = model.new_expr({a1, a2, b1}, expr_id);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -287,7 +287,7 @@ TEST(TpgNetworkTest, oai21)
     "\n"
     "PPO#0: x: Node#8\n"
     "\n"
-    "GATE#0: oai21\n"
+    "GATE#0:\n"
     "  Output: Node#7\n"
     "  Input#0: Node#3[0]\n"
     "  Input#1: Node#4[0]\n"
@@ -308,7 +308,7 @@ TEST(TpgNetworkTest, cplx1)
   auto b1_lit = Expr::make_posi_literal(2);
   auto cplx1_expr = (a1_lit | a2_lit) & b1_lit;
   auto expr_id = model.add_expr(cplx1_expr);
-  auto node = model.new_expr({a1, a2, b1}, expr_id, "cplx1");
+  auto node = model.new_expr({a1, a2, b1}, expr_id);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -343,7 +343,7 @@ TEST(TpgNetworkTest, cplx1)
     "\n"
     "PPO#0: x: Node#5\n"
     "\n"
-    "GATE#0: cplx1\n"
+    "GATE#0:\n"
     "  Output: Node#4\n"
     "  Input#0: Node#3[0]\n"
     "  Input#1: Node#3[1]\n"
@@ -364,7 +364,7 @@ TEST(TpgNetworkTest, cplx2)
   auto b1_lit = Expr::make_posi_literal(2);
   auto cplx2_expr = (a1_lit & b1_lit ) | (a2_lit & b1_lit);
   auto expr_id = model.add_expr(cplx2_expr);
-  auto node = model.new_expr({a1, a2, b1}, expr_id, "cplx2");
+  auto node = model.new_expr({a1, a2, b1}, expr_id);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -407,7 +407,7 @@ TEST(TpgNetworkTest, cplx2)
     "\n"
     "PPO#0: x: Node#7\n"
     "\n"
-    "GATE#0: cplx2\n"
+    "GATE#0:\n"
     "  Output: Node#6\n"
     "  Input#0: Node#4[0]\n"
     "  Input#1: Node#5[0]\n"

@@ -146,11 +146,13 @@ TpgNetworkImpl::TpgNetworkImpl(
   for ( auto seq: model.seq_node_list() ) {
     dfs_mark(seq.data_src(), mark);
   }
-  vector<BnNode> input_list;
+  vector<pair<BnNode, string>> input_list;
   input_list.reserve(model.input_num());
-  for ( auto node: model.input_list() ) {
+  for ( SizeType i = 0; i < model.input_num(); ++ i ) {
+    auto node = model.input(i);
     if ( mark[node.id()] ) {
-      input_list.push_back(node);
+      auto name = model.input_name(i);
+      input_list.push_back({node, name});
     }
   }
   SizeType input_num = input_list.size();
@@ -164,8 +166,10 @@ TpgNetworkImpl::TpgNetworkImpl(
   //////////////////////////////////////////////////////////////////////
   // 入力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
-  for ( auto src_node: input_list ) {
-    auto node = make_input_node(src_node.name());
+  for ( auto& p: input_list ) {
+    auto src_node = p.first;
+    auto name = p.second;
+    auto node = make_input_node(name);
     node_map.reg(src_node.id(), node);
   }
 
@@ -175,7 +179,7 @@ TpgNetworkImpl::TpgNetworkImpl(
   for ( auto i: Range(dff_num) ) {
     auto src_dff = model.seq_node(i);
     auto src_node = src_dff.data_output();
-    auto node = make_dff_output_node(i, src_node.name());
+    auto node = make_dff_output_node(i, {});
     node_map.reg(src_node.id(), node);
   }
 
@@ -207,8 +211,7 @@ TpgNetworkImpl::TpgNetworkImpl(
     for ( auto inode: src_node.fanin_list() ) {
       fanin_array.push_back(node_map.get(inode.id()));
     }
-    auto node = make_logic_node(src_node.name(), gate_type, fanin_array,
-				connection_list);
+    auto node = make_logic_node(gate_type, fanin_array,	connection_list);
 
     // ノードを登録する．
     node_map.reg(src_node.id(), node);

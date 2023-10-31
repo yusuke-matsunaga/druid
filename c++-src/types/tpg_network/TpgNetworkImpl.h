@@ -407,7 +407,6 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_logic_node(
-    const string& name,                       ///< [in] ノード名
     const GateType* gate_type,                ///< [in] ゲートの種類
     const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
     TpgConnectionList& connection_list        ///< [in] 接続リスト
@@ -419,7 +418,6 @@ public:
   /// 該当する変数の肯定/否定のリテラルが入っている．
   TpgNode*
   make_cplx_node(
-    const string& name,                       ///< [in] ノード名
     const Expr& expr,			      ///< [in] 式
     const vector<const TpgNode*>& leaf_nodes, ///< [in] 式のリテラルに対応するノードの配列
     vector<TpgGate::BranchInfo>& branch_info, ///< [in] ブランチの情報
@@ -430,7 +428,6 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_buff_node(
-    const string& name,                ///< [in] ノード名
     const TpgNode* fanin,	       ///< [in] ファンインのノード
     TpgConnectionList& connection_list ///< [out] 接続リスト
   );
@@ -439,7 +436,6 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_not_node(
-    const string& name,                             ///< [in] ノード名
     const TpgNode* fanin,		            ///< [in] ファンインのノード
     TpgConnectionList& connection_list ///< [out] 接続リスト
   );
@@ -448,7 +444,6 @@ public:
   /// @return 生成したノードを返す．
   TpgNode*
   make_prim_node(
-    const string& name,                       ///< [in] ノード名
     PrimType type,			      ///< [in] ゲートの型
     const vector<const TpgNode*>& fanin_list, ///< [in] ファンインのリスト
     TpgConnectionList& connection_list        ///< [out] 接続リスト

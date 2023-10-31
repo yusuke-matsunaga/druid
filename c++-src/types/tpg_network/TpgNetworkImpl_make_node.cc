@@ -90,7 +90,6 @@ TpgNetworkImpl::make_dff_output_node(
 // @brief 論理ノードを生成する．
 TpgNode*
 TpgNetworkImpl::make_logic_node(
-  const string& src_name,
   const GateType* gate_type,
   const vector<const TpgNode*>& fanin_list,
   vector<vector<const TpgNode*>>& connection_list
@@ -102,9 +101,8 @@ TpgNetworkImpl::make_logic_node(
   if ( gate_type->is_simple() ) {
     // 組み込み型の場合．
     auto prim_type = gate_type->primitive_type();
-    node = make_prim_node(src_name, prim_type, fanin_list,
-			  connection_list);
-    gate = new TpgGate_Simple{src_name, gate_type, node};
+    node = make_prim_node(prim_type, fanin_list, connection_list);
+    gate = new TpgGate_Simple{gate_type, node};
   }
   else {
     auto expr = gate_type->expr();
@@ -133,8 +131,7 @@ TpgNetworkImpl::make_logic_node(
 	else {
 	  // 肯定のリテラルが2回以上現れている場合
 	  // ブランチの故障に対応するためにダミーのバッファをつくる．
-	  auto dummy_buff = make_buff_node(string{}, inode,
-					   connection_list);
+	  auto dummy_buff = make_buff_node(inode, connection_list);
 	  leaf_nodes[i * 2 + 0] = dummy_buff;
 	  // このバッファの入力が故障位置となる．
 	  branch_info[i] = TpgGate::BranchInfo{dummy_buff, 0};
@@ -144,15 +141,13 @@ TpgNetworkImpl::make_logic_node(
 	if ( p_num > 0 ) {
 	  // 肯定と否定のリテラルがともに現れる場合
 	  // ブランチの故障に対応するためにダミーのバッファを作る．
-	  auto dummy_buff = make_buff_node(string{}, inode,
-					   connection_list);
+	  auto dummy_buff = make_buff_node(inode, connection_list);
 	  inode = dummy_buff;
 	  leaf_nodes[i * 2 + 0] = dummy_buff;
 	}
 
 	// 否定のリテラルに対応するNOTゲートを作る．
-	auto not_gate = make_not_node(string{}, inode,
-				      connection_list);
+	auto not_gate = make_not_node(inode, connection_list);
 	leaf_nodes[i * 2 + 1] = not_gate;
 
 	if ( p_num == 0 ) {
@@ -164,9 +159,8 @@ TpgNetworkImpl::make_logic_node(
     }
 
     // expr の内容を表す TpgNode の木を作る．
-    node = make_cplx_node(src_name, expr, leaf_nodes, branch_info,
-			  connection_list);
-    gate = new TpgGate_Cplx{src_name, gate_type, node, branch_info};
+    node = make_cplx_node(expr, leaf_nodes, branch_info, connection_list);
+    gate = new TpgGate_Cplx{gate_type, node, branch_info};
   }
 
   mGateArray.push_back(gate);
@@ -177,7 +171,6 @@ TpgNetworkImpl::make_logic_node(
 // @brief 論理式から TpgNode の木を生成する．
 TpgNode*
 TpgNetworkImpl::make_cplx_node(
-  const string& name,
   const Expr& expr,
   const vector<const TpgNode*>& leaf_nodes,
   vector<TpgGate::BranchInfo>& branch_info,
@@ -214,16 +207,14 @@ TpgNetworkImpl::make_cplx_node(
       inode = leaf_nodes[iid * 2 + 1];
     }
     else {
-      inode = make_cplx_node(string{}, expr1, leaf_nodes, branch_info,
-			     connection_list);
+      inode = make_cplx_node(expr1, leaf_nodes, branch_info, connection_list);
     }
     ASSERT_COND( inode != nullptr );
     fanins.push_back(inode);
   }
   // fanins[] を確保するオーバーヘッドがあるが，
   // 子供のノードよりも先に親のノードを確保するわけには行かない．
-  auto* node = make_prim_node(name, gate_type, fanins,
-			      connection_list);
+  auto* node = make_prim_node(gate_type, fanins, connection_list);
 
   // オペランドがリテラルの場合，inode_array[]
   // の設定を行う．
@@ -245,31 +236,26 @@ TpgNetworkImpl::make_cplx_node(
 // @brief バッファを生成する．
 TpgNode*
 TpgNetworkImpl::make_buff_node(
-  const string& name,
   const TpgNode* fanin,
   vector<vector<const TpgNode*>>& connection_list
 )
 {
-  return make_prim_node(name, PrimType::Buff, {fanin},
-			connection_list);
+  return make_prim_node(PrimType::Buff, {fanin}, connection_list);
 }
 
 // @brief インバーターを生成する．
 TpgNode*
 TpgNetworkImpl::make_not_node(
-  const string& name,
   const TpgNode* fanin,
   vector<vector<const TpgNode*>>& connection_list
 )
 {
-  return make_prim_node(name, PrimType::Not, {fanin},
-			connection_list);
+  return make_prim_node(PrimType::Not, {fanin},	connection_list);
 }
 
 // @brief 組み込み型の論理ゲートを生成する．
 TpgNode*
 TpgNetworkImpl::make_prim_node(
-  const string& name,
   PrimType type,
   const vector<const TpgNode*>& fanin_list,
   vector<vector<const TpgNode*>>& connection_list

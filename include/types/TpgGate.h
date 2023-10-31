@@ -64,10 +64,6 @@ public:
     return mId;
   }
 
-  /// @brief 名前を返す．
-  string
-  name() const;
-
   /// @brief 出力に対応するノードを返す．
   const TpgNode*
   output_node() const;

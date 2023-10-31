@@ -46,7 +46,7 @@ TEST(TpgNetworkTest, and2)
   BnModel model;
   auto a = model.new_input("a");
   auto b = model.new_input("b");
-  auto node = model.new_primitive({a, b}, PrimType::And, "and1");
+  auto node = model.new_primitive({a, b}, PrimType::And);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -58,10 +58,10 @@ TEST(TpgNetworkTest, and2)
   print_faults(fmgr, buf);
 
   string ref_str =
-    "7: and1:I0:SA1\n"
+    "7: Gate#0:I0:SA1\n"
     "  ExCond: Node#0@1 = 0 Node#1@1 = 1\n"
     "  PropCond: Node#0@1 = 0 Node#1@1 = 1\n"
-    "9: and1:I1:SA1\n"
+    "9: Gate#0:I1:SA1\n"
     "  ExCond: Node#0@1 = 1 Node#1@1 = 0\n"
     "  PropCond: Node#0@1 = 1 Node#1@1 = 0\n"
     "10: x:I0:SA0\n"
@@ -81,7 +81,7 @@ TEST(TpgNetworkTest, or2)
   BnModel model;
   auto a = model.new_input("a");
   auto b = model.new_input("b");
-  auto node = model.new_primitive({a, b}, PrimType::Or, "or1");
+  auto node = model.new_primitive({a, b}, PrimType::Or);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -93,10 +93,10 @@ TEST(TpgNetworkTest, or2)
   print_faults(fmgr, buf);
 
   string ref_str =
-    "6: or1:I0:SA0\n"
+    "6: Gate#0:I0:SA0\n"
     "  ExCond: Node#0@1 = 1 Node#1@1 = 0\n"
     "  PropCond: Node#0@1 = 1 Node#1@1 = 0\n"
-    "8: or1:I1:SA0\n"
+    "8: Gate#0:I1:SA0\n"
     "  ExCond: Node#0@1 = 0 Node#1@1 = 1\n"
     "  PropCond: Node#0@1 = 0 Node#1@1 = 1\n"
     "10: x:I0:SA0\n"
@@ -118,9 +118,9 @@ TEST(TpgNetworkTest, and_or2)
   auto b = model.new_input("b");
   auto c = model.new_input("c");
   auto d = model.new_input("d");
-  auto node1 = model.new_primitive({a, b}, PrimType::And, "and1");
-  auto node2 = model.new_primitive({c, d}, PrimType::And, "and2");
-  auto node3 = model.new_primitive({node1, node2}, PrimType::Or, "or1");
+  auto node1 = model.new_primitive({a, b}, PrimType::And);
+  auto node2 = model.new_primitive({c, d}, PrimType::And);
+  auto node3 = model.new_primitive({node1, node2}, PrimType::Or);
   model.new_output(node3, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -132,22 +132,22 @@ TEST(TpgNetworkTest, and_or2)
   print_faults(fmgr, buf);
 
   string ref_str =
-    "11: and1:I0:SA1\n"
+    "11: Gate#0:I0:SA1\n"
     "  ExCond: Node#0@1 = 0 Node#1@1 = 1\n"
     "  PropCond: Node#0@1 = 0 Node#1@1 = 1 Node#5@1 = 0\n"
-    "13: and1:I1:SA1\n"
+    "13: Gate#0:I1:SA1\n"
     "  ExCond: Node#0@1 = 1 Node#1@1 = 0\n"
     "  PropCond: Node#0@1 = 1 Node#1@1 = 0 Node#5@1 = 0\n"
-    "17: and2:I0:SA1\n"
+    "17: Gate#1:I0:SA1\n"
     "  ExCond: Node#2@1 = 0 Node#3@1 = 1\n"
     "  PropCond: Node#2@1 = 0 Node#3@1 = 1 Node#4@1 = 0\n"
-    "19: and2:I1:SA1\n"
+    "19: Gate#1:I1:SA1\n"
     "  ExCond: Node#2@1 = 1 Node#3@1 = 0\n"
     "  PropCond: Node#2@1 = 1 Node#3@1 = 0 Node#4@1 = 0\n"
-    "22: or1:I0:SA0\n"
+    "22: Gate#2:I0:SA0\n"
     "  ExCond: Node#4@1 = 1 Node#5@1 = 0\n"
     "  PropCond: Node#4@1 = 1 Node#5@1 = 0\n"
-    "24: or1:I1:SA0\n"
+    "24: Gate#2:I1:SA0\n"
     "  ExCond: Node#4@1 = 0 Node#5@1 = 1\n"
     "  PropCond: Node#4@1 = 0 Node#5@1 = 1\n"
     "26: x:I0:SA0\n"
@@ -167,7 +167,7 @@ TEST(TpgNetworkTest, xor2)
   BnModel model;
   auto a = model.new_input("a");
   auto b = model.new_input("b");
-  auto node = model.new_primitive({a, b}, PrimType::Xor, "xor1");
+  auto node = model.new_primitive({a, b}, PrimType::Xor);
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -179,16 +179,16 @@ TEST(TpgNetworkTest, xor2)
   print_faults(fmgr, buf);
 
   string ref_str =
-    "6: xor1:I0:SA0\n"
+    "6: Gate#0:I0:SA0\n"
     "  ExCond: Node#0@1 = 1\n"
     "  PropCond: Node#0@1 = 1\n"
-    "7: xor1:I0:SA1\n"
+    "7: Gate#0:I0:SA1\n"
     "  ExCond: Node#0@1 = 0\n"
     "  PropCond: Node#0@1 = 0\n"
-    "8: xor1:I1:SA0\n"
+    "8: Gate#0:I1:SA0\n"
     "  ExCond: Node#1@1 = 1\n"
     "  PropCond: Node#1@1 = 1\n"
-    "9: xor1:I1:SA1\n"
+    "9: Gate#0:I1:SA1\n"
     "  ExCond: Node#1@1 = 0\n"
     "  PropCond: Node#1@1 = 0\n"
     "10: x:I0:SA0\n"

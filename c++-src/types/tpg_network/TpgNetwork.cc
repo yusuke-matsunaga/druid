@@ -375,8 +375,7 @@ TpgNetwork::print(
   s << endl;
 
   for ( auto gate: gate_list() ) {
-    s << "GATE#" << gate.id()
-      << ": " << gate.name() << endl
+    s << "GATE#" << gate.id() << ":" << endl
       << "  Output: " << gate.output_node()->str()
       << endl;
     SizeType ni = gate.input_num();

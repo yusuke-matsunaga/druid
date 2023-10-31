@@ -28,10 +28,8 @@ public:
 
   /// @brief コンストラクタ
   TpgGateImpl(
-    const string& name,       ///< [in] 名前
     const GateType* gate_type ///< [in] ゲートの種類
-  ) : mName{name},
-      mGateType{gate_type}
+  ) : mGateType{gate_type}
   {
   }
 
@@ -44,13 +42,6 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 名前を返す．
-  string
-  name() const
-  {
-    return mName;
-  }
 
   /// @brief 出力に対応するノードを返す．
   virtual
@@ -82,9 +73,6 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // ノード名
-  string mName;
-
   // ゲートの種類
   const GateType* mGateType;
 
@@ -102,10 +90,9 @@ public:
 
   /// @brief コンストラクタ
   TpgGate_Simple(
-    const string& name,        ///< [in] ノード名
     const GateType* gate_type, ///< [in] ゲートの種類
     const TpgNode* node        ///< [in] ノード
-  ) : TpgGateImpl{name, gate_type},
+  ) : TpgGateImpl{gate_type},
       mNode{node}
   {
   }
@@ -156,11 +143,10 @@ public:
 
   /// @brief コンストラクタ
   TpgGate_Cplx(
-    const string& name,                   ///< [in] ノード名
-    const GateType* gate_type,             ///< [in] ゲートの種類
+    const GateType* gate_type,            ///< [in] ゲートの種類
     const TpgNode* node,                  ///< [in] 出力のノード
     const vector<BranchInfo>& branch_info ///< [in] ブランチの情報のリスト
-  ) : TpgGateImpl{name, gate_type},
+  ) : TpgGateImpl{gate_type},
       mOutputNode{node},
       mBranchInfoList{branch_info}
   {

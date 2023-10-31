@@ -452,16 +452,6 @@ TpgFFR::node_list() const
 // クラス TpgGate
 //////////////////////////////////////////////////////////////////////
 
-// @brief 名前を返す．
-string
-TpgGate::name() const
-{
-  ASSERT_COND( mNetwork != nullptr );
-
-  auto gate = mNetwork->_gate(mId);
-  return gate->name();
-}
-
 // @brief 出力に対応するノードを返す．
 const TpgNode*
 TpgGate::output_node() const

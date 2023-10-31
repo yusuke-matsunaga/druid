@@ -138,7 +138,9 @@ TpgFaultMgr_Struct::_gen_all_faults(
 
   // 論理ゲートの入出力の故障
   for ( auto gate: network.gate_list() ) {
-    auto node_name = gate.name();
+    ostringstream buf;
+    buf << "Gate#" << gate.id();
+    auto node_name = buf.str();
     // 出力の故障
     auto onode = gate.output_node();
     gen_ofault(onode, node_name);
@@ -318,7 +320,9 @@ TpgFaultMgr_Ex::_gen_all_faults(
 {
   // ゲート網羅故障には自明な等価故障はない．
   for ( auto gate: network.gate_list() ) {
-    auto node_name = gate.name();
+    ostringstream buf;
+    buf << "Gate#" << gate.id();
+    auto node_name = buf.str();
     auto onode = gate.output_node();
     SizeType ni = gate.input_num();
     if ( ni < 2 ) {

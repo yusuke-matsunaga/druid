@@ -87,7 +87,7 @@ GateEncTest::check(
   }
   // ゲートを作る．
   vector<vector<const TpgNode*>> connection_list(mNetworkImpl.node_num());
-  TpgNode* node = mNetworkImpl.make_logic_node({}, gimgr.simple_type(gate_type),
+  TpgNode* node = mNetworkImpl.make_logic_node(gimgr.simple_type(gate_type),
 					       input_list, connection_list);
 
   ASSERT_EQ( input_num + 1, mNetworkImpl.node_num() );
