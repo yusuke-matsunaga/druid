@@ -236,7 +236,7 @@ TpgNetworkImpl::TpgNetworkImpl(
     auto src_node = src_dff.data_src();
 
     auto inode = node_map.get(src_node.id());
-    string dff_name = src_dff.name();
+    string dff_name = model.seq_name(i);
     string input_name = dff_name + ".input";
     auto node = make_dff_input_node(i, input_name, inode);
     connection_list[inode->id()].push_back(node);
