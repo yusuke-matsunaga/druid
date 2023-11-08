@@ -46,7 +46,7 @@ TEST(TpgNetworkTest, and2)
   BnModel model;
   auto a = model.new_input("a");
   auto b = model.new_input("b");
-  auto node = model.new_primitive({a, b}, PrimType::And);
+  auto node = model.new_primitive(PrimType::And, {a, b});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -81,7 +81,7 @@ TEST(TpgNetworkTest, or2)
   BnModel model;
   auto a = model.new_input("a");
   auto b = model.new_input("b");
-  auto node = model.new_primitive({a, b}, PrimType::Or);
+  auto node = model.new_primitive(PrimType::Or, {a, b});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -118,9 +118,9 @@ TEST(TpgNetworkTest, and_or2)
   auto b = model.new_input("b");
   auto c = model.new_input("c");
   auto d = model.new_input("d");
-  auto node1 = model.new_primitive({a, b}, PrimType::And);
-  auto node2 = model.new_primitive({c, d}, PrimType::And);
-  auto node3 = model.new_primitive({node1, node2}, PrimType::Or);
+  auto node1 = model.new_primitive(PrimType::And, {a, b});
+  auto node2 = model.new_primitive(PrimType::And, {c, d});
+  auto node3 = model.new_primitive(PrimType::Or, {node1, node2});
   model.new_output(node3, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -167,7 +167,7 @@ TEST(TpgNetworkTest, xor2)
   BnModel model;
   auto a = model.new_input("a");
   auto b = model.new_input("b");
-  auto node = model.new_primitive({a, b}, PrimType::Xor);
+  auto node = model.new_primitive(PrimType::Xor, {a, b});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};

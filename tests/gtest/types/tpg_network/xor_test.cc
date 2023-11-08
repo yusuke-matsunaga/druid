@@ -10,6 +10,7 @@
 #include "TpgNetwork.h"
 #include "ym/BnModel.h"
 #include "ym/BnNode.h"
+#include "ym/BnFunc.h"
 #include "ym/Expr.h"
 
 
@@ -21,7 +22,7 @@ TEST(TpgNetworkTest, xor2)
   BnModel model;
   auto a = model.new_input("a");
   auto b = model.new_input("b");
-  auto node = model.new_primitive({a, b}, PrimType::Xor);
+  auto node = model.new_primitive(PrimType::Xor, {a, b});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -66,7 +67,7 @@ TEST(TpgNetworkTest, xor3)
   auto a = model.new_input("a");
   auto b = model.new_input("b");
   auto c = model.new_input("c");
-  auto node = model.new_primitive({a, b, c}, PrimType::Xor);
+  auto node = model.new_primitive(PrimType::Xor, {a, b, c});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -116,7 +117,7 @@ TEST(TpgNetworkTest, xor4)
   auto b = model.new_input("b");
   auto c = model.new_input("c");
   auto d = model.new_input("d");
-  auto node = model.new_primitive({a, b, c, d}, PrimType::Xor);
+  auto node = model.new_primitive(PrimType::Xor, {a, b, c, d});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -175,8 +176,8 @@ TEST(TpgNetworkTest, aoi22)
   auto b1_lit = Expr::make_posi_literal(2);
   auto b2_lit = Expr::make_posi_literal(3);
   auto aoi22_expr = ~((a1_lit & a2_lit) | (b1_lit & b2_lit));
-  auto expr_id = model.add_expr(aoi22_expr);
-  auto node = model.new_expr({a1, a2, b1, b2}, expr_id);
+  auto func = model.reg_expr(aoi22_expr);
+  auto node = model.new_func(func, {a1, a2, b1, b2});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -245,8 +246,8 @@ TEST(TpgNetworkTest, oai21)
   auto a2_lit = Expr::make_posi_literal(1);
   auto b1_lit = Expr::make_posi_literal(2);
   auto oai21_expr = ~((a1_lit | a2_lit) & b1_lit);
-  auto expr_id = model.add_expr(oai21_expr);
-  auto node = model.new_expr({a1, a2, b1}, expr_id);
+  auto func = model.reg_expr(oai21_expr);
+  auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -307,8 +308,8 @@ TEST(TpgNetworkTest, cplx1)
   auto a2_lit = Expr::make_posi_literal(1);
   auto b1_lit = Expr::make_posi_literal(2);
   auto cplx1_expr = (a1_lit | a2_lit) & b1_lit;
-  auto expr_id = model.add_expr(cplx1_expr);
-  auto node = model.new_expr({a1, a2, b1}, expr_id);
+  auto func = model.reg_expr(cplx1_expr);
+  auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};
@@ -363,8 +364,8 @@ TEST(TpgNetworkTest, cplx2)
   auto a2_lit = Expr::make_posi_literal(1);
   auto b1_lit = Expr::make_posi_literal(2);
   auto cplx2_expr = (a1_lit & b1_lit ) | (a2_lit & b1_lit);
-  auto expr_id = model.add_expr(cplx2_expr);
-  auto node = model.new_expr({a1, a2, b1}, expr_id);
+  auto func = model.reg_expr(cplx2_expr);
+  auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
 
   auto tpg_network = TpgNetwork{model};

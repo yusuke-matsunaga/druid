@@ -18,7 +18,7 @@
 #include "ym/BnModel.h"
 #include "ym/BnSeq.h"
 #include "ym/BnNode.h"
-#include "ym/BnCover.h"
+#include "ym/BnFunc.h"
 
 #include "ym/Range.h"
 
@@ -95,22 +95,14 @@ TpgNetworkImpl::TpgNetworkImpl(
   //////////////////////////////////////////////////////////////////////
   // NodeInfoMgr にノードの論理関数を登録する．
   //////////////////////////////////////////////////////////////////////
-  vector<const GateType*> gate_type_list1;
-  vector<const GateType*> gate_type_list2;
-  gate_type_list1.reserve(model.cover_num());
-  gate_type_list2.reserve(model.expr_num());
-  for ( SizeType i: Range(model.cover_num()) ) {
-    auto& cover = model.cover(i);
-    SizeType ni = cover.input_num();
-    auto expr = cover.expr();
+  vector<const GateType*> gate_type_list;
+  gate_type_list.reserve(model.func_num());
+  for ( SizeType i: Range(model.func_num()) ) {
+    auto func = model.func(i);
+    auto ni = func.input_num();
+    auto expr = func.expr();
     auto gate_type = mGateTypeMgr.new_type(ni, expr);
-    gate_type_list1.push_back(gate_type);
-  }
-  for ( SizeType i: Range(model.expr_num()) ) {
-    auto expr = model.expr(i);
-    SizeType ni = expr.input_size();
-    auto gate_type = mGateTypeMgr.new_type(ni, expr);
-    gate_type_list2.push_back(gate_type);
+    gate_type_list.push_back(gate_type);
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -119,12 +111,8 @@ TpgNetworkImpl::TpgNetworkImpl(
   SizeType extra_node_num = 0;
   for ( auto src_node: model.logic_list() ) {
     auto logic_type = src_node.type();
-    if ( logic_type == BnNodeType::COVER ) {
-      auto gate_type = gate_type_list1[src_node.cover_id()];
-      extra_node_num += gate_type->extra_node_num();
-    }
-    else if ( logic_type == BnNodeType::EXPR ) {
-      auto gate_type = gate_type_list2[src_node.expr_id()];
+    if ( logic_type == BnNodeType::FUNC ) {
+      auto gate_type = gate_type_list[src_node.local_func().id()];
       extra_node_num += gate_type->extra_node_num();
     }
   }
@@ -191,11 +179,8 @@ TpgNetworkImpl::TpgNetworkImpl(
   for ( auto src_node: model.logic_list() ) {
     const GateType* gate_type = nullptr;
     auto logic_type = src_node.type();
-    if ( logic_type == BnNodeType::COVER ) {
-      gate_type = gate_type_list1[src_node.cover_id()];
-    }
-    else if ( logic_type == BnNodeType::EXPR ) {
-      gate_type = gate_type_list2[src_node.expr_id()];
+    if ( logic_type == BnNodeType::FUNC ) {
+      gate_type = gate_type_list[src_node.local_func().id()];
     }
     else if ( logic_type == BnNodeType::PRIMITIVE ) {
       auto prim_type = src_node.primitive_type();
