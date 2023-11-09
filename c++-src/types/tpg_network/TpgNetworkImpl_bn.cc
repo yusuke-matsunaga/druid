@@ -18,6 +18,7 @@
 #include "ym/BnModel.h"
 #include "ym/BnSeq.h"
 #include "ym/BnNode.h"
+#include "ym/BnNodeList.h"
 #include "ym/BnFunc.h"
 
 #include "ym/Range.h"
@@ -131,7 +132,8 @@ TpgNetworkImpl::TpgNetworkImpl(
   for ( auto node: model.output_list() ) {
     dfs_mark(node, mark);
   }
-  for ( auto seq: model.seq_node_list() ) {
+  for ( SizeType i = 0; i < model.seq_num(); ++ i ) {
+    auto seq = model.seq(i);
     dfs_mark(seq.data_src(), mark);
   }
   vector<pair<BnNode, string>> input_list;
@@ -165,7 +167,7 @@ TpgNetworkImpl::TpgNetworkImpl(
   // DFFの出力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
   for ( auto i: Range(dff_num) ) {
-    auto src_dff = model.seq_node(i);
+    auto src_dff = model.seq(i);
     auto src_node = src_dff.data_output();
     auto node = make_dff_output_node(i, {});
     node_map.reg(src_node.id(), node);
@@ -217,7 +219,7 @@ TpgNetworkImpl::TpgNetworkImpl(
   // DFFの入力ノードを作成する．
   //////////////////////////////////////////////////////////////////////
   for ( auto i: Range(dff_num) ) {
-    auto src_dff = model.seq_node(i);
+    auto src_dff = model.seq(i);
     auto src_node = src_dff.data_src();
 
     auto inode = node_map.get(src_node.id());

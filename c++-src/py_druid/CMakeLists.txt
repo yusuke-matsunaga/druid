@@ -56,6 +56,7 @@ add_executable ( py_druid
   $<TARGET_OBJECTS:py_ymbase_obj>
   $<TARGET_OBJECTS:py_ymcell_obj>
   $<TARGET_OBJECTS:py_ymsat_obj>
+  $<TARGET_OBJECTS:py_ymlogic_obj>
   $<TARGET_OBJECTS:druid_types_obj>
   $<TARGET_OBJECTS:druid_dtpg_obj>
   $<TARGET_OBJECTS:druid_main_obj>
@@ -82,6 +83,7 @@ add_executable ( py_druid_d
   $<TARGET_OBJECTS:py_ymbase_obj_d>
   $<TARGET_OBJECTS:py_ymcell_obj_d>
   $<TARGET_OBJECTS:py_ymsat_obj_d>
+  $<TARGET_OBJECTS:py_ymlogic_obj_d>
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_dtpg_obj_d>
   $<TARGET_OBJECTS:druid_main_obj_d>

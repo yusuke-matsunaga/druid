@@ -54,7 +54,7 @@ PyInit_druid()
   if ( !PyModule::reg_submodule(m, "ymcell", PyInit_ymcell()) ) {
     goto error;
   }
-  if ( !PyModule::reg_submodule(m, "ymsat", PyInit_ymcell()) ) {
+  if ( !PyModule::reg_submodule(m, "ymsat", PyInit_ymsat()) ) {
     goto error;
   }
 
