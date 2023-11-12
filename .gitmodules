@@ -1,30 +1,30 @@
 [submodule "ym-common"]
 	path = ym-common
-	url = git@github.com:yusuke-matsunaga/ym-common
+	url = https://github.com/yusuke-matsunaga/ym-common
 [submodule "ym-sat"]
 	path = ym-sat
-	url = git@github.com:yusuke-matsunaga/ym-sat
+	url = https://github.com/yusuke-matsunaga/ym-sat
 [submodule "ym-cell"]
 	path = ym-cell
-	url = git@github.com:yusuke-matsunaga/ym-cell
+	url = https://github.com/yusuke-matsunaga/ym-cell
 [submodule "ym-bnet"]
 	path = ym-bnet
-	url = git@github.com:yusuke-matsunaga/ym-bnet.git
+	url = https://github.com/yusuke-matsunaga/ym-bnet.git
 [submodule "ym-logic"]
 	path = ym-logic
-	url = git@github.com:yusuke-matsunaga/ym-logic.git
+	url = https://github.com/yusuke-matsunaga/ym-logic.git
 [submodule "ym-tclpp"]
 	path = ym-tclpp
-	url = git@github.com:yusuke-matsunaga/ym-tclpp.git
+	url = https://github.com/yusuke-matsunaga/ym-tclpp.git
 [submodule "ym-base"]
 	path = ym-base
-	url = git@github.com:yusuke-matsunaga/ym-base.git
+	url = https://github.com/yusuke-matsunaga/ym-base.git
 [submodule "ym-combopt"]
 	path = ym-combopt
-	url = git@github.com:yusuke-matsunaga/ym-combopt
+	url = https://github.com/yusuke-matsunaga/ym-combopt
 [submodule "ym-bn"]
 	path = ym-bn
-	url = git@github.com:yusuke-matsunaga/ym-bn.git
+	url = https://github.com/yusuke-matsunaga/ym-bn.git
 [submodule "ym-json"]
 	path = ym-json
-	url = git@github.com:yusuke-matsunaga/ym-json.git
+	url = https://github.com/yusuke-matsunaga/ym-json.git
