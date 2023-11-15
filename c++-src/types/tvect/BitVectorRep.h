@@ -229,8 +229,9 @@ public:
     SizeType i0 = pos * 2 + 0;
     SizeType i1 = i0 + 1;
     if ( i1 == block_num(len()) - 1 ) {
-      mPat[i0] = v0 & mMask;
-      mPat[i1] = v1 & mMask;
+      auto mask = get_mask();
+      mPat[i0] = v0 & mask;
+      mPat[i1] = v1 & mask;
     }
     else {
       mPat[i0] = v0;
@@ -250,7 +251,8 @@ public:
     SizeType i1 = i0 + 1;
     PackedVal xmask = mPat[i0] & mPat[i1];
     if ( i1 == block_num(len()) - 1 ) {
-      xmask &= mMask;
+      auto mask = get_mask();
+      xmask &= mask;
     }
     mPat[i0] &= ~(~v0 & xmask);
     mPat[i1] &= ~(~v1 & xmask);
@@ -263,6 +265,16 @@ public:
   merge(
     const BitVectorRep& src ///< [in] オペランド
   );
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // その他
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief ハッシュ値を求める．
+  SizeType
+  hash() const;
 
 
 private:
@@ -310,6 +322,21 @@ private:
     return pos % PV_BITLEN;
   }
 
+  // @brief 末尾ブロックのマスクを求める．
+  PackedVal
+  get_mask() const
+  {
+    SizeType k = len() % PV_BITLEN;
+    PackedVal mask;
+    if ( k == 0 ) {
+      mask = PV_ALL1;
+    }
+    else {
+      mask = (1ULL << k) - 1;
+    }
+    return mask;
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -329,9 +356,6 @@ private:
 
   // ベクタ長
   SizeType mLength;
-
-  // 最後のブロックのマスク
-  PackedVal mMask;
 
   // ベクタ本体の配列(のダミー)
   PackedVal mPat[1];

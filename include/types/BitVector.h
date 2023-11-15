@@ -37,11 +37,15 @@ public:
   );
 
   /// @brief コピーコンストラクタ
+  ///
+  /// '浅い'コピーとなる．
   BitVector(
     const BitVector& src  ///< [in] コピー元のソース
   );
 
   /// @brief コピー代入演算子
+  ///
+  /// '浅い'コピーとなる．
   BitVector&
   operator=(
     const BitVector& src  ///< [in] コピー元のソース
@@ -280,6 +284,16 @@ public:
   {
     return BitVector(*this).operator&=(right);
   }
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // その他
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief ハッシュ値を計算する．
+  SizeType
+  hash() const;
 
 
 private:

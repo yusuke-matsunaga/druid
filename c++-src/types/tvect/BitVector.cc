@@ -201,6 +201,13 @@ BitVector::operator<=(
   return BitVectorRep::is_le(*mPtr, *right.mPtr);
 }
 
+// @brief ハッシュ値を計算する．
+SizeType
+BitVector::hash() const
+{
+  return mPtr->hash();
+}
+
 // @brief 多重参照の場合に複製して単一参照にする．
 void
 BitVector::uniquefy()

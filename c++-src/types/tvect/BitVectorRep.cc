@@ -32,7 +32,7 @@ BitVectorRep::new_vector(
   auto rep = new_vector(src.len());
 
   SizeType n = block_num(src.len());
-  for ( int i: Range(0, n) ) {
+  for ( auto i: Range_<SizeType>(0, n) ) {
     rep->mPat[i] = src.mPat[i];
   }
   return rep;
@@ -43,15 +43,6 @@ BitVectorRep::BitVectorRep(
   SizeType vlen
 ) : mLength{vlen}
 {
-  // マスクを設定する．
-  SizeType k = len() % PV_BITLEN;
-  if ( k == 0 ) {
-    mMask = PV_ALL1;
-  }
-  else {
-    mMask = (1ULL << k) - 1;
-  }
-
   // X に初期化しておく．
   init();
 }
@@ -62,9 +53,9 @@ BitVectorRep::x_count() const
 {
   SizeType nb = block_num(len());
   SizeType n = 0;
-  for ( int i: Range_<int, 2>(0, nb) ) {
-    int i0 = i;
-    int i1 = i + 1;
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
+    auto i0 = i;
+    auto i1 = i + 1;
     PackedVal pat0 = mPat[i0];
     PackedVal pat1 = mPat[i1];
     PackedVal v = pat0 & pat1;
@@ -84,7 +75,7 @@ BitVectorRep::is_eq(
   ASSERT_COND( bv1.len() == bv2.len() );
 
   SizeType nb = block_num(bv1.len());
-  for ( int i: Range(0, nb) ) {
+  for ( auto i: Range_<SizeType>(0, nb) ) {
     if ( bv1.mPat[i] != bv2.mPat[i] ) {
       return false;
     }
@@ -103,9 +94,9 @@ BitVectorRep::is_lt(
 
   SizeType nb = block_num(bv1.len());
   bool diff = false;
-  for ( int i: Range_<int, 2>(0, nb) ) {
-    int i0 = i;
-    int i1 = i + 1;
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
+    auto i0 = i;
+    auto i1 = i + 1;
     PackedVal val1_0 = bv1.mPat[i0];
     PackedVal val1_1 = bv1.mPat[i1];
     PackedVal val2_0 = bv2.mPat[i0];
@@ -131,9 +122,9 @@ BitVectorRep::is_le(
   ASSERT_COND( bv1.len() == bv2.len() );
 
   SizeType nb = block_num(bv1.len());
-  for ( int i: Range_<int, 2>(0, nb) ) {
-    int i0 = i;
-    int i1 = i + 1;
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
+    auto i0 = i;
+    auto i1 = i + 1;
     PackedVal val1_0 = bv1.mPat[i0];
     PackedVal val1_1 = bv1.mPat[i1];
     PackedVal val2_0 = bv2.mPat[i0];
@@ -156,9 +147,9 @@ BitVectorRep::is_compat(
   ASSERT_COND( bv1.len() == bv2.len() );
 
   SizeType nb = block_num(bv1.len());
-  for ( int i: Range_<int, 2>(0, nb) ) {
-    int i0 = i;
-    int i1 = i + 1;
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
+    auto i0 = i;
+    auto i1 = i + 1;
     // 0 のビットと 1 のビットの両方が異なっていると
     // コンフリクトしている．
     PackedVal diff0 = (bv1.mPat[i0] ^ bv2.mPat[i0]);
@@ -175,14 +166,15 @@ void
 BitVectorRep::init()
 {
   SizeType nb = block_num(len());
-  for ( SizeType i: Range_<SizeType, 2>(0, nb) ) {
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
     if ( i < nb - 2 ) {
       mPat[i + 0] = PV_ALL1;
       mPat[i + 1] = PV_ALL1;
     }
     else {
-      mPat[i + 0] = mMask;
-      mPat[i + 1] = mMask;
+      auto mask = get_mask();
+      mPat[i + 0] = mask;
+      mPat[i + 1] = mask;
     }
   }
 }
@@ -199,7 +191,7 @@ BitVectorRep::set_from_bin(
   SizeType blk = 0;
   PackedVal pat0 = PV_ALL0;
   PackedVal pat1 = PV_ALL0;
-  for ( int i: Range(0, nl) ) {
+  for ( auto i: Range_<SizeType>(0, nl) ) {
     char c = (i < bin_string.size()) ? bin_string[i] : 'X';
     PackedVal b0;
     PackedVal b1;
@@ -242,7 +234,7 @@ BitVectorRep::set_from_hex(
   SizeType sft = 0;
   SizeType blk = 0;
   PackedVal pat = PV_ALL0;
-  for ( int i: Range(0, nl) ) {
+  for ( auto i: Range_<SizeType>(0, nl) ) {
     char c = (i < hex_string.size()) ? hex_string[i] : 'X';
     PackedVal pat1 = PV_ALL0;
     if ( '0' <= c && c <= '9' ) {
@@ -286,9 +278,9 @@ BitVectorRep::merge(
   SizeType nb = block_num(len());
 
   // コンフリクトチェック
-  for ( int i: Range_<int, 2>(0, nb) ) {
-    int i0 = i;
-    int i1 = i + 1;
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
+    auto i0 = i;
+    auto i1 = i + 1;
     PackedVal diff0 = (mPat[i0] ^ src.mPat[i0]);
     PackedVal diff1 = (mPat[i1] ^ src.mPat[i1]);
     if ( (diff0 & diff1) != PV_ALL0 ) {
@@ -297,9 +289,9 @@ BitVectorRep::merge(
   }
 
   // 実際のマージ
-  for ( int i: Range_<int, 2>(0, nb) ) {
-    int i0 = i;
-    int i1 = i + 1;
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
+    auto i0 = i;
+    auto i1 = i + 1;
     mPat[i0] &= src.mPat[i0];
     mPat[i1] &= src.mPat[i1];
   }
@@ -312,7 +304,7 @@ BitVectorRep::bin_str() const
 {
   // よく問題になるが，ここでは最下位ビット側から出力する．
   string ans;
-  for ( int i: Range(0, len()) ) {
+  for ( auto i: Range_<SizeType>(0, len()) ) {
     switch ( val(i) ) {
     case Val3::_0: ans += '0'; break;
     case Val3::_1: ans += '1'; break;
@@ -331,7 +323,7 @@ BitVectorRep::hex_str() const
   int tmp = 0U;
   int bit = 1U;
   string ans;
-  for ( int i = 0; ; ++ i ) {
+  for ( SizeType i = 0; ; ++ i ) {
     if ( i < len() ) {
       if ( val(i) == Val3::_1 ) {
 	// 面倒くさいので Val3::X は Val3::_0 と同じとみなす．
@@ -354,6 +346,18 @@ BitVectorRep::hex_str() const
     }
     bit = 1U;
     tmp = 0U;
+  }
+  return ans;
+}
+
+// @brief ハッシュ値を求める．
+SizeType
+BitVectorRep::hash() const
+{
+  SizeType nb = block_num(len());
+  SizeType ans = 0;
+  for ( auto i: Range_<SizeType>(0, nb) ) {
+    ans ^= mPat[i];
   }
   return ans;
 }
