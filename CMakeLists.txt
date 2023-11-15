@@ -22,7 +22,11 @@ set ( YM_PROJECT_STRING "${PROJECT_NAME}-${PROJECT_VERSION}" )
 set ( DRUID_NSNAME "nsDruid" )
 
 # インストールディレクトリ
-set ( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/stage" )
+if ( INSTALL_PREFIX )
+  set ( CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} )
+else ()
+  set ( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/stage" )
+endif ()
 
 
 # ===================================================================
