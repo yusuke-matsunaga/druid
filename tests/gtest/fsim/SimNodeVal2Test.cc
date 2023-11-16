@@ -3,7 +3,7 @@
 /// @brief SimNode2Test の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016 Yusuke Matsunaga
+/// Copyright (C) 2016, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "gtest/gtest.h"
@@ -18,72 +18,72 @@ class SimNodeTest :
 {
 public:
 
-  /// @brief 入力ノードのテストを行う．
-  void
-  test_input();
-
   /// @brief 論理ノードのテストを行う．
-  /// @param[in] ni 入力数
-  /// @param[in] gate_type ゲートの種類
-  /// @param[in] vals 真理値表ベクタ
   void
-  test_gate(int ni,
-	    PrimType gate_type,
-	    int vals[]);
+  test_gate(
+    SizeType ni,        ///< [in] 入力数
+    PrimType gate_type, ///< [in] ゲートの種類
+    int vals[]          ///< [in] 真理値表ベクタ
+  );
+
+  /// val を初期化する．
+  void
+  init_val(
+    SimNode* node,
+    PackedVal val
+  )
+  {
+    // 実はテストフィクスチャである必要はない．
+    node->set_val(val);
+  }
 
   /// @brief val の書き込み読み出しテスト
-  /// @param[in] node 対象のノード
-  /// @param[in] val 書き込む値
   void
-  test_val(SimNode* node,
-	   PackedVal val);
+  test_val(
+    SimNode* node, ///< [in] 対象のノード
+    PackedVal val  ///< [in] 書き込む値
+  )
+  {
+    // 書き込んだ値が読み出せるかテストする．
+    node->set_val(val);
+
+    EXPECT_EQ( val, node->val() );
+  }
+
+#if FSIM_BSIDE
+  /// @brief 2時刻分の書き込み読み出しテスト
+  void
+  test_val2(
+    SimNode* node,  ///< [in] 対象のノード
+    PackedVal val0, ///< [in] 前の時刻の値
+    PackedVal val1  ///< [in] 現在の値
+  )
+  {
+    node->set_val(val0);
+    node->shift_val();
+    node->set_val(val1);
+
+    EXPECT_EQ( val0, node->prev_val() );
+    EXPECT_EQ( val1, node->val() );
+  }
+#endif
 
 };
 
-BEGIN_NONAMESPACE
-
-// val を初期化する．
-void
-init_val(SimNode* node,
-	 PackedVal val)
-{
-  node->set_val(val);
-}
-
-END_NONAMESPACE
-
-// @brief 入力ノードのテストを行う．
-void
-SimNodeTest::test_input()
-{
-  SimNode* node = SimNode::new_input(0);
-
-  // val の書き込み読み出しテスト
-  init_val(node, PV_ALL1);
-
-  test_val(node, PV_ALL1);
-  test_val(node, 0x5555555555555555UL);
-  test_val(node, 0xaaaaaaaaaaaaaaaaUL);
-  test_val(node, PV_ALL0);
-
-  delete node;
-}
-
 // @brief 論理ノードのテストを行う．
-// @param[in] ni 入力数
-// @param[in] gate_type ゲートの種類
-// @param[in] vals 真理値表ベクタ
 void
-SimNodeTest::test_gate(int ni,
-		       PrimType gate_type,
-		       int vals[])
+SimNodeTest::test_gate(
+  SizeType ni,
+  PrimType gate_type,
+  int vals[]
+)
 {
-  int np = 1 << ni;
+  SizeType np = 1 << ni;
   vector<SimNode*> inputs(ni);
-  for (int i = 0; i < ni; ++ i) {
+  for (SizeType i = 0; i < ni; ++ i) {
     inputs[i] = SimNode::new_input(i);
   }
-  SimNode* node = SimNode::new_gate(ni, gate_type, inputs);
+  auto node = SimNode::new_gate(ni, gate_type, inputs);
 
   // val の書き込み読み出しテスト
   init_val(node, PV_ALL1);
@@ -92,6 +92,17 @@ SimNodeTest::test_gate(int ni,
   test_val(node, 0x5555555555555555UL);
   test_val(node, 0xaaaaaaaaaaaaaaaaUL);
   test_val(node, PV_ALL0);
+
+#if FSIM_BSIDE
+  test_val2(node, PV_ALL1, PV_ALL1);
+  test_val2(node, PV_ALL1, PV_ALL0);
+  test_val2(node, 0x5555555555555555UL, 0x5555555555555555UL);
+  test_val2(node, 0x5555555555555555UL, 0xaaaaaaaaaaaaaaaaUL);
+  test_val2(node, 0xaaaaaaaaaaaaaaaaUL, 0xaaaaaaaaaaaaaaaaUL);
+  test_val2(node, 0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL);
+  test_val2(node, PV_ALL0, PV_ALL0);
+  test_val2(node, PV_ALL0, PV_ALL1);
+#endif
 
   // _calc_val() のテスト
   init_val(node, PV_ALL0);
@@ -108,7 +119,7 @@ SimNodeTest::test_gate(int ni,
 	inputs[i]->set_val(PV_ALL0);
       }
     }
-    PackedVal val = node->_calc_val();
+    auto val = node->_calc_val();
     if ( vals[p] ) {
       EXPECT_EQ( PV_ALL1, val );
     }
@@ -151,20 +162,31 @@ SimNodeTest::test_gate(int ni,
   delete node;
 }
 
-// @brief val の書き込み読み出しテスト
-// @param[in] node 対象のノード
-// @param[in] val 書き込む値
-void
-SimNodeTest::test_val(SimNode* node,
-		      PackedVal val)
-{
-  node->set_val(val);
-  EXPECT_EQ( val, node->val() );
-}
 
 TEST_F(SimNodeTest, INPUT)
 {
-  test_input();
+  auto node = SimNode::new_input(0);
+
+  // val の書き込み読み出しテスト
+  init_val(node, PV_ALL1);
+
+  test_val(node, PV_ALL1);
+  test_val(node, 0x5555555555555555UL);
+  test_val(node, 0xaaaaaaaaaaaaaaaaUL);
+  test_val(node, PV_ALL0);
+
+#if FSIM_BSIDE
+  test_val2(node, PV_ALL1, PV_ALL1);
+  test_val2(node, PV_ALL1, PV_ALL0);
+  test_val2(node, 0x5555555555555555UL, 0x5555555555555555UL);
+  test_val2(node, 0x5555555555555555UL, 0xaaaaaaaaaaaaaaaaUL);
+  test_val2(node, 0xaaaaaaaaaaaaaaaaUL, 0xaaaaaaaaaaaaaaaaUL);
+  test_val2(node, 0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL);
+  test_val2(node, PV_ALL0, PV_ALL0);
+  test_val2(node, PV_ALL0, PV_ALL1);
+#endif
+
+  delete node;
 }
 
 TEST_F(SimNodeTest, BUFF)
