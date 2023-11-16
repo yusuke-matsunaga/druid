@@ -1,9 +1,9 @@
 
-/// @file SimNodeTest.cc
-/// @brief SimNodeTest の実装ファイル
+/// @file SimNodeVal3Test.cc
+/// @brief SimNodeVal3Test の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2017 Yusuke Matsunaga
+/// Copyright (C) 2016, 2017, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "gtest/gtest.h"
@@ -18,88 +18,96 @@ class SimNodeTest :
 {
 public:
 
-  /// @brief 入力ノードのテストを行う．
-  void
-  test_input();
-
   /// @brief 論理ノードのテストを行う．
-  /// @param[in] ni 入力数
-  /// @param[in] gate_type ゲートの種類
-  /// @param[in] vals 真理値表ベクタ
   void
-  test_gate(int ni,
-	    PrimType gate_type,
-	    int vals[]);
+  test_gate(
+    SizeType ni,        ///< [in] 入力数
+    PrimType gate_type, ///< [in] ゲートの種類
+    int vals[]          ///< [in] 真理値表ベクタ
+  );
 
   /// @brief fval の書き込み読み出しテスト
-  /// @param[in] node 対象のノード
-  /// @param[in] val0, val1 書き込む値
-  /// @param[in] exp_val0, exp_val1 期待値
   void
-  test_val(SimNode* node,
-	   PackedVal val0,
-	   PackedVal val1,
-	   PackedVal exp_val0,
-	   PackedVal exp_val1);
+  test_val(
+    SimNode* node, ///< [in] 対象のノード
+    PackedVal3 val ///< [in] 書き込む値
+  )
+  {
+    // 書き込んだ値が読み出せるかテストする．
+    node->set_val(val);
+
+    EXPECT_EQ( val, node->val() );
+  }
+
+#if FSIM_BSIDE
+  /// @brief val の書き込み読み出しテスト
+  void
+  test_val2(
+    SimNode* node,   ///< [in] 対象のノード
+    PackedVal3 val0, ///< [in] 1時刻前の値
+    PackedVal3 val1  ///< [in] 現在の値
+  )
+  {
+    // 書き込んだ値が読み出せるかテストする．
+    node->set_val(val0);
+    node->shift_val();
+    node->set_val(val1);
+
+    EXPECT_EQ( val0, node->prev_val() );
+    EXPECT_EQ( val1, node->val() );
+  }
+#endif
+
+  /// gval/fval を初期化する．
+  void
+  init_val(
+    SimNode* node,
+    PackedVal3 val
+  )
+  {
+    // じつはテストフィクスチャである必要はない．
+    node->set_val(val);
+  }
 
   /// @brief 3値の検証を行う．
-  /// @param[in] val0 0のワード
-  /// @param[in] val1 1のワード
-  /// @param[in] exp_val 期待値
-  ///
-  /// 期待値は 0, 1, 2(X) の3種類
   void
-  test_val3(PackedVal val0,
-	    PackedVal val1,
-	    int exp_val);
+  test_val3(
+    PackedVal val0, ///< [in] 0のワード
+    PackedVal val1, ///< [in] 1のワード
+    int exp_val     ///< [in] 期待値(0, 1, 2(X) の3種類)
+  )
+  {
+    switch ( exp_val ) {
+    case 0:
+      EXPECT_EQ( PV_ALL1, val0 );
+      EXPECT_EQ( PV_ALL0, val1 );
+      break;
+
+    case 1:
+      EXPECT_EQ( PV_ALL0, val0 );
+      EXPECT_EQ( PV_ALL1, val1 );
+      break;
+
+    case 2:
+      EXPECT_EQ( PV_ALL0, val0 );
+      EXPECT_EQ( PV_ALL0, val1 );
+      break;
+
+    default:
+      ASSERT_NOT_REACHED;
+      break;
+    }
+  }
 };
 
-BEGIN_NONAMESPACE
-
-// gval/fval を初期化する．
-void
-init_val(SimNode* node,
-	 PackedVal val0,
-	 PackedVal val1)
-{
-  node->set_val(PackedVal3(val0, val1));
-}
-
-END_NONAMESPACE
-
-// @brief 入力ノードのテストを行う．
-void
-SimNodeTest::test_input()
-{
-  SimNode* node = SimNode::new_input(0);
-
-  // val の書き込み読み出しテスト
-  init_val(node, PV_ALL1, PV_ALL1);
-
-  test_val(node,
-	   PV_ALL1,              PV_ALL0,
-	   PV_ALL1,              PV_ALL0);
-  test_val(node,
-	   0x5555555555555555UL, 0x5555555555555555UL,
-	   0x0000000000000000UL, 0x0000000000000000UL);
-  test_val(node,
-	   0xaaaaaaaaaaaaaaaaUL, 0xaaaaaaaaaaaaaaaaUL,
-	   0x0000000000000000UL, 0x0000000000000000UL);
-  test_val(node,
-	   PV_ALL0,              PV_ALL1,
-	   PV_ALL0,              PV_ALL1);
-
-  delete node;
-}
 
 // @brief 論理ノードのテストを行う．
-// @param[in] ni 入力数
-// @param[in] gate_type ゲートの種類
-// @param[in] vals 真理値表ベクタ
 void
-SimNodeTest::test_gate(int ni,
-		       PrimType gate_type,
-		       int vals[])
+SimNodeTest::test_gate(
+  SizeType ni,
+  PrimType gate_type,
+  int vals[]
+)
 {
   vector<SimNode*> inputs(ni);
   for (int i = 0; i < ni; ++ i) {
@@ -108,20 +116,43 @@ SimNodeTest::test_gate(int ni,
   SimNode* node = SimNode::new_gate(ni, gate_type, inputs);
 
   // val の書き込み読み出しテスト
-  init_val(node, PV_ALL1, PV_ALL1);
+  init_val(node, PackedVal3{PV_ALL1, PV_ALL1});
 
   test_val(node,
-	   PV_ALL1,              PV_ALL0,
-	   PV_ALL1,              PV_ALL0);
+	   PackedVal3{PV_ALL1, PV_ALL0});
   test_val(node,
-	   0x5555555555555555UL, 0x5555555555555555UL,
-	   0x0000000000000000UL, 0x0000000000000000UL);
+	   PackedVal3{PV_ALL0, PV_ALL0});
   test_val(node,
-	   0xaaaaaaaaaaaaaaaaUL, 0xaaaaaaaaaaaaaaaaUL,
-	   0x0000000000000000UL, 0x0000000000000000UL);
+	   PackedVal3{0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL});
   test_val(node,
-	   PV_ALL0,              PV_ALL1,
-	   PV_ALL0,              PV_ALL1);
+	   PackedVal3{PV_ALL0, PV_ALL1});
+
+#if FSIM_BSIDE
+  test_val2(node,
+	    PackedVal3{PV_ALL1, PV_ALL0},
+	    PackedVal3{PV_ALL1, PV_ALL0});
+  test_val2(node,
+	    PackedVal3{PV_ALL1, PV_ALL0},
+	    PackedVal3{PV_ALL0, PV_ALL1});
+  test_val2(node,
+	    PackedVal3{PV_ALL0, PV_ALL0},
+	    PackedVal3{PV_ALL0, PV_ALL0});
+  test_val2(node,
+	    PackedVal3{PV_ALL0, PV_ALL0},
+	    PackedVal3{PV_ALL0, PV_ALL1});
+  test_val2(node,
+	    PackedVal3{0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL},
+	    PackedVal3{0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL});
+  test_val2(node,
+	    PackedVal3{0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL},
+	    PackedVal3{0x5555555555555555UL, 0xaaaaaaaaaaaaaaaaUL});
+  test_val2(node,
+	    PackedVal3{PV_ALL0, PV_ALL1},
+	    PackedVal3{PV_ALL0, PV_ALL1});
+  test_val2(node,
+	    PackedVal3{PV_ALL0, PV_ALL1},
+	    PackedVal3{PV_ALL1, PV_ALL0});
+#endif
 
   int np = 1;
   for (int i = 0; i < ni; ++ i) {
@@ -129,9 +160,9 @@ SimNodeTest::test_gate(int ni,
   }
   // _calc_val() のテスト
   // ここで書き込む値に対して意味はない．
-  init_val(node, PV_ALL1, PV_ALL1);
+  init_val(node, PackedVal3{PV_ALL1, PV_ALL1});
   for (int i = 0; i < ni; ++ i) {
-    init_val(inputs[i], PV_ALL1, PV_ALL1);
+    init_val(inputs[i], PackedVal3{PV_ALL1, PV_ALL1});
   }
 
   for (int p = 0; p < np; ++ p) {
@@ -146,7 +177,7 @@ SimNodeTest::test_gate(int ni,
       case 1: val0 = PV_ALL0; val1 = PV_ALL1; break;
       case 2: val0 = PV_ALL0; val1 = PV_ALL0; break;
       }
-      init_val(inputs[i], val0, val1);
+      init_val(inputs[i], PackedVal3{val0, val1});
     }
     PackedVal3 val = node->_calc_val();
     PackedVal val0 = val.val0();
@@ -157,9 +188,9 @@ SimNodeTest::test_gate(int ni,
   // calc_gobs() のテスト
   for (int ipos = 0; ipos < ni; ++ ipos) {
     // ここで書き込む値に対して意味はない．
-    init_val(node, PV_ALL0, PV_ALL1);
+    init_val(node, PackedVal3{PV_ALL0, PV_ALL1});
     for (int i = 0; i < ni; ++ i) {
-      init_val(inputs[i], PV_ALL0, PV_ALL1);
+      init_val(inputs[i], PackedVal3{PV_ALL0, PV_ALL1});
     }
 
     vector<int> ivals(ni, 0);
@@ -175,7 +206,7 @@ SimNodeTest::test_gate(int ni,
 	case 1: val0 = PV_ALL0; val1 = PV_ALL1; break;
 	case 2: val0 = PV_ALL0; val1 = PV_ALL0; break;
 	}
-	init_val(inputs[i], val0, val1);
+	init_val(inputs[i], PackedVal3{val0, val1});
 	if ( i == ipos ) {
 	  p += 0 * w; // じつは効果なし．形式を合わせただけ
 	  q += 1 * w;
@@ -226,59 +257,50 @@ SimNodeTest::test_gate(int ni,
   delete node;
 }
 
-// @brief val の書き込み読み出しテスト
-// @param[in] node 対象のノード
-// @param[in] val0, val1 書き込む値
-// @param[in] exp_val0, exp_val1 期待値
-void
-SimNodeTest::test_val(SimNode* node,
-		      PackedVal val0,
-		      PackedVal val1,
-		      PackedVal exp_val0,
-		      PackedVal exp_val1)
-{
-  // 書き込んだ値が読み出せるかテストする．
-  init_val(node, val0, val1);
-  EXPECT_EQ( exp_val0, node->val().val0() );
-  EXPECT_EQ( exp_val1, node->val().val1() );
-}
-
-// @brief 3値の検証を行う．
-// @param[in] val0 0のワード
-// @param[in] val1 1のワード
-// @param[in] exp_val 期待値
-//
-// 期待値は 0, 1, 2(X) の3種類
-void
-SimNodeTest::test_val3(PackedVal val0,
-		       PackedVal val1,
-		       int exp_val)
-{
-  switch ( exp_val ) {
-  case 0:
-    EXPECT_EQ( PV_ALL1, val0 );
-    EXPECT_EQ( PV_ALL0, val1 );
-    break;
-
-  case 1:
-    EXPECT_EQ( PV_ALL0, val0 );
-    EXPECT_EQ( PV_ALL1, val1 );
-    break;
-
-  case 2:
-    EXPECT_EQ( PV_ALL0, val0 );
-    EXPECT_EQ( PV_ALL0, val1 );
-    break;
-
-  default:
-    ASSERT_NOT_REACHED;
-    break;
-  }
-}
-
 TEST_F(SimNodeTest, INPUT)
 {
-  test_input();
+  auto node = SimNode::new_input(0);
+
+  // val の書き込み読み出しテスト
+  init_val(node, PackedVal3{PV_ALL1});
+
+  test_val(node,
+	   PackedVal3{PV_ALL1, PV_ALL0});
+  test_val(node,
+	   PackedVal3{PV_ALL0, PV_ALL0});
+  test_val(node,
+	   PackedVal3{0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL});
+  test_val(node,
+	   PackedVal3{PV_ALL0, PV_ALL1});
+
+#if FSIM_BSIDE
+  test_val2(node,
+	    PackedVal3{PV_ALL1, PV_ALL0},
+	    PackedVal3{PV_ALL1, PV_ALL0});
+  test_val2(node,
+	    PackedVal3{PV_ALL1, PV_ALL0},
+	    PackedVal3{PV_ALL0, PV_ALL1});
+  test_val2(node,
+	    PackedVal3{PV_ALL0, PV_ALL0},
+	    PackedVal3{PV_ALL0, PV_ALL0});
+  test_val2(node,
+	    PackedVal3{PV_ALL0, PV_ALL0},
+	    PackedVal3{PV_ALL0, PV_ALL1});
+  test_val2(node,
+	    PackedVal3{0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL},
+	    PackedVal3{0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL});
+  test_val2(node,
+	    PackedVal3{0xaaaaaaaaaaaaaaaaUL, 0x5555555555555555UL},
+	    PackedVal3{0x5555555555555555UL, 0xaaaaaaaaaaaaaaaaUL});
+  test_val2(node,
+	    PackedVal3{PV_ALL0, PV_ALL1},
+	    PackedVal3{PV_ALL0, PV_ALL1});
+  test_val2(node,
+	    PackedVal3{PV_ALL0, PV_ALL1},
+	    PackedVal3{PV_ALL1, PV_ALL0});
+#endif
+
+  delete node;
 }
 
 TEST_F(SimNodeTest, BUFF)

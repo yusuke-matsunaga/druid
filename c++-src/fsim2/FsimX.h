@@ -127,8 +127,10 @@ public:
   ) override;
 
   /// @brief 直前の sppfp() に対する検出パタンのリストを返す．
-  vector<DiffVector>
-  sppfp_diffvector() override;
+  DiffVector
+  sppfp_diffvector(
+    TpgFault fault ///< [in] 対象の故障
+  ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   /// @return 全パタンシミュレーションした場合に true を返す．

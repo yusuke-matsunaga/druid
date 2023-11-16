@@ -17,21 +17,16 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-EventQ::EventQ(
-) : mArraySize{0},
-    mArray{nullptr},
-    mNum{0},
-    mClearArraySize{0},
-    mClearArray{nullptr},
-    mClearPos{0},
-    mFlipMaskArray{nullptr},
-    mMaskPos{0}
+EventQ::EventQ()
 {
 }
 
 // @brief デストラクタ
 EventQ::~EventQ()
 {
+#if FSIM_DIFFVECTOR
+  delete [] mPropArray;
+#endif
   delete [] mArray;
   delete [] mClearArray;
   delete [] mFlipMaskArray;
@@ -42,8 +37,21 @@ void
 EventQ::init(
   SizeType max_level,
   SizeType node_num
+#if FSIM_DIFFVECTOR
+  , SizeType output_num
+#endif
 )
 {
+#if FSIM_DIFFVECTOR
+  if ( output_num != mOutputNum ) {
+    delete [] mPropArray;
+    mOutputNum = output_num;
+    mPropArray = new PackedVal[output_num];
+  }
+  for ( auto i: Range(0, mOutputNum) ) {
+    mPropArray[i] = PV_ALL0;
+  }
+#endif
   if ( max_level >= mArraySize ) {
     delete [] mArray;
     mArraySize = max_level + 1;
@@ -92,9 +100,7 @@ EventQ::put_trigger(
 
 // @brief イベントドリブンシミュレーションを行う．
 PackedVal
-EventQ::simulate(
-  SimNode* target
-)
+EventQ::simulate()
 {
   // どこかの外部出力で検出されたことを表すビット
   auto obs = PV_ALL0;
@@ -115,9 +121,12 @@ EventQ::simulate(
     }
     if ( new_val != old_val ) {
       add_to_clear_list(node, old_val);
-      if ( node->is_output() || node == target ) {
+      if ( node->is_output() ) {
 	auto dbits = diff(new_val, old_val);
 	obs |= dbits;
+#if FSIM_DIFFVECTOR
+	mPropArray[node->output_id()] = dbits;
+#endif
       }
       else {
 	put_fanouts(node);

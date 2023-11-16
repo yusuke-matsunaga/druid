@@ -195,8 +195,10 @@ public:
   );
 
   /// @brief 直前の sppfp() に対する検出パタンのリストを返す．
-  vector<DiffVector>
-  sppfp_diffvector();
+  DiffVector
+  sppfp_diffvector(
+    TpgFault fault ///< [in] 対象の故障
+  );
 
   /// @brief ppsfp で用いるコールバック関数の型定義
   ///

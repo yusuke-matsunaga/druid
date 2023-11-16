@@ -43,15 +43,15 @@ ym_add_object_library ( druid_fsimcombi2
   )
 
 target_compile_definitions ( druid_fsimcombi2_obj
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1"
+  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 target_compile_definitions ( druid_fsimcombi2_obj_d
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1"
+  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 target_compile_definitions ( druid_fsimcombi2_obj_p
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1"
+  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 
@@ -60,15 +60,15 @@ ym_add_object_library ( druid_fsimcombi3
   )
 
 target_compile_definitions ( druid_fsimcombi3_obj
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1"
+  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 target_compile_definitions ( druid_fsimcombi3_obj_d
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1"
+  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 target_compile_definitions ( druid_fsimcombi3_obj_p
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1"
+  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 
@@ -77,15 +77,15 @@ ym_add_object_library ( druid_fsimbside2
   )
 
 target_compile_definitions ( druid_fsimbside2_obj
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1"
+  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 target_compile_definitions ( druid_fsimbside2_obj_d
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1"
+  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 target_compile_definitions ( druid_fsimbside2_obj_p
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1"
+  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 
@@ -94,15 +94,15 @@ ym_add_object_library ( druid_fsimbside3
   )
 
 target_compile_definitions ( druid_fsimbside3_obj
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1"
+  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 target_compile_definitions ( druid_fsimbside3_obj_d
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1"
+  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 target_compile_definitions ( druid_fsimbside3_obj_p
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1"
+  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1" "-DFSIM_DIFFVECTOR=1"
   )
 
 

@@ -171,6 +171,12 @@ public:
     const TpgFault& f		    ///< [in] 対象の故障
   );
 
+#if FSIM_DIFFVECTOR
+  /// @brief 直前の spsfp() に対する検出パタンを返す．
+  DiffVector
+  spsfp_diffvector();
+#endif
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
   vector<TpgFault>
@@ -184,6 +190,14 @@ public:
   sppfp(
     const NodeValList& assign_list  ///< [in] 値の割当リスト
   );
+
+#if FSIM_DIFFVECTOR
+  /// @brief 直前の sppfp() に対する検出パタンのリストを返す．
+  DiffVector
+  sppfp_diffvector(
+    TpgFault fault ///< [in] 対象の故障
+  );
+#endif
 
   /// @brief ppsfp で用いるコールバック関数の型定義
   ///

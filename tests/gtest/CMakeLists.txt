@@ -12,8 +12,7 @@ include_directories(
 # ===================================================================
 
 add_subdirectory( types )
-add_subdirectory( combi_fsim2 )
-add_subdirectory( combi_fsim3 )
+add_subdirectory( fsim )
 add_subdirectory( dtpg )
 
 

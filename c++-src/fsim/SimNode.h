@@ -11,7 +11,9 @@
 #include "fsim_nsdef.h"
 #include "TpgNode.h"
 #include "PackedVal.h"
+#if FSIM_VAL3
 #include "PackedVal3.h"
+#endif
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -169,6 +171,15 @@ public:
     return mFlags.test(OUTPUT);
   }
 
+#if FSIM_DIFFVECTOR
+  /// @brief 出力番号を返す．
+  SizeType
+  output_id() const
+  {
+    return mFanoutNum;
+  }
+#endif
+
   /// @brief 内容をダンプする．
   virtual
   void
@@ -184,10 +195,20 @@ public:
 
   /// @brief 出力マークをつける．
   void
+#if FSIM_DIFFVECTOR
+  set_output(
+    SizeType output_id ///< [in] 出力番号
+  )
+  {
+    mFlags.set(OUTPUT);
+    mFanoutNum = output_id;
+  }
+#else
   set_output()
   {
     mFlags.set(OUTPUT);
   }
+#endif
 
   /// @brief ファンアウトリストを作成する．
   void
@@ -389,8 +410,10 @@ private:
   // 出力値
   FSIM_VALTYPE mVal;
 
+#if FSIM_BSIDE
   // 1時刻前の値
   FSIM_VALTYPE mPrevVal;
+#endif
 
 };
 

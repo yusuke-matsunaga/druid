@@ -245,7 +245,6 @@ FSIM2_CLASSNAME::set_fault_list(
   mFaultList.reserve(nf);
   mFaultMap.resize(max_fid, nullptr);
   mDetFaultArray.reserve(nf);
-  mDiffVectorArray.reserve(nf);
 
   for ( auto fault: fault_list ) {
     auto tpgnode = fault.origin_node();
@@ -397,10 +396,12 @@ FSIM2_CLASSNAME::sppfp(
 }
 
 // @brief 直前の sppfp() に対する検出パタンのリストを返す．
-vector<Fsim2Impl::DiffVector>
-FSIM2_CLASSNAME::sppfp_diffvector()
+Fsim2Impl::DiffVector
+FSIM2_CLASSNAME::sppfp_diffvector(
+  TpgFault fault
+)
 {
-  return mDiffVectorArray;
+  return mDiffVectorArray[fault.id()];
 }
 
 // @brief SPPFP故障シミュレーションの本体
@@ -411,6 +412,7 @@ FSIM2_CLASSNAME::_sppfp(
 {
   mDetFaultArray.clear();
   mDiffVectorArray.clear();
+  mDiffVectorArray.resize(mFaultMap.size());
 
   // 正常値の計算を行う．
   _calc_gval(iv);
@@ -471,7 +473,7 @@ FSIM2_CLASSNAME::_do_simulation(
 	    dv[i] = true;
 	  }
 	}
-	mDiffVectorArray.push_back(dv);
+	mDiffVectorArray[tpg_f.id()] = dv;
       }
     }
   }

@@ -108,6 +108,12 @@ public:
     const TpgFault& f               ///< [in] 対象の故障
   ) override;
 
+#if FSIM_DIFFVECTOR
+  /// @brief 直前の spsfp() に対する検出パタンを返す．
+  DiffVector
+  spsfp_diffvector() override;
+#endif
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
   vector<TpgFault>
@@ -121,6 +127,14 @@ public:
   sppfp(
     const NodeValList& assign_list ///< [in] 値の割当リスト
   ) override;
+
+#if FSIM_DIFFVECTOR
+  /// @brief 直前の sppfp() に対する検出パタンのリストを返す．
+  DiffVector
+  sppfp_diffvector(
+    TpgFault fault ///< [in] 対象の故障
+  ) override;
+#endif
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   /// @return 全パタンシミュレーションした場合に true を返す．
@@ -506,6 +520,11 @@ private:
 
   // 検出された故障を格納する配列
   vector<TpgFault> mDetFaultArray;
+
+#if FSIM_DIFFVECTOR
+  // mDetFaultArray に対する検出パタンの配列
+  vector<DiffVector> mDiffVectorArray;
+#endif
 
   // 検出された故障数
   SizeType mDetNum;

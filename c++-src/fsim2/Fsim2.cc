@@ -263,11 +263,13 @@ Fsim2::sppfp(
   return mImpl->sppfp(assign_list);
 }
 
-// @brief ひとつのパタンで故障シミュレーションを行う．
-vector<Fsim2::DiffVector>
-Fsim2::sppfp_diffvector()
+// @brief 直前の sppfp() に対する検出パタンのリストを返す．
+Fsim2::DiffVector
+Fsim2::sppfp_diffvector(
+  TpgFault fault
+)
 {
-  return mImpl->sppfp_diffvector();
+  return mImpl->sppfp_diffvector(fault);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．

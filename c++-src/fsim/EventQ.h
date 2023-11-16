@@ -44,6 +44,9 @@ public:
   init(
     SizeType max_level, ///< [in] 最大レベル
     SizeType node_num   ///< [in] ノード数
+#if FSIM_DIFFVECTOR
+    , SizeType output_num ///< [in] 出力数
+#endif
   );
 
   /// @brief 初期イベントを追加する．
@@ -56,14 +59,8 @@ public:
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @retval 出力における変化ビットを返す．
-  ///
-  /// target が nullptr でない時にはイベントが target まで到達したら
-  /// シミュレーションを終える．
-  /// target が nullptr の時には出力ノードまでイベントを伝える．
   PackedVal
-  simulate(
-    SimNode* target = nullptr ///< [in] 目標のノード
-  );
+  simulate();
 
 
 private:
@@ -176,37 +173,46 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
+#if FSIM_DIFFVECTOR
+  // 出力数
+  SizeType mOutputNum{0};
+
+  // 出力の伝搬状況
+  // サイズは mOutputNum
+  PackedVal* mPropArray{nullptr};
+#endif
+
   // mArray のサイズ
-  SizeType mArraySize;
+  SizeType mArraySize{0};
 
   // キューの先頭ノードの配列
-  SimNode** mArray;
+  SimNode** mArray{nullptr};
 
   // 現在のレベル．
-  SizeType mCurLevel;
+  SizeType mCurLevel{0};
 
   // キューに入っているノード数
-  SizeType mNum;
+  SizeType mNum{0};
 
   // mCearArray のサイズ
-  SizeType mClearArraySize;
+  SizeType mClearArraySize{0};
 
   // clear 用の情報の配列
-  RestoreInfo* mClearArray;
+  RestoreInfo* mClearArray{nullptr};
 
   // mCelarArray の最後の要素位置
-  SizeType mClearPos;
+  SizeType mClearPos{0};
 
   // 反転マスクの配列
   // サイズは mClearArraySize と同じ
-  PackedVal* mFlipMaskArray;
+  PackedVal* mFlipMaskArray{nullptr};
 
   // 反転マスクをセットしたノードのリスト
   // 仕様上 PV_BITLEN が最大
   SimNode* mMaskList[PV_BITLEN];
 
   // mMaskList の最後の要素位置
-  SizeType mMaskPos;
+  SizeType mMaskPos{0};
 
 };
 
