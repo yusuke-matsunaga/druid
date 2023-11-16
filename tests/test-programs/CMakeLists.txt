@@ -27,10 +27,6 @@ set ( TpgNetworkTest_SOURCES
 add_executable ( TpgNetworkTest
   ${TpgNetworkTest_SOURCES}
   $<TARGET_OBJECTS:druid_types_obj>
-  #$<TARGET_OBJECTS:druid_fsimcombi2_obj>
-  #$<TARGET_OBJECTS:druid_fsimcombi3_obj>
-  #$<TARGET_OBJECTS:druid_fsimbside2_obj>
-  #$<TARGET_OBJECTS:druid_fsimbside3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -60,10 +56,6 @@ endif ()
 add_executable ( TpgNetworkTest_d
   ${TpgNetworkTest_SOURCES}
   $<TARGET_OBJECTS:druid_types_obj_d>
-  #$<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
-  #$<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
-  #$<TARGET_OBJECTS:druid_fsimbside2_obj_d>
-  #$<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
@@ -97,10 +89,6 @@ set ( TpgFaultMgrTest_SOURCES
 add_executable ( TpgFaultMgrTest
   ${TpgFaultMgrTest_SOURCES}
   $<TARGET_OBJECTS:druid_types_obj>
-  #$<TARGET_OBJECTS:druid_fsimcombi2_obj>
-  #$<TARGET_OBJECTS:druid_fsimcombi3_obj>
-  #$<TARGET_OBJECTS:druid_fsimbside2_obj>
-  #$<TARGET_OBJECTS:druid_fsimbside3_obj>
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
@@ -130,10 +118,6 @@ endif ()
 add_executable ( TpgFaultMgrTest_d
   ${TpgFaultMgrTest_SOURCES}
   $<TARGET_OBJECTS:druid_types_obj_d>
-  #$<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
-  #$<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
-  #$<TARGET_OBJECTS:druid_fsimbside2_obj_d>
-  #$<TARGET_OBJECTS:druid_fsimbside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 

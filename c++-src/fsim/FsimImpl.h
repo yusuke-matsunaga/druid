@@ -12,6 +12,7 @@
 #include "druid.h"
 #include "FaultType.h"
 #include "PackedVal.h"
+#include "DiffBits.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -97,6 +98,11 @@ public:
     const TpgFault& f               ///< [in] 対象の故障
   ) = 0;
 
+  /// @brief 直前の spsfp() に対する故障差を返す．
+  virtual
+  DiffBits
+  spsfp_diffbits() = 0;
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
   virtual
@@ -111,6 +117,13 @@ public:
   vector<TpgFault>
   sppfp(
     const NodeValList& assign_list ///< [in] 値の割当リスト
+  ) = 0;
+
+  /// @brief 直前の sppfp() に対する故障差を返す．
+  virtual
+  DiffBits
+  sppfp_diffbits(
+    TpgFault fault ///< [in] 対象の故障
   ) = 0;
 
   /// @brief ppsfp で用いるコールバック関数の型定義

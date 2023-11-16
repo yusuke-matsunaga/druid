@@ -13,6 +13,7 @@
 #include "FaultType.h"
 #include "TpgFaultList.h"
 #include "PackedVal.h"
+#include "DiffBits.h"
 #include "ym/Array.h"
 
 
@@ -171,6 +172,10 @@ public:
     const TpgFault& f		    ///< [in] 対象の故障
   );
 
+  /// @brief 直前の spsfp() に対する故障差を返す．
+  DiffBits
+  spsfp_diffbits();
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
   vector<TpgFault>
@@ -183,6 +188,12 @@ public:
   vector<TpgFault>
   sppfp(
     const NodeValList& assign_list  ///< [in] 値の割当リスト
+  );
+
+  /// @brief 直前の sppfp() に対する故障差を返す．
+  DiffBits
+  sppfp_diffbits(
+    TpgFault fault ///< [in] 対象の故障
   );
 
   /// @brief ppsfp で用いるコールバック関数の型定義

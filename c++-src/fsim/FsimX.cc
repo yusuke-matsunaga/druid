@@ -217,7 +217,7 @@ FSIM_CLASSNAME::set_network(
       max_level = inode->level();
     }
   }
-  mEventQ.init(max_level, mNodeArray.size());
+  mEventQ.init(max_level, ppo_num(), mNodeArray.size());
 }
 
 // @brief FFR のリストを返す．
@@ -329,57 +329,17 @@ FSIM_CLASSNAME::spsfp(
   return _spsfp(iv, f);
 }
 
-// @brief ひとつのパタンで故障シミュレーションを行う．
-vector<TpgFault>
-FSIM_CLASSNAME::sppfp(
-  const TestVector& tv
-)
+// @brief 直前の spsfp() に対する故障差を返す．
+DiffBits
+FSIM_CLASSNAME::spsfp_diffbits()
 {
-  TvInputVals iv{tv};
-
-  // 故障伝搬を行う．
-  return _sppfp(iv);
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-vector<TpgFault>
-FSIM_CLASSNAME::sppfp(
-  const NodeValList& assign_list
-)
-{
-  NvlInputVals iv{assign_list};
-
-  // 故障伝搬を行う．
-  return _sppfp(iv);
-}
-
-// @brief 複数のパタンで故障シミュレーションを行う．
-bool
-FSIM_CLASSNAME::ppsfp(
-  const vector<TestVector>& tv_list,
-  cbtype callback
-)
-{
-  clear_patterns();
-  for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
-    auto tv = tv_list[index];
-    auto lindex = index % PV_BITLEN;
-    set_pattern(lindex, tv);
-    if ( lindex == PV_BITLEN - 1 ) {
-      SizeType base = index - lindex;
-      auto go_on = _ppsfp(base, PV_BITLEN, callback);
-      if ( !go_on ) {
-	return false;
-      }
-      clear_patterns();
+  DiffBits ans(ppo_num());
+  for ( SizeType i = 0; i < ppo_num(); ++ i ) {
+    if ( mEventQ.prop_val(i) == PV_ALL1 ) {
+      ans.set_val(i, true);
     }
   }
-  auto remainder = tv_list.size() % PV_BITLEN;
-  if ( remainder > 0 ) {
-    SizeType base = (tv_list.size() / PV_BITLEN) * PV_BITLEN;
-    return _ppsfp(base, remainder, callback);
-  }
-  return true;
+  return ans;
 }
 
 // @brief SPSFP故障シミュレーションの本体
@@ -411,6 +371,38 @@ FSIM_CLASSNAME::_spsfp(
   return (obs != PV_ALL0);
 }
 
+// @brief ひとつのパタンで故障シミュレーションを行う．
+vector<TpgFault>
+FSIM_CLASSNAME::sppfp(
+  const TestVector& tv
+)
+{
+  TvInputVals iv{tv};
+
+  // 故障伝搬を行う．
+  return _sppfp(iv);
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+vector<TpgFault>
+FSIM_CLASSNAME::sppfp(
+  const NodeValList& assign_list
+)
+{
+  NvlInputVals iv{assign_list};
+
+  // 故障伝搬を行う．
+  return _sppfp(iv);
+}
+
+// @brief 直前の sppfp() に対する故障差を返す．
+DiffBits
+FSIM_CLASSNAME::sppfp_diffbits(
+  TpgFault fault
+)
+{
+}
+
 // @brief SPPFP故障シミュレーションの本体
 vector<TpgFault>
 FSIM_CLASSNAME::_sppfp(
@@ -418,6 +410,7 @@ FSIM_CLASSNAME::_sppfp(
 )
 {
   mDetFaultArray.clear();
+  mDiffBitsMap.clear();
 
   // 正常値の計算を行う．
   _calc_gval(iv);
@@ -437,8 +430,17 @@ FSIM_CLASSNAME::_sppfp(
 
     auto root = ffr.root();
     if ( root->is_output() ) {
-      // 常に観測可能
-      _fault_sweep(ffr.fault_list());
+      // 常にこの出力のみで観測可能
+      DiffBits dbits(ppo_num());
+      dbits.set_val(root->output_id(), true);
+      for ( auto ff: ffr.fault_list() ) {
+	if ( ff->skip() || ff->obs_mask() == PV_ALL0 ) {
+	  continue;
+	}
+	auto tpg_f = ff->tpg_fault();
+	mDetFaultArray.push_back(tpg_f);
+	mDiffBitsMap[tpg_f.id()] = dbits;
+      }
     }
     else {
       // キューに積んでおく
@@ -458,6 +460,35 @@ FSIM_CLASSNAME::_sppfp(
   }
 
   return mDetFaultArray;
+}
+
+// @brief 複数のパタンで故障シミュレーションを行う．
+bool
+FSIM_CLASSNAME::ppsfp(
+  const vector<TestVector>& tv_list,
+  cbtype callback
+)
+{
+  clear_patterns();
+  for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
+    auto tv = tv_list[index];
+    auto lindex = index % PV_BITLEN;
+    set_pattern(lindex, tv);
+    if ( lindex == PV_BITLEN - 1 ) {
+      SizeType base = index - lindex;
+      auto go_on = _ppsfp(base, PV_BITLEN, callback);
+      if ( !go_on ) {
+	return false;
+      }
+      clear_patterns();
+    }
+  }
+  auto remainder = tv_list.size() % PV_BITLEN;
+  if ( remainder > 0 ) {
+    SizeType base = (tv_list.size() / PV_BITLEN) * PV_BITLEN;
+    return _ppsfp(base, remainder, callback);
+  }
+  return true;
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
@@ -760,7 +791,7 @@ FSIM_CLASSNAME::_foreach_faults(
   return ffr_req;
 }
 
-// @brief シミュレーションを行って sppfp 用の _fault_sweep() を呼ぶ出す．
+// @brief sppfp 用のシミュレーションを行う．
 void
 FSIM_CLASSNAME::_do_simulation(
   const SimFFR* ffr_buff[],
@@ -771,23 +802,22 @@ FSIM_CLASSNAME::_do_simulation(
   PackedVal mask = 1ULL;
   for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
     if ( obs & mask ) {
-      _fault_sweep(ffr_buff[i]->fault_list());
+      auto& fault_list = ffr_buff[i]->fault_list();
+      DiffBits dbits(ppo_num());
+      for ( SizeType i = 0; i < ppo_num(); ++ i ) {
+	if ( mEventQ.prop_val(i) & mask ) {
+	  dbits.set_val(i, true);
+	}
+      }
+      for ( auto ff: fault_list ) {
+	if ( ff->skip() || ff->obs_mask() == PV_ALL0 ) {
+	  continue;
+	}
+	auto tpg_f = ff->tpg_fault();
+	mDetFaultArray.push_back(tpg_f);
+	mDiffBitsMap[tpg_f.id()] = dbits;
+      }
     }
-  }
-}
-
-// @brief 故障をスキャンして結果をセットする(sppfp用)
-void
-FSIM_CLASSNAME::_fault_sweep(
-  const vector<SimFault*>& fault_list
-)
-{
-  for ( auto ff: fault_list ) {
-    if ( ff->skip() || ff->obs_mask() == PV_ALL0 ) {
-      continue;
-    }
-    auto tpg_f = ff->tpg_fault();
-    mDetFaultArray.push_back(tpg_f);
   }
 }
 

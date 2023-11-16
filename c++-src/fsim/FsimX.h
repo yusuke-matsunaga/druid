@@ -108,6 +108,10 @@ public:
     const TpgFault& f               ///< [in] 対象の故障
   ) override;
 
+  /// @brief 直前の spsfp() に対する故障差を返す．
+  DiffBits
+  spsfp_diffbits() override;
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
   vector<TpgFault>
@@ -120,6 +124,12 @@ public:
   vector<TpgFault>
   sppfp(
     const NodeValList& assign_list ///< [in] 値の割当リスト
+  ) override;
+
+  /// @brief 直前の sppfp() に対する故障差を返す．
+  DiffBits
+  sppfp_diffbits(
+    TpgFault fault ///< [in] 対象の故障
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
@@ -237,6 +247,13 @@ public:
   ppi_list() const
   {
     return SimNodeList{mPPIList.begin(), mPPIList.end()};
+  }
+
+  /// @brief PPO数を返す．
+  SizeType
+  ppo_num() const
+  {
+    return mOutputNum + mDffNum;
   }
 
 
@@ -358,17 +375,11 @@ private:
     const vector<SimFault*>& fault_list ///< [in] 故障のリスト
   );
 
-  /// @brief シミュレーションを行って sppfp 用の _fault_sweep() を呼ぶ出す．
+  /// @brief sppfp 用のシミュレーションを行う．
   void
   _do_simulation(
     const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
     SizeType ffr_num          ///< [in] FFR 数
-  );
-
-  /// @brief 故障をスキャンして結果をセットする(sppfp用)
-  void
-  _fault_sweep(
-    const vector<SimFault*>& fault_list ///< [in] 故障のリスト
   );
 
 
@@ -508,8 +519,9 @@ private:
   // 検出された故障を格納する配列
   vector<TpgFault> mDetFaultArray;
 
-  // 検出された故障数
-  SizeType mDetNum;
+  // 故障ごとの検出パタンを収める配列
+  // キーは TpgFault.id()
+  unordered_map<SizeType, DiffBits> mDiffBitsMap;
 
 };
 

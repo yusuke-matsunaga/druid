@@ -4,7 +4,7 @@
 # ===================================================================
 include_directories (
   ${PROJECT_SOURCE_DIR}/include/types
-  ${PROJECT_SOURCE_DIR}/include/main
+  ${PROJECT_SOURCE_DIR}/include/fsim
   )
 
 # ===================================================================

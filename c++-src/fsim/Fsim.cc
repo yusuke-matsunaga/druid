@@ -230,6 +230,13 @@ Fsim::spsfp(
   return mImpl->spsfp(assign_list, f);
 }
 
+// @brief 直前の sppfp() に対する故障差を返す．
+DiffBits
+Fsim::spsfp_diffbits()
+{
+  return mImpl->spsfp_diffbits();
+}
+
 // @brief ひとつのパタンで故障シミュレーションを行う．
 vector<TpgFault>
 Fsim::sppfp(
@@ -246,6 +253,15 @@ Fsim::sppfp(
 )
 {
   return mImpl->sppfp(assign_list);
+}
+
+// @brief 直前の sppfp() に対する故障差を返す．
+DiffBits
+Fsim::sppfp_diffbits(
+  TpgFault fault
+)
+{
+  return mImpl->sppfp_diffbits(fault);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
