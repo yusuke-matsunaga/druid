@@ -49,11 +49,26 @@ public:
 
   /// @brief 初期イベントを追加する．
   void
-  put_trigger(
-    SimNode* node,     ///< [in] 対象のノード
-    PackedVal valmask, ///< [in] 反転マスク
-    bool immediate     ///< [in] 反転マスクをすぐに適用する時に true にする．
-  );
+  put_event(
+    SimNode* node,    ///< [in] 対象のノード
+    PackedVal valmask ///< [in] 反転マスク
+  )
+  {
+    if ( node->gate_type() == PrimType::None ) {
+      // 入力の場合，他のイベントの干渉は受けないので
+      // 今計算してしまう．
+      auto old_val = node->val();
+      node->set_val(old_val ^ valmask);
+      add_to_clear_list(node, old_val);
+      put_fanouts(node);
+    }
+    else {
+      // 複数のイベントを登録する場合があるので
+      // ここでは計算せずに反転マスクのみをセットする．
+      set_flip_mask(node, valmask);
+      put(node);
+    }
+  }
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @retval 出力における変化ビットを返す．

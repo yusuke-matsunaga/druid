@@ -290,6 +290,13 @@ private:
     const InputVals& iv ///< [in] 入力値
   );
 
+  /// @brief sppfp 用のシミュレーションを行う．
+  void
+  _sppfp_simulation(
+    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
+    SizeType ffr_num          ///< [in] FFR 数
+  );
+
   /// @brief PPSFP故障シミュレーションの本体
   /// @return callback() が false を返したら false を返す．
   bool
@@ -323,18 +330,12 @@ private:
   ///
   /// obs_mask が0のビットのイベントはマスクされる．
   PackedVal
-  _prop_sim(
+  _global_prop(
     SimNode* root,     ///< [in] FFRの根のノード
     PackedVal obs_mask ///< [in] ビットマスク
   )
   {
-    if ( root->is_output() ) {
-      // 外部出力の場合は無条件で伝搬している．
-      return PV_ALL1;
-    }
-
-    // それ以外はイベントドリヴンシミュレーションを行う．
-    mEventQ.put_trigger(root, obs_mask, true);
+    mEventQ.put_event(root, obs_mask);
     auto obs = mEventQ.simulate();
 
     return obs;
@@ -342,7 +343,7 @@ private:
 
   /// @brief FFR内の故障シミュレーションを行う．
   PackedVal
-  _fault_prop(
+  _local_prop(
     SimFault* fault ///< [in] 対象の故障
   )
   {
@@ -373,13 +374,6 @@ private:
   PackedVal
   _foreach_faults(
     const vector<SimFault*>& fault_list ///< [in] 故障のリスト
-  );
-
-  /// @brief sppfp 用のシミュレーションを行う．
-  void
-  _do_simulation(
-    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
-    SizeType ffr_num          ///< [in] FFR 数
   );
 
 

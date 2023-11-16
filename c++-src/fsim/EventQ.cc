@@ -67,32 +67,6 @@ EventQ::init(
   mNum = 0;
 }
 
-// @brief 初期イベントを追加する．
-void
-EventQ::put_trigger(
-  SimNode* node,
-  PackedVal valmask,
-  bool immediate
-)
-{
-  if ( immediate || node->gate_type() == PrimType::None ) {
-    // 入力の場合，他のイベントの干渉は受けないので
-    // 今計算してしまう．
-    // もしくは ppsfp のようにイベントが単独であると
-    // わかっている場合も即座に計算してしまう．
-    auto old_val = node->val();
-    node->set_val(old_val ^ valmask);
-    add_to_clear_list(node, old_val);
-    put_fanouts(node);
-  }
-  else {
-    // 複数のイベントを登録する場合があるので
-    // ここでは計算せずに反転マスクのみをセットする．
-    set_flip_mask(node, valmask);
-    put(node);
-  }
-}
-
 // @brief イベントドリブンシミュレーションを行う．
 PackedVal
 EventQ::simulate()
@@ -107,12 +81,11 @@ EventQ::simulate()
     // イベントが残っていなければ終わる．
     if ( node == nullptr ) break;
 
-    // すでに検出済みのビットはマスクしておく
-    // これは無駄なイベントの発生を抑える．
     auto old_val = node->val();
-    node->calc_val(~obs);
+    node->calc_val();
     auto new_val = node->val();
     if ( node->has_flip_mask() ) {
+      // node に反転イベントがある場合
       auto flip_mask = mFlipMaskArray[node->id()];
       new_val ^= flip_mask;
       node->set_val(new_val);
