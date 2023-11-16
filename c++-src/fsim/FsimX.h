@@ -427,12 +427,13 @@ private:
   /// @brief 外部出力ノードを作る．
   SimNode*
   make_output(
-    SimNode* input
+    SimNode* input,
+    SizeType output_id
   )
   {
     // 実際にはバッファタイプのノードに出力の印をつけるだけ．
     auto node = make_gate(PrimType::Buff, {input});
-    node->set_output();
+    node->set_output(output_id);
     return node;
   }
 

@@ -136,7 +136,8 @@ FSIM_CLASSNAME::set_network(
     else if ( tpgnode->is_ppo() ) {
       // 外部出力に対応する SimNode の生成
       auto inode = mSimNodeMap[tpgnode->fanin(0)->id()];
-      node = make_output(inode);
+      auto oid = mPPOList.size();
+      node = make_output(inode, oid);
       mPPOList[tpgnode->output_id()] = node;
     }
     else if ( tpgnode->is_logic() ) {

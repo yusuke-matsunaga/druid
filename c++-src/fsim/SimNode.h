@@ -169,6 +169,13 @@ public:
     return mFlags.test(OUTPUT);
   }
 
+  /// @brief 出力番号を返す.
+  SizeType
+  output_id() const
+  {
+    return mFanoutNum;
+  }
+
   /// @brief 内容をダンプする．
   virtual
   void
@@ -184,9 +191,12 @@ public:
 
   /// @brief 出力マークをつける．
   void
-  set_output()
+  set_output(
+    SizeType output_id
+  )
   {
     mFlags.set(OUTPUT);
+    mFanoutNum = output_id;
   }
 
   /// @brief ファンアウトリストを作成する．
