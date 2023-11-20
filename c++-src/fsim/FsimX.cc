@@ -338,7 +338,7 @@ FSIM_CLASSNAME::spsfp_diffbits()
   DiffBits ans(ppo_num());
   for ( SizeType i = 0; i < ppo_num(); ++ i ) {
     if ( mEventQ.prop_val(i) == PV_ALL1 ) {
-      ans.set_val(i, true);
+      ans.set_val(i);
     }
   }
   return ans;
@@ -436,7 +436,7 @@ FSIM_CLASSNAME::_sppfp(
     if ( root->is_output() ) {
       // 常にこの出力のみで観測可能
       DiffBits dbits(ppo_num());
-      dbits.set_val(root->output_id(), true);
+      dbits.set_val(root->output_id());
       for ( auto ff: ffr.fault_list() ) {
 	if ( ff->skip() || ff->obs_mask() == PV_ALL0 ) {
 	  continue;
@@ -481,7 +481,7 @@ FSIM_CLASSNAME::_sppfp_simulation(
       DiffBits dbits(ppo_num());
       for ( SizeType i = 0; i < ppo_num(); ++ i ) {
 	if ( mEventQ.prop_val(i) & mask ) {
-	  dbits.set_val(i, true);
+	  dbits.set_val(i);
 	}
       }
       for ( auto ff: fault_list ) {

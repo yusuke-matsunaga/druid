@@ -59,14 +59,43 @@ public:
     return mBits[pos];
   }
 
-  /// @brief 値を書き込む．
+  /// @brief 値を true にする．
   void
   set_val(
-    SizeType pos, ///< [in] 位置 ( 0 <= pos < size() )
-    bool v        ///< [in] 値
+    SizeType pos ///< [in] 位置 ( 0 <= pos < size() )
   )
   {
-    mBits[pos] = v;
+    mBits[pos] = true;
+  }
+
+  /// @brief 値を false にする．
+  void
+  clear_val(
+    SizeType pos ///< [in] 位置 ( 0 <= pos < size() )
+  )
+  {
+    mBits[pos] = false;
+  }
+
+  /// @brief 値を反転する．
+  void
+  flip_val(
+    SizeType pos ///< [in] 位置 ( 0 <= pos < size() )
+  )
+  {
+    mBits[pos] = !mBits[pos];
+  }
+
+  /// @brief true のビットがあるか調べる．
+  bool
+  any() const
+  {
+    for ( auto v: mBits ) {
+      if ( v ) {
+	return true;
+      }
+    }
+    return false;
   }
 
   /// @brief 等価比較演算

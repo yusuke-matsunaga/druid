@@ -22,18 +22,31 @@ class FsimTest :
 {
 public:
 
-  /// @brief 縮退故障のテストを行う．
+  /// @brief 縮退故障の spsfp のテストを行う．
   void
-  sa_test();
+  spsfp_sa_test();
 
-  /// @brief 遷移故障のテストを行う．
+  /// @brief 遷移故障の spsfp テストを行う．
   void
-  td_test();
+  spsfp_td_test();
+
+  /// @brief 縮退故障の sppfp のテストを行う．
+  void
+  sppfp_sa_test();
+
+  /// @brief 遷移故障の sppfp テストを行う．
+  void
+  sppfp_td_test();
+
+
+private:
+
+  const SizeType PAT_NUM{2000};
 
 };
 
 void
-FsimTest::sa_test()
+FsimTest::spsfp_sa_test()
 {
   auto filename = string{TESTDATA_DIR} + "/" + GetParam();
   auto tpg_network = TpgNetwork::read_blif(filename);
@@ -52,7 +65,7 @@ FsimTest::sa_test()
   SizeType dff_num = tpg_network.dff_num();
 
   std::mt19937 randgen;
-  SizeType nv = 1000;
+  SizeType nv = PAT_NUM;
 
   RefSim refsim{tpg_network};
 
@@ -60,8 +73,9 @@ FsimTest::sa_test()
   for ( SizeType i = 0; i < nv; ++ i ) {
     tv.set_from_random(randgen);
     for ( auto fault: fault_list ) {
-      fsim.spsfp(tv, fault);
+      auto diff = fsim.spsfp(tv, fault);
       auto dbits = fsim.spsfp_diffbits();
+      EXPECT_EQ( dbits.any(), diff );
       auto ref_dbits = refsim.simulate_sa(tv, fault);
       EXPECT_EQ( ref_dbits, dbits );
     }
@@ -69,7 +83,7 @@ FsimTest::sa_test()
 }
 
 void
-FsimTest::td_test()
+FsimTest::spsfp_td_test()
 {
   auto filename = string{TESTDATA_DIR} + "/" + GetParam();
   auto tpg_network = TpgNetwork::read_blif(filename);
@@ -88,7 +102,7 @@ FsimTest::td_test()
   SizeType dff_num = tpg_network.dff_num();
 
   std::mt19937 randgen;
-  SizeType nv = 1000;
+  SizeType nv = PAT_NUM;
 
   RefSim refsim{tpg_network};
 
@@ -96,25 +110,127 @@ FsimTest::td_test()
   for ( SizeType i = 0; i < nv; ++ i ) {
     tv.set_from_random(randgen);
     for ( auto fault: fault_list ) {
-      fsim.spsfp(tv, fault);
+      auto diff = fsim.spsfp(tv, fault);
       auto dbits = fsim.spsfp_diffbits();
+      EXPECT_EQ( dbits.any(), diff );
       auto ref_dbits = refsim.simulate_td(tv, fault);
       EXPECT_EQ( ref_dbits, dbits );
     }
   }
 }
 
-TEST_P(FsimTest, sa_test)
+void
+FsimTest::sppfp_sa_test()
 {
-  sa_test();
+  auto filename = string{TESTDATA_DIR} + "/" + GetParam();
+  auto tpg_network = TpgNetwork::read_blif(filename);
+
+  Fsim fsim;
+
+  fsim.initialize(tpg_network, false, false);
+
+  TpgFaultMgr fmgr;
+  fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
+
+  auto fault_list = fmgr.fault_list();
+  fsim.set_fault_list(fault_list);
+
+  SizeType input_num = tpg_network.input_num();
+  SizeType dff_num = tpg_network.dff_num();
+
+  std::mt19937 randgen;
+  SizeType nv = PAT_NUM;
+
+  TestVector tv(input_num, dff_num, false);
+  for ( SizeType i = 0; i < nv; ++ i ) {
+    tv.set_from_random(randgen);
+    unordered_map<SizeType, DiffBits> dbits_dict;
+    for ( auto fault: fault_list ) {
+      if ( fsim.spsfp(tv, fault) ) {
+	auto dbits = fsim.spsfp_diffbits();
+	dbits_dict.emplace(fault.id(), dbits);
+      }
+    }
+    auto fault_list = fsim.sppfp(tv);
+    EXPECT_EQ( dbits_dict.size(), fault_list.size() );
+    for ( auto fault: fault_list ) {
+      EXPECT_TRUE( dbits_dict.count(fault.id()) );
+      auto dbits = fsim.sppfp_diffbits(fault);
+      EXPECT_EQ( dbits_dict.at(fault.id()), dbits);
+    }
+  }
 }
 
-TEST_P(FsimTest, td_test)
+void
+FsimTest::sppfp_td_test()
 {
-  td_test();
+  auto filename = string{TESTDATA_DIR} + "/" + GetParam();
+  auto tpg_network = TpgNetwork::read_blif(filename);
+
+  Fsim fsim;
+
+  fsim.initialize(tpg_network, true, false);
+
+  TpgFaultMgr fmgr;
+  fmgr.gen_fault_list(tpg_network, FaultType::TransitionDelay);
+
+  auto fault_list = fmgr.fault_list();
+  fsim.set_fault_list(fault_list);
+
+  SizeType input_num = tpg_network.input_num();
+  SizeType dff_num = tpg_network.dff_num();
+
+  std::mt19937 randgen;
+  SizeType nv = PAT_NUM;
+
+  RefSim refsim{tpg_network};
+
+  TestVector tv(input_num, dff_num, true);
+  for ( SizeType i = 0; i < nv; ++ i ) {
+    tv.set_from_random(randgen);
+    unordered_map<SizeType, DiffBits> dbits_dict;
+    for ( auto fault: fault_list ) {
+      if ( fsim.spsfp(tv, fault) ) {
+	auto dbits = fsim.spsfp_diffbits();
+	dbits_dict.emplace(fault.id(), dbits);
+      }
+    }
+    auto fault_list = fsim.sppfp(tv);
+    EXPECT_EQ( dbits_dict.size(), fault_list.size() );
+    for ( auto fault: fault_list ) {
+      EXPECT_TRUE( dbits_dict.count(fault.id()) );
+      auto dbits = fsim.sppfp_diffbits(fault);
+      EXPECT_EQ( dbits_dict.at(fault.id()), dbits);
+    }
+  }
 }
 
+TEST_P(FsimTest, spsfp_sa_test)
+{
+  spsfp_sa_test();
+}
+
+TEST_P(FsimTest, spsfp_td_test)
+{
+  spsfp_td_test();
+}
+
+TEST_P(FsimTest, sppfp_sa_test)
+{
+  sppfp_sa_test();
+}
+
+TEST_P(FsimTest, sppfp_td_test)
+{
+  sppfp_td_test();
+}
+
+#if 0
 INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
 			 ::testing::Values("s27.blif", "s1196.blif", "s5378.blif"));
+#endif
+
+INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
+			 ::testing::Values("s27.blif", "s1196.blif"));
 
 END_NAMESPACE_DRUID

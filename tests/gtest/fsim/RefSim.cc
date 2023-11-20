@@ -119,13 +119,13 @@ RefSim::simulate_sa(
   for ( SizeType i = 0; i < no; ++ i ) {
     auto node = mOutputList[i];
     if ( node->get_gval() != node->get_fval() ) {
-      dbits.set_val(i, true);
+      dbits.set_val(i);
     }
   }
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto node = mDffInList[i];
     if ( node->get_gval() != node->get_fval() ) {
-      dbits.set_val(i + no, true);
+      dbits.set_val(i + no);
     }
   }
   return dbits;
@@ -209,13 +209,13 @@ RefSim::simulate_td(
   for ( SizeType i = 0; i < no; ++ i ) {
     auto node = mOutputList[i];
     if ( node->get_gval() != node->get_fval() ) {
-      dbits.set_val(i, true);
+      dbits.set_val(i);
     }
   }
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto node = mDffInList[i];
     if ( node->get_gval() != node->get_fval() ) {
-      dbits.set_val(i + no, true);
+      dbits.set_val(i + no);
     }
   }
   return dbits;
