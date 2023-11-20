@@ -76,3 +76,31 @@ ym_add_gtest ( druid_SimNodeTD3Test
 target_compile_definitions ( druid_SimNodeTD3Test
   PRIVATE "-DFSIM_VAL3" "-DFSIM_BSIDE"
   )
+
+ym_add_gtest ( druid_FsimSA2Test
+  FsimSA2Test.cc
+  RefSim.cc
+  $<TARGET_OBJECTS:druid_types_obj_d>
+  $<TARGET_OBJECTS:druid_fsim_main_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimcombi3_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside2_obj_d>
+  $<TARGET_OBJECTS:druid_fsimbside3_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  )
+
+add_executable( refsim_test
+  refsim_test.cc
+  RefSim.cc
+  $<TARGET_OBJECTS:druid_types_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_compile_options ( refsim_test
+  PRIVATE "-g"
+  )
+
+target_compile_definitions ( refsim_test
+  PRIVATE "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  )

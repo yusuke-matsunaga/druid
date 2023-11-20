@@ -90,7 +90,7 @@ public:
 
   /// @brief 2値の代入演算子
   /// @return 代入後の自身への参照を返す．
-  const PackedVal3&
+  PackedVal3&
   operator=(
     PackedVal val  ///< [in] 値
   )
@@ -147,7 +147,7 @@ public:
 
   /// @brief 自身を否定する演算
   /// @return 演算後の自身の参照を返す．
-  const PackedVal3&
+  PackedVal3&
   negate()
   {
     PackedVal tmp = mVal0;
@@ -159,7 +159,7 @@ public:
 
   /// @brief AND付き代入
   /// @return 演算後の自身の参照を返す．
-  const PackedVal3&
+  PackedVal3&
   operator&=(
     PackedVal3 right  ///< [in] オペランド
   )
@@ -172,7 +172,7 @@ public:
 
   /// @brief OR付き代入
   /// @return 演算後の自身の参照を返す．
-  const PackedVal3&
+  PackedVal3&
   operator|=(
     PackedVal3 right  ///< [in] オペランド
   )
@@ -185,7 +185,7 @@ public:
 
   /// @brief XOR付き代入
   /// @return 演算後の自身の参照を返す．
-  const PackedVal3&
+  PackedVal3&
   operator^=(
     PackedVal3 right  ///< [in] オペランド
   )
@@ -206,7 +206,7 @@ public:
   /// @return 演算後の自身の参照を返す．
   ///
   /// right が2値のバージョン
-  const PackedVal3&
+  PackedVal3&
   operator^=(
     PackedVal right  ///< [in] オペランド
   )

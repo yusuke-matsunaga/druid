@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "Val3.h"
+#include "ym/logic.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -40,14 +41,29 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 出力値をセットする．
+  /// @brief 正常値をセットする．
   void
-  set_val(
+  set_gval(
     Val3 val
   )
   {
     mGval = val;
+  }
+
+  /// @brief 故障値をセットする．
+  void
+  set_fval(
+    Val3 val
+  )
+  {
     mFval = val;
+  }
+
+  /// @brief 正常値をシフトする．
+  void
+  shift_gval()
+  {
+    mHval = mGval;
   }
 
   /// @brief 正常値を得る．
@@ -64,65 +80,133 @@ public:
     return mFval;
   }
 
-  /// @brief 出力値を計算する．
+  /// @brief 1時刻前の正常値を得る．
   Val3
-  calc_val() const
+  get_hval() const
+  {
+    return mHval;
+  }
+
+  /// @brief 正常値を計算する．
+  Val3
+  calc_gval()
   {
     switch ( mGateType ) {
     case PrimType::None: // 入力
       // なにもしない．
       break;
     case PrimType::C0: // 定数0
-      mVal = Val3::_0;
+      mGval = Val3::_0;
       break;
     case PrimType::C1: // 定数1
-      mVal = Val3::_1;
+      mGval = Val3::_1;
       break;
     case PrimType::Buff: // バッファ
-      mVal = mFaninList[0]->get_val();
+      mGval = mFaninList[0]->get_gval();
       break;
     case PrimType::Not: // インバーター
-      mVal = ~mFaninList[0]->get_val();
+      mGval = ~mFaninList[0]->get_gval();
     case PrimType::And: // AND
-      mVal = Val3::_1;
+      mGval = Val3::_1;
       for ( auto inode: mFaninList ) {
-	mVal &= inode->get_val();
+	mGval = mGval & inode->get_gval();
       }
       break;
     case PrimType::Nand: // NAND
-      mVal = Val3::_1;
+      mGval = Val3::_1;
       for ( auto inode: mFaninList ) {
-	mVal &= inode->get_val();
+	mGval = mGval & inode->get_gval();
       }
-      mVal = ~mVal;
+      mGval = ~mGval;
       break;
     case PrimType::Or: // OR
-      mVal = Val3::_0;
+      mGval = Val3::_0;
       for ( auto inode: mFaninList ) {
-	mVal |= inode->get_val();
+	mGval = mGval | inode->get_gval();
       }
       break;
     case PrimType::Nor: // NOR
-      mVal = Val3::_0;
+      mGval = Val3::_0;
       for ( auto inode: mFaninList ) {
-	mVal |= inode->get_val();
+	mGval = mGval | inode->get_gval();
       }
-      mVal = ~mVal;
+      mGval = ~mGval;
       break;
     case PrimType::Xor: // XOR
-      mVal = Val3::_0;
+      mGval = Val3::_0;
       for ( auto inode: mFaninList ) {
-	mVal ^= inode->get_val();
+	mGval = mGval ^ inode->get_gval();
       }
       break;
     case PrimType::Xnor: // XNOR
-      mVal = Val3::_1;
+      mGval = Val3::_1;
       for ( auto inode: mFaninList ) {
-	mVal ^= inode->get_val();
+	mGval = mGval ^ inode->get_gval();
       }
       break;
     }
-    return mVal;
+    return mGval;
+  }
+
+  /// @brief 故障値を計算する．
+  Val3
+  calc_fval()
+  {
+    switch ( mGateType ) {
+    case PrimType::None: // 入力
+      // なにもしない．
+      break;
+    case PrimType::C0: // 定数0
+      mFval = Val3::_0;
+      break;
+    case PrimType::C1: // 定数1
+      mFval = Val3::_1;
+      break;
+    case PrimType::Buff: // バッファ
+      mFval = mFaninList[0]->get_gval();
+      break;
+    case PrimType::Not: // インバーター
+      mFval = ~mFaninList[0]->get_gval();
+    case PrimType::And: // AND
+      mFval = Val3::_1;
+      for ( auto inode: mFaninList ) {
+	mFval = mFval & inode->get_gval();
+      }
+      break;
+    case PrimType::Nand: // NAND
+      mFval = Val3::_1;
+      for ( auto inode: mFaninList ) {
+	mFval = mFval & inode->get_gval();
+      }
+      mFval = ~mFval;
+      break;
+    case PrimType::Or: // OR
+      mFval = Val3::_0;
+      for ( auto inode: mFaninList ) {
+	mFval = mFval | inode->get_gval();
+      }
+      break;
+    case PrimType::Nor: // NOR
+      mFval = Val3::_0;
+      for ( auto inode: mFaninList ) {
+	mFval = mFval | inode->get_gval();
+      }
+      mFval = ~mFval;
+      break;
+    case PrimType::Xor: // XOR
+      mFval = Val3::_0;
+      for ( auto inode: mFaninList ) {
+	mFval = mFval ^ inode->get_gval();
+      }
+      break;
+    case PrimType::Xnor: // XNOR
+      mFval = Val3::_1;
+      for ( auto inode: mFaninList ) {
+	mFval = mFval ^ inode->get_gval();
+      }
+      break;
+    }
+    return mFval;
   }
 
 
@@ -142,6 +226,9 @@ private:
 
   // 故障値
   Val3 mFval{Val3::_X};
+
+  // 1時刻前の値
+  Val3 mHval{Val3::_X};
 
 };
 

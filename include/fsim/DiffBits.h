@@ -87,6 +87,17 @@ public:
     return !operator==(right);
   }
 
+  /// @brief 内容を出力する．
+  void
+  print(
+    ostream& s
+  ) const
+  {
+    for ( auto v: mBits ) {
+      s << v;
+    }
+  }
+
   /// @brief ハッシュ関数
   SizeType
   hash() const
@@ -116,6 +127,18 @@ private:
   vector<bool> mBits;
 
 };
+
+/// @brief ストリーム出力演算子
+inline
+ostream&
+operator<<(
+  ostream& s,
+  const DiffBits& dbits
+)
+{
+  dbits.print(s);
+  return s;
+}
 
 END_NAMESPACE_DRUID
 

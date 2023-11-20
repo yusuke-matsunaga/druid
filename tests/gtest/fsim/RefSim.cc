@@ -8,29 +8,50 @@
 
 #include "RefSim.h"
 #include "RefNode.h"
+#include "TpgNetwork.h"
+#include "TpgNode.h"
+#include "TpgFault.h"
+#include "TestVector.h"
+#include "NodeValList.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 RefSim::RefSim(
-  const TpgNetwork& network,
-  bool has_previous_state
+  const TpgNetwork& network
 ) : mNodeMap(network.node_num(), nullptr)
 {
   auto nn = network.node_num();
 
   // 入力ノードを作る．
-  for ( auto tpg_node: network.input_list() ) {
+  for ( SizeType i = 0; i < network.input_num(); ++ i ) {
+    auto tpg_node = network.input(i);
     auto node = new RefNode(PrimType::None, {});
     mNodeMap[tpg_node->id()] = node;
     mInputList.push_back(node);
   }
 
+  // DFFの出力ノードを作る．
+  for ( auto tpg_dff: network.dff_list() ) {
+    auto tpg_node = tpg_dff.output();
+    auto node = new RefNode(PrimType::None, {});
+    mNodeMap[tpg_node->id()] = node;
+    mDffOutList.push_back(node);
+  }
+
   // 出力側からノードを作る．
-  for ( auto tpg_node: network.output_list() ) {
+  for ( SizeType i = 0; i < network.output_num(); ++ i ) {
+    auto tpg_node = network.output(i);
     auto node = make_node(tpg_node);
-    mOutputList1.push_back(node);
+    mOutputList.push_back(node);
+  }
+
+  // DFFの入力ノードを作る．
+  for ( auto tpg_dff: network.dff_list() ) {
+    auto tpg_node = tpg_dff.input();
+    auto node = make_node(tpg_node);
+    mDffInList.push_back(node);
   }
 }
 
@@ -42,9 +63,9 @@ RefSim::~RefSim()
   }
 }
 
-// @brief 故障シミュレーションを行う．
+// @brief 縮退故障用の故障シミュレーションを行う．
 DiffBits
-RefSim::simulate(
+RefSim::simulate_sa(
   const TestVector& tv,
   const TpgFault& fault
 )
@@ -56,35 +77,68 @@ RefSim::simulate(
     auto val = tv.ppi_val(i);
     node->set_gval(val);
   }
+  SizeType nd = mDffOutList.size();
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto node = mDffOutList[i];
+    auto val = tv.ppi_val(i + ni);
+    node->set_gval(val);
+  }
+
   // 正常値を計算する．
   for ( auto node: mLogicList ) {
     node->calc_gval();
   }
+
   // 故障値を計算する．
-  auto fnode = mNodeMap[fault->origin_node()->id()];
   for ( auto node: mInputList ) {
     auto val = node->get_gval();
-    if ( check(fault) ) {
+    if ( check_fault_cond(fault, node) ) {
       val = ~val;
     }
     node->set_fval(val);
   }
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto node = mDffOutList[i];
+    auto val = node->get_gval();
+    if ( check_fault_cond(fault, node) ) {
+      val = ~val;
+    }
+    node->set_fval(val);
+  }
+
   for ( auto node: mLogicList ) {
     auto val = node->calc_fval();
-    if ( check(fault) ) {
+    if ( check_fault_cond(fault, node) ) {
       val = ~val;
     }
     node->set_fval(val);
   }
+
+  // 出力結果を比較する．
   SizeType no = mOutputList.size();
-  DiffBits dbits(no);
+  DiffBits dbits(no + nd);
   for ( SizeType i = 0; i < no; ++ i ) {
     auto node = mOutputList[i];
     if ( node->get_gval() != node->get_fval() ) {
       dbits.set_val(i, true);
     }
   }
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto node = mDffInList[i];
+    if ( node->get_gval() != node->get_fval() ) {
+      dbits.set_val(i + no, true);
+    }
+  }
   return dbits;
+}
+
+// @brief 遷移故障用の故障シミュレーションを行う．
+DiffBits
+RefSim::simulate_td(
+  const TestVector& tv,
+  const TpgFault& fault
+)
+{
 }
 
 // @brief TpgNode に対応する RefNode を作る．
@@ -99,13 +153,47 @@ RefSim::make_node(
     SizeType ni = tpg_node->fanin_num();
     vector<RefNode*> fanin_list(ni);
     for ( SizeType i = 0; i < ni; ++ i ) {
-      fanin_list[i] = make_node(tpg_node->fanin(i), node_map);
+      fanin_list[i] = make_node(tpg_node->fanin(i));
     }
     node = new RefNode{tpg_node->gate_type(), fanin_list};
     mNodeMap[tpg_node->id()] = node;
     mLogicList.push_back(node);
   }
   return node;
+}
+
+// @brief 故障の活性化条件をチェックする．
+bool
+RefSim::check_fault_cond(
+  const TpgFault& fault,
+  RefNode* node
+) const
+{
+  auto onode = mNodeMap[fault.origin_node()->id()];
+  if ( onode != node ) {
+    return false;
+  }
+  for ( auto nv: fault.excitation_condition() ) {
+    auto node1 = mNodeMap[nv.node()->id()];
+    Val3 val;
+    if ( nv.time() == 0 ) {
+      val = node1->get_gval();
+    }
+    else {
+      val = node1->get_hval();
+    }
+    if ( nv.val() ) {
+      if ( val != Val3::_1 ) {
+	return false;
+      }
+    }
+    else {
+      if ( val != Val3::_0 ) {
+	return false;
+      }
+    }
+  }
+  return true;
 }
 
 END_NAMESPACE_DRUID

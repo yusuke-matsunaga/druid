@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "DiffBits.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -27,8 +28,7 @@ public:
 
   /// @brief コンストラクタ
   RefSim(
-    const TpgNetwork& network, ///< [in] ネットワーク
-    bool has_previous_state    ///< [in] 1時刻前の値を持つ時 true にする．
+    const TpgNetwork& network ///< [in] ネットワーク
   );
 
   /// @brief デストラクタ
@@ -40,9 +40,16 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障シミュレーションを行う．
+  /// @brief 縮退故障用の故障シミュレーションを行う．
   DiffBits
-  simulate(
+  simulate_sa(
+    const TestVector& tv, ///< [in] テストベクタ
+    const TpgFault& fault ///< [in] 故障
+  );
+
+  /// @brief 遷移故障用の故障シミュレーションを行う．
+  DiffBits
+  simulate_td(
     const TestVector& tv, ///< [in] テストベクタ
     const TpgFault& fault ///< [in] 故障
   );
@@ -59,6 +66,13 @@ private:
     const TpgNode* tpg_node ///< [in] 元のノード
   );
 
+  /// @brief 故障の活性化条件をチェックする．
+  bool
+  check_fault_cond(
+    const TpgFault& fault,
+    RefNode* node
+  ) const;
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -71,14 +85,17 @@ private:
   // 入力ノードのリスト
   vector<RefNode*> mInputList;
 
-  // DFFノードのリスト
-  vector<RefNode*> mDffList;
+  // DFFの出力ノード(疑似入力ノード)のリスト
+  vector<RefNode*> mDffOutList;
 
   // 論理ノードのリスト
   vector<RefNode*> mLogicList;
 
   // 出力ノードのリスト
   vector<RefNode*> mOutputList;
+
+  // DFFの入力ノード(疑似出力ノード)のリスト
+  vector<RefNode*> mDffInList;
 
 };
 
