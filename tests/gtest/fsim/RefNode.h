@@ -106,6 +106,7 @@ public:
       break;
     case PrimType::Not: // インバーター
       mGval = ~mFaninList[0]->get_gval();
+      break;
     case PrimType::And: // AND
       mGval = Val3::_1;
       for ( auto inode: mFaninList ) {
@@ -163,46 +164,47 @@ public:
       mFval = Val3::_1;
       break;
     case PrimType::Buff: // バッファ
-      mFval = mFaninList[0]->get_gval();
+      mFval = mFaninList[0]->get_fval();
       break;
     case PrimType::Not: // インバーター
-      mFval = ~mFaninList[0]->get_gval();
+      mFval = ~mFaninList[0]->get_fval();
+      break;
     case PrimType::And: // AND
       mFval = Val3::_1;
       for ( auto inode: mFaninList ) {
-	mFval = mFval & inode->get_gval();
+	mFval = mFval & inode->get_fval();
       }
       break;
     case PrimType::Nand: // NAND
       mFval = Val3::_1;
       for ( auto inode: mFaninList ) {
-	mFval = mFval & inode->get_gval();
+	mFval = mFval & inode->get_fval();
       }
       mFval = ~mFval;
       break;
     case PrimType::Or: // OR
       mFval = Val3::_0;
       for ( auto inode: mFaninList ) {
-	mFval = mFval | inode->get_gval();
+	mFval = mFval | inode->get_fval();
       }
       break;
     case PrimType::Nor: // NOR
       mFval = Val3::_0;
       for ( auto inode: mFaninList ) {
-	mFval = mFval | inode->get_gval();
+	mFval = mFval | inode->get_fval();
       }
       mFval = ~mFval;
       break;
     case PrimType::Xor: // XOR
       mFval = Val3::_0;
       for ( auto inode: mFaninList ) {
-	mFval = mFval ^ inode->get_gval();
+	mFval = mFval ^ inode->get_fval();
       }
       break;
     case PrimType::Xnor: // XNOR
       mFval = Val3::_1;
       for ( auto inode: mFaninList ) {
-	mFval = mFval ^ inode->get_gval();
+	mFval = mFval ^ inode->get_fval();
       }
       break;
     }

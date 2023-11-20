@@ -77,8 +77,8 @@ target_compile_definitions ( druid_SimNodeTD3Test
   PRIVATE "-DFSIM_VAL3" "-DFSIM_BSIDE"
   )
 
-ym_add_gtest ( druid_FsimSA2Test
-  FsimSA2Test.cc
+ym_add_gtest ( druid_FsimTest
+  FsimTest.cc
   RefSim.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_fsim_main_obj_d>

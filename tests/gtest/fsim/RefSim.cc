@@ -76,13 +76,13 @@ RefSim::simulate_sa(
     auto node = mInputList[i];
     auto val = tv.ppi_val(i);
     node->set_gval(val);
-  }
+   }
   SizeType nd = mDffOutList.size();
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto node = mDffOutList[i];
     auto val = tv.ppi_val(i + ni);
     node->set_gval(val);
-  }
+   }
 
   // 正常値を計算する．
   for ( auto node: mLogicList ) {
@@ -97,8 +97,7 @@ RefSim::simulate_sa(
     }
     node->set_fval(val);
   }
-  for ( SizeType i = 0; i < nd; ++ i ) {
-    auto node = mDffOutList[i];
+  for ( auto node: mDffOutList ) {
     auto val = node->get_gval();
     if ( check_fault_cond(fault, node) ) {
       val = ~val;
@@ -139,6 +138,87 @@ RefSim::simulate_td(
   const TpgFault& fault
 )
 {
+  // 入力に値を設定する．
+  SizeType ni = mInputList.size();
+  for ( SizeType i = 0; i < ni; ++ i ) {
+    auto node = mInputList[i];
+    auto val = tv.ppi_val(i);
+    node->set_gval(val);
+    node->shift_gval();
+   }
+  SizeType nd = mDffOutList.size();
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto node = mDffOutList[i];
+    auto val = tv.ppi_val(i + ni);
+    node->set_gval(val);
+    node->shift_gval();
+   }
+
+  // 正常値を計算しシフトする．
+  for ( auto node: mLogicList ) {
+    node->calc_gval();
+    node->shift_gval();
+  }
+
+  // 入力に2時刻目の値を設定する．
+  for ( SizeType i = 0; i < ni; ++ i ) {
+    auto node = mInputList[i];
+    auto val = tv.aux_input_val(i);
+    node->set_gval(val);
+  }
+  // DFF の出力に1時刻目の入力の値を入れる．
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto node1 = mDffInList[i];
+    auto node2 = mDffOutList[i];
+    auto val = node1->get_hval();
+    node2->set_gval(val);
+  }
+
+  // 2時刻目の正常値を計算する．
+  for ( auto node: mLogicList ) {
+    node->calc_gval();
+  }
+
+  // 故障値を計算する．
+  for ( auto node: mInputList ) {
+    auto val = node->get_gval();
+    if ( check_fault_cond(fault, node) ) {
+      val = ~val;
+    }
+    node->set_fval(val);
+  }
+  for ( auto node: mDffOutList ) {
+    auto val = node->get_gval();
+    if ( check_fault_cond(fault, node) ) {
+      val = ~val;
+    }
+    node->set_fval(val);
+  }
+
+  for ( auto node: mLogicList ) {
+    auto val = node->calc_fval();
+    if ( check_fault_cond(fault, node) ) {
+      val = ~val;
+    }
+    node->set_fval(val);
+  }
+
+  // 出力結果を比較する．
+  SizeType no = mOutputList.size();
+  DiffBits dbits(no + nd);
+  for ( SizeType i = 0; i < no; ++ i ) {
+    auto node = mOutputList[i];
+    if ( node->get_gval() != node->get_fval() ) {
+      dbits.set_val(i, true);
+    }
+  }
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto node = mDffInList[i];
+    if ( node->get_gval() != node->get_fval() ) {
+      dbits.set_val(i + no, true);
+    }
+  }
+  return dbits;
 }
 
 // @brief TpgNode に対応する RefNode を作る．
@@ -176,7 +256,7 @@ RefSim::check_fault_cond(
   for ( auto nv: fault.excitation_condition() ) {
     auto node1 = mNodeMap[nv.node()->id()];
     Val3 val;
-    if ( nv.time() == 0 ) {
+    if ( nv.time() == 1 ) {
       val = node1->get_gval();
     }
     else {
