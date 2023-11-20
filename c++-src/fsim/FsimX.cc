@@ -136,9 +136,9 @@ FSIM_CLASSNAME::set_network(
     else if ( tpgnode->is_ppo() ) {
       // 外部出力に対応する SimNode の生成
       auto inode = mSimNodeMap[tpgnode->fanin(0)->id()];
-      auto oid = mPPOList.size();
+      auto oid = tpgnode->output_id();
       node = make_output(inode, oid);
-      mPPOList[tpgnode->output_id()] = node;
+      mPPOList[oid] = node;
     }
     else if ( tpgnode->is_logic() ) {
       // 論理ノードに対する SimNode の作成
@@ -165,7 +165,7 @@ FSIM_CLASSNAME::set_network(
   // 各ノードのファンアウトリストの設定
   auto node_num = mNodeArray.size();
   {
-    vector<vector<SimNode*> > fanout_lists(node_num);
+    vector<vector<SimNode*>> fanout_lists(node_num);
     vector<int> ipos(node_num);
     for ( auto& node: mNodeArray ) {
       auto ni = node->fanin_num();
@@ -177,7 +177,9 @@ FSIM_CLASSNAME::set_network(
     }
     for ( auto i: Range(node_num) ) {
       auto& node = mNodeArray[i];
-      node->set_fanout_list(fanout_lists[i], ipos[i]);
+      if ( !node->is_output() ) {
+	node->set_fanout_list(fanout_lists[i], ipos[i]);
+      }
     }
   }
 
@@ -359,6 +361,7 @@ FSIM_CLASSNAME::_spsfp(
 
   // obs が 0 ならその後のシミュレーションを行う必要はない．
   if ( obs == PV_ALL0 ) {
+    mEventQ.clear_prop_val();
     return false;
   }
 
@@ -792,15 +795,6 @@ FSIM_CLASSNAME::_calc_gval(
   _calc_val();
 }
 #endif
-
-// @brief 値の計算を行う．
-void
-FSIM_CLASSNAME::_calc_val()
-{
-  for ( auto node: mLogicArray ) {
-    node->calc_val();
-  }
-}
 
 // @brief 個々の故障に FaultProp を適用する．
 PackedVal

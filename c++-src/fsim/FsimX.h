@@ -316,7 +316,12 @@ private:
   ///
   /// 入力ノードに値の設定は済んでいるものとする．
   void
-  _calc_val();
+  _calc_val()
+  {
+    for ( auto node: mLogicArray ) {
+      node->calc_val();
+    }
+  }
 
   /// @brief ノードの出力の(重み付き)信号遷移回数を求める．
   SizeType
