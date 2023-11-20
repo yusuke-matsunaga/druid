@@ -75,6 +75,10 @@ public:
   PackedVal
   simulate();
 
+  /// @brief mPropArray をクリアする．
+  void
+  clear_prop_val();
+
   /// @brief 出力ごとの結果を得る．
   PackedVal
   prop_val(

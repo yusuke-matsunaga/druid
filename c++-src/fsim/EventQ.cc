@@ -71,9 +71,8 @@ EventQ::init(
 PackedVal
 EventQ::simulate()
 {
-  for ( auto i: Range(0, mOutputNum) ) {
-    mPropArray[i] = PV_ALL0;
-  }
+  clear_prop_val();
+
   // どこかの外部出力で検出されたことを表すビット
   auto obs = PV_ALL0;
   for ( ; ; ) {
@@ -118,6 +117,15 @@ EventQ::simulate()
   mMaskPos = 0;
 
   return obs;
+}
+
+// @brief mPropArray をクリアする．
+void
+EventQ::clear_prop_val()
+{
+  for ( auto i: Range(0, mOutputNum) ) {
+    mPropArray[i] = PV_ALL0;
+  }
 }
 
 END_NAMESPACE_DRUID_FSIM
