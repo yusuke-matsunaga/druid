@@ -504,23 +504,19 @@ FSIM_CLASSNAME::ppsfp(
 )
 {
   clear_patterns();
+  SizeType base = 0;
   for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
-    auto tv = tv_list[index];
-    auto lindex = index % PV_BITLEN;
+    auto& tv = tv_list[index];
+    auto lindex = index - base;
     set_pattern(lindex, tv);
-    if ( lindex == PV_BITLEN - 1 ) {
-      SizeType base = index - lindex;
-      auto go_on = _ppsfp(base, PV_BITLEN, callback);
+    if ( lindex == PV_BITLEN - 1 || index == tv_list.size() - 1 ) {
+      auto go_on = _ppsfp(base, lindex + 1, callback);
       if ( !go_on ) {
 	return false;
       }
       clear_patterns();
+      base += PV_BITLEN;
     }
-  }
-  auto remainder = tv_list.size() % PV_BITLEN;
-  if ( remainder > 0 ) {
-    SizeType base = (tv_list.size() / PV_BITLEN) * PV_BITLEN;
-    return _ppsfp(base, remainder, callback);
   }
   return true;
 }
@@ -563,9 +559,15 @@ FSIM_CLASSNAME::_ppsfp(
 	if ( pat != PV_ALL0 ) {
 	  // 検出された．
 	  for ( SizeType i = 0; i < npat; ++ i ) {
-	    if ( pat & (1 << i) ) {
-	      auto tv = get_pattern(i);
-	      auto go_on = callback(base + i, tv, ff->tpg_fault());
+	    SizeType bitmask = 1UL << i;
+	    if ( pat & bitmask ) {
+	      DiffBits dbits(ppo_num());
+	      for ( SizeType i = 0; i < ppo_num(); ++ i ) {
+		if ( mEventQ.prop_val(i) & bitmask ) {
+		  dbits.set_val(i);
+		}
+	      }
+	      auto go_on = callback(base + i, ff->tpg_fault(), dbits);
 	      if ( !go_on ) {
 		return false;
 	      }

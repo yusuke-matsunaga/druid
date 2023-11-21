@@ -199,10 +199,10 @@ public:
   /// @brief ppsfp で用いるコールバック関数の型定義
   ///
   /// * 1番目の引数はパタン番号(tv_list中の位置)
-  /// * 2番目の引数はテストパタン
-  /// * 3番目の引数は検出された故障
+  /// * 2番目の引数は検出された故障
+  /// * 3番目の引数は出力ごとの伝搬状況
   /// * false が返された時には処理を中断する．
-  using cbtype = std::function<bool(SizeType, TestVector, TpgFault)>;
+  using cbtype = std::function<bool(SizeType, TpgFault, DiffBits)>;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   /// @return 全パタンシミュレーションした場合に true を返す．

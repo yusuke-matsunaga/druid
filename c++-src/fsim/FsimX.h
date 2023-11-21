@@ -142,8 +142,8 @@ public:
     cbtype callback                    ///< [in] 1回のシミュレーションごとに
                                        ///<      呼び出される関数
                                        ///<      1番目の引数はパタン番号(tv_list中の位置)
-                                       ///<      2番目の引数はテストパタン
-                                       ///<      3番目の引数は検出された故障
+                                       ///<      2番目の引数は検出された故障
+                                       ///<      3番目の引数は出力の伝搬状況
                                        ///<      false が返された時には処理を中断する．
   ) override;
 
@@ -392,7 +392,6 @@ private:
   clear_patterns()
   {
     mPatMap = PV_ALL0;
-    mPatFirstBit = PV_BITLEN;
   }
 
   /// @brief ppsfp 用のパタンを設定する．
@@ -406,10 +405,6 @@ private:
 
     mPatBuff[pos] = tv;
     mPatMap |= (1ULL << pos);
-
-    if ( mPatFirstBit > pos ) {
-      mPatFirstBit = pos;
-    }
   }
 
   /// @brief 設定した ppsfp 用のパタンを読み出す．
@@ -498,10 +493,6 @@ private:
 
   // パタンの設定状況を表すビットベクタ
   PackedVal mPatMap{PV_ALL0};
-
-  // mPatMap の最初の1のビット位置
-  // 全て０の場合には PV_BITLEN が入る．
-  SizeType mPatFirstBit;
 
   // パタンバッファ
   TestVector mPatBuff[PV_BITLEN];

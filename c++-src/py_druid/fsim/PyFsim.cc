@@ -258,10 +258,12 @@ Fsim_ppsfp(
   }
   auto fsim = PyFsim::Get(self);
   bool ng = false;
-  bool ans = fsim->ppsfp(tv_list, [&](SizeType index, TestVector tv, TpgFault f)->bool {
-    auto tv_obj = PyTestVector::ToPyObject(tv);
+  bool ans = fsim->ppsfp(tv_list, [&](SizeType index,
+				      TpgFault f,
+				      DiffBits dbits)->bool
+  {
     auto fault_obj = PyTpgFault::ToPyObject(f);
-    auto cb_args = Py_BuildValue("kOO", index, tv_obj, fault_obj);
+    auto cb_args = Py_BuildValue("kO", index, fault_obj);
     auto ans_obj = PyObject_CallObject(callback_obj, cb_args);
     Py_DECREF(cb_args);
     if ( ans_obj == nullptr ) {

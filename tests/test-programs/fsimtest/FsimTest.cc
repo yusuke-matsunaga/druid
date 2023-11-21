@@ -105,7 +105,9 @@ ppsfp_test(
   SizeType nepat = 0;
   SizeType det_num = 0;
   unordered_set<SizeType> pat_dict;
-  fsim.ppsfp(tv_list, [&](SizeType index, TestVector tv, TpgFault f) -> bool {
+  fsim.ppsfp(tv_list, [&](SizeType index,
+			  TpgFault f,
+			  DiffBits dbits)->bool {
     if ( !fsim.get_skip(f) ) {
       fsim.set_skip(f);
       ++ det_num;
