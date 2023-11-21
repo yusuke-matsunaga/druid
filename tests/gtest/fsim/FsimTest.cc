@@ -334,7 +334,6 @@ FsimTest::ppsfp_td_test()
   }
 }
 
-#if 0
 TEST_P(FsimTest, spsfp_sa_test)
 {
   spsfp_sa_test();
@@ -354,7 +353,6 @@ TEST_P(FsimTest, sppfp_td_test)
 {
   sppfp_td_test();
 }
-#endif
 
 TEST_P(FsimTest, ppsfp_sa_test)
 {
@@ -366,12 +364,7 @@ TEST_P(FsimTest, ppsfp_td_test)
   ppsfp_td_test();
 }
 
-#if 0
 INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
 			 ::testing::Values("s27.blif", "s1196.blif", "s5378.blif"));
-#endif
-
-INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
-			 ::testing::Values("s27.blif", "s1196.blif"));
 
 END_NAMESPACE_DRUID
