@@ -15,7 +15,7 @@ from druid.ymbase import Mt19937
 from make_filename import make_filename
 
 
-def ppsfp_callback(index, tv, fault):
+def ppsfp_callback(index, fault, diffbits):
     print(f'{index}: {fault}')
     return True
 
