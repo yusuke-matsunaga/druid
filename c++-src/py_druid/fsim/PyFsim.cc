@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "PyFsim.h"
+#include "PyDiffBits.h"
 #include "PyTpgNetwork.h"
 #include "PyTestVector.h"
 #include "PyInputVector.h"
@@ -112,16 +113,24 @@ Fsim_initialize(
 PyObject*
 Fsim_set_fault_list(
   PyObject* self,
-  PyObject* args
+  PyObject* args,
+  PyObject* kwds
 )
 {
-  PyObject* fault_list_obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &fault_list_obj) ) {
+  static const char* kwlist[] = {
+    "fault_list",
+    nullptr
+  };
+
+  PyObject* obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
+				    const_cast<char**>(kwlist),
+				    &obj) ) {
     return nullptr;
   }
 
   vector<TpgFault> fault_list;
-  if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
+  if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
     return nullptr;
   }
   auto fsim = PyFsim::Get(self);
@@ -143,11 +152,19 @@ Fsim_set_skip_all(
 PyObject*
 Fsim_set_skip(
   PyObject* self,
-  PyObject* args
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kwlist[] = {
+    "fault_list",
+    nullptr
+  };
+
   PyObject* obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &obj) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
+				    const_cast<char**>(kwlist),
+				    &obj) ) {
     return nullptr;
   }
 
@@ -174,11 +191,19 @@ Fsim_clear_skip_all(
 PyObject*
 Fsim_clear_skip(
   PyObject* self,
-  PyObject* args
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kwlist[] = {
+    "fault_list",
+    nullptr
+  };
+
   PyObject* obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "O", &obj) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
+				    const_cast<char**>(kwlist),
+				    &obj) ) {
     return nullptr;
   }
 
@@ -194,38 +219,68 @@ Fsim_clear_skip(
 PyObject*
 Fsim_spsfp(
   PyObject* self,
-  PyObject* args
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kwlist[] = {
+    "tv",
+    "fault",
+    nullptr
+  };
+
   PyObject* obj1 = nullptr;
   PyObject* obj2 = nullptr;
-  if ( !PyArg_ParseTuple(args, "O!O!",
-			 PyTestVector::_typeobject(), &obj1,
-			 PyTpgFault::_typeobject(), &obj2) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
+				    const_cast<char**>(kwlist),
+				    PyTestVector::_typeobject(), &obj1,
+				    PyTpgFault::_typeobject(), &obj2) ) {
     return nullptr;
   }
   auto tv = PyTestVector::Get(obj1);
   auto fault = PyTpgFault::Get(obj2);
   auto fsim = PyFsim::Get(self);
   bool ans = fsim->spsfp(tv, fault);
-  return PyBool_FromLong(ans);
+  PyObject* dbits_obj = Py_None;
+  if ( ans ) {
+    auto dbits = fsim->spsfp_diffbits();
+    dbits_obj = PyDiffBits::ToPyObject(dbits);
+  }
+  return Py_BuildValue("(pO)", ans, dbits_obj);
 }
 
 PyObject*
 Fsim_sppfp(
   PyObject* self,
-  PyObject* args
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kwlist[] = {
+    "tv",
+    nullptr
+  };
+
   PyObject* obj1 = nullptr;
-  if ( !PyArg_ParseTuple(args, "O!",
-			 PyTestVector::_typeobject(), &obj1) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+				    const_cast<char**>(kwlist),
+				    PyTestVector::_typeobject(), &obj1) ) {
     return nullptr;
   }
   auto tv = PyTestVector::Get(obj1);
   auto fsim = PyFsim::Get(self);
   auto fault_list = fsim->sppfp(tv);
-  return PyTpgFault::ToPyList(fault_list);
+  SizeType n = fault_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto fault = fault_list[i];
+    auto fault_obj = PyTpgFault::ToPyObject(fault);
+    auto dbits = fsim->sppfp_diffbits(fault);
+    auto dbits_obj = PyDiffBits::ToPyObject(dbits);
+    auto tuple_obj = Py_BuildValue("(OO)", fault_obj, dbits_obj);
+    PyList_SetItem(ans_obj, i, tuple_obj);
+  }
+  return ans_obj;
 }
 
 PyObject*
@@ -263,7 +318,8 @@ Fsim_ppsfp(
 				      DiffBits dbits)->bool
   {
     auto fault_obj = PyTpgFault::ToPyObject(f);
-    auto cb_args = Py_BuildValue("kO", index, fault_obj);
+    auto dbits_obj = PyDiffBits::ToPyObject(dbits);
+    auto cb_args = Py_BuildValue("kOO", index, fault_obj, dbits_obj);
     auto ans_obj = PyObject_CallObject(callback_obj, cb_args);
     Py_DECREF(cb_args);
     if ( ans_obj == nullptr ) {
@@ -339,19 +395,24 @@ PyMethodDef Fsim_methods[] = {
   {"initialize", reinterpret_cast<PyCFunction>(Fsim_initialize),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("initialize")},
-  {"set_fault_list", Fsim_set_fault_list, METH_VARARGS,
+  {"set_fault_list", reinterpret_cast<PyCFunction>(Fsim_set_fault_list),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("set fault list")},
   {"set_skip_all", Fsim_set_skip_all, METH_NOARGS,
    PyDoc_STR("set skip mark for all fatuls")},
-  {"set_skip", Fsim_set_skip, METH_VARARGS,
+  {"set_skip", reinterpret_cast<PyCFunction>(Fsim_set_skip),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("set skip mark for the designatated faults")},
   {"clear_skip_all", Fsim_set_skip_all, METH_NOARGS,
    PyDoc_STR("clear skip mark for all fatuls")},
-  {"clear_skip", Fsim_set_skip, METH_VARARGS,
+  {"clear_skip", reinterpret_cast<PyCFunction>(Fsim_set_skip),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("clear skip mark for the designatated faults")},
-  {"spsfp", Fsim_spsfp, METH_VARARGS,
+  {"spsfp", reinterpret_cast<PyCFunction>(Fsim_spsfp),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do Single Pattern Single Fault Propagation simulation")},
-  {"sppfp", Fsim_sppfp, METH_VARARGS,
+  {"sppfp", reinterpret_cast<PyCFunction>(Fsim_sppfp),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do Single Pattern Parallel Fault Propagation simulation")},
   {"ppsfp", reinterpret_cast<PyCFunction>(Fsim_ppsfp),
    METH_VARARGS | METH_KEYWORDS,

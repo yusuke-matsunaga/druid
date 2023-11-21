@@ -1,28 +1,28 @@
-#ifndef PYFSIM_H
-#define PYFSIM_H
+#ifndef PYDIFFBITS_H
+#define PYDIFFBITS_H
 
-/// @file PyFsim.h
-/// @brief PyFsim のヘッダファイル
+/// @file PyDiffBits.h
+/// @brief PyDiffBits のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "Fsim.h"
+#include "DiffBits.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyFsim PyFsim.h "PyFsim.h"
-/// @brief Python 用の Fsim 拡張
+/// @class PyDiffBits PyDiffBits.h "PyDiffBits.h"
+/// @brief Python 用の DiffBits 拡張
 ///
 /// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
 //////////////////////////////////////////////////////////////////////
-class PyFsim
+class PyDiffBits
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -37,24 +37,34 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief PyObject が Fsim タイプか調べる．
+  /// @brief DiffBits を表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyObject(
+    const DiffBits& val  ///< [in] 値
+  );
+
+  /// @brief PyObject が DiffBits タイプか調べる．
   static
   bool
   Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
-  /// @brief Fsim を表す PyObject から Fsim を取り出す．
-  /// @return Fsim を返す．
+  /// @brief DiffBits を表す PyObject から DiffBits を取り出す．
+  /// @return DiffBits を返す．
   ///
   /// Check(obj) == true であると仮定している．
   static
-  Fsim*
+  const DiffBits&
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 
-  /// @brief Fsim を表すオブジェクトの型定義を返す．
+  /// @brief DiffBits を表すオブジェクトの型定義を返す．
   static
   PyTypeObject*
   _typeobject();
@@ -63,4 +73,4 @@ public:
 
 END_NAMESPACE_DRUID
 
-#endif // PYFSIM_H
+#endif // PYDIFFBITS_H
