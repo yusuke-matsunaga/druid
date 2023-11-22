@@ -10,15 +10,26 @@ include_directories(
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory ( tpgnetworktest )
-add_subdirectory ( tpgfaultmgrtest )
-add_subdirectory ( read_blif )
-add_subdirectory ( read_iscas89 )
-add_subdirectory ( dtpgtest )
-add_subdirectory ( fsimtest )
-add_subdirectory ( classify )
-
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
+
+
+# ===================================================================
+#  read_blif_test
+# ===================================================================
+
+add_executable ( tpg_read_blif_test
+  read_blif_test.cc
+  $<TARGET_OBJECTS:druid_types_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
+target_compile_options ( tpg_read_blif_test
+  PRIVATE "-g"
+  )
+
+target_link_libraries ( tpg_read_blif_test
+  ${YM_LIB_DEPENDS}
+  )
