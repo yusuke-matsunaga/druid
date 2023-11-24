@@ -113,6 +113,7 @@ foreach ( dir ${YM_SUBMODULE_LIST} )
 endforeach ()
 
 add_subdirectory ( c++-src )
+add_subdirectory ( py_druid )
 add_subdirectory ( tests )
 
 if ( DOXYGEN_FOUND )

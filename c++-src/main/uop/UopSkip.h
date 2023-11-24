@@ -24,8 +24,7 @@ public:
 
   /// @brief コンストラクタ
   UopSkip(
-    SizeType threshold,   ///< [in] しきい値
-    SizeType max_fault_id ///< [in] 故障番号の最大値
+    SizeType threshold  ///< [in] しきい値
   );
 
   /// @brief デストラクタ
@@ -56,8 +55,8 @@ private:
   // スキップフラグをセットするしきい値
   SizeType mThreshold;
 
-  // 故障の検出不能回数を保持する配列
-  vector<SizeType> mUntestCountArray;
+  // 故障の検出不能回数を保持する辞書
+  unordered_map<SizeType, SizeType> mUntestCountMap;
 
   // 検出不能となった故障の番号を保持するリスト
   vector<SizeType> mUntestList;

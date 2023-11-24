@@ -14,6 +14,7 @@
 #include "TestVector.h"
 #include "DtpgStats.h"
 #include "DopVerifyResult.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -32,11 +33,9 @@ public:
 
   /// @brief コンストラクタ
   DtpgMgr(
-    const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    TpgFaultMgr& fault_mgr,        ///< [in] 故障マネージャ
-    const string& dtpg_type,       ///< [in] DTPGのタイプ
-    const string& just_type,       ///< [in] 正当化のタイプ
-    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    TpgFaultMgr& fault_mgr,    ///< [in] 故障マネージャ
+    const JsonValue& option    ///< [in] オプションを表す JSON オブジェクト
   );
 
   /// @brief デストラクタ
@@ -61,27 +60,11 @@ public:
     mDopList.push_back(dop);
   }
 
-  /// @brief 'base' タイプの DetectOp を登録する．
-  ///
-  /// 結果は内部の FaultStatusMgr に反映される．
+  /// @brief 組み込み型の DetectOp を登録する．
   void
-  add_base_dop();
-
-  /// @brief 'drop' タイプの DetectOp を登録する．
-  ///
-  /// 結果は内部の FaultStatusMgr に反映される．
-  void
-  add_drop_dop();
-
-  /// @brief 'tvlist' タイプの DetectOp を登録する．
-  ///
-  /// 結果は内部の TVList に格納される．
-  void
-  add_tvlist_dop();
-
-  /// @brief 'verify' タイプの DetectOp を登録する．
-  void
-  add_verify_dop();
+  add_dop(
+    const JsonValue& js_obj ///< [in] オペレータを指定するオブジェクト
+  );
 
   /// @brief UntestOp を登録する．
   void
@@ -92,9 +75,11 @@ public:
     mUopList.push_back(uop);
   }
 
-  /// @brief 'base' タイプの UntestOp を登録する．
+  /// @brief 組み込み型の UntestOp を登録する．
   void
-  add_base_uop();
+  add_uop(
+    const JsonValue& js_obj ///< [in] オペレータを指定するオブジェクト
+  );
 
   /// @brief 対象のネットワークを返す．
   const TpgNetwork&

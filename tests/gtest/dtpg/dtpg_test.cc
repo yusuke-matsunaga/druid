@@ -166,15 +166,19 @@ DtpgTestWithParam2::SetUp()
   auto network = TpgNetwork::read_blif(filename());
   mNetwork_p = new TpgNetwork{std::move(network)};
 
-  auto mode = test_mode();
-
-  auto solver_type = SatInitParam{sat_type()};
+  unordered_map<string, JsonValue> option_dict;
+  option_dict.emplace("dtpg_type", test_mode());
+  option_dict.emplace("just_type", just_type());
+  option_dict.emplace("dop", JsonValue{"verify"});
+  auto sat_obj = JsonValue{sat_type()};
+  option_dict.emplace("sat_param", sat_obj);
+  JsonValue option{option_dict};
 
   mFaultMgr.gen_fault_list(*mNetwork_p, fault_type());
 
-  mDtpgMgr = new DtpgMgr{*mNetwork_p, mFaultMgr, mode, just_type(), solver_type};
+  cout << option.to_json() << endl;
 
-  mDtpgMgr->add_verify_dop();
+  mDtpgMgr = new DtpgMgr{*mNetwork_p, mFaultMgr, option};
 }
 
 // @brief 終了処理を行う．

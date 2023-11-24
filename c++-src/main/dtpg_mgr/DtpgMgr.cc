@@ -23,19 +23,44 @@ BEGIN_NAMESPACE_DRUID
 DtpgMgr::DtpgMgr(
   const TpgNetwork& network,
   TpgFaultMgr& fault_mgr,
-  const string& dtpg_type,
-  const string& just_type,
-  const SatInitParam& init_param
+  const JsonValue& option
 ) : mNetwork{network},
     mFaultMgr{fault_mgr},
-    mDriver{DtpgDriver::new_driver(*this, dtpg_type,
-				   network,
+    mDriver{DtpgDriver::new_driver(*this, network,
 				   mFaultMgr.fault_type() == FaultType::TransitionDelay,
-				   just_type, init_param)}
+				   option)}
 {
   bool has_previous_state = mFaultMgr.fault_type() == FaultType::TransitionDelay;
   mFsim.initialize(network, has_previous_state, true);
   mFsim.set_fault_list(mFaultMgr.rep_fault_list());
+  if ( option.is_object() ) {
+    if ( option.has_key("dop") ) {
+      auto dop_obj = option.at("dop");
+      if ( dop_obj.is_array() ) {
+	SizeType n = dop_obj.size();
+	for ( SizeType i = 0; i < n; ++ i ) {
+	  auto obj = dop_obj.at(i);
+	  add_dop(obj);
+	}
+      }
+      else {
+	add_dop(dop_obj);
+      }
+    }
+    if ( option.has_key("uop") ) {
+      auto uop_obj = option.at("uop");
+      if ( uop_obj.is_array() ) {
+	SizeType n = uop_obj.size();
+	for ( SizeType i = 0; i < n; ++ i ) {
+	  auto obj = uop_obj.at(i);
+	  add_uop(obj);
+	}
+      }
+      else {
+	add_uop(uop_obj);
+      }
+    }
+  }
 }
 
 // @brief デストラクタ
@@ -53,39 +78,93 @@ DtpgMgr::run()
   mDriver->run();
 }
 
-// @brief 'base' タイプの DetectOp を登録する．
+/// @brief 組み込み型の DetectOp を登録する．
 void
-DtpgMgr::add_base_dop()
+DtpgMgr::add_dop(
+  const JsonValue& js_obj
+)
 {
-  add_dop(new_DopBase(fault_mgr()));
+  string type_name;
+  if ( js_obj.is_string() ) {
+    type_name = js_obj.get_string();
+  }
+  else if ( js_obj.is_object() ) {
+    if ( js_obj.has_key("type") ) {
+      auto type_obj = js_obj.at("type");
+      if ( type_obj.is_string() ) {
+	type_name = type_obj.get_string();
+      }
+    }
+  }
+  if ( type_name == string{} ) {
+    throw std::invalid_argument{"invalid JSON object for operator specification"};
+  }
+  DetectOp* op = nullptr;
+  if ( type_name == "base" ) {
+    op = new_DopBase(fault_mgr());
+  }
+  else if ( type_name == "drop" ) {
+    op = new_DopDrop(fault_mgr(), fsim());
+  }
+  else if ( type_name == "tvlist" ) {
+    op = new_DopTvList(mTVList);
+  }
+  else if ( type_name == "verify" ) {
+    op = new_DopVerify(fsim(), mVerifyResult);
+  }
+  else {
+    ostringstream buf;
+    buf << type_name << ": unknown DetectOp name";
+    throw std::invalid_argument{buf.str()};
+  }
+  add_dop(op);
 }
 
-// @brief 'drop' タイプの DetectOp を登録する．
+// @brief 組み込み型の UntestOp を登録する．
 void
-DtpgMgr::add_drop_dop()
+DtpgMgr::add_uop(
+  const JsonValue& js_obj
+)
 {
-  add_dop(new_DopDrop(fault_mgr(), fsim()));
-}
-
-// @brief 'tvlist' タイプの DetectOp を登録する．
-void
-DtpgMgr::add_tvlist_dop()
-{
-  add_dop(new_DopTvList(mTVList));
-}
-
-// @brief 'verify' タイプの DetectOp を登録する．
-void
-DtpgMgr::add_verify_dop()
-{
-  add_dop(new_DopVerify(fsim(), mVerifyResult));
-}
-
-// @brief 'base' タイプの UntestOp を登録する．
-void
-DtpgMgr::add_base_uop()
-{
-  add_uop(new_UopBase(fault_mgr()));
+  string type_name;
+  if ( js_obj.is_string() ) {
+    type_name = js_obj.get_string();
+  }
+  else if ( js_obj.is_object() ) {
+    if ( js_obj.has_key("type") ) {
+      auto type_obj = js_obj.at("type");
+      if ( type_obj.is_string() ) {
+	type_name = type_obj.get_string();
+      }
+    }
+  }
+  if ( type_name == string{} ) {
+    throw std::invalid_argument{"invalid JSON object for operator specification"};
+  }
+  UntestOp* op = nullptr;
+  if ( type_name == "base" ) {
+    op = new_UopBase(fault_mgr());
+  }
+  else if ( type_name == "skip" ) {
+    if ( js_obj.is_object() ) {
+      if ( js_obj.has_key("threshold") ) {
+	auto thr_obj = js_obj.at("threadhold");
+	if ( thr_obj.is_int() ) {
+	  SizeType thr = thr_obj.get_int();
+	  op = new_UopSkip(thr);
+	}
+      }
+    }
+    if ( op == nullptr ) {
+      throw std::invalid_argument{"'skip' type requires 'threthold' parameter"};
+    }
+  }
+  else {
+    ostringstream buf;
+    buf << type_name << ": unknown UntestOp name";
+    throw std::invalid_argument{buf.str()};
+  }
+  add_uop(op);
 }
 
 // @brief テストパタン生成が成功した時の結果を更新する．

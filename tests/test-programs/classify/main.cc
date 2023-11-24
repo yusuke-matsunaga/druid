@@ -286,18 +286,23 @@ dtpg_test(
   TpgFaultMgr fault_mgr;
   fault_mgr.gen_fault_list(network, fault_type);
 
-  SatInitParam init_param;
+  unordered_map<string, JsonValue> option_dict;
+  option_dict.emplace("dtpg_type", mode);
+  option_dict.emplace("just_type", just_type);
+  vector<JsonValue> dop_list;
+  dop_list.push_back(JsonValue{"base"});
+  dop_list.push_back(JsonValue{"verify"});
+  dop_list.push_back(JsonValue{"drop"});
+  dop_list.push_back(JsonValue{"tvlist"});
+  option_dict.emplace("dop", JsonValue{dop_list});
+  option_dict.emplace("uop", JsonValue{"base"});
   if ( sat_type != string{} ) {
-    init_param = SatInitParam{sat_type};
+    auto sat_obj = JsonValue::parse(sat_type);
+    option_dict.emplace("sat_param", sat_obj);
   }
+  JsonValue option{option_dict};
 
-  DtpgMgr mgr{network, fault_mgr, mode, just_type, init_param};
-
-  mgr.add_verify_dop();
-  mgr.add_base_dop();
-  mgr.add_drop_dop();
-  mgr.add_tvlist_dop();
-  mgr.add_base_uop();
+  DtpgMgr mgr{network, fault_mgr, option};
 
   Timer timer;
   timer.start();

@@ -15,11 +15,10 @@ BEGIN_NAMESPACE_DRUID
 // @brief 'skip' タイプを生成する．
 UntestOp*
 new_UopSkip(
-  SizeType threshold,
-  SizeType max_fault_id
+  SizeType threshold
 )
 {
-  return new UopSkip{threshold, max_fault_id};
+  return new UopSkip{threshold};
 }
 
 
@@ -29,10 +28,8 @@ new_UopSkip(
 
 // @brief コンストラクタ
 UopSkip::UopSkip(
-  SizeType threshold,
-  SizeType max_fault_id
-) : mThreshold{threshold},
-    mUntestCountArray(max_fault_id, 0)
+  SizeType threshold
+) : mThreshold{threshold}
 {
 }
 
@@ -48,16 +45,16 @@ UopSkip::operator()(
   const TpgFault& f
 )
 {
-  SizeType& untest_count = mUntestCountArray[f.id()];
-  if ( untest_count == 0 ) {
+  if ( mUntestCountMap.count(f.id()) == 0 ) {
     // はじめて検出不能になった．
+    mUntestCountMap.emplace(f.id(), 0);
     mUntestList.push_back(f.id());
   }
 
   // 検出不能回数を1増やす．
-  ++ untest_count;
+  ++ mUntestCountMap[f.id()];
 
-  if ( untest_count >= mThreshold ) {
+  if ( mUntestCountMap[f.id()] >= mThreshold ) {
     // 検出不能回数がしきい値を越えたのでスキップする．
     mSkipList.push_back(f.id());
   }
@@ -67,9 +64,7 @@ UopSkip::operator()(
 void
 UopSkip::clear()
 {
-  for ( auto fid: mUntestList ) {
-    mUntestCountArray[fid] = 0;
-  }
+  mUntestCountMap.clear();
   mUntestList.clear();
   mSkipList.clear();
 }

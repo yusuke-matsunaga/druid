@@ -148,6 +148,16 @@ DiffBits_richcompfunc(
   Py_RETURN_NOTIMPLEMENTED;
 }
 
+// ハッシュ関数
+Py_hash_t
+DiffBits_hashfunc(
+  PyObject* self
+)
+{
+  auto& val = PyDiffBits::Get(self);
+  return val.hash();
+}
+
 END_NONAMESPACE
 
 
@@ -167,6 +177,7 @@ PyDiffBits::init(
   DiffBitsType.tp_methods = DiffBits_methods;
   DiffBitsType.tp_new = DiffBits_new;
   DiffBitsType.tp_as_sequence = &DiffBits_sequence;
+  DiffBitsType.tp_hash = &DiffBits_hashfunc;
 
   // 型オブジェクトの登録
   if ( !PyModule::reg_type(m, "DiffBits", &DiffBitsType) ) {

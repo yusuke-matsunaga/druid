@@ -12,6 +12,7 @@
 #include "DtpgMgr.h"
 #include "DtpgStats.h"
 #include "Justifier.h"
+#include "ym/JsonValue.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
@@ -35,11 +36,9 @@ public:
   DtpgDriver*
   new_driver(
     DtpgMgr& mgr,                  ///< [in] 親のマネージャ
-    const string& dtpg_type,       ///< [in] DTPGのタイプ
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
-    const string& just_type,       ///< [in] 正当化のタイプ
-    const SatInitParam& init_param ///< [in] SATソルバのタイプ
+    const JsonValue& option        ///< [in] オプションを表す JSON オブジェクト
   );
 
 

@@ -51,8 +51,7 @@ new_UopBase(
 /// @brief 'skip' タイプを生成する．
 UntestOp*
 new_UopSkip(
-  SizeType threshold,   ///< [in] しきい値
-  SizeType max_fault_id ///< [in] 故障番号の最大値
+  SizeType threshold ///< [in] しきい値
 );
 
 /// @brief 'dummy' タイプを生成する．

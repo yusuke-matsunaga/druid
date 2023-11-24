@@ -15,7 +15,6 @@ add_subdirectory ( types )
 add_subdirectory ( main )
 add_subdirectory ( fsim )
 add_subdirectory ( dtpg )
-add_subdirectory ( py_druid )
 
 
 # ===================================================================

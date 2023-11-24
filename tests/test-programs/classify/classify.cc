@@ -27,59 +27,48 @@ classify(
   fsim.initialize(network, has_previous_state, false);
   fsim.set_fault_list(fault_list);
 
+
+  SizeType max_fid = 0;
+  for ( auto f: fault_list ) {
+    max_fid = std::max(max_fid, f.id());
+  }
+  ++ max_fid;
+
   // 最初はすべての故障が一つのグループとなっている．
-  vector<vector<TpgFault>> fg_list{fault_list};
   cout << "# of testvectors: " << tv_list.size() << endl;
   SizeType i = 0;
+  vector<vector<SizeType>> sig_array(max_fid);
   for ( auto tv: tv_list ) {
+    cout << "#" << i << endl; ++ i;
     auto fault_list1 = fsim.sppfp(tv);
+    unordered_map<DiffBits, vector<SizeType>> det_fault_group;
     unordered_set<SizeType> fault_mark;
     for ( auto fault: fault_list1 ) {
       fault_mark.emplace(fault.id());
+      auto dbits = fsim.sppfp_diffbits(fault);
+      if ( det_fault_group.count(dbits) == 0 ) {
+	det_fault_group.emplace(dbits, vector<SizeType>{});
+      }
+      det_fault_group.at(dbits).push_back(fault.id());
     }
-    vector<vector<TpgFault>> new_fg_list;
-    for ( auto& fg: fg_list ) {
-      vector<TpgFault> undet_list;
-      unordered_map<DiffBits, vector<TpgFault>> det_fault_group;
-      // fg に含まれる故障を今回のシミュレーションの結果で分類する．
-      for ( auto fault: fg ) {
-	if ( fault_mark.count(fault.id()) > 0 ) {
-	  auto dbits = fsim.sppfp_diffbits(fault);
-	  if ( det_fault_group.count(dbits) == 0 ) {
-	    det_fault_group.emplace(dbits, vector<TpgFault>{});
-	  }
-	  det_fault_group.at(dbits).push_back(fault);
-	}
-	else {
-	  undet_list.push_back(fault);
-	}
-      }
-      if ( undet_list.size() >= 2 ) {
-	new_fg_list.push_back(undet_list);
-      }
-      else if ( undet_list.size() == 1 ) {
-	auto fault = undet_list.front();
-	fsim.set_skip(fault);
-      }
-      for ( auto& p: det_fault_group ) {
-	auto& fault_list1 = p.second;
-	if ( fault_list1.size() >= 2 ) {
-	  new_fg_list.push_back(fault_list1);
-	}
-	else {
-	  // fault_list1.size() == 1
-	  auto fault = fault_list1.front();
-	  fsim.set_skip(fault);
-	}
+
+    // 未検出の故障のシグネチャは 0
+    SizeType sig = 0;
+    for ( auto fault: fault_list ) {
+      auto fid = fault.id();
+      if ( fault_mark.count(fid) == 0 ) {
+	sig_array[fid].push_back(sig);
       }
     }
-    if ( new_fg_list.empty() ) {
-      break;
+    for ( auto& p: det_fault_group ) {
+      ++ sig;
+      for ( auto fid: p.second ) {
+	sig_array[fid].push_back(sig);
+      }
     }
-    std::swap(fg_list, new_fg_list);
   }
 
-  return fg_list;
+  return vector<vector<TpgFault>>{};
 }
 
 END_NAMESPACE_DRUID

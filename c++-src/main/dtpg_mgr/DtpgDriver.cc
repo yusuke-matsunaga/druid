@@ -15,13 +15,38 @@ BEGIN_NAMESPACE_DRUID
 DtpgDriver*
 DtpgDriver::new_driver(
   DtpgMgr& mgr,
-  const string& dtpg_type,
   const TpgNetwork& network,
   bool has_prev_state,
-  const string& just_type,
-  const SatInitParam& init_param
+  const JsonValue& option
 )
 {
+  string dtpg_type;
+  string just_type;
+  SatInitParam init_param;
+  if ( option.is_object() ) {
+    if ( option.has_key("dtpg_type") ) {
+      auto dtpg_type_obj = option.at("dtpg_type");
+      if ( dtpg_type_obj.is_string() ) {
+	dtpg_type = dtpg_type_obj.get_string();
+      }
+      else {
+	throw std::invalid_argument{"'dtpg_type' should be a string"};
+      }
+    }
+    if ( option.has_key("just_type") ) {
+      auto just_type_obj = option.at("just_type");
+      if ( just_type_obj.is_string() ) {
+	just_type = just_type_obj.get_string();
+      }
+      else {
+	throw std::invalid_argument{"'just_type' should be a string"};
+      }
+    }
+    if ( option.has_key("sat_param") ) {
+      init_param = SatInitParam{option.at("sat_param")};
+    }
+  }
+
   if ( dtpg_type == "ffr" ) {
     return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, init_param};
   }

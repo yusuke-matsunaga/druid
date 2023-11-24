@@ -12,6 +12,7 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgFaultMgr.h"
 #include "PyTestVector.h"
+#include "pym/PyJsonValue.h"
 #include "ym/SatInitParam.h"
 
 
@@ -42,38 +43,29 @@ DtpgMgr_new(
   static const char* kw_list[] = {
     "network",
     "fault_mgr",
-    "dtpg_type",
-    "just_type",
-    "sat_type",
+    "option",
     nullptr
   };
   PyObject* network_obj = nullptr;
   PyObject* fault_mgr_obj = nullptr;
-  const char* dtpg_type_str = nullptr;
-  const char* just_type_str = nullptr;
-  const char* sat_type_str = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!s|ss",
+  PyObject* option_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!|O",
 				    const_cast<char**>(kw_list),
 				    PyTpgNetwork::_typeobject(), &network_obj,
 				    PyTpgFaultMgr::_typeobject(), &fault_mgr_obj,
-				    &dtpg_type_str,
-				    &just_type_str,
-				    &sat_type_str) ) {
+				    &option_obj) ) {
     return nullptr;
   }
   auto& network = PyTpgNetwork::Get(network_obj);
   auto& fault_mgr = PyTpgFaultMgr::Get(fault_mgr_obj);
-  string just_type;
-  if ( just_type_str != nullptr ) {
-    just_type = just_type_str;
-  }
-  SatInitParam init_param;
-  if ( sat_type_str != nullptr ) {
-    init_param = SatInitParam{sat_type_str};
+  JsonValue option;
+  if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
+    PyErr_SetString(PyExc_ValueError, "illegal value for option");
+    return nullptr;
   }
   auto self = type->tp_alloc(type, 0);
   auto tpgmgr_obj = reinterpret_cast<DtpgMgrObject*>(self);
-  tpgmgr_obj->mVal = new DtpgMgr{network, fault_mgr, dtpg_type_str, just_type, init_param};
+  tpgmgr_obj->mVal = new DtpgMgr{network, fault_mgr, option};
   return self;
 }
 
@@ -102,65 +94,57 @@ DtpgMgr_run(
 PyObject*
 DtpgMgr_add_dop(
   PyObject* self,
-  PyObject* args
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kwlist[] = {
+    "name",
+    nullptr
+  };
+
+  PyObject* obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
+				    const_cast<char**>(kwlist),
+				    &obj) ) {
+    return nullptr;
+  }
+  JsonValue js_obj;
+  if ( !PyJsonValue::ConvToJsonValue(obj, js_obj) ) {
+    PyErr_SetString(PyExc_ValueError, "illegal value");
+    return nullptr;
+  }
+
   auto& mgr = PyDtpgMgr::Get(self);
+  mgr.add_dop(js_obj);
   Py_RETURN_NONE;
 }
 
 PyObject*
-DtpgMgr_add_base_dop(
+DtpgMgr_add_uop(
   PyObject* self,
-  PyObject* Py_UNUSED(args)
+  PyObject* args,
+  PyObject* kwds
 )
 {
-  auto& mgr = PyDtpgMgr::Get(self);
-  mgr.add_base_dop();
-  Py_RETURN_NONE;
-}
+  static const char* kwlist[] = {
+    "name",
+    nullptr
+  };
+  PyObject* obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
+				    const_cast<char**>(kwlist),
+				    &obj) ) {
+    return nullptr;
+  }
+  JsonValue js_obj;
+  if ( !PyJsonValue::ConvToJsonValue(obj, js_obj) ) {
+    PyErr_SetString(PyExc_ValueError, "illegal value");
+    return nullptr;
+  }
 
-PyObject*
-DtpgMgr_add_drop_dop(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
   auto& mgr = PyDtpgMgr::Get(self);
-  mgr.add_drop_dop();
-  Py_RETURN_NONE;
-}
-
-PyObject*
-DtpgMgr_add_tvlist_dop(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto& mgr = PyDtpgMgr::Get(self);
-  mgr.add_tvlist_dop();
-  Py_RETURN_NONE;
-}
-
-PyObject*
-DtpgMgr_add_verify_dop(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto& mgr = PyDtpgMgr::Get(self);
-  mgr.add_verify_dop();
-  Py_RETURN_NONE;
-}
-
-PyObject*
-DtpgMgr_add_base_uop(
-  PyObject* self,
-  PyObject* Py_UNUSED(args)
-)
-{
-  auto& mgr = PyDtpgMgr::Get(self);
-  mgr.add_base_uop();
+  mgr.add_uop(js_obj);
   Py_RETURN_NONE;
 }
 
@@ -168,18 +152,12 @@ DtpgMgr_add_base_uop(
 PyMethodDef DtpgMgr_methods[] = {
   {"run", DtpgMgr_run, METH_NOARGS,
    PyDoc_STR("run")},
-  {"add_dop", DtpgMgr_add_dop, METH_VARARGS,
+  {"add_dop", reinterpret_cast<PyCFunction>(DtpgMgr_add_dop),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("add DetectOp")},
-  {"add_base_dop", DtpgMgr_add_base_dop, METH_NOARGS,
-   PyDoc_STR("add BaseDetectOp")},
-  {"add_drop_dop", DtpgMgr_add_drop_dop, METH_NOARGS,
-   PyDoc_STR("add DropDetectOp")},
-  {"add_tvlist_dop", DtpgMgr_add_tvlist_dop, METH_NOARGS,
-   PyDoc_STR("add TvListDetectOp")},
-  {"add_verify_dop", DtpgMgr_add_verify_dop, METH_NOARGS,
-   PyDoc_STR("add VerifyDetectOp")},
-  {"add_base_uop", DtpgMgr_add_base_uop, METH_NOARGS,
-   PyDoc_STR("add BaseUntestOp")},
+  {"add_uop", reinterpret_cast<PyCFunction>(DtpgMgr_add_uop),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("add UntestOp")},
   {nullptr, nullptr, 0, nullptr}
 };
 
