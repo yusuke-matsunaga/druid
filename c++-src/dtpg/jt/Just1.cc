@@ -52,9 +52,9 @@ Just1::select_cval_node(
 )
 {
   // cval を持つ最初のファンインをたどる．
-  Val3 cval = node->cval();
+  auto cval = node->cval();
   for ( auto inode: node->fanin_list() ) {
-    Val3 ival = just_data().val(inode, time);
+    auto ival = just_data().val(inode, time);
     if ( ival == cval ) {
       return inode;
     }
