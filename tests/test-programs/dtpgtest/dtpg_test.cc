@@ -140,6 +140,8 @@ dtpg_test(
 
   bool verbose = false;
 
+  bool show_untestable_faults = false;
+
   string just_type;
 
   argv0 = argv[0];
@@ -235,6 +237,9 @@ dtpg_test(
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
+      else if ( strcmp(argv[pos], "--show_untestable_faults") == 0 ) {
+	show_untestable_faults = true;
+      }
       else {
 	cerr << argv[pos] << ": illegal option" << endl;
 	usage();
@@ -287,7 +292,7 @@ dtpg_test(
   option_dict.emplace("dop", JsonValue{dop_list});
   option_dict.emplace("uop", JsonValue{"base"});
   if ( sat_type != string{} ) {
-    auto sat_obj = JsonValue::parse(sat_type);
+    auto sat_obj = JsonValue{sat_type};
     option_dict.emplace("sat_param", sat_obj);
   }
   JsonValue option{option_dict};
@@ -315,7 +320,8 @@ dtpg_test(
 	 << tv << endl;
   }
 
-  {
+  if ( show_untestable_faults ) {
+    cout << "Untestabel faults" << endl;
     for ( auto f: fault_mgr.rep_fault_list() ) {
       if ( fault_mgr.get_status(f) == FaultStatus::Untestable ) {
 	cout << f << endl;
