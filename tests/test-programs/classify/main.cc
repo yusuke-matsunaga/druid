@@ -10,19 +10,11 @@
 #include "DtpgMgr.h"
 #include "TpgFault.h"
 #include "DopVerifyResult.h"
-#include "ym/SatInitParam.h"
+#include "Classifier.h"
 #include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-extern
-vector<vector<TpgFault>>
-classify(
-  const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
-  const vector<TestVector>& tv_list
-);
 
 const char* argv0 = "";
 
@@ -148,6 +140,9 @@ dtpg_test(
 
   bool verbose = false;
 
+  bool run_mode = false;
+  bool run2_mode = false;
+
   string just_type;
 
   argv0 = argv[0];
@@ -237,6 +232,20 @@ dtpg_test(
 	}
 	just_type = "just2";
       }
+      else if ( strcmp(argv[pos], "--1") == 0 ) {
+	run_mode = true;
+	if ( run2_mode ) {
+	  cerr << "--1 and --2 are mutually exclusive" << endl;
+	  return -1;
+	}
+      }
+      else if ( strcmp(argv[pos], "--2") == 0 ) {
+	run2_mode = true;
+	if ( run_mode ) {
+	  cerr << "--1 and --2 are mutually exclusive" << endl;
+	  return -1;
+	}
+      }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
       }
@@ -267,6 +276,10 @@ dtpg_test(
   if ( !sa_mode && !td_mode ) {
     // sa_mode をデフォルトにする．
     sa_mode = true;
+  }
+
+  if ( !run_mode && !run2_mode ) {
+    run_mode = true;
   }
 
   string filename = argv[pos];
@@ -350,12 +363,14 @@ dtpg_test(
     fixed_tv_list.push_back(fixed_tv);
   }
 
-  auto fault_group_list = classify(network, fault_list, fixed_tv_list);
+  Classifier cls{network, fault_list, td_mode};
+
+  auto fault_group_list = run_mode ? cls.run(fixed_tv_list) : cls.run2(fixed_tv_list);
 
   timer.stop();
   auto class_time = timer.get_time();
 
-  cout << "# of unseparated fault group = " << fault_group_list.size() << endl;
+  SizeType g = 0;
   SizeType c = 0;
   for ( auto fg: fault_group_list ) {
 #if 0
@@ -365,11 +380,15 @@ dtpg_test(
     cout << endl;
 #endif
     SizeType n = fg.size();
-    c += n * (n - 1) / 2;
+    if ( n >= 2 ) {
+      ++ g;
+      c += n * (n - 1) / 2;
+    }
   }
-  cout << "# of unseparated fault pair = " << c << endl;
-  cout << "DTPG time:     " << time << endl
-       << "CLASSIFY time: " << class_time << endl;
+  cout << "# of unseparated fault group: " << g << endl;
+  cout << "# of unseparated fault pair:  " << c << endl;
+  cout << "DTPG time:                    " << time << endl
+       << "Classify time:                " << class_time << endl;
   return n;
 }
 

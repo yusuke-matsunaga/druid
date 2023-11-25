@@ -52,6 +52,7 @@ set (mf_SOURCES
 # ===================================================================
 ym_add_object_library ( druid_main
   ${colcov_SOURCES}
+  ${classify_SOURCES}
 #  ${minpat_SOURCES}
 #  ${mf_SOURCES}
   )
