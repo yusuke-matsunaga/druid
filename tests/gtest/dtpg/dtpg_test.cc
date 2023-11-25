@@ -74,9 +74,10 @@ TestData mydata1[] = {
 };
 
 TestData mydata2[] = {
-  TestData{"s27.blif",     32,   32,   32,  0,   0},
-  TestData{"s1196.blif", 1242, 1242, 1241,  0,   1},
-  TestData{"s5378.blif", 4603, 4563, 4253, 40, 350}
+  TestData{"s27.blif",     32,   32,   32,   0,    0},
+  TestData{"s1196.blif", 1242, 1242, 1241,   0,    1},
+  TestData{"s5378.blif", 4603, 4563, 4253,  40,  350},
+  TestData{"s9234.blif", 6927, 6475, 5844, 452, 1083}
 };
 
 
@@ -175,8 +176,6 @@ DtpgTestWithParam2::SetUp()
   JsonValue option{option_dict};
 
   mFaultMgr.gen_fault_list(*mNetwork_p, fault_type());
-
-  cout << option.to_json() << endl;
 
   mDtpgMgr = new DtpgMgr{*mNetwork_p, mFaultMgr, option};
 }
