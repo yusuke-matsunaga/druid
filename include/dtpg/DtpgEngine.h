@@ -258,11 +258,17 @@ public:
 
   /// @brief 関係するノードのリストを返す．
   const vector<const TpgNode*>&
-  cur_node_list() const;
+  cur_node_list() const
+  {
+    return mTfiList;
+  }
 
   /// @brief 関係する１時刻前のノードのリストを返す．
   const vector<const TpgNode*>&
-  prev_node_list() const;
+  prev_node_list() const
+  {
+    return mTfi2List;
+  }
 
   /// @brief 対象の部分回路の関係を表す変数を用意する．
   void
