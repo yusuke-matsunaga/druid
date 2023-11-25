@@ -351,7 +351,7 @@ public:
   void
   print(
     ostream& s ///< [in] 出力先のストリーム
-  );
+  ) const;
 
 
 private:

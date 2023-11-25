@@ -287,7 +287,7 @@ TpgNetwork::gate(
 void
 TpgNetwork::print(
   ostream& s
-)
+) const
 {
   for ( auto node: node_list() ) {
     s << node->str()
@@ -384,6 +384,7 @@ TpgNetwork::print(
       s << "  Input#" << i << ": "
 	<< binfo.node->str()
 	<< "[" << binfo.ipos << "]"
+	<< "(" << binfo.node->fanin(binfo.ipos)->str() << ")"
 	<< endl;
     }
     s << endl;
