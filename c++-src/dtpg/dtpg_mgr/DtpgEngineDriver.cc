@@ -38,7 +38,6 @@ DtpgEngineDriver::gen_pattern(
 
   if ( ans == SatBool3::True ) {
     // パタンが求まった．
-
     timer.reset();
     timer.start();
 
