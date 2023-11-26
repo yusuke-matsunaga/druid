@@ -45,12 +45,6 @@ public:
     const vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   );
 
-  /// @brief 与えられたテストベクタで故障を分類する．
-  vector<vector<TpgFault>>
-  run2(
-    const vector<TestVector>& tv_list ///< [in] テストベクタのリスト
-  );
-
 
 private:
   //////////////////////////////////////////////////////////////////////

@@ -140,9 +140,6 @@ dtpg_test(
 
   bool verbose = false;
 
-  bool run_mode = false;
-  bool run2_mode = false;
-
   string just_type;
 
   argv0 = argv[0];
@@ -232,20 +229,6 @@ dtpg_test(
 	}
 	just_type = "just2";
       }
-      else if ( strcmp(argv[pos], "--1") == 0 ) {
-	run_mode = true;
-	if ( run2_mode ) {
-	  cerr << "--1 and --2 are mutually exclusive" << endl;
-	  return -1;
-	}
-      }
-      else if ( strcmp(argv[pos], "--2") == 0 ) {
-	run2_mode = true;
-	if ( run_mode ) {
-	  cerr << "--1 and --2 are mutually exclusive" << endl;
-	  return -1;
-	}
-      }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
       }
@@ -276,10 +259,6 @@ dtpg_test(
   if ( !sa_mode && !td_mode ) {
     // sa_mode をデフォルトにする．
     sa_mode = true;
-  }
-
-  if ( !run_mode && !run2_mode ) {
-    run_mode = true;
   }
 
   string filename = argv[pos];
@@ -365,7 +344,7 @@ dtpg_test(
 
   Classifier cls{network, fault_list, td_mode};
 
-  auto fault_group_list = run_mode ? cls.run(fixed_tv_list) : cls.run2(fixed_tv_list);
+  auto fault_group_list = cls.run(fixed_tv_list);
 
   timer.stop();
   auto class_time = timer.get_time();
