@@ -54,8 +54,8 @@ TEST(TpgNetworkTest, xor2)
     "\n"
     "GATE#0:\n"
     "  Output: Node#2\n"
-    "  Input#0: Node#2[0]\n"
-    "  Input#1: Node#2[1]\n"
+    "  Input#0: Node#2[0](Node#0)\n"
+    "  Input#1: Node#2[1](Node#1)\n"
     "\n";
   EXPECT_EQ( ref_str, buf.str() );
 }
@@ -102,9 +102,9 @@ TEST(TpgNetworkTest, xor3)
     "\n"
     "GATE#0:\n"
     "  Output: Node#3\n"
-    "  Input#0: Node#3[0]\n"
-    "  Input#1: Node#3[1]\n"
-    "  Input#2: Node#3[2]\n"
+    "  Input#0: Node#3[0](Node#0)\n"
+    "  Input#1: Node#3[1](Node#1)\n"
+    "  Input#2: Node#3[2](Node#2)\n"
     "\n";
   EXPECT_EQ( ref_str, buf.str() );
 }
@@ -155,10 +155,10 @@ TEST(TpgNetworkTest, xor4)
     "\n"
     "GATE#0:\n"
     "  Output: Node#4\n"
-    "  Input#0: Node#4[0]\n"
-    "  Input#1: Node#4[1]\n"
-    "  Input#2: Node#4[2]\n"
-    "  Input#3: Node#4[3]\n"
+    "  Input#0: Node#4[0](Node#0)\n"
+    "  Input#1: Node#4[1](Node#1)\n"
+    "  Input#2: Node#4[2](Node#2)\n"
+    "  Input#3: Node#4[3](Node#3)\n"
     "\n";
   EXPECT_EQ( ref_str, buf.str() );
 }
@@ -227,10 +227,10 @@ TEST(TpgNetworkTest, aoi22)
     "\n"
     "GATE#0:\n"
     "  Output: Node#10\n"
-    "  Input#0: Node#4[0]\n"
-    "  Input#1: Node#5[0]\n"
-    "  Input#2: Node#6[0]\n"
-    "  Input#3: Node#7[0]\n"
+    "  Input#0: Node#4[0](Node#0)\n"
+    "  Input#1: Node#5[0](Node#1)\n"
+    "  Input#2: Node#6[0](Node#2)\n"
+    "  Input#3: Node#7[0](Node#3)\n"
     "\n";
   EXPECT_EQ( ref_str, buf.str() );
 }
@@ -290,9 +290,9 @@ TEST(TpgNetworkTest, oai21)
     "\n"
     "GATE#0:\n"
     "  Output: Node#7\n"
-    "  Input#0: Node#3[0]\n"
-    "  Input#1: Node#4[0]\n"
-    "  Input#2: Node#5[0]\n"
+    "  Input#0: Node#3[0](Node#0)\n"
+    "  Input#1: Node#4[0](Node#1)\n"
+    "  Input#2: Node#5[0](Node#2)\n"
     "\n";
   EXPECT_EQ( ref_str, buf.str() );
 }
@@ -346,9 +346,9 @@ TEST(TpgNetworkTest, cplx1)
     "\n"
     "GATE#0:\n"
     "  Output: Node#4\n"
-    "  Input#0: Node#3[0]\n"
-    "  Input#1: Node#3[1]\n"
-    "  Input#2: Node#4[1]\n"
+    "  Input#0: Node#3[0](Node#0)\n"
+    "  Input#1: Node#3[1](Node#1)\n"
+    "  Input#2: Node#4[1](Node#2)\n"
     "\n";
   EXPECT_EQ( ref_str, buf.str() );
 }
@@ -410,9 +410,9 @@ TEST(TpgNetworkTest, cplx2)
     "\n"
     "GATE#0:\n"
     "  Output: Node#6\n"
-    "  Input#0: Node#4[0]\n"
-    "  Input#1: Node#5[0]\n"
-    "  Input#2: Node#3[0]\n"
+    "  Input#0: Node#4[0](Node#0)\n"
+    "  Input#1: Node#5[0](Node#1)\n"
+    "  Input#2: Node#3[0](Node#2)\n"
     "\n";
   EXPECT_EQ( ref_str, buf.str() );
 }
