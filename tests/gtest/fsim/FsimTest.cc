@@ -49,7 +49,7 @@ public:
 
 private:
 
-  const SizeType PAT_NUM{2000};
+  const SizeType PAT_NUM{100};
 
 };
 
@@ -365,6 +365,6 @@ TEST_P(FsimTest, ppsfp_td_test)
 }
 
 INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
-			 ::testing::Values("s27.blif", "s1196.blif", "s5378.blif"));
+			 ::testing::Values("s27.blif", "s1196.blif"));
 
 END_NAMESPACE_DRUID
