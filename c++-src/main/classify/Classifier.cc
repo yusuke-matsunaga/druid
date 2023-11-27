@@ -90,7 +90,6 @@ Classifier::run(
     }
 
     // singleton を除外する．
-    SizeType ng = count.size();
     for ( auto& f: mFaultList ) {
       auto fid = f.id();
       int g = fgmap[fid];
@@ -107,8 +106,8 @@ Classifier::run(
   // 隙間なしに付け替える．
   unordered_map<int, int> gmap;
   int last_g = 0;
-  for ( auto g: fgmap ) {
-    if ( g >= 0 ) {
+  for ( SizeType g = 0; g < count.size(); ++ g ) {
+    if ( count[g] >= 2 ) {
       gmap.emplace(g, last_g);
       ++ last_g;
     }
