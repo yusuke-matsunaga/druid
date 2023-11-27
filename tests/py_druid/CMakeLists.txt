@@ -29,7 +29,7 @@
 # ===================================================================
 
 add_test ( druid_py_druid_test
-  ${PROJECT_BINARY_DIR}/c++-src/py_druid/py_druid_d -m pytest ${CMAKE_CURRENT_SOURCE_DIR}
+  ${PROJECT_BINARY_DIR}/py_druid/py_druid_d -m pytest ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
 set_property ( TEST druid_py_druid_test

@@ -19,9 +19,12 @@ def test_dtpg():
     network = TpgNetwork.read_blif(filename)
     fault_mgr = TpgFaultMgr()
     fault_mgr.gen_fault_list(network, FaultType.TransitionDelay)
-    mgr = DtpgMgr(network, fault_mgr, "mffc")
-    mgr.add_base_dop()
-    mgr.add_base_uop()
+    option = {
+        'dtpg_type': 'mffc',
+        'dop': [ 'base' ],
+        'uop': [ 'base' ]
+        }
+    mgr = DtpgMgr(network, fault_mgr, option)
     mgr.run()
     assert mgr.detect_count == 32
     assert mgr.untest_count == 0
