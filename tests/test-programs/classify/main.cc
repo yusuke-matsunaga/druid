@@ -342,6 +342,10 @@ dtpg_test(
     fixed_tv_list.push_back(fixed_tv);
   }
 
+  cout << "# of faults:  " << fault_list.size() << endl;
+  cout << "# of detected faults: " << mgr.detect_count() << endl;
+  cout << "# of tv_list: " << tv_list.size() << endl;
+
   Classifier cls{network, fault_list, td_mode};
 
   auto fault_group_list = cls.run(fixed_tv_list);
@@ -366,8 +370,11 @@ dtpg_test(
   }
   cout << "# of unseparated fault group: " << g << endl;
   cout << "# of unseparated fault pair:  " << c << endl;
-  cout << "DTPG time:                    " << time << endl
-       << "Classify time:                " << class_time << endl;
+  cout << "DTPG time:                    "
+       << std::fixed << std::setprecision(2) << (time / 1000) << endl
+       << "Classify time:                "
+       << std::fixed << std::setprecision(2) << (class_time / 1000 ) << endl
+       << std::defaultfloat;
   return n;
 }
 
