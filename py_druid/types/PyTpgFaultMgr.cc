@@ -10,6 +10,7 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgFault.h"
 #include "PyFaultType.h"
+#include "PyFaultStatus.h"
 #include "pym/PyModule.h"
 
 
@@ -172,27 +173,14 @@ TpgFaultMgr_set(
 )
 {
   PyObject* fault_obj = nullptr;
-  const char* fault_status_str = nullptr;
-  if ( !PyArg_ParseTuple(args, "O!s",
+  PyObject* fault_status_obj = nullptr;
+  if ( !PyArg_ParseTuple(args, "O!O!",
 			 PyTpgFault::_typeobject(), &fault_obj,
-			 &fault_status_str) ) {
+			 PyFaultStatus::_typeobject(), &fault_status_obj) ) {
     return nullptr;
   }
   auto fault = PyTpgFault::Get(fault_obj);
-  auto fault_status = FaultStatus::Undetected;
-  if ( strcmp(fault_status_str, "detected") == 0 ) {
-    fault_status = FaultStatus::Detected;
-  }
-  else if ( strcmp(fault_status_str, "untestable") == 0 ) {
-    fault_status = FaultStatus::Untestable;
-  }
-  else if ( strcmp(fault_status_str, "undetected") == 0 ) {
-    fault_status = FaultStatus::Undetected;
-  }
-  else {
-    PyErr_SetString(PyExc_ValueError, "illegal string for FaultStatus");
-    return nullptr;
-  }
+  auto fault_status = PyFaultStatus::Get(fault_status_obj);
   auto& fmgr = PyTpgFaultMgr::Get(self);
   fmgr.set_status(fault, fault_status);
   Py_RETURN_NONE;
@@ -212,8 +200,7 @@ TpgFaultMgr_get(
   auto fault = PyTpgFault::Get(fault_obj);
   auto& fmgr = PyTpgFaultMgr::Get(self);
   auto fault_status = fmgr.get_status(fault);
-  auto fault_status_str = str(fault_status);
-  return Py_BuildValue("s", fault_status_str);
+  return PyFaultStatus::ToPyObject(fault_status);
 }
 
 // メソッド定義

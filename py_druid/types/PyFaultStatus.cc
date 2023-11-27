@@ -147,6 +147,7 @@ new_const(
   auto obj = FaultStatusType.tp_alloc(&FaultStatusType, 0);
   auto fs_obj = reinterpret_cast<FaultStatusObject*>(obj);
   fs_obj->mVal = val;
+  Py_INCREF(obj);
   return obj;
 }
 
