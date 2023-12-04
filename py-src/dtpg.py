@@ -9,6 +9,7 @@
 """
 
 import argparse
+import time
 from druid.types import TpgNetwork, TpgFaultMgr, FaultType, FaultStatus
 from druid.dtpg import DtpgMgr
 from druid.fsim import Fsim
@@ -25,6 +26,9 @@ parser.add_argument('--blif',
 parser.add_argument('--iscas89',
                     action='store_true',
                     help='read ISCAS89(.bench) file')
+parser.add_argument('-v', '--verbose',
+                    action='store_true',
+                    help='get verbose')
 
 args = parser.parse_args()
 if not args:
@@ -41,7 +45,8 @@ elif fault_type_str == 'transition_delay':
     fault_type = FaultType.TransitionDelay
 else:
     print(f'{fault_type_str}: illegal value for fault_type')
-    
+verbose = args.verbose
+
 network = TpgNetwork.read_blif(filename)
 fault_mgr = TpgFaultMgr()
 fault_mgr.gen_fault_list(network, fault_type)
@@ -68,6 +73,8 @@ print(f'# of tv_list: {len(tv_list)}')
 fsim = Fsim()
 fsim.initialize(network, False, 2);
 fsim.set_fault_list(fault_list)
+
+start_time = time.process_time()
 
 max_fid = max([ f.id for f in fault_list ]) + 1
 fgmap = [ None for _ in range(max_fid) ]
@@ -105,13 +112,14 @@ for i, tv in enumerate(tv_list):
         if g >= 0:
             fg_list[g].append(f)
 
-    print()
-    for i, fg in enumerate(fg_list):
-        if len(fg) > 0:
-            print(f'G#{i}:', end='')
-            for f in fg:
-                print(f' {f}', end='')
-            print()
+    if verbose:
+        print()
+        for i, fg in enumerate(fg_list):
+            if len(fg) > 0:
+                print(f'G#{i}:', end='')
+                for f in fg:
+                    print(f' {f}', end='')
+                print()
 
 gmap = {}
 last_g = 0
@@ -128,10 +136,13 @@ for f in fault_list:
         new_g = gmap[g]
         fg_list[new_g].append(f)
 
+end_time = time.process_time()
+
 print(f'# of groups: {last_g}')
 c = 0
 for fg in fg_list:
     n = len(fg)
     c += (n * (n - 1)) // 2
 print(f'# of paris: {c}')
+print(f'CPU time:   {end_time - start_time:0.2f}')
     
