@@ -11,6 +11,7 @@
 #include "TpgFault.h"
 #include "DopVerifyResult.h"
 #include "Classifier.h"
+#include "Classifier2.h"
 #include "ym/Timer.h"
 
 
@@ -397,6 +398,19 @@ dtpg_test(
   cout << "Classfiy2 time:               "
        << std::fixed << std::setprecision(2)
        << (class2_time / 1000) << endl;
+
+  timer.reset();
+  timer.start();
+
+  Classifier2 cls3{network, fault_list, td_mode};
+  auto fault_group_list3 = cls3.run(fixed_tv_list);
+
+  timer.stop();
+  auto class3_time = timer.get_time();
+
+  cout << "Classfiy3 time:               "
+       << std::fixed << std::setprecision(2)
+       << (class3_time / 1000) << endl;
 
   return 0;
 }

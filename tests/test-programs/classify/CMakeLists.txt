@@ -22,6 +22,7 @@ include_directories(
 
 add_executable ( classify_test
   main.cc
+  Classifier2.cc
   $<TARGET_OBJECTS:druid_types_obj>
   $<TARGET_OBJECTS:druid_dtpg_obj>
   $<TARGET_OBJECTS:druid_main_obj>
@@ -54,6 +55,7 @@ endif ()
 
 add_executable ( classify_test_d
   main.cc
+  Classifier2.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_dtpg_obj_d>
   $<TARGET_OBJECTS:druid_fsim_main_obj_d>

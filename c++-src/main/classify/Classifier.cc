@@ -8,6 +8,7 @@
 
 #include "Classifier.h"
 #include "TestVector.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -60,6 +61,7 @@ Classifier::run(
   bool singleton_drop
 )
 {
+  Timer timer;
   // 最初はすべての故障が一つのグループとなっている．
   vector<int> fgmap(mMaxId, 0);
   vector<SizeType> count;
@@ -67,7 +69,9 @@ Classifier::run(
     // fgmap を今回のシミュレーション結果で細分化する．
     // 今回未検出の故障のグループ番号は変わらない．
     unordered_map<pair<DiffBits, int>, int, Hash, Eq> sig_dict;
+    timer.start();
     auto fault_list1 = mFsim.sppfp(tv);
+    timer.stop();
     for ( auto fault: fault_list1 ) {
       auto dbits = mFsim.sppfp_diffbits(fault);
       auto fid = fault.id();
@@ -127,6 +131,11 @@ Classifier::run(
       }
     }
   }
+
+  auto time = timer.get_time();
+  cout << "Fsim time: "
+       << std::fixed << std::setprecision(2)
+       << (time / 1000) << std::defaultfloat << endl;
   return fg_list;
 }
 
