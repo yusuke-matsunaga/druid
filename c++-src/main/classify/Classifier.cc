@@ -56,12 +56,13 @@ END_NONAMESPACE
 // @brief 故障を分類する．
 vector<vector<TpgFault>>
 Classifier::run(
-  const vector<TestVector>& tv_list
+  const vector<TestVector>& tv_list,
+  bool singleton_drop
 )
 {
   // 最初はすべての故障が一つのグループとなっている．
   vector<int> fgmap(mMaxId, 0);
-  vector<SizeType> count{mFaultList.size()};
+  vector<SizeType> count;
   for ( auto tv: tv_list ) {
     // fgmap を今回のシミュレーション結果で細分化する．
     // 今回未検出の故障のグループ番号は変わらない．
@@ -90,13 +91,15 @@ Classifier::run(
     }
 
     // singleton を除外する．
-    for ( auto& f: mFaultList ) {
-      auto fid = f.id();
-      int g = fgmap[fid];
-      if ( count[g] <= 1 ) {
-	fgmap[fid] = -1;
-	// 故障シミュレーションの対象からも外す．
-	mFsim.set_skip(f);
+    if ( singleton_drop ) {
+      for ( auto& f: mFaultList ) {
+	auto fid = f.id();
+	int g = fgmap[fid];
+	if ( count[g] <= 1 ) {
+	  fgmap[fid] = -1;
+	  // 故障シミュレーションの対象からも外す．
+	  mFsim.set_skip(f);
+	}
       }
     }
   }
@@ -118,8 +121,33 @@ Classifier::run(
   for ( auto& f: mFaultList ) {
     auto g = fgmap[f.id()];
     if ( g >= 0 ) {
-      auto new_g = gmap.at(g);
-      fg_list[new_g].push_back(f);
+      if ( gmap.count(g) > 0 ) {
+	auto new_g = gmap.at(g);
+	fg_list[new_g].push_back(f);
+      }
+    }
+  }
+  return fg_list;
+}
+
+// @brief 与えられたテストベクタで故障を分類する．
+vector<vector<TpgFault>>
+Classifier::run(
+  const TestVector& tv
+)
+{
+  vector<vector<TpgFault>> fg_list;
+  unordered_map<DiffBits, int> sig_dict;
+  auto fault_list = mFsim.sppfp(tv);
+  for ( auto fault: fault_list ) {
+    auto dbits = mFsim.sppfp_diffbits(fault);
+    if ( sig_dict.count(dbits) == 0 ) {
+      // 新しいグループを作る．
+      fg_list.push_back(vector<TpgFault>{fault});
+    }
+    else {
+      auto g = sig_dict.at(dbits);
+      fg_list[g].push_back(fault);
     }
   }
   return fg_list;

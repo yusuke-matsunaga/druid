@@ -42,7 +42,16 @@ public:
   /// @brief 与えられたテストベクタで故障を分類する．
   vector<vector<TpgFault>>
   run(
-    const vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    bool drop_singleton                ///< [in] singleton をドロップする時 true
+  );
+
+  /// @brief 与えられたテストベクタで故障を分類する．
+  ///
+  /// tv によって検出される故障のみを対象とした分類リストを返す．
+  vector<vector<TpgFault>>
+  run(
+    const TestVector& tv ///< [in] テストベクタ
   );
 
 
@@ -59,7 +68,6 @@ private:
 
   // 故障番号の最大値 + 1
   SizeType mMaxId;
-
 };
 
 END_NAMESPACE_DRUID

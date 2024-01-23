@@ -343,12 +343,13 @@ dtpg_test(
   }
 
   cout << "# of faults:  " << fault_list.size() << endl;
-  cout << "# of detected faults: " << mgr.detect_count() << endl;
   cout << "# of tv_list: " << tv_list.size() << endl;
+  cout << "DTPG time:                    "
+       << std::fixed << std::setprecision(2) << (time / 1000) << endl;
 
   Classifier cls{network, fault_list, td_mode};
 
-  auto fault_group_list = cls.run(fixed_tv_list);
+  auto fault_group_list = cls.run(fixed_tv_list, true);
 
   timer.stop();
   auto class_time = timer.get_time();
@@ -370,12 +371,34 @@ dtpg_test(
   }
   cout << "# of unseparated fault group: " << g << endl;
   cout << "# of unseparated fault pair:  " << c << endl;
-  cout << "DTPG time:                    "
-       << std::fixed << std::setprecision(2) << (time / 1000) << endl
-       << "Classify time:                "
+  cout << "Classify time:                "
        << std::fixed << std::setprecision(2) << (class_time / 1000 ) << endl
        << std::defaultfloat;
-  return n;
+
+  timer.reset();
+  timer.start();
+
+#if 0
+  Classifier cls2{network, fault_list, td_mode};
+
+  vector<vector<vector<TpgFault>>> fg_list_array;
+  fg_list_array.reserve(tv_list.size());
+  for ( auto& tv: tv_list ) {
+    fg_list_array.push_back(cls2.run(tv));
+  }
+#endif
+
+  Classifier cls2{network, fault_list, td_mode};
+  auto fault_group_list2 = cls2.run(fixed_tv_list, false);
+
+  timer.stop();
+  auto class2_time = timer.get_time();
+
+  cout << "Classfiy2 time:               "
+       << std::fixed << std::setprecision(2)
+       << (class2_time / 1000) << endl;
+
+  return 0;
 }
 
 END_NAMESPACE_DRUID
