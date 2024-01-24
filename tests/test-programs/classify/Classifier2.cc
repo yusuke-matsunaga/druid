@@ -139,6 +139,14 @@ Classifier2::run2(
 	  new_fg_list.push_back(group);
 	}
       }
+      for ( auto fault: fgroup ) {
+	auto dbits = mFsim.sppfp_diffbits(fault);
+	auto& g = sig_dict.at(dbits);
+	if ( g.size() == 1 ) {
+	  // 故障シミュレーションの対象からも外す．
+	  mFsim.set_skip(fault);
+	}
+      }
     }
     std::swap(fg_list, new_fg_list);
   }
