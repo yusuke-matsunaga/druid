@@ -13,22 +13,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-// @brief コンストラクタ
-Classifier2::Classifier2(
-  const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
-  bool has_prev_state
-) : mFaultList{fault_list}
-{
-  mFsim.initialize(network, has_prev_state, false);
-  mFsim.set_fault_list(mFaultList);
-  mMaxId = 0;
-  for ( auto f: mFaultList ) {
-    mMaxId = std::max(mMaxId, f.id());
-  }
-  ++ mMaxId;
-}
-
 BEGIN_NONAMESPACE
 
 struct Hash {
@@ -53,6 +37,23 @@ struct Eq {
 };
 
 END_NONAMESPACE
+
+// @brief コンストラクタ
+Classifier2::Classifier2(
+  const TpgNetwork& network,
+  const vector<TpgFault>& fault_list,
+  bool has_prev_state
+) : mFaultList{fault_list}
+{
+  mFsim.initialize(network, has_prev_state, false);
+  mFsim.set_fault_list(mFaultList);
+  mMaxId = 0;
+  for ( auto f: mFaultList ) {
+    mMaxId = std::max(mMaxId, f.id());
+  }
+  ++ mMaxId;
+}
+
 
 // @brief 故障を分類する．
 vector<vector<TpgFault>>
@@ -88,6 +89,55 @@ Classifier2::run(
 	}
 	auto& new_fgroup = new_fg_list[g];
 	new_fgroup.push_back(fault);
+      }
+    }
+    std::swap(fg_list, new_fg_list);
+  }
+
+  auto time = timer.get_time();
+  cout << "Fsim time: "
+       << std::fixed << std::setprecision(2)
+       << (time / 1000) << std::defaultfloat << endl;
+  return fg_list;
+}
+
+// @brief 故障を分類する．
+vector<vector<TpgFault>>
+Classifier2::run2(
+  const vector<TestVector>& tv_list
+)
+{
+  Timer timer;
+  // 最初はすべての故障が一つのグループとなっている．
+  vector<vector<TpgFault>> fg_list{mFaultList, };
+  for ( auto tv: tv_list ) {
+    // fgmap を今回のシミュレーション結果で細分化する．
+    // 今回未検出の故障のグループ番号は変わらない．
+    unordered_map<pair<DiffBits, int>, int, Hash, Eq> sig_dict;
+    timer.start();
+    auto fault_list1 = mFsim.sppfp(tv);
+    timer.stop();
+    vector<vector<TpgFault>> new_fg_list;
+    for ( auto fgroup: fg_list ) {
+      std::unordered_map<DiffBits, vector<TpgFault>> sig_dict;
+      for ( auto fault: fgroup ) {
+	auto dbits = mFsim.sppfp_diffbits(fault);
+	if ( sig_dict.count(dbits) == 0 ) {
+	  // 新しいグループを割り当てる．
+	  vector<TpgFault> new_group{fault, };
+	  sig_dict.emplace(dbits, new_group);
+	}
+	else {
+	  // キーに合致するグループ番号をとってくる．
+	  auto& group = sig_dict.at(dbits);
+	  group.push_back(fault);
+	}
+      }
+      for ( auto& p: sig_dict ) {
+	auto& group = p.second;
+	if ( group.size() > 1 ) {
+	  new_fg_list.push_back(group);
+	}
       }
     }
     std::swap(fg_list, new_fg_list);
