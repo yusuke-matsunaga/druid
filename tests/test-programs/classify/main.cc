@@ -348,9 +348,7 @@ dtpg_test(
   cout << "DTPG time:                    "
        << std::fixed << std::setprecision(2) << (time / 1000) << endl;
 
-  Classifier2 cls1{network, fault_list, td_mode};
-
-  auto fault_group_list = cls1.run2(fixed_tv_list);
+  auto fault_group_list = Classifier2::run2(network, fault_list, td_mode, fixed_tv_list, true);
 
   timer.stop();
   auto class_time = timer.get_time();
@@ -379,8 +377,7 @@ dtpg_test(
   timer.reset();
   timer.start();
 
-  Classifier2 cls2{network, fault_list, td_mode};
-  auto fault_group_list2 = cls2.run(fixed_tv_list);
+  auto fault_group_list2 = Classifier2::run(network, fault_list, td_mode, fixed_tv_list, false);
 
   timer.stop();
   auto class2_time = timer.get_time();
@@ -405,8 +402,7 @@ dtpg_test(
   timer.reset();
   timer.start();
 
-  Classifier cls3{network, fault_list, td_mode};
-  auto fault_group_list3 = cls3.run(fixed_tv_list, true);
+  auto fault_group_list3 = Classifier::run(network, fault_list, td_mode, fixed_tv_list, true);
 
   timer.stop();
   auto class3_time = timer.get_time();
@@ -431,8 +427,7 @@ dtpg_test(
   timer.reset();
   timer.start();
 
-  Classifier cls4{network, fault_list, td_mode};
-  auto fault_group_list4 = cls4.run(fixed_tv_list, false);
+  auto fault_group_list4 = Classifier::run(network, fault_list, td_mode, fixed_tv_list, false);
 
   timer.stop();
   auto class4_time = timer.get_time();

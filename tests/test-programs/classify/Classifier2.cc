@@ -8,6 +8,7 @@
 
 #include "Classifier2.h"
 #include "TestVector.h"
+#include "Fsim.h"
 #include "ym/Timer.h"
 
 
@@ -15,10 +16,12 @@ BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
+using SigKey = pair<DiffBits, SizeType>;
+
 struct Hash {
   SizeType
   operator()(
-    const pair<DiffBits, int>& key
+    const SigKey& key
   ) const
   {
     return key.first.hash() ^ key.second;
@@ -28,8 +31,8 @@ struct Hash {
 struct Eq {
   bool
   operator()(
-    const pair<DiffBits, int>& key1,
-    const pair<DiffBits, int>& key2
+    const SigKey& key1,
+    const SigKey& key2
   ) const
   {
     return key1.first == key2.first && key1.second == key2.second;
@@ -38,44 +41,39 @@ struct Eq {
 
 END_NONAMESPACE
 
-// @brief コンストラクタ
-Classifier2::Classifier2(
-  const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
-  bool has_prev_state
-) : mFaultList{fault_list}
-{
-  mFsim.initialize(network, has_prev_state, false);
-  mFsim.set_fault_list(mFaultList);
-  mMaxId = 0;
-  for ( auto f: mFaultList ) {
-    mMaxId = std::max(mMaxId, f.id());
-  }
-  ++ mMaxId;
-}
-
-
 // @brief 故障を分類する．
 vector<vector<TpgFault>>
 Classifier2::run(
-  const vector<TestVector>& tv_list
+  const TpgNetwork& network,
+  const vector<TpgFault>& fault_list,
+  bool has_prev_state,
+  const vector<TestVector>& tv_list,
+  bool singleton_drop
 )
 {
+  Fsim fsim;
+  fsim.initialize(network, has_prev_state, false);
+  fsim.set_fault_list(fault_list);
+  max_id = 0;
+  for ( auto f: fault_list ) {
+    max_id = std::max(max_id, f.id());
+  }
+  ++ max_id;
   Timer timer;
   // 最初はすべての故障が一つのグループとなっている．
-  vector<vector<TpgFault>> fg_list{mFaultList, };
+  vector<vector<TpgFault>> fg_list{fault_list, };
   for ( auto tv: tv_list ) {
     // fgmap を今回のシミュレーション結果で細分化する．
     // 今回未検出の故障のグループ番号は変わらない．
-    unordered_map<pair<DiffBits, int>, int, Hash, Eq> sig_dict;
+    unordered_map<SigKey, SizeType, Hash, Eq> sig_dict;
     timer.start();
-    auto fault_list1 = mFsim.sppfp(tv);
+    auto fault_list1 = fsim.sppfp(tv);
     timer.stop();
     vector<vector<TpgFault>> new_fg_list;
     for ( auto fgroup: fg_list ) {
       std::unordered_map<DiffBits, SizeType> sig_dict;
       for ( auto fault: fgroup ) {
-	auto dbits = mFsim.sppfp_diffbits(fault);
+	auto dbits = fsim.sppfp_diffbits(fault);
 	SizeType g;
 	if ( sig_dict.count(dbits) == 0 ) {
 	  // 新しいグループ番号を割り当てる．
@@ -109,19 +107,19 @@ Classifier2::run2(
 {
   Timer timer;
   // 最初はすべての故障が一つのグループとなっている．
-  vector<vector<TpgFault>> fg_list{mFaultList, };
+  vector<vector<TpgFault>> fg_list{fault_list, };
   for ( auto tv: tv_list ) {
     // fgmap を今回のシミュレーション結果で細分化する．
     // 今回未検出の故障のグループ番号は変わらない．
-    unordered_map<pair<DiffBits, int>, int, Hash, Eq> sig_dict;
+    unordered_map<SigKey, int, Hash, Eq> sig_dict;
     timer.start();
-    auto fault_list1 = mFsim.sppfp(tv);
+    auto fault_list1 = fsim.sppfp(tv);
     timer.stop();
     vector<vector<TpgFault>> new_fg_list;
     for ( auto fgroup: fg_list ) {
       std::unordered_map<DiffBits, vector<TpgFault>> sig_dict;
       for ( auto fault: fgroup ) {
-	auto dbits = mFsim.sppfp_diffbits(fault);
+	auto dbits = fsim.sppfp_diffbits(fault);
 	if ( sig_dict.count(dbits) == 0 ) {
 	  // 新しいグループを割り当てる．
 	  vector<TpgFault> new_group{fault, };
@@ -140,11 +138,11 @@ Classifier2::run2(
 	}
       }
       for ( auto fault: fgroup ) {
-	auto dbits = mFsim.sppfp_diffbits(fault);
+	auto dbits = fsim.sppfp_diffbits(fault);
 	auto& g = sig_dict.at(dbits);
 	if ( g.size() == 1 ) {
 	  // 故障シミュレーションの対象からも外す．
-	  mFsim.set_skip(fault);
+	  fsim.set_skip(fault);
 	}
       }
     }
