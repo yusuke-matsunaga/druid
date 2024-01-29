@@ -348,7 +348,8 @@ dtpg_test(
   cout << "DTPG time:                    "
        << std::fixed << std::setprecision(2) << (time / 1000) << endl;
 
-  auto fault_group_list = Classifier2::run2(network, fault_list, td_mode, fixed_tv_list, true);
+#if 0
+  auto fault_group_list = Classifier2::run(network, fault_list, td_mode, fixed_tv_list, true);
 
   timer.stop();
   auto class_time = timer.get_time();
@@ -398,6 +399,7 @@ dtpg_test(
   cout << "Classfiy2 time:               "
        << std::fixed << std::setprecision(2)
        << (class2_time / 1000) << endl;
+#endif
 
   timer.reset();
   timer.start();
