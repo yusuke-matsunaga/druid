@@ -28,10 +28,10 @@ class EventQ
 public:
 
   /// @brief コンストラクタ
-  EventQ();
+  EventQ() = default;
 
   /// @brief デストラクタ
-  ~EventQ();
+  ~EventQ() = default;
 
 
 public:
@@ -158,10 +158,7 @@ private:
     FSIM_VALTYPE old_val ///< [in] 元の値
   )
   {
-    auto& rinfo = mClearArray[mClearPos];
-    rinfo.mNode = node;
-    rinfo.mVal = old_val;
-    ++ mClearPos;
+    mClearArray.push_back({node, old_val});
   }
 
   /// @brief 反転フラグをセットする．
@@ -204,13 +201,10 @@ private:
 
   // 出力ごとの故障伝搬パタンの配列
   // サイズは mOutputNum
-  PackedVal* mPropArray{nullptr};
-
-  // mArray のサイズ
-  SizeType mArraySize{0};
+  vector<PackedVal> mPropArray;
 
   // キューの先頭ノードの配列
-  SimNode** mArray{nullptr};
+  vector<SimNode*> mArray;
 
   // 現在のレベル．
   SizeType mCurLevel{0};
@@ -218,18 +212,15 @@ private:
   // キューに入っているノード数
   SizeType mNum{0};
 
-  // mCearArray のサイズ
-  SizeType mClearArraySize{0};
-
   // clear 用の情報の配列
-  RestoreInfo* mClearArray{nullptr};
+  vector<RestoreInfo> mClearArray;
 
   // mCelarArray の最後の要素位置
   SizeType mClearPos{0};
 
   // 反転マスクの配列
   // サイズは mClearArraySize と同じ
-  PackedVal* mFlipMaskArray{nullptr};
+  vector<PackedVal> mFlipMaskArray;
 
   // 反転マスクをセットしたノードのリスト
   // 仕様上 PV_BITLEN が最大

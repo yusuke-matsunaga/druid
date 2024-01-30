@@ -16,20 +16,6 @@ BEGIN_NAMESPACE_DRUID_FSIM
 // 故障シミュレーション用のイベントキューを表すクラス
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-EventQ::EventQ(
-){
-}
-
-// @brief デストラクタ
-EventQ::~EventQ()
-{
-  delete [] mPropArray;
-  delete [] mArray;
-  delete [] mClearArray;
-  delete [] mFlipMaskArray;
-}
-
 // @brief 初期化を行う．
 void
 EventQ::init(
@@ -38,32 +24,19 @@ EventQ::init(
   SizeType node_num
 )
 {
-  if ( output_num != mOutputNum ) {
-    delete [] mPropArray;
-    mOutputNum = output_num;
-    mPropArray = new PackedVal[mOutputNum];
-  }
-  for ( auto i: Range(0, mOutputNum) ) {
-    mPropArray[i] = PV_ALL0;
-  }
+  mOutputNum = output_num;
+  mPropArray.clear();
+  mPropArray.resize(mOutputNum, PV_ALL0);
 
-  if ( max_level >= mArraySize ) {
-    delete [] mArray;
-    mArraySize = max_level + 1;
-    mArray = new SimNode*[mArraySize];
-  }
-  if ( node_num > mClearArraySize ) {
-    delete [] mClearArray;
-    delete [] mFlipMaskArray;
-    mClearArraySize = node_num;
-    mClearArray = new RestoreInfo[mClearArraySize];
-    mFlipMaskArray = new PackedVal[mClearArraySize];
-  }
+  mArray.clear();
+  mArray.resize(max_level + 1, nullptr);
+
+  mClearArray.clear();
+  mClearArray.reserve(node_num);
+  mFlipMaskArray.clear();
+  mFlipMaskArray.resize(node_num, PV_ALL0);
 
   mCurLevel = 0;
-  for ( auto i: Range(0, mArraySize) ) {
-    mArray[i] = nullptr;
-  }
   mNum = 0;
 }
 
@@ -103,12 +76,11 @@ EventQ::simulate()
   }
 
   // 今の故障シミュレーションで値の変わったノードを元にもどしておく
-  for ( auto i: Range(0, mClearPos) ) {
-    auto& rinfo = mClearArray[i];
+  for ( auto& rinfo: mClearArray ) {
     auto node = rinfo.mNode;
     node->set_val(rinfo.mVal);
   }
-  mClearPos = 0;
+  mClearArray.clear();
 
   for ( auto i: Range(0, mMaskPos) ) {
     auto node = mMaskList[i];
