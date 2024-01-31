@@ -49,11 +49,14 @@ public:
 
   /// @brief 出力値の計算を行う．
   FSIM_VALTYPE
-  _calc_val() override;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
   PackedVal
   _calc_gobs(
+    const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
     SizeType ipos
   ) override;
 
@@ -65,11 +68,13 @@ protected:
 
   /// @brief ファンインの値のANDを計算する．
   FSIM_VALTYPE
-  _calc_and()
+  _calc_and(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  )
   {
-    auto val = _fanin(0)->val();
+    auto val = _fanin(0)->val(val_array);
     for ( auto i: Range(1, _fanin_num()) ) {
-      val &= _fanin(i)->val();
+      val &= _fanin(i)->val(val_array);
     }
   return val;
   }
@@ -112,11 +117,14 @@ public:
 
   /// @brief 出力値の計算を行う．
   FSIM_VALTYPE
-  _calc_val() override;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
   PackedVal
   _calc_gobs(
+    const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
     SizeType ipos
   ) override;
 
@@ -128,10 +136,12 @@ protected:
 
   /// @brief ファンインの値のANDを計算する．
   FSIM_VALTYPE
-  _calc_and()
+  _calc_and(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  )
   {
-    auto val0 = _fanin(0)->val();
-    auto val1 = _fanin(1)->val();
+    auto val0 = _fanin(0)->val(val_array);
+    auto val1 = _fanin(1)->val(val_array);
     return val0 & val1;
   }
 
@@ -173,11 +183,14 @@ public:
 
   /// @brief 出力値の計算を行う．
   FSIM_VALTYPE
-  _calc_val() override;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
   PackedVal
   _calc_gobs(
+    const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
     SizeType ipos
   ) override;
 
@@ -189,11 +202,13 @@ protected:
 
   /// @brief ファンインの値のANDを計算する．
   FSIM_VALTYPE
-  _calc_and()
+  _calc_and(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  )
   {
-    auto val0 = _fanin(0)->val();
-    auto val1 = _fanin(1)->val();
-    auto val2 = _fanin(2)->val();
+    auto val0 = _fanin(0)->val(val_array);
+    auto val1 = _fanin(1)->val(val_array);
+    auto val2 = _fanin(2)->val(val_array);
     return val0 & val1 & val2;
   }
 
@@ -235,11 +250,14 @@ public:
 
   /// @brief 出力値の計算を行う．
   FSIM_VALTYPE
-  _calc_val() override;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
   PackedVal
   _calc_gobs(
+    const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
     SizeType ipos
   ) override;
 
@@ -251,12 +269,14 @@ protected:
 
   /// @brief ファンインの値のANDを計算する．
   FSIM_VALTYPE
-  _calc_and()
+  _calc_and(
+    const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
+  )
   {
-    auto val0 = _fanin(0)->val();
-    auto val1 = _fanin(1)->val();
-    auto val2 = _fanin(2)->val();
-    auto val3 = _fanin(3)->val();
+    auto val0 = _fanin(0)->val(val_array);
+    auto val1 = _fanin(1)->val(val_array);
+    auto val2 = _fanin(2)->val(val_array);
+    auto val3 = _fanin(3)->val(val_array);
     return val0 & val1 & val2 & val3;
   }
 
@@ -298,7 +318,9 @@ public:
 
   /// @brief 出力値の計算を行う．
   FSIM_VALTYPE
-  _calc_val() override;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) override;
 
 };
 
@@ -338,7 +360,9 @@ public:
 
   /// @brief 出力値の計算を行う．
   FSIM_VALTYPE
-  _calc_val() override;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) override;
 
 };
 
@@ -378,7 +402,9 @@ public:
 
   /// @brief 出力値の計算を行う．
   FSIM_VALTYPE
-  _calc_val() override;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) override;
 
 };
 
@@ -418,7 +444,9 @@ public:
 
   /// @brief 出力値の計算を行う．
   FSIM_VALTYPE
-  _calc_val() override;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) override;
 
 };
 

@@ -119,13 +119,15 @@ TvInputVals::set_val(
 // @brief 1時刻目の値を設定する．(遷移故障用)
 void
 TvInputVals::set_val1(
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  vector<FSIM_VALTYPE>& val_array
 ) const
 {
   SizeType iid = 0;
   for ( auto simnode: fsim.ppi_list() ) {
     auto val3 = mTestVector.ppi_val(iid);
-    simnode->set_val(val3_to_packedval(val3));
+    auto val = val3_to_packedval(val3);
+    simnode->set_val(val_array, val);
     ++ iid;
   }
 }
@@ -133,13 +135,15 @@ TvInputVals::set_val1(
 // @brief 2時刻目の値を設定する．(縮退故障用)
 void
 TvInputVals::set_val2(
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  vector<FSIM_VALTYPE>& val_array
 ) const
 {
   SizeType iid = 0;
   for ( auto simnode: fsim.input_list() ) {
     auto val3 = mTestVector.aux_input_val(iid);
-    simnode->set_val(val3_to_packedval(val3));
+    auto val = val3_to_packedval(val3);
+    simnode->set_val(val_array, val);
     ++ iid;
   }
 }
@@ -175,7 +179,8 @@ Tv2InputVals::~Tv2InputVals()
 // @brief 値を設定する．(縮退故障用)
 void
 Tv2InputVals::set_val(
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  vector<FSIM_VALTYPE>& val_array
 ) const
 {
   // 設定されていないビットはどこか他の設定されているビットをコピーする．
@@ -188,7 +193,7 @@ Tv2InputVals::set_val(
       auto ival = mPatArray[pos].ppi_val(iid);
       bit_set(val, ival, bit);
     }
-    simnode->set_val(val);
+    simnode->set_val(val_array, val);
     ++ iid;
   }
 }
@@ -196,7 +201,8 @@ Tv2InputVals::set_val(
 // @brief 1時刻目の値を設定する．(遷移故障用)
 void
 Tv2InputVals::set_val1(
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  vector<FSIM_VALTYPE>& val_array
 ) const
 {
   // 設定されていないビットはどこか他の設定されているビットをコピーする．
@@ -209,7 +215,7 @@ Tv2InputVals::set_val1(
       auto ival = mPatArray[pos].ppi_val(iid);
       bit_set(val, ival, bit);
     }
-    simnode->set_val(val);
+    simnode->set_val(val_array, val);
     ++ iid;
   }
 }
@@ -217,7 +223,8 @@ Tv2InputVals::set_val1(
 // @brief 2時刻目の値を設定する．(遷移故障用)
 void
 Tv2InputVals::set_val2(
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  vector<FSIM_VALTYPE>& val_array
 ) const
 {
   // 設定されていないビットはどこか他の設定されているビットをコピーする．
@@ -230,7 +237,7 @@ Tv2InputVals::set_val2(
       auto ival = mPatArray[pos].aux_input_val(iid);
       bit_set(val, ival, bit);
     }
-    simnode->set_val(val);
+    simnode->set_val(val_array, val);
     ++ iid;
   }
 }
@@ -255,7 +262,8 @@ NvlInputVals::~NvlInputVals()
 // @brief 値を設定する．(縮退故障用)
 void
 NvlInputVals::set_val(
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  vector<FSIM_VALTYPE>& val_array
 ) const
 {
   auto val0 = init_val();
@@ -267,14 +275,16 @@ NvlInputVals::set_val(
     ASSERT_COND( nv.time() == 1 );
     SizeType iid = nv.node()->input_id();
     auto simnode = fsim.ppi(iid);
-    simnode->set_val(int_to_packedval(nv.val()));
+    auto val = int_to_packedval(nv.val());
+    simnode->set_val(val_array, val);
   }
 }
 
 // @brief 1時刻目の値を設定する．(遷移故障用)
 void
 NvlInputVals::set_val1(
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  vector<FSIM_VALTYPE>& val_array
 ) const
 {
   auto val0 = init_val();
@@ -286,7 +296,8 @@ NvlInputVals::set_val1(
     if ( nv.time() == 0 ) {
       SizeType iid = nv.node()->input_id();
       auto simnode = fsim.ppi(iid);
-      simnode->set_val(int_to_packedval(nv.val()));
+      auto val = int_to_packedval(nv.val());
+      simnode->set_val(val_array, val);
     }
   }
 }
@@ -294,7 +305,8 @@ NvlInputVals::set_val1(
 // @brief 2時刻目の値を設定する．(遷移故障用)
 void
 NvlInputVals::set_val2(
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  vector<FSIM_VALTYPE>& val_array
 ) const
 {
   auto val0 = init_val();
@@ -306,7 +318,8 @@ NvlInputVals::set_val2(
     if ( nv.time() == 1 ) {
       SizeType iid = nv.node()->input_id();
       auto simnode = fsim.ppi(iid);
-      simnode->set_val(int_to_packedval(nv.val()));
+      auto val = int_to_packedval(nv.val());
+      simnode->set_val(val_array, val);
     }
   }
 }

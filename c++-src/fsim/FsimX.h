@@ -306,20 +306,37 @@ private:
     cbtype callback ///< [in] コールバック関数
   );
 
-  /// @brief 正常値の計算を行う．
+#if FSIM_COMBI
+  /// @brief 正常値の計算を行う．(縮退故障用)
+  ///
+  /// 結果は val_array に格納される．
   void
-  _calc_gval(
-    const InputVals& input_vals ///< [in] 入力値
+  FSIM_CLASSNAME::_calc_gval(
+    vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
+    const InputVals& input_vals      ///< [in] 入力値
   );
+#endif
+
+#if FSIM_BSIDE
+  /// @brief 正常値の計算を行う．(遷移故障用)
+  void
+  FSIM_CLASSNAME::_calc_gval(
+    vector<FSIM_VALTYPE>& cur_val_array,  ///< [in] 現在の値の配列
+    vector<FSIM_VALTYPE>& prev_val_array, ///< [in] 1時刻前の値の配列
+    const InputVals& input_vals           ///< [in] 入力値
+  );
+#endif
 
   /// @brief 値の計算を行う．
   ///
   /// 入力ノードに値の設定は済んでいるものとする．
   void
-  _calc_val()
+  _calc_val(
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  )
   {
     for ( auto node: mLogicArray ) {
-      node->calc_val();
+      node->calc_val(val_array);
     }
   }
 

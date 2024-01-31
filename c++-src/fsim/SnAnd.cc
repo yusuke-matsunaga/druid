@@ -42,23 +42,26 @@ SnAnd::gate_type() const
 
 // @brief 故障値の計算を行う．
 FSIM_VALTYPE
-SnAnd::_calc_val()
+SnAnd::_calc_val(
+  const vector<FSIM_VALTYPE>& val_array
+)
 {
-  return _calc_and();
+  return _calc_and(val_array);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
 SnAnd::_calc_gobs(
+  const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
 )
 {
   auto obs = PV_ALL1;
   for ( auto i: Range(0, ipos) ) {
-    obs &= _obs_val(_fanin(i)->val());
+    obs &= _obs_val(_fanin(i)->val(val_array));
   }
   for ( auto i: Range(ipos + 1, _fanin_num()) ) {
-    obs &= _obs_val(_fanin(i)->val());
+    obs &= _obs_val(_fanin(i)->val(val_array));
   }
   return obs;
 }
@@ -77,14 +80,17 @@ SnAnd2::gate_type() const
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnAnd2::_calc_val()
+SnAnd2::_calc_val(
+  const vector<FSIM_VALTYPE>& val_array
+)
 {
-  return _calc_and();
+  return _calc_and(val_array);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
 SnAnd2::_calc_gobs(
+  const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
 )
 {
@@ -106,14 +112,17 @@ SnAnd3::gate_type() const
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnAnd3::_calc_val()
+SnAnd3::_calc_val(
+  const vector<FSIM_VALTYPE>& val_array
+)
 {
-  return _calc_and();
+  return _calc_and(val_array);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
 SnAnd3::_calc_gobs(
+  const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
 )
 {
@@ -137,14 +146,17 @@ SnAnd4::gate_type() const
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnAnd4::_calc_val()
+SnAnd4::_calc_val(
+  const vector<FSIM_VALTYPE>& val_array
+)
 {
-  return _calc_and();
+  return _calc_and(val_array);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
 SnAnd4::_calc_gobs(
+  const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
 )
 {
@@ -169,9 +181,11 @@ SnNand::gate_type() const
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnNand::_calc_val()
+SnNand::_calc_val(
+  const vector<FSIM_VALTYPE>& val_array
+)
 {
-  return ~_calc_and();
+  return ~_calc_and(val_array);
 }
 
 
@@ -188,9 +202,11 @@ SnNand2::gate_type() const
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnNand2::_calc_val()
+SnNand2::_calc_val(
+  const vector<FSIM_VALTYPE>& val_array
+)
 {
-  return ~_calc_and();
+  return ~_calc_and(val_array);
 }
 
 
@@ -207,9 +223,11 @@ SnNand3::gate_type() const
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnNand3::_calc_val()
+SnNand3::_calc_val(
+  const vector<FSIM_VALTYPE>& val_array
+)
 {
-  return ~_calc_and();
+  return ~_calc_and(val_array);
 }
 
 
@@ -226,9 +244,11 @@ SnNand4::gate_type() const
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnNand4::_calc_val()
+SnNand4::_calc_val(
+  const vector<FSIM_VALTYPE>& val_array
+)
 {
-  return ~_calc_and();
+  return ~_calc_and(val_array);
 }
 
 END_NAMESPACE_DRUID_FSIM

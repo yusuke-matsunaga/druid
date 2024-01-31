@@ -38,21 +38,24 @@ public:
   virtual
   void
   set_val(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const = 0;
 
   /// @brief 1時刻目の値を設定する．(遷移故障用)
   virtual
   void
   set_val1(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const = 0;
 
   /// @brief 2時刻目の値を設定する．(遷移故障用)
   virtual
   void
   set_val2(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const = 0;
 
 };
@@ -84,19 +87,22 @@ public:
   /// @brief 値を設定する．(縮退故障用)
   void
   set_val(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
   /// @brief 1時刻目の値を設定する．(遷移故障用)
   void
   set_val1(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
   /// @brief 2時刻目の値を設定する．(遷移故障用)
   void
   set_val2(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
 
@@ -138,19 +144,22 @@ public:
   /// @brief 値を設定する．(縮退故障用)
   void
   set_val(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
   /// @brief 1時刻目の値を設定する．(遷移故障用)
   void
   set_val1(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
   /// @brief 2時刻目の値を設定する．(遷移故障用)
   void
   set_val2(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
 
@@ -198,19 +207,22 @@ public:
   /// @brief 値を設定する．(縮退故障用)
   void
   set_val(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
   /// @brief 1時刻目の値を設定する．(遷移故障用)
   void
   set_val1(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
   /// @brief 2時刻目の値を設定する．(遷移故障用)
   void
   set_val2(
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
+    FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
 
 

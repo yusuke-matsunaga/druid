@@ -5,7 +5,7 @@
 /// @brief SimNode のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
@@ -221,40 +221,48 @@ public:
 
   /// @brief 出力値を得る．
   FSIM_VALTYPE
-  val() const
+  val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) const
   {
-    return mVal;
+    return val_array[mId];
   }
 
   /// @brief 出力値のセットを行う．
   void
   set_val(
-    FSIM_VALTYPE val ///< [in] 値
+    vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
+    FSIM_VALTYPE val                 ///< [in] 値
   )
   {
-    mVal = val;
+    val_array[mId] = val;
   }
 
   /// @brief 出力値のセットを行う(マスク付き)．
   void
   set_val(
-    FSIM_VALTYPE val, ///< [in] 値
-    PackedVal mask    ///< [in] マスク
+    vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
+    FSIM_VALTYPE val,                ///< [in] 値
+    PackedVal mask                   ///< [in] マスク
   )
   {
+    auto& val_ref = val_array[mId];
 #if FSIM_VAL2
-    mVal &= ~mask;
-    mVal |= (val & mask);
+    val_ref &= ~mask;
+    val_ref |= (val & mask);
 #elif FSIM_VAL3
-    mVal.set_with_mask(val, mask);
+    val_ref.set_with_mask(val, mask);
 #endif
   }
 
   /// @brief 出力値を計算する．
   void
-  calc_val()
+  calc_val(
+    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  )
   {
-    set_val(_calc_val());
+    auto val = _calc_val(val_array);
+    set_val(val_array, val);
   }
 
   /// @brief 出力値を計算する(マスク付き)．
@@ -265,7 +273,8 @@ public:
     PackedVal mask ///< [in] マスク
   )
   {
-    set_val(_calc_val(), mask);
+    auto val = _calc_val(val_array);
+    set_val(val_array, val, mask);
   }
 
 #if FSIM_BSIDE
@@ -294,13 +303,16 @@ public:
   /// @return 計算結果を返す．
   virtual
   FSIM_VALTYPE
-  _calc_val() = 0;
+  _calc_val(
+    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  ) = 0;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
   virtual
   PackedVal
   _calc_gobs(
-    SizeType ipos ///< [in] 入力番号
+    const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
+    SizeType ipos                          ///< [in] 入力番号
   ) = 0;
 
 
