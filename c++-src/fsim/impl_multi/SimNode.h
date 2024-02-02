@@ -34,7 +34,8 @@ protected:
 
   /// @brief コンストラクタ
   SimNode(
-    SizeType id ///< [in] ノード番号
+    SizeType id,   ///< [in] ノード番号
+    SizeType level ///< [in] レベル
   );
 
 
@@ -70,7 +71,8 @@ public:
   new_gate(
     SizeType id,                   ///< [in] ノード番号
     PrimType type,                 ///< [in] ゲートの種類
-    const vector<SimNode*>& inputs ///< [in] ファンインのノードのリスト
+    SizeType level,                ///< [in] レベル
+    const vector<SizeType>& inputs ///< [in] ファンインのノードのリスト
   );
 
 
@@ -96,9 +98,9 @@ public:
   SizeType
   fanin_num() const = 0;
 
-  /// @brief pos 番めのファンインを得る．
+  /// @brief pos 番めのファンインのノード番号を得る．
   virtual
-  SimNode*
+  SizeType
   fanin(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < fanin_num() )
   ) const = 0;
@@ -219,79 +221,14 @@ public:
   // 故障シミュレーションに関する情報の取得/設定
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 出力値を得る．
-  FSIM_VALTYPE
-  val(
-    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
-  ) const
-  {
-    return val_array[mId];
-  }
-
-  /// @brief 出力値のセットを行う．
-  void
-  set_val(
-    vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
-    FSIM_VALTYPE val                 ///< [in] 値
-  )
-  {
-    val_array[mId] = val;
-  }
-
-  /// @brief 出力値のセットを行う(マスク付き)．
-  void
-  set_val(
-    vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
-    FSIM_VALTYPE val,                ///< [in] 値
-    PackedVal mask                   ///< [in] マスク
-  )
-  {
-    auto& val_ref = val_array[mId];
-#if FSIM_VAL2
-    val_ref &= ~mask;
-    val_ref |= (val & mask);
-#elif FSIM_VAL3
-    val_ref.set_with_mask(val, mask);
-#endif
-  }
-
   /// @brief 出力値を計算する．
-  void
+  FSIM_VALTYPE
   calc_val(
     vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   )
   {
-    auto val = _calc_val(val_array);
-    set_val(val_array, val);
+    return _calc_val(val_array);
   }
-
-  /// @brief 出力値を計算する(マスク付き)．
-  ///
-  /// mask で1の立っているビットだけ更新する．
-  void
-  calc_val(
-    PackedVal mask ///< [in] マスク
-  )
-  {
-    auto val = _calc_val(val_array);
-    set_val(val_array, val, mask);
-  }
-
-#if FSIM_BSIDE
-  /// @brief 1時刻前の出力値を得る．
-  FSIM_VALTYPE
-  prev_val() const
-  {
-    return mPrevVal;
-  }
-
-  /// @brief 今の値を1時刻前の値にシフトする．
-  void
-  shift_val()
-  {
-    mPrevVal = mVal;
-  }
-#endif
 
 
 public:

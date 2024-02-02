@@ -181,6 +181,8 @@ fsim2test(
   bool sa_mode = false;
   bool td_mode = false;
 
+  bool old = false;
+
   argv0 = argv[0];
 
   int pos = 1;
@@ -240,6 +242,9 @@ fsim2test(
 	}
 	td_mode = true;
       }
+      else if ( strcmp(argv[pos], "--old") == 0 ) {
+	old = true;
+      }
       else if ( strcmp(argv[pos], "--blif") == 0 ) {
 	format = "blif";
       }
@@ -297,7 +302,12 @@ fsim2test(
 
   bool prev_state = fault_type == FaultType::TransitionDelay;
   Fsim fsim;
-  fsim.initialize(network, prev_state, fsim3);
+  if ( old ) {
+    fsim.initialize_naive(network, prev_state, fsim3);
+  }
+  else {
+    fsim.initialize(network, prev_state, fsim3);
+  }
 
   fsim.set_fault_list(fmgr.rep_fault_list());
 

@@ -25,9 +25,11 @@ public:
 
   /// @brief コンストラクタ
   RefNode(
+    SizeType id,                       ///< [in] ノード番号
     PrimType gate_type,                ///< [in] ゲートタイプ
     const vector<RefNode*>& fanin_list ///< [in] ファンインリスト
-  ) : mGateType{gate_type},
+  ) : mId{id},
+      mGateType{gate_type},
       mFaninList{fanin_list}
   {
   }
@@ -40,6 +42,13 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief ID番号を得る．
+  SizeType
+  id() const
+  {
+    return mId;
+  }
 
   /// @brief 正常値をセットする．
   void
@@ -216,6 +225,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // ID番号
+  SizeType mId;
 
   // ゲートタイプ
   PrimType mGateType;

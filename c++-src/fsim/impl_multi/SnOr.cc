@@ -1,12 +1,12 @@
 ﻿
-/// @file SnAnd.cc
-/// @brief SnAnd の実装ファイル
+/// @file SnOr.cc
+/// @brief SnOr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2016, 2017, 2018, 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "SnAnd.h"
+#include "SnOr.h"
 #include "ym/Range.h"
 
 
@@ -22,140 +22,143 @@ _obs_val(
 )
 {
 #if FSIM_VAL2
-  return val;
+  return ~val;
 #elif FSIM_VAL3
-  return val.val1();
+  return val.val0();
 #endif
 }
+
 END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
-// SnAnd
+// SnOr
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
 PrimType
-SnAnd::gate_type() const
+SnOr::gate_type() const
 {
-  return PrimType::And;
+  return PrimType::Or;
 }
 
-// @brief 故障値の計算を行う．
+// @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnAnd::_calc_val(
+SnOr::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
 )
 {
-  return _calc_and(val_array);
+  return _calc_or(val_array);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
-SnAnd::_calc_gobs(
+SnOr::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
 )
 {
   auto obs = PV_ALL1;
   for ( auto i: Range(0, ipos) ) {
-    obs &= _obs_val(_fanin(i)->val(val_array));
+    auto val = val_array[_fanin(i)];
+    obs &= _obs_val(val);
   }
   for ( auto i: Range(ipos + 1, _fanin_num()) ) {
-    obs &= _obs_val(_fanin(i)->val(val_array));
+    auto val = val_array[_fanin(i)];
+    obs &= _obs_val(val);
   }
   return obs;
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// SnAnd2
+// SnOr2
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
 PrimType
-SnAnd2::gate_type() const
+SnOr2::gate_type() const
 {
-  return PrimType::And;
+  return PrimType::Or;
 }
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnAnd2::_calc_val(
+SnOr2::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
 )
 {
-  return _calc_and(val_array);
+  return _calc_or(val_array);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
-SnAnd2::_calc_gobs(
+SnOr2::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
 )
 {
-  FSIM_VALTYPE val0 = _get_sideval(ipos);
+  auto val0 = _get_sideval(val_array, ipos);
   return _obs_val(val0);
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// SnAnd3
+// SnOr3
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
 PrimType
-SnAnd3::gate_type() const
+SnOr3::gate_type() const
 {
-  return PrimType::And;
+  return PrimType::Or;
 }
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnAnd3::_calc_val(
+SnOr3::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
 )
 {
-  return _calc_and(val_array);
+  return _calc_or(val_array);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
-SnAnd3::_calc_gobs(
+SnOr3::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
 )
 {
   FSIM_VALTYPE val0;
   FSIM_VALTYPE val1;
-  _get_sideval(ipos, val0, val1);
+  _get_sideval(val_array, ipos, val0, val1);
   return _obs_val(val0) & _obs_val(val1);
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// SnAnd4
+// SnOr4
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
 PrimType
-SnAnd4::gate_type() const
+SnOr4::gate_type() const
 {
-  return PrimType::And;
+  return PrimType::Or;
 }
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnAnd4::_calc_val(
+SnOr4::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
 )
 {
-  return _calc_and(val_array);
+  return _calc_or(val_array);
 }
 
 // @brief ゲートの入力から出力までの可観測性を計算する．
 PackedVal
-SnAnd4::_calc_gobs(
+SnOr4::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
 )
@@ -163,92 +166,92 @@ SnAnd4::_calc_gobs(
   FSIM_VALTYPE val0;
   FSIM_VALTYPE val1;
   FSIM_VALTYPE val2;
-  _get_sideval(ipos, val0, val1, val2);
+  _get_sideval(val_array, ipos, val0, val1, val2);
   return _obs_val(val0) & _obs_val(val1) & _obs_val(val2);
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// SnNand
+// SnNor
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
 PrimType
-SnNand::gate_type() const
+SnNor::gate_type() const
 {
-  return PrimType::Nand;
+  return PrimType::Nor;
 }
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnNand::_calc_val(
+SnNor::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
 )
 {
-  return ~_calc_and(val_array);
+  return ~_calc_or(val_array);
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// SnNand2
+// SnNor2
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
 PrimType
-SnNand2::gate_type() const
+SnNor2::gate_type() const
 {
-  return PrimType::Nand;
+  return PrimType::Nor;
 }
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnNand2::_calc_val(
+SnNor2::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
 )
 {
-  return ~_calc_and(val_array);
+  return ~_calc_or(val_array);
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// SnNand3
+// SnNor3
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
 PrimType
-SnNand3::gate_type() const
+SnNor3::gate_type() const
 {
-  return PrimType::Nand;
+  return PrimType::Nor;
 }
 
-// @brief 出力値の計算を行う．
+// @brief 出力値の計算を行う．(3値版)
 FSIM_VALTYPE
-SnNand3::_calc_val(
+SnNor3::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
 )
 {
-  return ~_calc_and(val_array);
+  return ~_calc_or(val_array);
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// SnNand4
+// SnNor4
 //////////////////////////////////////////////////////////////////////
 
 // @brief ゲートタイプを返す．
 PrimType
-SnNand4::gate_type() const
+SnNor4::gate_type() const
 {
-  return PrimType::Nand;
+  return PrimType::Nor;
 }
 
 // @brief 出力値の計算を行う．
 FSIM_VALTYPE
-SnNand4::_calc_val(
+SnNor4::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
 )
 {
-  return ~_calc_and(val_array);
+  return ~_calc_or(val_array);
 }
 
 END_NAMESPACE_DRUID_FSIM

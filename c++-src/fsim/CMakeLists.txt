@@ -5,104 +5,30 @@
 include_directories (
   ${PROJECT_SOURCE_DIR}/include/types
   ${PROJECT_SOURCE_DIR}/include/fsim
+  .
   )
 
 # ===================================================================
 # サブディレクトリの設定
 # ===================================================================
 
+add_subdirectory( impl_naive )
+add_subdirectory( impl_multi )
+
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
-
-set (fsim_SOURCES
-  EventQ.cc
-  FsimX.cc
-  InputVals.cc
-  SimNode.cc
-  SnAnd.cc
-  SnBuff.cc
-  SnGate.cc
-  SnInput.cc
-  SnOr.cc
-  SnXor.cc
-  )
 
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
 
-ym_add_object_library ( druid_fsim_main
+ym_add_object_library ( druid_fsim
   Fsim.cc
-  )
-
-ym_add_object_library ( druid_fsimcombi2
-  ${fsim_SOURCES}
-  )
-
-target_compile_definitions ( druid_fsimcombi2_obj
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1"
-  )
-
-target_compile_definitions ( druid_fsimcombi2_obj_d
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1"
-  )
-
-target_compile_definitions ( druid_fsimcombi2_obj_p
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_COMBI=1"
-  )
-
-
-ym_add_object_library ( druid_fsimcombi3
-  ${fsim_SOURCES}
-  )
-
-target_compile_definitions ( druid_fsimcombi3_obj
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1"
-  )
-
-target_compile_definitions ( druid_fsimcombi3_obj_d
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1"
-  )
-
-target_compile_definitions ( druid_fsimcombi3_obj_p
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_COMBI=1"
-  )
-
-
-ym_add_object_library ( druid_fsimbside2
-  ${fsim_SOURCES}
-  )
-
-target_compile_definitions ( druid_fsimbside2_obj
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1"
-  )
-
-target_compile_definitions ( druid_fsimbside2_obj_d
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1"
-  )
-
-target_compile_definitions ( druid_fsimbside2_obj_p
-  PRIVATE "-DFSIM_VAL2=1" "-DFSIM_BSIDE=1"
-  )
-
-
-ym_add_object_library ( druid_fsimbside3
-  ${fsim_SOURCES}
-  )
-
-target_compile_definitions ( druid_fsimbside3_obj
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1"
-  )
-
-target_compile_definitions ( druid_fsimbside3_obj_d
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1"
-  )
-
-target_compile_definitions ( druid_fsimbside3_obj_p
-  PRIVATE "-DFSIM_VAL3=1" "-DFSIM_BSIDE=1"
+  Fsim_naive.cc
+  Fsim_multi.cc
   )
 
 

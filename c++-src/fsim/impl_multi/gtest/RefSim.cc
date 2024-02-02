@@ -27,7 +27,7 @@ RefSim::RefSim(
   // 入力ノードを作る．
   for ( SizeType i = 0; i < network.input_num(); ++ i ) {
     auto tpg_node = network.input(i);
-    auto node = new RefNode(PrimType::None, {});
+    auto node = new RefNode(tpg_node->id(), PrimType::None, {});
     mNodeMap[tpg_node->id()] = node;
     mInputList.push_back(node);
   }
@@ -35,7 +35,7 @@ RefSim::RefSim(
   // DFFの出力ノードを作る．
   for ( auto tpg_dff: network.dff_list() ) {
     auto tpg_node = tpg_dff.output();
-    auto node = new RefNode(PrimType::None, {});
+    auto node = new RefNode(tpg_node->id(), PrimType::None, {});
     mNodeMap[tpg_node->id()] = node;
     mDffOutList.push_back(node);
   }
@@ -76,7 +76,7 @@ RefSim::simulate_sa(
     auto node = mInputList[i];
     auto val = tv.ppi_val(i);
     node->set_gval(val);
-   }
+  }
   SizeType nd = mDffOutList.size();
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto node = mDffOutList[i];
@@ -86,7 +86,7 @@ RefSim::simulate_sa(
 
   // 正常値を計算する．
   for ( auto node: mLogicList ) {
-    node->calc_gval();
+    auto val = node->calc_gval();
   }
 
   // 故障値を計算する．
@@ -235,7 +235,7 @@ RefSim::make_node(
     for ( SizeType i = 0; i < ni; ++ i ) {
       fanin_list[i] = make_node(tpg_node->fanin(i));
     }
-    node = new RefNode{tpg_node->gate_type(), fanin_list};
+    node = new RefNode{tpg_node->id(), tpg_node->gate_type(), fanin_list};
     mNodeMap[tpg_node->id()] = node;
     mLogicList.push_back(node);
   }

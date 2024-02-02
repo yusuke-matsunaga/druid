@@ -351,8 +351,6 @@ FSIM_CLASSNAME::_spsfp(
   const TpgFault& f
 )
 {
-  vector<FSIM_VALTYPE> val_array(mNodeArray.size());
-
   // 正常値の計算を行う．
   _calc_gval(iv);
 
@@ -756,7 +754,6 @@ FSIM_CLASSNAME::calc_wsa(
 // @brief 正常値の計算を行う．(縮退故障用)
 void
 FSIM_CLASSNAME::_calc_gval(
-  vector<FSIM_VALTYPE>& val_array,
   const InputVals& input_vals
 )
 {
@@ -764,7 +761,7 @@ FSIM_CLASSNAME::_calc_gval(
   input_vals.set_val(*this);
 
   // 正常値の計算を行う．
-  _calc_val(val_array);
+  _calc_val();
 }
 #endif
 
@@ -772,8 +769,6 @@ FSIM_CLASSNAME::_calc_gval(
 // @brief 正常値の計算を行う．(遷移故障用)
 void
 FSIM_CLASSNAME::_calc_gval(
-  vector<FSIM_VALTYPE>& cur_val_array,
-  vector<FSIM_VALTYPE>& prev_val_array,
   const InputVals& input_vals
 )
 {
@@ -781,21 +776,25 @@ FSIM_CLASSNAME::_calc_gval(
   input_vals.set_val1(*this);
 
   // 1時刻目の正常値の計算を行う．
-  _calc_val(prev_val_array);
+  _calc_val();
+
+  // 1時刻シフトする．
+  for ( auto& node: mNodeArray ) {
+    node->shift_val();
+  }
 
   // DFF の出力の値を入力にコピーする．
   for ( auto i: Range(mDffNum) ) {
     auto onode = mPPOList[i + mOutputNum];
     auto inode = mPPIList[i + mInputNum];
-    auto val = onode->val(prev_val_array);
-    inode->set_val(cur_val_array, val);
+    inode->set_val(onode->val());
   }
 
   // 2時刻目の入力を設定する．
   input_vals.set_val2(*this);
 
   // 2時刻目の正常値の計算を行う．
-  _calc_val(cur_val_array);
+  _calc_val();
 }
 #endif
 

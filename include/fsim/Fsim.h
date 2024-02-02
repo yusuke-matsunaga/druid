@@ -71,6 +71,22 @@ public:
     bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
   );
 
+  /// @brief 初期化を行う．
+  void
+  initialize_multi(
+    const TpgNetwork& network, ///< [in] ネットワーク
+    bool has_previous_state,   ///< [in] 1時刻前の値を持つ時 true にする．
+    bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
+  );
+
+  /// @brief 初期化を行う．
+  void
+  initialize_naive(
+    const TpgNetwork& network, ///< [in] ネットワーク
+    bool has_previous_state,   ///< [in] 1時刻前の値を持つ時 true にする．
+    bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
+  );
+
 
 public:
   //////////////////////////////////////////////////////////////////////
