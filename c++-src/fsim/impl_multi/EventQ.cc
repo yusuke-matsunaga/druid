@@ -30,8 +30,8 @@ EventQ::init(
   mArray.clear();
   mArray.resize(max_level + 1, nullptr);
 
-  mEvNodeMap.clear();
-  mEvNodeMap.resize(node_num, nullptr);
+  mEventMap.clear();
+  mEventMap.resize(node_num, nullptr);
 
   mFlipMaskArray.clear();
   mFlipMaskArray.resize(node_num, PV_ALL0);
