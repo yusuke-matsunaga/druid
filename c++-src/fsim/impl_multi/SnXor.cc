@@ -27,7 +27,7 @@ SnXor::gate_type() const
 FSIM_VALTYPE
 SnXor::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_xor(val_array);
 }
@@ -37,7 +37,7 @@ PackedVal
 SnXor::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
 #if FSIM_VAL2
   // 2値なら常に観測可能
@@ -74,7 +74,7 @@ SnXor2::gate_type() const
 FSIM_VALTYPE
 SnXor2::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_xor(val_array);
 }
@@ -84,7 +84,7 @@ PackedVal
 SnXor2::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
 #if FSIM_VAL2
   // 2値なら常に観測可能
@@ -113,7 +113,7 @@ SnXnor::gate_type() const
 FSIM_VALTYPE
 SnXnor::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_xor(val_array);
 }
@@ -134,7 +134,7 @@ SnXnor2::gate_type() const
 FSIM_VALTYPE
 SnXnor2::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_xor(val_array);
 }

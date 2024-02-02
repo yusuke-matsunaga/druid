@@ -28,8 +28,6 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 class SimNode
 {
-  friend class EventQ;
-
 protected:
 
   /// @brief コンストラクタ
@@ -225,7 +223,7 @@ public:
   FSIM_VALTYPE
   calc_val(
     vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
-  )
+  ) const
   {
     return _calc_val(val_array);
   }
@@ -242,7 +240,7 @@ public:
   FSIM_VALTYPE
   _calc_val(
     const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
-  ) = 0;
+  ) const = 0;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
   virtual
@@ -250,67 +248,7 @@ public:
   _calc_gobs(
     const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
     SizeType ipos                          ///< [in] 入力番号
-  ) = 0;
-
-
-protected:
-  //////////////////////////////////////////////////////////////////////
-  // 派生クラスで用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief レベルを設定する．
-  void
-  set_level(
-    SizeType level ///< [in] レベル
-  );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // EventQ 用の関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief キューに積まれていたら true を返す．
-  bool
-  in_queue() const
-  {
-    return mFlags.test(IN_Q);
-  }
-
-  /// @brief キューフラグをセットする．
-  void
-  set_queue()
-  {
-    mFlags.set(IN_Q);
-  }
-
-  /// @brief キューフラグをクリアする．
-  void
-  clear_queue()
-  {
-    mFlags.reset(IN_Q);
-  }
-
-  /// @brief 反転マスクを持っていたら true を返す．
-  bool
-  has_flip_mask() const
-  {
-    return mFlags.test(FLIP);
-  }
-
-  /// @brief 反転フラグをセットする．
-  void
-  set_flip()
-  {
-    mFlags.set(FLIP);
-  }
-
-  /// @brief 反転フラグをクリアする．
-  void
-  clear_flip()
-  {
-    mFlags.reset(FLIP);
-  }
+  ) const = 0;
 
 
 private:
@@ -324,9 +262,7 @@ private:
   // フラグのビット位置を表す定数
   static const int OUTPUT = 0;
   static const int FFR_ROOT = 1;
-  static const int IN_Q = 2;
-  static const int FLIP = 3;
-  static const int NFLAGS = 4;
+  static const int NFLAGS = 2;
 
   // 種々のフラグ
   bitset<NFLAGS> mFlags;
@@ -341,15 +277,6 @@ private:
 
   // レベル
   SizeType mLevel;
-
-  // イベントキューの次の要素
-  SimNode* mLink;
-
-  // 出力値
-  FSIM_VALTYPE mVal;
-
-  // 1時刻前の値
-  FSIM_VALTYPE mPrevVal;
 
 };
 

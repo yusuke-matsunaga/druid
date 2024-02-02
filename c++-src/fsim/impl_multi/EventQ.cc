@@ -3,7 +3,7 @@
 /// @brief EventQ の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "EventQ.h"
@@ -30,6 +30,9 @@ EventQ::init(
 
   mArray.clear();
   mArray.resize(max_level + 1, nullptr);
+
+  mEvNodeMap.clear();
+  mEvNodeMap.resize(node_num, nullptr);
 
   mClearArray.clear();
   mClearArray.reserve(node_num);
@@ -58,12 +61,11 @@ EventQ::simulate()
 
     auto old_val = get_val(node);
     auto new_val = node->calc_val(mValArray);
-    if ( node->has_flip_mask() ) {
-      // node に反転イベントがある場合
-      auto flip_mask = mFlipMaskArray[node->id()];
-      new_val ^= flip_mask;
-      set_val(node, new_val);
-    }
+    // 反転イベントを考慮する．
+    auto flip_mask = mFlipMaskArray[node->id()];
+    new_val ^= flip_mask;
+    mFlipMaskArray[node->id()] = PV_ALL0;
+    set_val(node, new_val);
     if ( new_val != old_val ) {
       mValArray[node->id()] = new_val;
       add_to_clear_list(node, old_val);
@@ -83,12 +85,6 @@ EventQ::simulate()
     mValArray[rinfo.mId] = rinfo.mVal;
   }
   mClearArray.clear();
-
-  for ( auto i: Range(0, mMaskPos) ) {
-    auto node = mMaskList[i];
-    node->clear_flip();
-  }
-  mMaskPos = 0;
 
   return obs;
 }

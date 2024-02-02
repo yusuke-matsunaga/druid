@@ -26,7 +26,7 @@ SnBuff::gate_type() const
 FSIM_VALTYPE
 SnBuff::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return val_array[_fanin()];
 }
@@ -36,7 +36,7 @@ PackedVal
 SnBuff::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   return PV_ALL1;
 }
@@ -57,7 +57,7 @@ SnNot::gate_type() const
 FSIM_VALTYPE
 SnNot::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~val_array[_fanin()];
 }

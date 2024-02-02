@@ -64,7 +64,7 @@ SnInput::dump(
 FSIM_VALTYPE
 SnInput::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   ASSERT_NOT_REACHED;
   return FSIM_VALTYPE(PV_ALL0);
@@ -75,7 +75,7 @@ PackedVal
 SnInput::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   ASSERT_NOT_REACHED;
   return PV_ALL0;

@@ -45,7 +45,7 @@ SnOr::gate_type() const
 FSIM_VALTYPE
 SnOr::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_or(val_array);
 }
@@ -55,7 +55,7 @@ PackedVal
 SnOr::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   auto obs = PV_ALL1;
   for ( auto i: Range(0, ipos) ) {
@@ -85,7 +85,7 @@ SnOr2::gate_type() const
 FSIM_VALTYPE
 SnOr2::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_or(val_array);
 }
@@ -95,7 +95,7 @@ PackedVal
 SnOr2::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   auto val0 = _get_sideval(val_array, ipos);
   return _obs_val(val0);
@@ -117,7 +117,7 @@ SnOr3::gate_type() const
 FSIM_VALTYPE
 SnOr3::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_or(val_array);
 }
@@ -127,7 +127,7 @@ PackedVal
 SnOr3::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   FSIM_VALTYPE val0;
   FSIM_VALTYPE val1;
@@ -151,7 +151,7 @@ SnOr4::gate_type() const
 FSIM_VALTYPE
 SnOr4::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_or(val_array);
 }
@@ -161,7 +161,7 @@ PackedVal
 SnOr4::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   FSIM_VALTYPE val0;
   FSIM_VALTYPE val1;
@@ -186,7 +186,7 @@ SnNor::gate_type() const
 FSIM_VALTYPE
 SnNor::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_or(val_array);
 }
@@ -207,7 +207,7 @@ SnNor2::gate_type() const
 FSIM_VALTYPE
 SnNor2::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_or(val_array);
 }
@@ -228,7 +228,7 @@ SnNor3::gate_type() const
 FSIM_VALTYPE
 SnNor3::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_or(val_array);
 }
@@ -249,7 +249,7 @@ SnNor4::gate_type() const
 FSIM_VALTYPE
 SnNor4::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_or(val_array);
 }

@@ -212,7 +212,7 @@ protected:
   _get_sideval(
     const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
     SizeType pos                           ///< [in] 対象の入力位置
-  )
+  ) const
   {
     SizeType pos0 = pos ^ 1;
     return val_array[_fanin(pos0)];
@@ -290,7 +290,7 @@ protected:
     SizeType pos,                          ///< [in] 対象の入力位置
     FSIM_VALTYPE& val0,                    ///< [out] それ以外の入力値0
     FSIM_VALTYPE& val1                     ///< [out] それ以外の入力値1
-  )
+  ) const
   {
     SizeType pos0;
     SizeType pos1;
@@ -377,7 +377,7 @@ protected:
     FSIM_VALTYPE& val0,                    ///< [out] それ以外の入力値0
     FSIM_VALTYPE& val1,                    ///< [out] それ以外の入力値1
     FSIM_VALTYPE& val2                     ///< [out] それ以外の入力値2
-  )
+  ) const
   {
     SizeType pos0;
     SizeType pos1;

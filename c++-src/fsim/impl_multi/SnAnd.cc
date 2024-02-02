@@ -44,7 +44,7 @@ SnAnd::gate_type() const
 FSIM_VALTYPE
 SnAnd::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_and(val_array);
 }
@@ -54,7 +54,7 @@ PackedVal
 SnAnd::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   auto obs = PV_ALL1;
   for ( auto i: Range(0, ipos) ) {
@@ -82,7 +82,7 @@ SnAnd2::gate_type() const
 FSIM_VALTYPE
 SnAnd2::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_and(val_array);
 }
@@ -92,7 +92,7 @@ PackedVal
 SnAnd2::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   auto val0 = _get_sideval(val_array, ipos);
   return _obs_val(val0);
@@ -114,7 +114,7 @@ SnAnd3::gate_type() const
 FSIM_VALTYPE
 SnAnd3::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_and(val_array);
 }
@@ -124,7 +124,7 @@ PackedVal
 SnAnd3::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   FSIM_VALTYPE val0;
   FSIM_VALTYPE val1;
@@ -148,7 +148,7 @@ SnAnd4::gate_type() const
 FSIM_VALTYPE
 SnAnd4::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return _calc_and(val_array);
 }
@@ -158,7 +158,7 @@ PackedVal
 SnAnd4::_calc_gobs(
   const vector<FSIM_VALTYPE>& val_array,
   SizeType ipos
-)
+) const
 {
   FSIM_VALTYPE val0;
   FSIM_VALTYPE val1;
@@ -183,7 +183,7 @@ SnNand::gate_type() const
 FSIM_VALTYPE
 SnNand::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_and(val_array);
 }
@@ -204,7 +204,7 @@ SnNand2::gate_type() const
 FSIM_VALTYPE
 SnNand2::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_and(val_array);
 }
@@ -225,7 +225,7 @@ SnNand3::gate_type() const
 FSIM_VALTYPE
 SnNand3::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_and(val_array);
 }
@@ -246,7 +246,7 @@ SnNand4::gate_type() const
 FSIM_VALTYPE
 SnNand4::_calc_val(
   const vector<FSIM_VALTYPE>& val_array
-)
+) const
 {
   return ~_calc_and(val_array);
 }

@@ -5,7 +5,7 @@
 /// @brief EventQ のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
@@ -19,12 +19,25 @@ BEGIN_NAMESPACE_DRUID_FSIM
 /// @class EventQ EventQ.h "EventQ.h"
 /// @brief 故障シミュレーション用のイベントキュー
 ///
-/// キューに詰まれる要素は SimNode で，各々のノードはレベルを持つ．
+/// キューに詰まれる要素は EvNode で，各々のノードはレベルを持つ．
 /// このキューではレベルの小さい順に処理してゆく．同じレベルのノード
 /// 間の順序は任意でよい．
 //////////////////////////////////////////////////////////////////////
 class EventQ
 {
+private:
+
+  /// @brief イベントを表す構造体
+  struct Event
+  {
+    /// @brief 対象の SimNode
+    const SimNode* mSimNode;
+
+    /// @brief イベントキューの次の要素
+    Event* mLink{nullptr};
+  };
+
+
 public:
 
   /// @brief コンストラクタ
@@ -63,8 +76,8 @@ public:
   /// @brief 初期イベントを追加する．
   void
   put_event(
-    SimNode* node,    ///< [in] 対象のノード
-    PackedVal valmask ///< [in] 反転マスク
+    const SimNode* node, ///< [in] 対象のノード
+    PackedVal valmask    ///< [in] 反転マスク
   )
   {
     if ( node->gate_type() == PrimType::None ) {
@@ -110,7 +123,7 @@ private:
   /// @brief ノードの値を取り出す．
   FSIM_VALTYPE
   get_val(
-    SimNode* node ///< [in] 対象のノード
+    const SimNode* node ///< [in] 対象のノード
   )
   {
     return mValArray[node->id()];
@@ -119,8 +132,8 @@ private:
   /// @brief ノードの値を設定する．
   void
   set_val(
-    SimNode* node,   ///< [in] 対象のノード
-    FSIM_VALTYPE val ///< [in] 設定する値
+    const SimNode* node, ///< [in] 対象のノード
+    FSIM_VALTYPE val     ///< [in] 設定する値
   )
   {
     mValArray[node->id()] = val;
@@ -129,7 +142,7 @@ private:
   /// @brief ファンアウトのノードをキューに積む．
   void
   put_fanouts(
-    SimNode* node ///< [in] 対象のノード
+    const SimNode* node ///< [in] 対象のノード
   )
   {
     auto no = node->fanout_num();
@@ -146,35 +159,38 @@ private:
   /// @brief キューに積む
   void
   put(
-    SimNode* node ///< [in] 対象のノード
+    const SimNode* node ///< [in] 対象のノード
   )
   {
-    if ( !node->in_queue() ) {
-      node->set_queue();
+    if ( mEvNodeMap[node->id()] ) {
+      auto ev = new Event{node, nullptr};
+      ++ mNum;
+      mEvNodeMap[node->id()] = ev;
       auto level = node->level();
       auto& w = mArray[level];
-      node->mLink = w;
-      w = node;
-      if ( mNum == 0 || mCurLevel > level ) {
+      ev->mLink = w;
+      w = ev;
+      if ( mNum == 1 || mCurLevel > level ) {
 	mCurLevel = level;
       }
-      ++ mNum;
     }
   }
 
   /// @brief キューから取り出す．
   /// @retval nullptr キューが空だった．
-  SimNode*
+  const SimNode*
   get()
   {
     if ( mNum > 0 ) {
       // mNum が正しければ mCurLevel がオーバーフローすることはない．
       for ( ; ; ++ mCurLevel ) {
 	auto& w = mArray[mCurLevel];
-	auto node = w;
-	if ( node != nullptr ) {
-	  node->clear_queue();
-	  w = node->mLink;
+	auto ev = w;
+	if ( ev != nullptr ) {
+	  auto node = ev->mSimNode;
+	  mEvNodeMap[node->id()] = nullptr;
+	  w = ev->mLink;
+	  delete ev;
 	  -- mNum;
 	  return node;
 	}
@@ -186,7 +202,7 @@ private:
   /// @brief clear リストに追加する．
   void
   add_to_clear_list(
-    SimNode* node,       ///< [in] 対象のノード
+    const SimNode* node, ///< [in] 対象のノード
     FSIM_VALTYPE old_val ///< [in] 元の値
   )
   {
@@ -196,14 +212,12 @@ private:
   /// @brief 反転フラグをセットする．
   void
   set_flip_mask(
-    SimNode* node,      ///< [in] 対象のノード
-    PackedVal flip_mask ///< [in] 反転マスク
+    const SimNode* node, ///< [in] 対象のノード
+    PackedVal flip_mask  ///< [in] 反転マスク
   )
   {
-    node->set_flip();
+    ASSERT_COND( mFlipMaskArray[node->id()] == PV_ALL0 );
     mFlipMaskArray[node->id()] = flip_mask;
-    mMaskList[mMaskPos] = node;
-    ++ mMaskPos;
   }
 
 
@@ -236,7 +250,7 @@ private:
   vector<PackedVal> mPropArray;
 
   // キューの先頭ノードの配列
-  vector<SimNode*> mArray;
+  vector<Event*> mArray;
 
   // 現在のレベル．
   SizeType mCurLevel{0};
@@ -244,19 +258,16 @@ private:
   // キューに入っているノード数
   SizeType mNum{0};
 
+  // ノード番号をキーにして Event を保持する配列
+  // キューに入っていない場合には nullptr を持つ．
+  vector<Event*> mEvNodeMap;
+
   // clear 用の情報の配列
   vector<RestoreInfo> mClearArray;
 
   // 反転マスクの配列
   // サイズは mClearArraySize と同じ
   vector<PackedVal> mFlipMaskArray;
-
-  // 反転マスクをセットしたノードのリスト
-  // 仕様上 PV_BITLEN が最大
-  SimNode* mMaskList[PV_BITLEN];
-
-  // mMaskList の最後の要素位置
-  SizeType mMaskPos{0};
 
   // 値の配列
   vector<FSIM_VALTYPE> mValArray;

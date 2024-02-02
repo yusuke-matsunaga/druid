@@ -51,14 +51,14 @@ public:
   FSIM_VALTYPE
   _calc_val(
     const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
-  ) override;
+  ) const override;
 
   /// @brief ゲートの入力から出力までの可観測性を計算する．
   PackedVal
   _calc_gobs(
     const vector<FSIM_VALTYPE>& val_array, ///< [in] 値の配列
     SizeType ipos
-  ) override;
+  ) const override;
 
 };
 
@@ -101,7 +101,7 @@ public:
   FSIM_VALTYPE
   _calc_val(
     const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
-  ) override;
+  ) const override;
 
 };
 
