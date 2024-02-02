@@ -24,9 +24,8 @@ EventQ::init(
   SizeType node_num
 )
 {
-  mOutputNum = output_num;
   mPropArray.clear();
-  mPropArray.resize(mOutputNum, PV_ALL0);
+  mPropArray.resize(output_num, PV_ALL0);
 
   mArray.clear();
   mArray.resize(max_level + 1, nullptr);
@@ -34,13 +33,14 @@ EventQ::init(
   mEvNodeMap.clear();
   mEvNodeMap.resize(node_num, nullptr);
 
-  mClearArray.clear();
-  mClearArray.reserve(node_num);
   mFlipMaskArray.clear();
   mFlipMaskArray.resize(node_num, PV_ALL0);
 
   mValArray.clear();
   mValArray.resize(node_num);
+
+  mClearArray.clear();
+  mClearArray.reserve(node_num);
 
   mCurLevel = 0;
   mNum = 0;
@@ -93,7 +93,7 @@ EventQ::simulate()
 void
 EventQ::clear_prop_val()
 {
-  for ( auto i: Range(0, mOutputNum) ) {
+  for ( auto i: Range(0, mPropArray.size()) ) {
     mPropArray[i] = PV_ALL0;
   }
 }

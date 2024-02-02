@@ -162,10 +162,10 @@ private:
     const SimNode* node ///< [in] 対象のノード
   )
   {
-    if ( mEvNodeMap[node->id()] ) {
+    if ( mEventMap[node->id()] ) {
       auto ev = new Event{node, nullptr};
       ++ mNum;
-      mEvNodeMap[node->id()] = ev;
+      mEventMap[node->id()] = ev;
       auto level = node->level();
       auto& w = mArray[level];
       ev->mLink = w;
@@ -188,7 +188,7 @@ private:
 	auto ev = w;
 	if ( ev != nullptr ) {
 	  auto node = ev->mSimNode;
-	  mEvNodeMap[node->id()] = nullptr;
+	  mEventMap[node->id()] = nullptr;
 	  w = ev->mLink;
 	  delete ev;
 	  -- mNum;
@@ -242,14 +242,10 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 出力数
-  SizeType mOutputNum{0};
-
   // 出力ごとの故障伝搬パタンの配列
-  // サイズは mOutputNum
   vector<PackedVal> mPropArray;
 
-  // キューの先頭ノードの配列
+  // レベルごとのキューの先頭ノードの配列
   vector<Event*> mArray;
 
   // 現在のレベル．
@@ -260,17 +256,16 @@ private:
 
   // ノード番号をキーにして Event を保持する配列
   // キューに入っていない場合には nullptr を持つ．
-  vector<Event*> mEvNodeMap;
+  vector<Event*> mEventMap;
 
-  // clear 用の情報の配列
-  vector<RestoreInfo> mClearArray;
-
-  // 反転マスクの配列
-  // サイズは mClearArraySize と同じ
+  // ノード番号をキーにして反転マスクを保持する配列
   vector<PackedVal> mFlipMaskArray;
 
   // 値の配列
   vector<FSIM_VALTYPE> mValArray;
+
+  // clear 用の情報の配列
+  vector<RestoreInfo> mClearArray;
 
 };
 
