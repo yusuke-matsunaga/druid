@@ -453,12 +453,8 @@ FSIM_CLASSNAME::_sppfp(
       }
     }
     else {
-      // キューに積んでおく
-      PackedVal bitmask = 1ULL << bitpos;
-      mEventQ.put_event(root, bitmask);
       ffr_buff[bitpos] = &ffr;
       ++ bitpos;
-
       if ( bitpos == PV_BITLEN ) {
 	_sppfp_simulation(ffr_buff, bitpos);
 	bitpos = 0;
@@ -479,6 +475,13 @@ FSIM_CLASSNAME::_sppfp_simulation(
   SizeType ffr_num
 )
 {
+  // キューに積んでおく
+  for ( auto i = 0; i < ffr_num; ++ i ) {
+    auto ffr = ffr_buff[i];
+    auto root = ffr->root();
+    PackedVal bitmask = 1ULL << i;
+    mEventQ.put_event(root, bitmask);
+  }
   auto obs = mEventQ.simulate();
   PackedVal mask = 1ULL;
   for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
