@@ -240,10 +240,10 @@ Fsim_spsfp(
   auto tv = PyTestVector::Get(obj1);
   auto fault = PyTpgFault::Get(obj2);
   auto fsim = PyFsim::Get(self);
-  bool ans = fsim->spsfp(tv, fault);
+  DiffBits dbits;
+  bool ans = fsim->spsfp(tv, fault, dbits);
   PyObject* dbits_obj = Py_None;
   if ( ans ) {
-    auto dbits = fsim->spsfp_diffbits();
     dbits_obj = PyDiffBits::ToPyObject(dbits);
   }
   return Py_BuildValue("(pO)", ans, dbits_obj);

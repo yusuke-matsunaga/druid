@@ -51,7 +51,8 @@ DopVerify::operator()(
   const TestVector& tv
 )
 {
-  bool detect = mFsim.spsfp(tv, f);
+  DiffBits _dummy;
+  bool detect = mFsim.spsfp(tv, f, _dummy);
   if ( detect ) {
     mResult.add_good(f);
   }

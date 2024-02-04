@@ -50,7 +50,8 @@ spsfp_test(
       if ( fmgr.get_status(f) == FaultStatus::Detected ) {
 	continue;
       }
-      if ( fsim.spsfp(tv, f) ) {
+      DiffBits dbits;
+      if ( fsim.spsfp(tv, f, dbits) ) {
 	++ det_num;
 	detect = true;
 	fmgr.set_status(f, FaultStatus::Detected);

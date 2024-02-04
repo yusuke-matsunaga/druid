@@ -309,48 +309,40 @@ FSIM_CLASSNAME::get_skip(
 bool
 FSIM_CLASSNAME::spsfp(
   const TestVector& tv,
-  const TpgFault& f
+  const TpgFault& f,
+  DiffBits& dbits
 )
 {
   TvInputVals iv{tv};
 
   // 故障伝搬を行う．
-  return _spsfp(iv, f);
+  return _spsfp(iv, f, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
 bool
 FSIM_CLASSNAME::spsfp(
   const NodeValList& assign_list,
-  const TpgFault& f
+  const TpgFault& f,
+  DiffBits& dbits
 )
 {
   NvlInputVals iv{assign_list};
 
   // 故障伝搬を行う．
-  return _spsfp(iv, f);
-}
-
-// @brief 直前の spsfp() に対する故障差を返す．
-DiffBits
-FSIM_CLASSNAME::spsfp_diffbits()
-{
-  DiffBits ans(ppo_num());
-  for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-    if ( mEventQ.prop_val(i) == PV_ALL1 ) {
-      ans.set_val(i);
-    }
-  }
-  return ans;
+  return _spsfp(iv, f, dbits);
 }
 
 // @brief SPSFP故障シミュレーションの本体
 bool
 FSIM_CLASSNAME::_spsfp(
   const InputVals& iv,
-  const TpgFault& f
+  const TpgFault& f,
+  DiffBits& dbits
 )
 {
+  dbits = DiffBits(ppo_num());
+
   // 正常値の計算を行う．
   _calc_gval(iv);
 
@@ -371,6 +363,11 @@ FSIM_CLASSNAME::_spsfp(
   // root からの故障伝搬シミュレーションを行う．
   obs = _global_prop(root, PV_ALL1);
 
+  for ( SizeType i = 0; i < ppo_num(); ++ i ) {
+    if ( mEventQ.prop_val(i) == PV_ALL1 ) {
+      dbits.set_val(i);
+    }
+  }
   return (obs != PV_ALL0);
 }
 

@@ -98,21 +98,11 @@ public:
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @retval 出力における変化ビットを返す．
-  PackedVal
+  ///
+  /// 返されるベクタのサイズは output_num + 1
+  /// 最後の要素は全ての出力のORになっている．
+  vector<PackedVal>
   simulate();
-
-  /// @brief mPropArray をクリアする．
-  void
-  clear_prop_val();
-
-  /// @brief 出力ごとの結果を得る．
-  PackedVal
-  prop_val(
-    SizeType pos ///< [in] 出力番号
-  )
-  {
-    return mPropArray[pos];
-  }
 
 
 private:
@@ -243,6 +233,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 出力ごとの故障伝搬パタンの配列
+  // サイズは output_num + 1
   vector<PackedVal> mPropArray;
 
   // レベルごとのキューの先頭ノードの配列

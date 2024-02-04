@@ -155,27 +155,22 @@ Fsim::get_skip(
 bool
 Fsim::spsfp(
   const TestVector& tv,
-  const TpgFault& f
+  const TpgFault& f,
+  DiffBits& dbits
 )
 {
-  return mImpl->spsfp(tv, f);
+  return mImpl->spsfp(tv, f, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
 bool
 Fsim::spsfp(
   const NodeValList& assign_list,
-  const TpgFault& f
+  const TpgFault& f,
+  DiffBits& dbits
 )
 {
-  return mImpl->spsfp(assign_list, f);
-}
-
-// @brief 直前の sppfp() に対する故障差を返す．
-DiffBits
-Fsim::spsfp_diffbits()
-{
-  return mImpl->spsfp_diffbits();
+  return mImpl->spsfp(assign_list, f, dbits);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．

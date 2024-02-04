@@ -25,7 +25,7 @@ EventQ::init(
 )
 {
   mPropArray.clear();
-  mPropArray.resize(output_num, PV_ALL0);
+  mPropArray.resize(output_num + 1, PV_ALL0);
 
   mArray.clear();
   mArray.resize(max_level + 1, nullptr);
@@ -47,10 +47,12 @@ EventQ::init(
 }
 
 // @brief イベントドリブンシミュレーションを行う．
-PackedVal
+vector<PackedVal>
 EventQ::simulate()
 {
-  clear_prop_val();
+  for ( auto i = 0; i < mPropArray.size(); ++ i ) {
+    mPropArray[i] = PV_ALL0;
+  }
 
   // どこかの外部出力で検出されたことを表すビット
   auto obs = PV_ALL0;
@@ -79,6 +81,7 @@ EventQ::simulate()
       }
     }
   }
+  mPropArray.back() = obs;
 
   // 今の故障シミュレーションで値の変わったノードを元にもどしておく
   for ( auto& rinfo: mClearArray ) {
@@ -86,16 +89,7 @@ EventQ::simulate()
   }
   mClearArray.clear();
 
-  return obs;
-}
-
-// @brief mPropArray をクリアする．
-void
-EventQ::clear_prop_val()
-{
-  for ( auto i: Range(0, mPropArray.size()) ) {
-    mPropArray[i] = PV_ALL0;
-  }
+  return mPropArray;
 }
 
 END_NAMESPACE_DRUID_FSIM

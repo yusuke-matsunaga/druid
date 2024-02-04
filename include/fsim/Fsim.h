@@ -176,7 +176,8 @@ public:
   bool
   spsfp(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault& f	  ///< [in] 対象の故障
+    const TpgFault& f,	  ///< [in] 対象の故障
+    DiffBits& dbits       ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -185,7 +186,8 @@ public:
   bool
   spsfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault& f		    ///< [in] 対象の故障
+    const TpgFault& f,  	    ///< [in] 対象の故障
+    DiffBits& dbits                 ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 
   /// @brief 直前の spsfp() に対する故障差を返す．

@@ -316,48 +316,40 @@ FSIM_CLASSNAME::get_skip(
 bool
 FSIM_CLASSNAME::spsfp(
   const TestVector& tv,
-  const TpgFault& f
+  const TpgFault& f,
+  DiffBits& dbits
 )
 {
   TvInputVals iv{tv};
 
   // 故障伝搬を行う．
-  return _spsfp(iv, f);
+  return _spsfp(iv, f, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
 bool
 FSIM_CLASSNAME::spsfp(
   const NodeValList& assign_list,
-  const TpgFault& f
+  const TpgFault& f,
+  DiffBits& dbits
 )
 {
   NvlInputVals iv{assign_list};
 
   // 故障伝搬を行う．
-  return _spsfp(iv, f);
-}
-
-// @brief 直前の spsfp() に対する故障差を返す．
-DiffBits
-FSIM_CLASSNAME::spsfp_diffbits()
-{
-  DiffBits ans(ppo_num());
-  for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-    if ( mEventQ.prop_val(i) == PV_ALL1 ) {
-      ans.set_val(i);
-    }
-  }
-  return ans;
+  return _spsfp(iv, f, dbits);
 }
 
 // @brief SPSFP故障シミュレーションの本体
 bool
 FSIM_CLASSNAME::_spsfp(
   const InputVals& iv,
-  const TpgFault& f
+  const TpgFault& f,
+  DiffBits& dbits
 )
 {
+  dbits = DiffBits(ppo_num());
+
   // 正常値の計算を行う．
   _calc_gval(iv);
 
@@ -368,7 +360,6 @@ FSIM_CLASSNAME::_spsfp(
 
   // obs が 0 ならその後のシミュレーションを行う必要はない．
   if ( obs == PV_ALL0 ) {
-    mEventQ.clear_prop_val();
     return false;
   }
 
@@ -376,8 +367,13 @@ FSIM_CLASSNAME::_spsfp(
   auto root = ff->origin_node()->ffr_root();
 
   // root からの故障伝搬シミュレーションを行う．
-  obs = _global_prop(root, PV_ALL1);
-  return (obs != PV_ALL0);
+  auto obs_array = _global_prop(root, PV_ALL1);
+  for ( SizeType i = 0; i < ppo_num(); ++ i ) {
+    if ( obs_array[i] == PV_ALL1 ) {
+      dbits.set_val(i);
+    }
+  }
+  return (obs_array.back() != PV_ALL0);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -476,20 +472,21 @@ FSIM_CLASSNAME::_sppfp_simulation(
 )
 {
   // キューに積んでおく
-  for ( auto i = 0; i < ffr_num; ++ i ) {
+  PackedVal mask = 1ULL;
+  for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
     auto ffr = ffr_buff[i];
     auto root = ffr->root();
-    PackedVal bitmask = 1ULL << i;
-    mEventQ.put_event(root, bitmask);
+    mEventQ.put_event(root, mask);
   }
-  auto obs = mEventQ.simulate();
-  PackedVal mask = 1ULL;
+  auto obs_array = mEventQ.simulate();
+  mask = 1ULL;
+  auto obs = obs_array.back();
   for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
     if ( obs & mask ) {
       auto& fault_list = ffr_buff[i]->fault_list();
       DiffBits dbits(ppo_num());
       for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-	if ( mEventQ.prop_val(i) & mask ) {
+	if ( obs_array[i] & mask ) {
 	  dbits.set_val(i);
 	}
       }
@@ -557,7 +554,8 @@ FSIM_CLASSNAME::_ppsfp(
     }
 
     // FFR の出力の故障伝搬を行う．
-    auto obs = _global_prop(ffr.root(), ffr_req);
+    auto obs_array = _global_prop(ffr.root(), ffr_req);
+    auto obs = obs_array.back();
     if ( obs != PV_ALL0 ) {
       // FFR 内の故障伝搬を行う．
       for ( auto ff: fault_list ) {
@@ -572,7 +570,7 @@ FSIM_CLASSNAME::_ppsfp(
 	    if ( pat & bitmask ) {
 	      DiffBits dbits(ppo_num());
 	      for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-		if ( mEventQ.prop_val(i) & bitmask ) {
+		if ( obs_array[i] & bitmask ) {
 		  dbits.set_val(i);
 		}
 	      }

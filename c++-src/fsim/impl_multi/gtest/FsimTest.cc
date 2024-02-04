@@ -81,8 +81,8 @@ FsimTest::spsfp_sa_test()
   for ( SizeType i = 0; i < nv; ++ i ) {
     tv.set_from_random(randgen);
     for ( auto fault: fault_list ) {
-      auto diff = fsim.spsfp(tv, fault);
-      auto dbits = fsim.spsfp_diffbits();
+      DiffBits dbits;
+      auto diff = fsim.spsfp(tv, fault, dbits);
       EXPECT_EQ( dbits.any(), diff );
       auto ref_dbits = refsim.simulate_sa(tv, fault);
       EXPECT_EQ( ref_dbits, dbits );
@@ -118,8 +118,8 @@ FsimTest::spsfp_td_test()
   for ( SizeType i = 0; i < nv; ++ i ) {
     tv.set_from_random(randgen);
     for ( auto fault: fault_list ) {
-      auto diff = fsim.spsfp(tv, fault);
-      auto dbits = fsim.spsfp_diffbits();
+      DiffBits dbits;
+      auto diff = fsim.spsfp(tv, fault, dbits);
       EXPECT_EQ( dbits.any(), diff );
       auto ref_dbits = refsim.simulate_td(tv, fault);
       EXPECT_EQ( ref_dbits, dbits );
@@ -154,8 +154,8 @@ FsimTest::sppfp_sa_test()
     tv.set_from_random(randgen);
     unordered_map<SizeType, DiffBits> dbits_dict;
     for ( auto fault: fault_list ) {
-      if ( fsim.spsfp(tv, fault) ) {
-	auto dbits = fsim.spsfp_diffbits();
+      DiffBits dbits;
+      if ( fsim.spsfp(tv, fault, dbits) ) {
 	dbits_dict.emplace(fault.id(), dbits);
       }
     }
@@ -196,8 +196,8 @@ FsimTest::sppfp_td_test()
     tv.set_from_random(randgen);
     unordered_map<SizeType, DiffBits> dbits_dict;
     for ( auto fault: fault_list ) {
-      if ( fsim.spsfp(tv, fault) ) {
-	auto dbits = fsim.spsfp_diffbits();
+      DiffBits dbits;
+      if ( fsim.spsfp(tv, fault, dbits) ) {
 	dbits_dict.emplace(fault.id(), dbits);
       }
     }
@@ -255,8 +255,8 @@ FsimTest::ppsfp_sa_test()
   for ( SizeType i = 0; i < nv; ++ i ) {
     auto& tv = tv_list[i];
     for ( auto fault: fault_list ) {
-      if ( fsim.spsfp(tv, fault) ) {
-	auto dbits = fsim.spsfp_diffbits();
+      DiffBits dbits;
+      if ( fsim.spsfp(tv, fault, dbits) ) {
 	tv_fault_dict.emplace(make_str(i, fault), dbits);
       }
     }
@@ -311,8 +311,8 @@ FsimTest::ppsfp_td_test()
   for ( SizeType i = 0; i < nv; ++ i ) {
     auto& tv = tv_list[i];
     for ( auto fault: fault_list ) {
-      if ( fsim.spsfp(tv, fault) ) {
-	auto dbits = fsim.spsfp_diffbits();
+      DiffBits dbits;
+      if ( fsim.spsfp(tv, fault, dbits) ) {
 	tv_fault_dict.emplace(make_str(i, fault), dbits);
       }
     }
