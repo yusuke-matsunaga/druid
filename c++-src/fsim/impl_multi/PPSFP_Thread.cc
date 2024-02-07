@@ -18,12 +18,18 @@ BEGIN_NAMESPACE_DRUID_FSIM
 // @brief コンストラクタ
 PPSFP_Thread::PPSFP_Thread(
   FSIM_CLASSNAME& fsim,
-  PPSFP_CmdQueue& cmd_queue,
+  CmdQueue& cmd_queue,
+  SizeType pat_base,
+  SizeType pat_num,
   cbtype callback
 ) : mFsim{fsim},
     mCmdQueue{cmd_queue},
+    mPatBase{pat_base},
+    mPatNum{pat_num},
     mCallBack{callback}
 {
+  mEventQ.init(mFsim.max_level(), mFsim.ppo_num(), mFsim.node_num());
+  mEventQ.copy_val(mFsim.val_array());
 }
 
 // @brief デストラクタ
@@ -35,19 +41,15 @@ PPSFP_Thread::~PPSFP_Thread()
 void
 PPSFP_Thread::operator()()
 {
-  SizeType NFFR = mFsim.ffr_array().size();
+  auto NPO = mFsim.ppo_num();
+  auto NFFR = mFsim.ffr_array().size();
   for ( ; ; ) {
     auto id = mCmdQueue.get();
     if ( id >= NFFR ) {
       break;
     }
 
-    // タイムスタンプを調べて同期を行う．
-    if ( mTimeStamp != mFsim.timestamp() ) {
-      mEventQ.copy_val(mFsim.val_array());
-      mTimeStamp = mFsim.timestamp();
-    }
-    auto& ffr = mFsim.ffr_array(id);
+    auto& ffr = mFsim.ffr_array()[id];
     auto ffr_req = mFsim.foreach_faults(ffr);
     if ( ffr_req == PV_ALL0 ) {
       // ffr_req が 0 ならその後のシミュレーションは必要ない．
@@ -59,6 +61,7 @@ PPSFP_Thread::operator()()
     mEventQ.put_event(ffr.root(), ffr_req);
     auto obs_array = mEventQ.simulate();
     auto obs = obs_array.back();
+    cout << "obs = " << obs << endl;
     if ( obs != PV_ALL0 ) {
       // FFR の故障伝搬値とマージする．
       for ( auto ff: ffr.fault_list() ) {
@@ -68,14 +71,13 @@ PPSFP_Thread::operator()()
 	auto pat = ff->obs_mask() & obs;
 	if ( pat != PV_ALL0 ) {
 	  // 検出された
-	  for ( SizeType i = 0; i < npat; ++ i ) {
+	  for ( SizeType i = 0; i < mPatNum; ++ i ) {
 	    PackedVal bitmask = 1UL << i;
 	    if ( pat & bitmask ) {
-	      auto NPO = mFsim.ppo_num();
 	      DiffBits dbits(NPO);
-	      for ( SizeType i = 0; i < NPO; ++ i ) {
-		if ( obs_array[i] & bitmask ) {
-		  dbits.set_val(i);
+	      for ( SizeType j = 0; j < NPO; ++ j ) {
+		if ( obs_array[j] & bitmask ) {
+		  dbits.set_val(j);
 		}
 	      }
 	      mCallBack(i + mPatBase, ff->tpg_fault(), dbits);

@@ -23,8 +23,9 @@
 #include "SimFFR.h"
 #include "InputVals.h"
 
-#include "PPSFP_CmdQueue.h"
+#include "CmdQueue.h"
 #include "PPSFP_Thread.h"
+#include "SPPFP_Thread.h"
 
 #include "ym/Range.h"
 
@@ -409,88 +410,21 @@ FSIM_CLASSNAME::_sppfp(
 {
   // 正常値の計算を行う．
   _calc_gval(iv);
-#if 0
-  const SimFFR* ffr_buff[PV_BITLEN];
-  auto bitpos = 0;
-  // FFR ごとに処理を行う．
-  for ( auto& ffr: mFFRArray ) {
-    // FFR 内の故障伝搬を行う．
-    // 結果は SimFault.mObsMask に保存される．
-    // FFR 内の全ての obs マスクを ffr_req に入れる．
-    auto ffr_req = foreach_faults(ffr.fault_list());
-    if ( ffr_req == PV_ALL0 ) {
-      // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
-      continue;
-    }
 
-    auto root = ffr.root();
-    if ( root->is_output() ) {
-      // 常にこの出力のみで観測可能
-      DiffBits dbits(ppo_num());
-      dbits.set_val(root->output_id());
-      for ( auto ff: ffr.fault_list() ) {
-	if ( ff->skip() || ff->obs_mask() == PV_ALL0 ) {
-	  continue;
-	}
-	auto tpg_f = ff->tpg_fault();
-	mDetFaultArray.push_back(tpg_f);
-	mDiffBitsMap[tpg_f.id()] = dbits;
-      }
-    }
-    else {
-      ffr_buff[bitpos] = &ffr;
-      ++ bitpos;
-      if ( bitpos == PV_BITLEN ) {
-	_sppfp_simulation(ffr_buff, bitpos);
-	bitpos = 0;
-      }
-    }
+  // スレッドを生成する．
+  SizeType nt = std::thread::hardware_concurrency();
+  CmdQueue cmd_queue;
+  vector<std::thread> thread_list(nt);
+  vector<SPPFP_Thread> thread_func_list(nt, SPPFP_Thread{*this, cmd_queue, callback});
+  for ( SizeType i = 0; i < nt; ++ i ) {
+    thread_list[i] = std::thread{thread_func_list[i]};
   }
-  if ( bitpos > 0 ) {
-    _sppfp_simulation(ffr_buff, bitpos);
-  }
-#endif
-}
-#if 0
-// @brief sppfp 用のシミュレーションを行う．
-void
-FSIM_CLASSNAME::_sppfp_simulation(
-  const SimFFR* ffr_buff[],
-  SizeType ffr_num,
-  cbtype callback
-)
-{
-  // キューに積んでおく
-  PackedVal mask = 1ULL;
-  for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
-    auto ffr = ffr_buff[i];
-    auto root = ffr->root();
-    mEventQ.put_event(root, mask);
-  }
-  auto obs_array = mEventQ.simulate();
-  mask = 1ULL;
-  auto obs = obs_array.back();
-  for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
-    if ( obs & mask ) {
-      auto& fault_list = ffr_buff[i]->fault_list();
-      DiffBits dbits(ppo_num());
-      for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-	if ( obs_array[i] & mask ) {
-	  dbits.set_val(i);
-	}
-      }
-      for ( auto ff: fault_list ) {
-	if ( ff->skip() || ff->obs_mask() == PV_ALL0 ) {
-	  continue;
-	}
-	auto tpg_f = ff->tpg_fault();
-	mDetFaultArray.push_back(tpg_f);
-	mDiffBitsMap[tpg_f.id()] = dbits;
-      }
-    }
+
+  // 子スレッドの終了を待つ．
+  for ( auto& thr: thread_list ) {
+    thr.join();
   }
 }
-#endif
 
 // @brief 複数のパタンで故障シミュレーションを行う．
 void
@@ -529,64 +463,66 @@ FSIM_CLASSNAME::_ppsfp(
 #if 0
   // スレッドを生成する．
   SizeType nt = std::thread::hardware_concurrency();
-  PPSFP_CmdQueue cmd_queue;
-  vector<PPSFP_Thread> thread_list(nt, PPSFP_Thread{*this, cmd_queue, callback});
+  CmdQueue cmd_queue;
+  vector<std::thread> thread_list(nt);
+  for ( SizeType i = 0; i < nt; ++ i ) {
+    PPSFP_Thread func{*this, cmd_queue, base, npat, callback};
+    thread_list[i] = std::thread{func};
+  }
 
   // 子スレッドの終了を待つ．
   for ( auto& thr: thread_list ) {
     thr.join();
   }
-#endif
+#else
 #if 0
-  // FFR ごとに処理を行う．
-  for ( auto& ffr: mFFRArray ) {
-    auto& fault_list = ffr.fault_list();
-    // FFR 内の故障伝搬を行う．
-    // 結果は SimFault::mObsMask に保存される．
-    // FFR 内の全ての obs マスクを ffr_req に入れる．
-    auto ffr_req = foreach_faults(ffr) & mPatMask;
-
-    // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
+  CmdQueue cmd_queue;
+  PPSFP_Thread func{*this, cmd_queue, base, npat, callback};
+  func();
+#else
+  EventQ event_q;
+  event_q.init(max_level(), ppo_num(), node_num());
+  event_q.copy_val(val_array());
+  for ( auto& ffr: ffr_array() ) {
+    auto ffr_req = foreach_faults(ffr);
     if ( ffr_req == PV_ALL0 ) {
+      // ffr_req が 0 ならその後のシミュレーションは必要ない．
       continue;
     }
 
-    // FFR の出力の故障伝搬を行う．
-    cmd_queuemCmdQueue.put(ffr.root(), ffr_req);
-  }
-
-  // 結果を取り出す．
-  for ( auto& ffr: _ffr_list() ) {
-    auto obs_array = _global_prop(ffr.root(), ffr_req);
+    // イベントシミュレーションを行う．
+    auto root = ffr.root();
+    cout << "ffr_req = " << hex << ffr_req << dec << endl;
+    event_q.put_event(ffr.root(), ffr_req);
+    auto obs_array = event_q.simulate();
     auto obs = obs_array.back();
+    cout << "obs = " << hex << obs << dec << endl;
     if ( obs != PV_ALL0 ) {
-      // FFR 内の故障伝搬を行う．
-      for ( auto ff: fault_list ) {
+      // FFR の故障伝搬値とマージする．
+      for ( auto ff: ffr.fault_list() ) {
 	if ( ff->skip() ) {
 	  continue;
 	}
 	auto pat = ff->obs_mask() & obs;
 	if ( pat != PV_ALL0 ) {
-	  // 検出された．
+	  // 検出された
 	  for ( SizeType i = 0; i < npat; ++ i ) {
-	    SizeType bitmask = 1UL << i;
+	    PackedVal bitmask = 1UL << i;
 	    if ( pat & bitmask ) {
 	      DiffBits dbits(ppo_num());
-	      for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-		if ( obs_array[i] & bitmask ) {
-		  dbits.set_val(i);
+	      for ( SizeType j = 0; j < ppo_num(); ++ j ) {
+		if ( obs_array[j] & bitmask ) {
+		  dbits.set_val(j);
 		}
 	      }
-	      auto go_on = callback(base + i, ff->tpg_fault(), dbits);
-	      if ( !go_on ) {
-		return false;
-	      }
+	      callback(i + base, ff->tpg_fault(), dbits);
 	    }
 	  }
 	}
       }
     }
   }
+#endif
 #endif
 }
 
@@ -771,8 +707,6 @@ FSIM_CLASSNAME::_calc_gval(
   const InputVals& input_vals
 )
 {
-  ++ mTimeStamp;
-
   // 入力の設定を行う．
   input_vals.set_val(*this, mValArray);
 
@@ -788,8 +722,6 @@ FSIM_CLASSNAME::_calc_gval(
   const InputVals& input_vals
 )
 {
-  ++ mTimeStamp;
-
   // 1時刻目の入力を設定する．
   input_vals.set_val1(*this, mPrevValArray);
 

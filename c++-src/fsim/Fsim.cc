@@ -36,7 +36,7 @@ Fsim::initialize(
   bool has_x
 )
 {
-  initialize_naive(network, has_previous_state, has_x);
+  initialize_multi(network, has_previous_state, has_x);
 }
 
 // @brief 対象の故障をセットする．

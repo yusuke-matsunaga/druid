@@ -9,8 +9,8 @@
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
-#include "SPPFP_CmdQueue.h"
-#include "ResQueue.h"
+#include "FsimX.h"
+#include "CmdQueue.h"
 #include "EventQ.h"
 
 
@@ -24,11 +24,15 @@ class SPPFP_Thread
 {
 public:
 
+  using cbtype = FSIM_CLASSNAME::cbtype;
+
+public:
+
   /// @brief コンストラクタ
   SPPFP_Thread(
-    const SimContext& context, ///< [in] シミュレーションのコンテキスト
-    SPPFP_CmdQueue& cmd_queue, ///< [in] コマンドキュー
-    ResQueue& res_queue        ///< [in] 結果キュー
+    FSIM_CLASSNAME& fsim, ///< [in] 故障シミュレータ本体
+    CmdQueue& cmd_queue,  ///< [in] コマンドキュー
+    cbtype callback       ///< [in] コールバック関数
   );
 
   /// @brief デストラクタ
@@ -50,8 +54,9 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 値の同期を行う．
-  sync_vals();
+  /// @brief 実際にイベントドリヴンシミュレーションを行う．
+  void
+  do_simulation();
 
 
 private:
@@ -59,20 +64,23 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // シミュレーションのコンテキスト
-  SimContext mContext;
+  // 故障シミュレータ
+  FSIM_CLASSNAME& mFsim;
 
   // コマンドキュー
-  SPPFP_CmdQueue& mCmdQueue;
+  CmdQueue& mCmdQueue;
 
   // イベントキュー
   EventQ mEventQ;
 
-  // イベントキューのタイムスタンプ
-  SizeType mTimeStamp{0};
+  // コールバック関数
+  cbtype mCallBack;
 
-  // 結果キュー
-  ResQueue mResQueue;
+  // FFR のバッファ
+  const SimFFR* mFFRArray[PV_BITLEN];
+
+  // mFFRArray の次の挿入位置
+  SizeType mFFRPos;
 
 };
 

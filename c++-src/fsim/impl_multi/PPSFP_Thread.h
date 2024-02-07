@@ -9,9 +9,8 @@
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
-#include "Fsim.h"
-#include "PPSFP_CmdQueue.h"
-#include "ResQueue.h"
+#include "FsimX.h"
+#include "CmdQueue.h"
 #include "EventQ.h"
 
 
@@ -25,15 +24,17 @@ class PPSFP_Thread
 {
 public:
 
-  using cbtype = Fsim::cbtype;
+  using cbtype = FSIM_CLASSNAME::cbtype;
 
 public:
 
   /// @brief コンストラクタ
   PPSFP_Thread(
-    FSIM_CLASSNAME& fsim,      ///< [in] 故障シミュレータ本体
-    PPSFP_CmdQueue& cmd_queue, ///< [in] コマンドキュー
-    cbtype callback            ///< [in] コールバック関数
+    FSIM_CLASSNAME& fsim, ///< [in] 故障シミュレータ本体
+    CmdQueue& cmd_queue,  ///< [in] コマンドキュー
+    SizeType pat_base,    ///< [in] パタン番号のベース値
+    SizeType pat_num,     ///< [in] パタン数
+    cbtype callback       ///< [in] コールバック関数
   );
 
   /// @brief デストラクタ
@@ -59,16 +60,19 @@ private:
   FSIM_CLASSNAME& mFsim;
 
   // コマンドキュー
-  PPSFP_CmdQueue& mCmdQueue;
-
-  // コールバック関数
-  cbtype mCallBack;
+  CmdQueue& mCmdQueue;
 
   // イベントキュー
   EventQ mEventQ;
 
-  // イベントキューのタイムスタンプ
-  SizeType mTimeStamp{0};
+  // コールバック関数
+  cbtype mCallBack;
+
+  // パタン番号のベース値
+  SizeType mPatBase;
+
+  // パタン数
+  SizeType mPatNum;
 
 };
 

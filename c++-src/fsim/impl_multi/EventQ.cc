@@ -68,6 +68,13 @@ EventQ::simulate()
     new_val ^= flip_mask;
     mFlipMaskArray[node->id()] = PV_ALL0;
     set_val(node, new_val);
+#if FSIM_VAL2
+    cout << "Node#" << node->id() << ": " << old_val << " => " << new_val << endl;
+#endif
+#if FSIM_VAL3
+    cout << "Node#" << node->id() << ":" << old_val.val0() << ":" << old_val.val1()
+	 << " => " << new_val.val0() << ":" << new_val.val1() << endl;
+#endif
     if ( new_val != old_val ) {
       mValArray[node->id()] = new_val;
       add_to_clear_list(node, old_val);

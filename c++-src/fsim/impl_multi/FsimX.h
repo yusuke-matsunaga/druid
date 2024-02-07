@@ -248,6 +248,20 @@ public:
     return mOutputNum + mDffNum;
   }
 
+  /// @brief ノード数を返す．
+  SizeType
+  node_num() const
+  {
+    return mNodeArray.size();
+  }
+
+  /// @brief 最大レベルを返す．
+  SizeType
+  max_level() const
+  {
+    return mMaxLevel;
+  }
+
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -511,9 +525,6 @@ private:
 
   // ノードの最大レベル
   SizeType mMaxLevel;
-
-  // mValArray のタイムスタンプ
-  SizeType mTimeStamp{0};
 
   // パタンの設定状況を表すビットベクタ
   PackedVal mPatMask{PV_ALL0};

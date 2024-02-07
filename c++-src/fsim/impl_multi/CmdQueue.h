@@ -1,8 +1,8 @@
-#ifndef PPSFP_CMDQUEUE_H
-#define PPSFP_CMDQUEUE_H
+#ifndef CMDQUEUE_H
+#define CMDQUEUE_H
 
-/// @file PPSFP_CmdQueue.h
-/// @brief PPSFP_CmdQueue のヘッダファイル
+/// @file CmdQueue.h
+/// @brief CmdQueue のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -15,7 +15,7 @@
 BEGIN_NAMESPACE_DRUID_FSIM
 
 //////////////////////////////////////////////////////////////////////
-/// @class PPSFP_CmdQueue PPSFP_CmdQueue.h "PPSFP_CmdQueue.h"
+/// @class CmdQueue CmdQueue.h "CmdQueue.h"
 /// @brief ppsfp 用のスレッドで用いられる共有データ
 ///
 /// - 具体的には次に処理する FFR 番号を持つ．
@@ -24,15 +24,15 @@ BEGIN_NAMESPACE_DRUID_FSIM
 ///   インクリメントするだけ．
 /// - 呼び出したスレッド側でオーバーフローの判定を行う必要がある．
 //////////////////////////////////////////////////////////////////////
-class PPSFP_CmdQueue
+class CmdQueue
 {
 public:
 
   /// @brief コンストラクタ
-  PPSFP_CmdQueue() = default;
+  CmdQueue() = default;
 
   /// @brief デストラクタ
-  ~PPSFP_CmdQueue() = default;
+  ~CmdQueue() = default;
 
 
 public:
@@ -60,10 +60,10 @@ private:
   std::mutex mMutex;
 
   // 次に処理する FFR 番号
-  SizeType mNextId;
+  SizeType mNextId{0};
 
 };
 
 END_NAMESPACE_DRUID_FSIM
 
-#endif // PPSFP_CMDQUEUE_H
+#endif // CMDQUEUE_H
