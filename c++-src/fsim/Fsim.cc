@@ -174,34 +174,27 @@ Fsim::spsfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-vector<TpgFault>
+void
 Fsim::sppfp(
-  const TestVector& tv
+  const TestVector& tv,
+  cbtype callback
 )
 {
-  return mImpl->sppfp(tv);
+  return mImpl->sppfp(tv, callback);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-vector<TpgFault>
+void
 Fsim::sppfp(
-  const NodeValList& assign_list
+  const NodeValList& assign_list,
+  cbtype callback
 )
 {
-  return mImpl->sppfp(assign_list);
-}
-
-// @brief 直前の sppfp() に対する故障差を返す．
-DiffBits
-Fsim::sppfp_diffbits(
-  TpgFault fault
-)
-{
-  return mImpl->sppfp_diffbits(fault);
+  return mImpl->sppfp(assign_list, callback);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-bool
+void
 Fsim::ppsfp(
   const vector<TestVector>& tv_list,
   cbtype callback

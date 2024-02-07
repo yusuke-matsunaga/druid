@@ -6,10 +6,11 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
+#include "Fsim.h"
 #include "FaultType.h"
 #include "PackedVal.h"
 #include "DiffBits.h"
@@ -78,6 +79,9 @@ public:
   // 故障シミュレーションを行う関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief ppsfp で用いるコールバック関数の型定義
+  using cbtype = Fsim::cbtype;
+
   /// @brief SPSFP故障シミュレーションを行う．
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
@@ -101,37 +105,30 @@ public:
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
   virtual
-  vector<TpgFault>
+  void
   sppfp(
-    const TestVector& tv ///< [in] テストベクタ
+    const TestVector& tv, ///< [in] テストベクタ
+    cbtype callback       ///< [in] コールバック関数
+                          ///<      1番目の引数はパタン番号(常に0)
+                          ///<      2番目の引数は検出された故障
+                          ///<      3番目の引数は出力の伝搬状況
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
   virtual
-  vector<TpgFault>
+  void
   sppfp(
-    const NodeValList& assign_list ///< [in] 値の割当リスト
+    const NodeValList& assign_list, ///< [in] 値の割当リスト
+    cbtype callback                 ///< [in] コールバック関数
+                                    ///<      1番目の引数はパタン番号(常に0)
+                                    ///<      2番目の引数は検出された故障
+                                    ///<      3番目の引数は出力の伝搬状況
   ) = 0;
-
-  /// @brief 直前の sppfp() に対する故障差を返す．
-  virtual
-  DiffBits
-  sppfp_diffbits(
-    TpgFault fault ///< [in] 対象の故障
-  ) = 0;
-
-  /// @brief ppsfp で用いるコールバック関数の型定義
-  using cbtype = std::function<bool(SizeType, TpgFault, DiffBits)>;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 全パタンシミュレーションした場合に true を返す．
-  ///
-  /// callback 関数が false を返した場合にはこの関数も false を返す．
   virtual
-  bool
+  void
   ppsfp(
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
     cbtype callback                    ///< [in] 1回のシミュレーションごとに
@@ -139,7 +136,6 @@ public:
                                        ///<      1番目の引数はパタン番号(tv_list中の位置)
                                        ///<      2番目の引数は検出された故障
                                        ///<      3番目の引数は出力ごとの伝搬状況
-                                       ///<      false が返された時には処理を中断する．
   ) = 0;
 
 

@@ -269,13 +269,23 @@ Fsim_sppfp(
   }
   auto tv = PyTestVector::Get(obj1);
   auto fsim = PyFsim::Get(self);
-  auto fault_list = fsim->sppfp(tv);
-  SizeType n = fault_list.size();
+  vector<pair<TpgFault, DiffBits>> ans_list;
+  fsim->sppfp(tv,
+	      [&](
+		SizeType,
+		TpgFault f,
+		DiffBits dbits
+	      )
+	      {
+		ans_list.push_back({f, dbits});
+	      });
+  SizeType n = ans_list.size();
   auto ans_obj = PyList_New(n);
   for ( SizeType i = 0; i < n; ++ i ) {
-    auto fault = fault_list[i];
+    auto& p = ans_list[i];
+    auto fault = p.first;
     auto fault_obj = PyTpgFault::ToPyObject(fault);
-    auto dbits = fsim->sppfp_diffbits(fault);
+    auto dbits = p.second;
     auto dbits_obj = PyDiffBits::ToPyObject(dbits);
     auto tuple_obj = Py_BuildValue("(OO)", fault_obj, dbits_obj);
     PyList_SetItem(ans_obj, i, tuple_obj);
@@ -312,28 +322,20 @@ Fsim_ppsfp(
     return nullptr;
   }
   auto fsim = PyFsim::Get(self);
-  bool ng = false;
-  bool ans = fsim->ppsfp(tv_list, [&](SizeType index,
-				      TpgFault f,
-				      DiffBits dbits)->bool
-  {
-    auto fault_obj = PyTpgFault::ToPyObject(f);
-    auto dbits_obj = PyDiffBits::ToPyObject(dbits);
-    auto cb_args = Py_BuildValue("kOO", index, fault_obj, dbits_obj);
-    auto ans_obj = PyObject_CallObject(callback_obj, cb_args);
-    Py_DECREF(cb_args);
-    if ( ans_obj == nullptr ) {
-      ng = true;
-      return false;
-    }
-    auto ans = PyObject_IsTrue(ans_obj);
-    Py_DECREF(ans_obj);
-    return ans;
-  });
-  if ( ng ) {
-    return nullptr;
-  }
-  return PyBool_FromLong(ans);
+  fsim->ppsfp(tv_list,
+	      [&](
+		SizeType index,
+		TpgFault f,
+		DiffBits dbits
+	      )
+	      {
+		auto fault_obj = PyTpgFault::ToPyObject(f);
+		auto dbits_obj = PyDiffBits::ToPyObject(dbits);
+		auto cb_args = Py_BuildValue("kOO", index, fault_obj, dbits_obj);
+		PyObject_CallObject(callback_obj, cb_args);
+		Py_DECREF(cb_args);
+	      });
+  Py_RETURN_NONE;
 }
 
 PyObject*

@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "FsimImpl.h"
@@ -15,6 +15,7 @@
 #include "PackedVal3.h"
 #include "EventQ.h"
 #include "SimFault.h"
+#include "SimFFR.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "TestVector.h"
@@ -23,7 +24,6 @@
 
 BEGIN_NAMESPACE_DRUID_FSIM
 
-class SimFFR;
 class SimNode;
 class InputVals;
 
@@ -111,30 +111,27 @@ public:
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
-  vector<TpgFault>
+  void
   sppfp(
-    const TestVector& tv ///< [in] テストベクタ
+    const TestVector& tv, ///< [in] テストベクタ
+    cbtype callback       ///< [in] コールバック関数
+                          ///<      1番目の引数はパタン番号(常に0)
+                          ///<      2番目の引数は検出された故障
+                          ///<      3番目の引数は出力の伝搬状況
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
-  vector<TpgFault>
+  void
   sppfp(
-    const NodeValList& assign_list ///< [in] 値の割当リスト
-  ) override;
-
-  /// @brief 直前の sppfp() に対する故障差を返す．
-  DiffBits
-  sppfp_diffbits(
-    TpgFault fault ///< [in] 対象の故障
+    const NodeValList& assign_list, ///< [in] 値の割当リスト
+    cbtype callback                 ///< [in] コールバック関数
+                                    ///<      1番目の引数はパタン番号(常に0)
+                                    ///<      2番目の引数は検出された故障
+                                    ///<      3番目の引数は出力の伝搬状況
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 全パタンシミュレーションした場合に true を返す．
-  ///
-  /// callback 関数が false を返した場合にはこの関数も false を返す．
-  bool
+  void
   ppsfp(
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
     cbtype callback                    ///< [in] 1回のシミュレーションごとに
@@ -268,10 +265,6 @@ private:
     const TpgNetwork& network ///< [in] ネットワーク
   );
 
-  /// @brief FFR のリストを返す．
-  const vector<SimFFR>&
-  _ffr_list() const;
-
   /// @brief SPSFP故障シミュレーションの本体
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
@@ -283,17 +276,18 @@ private:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
-  /// @return 検出された故障のリストを返す．
-  vector<TpgFault>
+  void
   _sppfp(
-    const InputVals& iv ///< [in] 入力値
+    const InputVals& iv, ///< [in] 入力値
+    cbtype callback      ///< [in] コールバック関数
   );
 
   /// @brief sppfp 用のシミュレーションを行う．
   void
   _sppfp_simulation(
     const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
-    SizeType ffr_num          ///< [in] FFR 数
+    SizeType ffr_num,         ///< [in] FFR 数
+    cbtype callback           ///< [in] コールバック関数
   );
 
   /// @brief PPSFP故障シミュレーションの本体
@@ -373,12 +367,44 @@ private:
 #endif
   }
 
-  /// @brief 個々の故障の故障伝搬条件を計算する．
+  /// @brief sppfp 用の下請け関数
+  void
+  _sppfp_apply_callback(
+    const SimFFR& ffr, ///< [in] 対象の FFR
+    DiffBits dbits,    ///< [in] 出力の故障伝搬ビット
+    cbtype callback    ///< [in] コールバック関数
+  )
+  {
+    auto& fault_list = ffr.fault_list();
+    for ( auto ff: fault_list ) {
+      if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
+	callback(0, ff->tpg_fault(), dbits);
+      }
+    }
+  }
+
+  /// @brief FFR 内の個々の故障の故障伝搬条件を計算する．
   /// @return 全ての故障の伝搬結果のORを返す．
+  ///
+  /// 個々の SimFault の obs_mask を設定する．
   PackedVal
   _foreach_faults(
-    const vector<SimFault*>& fault_list ///< [in] 故障のリスト
-  );
+    const SimFFR& ffr ///< [in] 対象の FFR
+  )
+  {
+    auto& fault_list = ffr.fault_list();
+    auto ffr_req = PV_ALL0;
+    for ( auto ff: fault_list ) {
+      if ( ff->skip() ) {
+	continue;
+      }
+      auto obs = _local_prop(ff);
+      ff->set_obs_mask(obs);
+      ffr_req |= obs;
+    }
+
+    return ffr_req;
+  }
 
 
 private:
@@ -480,11 +506,7 @@ private:
   // TpgNode のノード番号から SimNode を取り出す配列
   vector<SimNode*> mSimNodeMap;
 
-  // FFR 数
-  SizeType mFFRNum;
-
   // FFR を納めた配列
-  // サイズは mFFRNum
   vector<SimFFR> mFFRArray;
 
   // SimNode のノード番号をキーにして対応する SimFFR を格納する配列

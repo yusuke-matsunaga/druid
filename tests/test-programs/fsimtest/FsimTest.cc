@@ -78,15 +78,21 @@ sppfp_test(
   int nepat = 0;
   int i = 0;
   for ( auto tv: tv_list ) {
-    auto fault_list = fsim.sppfp(tv);
-    SizeType n = fault_list.size();
-    if ( n > 0 ) {
-      det_num += n;
+    bool drop = false;
+    fsim.sppfp(tv,
+	       [&](
+		 SizeType,
+		 TpgFault f,
+		 DiffBits dbits
+	       )
+	       {
+		 ++ det_num;
+		 drop = true;
+		 fsim.set_skip(f);
+		 print_fault(f, i);
+	       });
+    if ( drop ) {
       ++ nepat;
-      for ( auto f: fault_list ) {
-	fsim.set_skip(f);
-	print_fault(f, i);
-      }
     }
     ++ i;
   }
@@ -106,20 +112,23 @@ ppsfp_test(
   SizeType nepat = 0;
   SizeType det_num = 0;
   unordered_set<SizeType> pat_dict;
-  fsim.ppsfp(tv_list, [&](SizeType index,
-			  TpgFault f,
-			  DiffBits dbits)->bool {
-    if ( !fsim.get_skip(f) ) {
-      fsim.set_skip(f);
-      ++ det_num;
-      if ( pat_dict.count(index) == 0 ) {
-	pat_dict.emplace(index);
-	++ nepat;
-      }
-      print_fault(f, index);
-    }
-    return true;
-  });
+  fsim.ppsfp(tv_list,
+	     [&](
+	       SizeType index,
+	       TpgFault f,
+	       DiffBits dbits
+	     )
+	     {
+	       if ( !fsim.get_skip(f) ) {
+		 fsim.set_skip(f);
+		 ++ det_num;
+		 if ( pat_dict.count(index) == 0 ) {
+		   pat_dict.emplace(index);
+		   ++ nepat;
+		 }
+		 print_fault(f, index);
+	       }
+	     });
   return make_pair(det_num, nepat);
 }
 

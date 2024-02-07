@@ -159,13 +159,16 @@ FsimTest::sppfp_sa_test()
 	dbits_dict.emplace(fault.id(), dbits);
       }
     }
-    auto fault_list = fsim.sppfp(tv);
-    EXPECT_EQ( dbits_dict.size(), fault_list.size() );
-    for ( auto fault: fault_list ) {
-      EXPECT_TRUE( dbits_dict.count(fault.id()) );
-      auto dbits = fsim.sppfp_diffbits(fault);
-      EXPECT_EQ( dbits_dict.at(fault.id()), dbits);
-    }
+    fsim.sppfp(tv,
+	       [&](
+		 SizeType,
+		 TpgFault f,
+		 DiffBits dbits
+	       )
+	       {
+		 EXPECT_TRUE( dbits_dict.count(f.id()) > 0 );
+		 EXPECT_EQ( dbits_dict.at(f.id()), dbits );
+	       });
   }
 }
 
@@ -201,13 +204,16 @@ FsimTest::sppfp_td_test()
 	dbits_dict.emplace(fault.id(), dbits);
       }
     }
-    auto fault_list = fsim.sppfp(tv);
-    EXPECT_EQ( dbits_dict.size(), fault_list.size() );
-    for ( auto fault: fault_list ) {
-      EXPECT_TRUE( dbits_dict.count(fault.id()) );
-      auto dbits = fsim.sppfp_diffbits(fault);
-      EXPECT_EQ( dbits_dict.at(fault.id()), dbits);
-    }
+    fsim.sppfp(tv,
+	       [&](
+		 SizeType,
+		 TpgFault f,
+		 DiffBits dbits
+	       )
+	       {
+		 EXPECT_TRUE( dbits_dict.count(f.id()) );
+		 EXPECT_EQ( dbits_dict.at(f.id()), dbits);
+	       });
   }
 }
 

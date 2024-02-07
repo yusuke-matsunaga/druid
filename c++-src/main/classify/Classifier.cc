@@ -3,7 +3,7 @@
 /// @brief Classifier の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "Classifier.h"
@@ -70,29 +70,33 @@ Classifier::run(
     // 今回未検出の故障のグループ番号は変わらない．
     unordered_map<SigKey, SizeType, Hash, Eq> sig_dict;
     timer.start();
-    auto fault_list1 = fsim.sppfp(tv);
+    fsim.sppfp(tv,
+	       [&](
+		 SizeType _,
+		 TpgFault fault,
+		 DiffBits dbits
+	       )
+	       {
+		 auto fid = fault.id();
+		 SigKey key{dbits, fgmap[fid]};
+		 SizeType g;
+		 if ( sig_dict.count(key) == 0 ) {
+		   // 新しいグループ番号を割り当てる．
+		   g = count.size();
+		   count.push_back(0);
+		   sig_dict.emplace(key, g);
+		 }
+		 else {
+		   // キーに合致するグループ番号をとってくる．
+		   g = sig_dict.at(key);
+		 }
+		 // グループ番号を更新する．
+		 auto old_g = fgmap[fid];
+		 fgmap[fid] = g;
+		 -- count[old_g];
+		 ++ count[g];
+	       });
     timer.stop();
-    for ( auto fault: fault_list1 ) {
-      auto dbits = fsim.sppfp_diffbits(fault);
-      auto fid = fault.id();
-      SigKey key{dbits, fgmap[fid]};
-      SizeType g;
-      if ( sig_dict.count(key) == 0 ) {
-	// 新しいグループ番号を割り当てる．
-	g = count.size();
-	count.push_back(0);
-	sig_dict.emplace(key, g);
-      }
-      else {
-	// キーに合致するグループ番号をとってくる．
-	g = sig_dict.at(key);
-      }
-      // グループ番号を更新する．
-      auto old_g = fgmap[fid];
-      fgmap[fid] = g;
-      -- count[old_g];
-      ++ count[g];
-    }
 
     // singleton を除外する．
     if ( singleton_drop ) {

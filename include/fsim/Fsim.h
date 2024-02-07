@@ -170,6 +170,13 @@ public:
   // 故障シミュレーションを行う関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障シミュレーションで用いるコールバック関数の型定義
+  ///
+  /// * 1番目の引数はパタン番号(tv_list中の位置)
+  /// * 2番目の引数は検出された故障
+  /// * 3番目の引数は出力ごとの伝搬状況
+  using cbtype = std::function<void(SizeType, TpgFault, DiffBits)>;
+
   /// @brief SPSFP故障シミュレーションを行う．
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
@@ -190,46 +197,35 @@ public:
     DiffBits& dbits                 ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 
-  /// @brief 直前の spsfp() に対する故障差を返す．
-  DiffBits
-  spsfp_diffbits();
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  void
+  sppfp(
+    const TestVector& tv,  ///< [in] テストベクタ
+    cbtype callback        ///< [in] コールバック関数
+                           ///<      1番目の引数はパタン番号(常に0)
+                           ///<      2番目の引数は検出された故障
+                           ///<      3番目の引数は出力の伝搬状況
+  );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
-  vector<TpgFault>
+  void
   sppfp(
-    const TestVector& tv  ///< [in] テストベクタ
+    const NodeValList& assign_list, ///< [in] 値の割当リスト
+    cbtype callback                 ///< [in] コールバック関数
+                                    ///<      1番目の引数はパタン番号(常に0)
+                                    ///<      2番目の引数は検出された故障
+                                    ///<      3番目の引数は出力の伝搬状況
   );
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
-  vector<TpgFault>
-  sppfp(
-    const NodeValList& assign_list  ///< [in] 値の割当リスト
-  );
-
-  /// @brief 直前の sppfp() に対する故障差を返す．
-  DiffBits
-  sppfp_diffbits(
-    TpgFault fault ///< [in] 対象の故障
-  );
-
-  /// @brief ppsfp で用いるコールバック関数の型定義
-  ///
-  /// * 1番目の引数はパタン番号(tv_list中の位置)
-  /// * 2番目の引数は検出された故障
-  /// * 3番目の引数は出力ごとの伝搬状況
-  /// * false が返された時には処理を中断する．
-  using cbtype = std::function<bool(SizeType, TpgFault, DiffBits)>;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 全パタンシミュレーションした場合に true を返す．
-  ///
-  /// callback 関数が false を返した場合にはこの関数も false を返す．
-  bool
+  void
   ppsfp(
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
     cbtype callback                    ///< [in] コールバック関数
+                                       ///<      1番目の引数はパタン番号(tv_list中の位置)
+                                       ///<      2番目の引数は検出された故障
+                                       ///<      3番目の引数は出力の伝搬状況
+                                       ///<      false が返された時には処理を中断する．
   );
 
 
