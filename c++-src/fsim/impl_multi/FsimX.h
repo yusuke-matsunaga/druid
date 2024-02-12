@@ -20,11 +20,13 @@
 #include "TpgFault.h"
 #include "TestVector.h"
 #include "SimNodeList.h"
+#include "SyncObj.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
 
 class InputVals;
+class ThrFunc;
 
 //////////////////////////////////////////////////////////////////////
 /// @class FSIM_CLASSNAME FsimX.h "FsimX.h"
@@ -35,6 +37,8 @@ class InputVals;
 class FSIM_CLASSNAME :
   public FsimImpl
 {
+  friend class PPSFP_Thread;
+
 public:
 
   /// @brief コンストラクタ
@@ -350,22 +354,6 @@ private:
     cbtype callback      ///< [in] コールバック関数
   );
 
-  /// @brief sppfp 用のシミュレーションを行う．
-  void
-  _sppfp_simulation(
-    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
-    SizeType ffr_num,         ///< [in] FFR 数
-    cbtype callback           ///< [in] コールバック関数
-  );
-
-  /// @brief PPSFP故障シミュレーションの本体
-  void
-  _ppsfp(
-    SizeType base,  ///< [in] パタン番号の起点
-    SizeType npat,  ///< [in] パタン数
-    cbtype callback ///< [in] コールバック関数
-  );
-
   /// @brief 正常値の計算を行う．
   void
   _calc_gval(
@@ -392,60 +380,6 @@ private:
     SimNode* node,
     bool weighted
   );
-#if 0
-  /// @brief FFR の根から故障伝搬シミュレーションを行う．
-  /// @return 伝搬したビットに1を立てたビットベクタ
-  ///
-  /// obs_mask が0のビットのイベントはマスクされる．
-  vector<PackedVal>
-  _global_prop(
-    SimNode* root,     ///< [in] FFRの根のノード
-    PackedVal obs_mask ///< [in] ビットマスク
-  )
-  {
-    mEventQ.put_event(root, obs_mask);
-    auto obs_array = mEventQ.simulate();
-
-    return obs_array;
-  }
-#endif
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // ppsfp のテストパタンを設定する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ppsfp 用のパタンバッファをクリアする．
-  void
-  clear_patterns()
-  {
-    mPatMask = PV_ALL0;
-  }
-
-  /// @brief ppsfp 用のパタンを設定する．
-  void
-  set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-    const TestVector& tv ///< [in] テストベクタ
-  )
-  {
-    ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
-
-    mPatBuff[pos] = tv;
-    mPatMask |= (1ULL << pos);
-  }
-
-  /// @brief 設定した ppsfp 用のパタンを読み出す．
-  TestVector
-  get_pattern(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-  )
-  {
-    ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
-    ASSERT_COND ( mPatMask & (1ULL << pos) );
-
-    return mPatBuff[pos];
-  }
 
 
 private:
@@ -526,20 +460,20 @@ private:
   // ノードの最大レベル
   SizeType mMaxLevel;
 
-  // パタンの設定状況を表すビットベクタ
-  PackedVal mPatMask{PV_ALL0};
-
-  // パタンバッファ
-  TestVector mPatBuff[PV_BITLEN];
-
-  // パタン番号のベース値
-  SizeType mPatBase;
-
   // 全ての SimFault のリスト
   vector<unique_ptr<SimFault>> mFaultList;
 
   // TpgFault::id() をキーとして SimFault を格納する配列
   vector<SimFault*> mFaultMap;
+
+  // 子スレッドとの同期用オブジェクト
+  SyncObj mSyncObj;
+
+  // 子スレッド用の関数オブジェクトのリスト
+  vector<unique_ptr<ThrFunc>> mFuncList;
+
+  // 子スレッドのリスト
+  vector<std::thread> mThreadList;
 
 };
 

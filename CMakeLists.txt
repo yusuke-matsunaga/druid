@@ -56,6 +56,8 @@ ym_init_ctest ()
 # Python パッケージのインストール先
 set ( YM_DRUID_PKGDIR "${YM_PYTHON_LIBDIR}/${PROJECT_NAME}" )
 
+list ( APPEND YM_LIB_DEPENDS pthread )
+
 
 # ===================================================================
 # google-test は内蔵のものを使う．

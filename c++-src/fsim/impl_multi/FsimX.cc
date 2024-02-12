@@ -22,10 +22,7 @@
 #include "SimNode.h"
 #include "SimFFR.h"
 #include "InputVals.h"
-
-#include "CmdQueue.h"
-#include "PPSFP_Thread.h"
-#include "SPPFP_Thread.h"
+#include "ThrFunc.h"
 
 #include "ym/Range.h"
 
@@ -94,14 +91,36 @@ new_Fsim(
 // @brief コンストラクタ
 FSIM_CLASSNAME::FSIM_CLASSNAME(
   const TpgNetwork& network
-)
+) : mSyncObj{0},
+    mFuncList(mSyncObj.thread_num()),
+    mThreadList(mSyncObj.thread_num())
 {
   set_network(network);
+
+  // スレッドを生成する．
+  auto NT = mSyncObj.thread_num();
+  for ( SizeType i = 0; i < NT; ++ i ) {
+    auto func = new ThrFunc{i, *this, mSyncObj};
+    mFuncList[i] = unique_ptr<ThrFunc>{func};
+  }
+  for ( SizeType i = 0; i < NT; ++ i ) {
+    auto& func = mFuncList[i];
+    mThreadList[i] = std::thread{[&]{func->main_loop();}};
+  }
+  // 子スレッドがコマンド待ちになるまで待つ．
+  mSyncObj.wait();
 }
 
 // @brief デストラクタ
 FSIM_CLASSNAME::~FSIM_CLASSNAME()
 {
+  // 終了コマンドを送る．
+  mSyncObj.put_command(Cmd::END);
+
+  // 子スレッドの終了を待つ．
+  for ( auto& thr: mThreadList ) {
+    thr.join();
+  }
 }
 
 // @brief ネットワークをセットする関数
@@ -411,18 +430,18 @@ FSIM_CLASSNAME::_sppfp(
   // 正常値の計算を行う．
   _calc_gval(iv);
 
-  // スレッドを生成する．
-  SizeType nt = std::thread::hardware_concurrency();
-  CmdQueue cmd_queue;
-  vector<std::thread> thread_list(nt);
-  vector<SPPFP_Thread> thread_func_list(nt, SPPFP_Thread{*this, cmd_queue, callback});
-  for ( SizeType i = 0; i < nt; ++ i ) {
-    thread_list[i] = std::thread{thread_func_list[i]};
-  }
+  // SPPFP コマンドを送る．
+  mSyncObj.put_command(Cmd::SPPFP);
 
-  // 子スレッドの終了を待つ．
-  for ( auto& thr: thread_list ) {
-    thr.join();
+  // 結果を受け取る．
+  mSyncObj.wait();
+  for ( auto& func: mFuncList ) {
+    auto& res_list = func->res_list(0);
+    for ( auto& p: res_list ) {
+      auto& f = p.first;
+      auto& dbits = p.second;
+      callback(0, f, dbits);
+    }
   }
 }
 
@@ -433,97 +452,44 @@ FSIM_CLASSNAME::ppsfp(
   cbtype callback
 )
 {
-  clear_patterns();
+  SizeType NPO = ppo_num();
+  SizeType NFFR = ffr_array().size();
+  SizeType NT = mSyncObj.thread_num();
   SizeType base = 0;
+  TestVector pat_buff[PV_BITLEN];
+  PackedVal pat_mask{PV_ALL0};
   for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
     auto& tv = tv_list[index];
     auto lindex = index - base;
-    set_pattern(lindex, tv);
+    pat_buff[lindex] = tv;
+    pat_mask |= (1UL << lindex);
     if ( lindex == PV_BITLEN - 1 || index == tv_list.size() - 1 ) {
-      _ppsfp(base, lindex + 1, callback);
-      clear_patterns();
-      base += PV_BITLEN;
-    }
-  }
-}
+      Tv2InputVals iv{pat_mask, pat_buff};
 
-// @brief 複数のパタンで故障シミュレーションを行う．
-void
-FSIM_CLASSNAME::_ppsfp(
-  SizeType base,
-  SizeType npat,
-  cbtype callback
-)
-{
-  Tv2InputVals iv{mPatMask, mPatBuff};
+      // 正常値の計算を行う．
+      _calc_gval(iv);
 
-  // 正常値の計算を行う．
-  _calc_gval(iv);
+      // PPSFP コマンドを送る．
+      mSyncObj.put_command(Cmd::PPSFP);
 
-#if 0
-  // スレッドを生成する．
-  SizeType nt = std::thread::hardware_concurrency();
-  CmdQueue cmd_queue;
-  vector<std::thread> thread_list(nt);
-  for ( SizeType i = 0; i < nt; ++ i ) {
-    PPSFP_Thread func{*this, cmd_queue, base, npat, callback};
-    thread_list[i] = std::thread{func};
-  }
+      // 結果を受け取る．
+      mSyncObj.wait();
 
-  // 子スレッドの終了を待つ．
-  for ( auto& thr: thread_list ) {
-    thr.join();
-  }
-#else
-#if 0
-  CmdQueue cmd_queue;
-  PPSFP_Thread func{*this, cmd_queue, base, npat, callback};
-  func();
-#else
-  EventQ event_q;
-  event_q.init(max_level(), ppo_num(), node_num());
-  event_q.copy_val(val_array());
-  for ( auto& ffr: ffr_array() ) {
-    auto ffr_req = foreach_faults(ffr);
-    if ( ffr_req == PV_ALL0 ) {
-      // ffr_req が 0 ならその後のシミュレーションは必要ない．
-      continue;
-    }
-
-    // イベントシミュレーションを行う．
-    auto root = ffr.root();
-    cout << "ffr_req = " << hex << ffr_req << dec << endl;
-    event_q.put_event(ffr.root(), ffr_req);
-    auto obs_array = event_q.simulate();
-    auto obs = obs_array.back();
-    cout << "obs = " << hex << obs << dec << endl;
-    if ( obs != PV_ALL0 ) {
-      // FFR の故障伝搬値とマージする．
-      for ( auto ff: ffr.fault_list() ) {
-	if ( ff->skip() ) {
-	  continue;
-	}
-	auto pat = ff->obs_mask() & obs;
-	if ( pat != PV_ALL0 ) {
-	  // 検出された
-	  for ( SizeType i = 0; i < npat; ++ i ) {
-	    PackedVal bitmask = 1UL << i;
-	    if ( pat & bitmask ) {
-	      DiffBits dbits(ppo_num());
-	      for ( SizeType j = 0; j < ppo_num(); ++ j ) {
-		if ( obs_array[j] & bitmask ) {
-		  dbits.set_val(j);
-		}
-	      }
-	      callback(i + base, ff->tpg_fault(), dbits);
-	    }
+      for ( SizeType thr_id = 0; thr_id < NT; ++ thr_id ) {
+	auto& func = mFuncList[thr_id];
+	for ( SizeType bpos = 0; bpos < PV_BITLEN; ++ bpos ) {
+	  auto& res_list = func->res_list(bpos);
+	  for ( auto& p: res_list ) {
+	    auto& f = p.first;
+	    auto& dbits = p.second;
+	    callback(bpos + base, f, dbits);
 	  }
 	}
       }
+      pat_mask = PV_ALL0;
+      base += PV_BITLEN;
     }
   }
-#endif
-#endif
 }
 
 #if FSIM_BSIDE

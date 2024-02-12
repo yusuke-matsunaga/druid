@@ -10,11 +10,12 @@
 
 #include "fsim_nsdef.h"
 #include "FsimX.h"
-#include "CmdQueue.h"
 #include "EventQ.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
+
+class CmdQueue;
 
 //////////////////////////////////////////////////////////////////////
 /// @class SPPFP_Thread SPPFP_Thread.h "SPPFP_Thread.h"
@@ -32,6 +33,7 @@ public:
   SPPFP_Thread(
     FSIM_CLASSNAME& fsim, ///< [in] 故障シミュレータ本体
     CmdQueue& cmd_queue,  ///< [in] コマンドキュー
+    EventQ& event_q,      ///< [in] イベントキュー
     cbtype callback       ///< [in] コールバック関数
   );
 
@@ -71,7 +73,7 @@ private:
   CmdQueue& mCmdQueue;
 
   // イベントキュー
-  EventQ mEventQ;
+  EventQ& mEventQ;
 
   // コールバック関数
   cbtype mCallBack;

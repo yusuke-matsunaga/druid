@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
+#include "FsimX.h"
 #include "SimNode.h"
 #include "ym/Range.h"
 
@@ -41,7 +42,18 @@ private:
 public:
 
   /// @brief コンストラクタ
-  EventQ() = default;
+  EventQ(
+    SizeType max_level,  ///< [in] 最大レベル
+    SizeType output_num, ///< [in] 出力数
+    SizeType node_num    ///< [in] ノード数
+  ) : mPropArray(output_num + 1, PV_ALL0),
+      mArray(max_level, nullptr),
+      mEventMap(node_num, nullptr),
+      mFlipMaskArray(node_num, PV_ALL0),
+      mValArray(node_num)
+  {
+    mClearArray.reserve(node_num);
+  }
 
   /// @brief デストラクタ
   ~EventQ() = default;
@@ -52,24 +64,16 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 初期化を行う．
+  /// @brief 値を初期化する．
   void
   init(
-    SizeType max_level,  ///< [in] 最大レベル
-    SizeType output_num, ///< [in] 出力数
-    SizeType node_num    ///< [in] ノード数
-  );
-
-  /// @brief 値をコピーする．
-  void
-  copy_val(
-    const vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+    const FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
   )
   {
-    SizeType n = mValArray.size();
-    ASSERT_COND( val_array.size() == n );
-    for ( SizeType i = 0; i < n; ++ i ) {
-      mValArray[i] = val_array[i];
+    ASSERT_COND( mValArray.size() == fsim.val_array().size() );
+    SizeType N = mValArray.size();
+    for ( SizeType i = 0; i < N; ++ i ) {
+      mValArray[i] = fsim.val_array()[i];
     }
   }
 
@@ -152,7 +156,7 @@ private:
     const SimNode* node ///< [in] 対象のノード
   )
   {
-    if ( mEventMap[node->id()] ) {
+    if ( mEventMap[node->id()] == nullptr ) {
       auto ev = new Event{node, nullptr};
       ++ mNum;
       mEventMap[node->id()] = ev;

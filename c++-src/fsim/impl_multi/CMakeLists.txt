@@ -19,8 +19,7 @@ add_subdirectory( gtest )
 set (fsim_SOURCES
   EventQ.cc
   FsimX.cc
-  PPSFP_Thread.cc
-  SPPFP_Thread.cc
+  ThrFunc.cc
   InputVals.cc
   SimNode.cc
   SnAnd.cc

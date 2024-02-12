@@ -19,12 +19,13 @@ BEGIN_NAMESPACE_DRUID_FSIM
 SPPFP_Thread::SPPFP_Thread(
   FSIM_CLASSNAME& fsim,
   CmdQueue& cmd_queue,
+  EventQ& event_q,
   cbtype callback
 ) : mFsim{fsim},
     mCmdQueue{cmd_queue},
+    mEventQ{event_q},
     mCallBack{callback}
 {
-  mEventQ.copy_val(mFsim.val_array());
 }
 
 // @brief デストラクタ
@@ -36,6 +37,7 @@ SPPFP_Thread::~SPPFP_Thread()
 void
 SPPFP_Thread::operator()()
 {
+#if 0
   SizeType NPO = mFsim.ppo_num();
   SizeType NFFR = mFsim.ffr_array().size();
   mFFRPos = 0;
@@ -78,6 +80,7 @@ SPPFP_Thread::operator()()
   if ( mFFRPos > 0 ) {
     do_simulation();
   }
+#endif
 }
 
 // @brief 実際にイベントドリヴンシミュレーションを行う．
