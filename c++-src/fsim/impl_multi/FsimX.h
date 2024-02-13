@@ -26,7 +26,7 @@
 BEGIN_NAMESPACE_DRUID_FSIM
 
 class InputVals;
-class ThrFunc;
+class SimEngine;
 
 //////////////////////////////////////////////////////////////////////
 /// @class FSIM_CLASSNAME FsimX.h "FsimX.h"
@@ -435,8 +435,8 @@ private:
   // 子スレッドとの同期用オブジェクト
   SyncObj mSyncObj;
 
-  // 子スレッド用の関数オブジェクトのリスト
-  vector<unique_ptr<ThrFunc>> mFuncList;
+  // 子スレッド用の SimEngine のリスト
+  vector<unique_ptr<SimEngine>> mEngineList;
 
   // 子スレッドのリスト
   vector<std::thread> mThreadList;

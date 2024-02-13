@@ -1,8 +1,8 @@
-#ifndef THRFUNC_H
-#define THRFUNC_H
+#ifndef SIMENGINE_H
+#define SIMENGINE_H
 
-/// @file ThrFunc.h
-/// @brief ThrFunc のヘッダファイル
+/// @file SimEngine.h
+/// @brief SimEngine のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -16,24 +16,25 @@
 BEGIN_NAMESPACE_DRUID_FSIM
 
 class SyncObj;
+class InputVals;
 
 //////////////////////////////////////////////////////////////////////
-/// @class ThrFunc ThrFunc.h "ThrFunc.h"
-/// @brief ppsfp タイプのイベントドリブンシミュレーションを行うスレッド用のクラス
+/// @class SimEngine SimEngine.h "SimEngine.h"
+/// @brief シミュレーションを行う本体
 //////////////////////////////////////////////////////////////////////
-class ThrFunc
+class SimEngine
 {
 public:
 
   /// @brief コンストラクタ
-  ThrFunc(
-    SizeType id,          ///< [in] ID番号
-    FSIM_CLASSNAME& fsim, ///< [in] 故障シミュレータ本体
-    SyncObj& sync         ///< [in] 同期用のオブジェクト
+  SimEngine(
+    SizeType id,         ///< [in] ID番号
+    SyncObj& simc_obj,   ///< [in] 同期用オブジェクト
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ本体
   );
 
   /// @brief デストラクタ
-  ~ThrFunc();
+  ~SimEngine();
 
 
 public:
@@ -41,9 +42,24 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief スレッド実行の本体
+  /// @brief ID番号を得る．
+  SizeType
+  id() const
+  {
+    return mId;
+  }
+
+  /// @brief PPSFP 法のシミュレーションを行う．
   void
-  main_loop();
+  ppsfp(
+    const InputVals& iv ///< [in] 入力値
+  );
+
+  /// @brief SPPFP 法のシミュレーションを行う．
+  void
+  sppfp(
+    const InputVals& iv ///< [in] 入力値
+  );
 
   /// @brief 結果を読み出す．
   const vector<pair<TpgFault, DiffBits>>&
@@ -60,19 +76,9 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief PPSFP 法のシミュレーションを行う．
-  void
-  ppsfp();
-
-  /// @brief SPPFP 法のシミュレーションを行う．
-  void
-  sppfp();
-
   /// @brief sppsp() 用の下請け関数
   void
-  sppfp_simulation(
-    const vector<const SimFFR*>& ffr_array ///< [in] 対象のFFRのリスト
-  );
+  sppfp_simulation();
 
   /// @brief FFR内の個々の故障の故障伝搬条件を計算する．
   /// @return 全ての故障の伝搬結果のORを返す．
@@ -115,6 +121,7 @@ private:
   log(
     const string& msg
   );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -237,15 +244,11 @@ private:
   // ID 番号
   SizeType mId;
 
-  // 故障シミュレータ
-  FSIM_CLASSNAME& mFsim;
-
-  // 同期用のオブジェクト
+  // 同期用オブジェクト
   SyncObj& mSyncObj;
 
-  // 出力ごとの故障伝搬パタンの配列
-  // サイズは output_num + 1
-  vector<PackedVal> mPropArray;
+  // 故障シミュレータ
+  FSIM_CLASSNAME& mFsim;
 
   // ノード番号をキーにして反転マスクを保持する配列
   vector<PackedVal> mFlipMaskArray;
@@ -262,6 +265,9 @@ private:
   // clear 用の情報の配列
   vector<RestoreInfo> mClearArray;
 
+  // 処理対象の FFR リスト
+  vector<const SimFFR*> mFFRArray;
+
   // 一時的に結果を貯めておくバッファの排列
   vector<pair<TpgFault, DiffBits>> mResList[PV_BITLEN];
 
@@ -272,4 +278,4 @@ private:
 
 END_NAMESPACE_DRUID_FSIM
 
-#endif // THRFUNC_H
+#endif // SIMENGINE_H

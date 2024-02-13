@@ -86,32 +86,32 @@ public:
     const InputVals& iv ///< [in] 入力値
   )
   {
+    std::unique_lock lck{mCmdMTX};
+    mCmd = cmd;
+    mIV = &iv;
+    mNextId = 0;
+    mCmdCV.notify_all();
     if ( debug ) {
       ostringstream buf;
       buf << "put_command(" << cmd << ")";
       log(buf.str());
     }
-    std::unique_lock lcks{mCmdMTX};
-    mCmd = cmd;
-    mIV = &iv;
-    mNextId = 0;
-    mCmdCV.notify_all();
   }
 
   /// @brief END コマンドを設定する．
   void
   put_end()
   {
+    std::unique_lock lck{mCmdMTX};
+    mCmd = Cmd::END;
+    mIV = nullptr;
+    mNextId = 0;
+    mCmdCV.notify_all();
     if ( debug ) {
       ostringstream buf;
       buf << "put_command(END)";
       log(buf.str());
     }
-    std::unique_lock lcks{mCmdMTX};
-    mCmd = Cmd::END;
-    mIV = nullptr;
-    mNextId = 0;
-    mCmdCV.notify_all();
   }
 
   /// @brief コマンドを取り出す．
@@ -120,21 +120,20 @@ public:
     SizeType id
   )
   {
+    std::unique_lock lck2{mCmdMTX};
     {
-      std::unique_lock lck{mReadyMTX};
+      std::lock_guard lck1{mReadyMTX};
       ++ mReadyCount;
       if ( mReadyCount == mNT ) {
-	mReadyCV.notify_one();
-      }
-      if ( debug ) {
-	ostringstream buf;
-	buf << "get_command(" << id << ")["
-	    << mReadyCount << "]";
-	log(buf.str());
+	mReadyCV.notify_all();
+	if ( debug ) {
+	  ostringstream buf;
+	  buf << "get ready(" << id << ")";
+	  log(buf.str());
+	}
       }
     }
-    std::unique_lock lck{mCmdMTX};
-    mCmdCV.wait(lck);
+    mCmdCV.wait(lck2);
     if ( debug ) {
       ostringstream buf;
       buf << "get_command(" << id << ") => " << mCmd;
@@ -164,13 +163,11 @@ public:
   void
   wait()
   {
+    std::unique_lock lck{mReadyMTX};
     if ( debug ) {
       log("wait()");
     }
-    std::unique_lock lck{mReadyMTX};
-    if ( mReadyCount < mNT ) {
-      mReadyCV.wait(lck);
-    }
+    mReadyCV.wait(lck);
     mReadyCount = 0;
     if ( debug ) {
       log("wait() end");

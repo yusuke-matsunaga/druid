@@ -44,7 +44,6 @@ public:
   /// @brief コンストラクタ
   EventQ(
     SizeType max_level,  ///< [in] 最大レベル
-    SizeType output_num, ///< [in] 出力数
     SizeType node_num    ///< [in] ノード数
   ) :mArray(max_level, nullptr),
      mEventMap(node_num, nullptr)

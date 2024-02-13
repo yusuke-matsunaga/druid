@@ -22,8 +22,7 @@
 #include "SimNode.h"
 #include "SimFFR.h"
 #include "InputVals.h"
-#include "ThrFunc.h"
-
+#include "SimEngine.h"
 #include "ym/Range.h"
 
 
@@ -92,28 +91,49 @@ new_Fsim(
 FSIM_CLASSNAME::FSIM_CLASSNAME(
   const TpgNetwork& network
 ) : mSyncObj{0},
-    mFuncList(mSyncObj.thread_num()),
+    mEngineList(mSyncObj.thread_num()),
     mThreadList(mSyncObj.thread_num())
 {
   set_network(network);
 
-  // スレッドを生成する．
   auto NT = mSyncObj.thread_num();
   for ( SizeType i = 0; i < NT; ++ i ) {
-    auto func = new ThrFunc{i, *this, mSyncObj};
-    mFuncList[i] = unique_ptr<ThrFunc>{func};
+    auto engine = new SimEngine{i, mSyncObj, *this};
+    mEngineList[i] = unique_ptr<SimEngine>{engine};
   }
+
+#if 1
+  // スレッドを生成する．
   for ( SizeType i = 0; i < NT; ++ i ) {
-    auto& func = mFuncList[i];
-    mThreadList[i] = std::thread{[&]{func->main_loop();}};
+    auto& engine = mEngineList[i];
+    mThreadList[i] = std::thread{[&](){
+	for ( bool go_on = true; go_on; ) {
+	  auto cmd = mSyncObj.get_command(engine->id());
+	  switch ( cmd ) {
+	  case Cmd::PPSFP:
+	    engine->ppsfp(mSyncObj.input_vals());
+	    break;
+
+	  case Cmd::SPPFP:
+	    engine->sppfp(mSyncObj.input_vals());
+	    break;
+
+	  case Cmd::END:
+	    go_on = false;
+	    break;
+	  }
+	}
+      }};
   }
   // 子スレッドがコマンド待ちになるまで待つ．
   mSyncObj.wait();
+#endif
 }
 
 // @brief デストラクタ
 FSIM_CLASSNAME::~FSIM_CLASSNAME()
 {
+#if 1
   // 終了コマンドを送る．
   mSyncObj.put_end();
 
@@ -121,6 +141,7 @@ FSIM_CLASSNAME::~FSIM_CLASSNAME()
   for ( auto& thr: mThreadList ) {
     thr.join();
   }
+#endif
 }
 
 // @brief ネットワークをセットする関数
@@ -429,7 +450,7 @@ FSIM_CLASSNAME::_sppfp(
 
   // 結果を受け取る．
   mSyncObj.wait();
-  for ( auto& func: mFuncList ) {
+  for ( auto& func: mEngineList ) {
     auto& res_list = func->res_list(0);
     for ( auto& p: res_list ) {
       auto& f = p.first;
@@ -465,11 +486,10 @@ FSIM_CLASSNAME::ppsfp(
 
       // 結果を受け取る．
       mSyncObj.wait();
-
       for ( SizeType thr_id = 0; thr_id < NT; ++ thr_id ) {
-	auto& func = mFuncList[thr_id];
+	auto& engine = mEngineList[thr_id];
 	for ( SizeType bpos = 0; bpos < PV_BITLEN; ++ bpos ) {
-	  auto& res_list = func->res_list(bpos);
+	  auto& res_list = engine->res_list(bpos);
 	  for ( auto& p: res_list ) {
 	    auto& f = p.first;
 	    auto& dbits = p.second;
