@@ -14,6 +14,8 @@
 
 BEGIN_NAMESPACE_DRUID_FSIM
 
+class InputVals;
+
 const bool debug = false;
 
 //////////////////////////////////////////////////////////////////////
@@ -80,7 +82,8 @@ public:
   /// @brief コマンドを設定する．
   void
   put_command(
-    Cmd cmd ///< [in] コマンド
+    Cmd cmd,            ///< [in] コマンド
+    const InputVals& iv ///< [in] 入力値
   )
   {
     if ( debug ) {
@@ -90,6 +93,23 @@ public:
     }
     std::unique_lock lcks{mCmdMTX};
     mCmd = cmd;
+    mIV = &iv;
+    mNextId = 0;
+    mCmdCV.notify_all();
+  }
+
+  /// @brief END コマンドを設定する．
+  void
+  put_end()
+  {
+    if ( debug ) {
+      ostringstream buf;
+      buf << "put_command(END)";
+      log(buf.str());
+    }
+    std::unique_lock lcks{mCmdMTX};
+    mCmd = Cmd::END;
+    mIV = nullptr;
     mNextId = 0;
     mCmdCV.notify_all();
   }
@@ -121,6 +141,13 @@ public:
       log(buf.str());
     }
     return mCmd;
+  }
+
+  /// @brief 入力値を返す．
+  const InputVals&
+  input_vals()
+  {
+    return *mIV;
   }
 
   /// @brief カウンタ値を取り出す．
@@ -171,6 +198,9 @@ private:
 
   // コマンド
   Cmd mCmd;
+
+  // 入力値
+  const InputVals* mIV;
 
   // mCmd 用のミューテックス
   std::mutex mCmdMTX;

@@ -46,13 +46,9 @@ public:
     SizeType max_level,  ///< [in] 最大レベル
     SizeType output_num, ///< [in] 出力数
     SizeType node_num    ///< [in] ノード数
-  ) : mPropArray(output_num + 1, PV_ALL0),
-      mArray(max_level, nullptr),
-      mEventMap(node_num, nullptr),
-      mFlipMaskArray(node_num, PV_ALL0),
-      mValArray(node_num)
+  ) :mArray(max_level, nullptr),
+     mEventMap(node_num, nullptr)
   {
-    mClearArray.reserve(node_num);
   }
 
   /// @brief デストラクタ
@@ -63,75 +59,6 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 値を初期化する．
-  void
-  init(
-    const FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
-  )
-  {
-    ASSERT_COND( mValArray.size() == fsim.val_array().size() );
-    SizeType N = mValArray.size();
-    for ( SizeType i = 0; i < N; ++ i ) {
-      mValArray[i] = fsim.val_array()[i];
-    }
-  }
-
-  /// @brief 初期イベントを追加する．
-  void
-  put_event(
-    const SimNode* node, ///< [in] 対象のノード
-    PackedVal valmask    ///< [in] 反転マスク
-  )
-  {
-    if ( node->gate_type() == PrimType::None ) {
-      // 入力の場合，他のイベントの干渉は受けないので
-      // 今計算してしまう．
-      auto old_val = get_val(node);
-      set_val(node, old_val ^ valmask);
-      add_to_clear_list(node, old_val);
-      put_fanouts(node);
-    }
-    else {
-      // 複数のイベントを登録する場合があるので
-      // ここでは計算せずに反転マスクのみをセットする．
-      set_flip_mask(node, valmask);
-      put(node);
-    }
-  }
-
-  /// @brief イベントドリブンシミュレーションを行う．
-  /// @retval 出力における変化ビットを返す．
-  ///
-  /// 返されるベクタのサイズは output_num + 1
-  /// 最後の要素は全ての出力のORになっている．
-  vector<PackedVal>
-  simulate();
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ノードの値を取り出す．
-  FSIM_VALTYPE
-  get_val(
-    const SimNode* node ///< [in] 対象のノード
-  )
-  {
-    return mValArray[node->id()];
-  }
-
-  /// @brief ノードの値を設定する．
-  void
-  set_val(
-    const SimNode* node, ///< [in] 対象のノード
-    FSIM_VALTYPE val     ///< [in] 設定する値
-  )
-  {
-    mValArray[node->id()] = val;
-  }
 
   /// @brief ファンアウトのノードをキューに積む．
   void
@@ -193,52 +120,11 @@ private:
     return nullptr;
   }
 
-  /// @brief clear リストに追加する．
-  void
-  add_to_clear_list(
-    const SimNode* node, ///< [in] 対象のノード
-    FSIM_VALTYPE old_val ///< [in] 元の値
-  )
-  {
-    mClearArray.push_back({node->id(), old_val});
-  }
-
-  /// @brief 反転フラグをセットする．
-  void
-  set_flip_mask(
-    const SimNode* node, ///< [in] 対象のノード
-    PackedVal flip_mask  ///< [in] 反転マスク
-  )
-  {
-    ASSERT_COND( mFlipMaskArray[node->id()] == PV_ALL0 );
-    mFlipMaskArray[node->id()] = flip_mask;
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられるデータ構造
-  //////////////////////////////////////////////////////////////////////
-
-  // 値を元に戻すための構造体
-  struct RestoreInfo
-  {
-    // ノード番号
-    SizeType mId;
-
-    // 元の値
-    FSIM_VALTYPE mVal;
-  };
-
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 出力ごとの故障伝搬パタンの配列
-  // サイズは output_num + 1
-  vector<PackedVal> mPropArray;
 
   // レベルごとのキューの先頭ノードの配列
   vector<Event*> mArray;
@@ -252,15 +138,6 @@ private:
   // ノード番号をキーにして Event を保持する配列
   // キューに入っていない場合には nullptr を持つ．
   vector<Event*> mEventMap;
-
-  // ノード番号をキーにして反転マスクを保持する配列
-  vector<PackedVal> mFlipMaskArray;
-
-  // 値の配列
-  vector<FSIM_VALTYPE> mValArray;
-
-  // clear 用の情報の配列
-  vector<RestoreInfo> mClearArray;
 
 };
 

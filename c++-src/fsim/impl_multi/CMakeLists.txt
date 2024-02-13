@@ -17,7 +17,6 @@ add_subdirectory( gtest )
 # ===================================================================
 
 set (fsim_SOURCES
-  EventQ.cc
   FsimX.cc
   ThrFunc.cc
   InputVals.cc

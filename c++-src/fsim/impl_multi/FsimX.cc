@@ -115,7 +115,7 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 FSIM_CLASSNAME::~FSIM_CLASSNAME()
 {
   // 終了コマンドを送る．
-  mSyncObj.put_command(Cmd::END);
+  mSyncObj.put_end();
 
   // 子スレッドの終了を待つ．
   for ( auto& thr: mThreadList ) {
@@ -236,10 +236,6 @@ FSIM_CLASSNAME::set_network(
       mFFRMap[node->id()] = ffr;
     }
   }
-
-  // mValArray, mPrevValArray の確保
-  mValArray.resize(node_num);
-  mPrevValArray.resize(node_num);
 
   // 最大レベルを求める．
   mMaxLevel = 0;
@@ -363,6 +359,7 @@ FSIM_CLASSNAME::_spsfp(
   DiffBits& dbits
 )
 {
+#if 0
   dbits = DiffBits(ppo_num());
 
   // 正常値の計算を行う．
@@ -380,7 +377,7 @@ FSIM_CLASSNAME::_spsfp(
 
   // FFR の根のノードを求める．
   auto root = ff->origin_node()->ffr_root();
-#if 0
+
   // root からの故障伝搬シミュレーションを行う．
   auto obs_array = _global_prop(root, PV_ALL1);
   for ( SizeType i = 0; i < ppo_num(); ++ i ) {
@@ -427,11 +424,8 @@ FSIM_CLASSNAME::_sppfp(
   cbtype callback
 )
 {
-  // 正常値の計算を行う．
-  _calc_gval(iv);
-
   // SPPFP コマンドを送る．
-  mSyncObj.put_command(Cmd::SPPFP);
+  mSyncObj.put_command(Cmd::SPPFP, iv);
 
   // 結果を受け取る．
   mSyncObj.wait();
@@ -466,11 +460,8 @@ FSIM_CLASSNAME::ppsfp(
     if ( lindex == PV_BITLEN - 1 || index == tv_list.size() - 1 ) {
       Tv2InputVals iv{pat_mask, pat_buff};
 
-      // 正常値の計算を行う．
-      _calc_gval(iv);
-
       // PPSFP コマンドを送る．
-      mSyncObj.put_command(Cmd::PPSFP);
+      mSyncObj.put_command(Cmd::PPSFP, iv);
 
       // 結果を受け取る．
       mSyncObj.wait();
@@ -500,6 +491,7 @@ FSIM_CLASSNAME::set_state(
   const DffVector& f_vect
 )
 {
+#if 0
   SizeType i = 0;
   for ( auto simnode: input_list() ) {
     auto val3 = i_vect.val(i);
@@ -526,6 +518,7 @@ FSIM_CLASSNAME::set_state(
     auto val = mPrevValArray[onode->id()];
     mValArray[inode->id()] = val;
   }
+#endif
 }
 
 // @brief 状態を取得する．
@@ -535,6 +528,7 @@ FSIM_CLASSNAME::get_state(
   DffVector& f_vect
 )
 {
+#if 0
   SizeType i = 0;
   for ( auto simnode: input_list() ) {
     auto val = mValArray[simnode->id()];
@@ -550,6 +544,7 @@ FSIM_CLASSNAME::get_state(
     f_vect.set_val(i, val3);
     ++ i;
   }
+#endif
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
@@ -559,6 +554,7 @@ FSIM_CLASSNAME::calc_wsa(
   bool weighted
 )
 {
+#if 0
   // mValArray を mPrevValArray にコピーする．
   for ( auto& node: mNodeArray ) {
     auto val = mValArray[node->id()];
@@ -591,6 +587,9 @@ FSIM_CLASSNAME::calc_wsa(
   }
 
   return wsa;
+#else
+  return 0;
+#endif
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
@@ -609,6 +608,7 @@ FSIM_CLASSNAME::calc_wsa(
 #endif
 }
 
+#if 0
 // @brief ノードの出力の(重み付き)信号遷移回数を求める．
 SizeType
 FSIM_CLASSNAME::_calc_wsa(
@@ -625,6 +625,7 @@ FSIM_CLASSNAME::_calc_wsa(
   }
   return wsa;
 }
+#endif
 #else
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
 SizeType
@@ -664,72 +665,6 @@ FSIM_CLASSNAME::calc_wsa(
   return 0;
 }
 #endif
-
-
-#if FSIM_COMBI
-// @brief 正常値の計算を行う．(縮退故障用)
-void
-FSIM_CLASSNAME::_calc_gval(
-  const InputVals& input_vals
-)
-{
-  // 入力の設定を行う．
-  input_vals.set_val(*this, mValArray);
-
-  // 正常値の計算を行う．
-  _calc_val(mValArray);
-}
-#endif
-
-#if FSIM_BSIDE
-// @brief 正常値の計算を行う．(遷移故障用)
-void
-FSIM_CLASSNAME::_calc_gval(
-  const InputVals& input_vals
-)
-{
-  // 1時刻目の入力を設定する．
-  input_vals.set_val1(*this, mPrevValArray);
-
-  // 1時刻目の正常値の計算を行う．
-  _calc_val(mPrevValArray);
-
-  // DFF の出力の値を入力にコピーする．
-  for ( auto i: Range(mDffNum) ) {
-    auto onode = mPPOList[i + mOutputNum];
-    auto inode = mPPIList[i + mInputNum];
-    auto val = mPrevValArray[onode->id()];
-    mValArray[inode->id()] = val;
-  }
-
-  // 2時刻目の入力を設定する．
-  input_vals.set_val2(*this, mValArray);
-
-  // 2時刻目の正常値の計算を行う．
-  _calc_val(mValArray);
-}
-#endif
-
-// @brief 個々の故障に FaultProp を適用する．
-PackedVal
-FSIM_CLASSNAME::foreach_faults(
-  const SimFFR& ffr
-)
-{
-  auto& fault_list = ffr.fault_list();
-  auto ffr_req = PV_ALL0;
-  for ( auto ff: fault_list ) {
-    if ( ff->skip() ) {
-      continue;
-    }
-
-    auto obs = local_prop(ff);
-    ff->set_obs_mask(obs);
-    ffr_req |= obs;
-  }
-
-  return ffr_req;
-}
 
 // @brief 外部入力ノードを作る．
 SimNode*

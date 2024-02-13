@@ -37,8 +37,6 @@ class ThrFunc;
 class FSIM_CLASSNAME :
   public FsimImpl
 {
-  friend class PPSFP_Thread;
-
 public:
 
   /// @brief コンストラクタ
@@ -259,6 +257,13 @@ public:
     return mNodeArray.size();
   }
 
+  /// @brief 論理ノードのリストを返す．
+  const vector<SimNode*>&
+  logic_list() const
+  {
+    return mLogicArray;
+  }
+
   /// @brief 最大レベルを返す．
   SizeType
   max_level() const
@@ -266,17 +271,48 @@ public:
     return mMaxLevel;
   }
 
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 子スレッドから用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 値の排列を得る．
-  const vector<FSIM_VALTYPE>&
-  val_array() const
+  /// @brief DFF 数を返す．
+  SizeType
+  dff_num() const
   {
-    return mValArray;
+    return mDffNum;
+  }
+
+  /// @brief DFF の入力ノードを返す．
+  SimNode*
+  dff_input(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < dff_num() );
+    return mPPOList[pos + mOutputNum];
+  }
+
+  /// @brief DFF の出力ノードを返す．
+  SimNode*
+  dff_output(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < dff_num() );
+    return mPPIList[pos + mInputNum];
+  }
+
+  /// @brief FFR数を得る．
+  SizeType
+  ffr_num() const
+  {
+    return mFFRArray.size();
+  }
+
+  /// @brief FFRを得る．
+  const SimFFR&
+  ffr(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < ffr_num() );
+    return mFFRArray[pos];
   }
 
   /// @brief FFRの排列を得る．
@@ -284,43 +320,6 @@ public:
   ffr_array() const
   {
     return mFFRArray;
-  }
-
-  /// @brief FFR内の個々の故障の故障伝搬条件を計算する．
-  /// @return 全ての故障の伝搬結果のORを返す．
-  ///
-  /// 各 SimFault の obs_mask() に結果がセットされる．
-  PackedVal
-  foreach_faults(
-    const SimFFR& ffr ///< [in] 対象のFFR
-  );
-
-  /// @brief FFR内の故障シミュレーションを行う．
-  PackedVal
-  local_prop(
-    SimFault* fault ///< [in] 対象の故障
-  )
-  {
-    // 故障の活性化条件を求める．
-    auto cval = fault->excitation_condition(mValArray);
-
-    // FFR 内の故障伝搬を行う．
-    auto lobs = PV_ALL1;
-    auto f_node = fault->origin_node();
-    for ( auto node = f_node; !node->is_ffr_root(); ) {
-      auto onode = node->fanout_top();
-      auto pos = node->fanout_ipos();
-      lobs &= onode->_calc_gobs(mValArray, pos);
-      node = onode;
-    }
-
-#if FSIM_BSIDE
-    // 1時刻前の条件を求める．
-    auto pval = fault->previous_condition(mPrevValArray);
-    return cval & pval & lobs;
-#else
-    return cval & lobs;
-#endif
   }
 
 
@@ -352,33 +351,6 @@ private:
   _sppfp(
     const InputVals& iv, ///< [in] 入力値
     cbtype callback      ///< [in] コールバック関数
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const InputVals& input_vals      ///< [in] 入力値
-  );
-
-  /// @brief 値の計算を行う．
-  ///
-  /// 入力ノードに値の設定は済んでいるものとする．
-  void
-  _calc_val(
-    vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
-  )
-  {
-    for ( auto node: mLogicArray ) {
-      auto val = node->calc_val(val_array);
-      val_array[node->id()] = val;
-    }
-  }
-
-  /// @brief ノードの出力の(重み付き)信号遷移回数を求める．
-  SizeType
-  _calc_wsa(
-    SimNode* node,
-    bool weighted
   );
 
 
@@ -450,12 +422,6 @@ private:
 
   // SimNode のノード番号をキーにして対応する SimFFR を格納する配列
   vector<SimFFR*> mFFRMap;
-
-  // local_prop 用の値配列
-  vector<FSIM_VALTYPE> mValArray;
-
-  // local_prop 用の値配列(1時刻前)
-  vector<FSIM_VALTYPE> mPrevValArray;
 
   // ノードの最大レベル
   SizeType mMaxLevel;
