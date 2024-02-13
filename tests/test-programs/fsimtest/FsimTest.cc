@@ -71,14 +71,16 @@ spsfp_test(
 pair<int, int>
 sppfp_test(
   Fsim& fsim,
-  const vector<TestVector>& tv_list
+  const vector<TestVector>& tv_list,
+  bool drop
 )
 {
   int det_num = 0;
   int nepat = 0;
   int i = 0;
+  unordered_set<SizeType> det_dict;
   for ( auto tv: tv_list ) {
-    bool drop = false;
+    bool detected = false;
     fsim.sppfp(tv,
 	       [&](
 		 SizeType,
@@ -86,12 +88,17 @@ sppfp_test(
 		 DiffBits dbits
 	       )
 	       {
-		 ++ det_num;
-		 drop = true;
-		 fsim.set_skip(f);
-		 print_fault(f, i);
+		 if ( det_dict.count(f.id()) == 0 ) {
+		   det_dict.emplace(f.id());
+		   ++ det_num;
+		   if ( drop ) {
+		     fsim.set_skip(f);
+		   }
+		   print_fault(f, i);
+		   detected = true;
+		 }
 	       });
-    if ( drop ) {
+    if ( detected ) {
       ++ nepat;
     }
     ++ i;
@@ -104,7 +111,8 @@ sppfp_test(
 pair<SizeType, SizeType>
 ppsfp_test(
   Fsim& fsim,
-  const vector<TestVector>& tv_list
+  const vector<TestVector>& tv_list,
+  bool drop
 )
 {
   int nv = tv_list.size();
@@ -112,6 +120,7 @@ ppsfp_test(
   SizeType nepat = 0;
   SizeType det_num = 0;
   unordered_set<SizeType> pat_dict;
+  unordered_set<SizeType> det_dict;
   fsim.ppsfp(tv_list,
 	     [&](
 	       SizeType index,
@@ -119,9 +128,12 @@ ppsfp_test(
 	       DiffBits dbits
 	     )
 	     {
-	       if ( !fsim.get_skip(f) ) {
-		 fsim.set_skip(f);
+	       if ( det_dict.count(f.id()) == 0 ) {
+		 det_dict.emplace(f.id());
 		 ++ det_num;
+		 if ( drop ) {
+		   fsim.set_skip(f);
+		 }
 		 if ( pat_dict.count(index) == 0 ) {
 		   pat_dict.emplace(index);
 		   ++ nepat;
@@ -191,6 +203,8 @@ fsim2test(
   bool sa_mode = false;
   bool td_mode = false;
 
+  bool drop = false;
+
   bool old = false;
 
   argv0 = argv[0];
@@ -251,6 +265,9 @@ fsim2test(
 	  return -1;
 	}
 	td_mode = true;
+      }
+      else if ( strcmp(argv[pos], "--drop") == 0 ) {
+	drop = true;
       }
       else if ( strcmp(argv[pos], "--old") == 0 ) {
 	old = true;
@@ -333,10 +350,10 @@ fsim2test(
 
   pair<int, int> dpnum;
   if ( ppsfp ) {
-    dpnum = ppsfp_test(fsim, tv_list);
+    dpnum = ppsfp_test(fsim, tv_list, drop);
   }
   else if ( sppfp ) {
-    dpnum = sppfp_test(fsim, tv_list);
+    dpnum = sppfp_test(fsim, tv_list, drop);
   }
   else {
     // デフォルトフォールバックは SPSFP
