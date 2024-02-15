@@ -10,6 +10,7 @@
 
 #include <thread>
 #include "fsim_nsdef.h"
+#include "FsimX.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -49,6 +50,8 @@ operator<<(
 //////////////////////////////////////////////////////////////////////
 class SyncObj
 {
+  using cbtype = FsimImpl::cbtype;
+
 public:
 
   /// @brief コンストラクタ
@@ -82,20 +85,24 @@ public:
   /// @brief コマンドを設定する．
   void
   put_command(
-    Cmd cmd,            ///< [in] コマンド
-    const InputVals& iv ///< [in] 入力値
+    Cmd cmd,             ///< [in] コマンド
+    const InputVals& iv, ///< [in] 入力値
+    cbtype callback      ///< [in] コールバック関数
   )
   {
-    std::unique_lock lck{mCmdMTX};
-    mCmd = cmd;
-    mIV = &iv;
-    mNextId = 0;
-    mCmdCV.notify_all();
+    {
+      std::unique_lock lck{mCmdMTX};
+      mCmd = cmd;
+      mIV = &iv;
+      mCallBack = callback;
+      mCmdCV.notify_all();
+    }
     if ( debug ) {
       ostringstream buf;
       buf << "put_command(" << cmd << ")";
       log(buf.str());
     }
+    wait();
   }
 
   /// @brief END コマンドを設定する．
@@ -105,7 +112,6 @@ public:
     std::unique_lock lck{mCmdMTX};
     mCmd = Cmd::END;
     mIV = nullptr;
-    mNextId = 0;
     mCmdCV.notify_all();
     if ( debug ) {
       ostringstream buf;
@@ -149,14 +155,11 @@ public:
     return *mIV;
   }
 
-  /// @brief カウンタ値を取り出す．
-  SizeType
-  get_id()
+  /// @brief コールバック関数を返す．
+  cbtype&
+  callback()
   {
-    std::unique_lock lck{mIdMutex};
-    auto id = mNextId;
-    ++ mNextId;
-    return id;
+    return mCallBack;
   }
 
   /// @brief 全ての子スレッドが ready になるのを待つ．
@@ -167,7 +170,9 @@ public:
     if ( debug ) {
       log("wait()");
     }
-    mReadyCV.wait(lck);
+    if ( mReadyCount != mNT ) {
+      mReadyCV.wait(lck);
+    }
     mReadyCount = 0;
     if ( debug ) {
       log("wait() end");
@@ -199,17 +204,14 @@ private:
   // 入力値
   const InputVals* mIV;
 
+  // コールバック関数
+  cbtype mCallBack;
+
   // mCmd 用のミューテックス
   std::mutex mCmdMTX;
 
   // mCmd 用の条件変数
   std::condition_variable mCmdCV;
-
-  // カウンタ
-  SizeType mNextId;
-
-  // mNextId 用のミューテックス
-  std::mutex mIdMutex;
 
   // mReadyCount 用のミューテックス
   std::mutex mReadyMTX;

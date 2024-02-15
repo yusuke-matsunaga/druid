@@ -97,12 +97,16 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
   set_network(network);
 
   auto NT = mSyncObj.thread_num();
+  auto NFFR = mFFRArray.size();
   for ( SizeType i = 0; i < NT; ++ i ) {
-    auto engine = new SimEngine{i, mSyncObj, *this};
+    vector<const SimFFR*> ffr_list;
+    for ( SizeType j = i; j < NFFR; j += NT ) {
+      ffr_list.push_back(&mFFRArray[j]);
+    }
+    auto engine = new SimEngine{i, mSyncObj, *this, ffr_list};
     mEngineList[i] = unique_ptr<SimEngine>{engine};
   }
 
-#if 1
   // スレッドを生成する．
   for ( SizeType i = 0; i < NT; ++ i ) {
     auto& engine = mEngineList[i];
@@ -127,13 +131,11 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
   }
   // 子スレッドがコマンド待ちになるまで待つ．
   mSyncObj.wait();
-#endif
 }
 
 // @brief デストラクタ
 FSIM_CLASSNAME::~FSIM_CLASSNAME()
 {
-#if 1
   // 終了コマンドを送る．
   mSyncObj.put_end();
 
@@ -141,7 +143,6 @@ FSIM_CLASSNAME::~FSIM_CLASSNAME()
   for ( auto& thr: mThreadList ) {
     thr.join();
   }
-#endif
 }
 
 // @brief ネットワークをセットする関数
@@ -446,17 +447,10 @@ FSIM_CLASSNAME::_sppfp(
 )
 {
   // SPPFP コマンドを送る．
-  mSyncObj.put_command(Cmd::SPPFP, iv);
+  mSyncObj.put_command(Cmd::SPPFP, iv, callback);
 
-  // 結果を受け取る．
-  mSyncObj.wait();
-  for ( auto& func: mEngineList ) {
-    auto& res_list = func->res_list(0);
-    for ( auto& p: res_list ) {
-      auto& f = p.first;
-      auto& dbits = p.second;
-      callback(0, f, dbits);
-    }
+  for ( auto& engine: mEngineList ) {
+    engine->apply_callback(callback);
   }
 }
 
@@ -482,21 +476,20 @@ FSIM_CLASSNAME::ppsfp(
       Tv2InputVals iv{pat_mask, pat_buff};
 
       // PPSFP コマンドを送る．
-      mSyncObj.put_command(Cmd::PPSFP, iv);
+      mSyncObj.put_command(Cmd::PPSFP, iv, [&](SizeType pos, TpgFault f, DiffBits dbits) {
+	callback(pos + base, f, dbits);
+      });
 
-      // 結果を受け取る．
-      mSyncObj.wait();
-      for ( SizeType thr_id = 0; thr_id < NT; ++ thr_id ) {
-	auto& engine = mEngineList[thr_id];
-	for ( SizeType bpos = 0; bpos < PV_BITLEN; ++ bpos ) {
-	  auto& res_list = engine->res_list(bpos);
-	  for ( auto& p: res_list ) {
-	    auto& f = p.first;
-	    auto& dbits = p.second;
-	    callback(bpos + base, f, dbits);
-	  }
-	}
+      for ( auto& engine: mEngineList ) {
+	engine->apply_callback([&](
+	  SizeType pos,
+	  TpgFault f,
+	  DiffBits dbits
+	) {
+	  callback(pos + base, f, dbits);
+	});
       }
+
       pat_mask = PV_ALL0;
       base += PV_BITLEN;
     }

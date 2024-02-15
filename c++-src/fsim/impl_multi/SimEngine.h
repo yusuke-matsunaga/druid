@@ -24,13 +24,16 @@ class InputVals;
 //////////////////////////////////////////////////////////////////////
 class SimEngine
 {
+  using cbtype = FsimImpl::cbtype;
+
 public:
 
   /// @brief コンストラクタ
   SimEngine(
-    SizeType id,         ///< [in] ID番号
-    SyncObj& simc_obj,   ///< [in] 同期用オブジェクト
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ本体
+    SizeType id,                          ///< [in] ID番号
+    SyncObj& simc_obj,                    ///< [in] 同期用オブジェクト
+    FSIM_CLASSNAME& fsim,                 ///< [in] 故障シミュレータ本体
+    const vector<const SimFFR*>& ffr_list ///< [in] 対象のFFRのリスト
   );
 
   /// @brief デストラクタ
@@ -61,13 +64,19 @@ public:
     const InputVals& iv ///< [in] 入力値
   );
 
-  /// @brief 結果を読み出す．
-  const vector<pair<TpgFault, DiffBits>>&
-  res_list(
-    SizeType bit ///< [in] ビット位置
-  ) const
+  /// @brief 結果に対してコールバック関数を呼び出す．
+  void
+  apply_callback(
+    cbtype callback ///< [in] コールバック関数
+  )
   {
-    return mResList[bit];
+    for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
+      for ( auto p: mResList[i] ) {
+	auto& f = p.first;
+	auto& dbits = p.second;
+	callback(i, f, dbits);
+      }
+    }
   }
 
 
@@ -78,7 +87,9 @@ private:
 
   /// @brief sppsp() 用の下請け関数
   void
-  sppfp_simulation();
+  sppfp_simulation(
+    const vector<const SimFFR*>& ffr_array ///< [in] イベントを挿入するFFRのリスト
+  );
 
   /// @brief FFR内の個々の故障の故障伝搬条件を計算する．
   /// @return 全ての故障の伝搬結果のORを返す．
@@ -115,6 +126,15 @@ private:
 #else
     return cval & lobs;
 #endif
+  }
+
+  // 結果のリストをクリアする．
+  void
+  clear_results()
+  {
+    for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
+      mResList[i].clear();
+    }
   }
 
   void
@@ -250,6 +270,9 @@ private:
   // 故障シミュレータ
   FSIM_CLASSNAME& mFsim;
 
+  // 処理対象の FFR リスト
+  vector<const SimFFR*> mFFRList;
+
   // ノード番号をキーにして反転マスクを保持する配列
   vector<PackedVal> mFlipMaskArray;
 
@@ -265,10 +288,7 @@ private:
   // clear 用の情報の配列
   vector<RestoreInfo> mClearArray;
 
-  // 処理対象の FFR リスト
-  vector<const SimFFR*> mFFRArray;
-
-  // 一時的に結果を貯めておくバッファの排列
+  // 結果のリスト
   vector<pair<TpgFault, DiffBits>> mResList[PV_BITLEN];
 
   // デバッグフラグ

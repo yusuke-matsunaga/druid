@@ -21,17 +21,18 @@ BEGIN_NAMESPACE_DRUID_FSIM
 SimEngine::SimEngine(
   SizeType id,
   SyncObj& sync_obj,
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  const vector<const SimFFR*>& ffr_list
 ) : mId{id},
     mSyncObj{sync_obj},
     mFsim{fsim},
     mFlipMaskArray(fsim.node_num(), PV_ALL0),
     mEventQ{fsim.max_level(), fsim.node_num()},
-    mValArray(fsim.node_num())
+    mValArray(fsim.node_num()),
+    mFFRList{ffr_list}
 {
   mClearArray.reserve(fsim.node_num());
-  mFFRArray.reserve(PV_BITLEN);
-  //mDebug = true;
+  mDebug = false;
   if ( mDebug ) {
     log("instantiated");
   }
@@ -51,40 +52,38 @@ SimEngine::ppsfp(
     log("ppsfp() start");
   }
 
+  // 結果のリストをクリアする．
+  clear_results();
+
   // 正常値の計算を行う．
   _calc_gval(iv);
-
-  // 結果をクリアしておく．
-  for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
-    mResList[i].clear();
-  }
 
   // FFR ごとに処理を行う．
   auto NPO = mFsim.ppo_num();
   auto NFFR = mFsim.ffr_num();
   auto NT = mSyncObj.thread_num();
-  for ( SizeType id = mId; id < NFFR; id += NT ) {
-    auto& ffr = mFsim.ffr(id);
-    auto ffr_req = foreach_faults(ffr);
+  for ( auto ffr: mFFRList ) {
+    auto ffr_req = foreach_faults(*ffr);
     if ( ffr_req == PV_ALL0 ) {
       // ffr_req が 0 ならその後のシミュレーションは必要ない．
       continue;
     }
 
     // イベントシミュレーションを行う．
-    auto root = ffr.root();
-    put_event(ffr.root(), ffr_req);
+    auto root = ffr->root();
+    put_event(ffr->root(), ffr_req);
     auto obs_array = simulate();
     auto obs = obs_array.back();
     if ( obs != PV_ALL0 ) {
       // FFR の故障伝搬値とマージする．
-      for ( auto ff: ffr.fault_list() ) {
+      for ( auto ff: ffr->fault_list() ) {
 	if ( ff->skip() ) {
 	  continue;
 	}
 	auto pat = ff->obs_mask() & obs;
 	if ( pat != PV_ALL0 ) {
 	  // 検出された
+	  auto tpg_f = ff->tpg_fault();
 	  for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
 	    PackedVal bitmask = 1UL << i;
 	    if ( pat & bitmask ) {
@@ -94,7 +93,7 @@ SimEngine::ppsfp(
 		  dbits.set_val(j);
 		}
 	      }
-	      mResList[i].push_back({ff->tpg_fault(), dbits});
+	      mResList[i].push_back({tpg_f, dbits});
 	    }
 	  }
 	}
@@ -115,53 +114,52 @@ SimEngine::sppfp(
     log("sppfp() start");
   }
 
+  // 結果のリストをクリアする．
+  clear_results();
+
   // 正常値の計算を行う．
   _calc_gval(iv);
-
-  // 結果をクリアしておく．
-  for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
-    mResList[i].clear();
-  }
 
   auto NPO = mFsim.ppo_num();
   auto NFFR = mFsim.ffr_num();
   auto NT = mSyncObj.thread_num();
-  mFFRArray.clear();
-  for ( SizeType id = mId; id < NFFR; id += NT ) {
-    auto& ffr = mFsim.ffr(id);
+  vector<const SimFFR*> ffr_array;
+  ffr_array.reserve(PV_BITLEN);
+  for ( auto ffr: mFFRList ) {
     // FFR 内の故障伝搬を行う．
     // 結果は SimFault.mObsMask に保存される．
     // FFR 内の全ての obs マスクを ffr_req に入れる．
-    auto ffr_req = foreach_faults(ffr);
+    auto ffr_req = foreach_faults(*ffr);
     if ( ffr_req == PV_ALL0 ) {
       // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
       continue;
     }
 
-    auto root = ffr.root();
+    auto root = ffr->root();
     if ( root->is_output() ) {
       // 常にこの出力のみで観測可能
       DiffBits dbits(NPO);
       dbits.set_val(root->output_id());
-      for ( auto ff: ffr.fault_list() ) {
+      for ( auto ff: ffr->fault_list() ) {
 	if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	  auto tpg_f = ff->tpg_fault();
-	  mResList[0].push_back({ff->tpg_fault(), dbits});
+	  mResList[0].push_back({tpg_f, dbits});
 	}
       }
     }
     else {
-      SizeType pos = mFFRArray.size();
+      SizeType pos = ffr_array.size();
       PackedVal mask = 1UL << pos;
-      mFFRArray.push_back(&ffr);
+      ffr_array.push_back(ffr);
       put_event(root, mask);
-      if ( mFFRArray.size() == PV_BITLEN ) {
-	sppfp_simulation();
+      if ( ffr_array.size() == PV_BITLEN ) {
+	sppfp_simulation(ffr_array);
+	ffr_array.clear();
       }
     }
   }
-  if ( !mFFRArray.empty() ) {
-    sppfp_simulation();
+  if ( !ffr_array.empty() ) {
+    sppfp_simulation(ffr_array);
   }
   if ( mDebug ) {
     log("sppfp() end");
@@ -170,17 +168,19 @@ SimEngine::sppfp(
 
 // @brief 実際にイベントドリヴンシミュレーションを行う．
 void
-SimEngine::sppfp_simulation()
+SimEngine::sppfp_simulation(
+  const vector<const SimFFR*>& ffr_array
+)
 {
   auto obs_array = simulate();
   auto obs = obs_array.back();
   SizeType NPO = mFsim.ppo_num();
-  for ( SizeType i = 0; i < mFFRArray.size(); ++ i ) {
+  for ( SizeType i = 0; i < ffr_array.size(); ++ i ) {
     PackedVal mask = 1UL << i;
     if ( (obs & mask) == PV_ALL0 ) {
       continue;
     }
-    auto& ffr = *mFFRArray[i];
+    auto& ffr = *ffr_array[i];
     auto& fault_list = ffr.fault_list();
     DiffBits dbits(NPO);
     for ( SizeType j = 0; j < NPO; ++ j ) {
@@ -196,7 +196,6 @@ SimEngine::sppfp_simulation()
     }
     mask <<= 1;
   }
-  mFFRArray.clear();
 }
 
 void

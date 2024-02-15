@@ -72,13 +72,15 @@ pair<int, int>
 sppfp_test(
   Fsim& fsim,
   const vector<TestVector>& tv_list,
+  SizeType max_fid,
   bool drop
 )
 {
   int det_num = 0;
   int nepat = 0;
   int i = 0;
-  unordered_set<SizeType> det_dict;
+  std::mutex mtx;
+  vector<bool> det_array(max_fid, false);
   for ( auto tv: tv_list ) {
     bool detected = false;
     fsim.sppfp(tv,
@@ -88,8 +90,8 @@ sppfp_test(
 		 DiffBits dbits
 	       )
 	       {
-		 if ( det_dict.count(f.id()) == 0 ) {
-		   det_dict.emplace(f.id());
+		 if ( !det_array[f.id()] ) {
+		   det_array[f.id()] = true;
 		   ++ det_num;
 		   if ( drop ) {
 		     fsim.set_skip(f);
@@ -112,15 +114,17 @@ pair<SizeType, SizeType>
 ppsfp_test(
   Fsim& fsim,
   const vector<TestVector>& tv_list,
+  SizeType max_fid,
   bool drop
 )
 {
-  int nv = tv_list.size();
+  auto nv = tv_list.size();
 
   SizeType nepat = 0;
   SizeType det_num = 0;
+  std::mutex mtx;
   unordered_set<SizeType> pat_dict;
-  unordered_set<SizeType> det_dict;
+  vector<bool> det_array(max_fid, false);
   fsim.ppsfp(tv_list,
 	     [&](
 	       SizeType index,
@@ -128,8 +132,8 @@ ppsfp_test(
 	       DiffBits dbits
 	     )
 	     {
-	       if ( det_dict.count(f.id()) == 0 ) {
-		 det_dict.emplace(f.id());
+	       if ( !det_array[f.id()] ) {
+		 det_array[f.id()] = true;
 		 ++ det_num;
 		 if ( drop ) {
 		   fsim.set_skip(f);
@@ -338,6 +342,12 @@ fsim2test(
 
   fsim.set_fault_list(fmgr.rep_fault_list());
 
+  SizeType max_fid = 0;
+  for ( auto f: fmgr.rep_fault_list() ) {
+    max_fid = std::max(max_fid, f.id());
+  }
+  ++ max_fid;
+
   std::mt19937 rg;
   vector<TestVector> tv_list;
 
@@ -350,10 +360,10 @@ fsim2test(
 
   pair<int, int> dpnum;
   if ( ppsfp ) {
-    dpnum = ppsfp_test(fsim, tv_list, drop);
+    dpnum = ppsfp_test(fsim, tv_list, max_fid, drop);
   }
   else if ( sppfp ) {
-    dpnum = sppfp_test(fsim, tv_list, drop);
+    dpnum = sppfp_test(fsim, tv_list, max_fid, drop);
   }
   else {
     // デフォルトフォールバックは SPSFP
