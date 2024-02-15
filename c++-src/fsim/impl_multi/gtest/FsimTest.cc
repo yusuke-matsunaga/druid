@@ -32,19 +32,27 @@ public:
 
   /// @brief 縮退故障の sppfp のテストを行う．
   void
-  sppfp_sa_test();
+  sppfp_sa_test(
+    bool multi
+  );
 
   /// @brief 遷移故障の sppfp テストを行う．
   void
-  sppfp_td_test();
+  sppfp_td_test(
+    bool multi
+  );
 
   /// @brief 縮退故障の ppsfp のテストを行う．
   void
-  ppsfp_sa_test();
+  ppsfp_sa_test(
+    bool multi
+  );
 
   /// @brief 遷移故障の ppsfp のテストを行う．
   void
-  ppsfp_td_test();
+  ppsfp_td_test(
+    bool multi
+  );
 
 
 private:
@@ -128,14 +136,21 @@ FsimTest::spsfp_td_test()
 }
 
 void
-FsimTest::sppfp_sa_test()
+FsimTest::sppfp_sa_test(
+  bool multi
+)
 {
   auto filename = string{TESTDATA_DIR} + "/" + GetParam();
   auto tpg_network = TpgNetwork::read_blif(filename);
 
   Fsim fsim;
 
-  fsim.initialize(tpg_network, false, false);
+  if ( multi ) {
+    fsim.initialize(tpg_network, false, false);
+  }
+  else {
+    fsim.initialize_naive(tpg_network, false, false);
+  }
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
@@ -173,14 +188,21 @@ FsimTest::sppfp_sa_test()
 }
 
 void
-FsimTest::sppfp_td_test()
+FsimTest::sppfp_td_test(
+  bool multi
+)
 {
   auto filename = string{TESTDATA_DIR} + "/" + GetParam();
   auto tpg_network = TpgNetwork::read_blif(filename);
 
   Fsim fsim;
 
-  fsim.initialize(tpg_network, true, false);
+  if ( multi ) {
+    fsim.initialize(tpg_network, true, false);
+  }
+  else {
+    fsim.initialize_naive(tpg_network, true, false);
+  }
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::TransitionDelay);
@@ -229,14 +251,21 @@ make_str(
 }
 
 void
-FsimTest::ppsfp_sa_test()
+FsimTest::ppsfp_sa_test(
+  bool multi
+)
 {
   auto filename = string{TESTDATA_DIR} + "/" + GetParam();
   auto tpg_network = TpgNetwork::read_blif(filename);
 
   Fsim fsim;
 
-  fsim.initialize(tpg_network, false, false);
+  if ( multi ) {
+    fsim.initialize(tpg_network, false, false);
+  }
+  else {
+    fsim.initialize_naive(tpg_network, false, false);
+  }
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::StuckAt);
@@ -279,20 +308,43 @@ FsimTest::ppsfp_sa_test()
   for ( auto& p: tv_fault_dict ) {
     auto str = p.first;
     EXPECT_TRUE( tv_fault_dict2.count(str) > 0 );
-    auto dbits = p.second;
-    EXPECT_EQ( dbits, tv_fault_dict2.at(str) );
+    if ( tv_fault_dict2.count(str) > 0 ) {
+      auto dbits = p.second;
+      EXPECT_EQ( dbits, tv_fault_dict2.at(str) );
+    }
+    else {
+      cout << str << ": not found in tv_fault_dict2" << endl;
+    }
+  }
+  for ( auto& p: tv_fault_dict2 ) {
+    auto str = p.first;
+    EXPECT_TRUE( tv_fault_dict.count(str) > 0 );
+    if ( tv_fault_dict.count(str) > 0 ) {
+      auto dbits = p.second;
+      EXPECT_EQ( dbits, tv_fault_dict.at(str) );
+    }
+    else {
+      cout << str << ": not found in tv_fault_dict" << endl;
+    }
   }
 }
 
 void
-FsimTest::ppsfp_td_test()
+FsimTest::ppsfp_td_test(
+  bool multi
+)
 {
   auto filename = string{TESTDATA_DIR} + "/" + GetParam();
   auto tpg_network = TpgNetwork::read_blif(filename);
 
   Fsim fsim;
 
-  fsim.initialize(tpg_network, true, false);
+  if ( multi ) {
+    fsim.initialize(tpg_network, true, false);
+  }
+  else {
+    fsim.initialize_naive(tpg_network, true, false);
+  }
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, FaultType::TransitionDelay);
@@ -335,8 +387,24 @@ FsimTest::ppsfp_td_test()
   for ( auto& p: tv_fault_dict ) {
     auto str = p.first;
     EXPECT_TRUE( tv_fault_dict2.count(str) > 0 );
-    auto dbits = p.second;
-    EXPECT_EQ( dbits, tv_fault_dict2.at(str) );
+    if ( tv_fault_dict2.count(str) > 0 ) {
+      auto dbits = p.second;
+      EXPECT_EQ( dbits, tv_fault_dict2.at(str) );
+    }
+    else {
+      cout << str << ": not found in tv_fault_dict2" << endl;
+    }
+  }
+  for ( auto& p: tv_fault_dict2 ) {
+    auto str = p.first;
+    EXPECT_TRUE( tv_fault_dict.count(str) > 0 );
+    if ( tv_fault_dict.count(str) > 0 ) {
+      auto dbits = p.second;
+      EXPECT_EQ( dbits, tv_fault_dict.at(str) );
+    }
+    else {
+      cout << str << ": not found in tv_fault_dict"  << endl;
+    }
   }
 }
 
@@ -350,24 +418,44 @@ TEST_P(FsimTest, spsfp_td_test)
   spsfp_td_test();
 }
 
-TEST_P(FsimTest, sppfp_sa_test)
+TEST_P(FsimTest, sppfp_single_sa_test)
 {
-  sppfp_sa_test();
+  sppfp_sa_test(false);
 }
 
-TEST_P(FsimTest, sppfp_td_test)
+TEST_P(FsimTest, sppfp_single_td_test)
 {
-  sppfp_td_test();
+  sppfp_td_test(false);
 }
 
-TEST_P(FsimTest, ppsfp_sa_test)
+TEST_P(FsimTest, ppsfp_single_sa_test)
 {
-  ppsfp_sa_test();
+  ppsfp_sa_test(false);
 }
 
-TEST_P(FsimTest, ppsfp_td_test)
+TEST_P(FsimTest, ppsfp_single_td_test)
 {
-  ppsfp_td_test();
+  ppsfp_td_test(false);
+}
+
+TEST_P(FsimTest, sppfp_multi_sa_test)
+{
+  sppfp_sa_test(true);
+}
+
+TEST_P(FsimTest, sppfp_multi_td_test)
+{
+  sppfp_td_test(true);
+}
+
+TEST_P(FsimTest, ppsfp_multi_sa_test)
+{
+  ppsfp_sa_test(true);
+}
+
+TEST_P(FsimTest, ppsfp_multi_td_test)
+{
+  ppsfp_td_test(true);
 }
 
 INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,

@@ -58,6 +58,11 @@ public:
     vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const = 0;
 
+  /// @brief 有効なビットを表すビットマスク
+  virtual
+  PackedVal
+  bitmask() const = 0;
+
 };
 
 
@@ -104,6 +109,10 @@ public:
     FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
     vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
+
+  /// @brief 有効なビットを表すビットマスク
+  PackedVal
+  bitmask() const override;
 
 
 private:
@@ -161,6 +170,10 @@ public:
     FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
     vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
+
+  /// @brief 有効なビットを表すビットマスク
+  PackedVal
+  bitmask() const override;
 
 
 private:
@@ -224,6 +237,10 @@ public:
     FSIM_CLASSNAME& fsim,           ///< [in] 故障シミュレータ
     vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
   ) const override;
+
+  /// @brief 有効なビットを表すビットマスク
+  PackedVal
+  bitmask() const override;
 
 
 private:

@@ -381,36 +381,9 @@ FSIM_CLASSNAME::_spsfp(
   DiffBits& dbits
 )
 {
-#if 0
-  dbits = DiffBits(ppo_num());
-
-  // 正常値の計算を行う．
-  _calc_gval(iv);
-
+  SimEngine engine{0, mSyncObj, *this, {}};
   auto ff = mFaultMap[f.id()];
-
-  // FFR の根までの伝搬条件を求める．
-  auto obs = local_prop(ff);
-
-  // obs が 0 ならその後のシミュレーションを行う必要はない．
-  if ( obs == PV_ALL0 ) {
-    return false;
-  }
-
-  // FFR の根のノードを求める．
-  auto root = ff->origin_node()->ffr_root();
-
-  // root からの故障伝搬シミュレーションを行う．
-  auto obs_array = _global_prop(root, PV_ALL1);
-  for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-    if ( obs_array[i] == PV_ALL1 ) {
-      dbits.set_val(i);
-    }
-  }
-  return (obs_array.back() != PV_ALL0);
-#else
-  return false;
-#endif
+  return engine.spsfp(iv, ff, dbits);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．

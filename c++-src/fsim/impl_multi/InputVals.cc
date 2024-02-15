@@ -150,6 +150,13 @@ TvInputVals::set_val2(
   }
 }
 
+// @brief 有効なビットを表すビットマスク
+PackedVal
+TvInputVals::bitmask() const
+{
+  return PV_ALL1;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス Tv2InputVals
@@ -244,6 +251,13 @@ Tv2InputVals::set_val2(
   }
 }
 
+// @brief 有効なビットを表すビットマスク
+PackedVal
+Tv2InputVals::bitmask() const
+{
+  return mPatMap;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス NvlInputVals
@@ -324,6 +338,13 @@ NvlInputVals::set_val2(
       val_array[simnode->id()] = val;
     }
   }
+}
+
+// @brief 有効なビットを表すビットマスク
+PackedVal
+NvlInputVals::bitmask() const
+{
+  return PV_ALL1;
 }
 
 END_NAMESPACE_DRUID_FSIM

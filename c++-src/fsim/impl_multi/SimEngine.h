@@ -52,6 +52,14 @@ public:
     return mId;
   }
 
+  /// @brief SPSFP 法のシミュレーションを行う．
+  bool
+  spsfp(
+    const InputVals& iv, ///< [in] 入力値
+    const SimFault* f,   ///< [in] 故障
+    DiffBits& dbits      ///< [out] 出力ごとの伝搬結果
+  );
+
   /// @brief PPSFP 法のシミュレーションを行う．
   void
   ppsfp(
@@ -103,7 +111,7 @@ private:
   /// @brief FFR内の故障シミュレーションを行う．
   PackedVal
   local_prop(
-    SimFault* fault ///< [in] 対象の故障
+    const SimFault* fault ///< [in] 対象の故障
   )
   {
     // 故障の活性化条件を求める．

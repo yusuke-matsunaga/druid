@@ -29,6 +29,9 @@ SimEngine::SimEngine(
     mFlipMaskArray(fsim.node_num(), PV_ALL0),
     mEventQ{fsim.max_level(), fsim.node_num()},
     mValArray(fsim.node_num()),
+#if FSIM_BSIDE
+    mPrevValArray(fsim.node_num()),
+#endif
     mFFRList{ffr_list}
 {
   mClearArray.reserve(fsim.node_num());
@@ -41,6 +44,45 @@ SimEngine::SimEngine(
 // @brief デストラクタ
 SimEngine::~SimEngine()
 {
+}
+
+// @brief SPSFP 法のシミュレーションを行う．
+bool
+SimEngine::spsfp(
+  const InputVals& iv,
+  const SimFault* f,
+  DiffBits& dbits
+)
+{
+  SizeType NPO = mFsim.ppo_num();
+  dbits = DiffBits{NPO};
+
+  // 正常値の計算を行う．
+  _calc_gval(iv);
+
+  // FFR の根までの伝搬条件を求める．
+  auto local_obs = local_prop(f);
+
+  // local_obs が 0 ならその後のシミュレーションを行う必要はない．
+  if ( local_obs != PV_ALL0 ) {
+    // FFR の根のノードを求める．
+    auto root = f->origin_node()->ffr_root();
+
+    // イベントシミュレーションを行う．
+    put_event(root, local_obs);
+    auto obs_array = simulate();
+    auto obs = obs_array.back();
+    if ( obs != PV_ALL0 ) {
+      // 検出された
+      for ( SizeType i = 0; i < NPO; ++ i ) {
+	if ( obs_array[i] == PV_ALL1 ) {
+	  dbits.set_val(i);
+	}
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 void
@@ -73,7 +115,7 @@ SimEngine::ppsfp(
     auto root = ffr->root();
     put_event(ffr->root(), ffr_req);
     auto obs_array = simulate();
-    auto obs = obs_array.back();
+    auto obs = obs_array.back() & iv.bitmask();
     if ( obs != PV_ALL0 ) {
       // FFR の故障伝搬値とマージする．
       for ( auto ff: ffr->fault_list() ) {
