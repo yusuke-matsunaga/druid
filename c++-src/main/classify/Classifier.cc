@@ -47,11 +47,17 @@ Classifier::run(
   const vector<TpgFault>& fault_list,
   bool has_prev_state,
   const vector<TestVector>& tv_list,
-  bool singleton_drop
+  bool singleton_drop,
+  bool multi
 )
 {
   Fsim fsim;
-  fsim.initialize(network, has_prev_state, false);
+  if ( multi ) {
+    fsim.initialize(network, has_prev_state, false);
+  }
+  else {
+    fsim.initialize_naive(network, has_prev_state, false);
+  }
   fsim.set_fault_list(fault_list);
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {

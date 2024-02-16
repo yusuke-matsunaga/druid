@@ -137,6 +137,8 @@ dtpg_test(
 
   string mode{};
 
+  bool multi = false;
+
   bool dump = false;
 
   bool verbose = false;
@@ -229,6 +231,9 @@ dtpg_test(
 	  return -1;
 	}
 	just_type = "just2";
+      }
+      else if ( strcmp(argv[pos], "--multi") == 0 ) {
+	multi = true;
       }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
@@ -378,7 +383,7 @@ dtpg_test(
   timer.reset();
   timer.start();
 
-  auto fault_group_list2 = Classifier2::run(network, fault_list, td_mode, fixed_tv_list, false);
+  auto fault_group_list2 = Classifier2::run(network, fault_list, td_mode, fixed_tv_list, false, multi);
 
   timer.stop();
   auto class2_time = timer.get_time();
@@ -404,7 +409,7 @@ dtpg_test(
   timer.reset();
   timer.start();
 
-  auto fault_group_list3 = Classifier::run(network, fault_list, td_mode, fixed_tv_list, true);
+  auto fault_group_list3 = Classifier::run(network, fault_list, td_mode, fixed_tv_list, true, multi);
 
   timer.stop();
   auto class3_time = timer.get_time();
@@ -429,7 +434,7 @@ dtpg_test(
   timer.reset();
   timer.start();
 
-  auto fault_group_list4 = Classifier::run(network, fault_list, td_mode, fixed_tv_list, false);
+  auto fault_group_list4 = Classifier::run(network, fault_list, td_mode, fixed_tv_list, false, multi);
 
   timer.stop();
   auto class4_time = timer.get_time();

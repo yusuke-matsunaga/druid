@@ -33,7 +33,8 @@ public:
     const vector<TpgFault>& fault_list, ///< [in] 故障リスト
     bool has_prev_state,                ///< [in] 2時刻分のパタンを持つ時 true
     const vector<TestVector>& tv_list,  ///< [in] テストベクタのリスト
-    bool singleton_drop                 ///< [in] singleton drop を行うとき true にするフラグ
+    bool singleton_drop,                ///< [in] singleton drop を行うとき true にするフラグ
+    bool multi
   );
 };
 
