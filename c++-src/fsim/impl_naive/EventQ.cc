@@ -26,7 +26,6 @@ EventQ::init(
 {
   mOutputNum = output_num;
   mPropArray.clear();
-  mPropArray.resize(mOutputNum, PV_ALL0);
 
   mArray.clear();
   mArray.resize(max_level + 1, nullptr);
@@ -67,7 +66,7 @@ EventQ::simulate()
       if ( node->is_output() ) {
 	auto dbits = diff(new_val, old_val);
 	obs |= dbits;
-	mPropArray[node->output_id()] = dbits;
+	mPropArray.add_output(node->output_id(), dbits);
       }
       else {
 	put_fanouts(node);
@@ -89,15 +88,6 @@ EventQ::simulate()
   mMaskPos = 0;
 
   return obs;
-}
-
-// @brief mPropArray をクリアする．
-void
-EventQ::clear_prop_val()
-{
-  for ( auto i: Range(0, mOutputNum) ) {
-    mPropArray[i] = PV_ALL0;
-  }
 }
 
 END_NAMESPACE_DRUID_FSIM

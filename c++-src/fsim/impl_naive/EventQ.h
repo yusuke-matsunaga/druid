@@ -5,10 +5,11 @@
 /// @brief EventQ のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2016, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2016, 2018, 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
+#include "DiffBitsArray.h"
 #include "SimNode.h"
 #include "ym/Range.h"
 
@@ -77,15 +78,26 @@ public:
 
   /// @brief mPropArray をクリアする．
   void
-  clear_prop_val();
-
-  /// @brief 出力ごとの結果を得る．
-  PackedVal
-  prop_val(
-    SizeType pos ///< [in] 出力番号
-  )
+  clear_prop_val()
   {
-    return mPropArray[pos];
+    mPropArray.clear();
+  }
+
+  /// @brief mPropArray を DiffBits に変換する．
+  void
+  copy_dbits(
+    DiffBits& dbits, ///< [out] 結果の格納先
+    SizeType pos     ///< [in] 対象の位置番号
+  ) const
+  {
+    mPropArray.get_slice(dbits, pos);
+  }
+
+  /// @brief mPropArray を返す．
+  const DiffBitsArray&
+  prop_array() const
+  {
+    return mPropArray;
   }
 
 
@@ -196,12 +208,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 出力数
-  SizeType mOutputNum{0};
-
   // 出力ごとの故障伝搬パタンの配列
-  // サイズは mOutputNum
-  vector<PackedVal> mPropArray;
+  DiffBitsArray mPropArray;
 
   // キューの先頭ノードの配列
   vector<SimNode*> mArray;

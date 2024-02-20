@@ -333,6 +333,7 @@ FSIM_CLASSNAME::_spsfp(
   DiffBits& dbits
 )
 {
+  // dbits を初期化しておく．
   dbits = DiffBits(ppo_num());
 
   // 正常値の計算を行う．
@@ -345,7 +346,6 @@ FSIM_CLASSNAME::_spsfp(
 
   // obs が 0 ならその後のシミュレーションを行う必要はない．
   if ( obs == PV_ALL0 ) {
-    mEventQ.clear_prop_val();
     return false;
   }
 
@@ -354,13 +354,11 @@ FSIM_CLASSNAME::_spsfp(
 
   // root からの故障伝搬シミュレーションを行う．
   obs = _global_prop(root, PV_ALL1);
-
-  for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-    if ( mEventQ.prop_val(i) == PV_ALL1 ) {
-      dbits.set_val(i);
-    }
+  if ( obs != PV_ALL0 ) {
+    mEventQ.copy_dbits(dbits, 0);
+    return true;
   }
-  return (obs != PV_ALL0);
+  return false;
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -415,8 +413,8 @@ FSIM_CLASSNAME::_sppfp(
     auto root = ffr.root();
     if ( root->is_output() ) {
       // 常にこの出力のみで観測可能
-      DiffBits dbits(ppo_num());
-      dbits.set_val(root->output_id());
+      DiffBits dbits;
+      dbits.add_outputl(root->output_id());
       _sppfp_apply_callback(ffr, dbits, callback);
     }
     else {
@@ -449,12 +447,8 @@ FSIM_CLASSNAME::_sppfp_simulation(
   PackedVal mask = 1ULL;
   for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
     if ( obs & mask ) {
-      DiffBits dbits(ppo_num());
-      for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-	if ( mEventQ.prop_val(i) & mask ) {
-	  dbits.set_val(i);
-	}
-      }
+      DiffBits dbits;
+      mEventQ.copy_dbits(dbits, i);
       auto& ffr = *ffr_buff[i];
       _sppfp_apply_callback(ffr, dbits, callback);
     }
@@ -518,18 +512,7 @@ FSIM_CLASSNAME::_ppsfp(
 	auto pat = ff->obs_mask() & obs;
 	if ( pat != PV_ALL0 ) {
 	  // 検出された．
-	  for ( SizeType i = 0; i < npat; ++ i ) {
-	    SizeType bitmask = 1UL << i;
-	    if ( pat & bitmask ) {
-	      DiffBits dbits(ppo_num());
-	      for ( SizeType i = 0; i < ppo_num(); ++ i ) {
-		if ( mEventQ.prop_val(i) & bitmask ) {
-		  dbits.set_val(i);
-		}
-	      }
-	      callback(base + i, ff->tpg_fault(), dbits);
-	    }
-	  }
+	  callback(ff->tpg_fault(), mEventQ.prop_array());
 	}
       }
     }

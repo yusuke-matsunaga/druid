@@ -67,30 +67,10 @@ DiffBits_set_val(
   Py_RETURN_NONE;
 }
 
-PyObject*
-DiffBits_clear_val(
-  PyObject* self,
-  PyObject* args
-)
-{
-  SizeType pos = 0;
-  if ( !PyArg_ParseTuple(args, "k", &pos) ) {
-    return nullptr;
-  }
-
-  auto dbits_obj = reinterpret_cast<DiffBitsObject*>(self);
-  auto& dbits = *dbits_obj->mPtr;
-  dbits.clear_val(pos);
-
-  Py_RETURN_NONE;
-}
-
 // メソッド定義
 PyMethodDef DiffBits_methods[] = {
   {"set_val", DiffBits_set_val, METH_VARARGS,
    PyDoc_STR("set value")},
-  {"clear_val", DiffBits_clear_val, METH_VARARGS,
-   PyDoc_STR("clear value")},
   {nullptr, nullptr, 0, nullptr}
 };
 

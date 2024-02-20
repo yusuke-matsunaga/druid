@@ -5,7 +5,7 @@
 /// @brief DiffBits のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -16,6 +16,9 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class DiffBits DiffBits.h "DiffBits.h"
 /// @brief 故障の影響が伝搬したかどうかを表すビットベクタ
+///
+/// 意味的には出力数ぶんのビットベクタだが実際にはほぼゼロなので
+/// 工夫している．
 //////////////////////////////////////////////////////////////////////
 class DiffBits
 {
@@ -23,16 +26,6 @@ public:
 
   /// @brief 空のコンストラクタ
   DiffBits() = default;
-
-  /// @brief コンストラクタ
-  ///
-  /// 全て0で初期化される．
-  explicit
-  DiffBits(
-    SizeType output_num ///< [in] 出力数
-  ) : mBits(output_num, false)
-  {
-  }
 
   /// @brief デストラクタ
   ~DiffBits() = default;
@@ -43,59 +36,36 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 要素数を返す．
+  /// @brief 非ゼロの出力数を返す．
   SizeType
-  size() const
+  elem_num() const
   {
-    return mBits.size();
+    return mPosList.size();
   }
 
-  /// @brief 要素を取り出す．
-  bool
-  operator[](
-    SizeType pos ///< [in] 位置 ( 0 <= pos < size() )
+  /// @brief 非ゼロの出力番号を返す．
+  SizeType
+  output(
+    SizeType pos ///< [in] 位置 ( 0 <= pos < elem_num() )
   ) const
   {
-    return mBits[pos];
+    return mPosList[pos];
   }
 
-  /// @brief 値を true にする．
+  /// @brief 内容をクリアする．
   void
-  set_val(
-    SizeType pos ///< [in] 位置 ( 0 <= pos < size() )
+  clear()
+  {
+    mPosList.clear();
+  }
+
+  /// @brief 出力番号を追加する．
+  void
+  add_output(
+    SizeType output ///< [in] 出力番号
   )
   {
-    mBits[pos] = true;
-  }
-
-  /// @brief 値を false にする．
-  void
-  clear_val(
-    SizeType pos ///< [in] 位置 ( 0 <= pos < size() )
-  )
-  {
-    mBits[pos] = false;
-  }
-
-  /// @brief 値を反転する．
-  void
-  flip_val(
-    SizeType pos ///< [in] 位置 ( 0 <= pos < size() )
-  )
-  {
-    mBits[pos] = !mBits[pos];
-  }
-
-  /// @brief true のビットがあるか調べる．
-  bool
-  any() const
-  {
-    for ( auto v: mBits ) {
-      if ( v ) {
-	return true;
-      }
-    }
-    return false;
+    mPosList.push_back(output);
   }
 
   /// @brief 等価比較演算
@@ -104,7 +74,7 @@ public:
     const DiffBits& right
   ) const
   {
-    return mBits == right.mBits;
+    return mPosList == right.mPosList;
   }
 
   /// @brief 非等価比較演算
@@ -122,8 +92,8 @@ public:
     ostream& s
   ) const
   {
-    for ( auto v: mBits ) {
-      s << v;
+    for ( auto pos: mPosList ) {
+      s << " " << pos;
     }
   }
 
@@ -131,17 +101,9 @@ public:
   SizeType
   hash() const
   {
-    SizeType N = sizeof(SizeType) * 8;
     SizeType ans = 0;
-    SizeType n = size();
-    SizeType bits = 0;
-    for ( SizeType i = 0; i < n; ++ i ) {
-      bits <<= 1;
-      bits |= mBits[i];
-      if ( i % N == N - 1 || i == n - 1) {
-	ans ^= bits;
-	bits = 0;
-      }
+    for ( auto pos: mPosList ) {
+      ans *= pos;
     }
     return ans;
   }
@@ -153,7 +115,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 本体
-  vector<bool> mBits;
+  vector<SizeType> mPosList;
 
 };
 
@@ -187,5 +149,15 @@ struct hash<DRUID_NAMESPACE::DiffBits>
 };
 
 END_NAMESPACE_STD
+
+#else
+#include "DiffBitsNew.h"
+
+BEGIN_NAMESPACE_DRUID
+
+using DiffBits = DiffBitsNew;
+
+END_NAMESPACE_DRUID
+#endif
 
 #endif // DIFFBITS_H
