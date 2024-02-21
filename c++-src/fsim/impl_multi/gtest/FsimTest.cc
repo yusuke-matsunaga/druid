@@ -93,6 +93,8 @@ FsimTest::spsfp_sa_test()
       auto diff = fsim.spsfp(tv, fault, dbits);
       EXPECT_EQ( dbits.elem_num() > 0, diff );
       auto ref_dbits = refsim.simulate_sa(tv, fault);
+      dbits.sort();
+      ref_dbits.sort();
       EXPECT_EQ( ref_dbits, dbits );
     }
   }
@@ -130,6 +132,8 @@ FsimTest::spsfp_td_test()
       auto diff = fsim.spsfp(tv, fault, dbits);
       EXPECT_EQ( dbits.elem_num() > 0, diff );
       auto ref_dbits = refsim.simulate_td(tv, fault);
+      dbits.sort();
+      ref_dbits.sort();
       EXPECT_EQ( ref_dbits, dbits );
     }
   }
@@ -171,6 +175,7 @@ FsimTest::sppfp_sa_test(
     for ( auto fault: fault_list ) {
       DiffBits dbits;
       if ( fsim.spsfp(tv, fault, dbits) ) {
+	dbits.sort();
 	dbits_dict.emplace(fault.id(), dbits);
       }
     }
@@ -181,7 +186,9 @@ FsimTest::sppfp_sa_test(
 	       )
 	       {
 		 EXPECT_TRUE( dbits_dict.count(f.id()) > 0 );
-		 EXPECT_EQ( dbits_dict.at(f.id()), dbits );
+		 auto tmp_dbits = dbits;
+		 tmp_dbits.sort();
+		 EXPECT_EQ( dbits_dict.at(f.id()), tmp_dbits );
 	       });
   }
 }
@@ -222,6 +229,7 @@ FsimTest::sppfp_td_test(
     for ( auto fault: fault_list ) {
       DiffBits dbits;
       if ( fsim.spsfp(tv, fault, dbits) ) {
+	dbits.sort();
 	dbits_dict.emplace(fault.id(), dbits);
       }
     }
@@ -232,7 +240,9 @@ FsimTest::sppfp_td_test(
 	       )
 	       {
 		 EXPECT_TRUE( dbits_dict.count(f.id()) );
-		 EXPECT_EQ( dbits_dict.at(f.id()), dbits);
+		 auto tmp_dbits = dbits;
+		 tmp_dbits.sort();
+		 EXPECT_EQ( dbits_dict.at(f.id()), tmp_dbits);
 	       });
   }
 }

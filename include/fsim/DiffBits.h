@@ -68,6 +68,13 @@ public:
     mPosList.push_back(output);
   }
 
+  /// @brief 内容をソートする．
+  void
+  sort()
+  {
+    std::sort(mPosList.begin(), mPosList.end());
+  }
+
   /// @brief 等価比較演算
   bool
   operator==(
