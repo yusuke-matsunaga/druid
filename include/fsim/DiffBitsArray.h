@@ -87,6 +87,24 @@ public:
     }
   }
 
+  /// @brief ビットマスクを行う．
+  DiffBitsArray
+  masking(
+    PackedVal mask
+  ) const
+  {
+    DiffBitsArray ans;
+    SizeType N = mPosList.size();
+    for ( SizeType i = 0; i < N; ++ i ) {
+      auto bits = mBody[i] & mask;
+      if ( bits != PV_ALL0 ) {
+	ans.mPosList.push_back(mPosList[i]);
+	ans.mBody.push_back(bits);
+      }
+    }
+    return ans;
+  }
+
   /// @brief 内容をクリアする．
   void
   clear()

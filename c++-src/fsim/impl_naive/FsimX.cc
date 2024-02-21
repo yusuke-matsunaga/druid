@@ -495,7 +495,8 @@ FSIM_CLASSNAME::ppsfp(
 	auto pat = ff->obs_mask() & obs;
 	if ( pat != PV_ALL0 ) {
 	  // 検出された．
-	  callback(ff->tpg_fault(), mEventQ.prop_array());
+	  auto dbits_array = mEventQ.prop_array().masking(obs);
+	  callback(ff->tpg_fault(), dbits_array);
 	}
       }
     }

@@ -307,9 +307,11 @@ FsimTest::ppsfp_sa_test(
 	  auto& tv = tv_buff[i];
 	  DiffBits dbits;
 	  if ( fsim.spsfp(tv, fault, dbits) ) {
+	    cout << "Bit#" << i << ": " << dbits << endl;
 	    dbits_array.add_pat(dbits, i);
 	  }
 	}
+	cout << "Fault#" << fault.id() << ": " << dbits_array << endl;
 	tv_fault_dict.emplace(fault.id(), dbits_array);
       }
       unordered_map<SizeType, DiffBitsArray> tv_fault_dict2;
@@ -326,6 +328,12 @@ FsimTest::ppsfp_sa_test(
 	EXPECT_TRUE( tv_fault_dict2.count(id) > 0 );
 	if ( tv_fault_dict2.count(id) > 0 ) {
 	  auto dbits_array = p.second;
+	  auto& ref_dbits_array = tv_fault_dict2.at(id);
+	  if ( dbits_array != ref_dbits_array ) {
+	    cout << "Fault#" << id
+		 << ": ref_dbits_array " << ref_dbits_array << endl
+		 << "      dbits_array " << dbits_array << endl;
+	  }
 	  EXPECT_EQ( dbits_array, tv_fault_dict2.at(id) );
 	}
 	else {
@@ -337,6 +345,12 @@ FsimTest::ppsfp_sa_test(
 	EXPECT_TRUE( tv_fault_dict.count(id) > 0 );
 	if ( tv_fault_dict.count(id) > 0 ) {
 	  auto dbits_array = p.second;
+	  auto& ref_dbits_array = tv_fault_dict.at(id);
+	  if ( dbits_array != ref_dbits_array ) {
+	    cout << "Fault#" << id
+		 << ": ref_dbits_array " << ref_dbits_array << endl
+		 << "      dbits_array " << dbits_array << endl;
+	  }
 	  EXPECT_EQ( dbits_array, tv_fault_dict.at(id) );
 	}
 	else {
@@ -397,9 +411,11 @@ FsimTest::ppsfp_td_test(
 	  auto& tv = tv_buff[i];
 	  DiffBits dbits;
 	  if ( fsim.spsfp(tv, fault, dbits) ) {
+	    cout << "Bit#" << i << ": " << dbits << endl;
 	    dbits_array.add_pat(dbits, i);
 	  }
 	}
+	cout << "Fault#" << fault.id() << ": " << dbits_array << endl;
 	tv_fault_dict.emplace(fault.id(), dbits_array);
       }
       unordered_map<SizeType, DiffBitsArray> tv_fault_dict2;
@@ -416,6 +432,12 @@ FsimTest::ppsfp_td_test(
 	EXPECT_TRUE( tv_fault_dict2.count(id) > 0 );
 	if ( tv_fault_dict2.count(id) > 0 ) {
 	  auto dbits_array = p.second;
+	  auto& ref_dbits_array = tv_fault_dict2.at(id);
+	  if ( dbits_array != ref_dbits_array ) {
+	    cout << "Fault#" << id
+		 << ": ref_dbits_array " << ref_dbits_array << endl
+		 << "      dbits_array " << dbits_array << endl;
+	  }
 	  EXPECT_EQ( dbits_array, tv_fault_dict2.at(id) );
 	}
 	else {
@@ -427,6 +449,12 @@ FsimTest::ppsfp_td_test(
 	EXPECT_TRUE( tv_fault_dict.count(id) > 0 );
 	if ( tv_fault_dict.count(id) > 0 ) {
 	  auto dbits_array = p.second;
+	  auto& ref_dbits_array = tv_fault_dict.at(id);
+	  if ( dbits_array != ref_dbits_array ) {
+	    cout << "Fault#" << id
+		 << ": ref_dbits_array " << ref_dbits_array << endl
+		 << "      dbits_array " << dbits_array << endl;
+	  }
 	  EXPECT_EQ( dbits_array, tv_fault_dict.at(id) );
 	}
 	else {
