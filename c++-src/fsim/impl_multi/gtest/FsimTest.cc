@@ -91,7 +91,7 @@ FsimTest::spsfp_sa_test()
     for ( auto fault: fault_list ) {
       DiffBits dbits;
       auto diff = fsim.spsfp(tv, fault, dbits);
-      EXPECT_EQ( dbits.any(), diff );
+      EXPECT_EQ( dbits.elem_num() > 0, diff );
       auto ref_dbits = refsim.simulate_sa(tv, fault);
       EXPECT_EQ( ref_dbits, dbits );
     }
@@ -128,7 +128,7 @@ FsimTest::spsfp_td_test()
     for ( auto fault: fault_list ) {
       DiffBits dbits;
       auto diff = fsim.spsfp(tv, fault, dbits);
-      EXPECT_EQ( dbits.any(), diff );
+      EXPECT_EQ( dbits.elem_num() > 0, diff );
       auto ref_dbits = refsim.simulate_td(tv, fault);
       EXPECT_EQ( ref_dbits, dbits );
     }
@@ -176,9 +176,8 @@ FsimTest::sppfp_sa_test(
     }
     fsim.sppfp(tv,
 	       [&](
-		 SizeType,
-		 TpgFault f,
-		 DiffBits dbits
+		 const TpgFault& f,
+		 const DiffBits& dbits
 	       )
 	       {
 		 EXPECT_TRUE( dbits_dict.count(f.id()) > 0 );
@@ -228,9 +227,8 @@ FsimTest::sppfp_td_test(
     }
     fsim.sppfp(tv,
 	       [&](
-		 SizeType,
-		 TpgFault f,
-		 DiffBits dbits
+		 const TpgFault& f,
+		 const DiffBits& dbits
 	       )
 	       {
 		 EXPECT_TRUE( dbits_dict.count(f.id()) );
@@ -286,45 +284,56 @@ FsimTest::ppsfp_sa_test(
     tv_list[i] = tv;
   }
 
-  unordered_map<string, DiffBits> tv_fault_dict;
-  for ( SizeType i = 0; i < nv; ++ i ) {
-    auto& tv = tv_list[i];
-    for ( auto fault: fault_list ) {
-      DiffBits dbits;
-      if ( fsim.spsfp(tv, fault, dbits) ) {
-	tv_fault_dict.emplace(make_str(i, fault), dbits);
+  vector<TestVector> tv_buff;
+  tv_buff.reserve(PV_BITLEN);
+  SizeType base = 0;
+  for ( auto& tv: tv_list ) {
+    tv_buff.push_back(tv);
+    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == nv ) {
+      unordered_map<SizeType, DiffBitsArray> tv_fault_dict;
+      for ( auto fault: fault_list ) {
+	DiffBitsArray dbits_array;
+	for ( SizeType i = 0; i < tv_buff.size(); ++ i ) {
+	  auto& tv = tv_buff[i];
+	  DiffBits dbits;
+	  if ( fsim.spsfp(tv, fault, dbits) ) {
+	    dbits_array.add_pat(dbits, i);
+	  }
+	}
+	tv_fault_dict.emplace(fault.id(), dbits_array);
       }
-    }
-  }
-  unordered_map<string, DiffBits> tv_fault_dict2;
-  fsim.ppsfp(tv_list,
-	     [&](SizeType i,
-		 TpgFault f,
-		 DiffBits dbits)->bool {
-	       tv_fault_dict2.emplace(make_str(i, f), dbits);
-	       return true;
-	     });
-  EXPECT_EQ( tv_fault_dict.size(), tv_fault_dict2.size() );
-  for ( auto& p: tv_fault_dict ) {
-    auto str = p.first;
-    EXPECT_TRUE( tv_fault_dict2.count(str) > 0 );
-    if ( tv_fault_dict2.count(str) > 0 ) {
-      auto dbits = p.second;
-      EXPECT_EQ( dbits, tv_fault_dict2.at(str) );
-    }
-    else {
-      cout << str << ": not found in tv_fault_dict2" << endl;
-    }
-  }
-  for ( auto& p: tv_fault_dict2 ) {
-    auto str = p.first;
-    EXPECT_TRUE( tv_fault_dict.count(str) > 0 );
-    if ( tv_fault_dict.count(str) > 0 ) {
-      auto dbits = p.second;
-      EXPECT_EQ( dbits, tv_fault_dict.at(str) );
-    }
-    else {
-      cout << str << ": not found in tv_fault_dict" << endl;
+      unordered_map<SizeType, DiffBitsArray> tv_fault_dict2;
+      fsim.ppsfp(tv_buff,
+		 [&](
+		   const TpgFault& f,
+		   const DiffBitsArray& dbits_array
+		 ) {
+		   tv_fault_dict2.emplace(f.id(), dbits_array);
+		 });
+      EXPECT_EQ( tv_fault_dict.size(), tv_fault_dict2.size() );
+      for ( auto& p: tv_fault_dict ) {
+	auto id = p.first;
+	EXPECT_TRUE( tv_fault_dict2.count(id) > 0 );
+	if ( tv_fault_dict2.count(id) > 0 ) {
+	  auto dbits_array = p.second;
+	  EXPECT_EQ( dbits_array, tv_fault_dict2.at(id) );
+	}
+	else {
+	  cout << id << ": not found in tv_fault_dict2" << endl;
+	}
+      }
+      for ( auto& p: tv_fault_dict2 ) {
+	auto id = p.first;
+	EXPECT_TRUE( tv_fault_dict.count(id) > 0 );
+	if ( tv_fault_dict.count(id) > 0 ) {
+	  auto dbits_array = p.second;
+	  EXPECT_EQ( dbits_array, tv_fault_dict.at(id) );
+	}
+	else {
+	  cout << id << ": not found in tv_fault_dict" << endl;
+	}
+      }
+      base += tv_buff.size();
     }
   }
 }
@@ -365,45 +374,56 @@ FsimTest::ppsfp_td_test(
     tv_list[i] = tv;
   }
 
-  unordered_map<string, DiffBits> tv_fault_dict;
-  for ( SizeType i = 0; i < nv; ++ i ) {
-    auto& tv = tv_list[i];
-    for ( auto fault: fault_list ) {
-      DiffBits dbits;
-      if ( fsim.spsfp(tv, fault, dbits) ) {
-	tv_fault_dict.emplace(make_str(i, fault), dbits);
+  vector<TestVector> tv_buff;
+  tv_buff.reserve(PV_BITLEN);
+  SizeType base = 0;
+  for ( auto& tv: tv_list ) {
+    tv_buff.push_back(tv);
+    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == nv ) {
+      unordered_map<SizeType, DiffBitsArray> tv_fault_dict;
+      for ( auto fault: fault_list ) {
+	DiffBitsArray dbits_array;
+	for ( SizeType i = 0; i < tv_buff.size(); ++ i ) {
+	  auto& tv = tv_buff[i];
+	  DiffBits dbits;
+	  if ( fsim.spsfp(tv, fault, dbits) ) {
+	    dbits_array.add_pat(dbits, i);
+	  }
+	}
+	tv_fault_dict.emplace(fault.id(), dbits_array);
       }
-    }
-  }
-  unordered_map<string, DiffBits> tv_fault_dict2;
-  fsim.ppsfp(tv_list,
-	     [&](SizeType i,
-		 TpgFault f,
-		 DiffBits dbits)->bool {
-	       tv_fault_dict2.emplace(make_str(i, f), dbits);
-	       return true;
-	     });
-  EXPECT_EQ( tv_fault_dict.size(), tv_fault_dict2.size() );
-  for ( auto& p: tv_fault_dict ) {
-    auto str = p.first;
-    EXPECT_TRUE( tv_fault_dict2.count(str) > 0 );
-    if ( tv_fault_dict2.count(str) > 0 ) {
-      auto dbits = p.second;
-      EXPECT_EQ( dbits, tv_fault_dict2.at(str) );
-    }
-    else {
-      cout << str << ": not found in tv_fault_dict2" << endl;
-    }
-  }
-  for ( auto& p: tv_fault_dict2 ) {
-    auto str = p.first;
-    EXPECT_TRUE( tv_fault_dict.count(str) > 0 );
-    if ( tv_fault_dict.count(str) > 0 ) {
-      auto dbits = p.second;
-      EXPECT_EQ( dbits, tv_fault_dict.at(str) );
-    }
-    else {
-      cout << str << ": not found in tv_fault_dict"  << endl;
+      unordered_map<SizeType, DiffBitsArray> tv_fault_dict2;
+      fsim.ppsfp(tv_list,
+		 [&](
+		   const TpgFault& f,
+		   const DiffBitsArray& dbits_array
+		 ) {
+		   tv_fault_dict2.emplace(f.id(), dbits_array);
+		 });
+      EXPECT_EQ( tv_fault_dict.size(), tv_fault_dict2.size() );
+      for ( auto& p: tv_fault_dict ) {
+	auto id = p.first;
+	EXPECT_TRUE( tv_fault_dict2.count(id) > 0 );
+	if ( tv_fault_dict2.count(id) > 0 ) {
+	  auto dbits_array = p.second;
+	  EXPECT_EQ( dbits_array, tv_fault_dict2.at(id) );
+	}
+	else {
+	  cout << id << ": not found in tv_fault_dict2" << endl;
+	}
+      }
+      for ( auto& p: tv_fault_dict2 ) {
+	auto id = p.first;
+	EXPECT_TRUE( tv_fault_dict.count(id) > 0 );
+	if ( tv_fault_dict.count(id) > 0 ) {
+	  auto dbits_array = p.second;
+	  EXPECT_EQ( dbits_array, tv_fault_dict.at(id) );
+	}
+	else {
+	  cout << id << ": not found in tv_fault_dict"  << endl;
+	}
+      }
+      base += tv_buff.size();
     }
   }
 }

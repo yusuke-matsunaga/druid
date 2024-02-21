@@ -177,7 +177,7 @@ Fsim::spsfp(
 void
 Fsim::sppfp(
   const TestVector& tv,
-  cbtype callback
+  cbtype1 callback
 )
 {
   return mImpl->sppfp(tv, callback);
@@ -187,7 +187,7 @@ Fsim::sppfp(
 void
 Fsim::sppfp(
   const NodeValList& assign_list,
-  cbtype callback
+  cbtype1 callback
 )
 {
   return mImpl->sppfp(assign_list, callback);
@@ -197,7 +197,7 @@ Fsim::sppfp(
 void
 Fsim::ppsfp(
   const vector<TestVector>& tv_list,
-  cbtype callback
+  cbtype2 callback
 )
 {
   return mImpl->ppsfp(tv_list, callback);

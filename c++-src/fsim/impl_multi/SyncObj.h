@@ -50,7 +50,8 @@ operator<<(
 //////////////////////////////////////////////////////////////////////
 class SyncObj
 {
-  using cbtype = FsimImpl::cbtype;
+  using cbtype1 = FsimImpl::cbtype1;
+  using cbtype2 = FsimImpl::cbtype2;
 
 public:
 
@@ -84,22 +85,39 @@ public:
 
   /// @brief コマンドを設定する．
   void
-  put_command(
-    Cmd cmd,             ///< [in] コマンド
-    const InputVals& iv, ///< [in] 入力値
-    cbtype callback      ///< [in] コールバック関数
+  put_sppfp_command(
+    const InputVals& iv ///< [in] 入力値
   )
   {
     {
       std::unique_lock lck{mCmdMTX};
-      mCmd = cmd;
+      mCmd = Cmd::SPPFP;
       mIV = &iv;
-      mCallBack = callback;
       mCmdCV.notify_all();
     }
     if ( debug ) {
       ostringstream buf;
-      buf << "put_command(" << cmd << ")";
+      buf << "put_command(SPPFP)";
+      log(buf.str());
+    }
+    wait();
+  }
+
+  /// @brief コマンドを設定する．
+  void
+  put_ppsfp_command(
+    const InputVals& iv ///< [in] 入力値
+  )
+  {
+    {
+      std::unique_lock lck{mCmdMTX};
+      mCmd = Cmd::PPSFP;
+      mIV = &iv;
+      mCmdCV.notify_all();
+    }
+    if ( debug ) {
+      ostringstream buf;
+      buf << "put_command(PPSFP)";
       log(buf.str());
     }
     wait();
@@ -155,13 +173,6 @@ public:
     return *mIV;
   }
 
-  /// @brief コールバック関数を返す．
-  cbtype&
-  callback()
-  {
-    return mCallBack;
-  }
-
   /// @brief 全ての子スレッドが ready になるのを待つ．
   void
   wait()
@@ -203,9 +214,6 @@ private:
 
   // 入力値
   const InputVals* mIV;
-
-  // コールバック関数
-  cbtype mCallBack;
 
   // mCmd 用のミューテックス
   std::mutex mCmdMTX;

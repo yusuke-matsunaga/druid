@@ -24,7 +24,6 @@ EventQ::init(
   SizeType node_num
 )
 {
-  mOutputNum = output_num;
   mPropArray.clear();
 
   mArray.clear();
@@ -43,7 +42,7 @@ EventQ::init(
 PackedVal
 EventQ::simulate()
 {
-  clear_prop_val();
+  mPropArray.clear();
 
   // どこかの外部出力で検出されたことを表すビット
   auto obs = PV_ALL0;

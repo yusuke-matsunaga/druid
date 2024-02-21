@@ -114,32 +114,28 @@ public:
   void
   sppfp(
     const TestVector& tv, ///< [in] テストベクタ
-    cbtype callback       ///< [in] コールバック関数
-                          ///<      1番目の引数はパタン番号(常に0)
-                          ///<      2番目の引数は検出された故障
-                          ///<      3番目の引数は出力の伝搬状況
+    cbtype1 callback      ///< [in] コールバック関数
+                          ///<      1番目の引数は検出された故障
+                          ///<      2番目の引数は出力の伝搬状況
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   void
   sppfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    cbtype callback                 ///< [in] コールバック関数
-                                    ///<      1番目の引数はパタン番号(常に0)
-                                    ///<      2番目の引数は検出された故障
-                                    ///<      3番目の引数は出力の伝搬状況
+    cbtype1 callback                ///< [in] コールバック関数
+                                    ///<      1番目の引数は検出された故障
+                                    ///<      2番目の引数は出力の伝搬状況
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   void
   ppsfp(
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    cbtype callback                    ///< [in] 1回のシミュレーションごとに
+    cbtype2 callback                   ///< [in] 1回のシミュレーションごとに
                                        ///<      呼び出される関数
-                                       ///<      1番目の引数はパタン番号(tv_list中の位置)
-                                       ///<      2番目の引数は検出された故障
-                                       ///<      3番目の引数は出力の伝搬状況
-                                       ///<      false が返された時には処理を中断する．
+                                       ///<      1番目の引数は検出された故障
+                                       ///<      2番目の引数は出力の伝搬状況
   ) override;
 
 
@@ -279,7 +275,7 @@ private:
   void
   _sppfp(
     const InputVals& iv, ///< [in] 入力値
-    cbtype callback      ///< [in] コールバック関数
+    cbtype1 callback     ///< [in] コールバック関数
   );
 
   /// @brief sppfp 用のシミュレーションを行う．
@@ -287,16 +283,16 @@ private:
   _sppfp_simulation(
     const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
     SizeType ffr_num,         ///< [in] FFR 数
-    cbtype callback           ///< [in] コールバック関数
+    cbtype1 callback          ///< [in] コールバック関数
   );
 
   /// @brief PPSFP故障シミュレーションの本体
   /// @return callback() が false を返したら false を返す．
   bool
   _ppsfp(
-    SizeType base,  ///< [in] パタン番号の起点
-    SizeType npat,  ///< [in] パタン数
-    cbtype callback ///< [in] コールバック関数
+    SizeType base,   ///< [in] パタン番号の起点
+    SizeType npat,   ///< [in] パタン数
+    cbtype2 callback ///< [in] コールバック関数
   );
 
   /// @brief 正常値の計算を行う．
@@ -372,13 +368,13 @@ private:
   _sppfp_apply_callback(
     const SimFFR& ffr, ///< [in] 対象の FFR
     DiffBits dbits,    ///< [in] 出力の故障伝搬ビット
-    cbtype callback    ///< [in] コールバック関数
+    cbtype1 callback   ///< [in] コールバック関数
   )
   {
     auto& fault_list = ffr.fault_list();
     for ( auto ff: fault_list ) {
       if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
-	callback(0, ff->tpg_fault(), dbits);
+	callback(ff->tpg_fault(), dbits);
       }
     }
   }

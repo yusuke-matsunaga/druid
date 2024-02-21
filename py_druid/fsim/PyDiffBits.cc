@@ -50,7 +50,7 @@ DiffBits_dealloc(
 }
 
 PyObject*
-DiffBits_set_val(
+DiffBits_add_output(
   PyObject* self,
   PyObject* args
 )
@@ -62,15 +62,15 @@ DiffBits_set_val(
 
   auto dbits_obj = reinterpret_cast<DiffBitsObject*>(self);
   auto& dbits = *dbits_obj->mPtr;
-  dbits.set_val(pos);
+  dbits.add_output(pos);
 
   Py_RETURN_NONE;
 }
 
 // メソッド定義
 PyMethodDef DiffBits_methods[] = {
-  {"set_val", DiffBits_set_val, METH_VARARGS,
-   PyDoc_STR("set value")},
+  {"add_output", DiffBits_add_output, METH_VARARGS,
+   PyDoc_STR("add output")},
   {nullptr, nullptr, 0, nullptr}
 };
 
@@ -80,7 +80,7 @@ DiffBits_length(
 )
 {
   auto& val = PyDiffBits::Get(self);
-  return val.size();
+  return val.elem_num();
 }
 
 PyObject*
@@ -91,8 +91,8 @@ DiffBits_item(
 {
   auto& val = PyDiffBits::Get(self);
   try {
-    int index1 = ( index >= 0 ) ? index : val.size() + index;
-    auto ans = val[index1];
+    int index1 = ( index >= 0 ) ? index : val.elem_num() + index;
+    auto ans = val.output(index1);
     return PyBool_FromLong(ans);
   }
   catch ( std::out_of_range err ) {

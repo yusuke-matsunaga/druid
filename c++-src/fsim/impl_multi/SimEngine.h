@@ -24,7 +24,8 @@ class InputVals;
 //////////////////////////////////////////////////////////////////////
 class SimEngine
 {
-  using cbtype = FsimImpl::cbtype;
+  using cbtype1 = FsimImpl::cbtype1;
+  using cbtype2 = FsimImpl::cbtype2;
 
 public:
 
@@ -60,32 +61,29 @@ public:
     DiffBits& dbits      ///< [out] 出力ごとの伝搬結果
   );
 
-  /// @brief PPSFP 法のシミュレーションを行う．
-  void
-  ppsfp(
-    const InputVals& iv ///< [in] 入力値
-  );
-
   /// @brief SPPFP 法のシミュレーションを行う．
   void
   sppfp(
     const InputVals& iv ///< [in] 入力値
   );
 
-  /// @brief 結果に対してコールバック関数を呼び出す．
+  /// @brief PPSFP 法のシミュレーションを行う．
   void
-  apply_callback(
-    cbtype callback ///< [in] コールバック関数
-  )
-  {
-    for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
-      for ( auto p: mResList[i] ) {
-	auto& f = p.first;
-	auto& dbits = p.second;
-	callback(i, f, dbits);
-      }
-    }
-  }
+  ppsfp(
+    const InputVals& iv ///< [in] 入力値
+  );
+
+  /// @brief SPPFP 法の結果に対してコールバック関数を呼び出す．
+  void
+  apply_callback1(
+    cbtype1 callback ///< [in] コールバック関数
+  );
+
+  /// @brief PPSFP 法の結果に対してコールバック関数を呼び出す．
+  void
+  apply_callback2(
+    cbtype2 callback ///< [in] コールバック関数
+  );
 
 
 private:
@@ -134,15 +132,6 @@ private:
 #else
     return cval & lobs;
 #endif
-  }
-
-  // 結果のリストをクリアする．
-  void
-  clear_results()
-  {
-    for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
-      mResList[i].clear();
-    }
   }
 
   void
@@ -236,10 +225,7 @@ private:
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @retval 出力における変化ビットを返す．
-  ///
-  /// 返されるベクタのサイズは output_num + 1
-  /// 最後の要素は全ての出力のORになっている．
-  vector<PackedVal>
+  DiffBitsArray
   simulate();
 
   /// @brief clear リストに追加する．
@@ -296,8 +282,11 @@ private:
   // clear 用の情報の配列
   vector<RestoreInfo> mClearArray;
 
-  // 結果のリスト
-  vector<pair<TpgFault, DiffBits>> mResList[PV_BITLEN];
+  // 結果のリスト(SPPFP)
+  vector<pair<TpgFault, DiffBits>> mResList1;
+
+  // 結果のリスト(PPSFP)
+  vector<pair<TpgFault, DiffBitsArray>> mResList2;
 
   // デバッグフラグ
   bool mDebug{false};

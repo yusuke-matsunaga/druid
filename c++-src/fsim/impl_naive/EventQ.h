@@ -76,13 +76,6 @@ public:
   PackedVal
   simulate();
 
-  /// @brief mPropArray をクリアする．
-  void
-  clear_prop_val()
-  {
-    mPropArray.clear();
-  }
-
   /// @brief mPropArray を DiffBits に変換する．
   void
   copy_dbits(

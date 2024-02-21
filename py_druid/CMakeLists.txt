@@ -44,6 +44,7 @@ set ( py_druid_SOURCES
   fsim/fsim_module.cc
   fsim/PyFsim.cc
   fsim/PyDiffBits.cc
+  fsim/PyDiffBitsArray.cc
 
   dtpg/dtpg_module.cc
   dtpg/PyDtpgMgr.cc

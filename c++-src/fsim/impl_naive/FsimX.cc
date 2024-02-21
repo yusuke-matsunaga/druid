@@ -334,7 +334,7 @@ FSIM_CLASSNAME::_spsfp(
 )
 {
   // dbits を初期化しておく．
-  dbits = DiffBits(ppo_num());
+  dbits.clear();
 
   // 正常値の計算を行う．
   _calc_gval(iv);
@@ -365,7 +365,7 @@ FSIM_CLASSNAME::_spsfp(
 void
 FSIM_CLASSNAME::sppfp(
   const TestVector& tv,
-  cbtype callback
+  cbtype1 callback
 )
 {
   TvInputVals iv{tv};
@@ -378,7 +378,7 @@ FSIM_CLASSNAME::sppfp(
 void
 FSIM_CLASSNAME::sppfp(
   const NodeValList& assign_list,
-  cbtype callback
+  cbtype1 callback
 )
 {
   NvlInputVals iv{assign_list};
@@ -391,7 +391,7 @@ FSIM_CLASSNAME::sppfp(
 void
 FSIM_CLASSNAME::_sppfp(
   const InputVals& iv,
-  cbtype callback
+  cbtype1 callback
 )
 {
   // 正常値の計算を行う．
@@ -414,7 +414,7 @@ FSIM_CLASSNAME::_sppfp(
     if ( root->is_output() ) {
       // 常にこの出力のみで観測可能
       DiffBits dbits;
-      dbits.add_outputl(root->output_id());
+      dbits.add_output(root->output_id());
       _sppfp_apply_callback(ffr, dbits, callback);
     }
     else {
@@ -440,7 +440,7 @@ void
 FSIM_CLASSNAME::_sppfp_simulation(
   const SimFFR* ffr_buff[],
   SizeType ffr_num,
-  cbtype callback
+  cbtype1 callback
 )
 {
   auto obs = mEventQ.simulate();
@@ -459,31 +459,14 @@ FSIM_CLASSNAME::_sppfp_simulation(
 void
 FSIM_CLASSNAME::ppsfp(
   const vector<TestVector>& tv_list,
-  cbtype callback
+  cbtype2 callback
 )
 {
   clear_patterns();
-  SizeType base = 0;
   for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
     auto& tv = tv_list[index];
-    auto lindex = index - base;
-    set_pattern(lindex, tv);
-    if ( lindex == PV_BITLEN - 1 || index == tv_list.size() - 1 ) {
-      _ppsfp(base, lindex + 1, callback);
-      clear_patterns();
-      base += PV_BITLEN;
-    }
+    set_pattern(index, tv);
   }
-}
-
-// @brief 複数のパタンで故障シミュレーションを行う．
-bool
-FSIM_CLASSNAME::_ppsfp(
-  SizeType base,
-  SizeType npat,
-  cbtype callback
-)
-{
   Tv2InputVals iv{mPatMap, mPatBuff};
 
   // 正常値の計算を行う．
@@ -517,8 +500,6 @@ FSIM_CLASSNAME::_ppsfp(
       }
     }
   }
-
-  return true;
 }
 
 #if FSIM_BSIDE

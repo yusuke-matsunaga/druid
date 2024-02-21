@@ -53,7 +53,7 @@ DopDrop::operator()(
 {
   mFsim.set_skip(f);
   mFsim.sppfp(tv,
-	      [&](SizeType, TpgFault f, DiffBits _)
+	      [&](TpgFault f, DiffBits _)
 	      {
 		ASSERT_COND( mFaultMgr.get_status(f) != FaultStatus::Untestable );
 		mFaultMgr.set_status(f, FaultStatus::Detected);

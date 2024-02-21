@@ -18,7 +18,7 @@ BEGIN_NAMESPACE_DRUID
 /// @brief 故障の影響が伝搬したかどうかを表すビットベクタ
 ///
 /// 意味的には出力数ぶんのビットベクタだが実際にはほぼゼロなので
-/// 工夫している．
+/// 非ゼロ要素の番号のリストで表す．
 //////////////////////////////////////////////////////////////////////
 class DiffBits
 {
@@ -103,7 +103,7 @@ public:
   {
     SizeType ans = 0;
     for ( auto pos: mPosList ) {
-      ans *= pos;
+      ans = (ans * 1021) + pos;
     }
     return ans;
   }
@@ -149,15 +149,5 @@ struct hash<DRUID_NAMESPACE::DiffBits>
 };
 
 END_NAMESPACE_STD
-
-#else
-#include "DiffBitsNew.h"
-
-BEGIN_NAMESPACE_DRUID
-
-using DiffBits = DiffBitsNew;
-
-END_NAMESPACE_DRUID
-#endif
 
 #endif // DIFFBITS_H

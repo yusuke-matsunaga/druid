@@ -9,17 +9,17 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "PackedVal.h"
+#include "DiffBits.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
-class DiffBits;
-
 //////////////////////////////////////////////////////////////////////
 /// @class DiffBitsArray DiffBitsArray.h "DiffBitsArray.h"
-/// @brief DiffBits の排列
+/// @brief DiffBits の配列
 ///
-/// 実際にはゼロ要素を持たない．
+/// 実際には非ゼロの出力要素ごとに PackedVal を持つ．
 //////////////////////////////////////////////////////////////////////
 class DiffBitsArray
 {
@@ -62,12 +62,38 @@ public:
     return mBody[pos];
   }
 
+  /// @brief 全ての出力のビットパタンの OR を返す．
+  PackedVal
+  dbits_union() const
+  {
+    return mUnion;
+  }
+
+  /// @brief ビットスライスを得る．
+  void
+  get_slice(
+    DiffBits& dbits, ///< [out] 結果の格納先
+    SizeType pos     ///< [in] ビット位置
+  ) const
+  {
+    dbits.clear();
+    PackedVal mask = 1UL << pos;
+    SizeType N = mPosList.size();
+    for ( SizeType i = 0; i < N; ++ i ) {
+      if ( mBody[i] & mask ) {
+	SizeType pos = mPosList[i];
+	dbits.add_output(pos);
+      }
+    }
+  }
+
   /// @brief 内容をクリアする．
   void
   clear()
   {
     mPosList.clear();
     mBody.clear();
+    mUnion = 0UL;
   }
 
   /// @brief 出力のビットパタンを追加する．
@@ -79,6 +105,32 @@ public:
   {
     mPosList.push_back(output);
     mBody.push_back(dbits);
+    mUnion |= dbits;
+  }
+
+  /// @brief 1ビット分のパタンを追加する．
+  void
+  add_pat(
+    const DiffBits& dbits, ///< [in] ビットパタン
+    SizeType pos           ///< [in] ビット位置
+  )
+  {
+    PackedVal mask = 1UL << pos;
+    unordered_map<SizeType, SizeType> pos_map;
+    for ( SizeType i = 0; i < mPosList.size(); ++ i ) {
+      pos_map.emplace(mPosList[i], i);
+    }
+    for ( SizeType i = 0; i < dbits.elem_num(); ++ i ) {
+      auto oid = dbits.output(i);
+      if ( pos_map.count(oid) ) {
+	SizeType j = pos_map.at(oid);
+	mBody[j] |= mask;
+      }
+      else {
+	mPosList.push_back(oid);
+	mBody.push_back(mask);
+      }
+    }
   }
 
   /// @brief 等価比較演算
@@ -87,16 +139,7 @@ public:
     const DiffBitsArray& right
   ) const
   {
-    if ( mOutputNum != right.mOutputNum ) {
-      return false;
-    }
-    if ( mPatNum != right.mPatNum ) {
-      return false;
-    }
-    if ( mPosList != right.mPosList ) {
-      return false;
-    }
-    return mBody != right.mBody;
+    return mPosList == right.mPosList && mBody == right.mBody;
   }
 
   /// @brief 非等価比較演算
@@ -124,20 +167,12 @@ public:
   SizeType
   hash() const
   {
-    SizeType N = sizeof(SizeType) * 8;
+    SizeType N = mPosList.size();
     SizeType ans = 0;
-#if 0
-    SizeType n = mBits.size();
-    SizeType bits = 0;
-    for ( SizeType i = 0; i < n; ++ i ) {
-      bits <<= 1;
-      bits |= mBits[i];
-      if ( i % N == N - 1 || i == n - 1) {
-	ans ^= bits;
-	bits = 0;
-      }
+    for ( SizeType i = 0; i < N; ++ i ) {
+      ans = (ans * 1021) + mPosList[i];
+      ans = (ans * 2017) + mBody[i];
     }
-#endif
     return ans;
   }
 
@@ -147,15 +182,15 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 出力数
-  SizeType mOutputNum;
-
   // 非ゼロ要素の出力番号のリスト
   vector<SizeType> mPosList;
 
   // 本体
   // サイズは mPosList と等しい
   vector<PackedVal> mBody;
+
+  // mBody の各要素のビットワイズOR
+  PackedVal mUnion{0UL};
 
 };
 
@@ -189,15 +224,5 @@ struct hash<DRUID_NAMESPACE::DiffBitsArray>
 };
 
 END_NAMESPACE_STD
-
-#else
-#include "DiffBitsArrayNew.h"
-
-BEGIN_NAMESPACE_DRUID
-
-using DiffBitsArray = DiffBitsArrayNew;
-
-END_NAMESPACE_DRUID
-#endif
 
 #endif // DIFFBITSARRAY_H

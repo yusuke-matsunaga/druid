@@ -115,17 +115,17 @@ RefSim::simulate_sa(
 
   // 出力結果を比較する．
   SizeType no = mOutputList.size();
-  DiffBits dbits(no + nd);
+  DiffBits dbits;
   for ( SizeType i = 0; i < no; ++ i ) {
     auto node = mOutputList[i];
     if ( node->get_gval() != node->get_fval() ) {
-      dbits.set_val(i);
+      dbits.add_output(i);
     }
   }
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto node = mDffInList[i];
     if ( node->get_gval() != node->get_fval() ) {
-      dbits.set_val(i + no);
+      dbits.add_output(i + no);
     }
   }
   return dbits;
@@ -205,17 +205,17 @@ RefSim::simulate_td(
 
   // 出力結果を比較する．
   SizeType no = mOutputList.size();
-  DiffBits dbits(no + nd);
+  DiffBits dbits;
   for ( SizeType i = 0; i < no; ++ i ) {
     auto node = mOutputList[i];
     if ( node->get_gval() != node->get_fval() ) {
-      dbits.set_val(i);
+      dbits.add_output(i);
     }
   }
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto node = mDffInList[i];
     if ( node->get_gval() != node->get_fval() ) {
-      dbits.set_val(i + no);
+      dbits.add_output(i + no);
     }
   }
   return dbits;

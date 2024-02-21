@@ -390,7 +390,7 @@ FSIM_CLASSNAME::_spsfp(
 void
 FSIM_CLASSNAME::sppfp(
   const TestVector& tv,
-  cbtype callback
+  cbtype1 callback
 )
 {
   TvInputVals iv{tv};
@@ -403,7 +403,7 @@ FSIM_CLASSNAME::sppfp(
 void
 FSIM_CLASSNAME::sppfp(
   const NodeValList& assign_list,
-  cbtype callback
+  cbtype1 callback
 )
 {
   NvlInputVals iv{assign_list};
@@ -416,14 +416,14 @@ FSIM_CLASSNAME::sppfp(
 void
 FSIM_CLASSNAME::_sppfp(
   const InputVals& iv,
-  cbtype callback
+  cbtype1 callback
 )
 {
   // SPPFP コマンドを送る．
-  mSyncObj.put_command(Cmd::SPPFP, iv, callback);
+  mSyncObj.put_sppfp_command(iv);
 
   for ( auto& engine: mEngineList ) {
-    engine->apply_callback(callback);
+    engine->apply_callback1(callback);
   }
 }
 
@@ -431,41 +431,23 @@ FSIM_CLASSNAME::_sppfp(
 void
 FSIM_CLASSNAME::ppsfp(
   const vector<TestVector>& tv_list,
-  cbtype callback
+  cbtype2 callback
 )
 {
-  SizeType NPO = ppo_num();
-  SizeType NFFR = ffr_array().size();
-  SizeType NT = mSyncObj.thread_num();
-  SizeType base = 0;
   TestVector pat_buff[PV_BITLEN];
   PackedVal pat_mask{PV_ALL0};
   for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
     auto& tv = tv_list[index];
-    auto lindex = index - base;
-    pat_buff[lindex] = tv;
-    pat_mask |= (1UL << lindex);
-    if ( lindex == PV_BITLEN - 1 || index == tv_list.size() - 1 ) {
-      Tv2InputVals iv{pat_mask, pat_buff};
+    pat_buff[index] = tv;
+    pat_mask |= (1UL << index);
+  }
+  Tv2InputVals iv{pat_mask, pat_buff};
 
-      // PPSFP コマンドを送る．
-      mSyncObj.put_command(Cmd::PPSFP, iv, [&](SizeType pos, TpgFault f, DiffBits dbits) {
-	callback(pos + base, f, dbits);
-      });
+  // PPSFP コマンドを送る．
+  mSyncObj.put_ppsfp_command(iv);
 
-      for ( auto& engine: mEngineList ) {
-	engine->apply_callback([&](
-	  SizeType pos,
-	  TpgFault f,
-	  DiffBits dbits
-	) {
-	  callback(pos + base, f, dbits);
-	});
-      }
-
-      pat_mask = PV_ALL0;
-      base += PV_BITLEN;
-    }
+  for ( auto& engine: mEngineList ) {
+    engine->apply_callback2(callback);
   }
 }
 

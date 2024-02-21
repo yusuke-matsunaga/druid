@@ -8,6 +8,7 @@
 
 #include "PyFsim.h"
 #include "PyDiffBits.h"
+#include "PyDiffBitsArray.h"
 #include "PyTpgNetwork.h"
 #include "PyTestVector.h"
 #include "PyInputVector.h"
@@ -272,7 +273,6 @@ Fsim_sppfp(
   vector<pair<TpgFault, DiffBits>> ans_list;
   fsim->sppfp(tv,
 	      [&](
-		SizeType,
 		TpgFault f,
 		DiffBits dbits
 	      )
@@ -324,13 +324,12 @@ Fsim_ppsfp(
   auto fsim = PyFsim::Get(self);
   fsim->ppsfp(tv_list,
 	      [&](
-		SizeType index,
 		TpgFault f,
-		DiffBits dbits
+		DiffBitsArray dbits_array
 	      )
 	      {
 		auto fault_obj = PyTpgFault::ToPyObject(f);
-		auto dbits_obj = PyDiffBits::ToPyObject(dbits);
+		auto dbits_obj = PyDiffBitsArray::ToPyObject(dbits_array);
 		auto cb_args = Py_BuildValue("kOO", index, fault_obj, dbits_obj);
 		PyObject_CallObject(callback_obj, cb_args);
 		Py_DECREF(cb_args);

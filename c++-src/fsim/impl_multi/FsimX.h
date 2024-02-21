@@ -115,7 +115,7 @@ public:
   void
   sppfp(
     const TestVector& tv, ///< [in] テストベクタ
-    cbtype callback       ///< [in] コールバック関数
+    cbtype1 callback      ///< [in] コールバック関数
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -123,7 +123,7 @@ public:
   void
   sppfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    cbtype callback                 ///< [in] コールバック関数
+    cbtype1 callback                ///< [in] コールバック関数
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
@@ -133,12 +133,10 @@ public:
   void
   ppsfp(
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    cbtype callback                    ///< [in] 1回のシミュレーションごとに
+    cbtype2 callback                   ///< [in] 1回のシミュレーションごとに
                                        ///<      呼び出される関数
-                                       ///<      1番目の引数はパタン番号(tv_list中の位置)
-                                       ///<      2番目の引数は検出された故障
-                                       ///<      3番目の引数は出力の伝搬状況
-                                       ///<      false が返された時には処理を中断する．
+                                       ///<      1番目の引数は検出された故障
+                                       ///<      2番目の引数は出力の伝搬状況
   ) override;
 
 
@@ -350,7 +348,7 @@ private:
   void
   _sppfp(
     const InputVals& iv, ///< [in] 入力値
-    cbtype callback      ///< [in] コールバック関数
+    cbtype1 callback     ///< [in] コールバック関数
   );
 
 

@@ -79,8 +79,11 @@ public:
   // 故障シミュレーションを行う関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief sppfp で用いるコールバック関数の型定義
+  using cbtype1 = Fsim::cbtype1;
+
   /// @brief ppsfp で用いるコールバック関数の型定義
-  using cbtype = Fsim::cbtype;
+  using cbtype2 = Fsim::cbtype2;
 
   /// @brief SPSFP故障シミュレーションを行う．
   /// @retval true 故障の検出が行えた．
@@ -109,10 +112,9 @@ public:
   void
   sppfp(
     const TestVector& tv, ///< [in] テストベクタ
-    cbtype callback       ///< [in] コールバック関数
-                          ///<      1番目の引数はパタン番号(常に0)
-                          ///<      2番目の引数は検出された故障
-                          ///<      3番目の引数は出力の伝搬状況
+    cbtype1 callback      ///< [in] コールバック関数
+                          ///<      1番目の引数は検出された故障
+                          ///<      2番目の引数は出力の伝搬状況
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -120,10 +122,9 @@ public:
   void
   sppfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    cbtype callback                 ///< [in] コールバック関数
-                                    ///<      1番目の引数はパタン番号(常に0)
-                                    ///<      2番目の引数は検出された故障
-                                    ///<      3番目の引数は出力の伝搬状況
+    cbtype1 callback                ///< [in] コールバック関数
+                                    ///<      1番目の引数は検出された故障
+                                    ///<      2番目の引数は出力の伝搬状況
   ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
@@ -131,11 +132,10 @@ public:
   void
   ppsfp(
     const vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    cbtype callback                    ///< [in] 1回のシミュレーションごとに
+    cbtype2 callback                   ///< [in] 1回のシミュレーションごとに
                                        ///<      呼び出される関数
-                                       ///<      1番目の引数はパタン番号(tv_list中の位置)
-                                       ///<      2番目の引数は検出された故障
-                                       ///<      3番目の引数は出力ごとの伝搬状況
+                                       ///<      1番目の引数は検出された故障
+                                       ///<      2番目の引数は出力ごとの伝搬状況
   ) = 0;
 
 

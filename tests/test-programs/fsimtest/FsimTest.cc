@@ -85,7 +85,6 @@ sppfp_test(
     bool detected = false;
     fsim.sppfp(tv,
 	       [&](
-		 SizeType,
 		 TpgFault f,
 		 DiffBits dbits
 	       )
@@ -118,33 +117,46 @@ ppsfp_test(
   bool drop
 )
 {
-  auto nv = tv_list.size();
-
   SizeType nepat = 0;
   SizeType det_num = 0;
   std::mutex mtx;
   unordered_set<SizeType> pat_dict;
   vector<bool> det_array(max_fid, false);
-  fsim.ppsfp(tv_list,
-	     [&](
-	       SizeType index,
-	       TpgFault f,
-	       DiffBits dbits
-	     )
-	     {
-	       if ( !det_array[f.id()] ) {
-		 det_array[f.id()] = true;
-		 ++ det_num;
-		 if ( drop ) {
-		   fsim.set_skip(f);
-		 }
-		 if ( pat_dict.count(index) == 0 ) {
-		   pat_dict.emplace(index);
-		   ++ nepat;
-		 }
-		 print_fault(f, index);
-	       }
-	     });
+  vector<TestVector> tv_buff;
+  tv_buff.reserve(PV_BITLEN);
+  SizeType NV = tv_list.size();
+  SizeType base = 0;
+  for ( auto& tv: tv_list ) {
+    tv_buff.push_back(tv);
+    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
+      fsim.ppsfp(tv_buff,
+		 [&](
+		   TpgFault f,
+		   DiffBitsArray dbits_array
+		 )
+		 {
+		   if ( !det_array[f.id()] ) {
+		     det_array[f.id()] = true;
+		     ++ det_num;
+		     if ( drop ) {
+		       fsim.set_skip(f);
+		     }
+		     auto obs = dbits_array.dbits_union();
+		     for ( SizeType lindex = 0; lindex < tv_buff.size(); ++ lindex ) {
+		       if ( obs & (1UL << lindex) ) {
+			 SizeType index = base + index;
+			 if ( pat_dict.count(index) == 0 ) {
+			   pat_dict.emplace(index);
+			   ++ nepat;
+			 }
+			 print_fault(f, index);
+		       }
+		     }
+		   }
+		 });
+      base += tv_buff.size();
+    }
+  }
   return make_pair(det_num, nepat);
 }
 

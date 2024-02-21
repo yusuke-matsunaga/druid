@@ -55,7 +55,7 @@ SimEngine::spsfp(
 )
 {
   SizeType NPO = mFsim.ppo_num();
-  dbits = DiffBits{NPO};
+  dbits.clear();
 
   // 正常値の計算を行う．
   _calc_gval(iv);
@@ -70,15 +70,10 @@ SimEngine::spsfp(
 
     // イベントシミュレーションを行う．
     put_event(root, local_obs);
-    auto obs_array = simulate();
-    auto obs = obs_array.back();
-    if ( obs != PV_ALL0 ) {
+    auto dbits_array = simulate();
+    if ( dbits_array.elem_num() > 0 ) {
       // 検出された
-      for ( SizeType i = 0; i < NPO; ++ i ) {
-	if ( obs_array[i] == PV_ALL1 ) {
-	  dbits.set_val(i);
-	}
-      }
+      dbits_array.get_slice(dbits, 0);
       return true;
     }
   }
@@ -95,13 +90,12 @@ SimEngine::ppsfp(
   }
 
   // 結果のリストをクリアする．
-  clear_results();
+  mResList2.clear();
 
   // 正常値の計算を行う．
   _calc_gval(iv);
 
   // FFR ごとに処理を行う．
-  auto NPO = mFsim.ppo_num();
   auto NFFR = mFsim.ffr_num();
   auto NT = mSyncObj.thread_num();
   for ( auto ffr: mFFRList ) {
@@ -114,30 +108,18 @@ SimEngine::ppsfp(
     // イベントシミュレーションを行う．
     auto root = ffr->root();
     put_event(ffr->root(), ffr_req);
-    auto obs_array = simulate();
-    auto obs = obs_array.back() & iv.bitmask();
-    if ( obs != PV_ALL0 ) {
+    auto dbits_array = simulate();
+    if ( dbits_array.dbits_union() != PV_ALL0 ) {
       // FFR の故障伝搬値とマージする．
       for ( auto ff: ffr->fault_list() ) {
 	if ( ff->skip() ) {
 	  continue;
 	}
-	auto pat = ff->obs_mask() & obs;
+	auto pat = ff->obs_mask() & dbits_array.dbits_union();
 	if ( pat != PV_ALL0 ) {
 	  // 検出された
 	  auto tpg_f = ff->tpg_fault();
-	  for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
-	    PackedVal bitmask = 1UL << i;
-	    if ( pat & bitmask ) {
-	      DiffBits dbits(NPO);
-	      for ( SizeType j = 0; j < NPO; ++ j ) {
-		if ( obs_array[j] & bitmask ) {
-		  dbits.set_val(j);
-		}
-	      }
-	      mResList[i].push_back({tpg_f, dbits});
-	    }
-	  }
+	  mResList2.push_back({tpg_f, dbits_array});
 	}
       }
     }
@@ -157,12 +139,11 @@ SimEngine::sppfp(
   }
 
   // 結果のリストをクリアする．
-  clear_results();
+  mResList1.clear();
 
   // 正常値の計算を行う．
   _calc_gval(iv);
 
-  auto NPO = mFsim.ppo_num();
   auto NFFR = mFsim.ffr_num();
   auto NT = mSyncObj.thread_num();
   vector<const SimFFR*> ffr_array;
@@ -180,12 +161,12 @@ SimEngine::sppfp(
     auto root = ffr->root();
     if ( root->is_output() ) {
       // 常にこの出力のみで観測可能
-      DiffBits dbits(NPO);
-      dbits.set_val(root->output_id());
+      DiffBits dbits;
+      dbits.add_output(root->output_id());
       for ( auto ff: ffr->fault_list() ) {
 	if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	  auto tpg_f = ff->tpg_fault();
-	  mResList[0].push_back({tpg_f, dbits});
+	  mResList1.push_back({tpg_f, dbits});
 	}
       }
     }
@@ -214,9 +195,8 @@ SimEngine::sppfp_simulation(
   const vector<const SimFFR*>& ffr_array
 )
 {
-  auto obs_array = simulate();
-  auto obs = obs_array.back();
-  SizeType NPO = mFsim.ppo_num();
+  auto dbits_array = simulate();
+  auto obs = dbits_array.dbits_union();
   for ( SizeType i = 0; i < ffr_array.size(); ++ i ) {
     PackedVal mask = 1UL << i;
     if ( (obs & mask) == PV_ALL0 ) {
@@ -224,19 +204,41 @@ SimEngine::sppfp_simulation(
     }
     auto& ffr = *ffr_array[i];
     auto& fault_list = ffr.fault_list();
-    DiffBits dbits(NPO);
-    for ( SizeType j = 0; j < NPO; ++ j ) {
-      if ( obs_array[j] & mask ) {
-	dbits.set_val(j);
-      }
-    }
+    DiffBits dbits;
+    dbits_array.get_slice(dbits, i);
     for ( auto f: fault_list ) {
       if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
 	auto tpg_f = f->tpg_fault();
-	mResList[0].push_back({tpg_f, dbits});
+	mResList1.push_back({tpg_f, dbits});
       }
     }
     mask <<= 1;
+  }
+}
+
+// @brief SPPFP 法の結果に対してコールバック関数を呼び出す．
+void
+SimEngine::apply_callback1(
+  cbtype1 callback
+)
+{
+  for ( auto& p: mResList1 ) {
+    auto& tpg_f = p.first;
+    auto& dbits = p.second;
+    callback(tpg_f, dbits);
+  }
+}
+
+// @brief PPSFP 法の結果に対してコールバック関数を呼び出す．
+void
+SimEngine::apply_callback2(
+  cbtype2 callback
+)
+{
+  for ( auto& p: mResList2 ) {
+    auto& tpg_f = p.first;
+    auto& dbits_array = p.second;
+    callback(tpg_f, dbits_array);
   }
 }
 
@@ -316,14 +318,11 @@ SimEngine::foreach_faults(
 }
 
 // @brief イベントドリブンシミュレーションを行う．
-vector<PackedVal>
+DiffBitsArray
 SimEngine::simulate()
 {
-  auto NO = mFsim.ppo_num() + 1;
-  vector<PackedVal> prop_array(NO, PV_ALL0);
+  DiffBitsArray dbits_array;
 
-  // どこかの外部出力で検出されたことを表すビット
-  auto obs = PV_ALL0;
   for ( ; ; ) {
     auto node = mEventQ.get();
     // イベントが残っていなければ終わる．
@@ -341,15 +340,13 @@ SimEngine::simulate()
       add_to_clear_list(node, old_val);
       if ( node->is_output() ) {
 	auto dbits = diff(new_val, old_val);
-	prop_array[node->output_id()] = dbits;
-	obs |= dbits;
+	dbits_array.add_output(node->output_id(), dbits);
       }
       else {
 	mEventQ.put_fanouts(node);
       }
     }
   }
-  prop_array.back() = obs;
 
   // 今の故障シミュレーションで値の変わったノードを元にもどしておく
   for ( auto& rinfo: mClearArray ) {
@@ -357,7 +354,7 @@ SimEngine::simulate()
   }
   mClearArray.clear();
 
-  return prop_array;
+  return dbits_array;
 }
 
 END_NAMESPACE_DRUID_FSIM

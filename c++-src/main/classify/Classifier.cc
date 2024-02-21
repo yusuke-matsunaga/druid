@@ -78,7 +78,6 @@ Classifier::run(
     timer.start();
     fsim.sppfp(tv,
 	       [&](
-		 SizeType _,
 		 TpgFault fault,
 		 DiffBits dbits
 	       )
@@ -196,11 +195,11 @@ Classifier::run2(
       timer.start();
       fsim.ppsfp(tv_buff,
 		 [&](
-		   SizeType i,
 		   TpgFault fault,
-		   DiffBits dbits
+		   DiffBitsArray dbits_array
 		 )
 		 {
+#if 0
 		   auto fid = fault.id();
 		   SigKey key{dbits, fgmap[fid]};
 		   SizeType g;
@@ -219,6 +218,7 @@ Classifier::run2(
 		   fgmap[fid] = g;
 		   -- count[old_g];
 		   ++ count[g];
+#endif
 		 });
       timer.stop();
     }
@@ -251,11 +251,11 @@ Classifier::run2(
     timer.start();
     fsim.ppsfp(tv_buff,
 	       [&](
-		 SizeType i,
 		 TpgFault fault,
-		 DiffBits dbits
+		 DiffBitsArray dbits_array
 	       )
 	       {
+#if 0
 		 auto fid = fault.id();
 		 SigKey key{dbits, fgmap[fid]};
 		 SizeType g;
@@ -274,6 +274,7 @@ Classifier::run2(
 		 fgmap[fid] = g;
 		 -- count[old_g];
 		 ++ count[g];
+#endif
 	       });
     timer.stop();
   }
