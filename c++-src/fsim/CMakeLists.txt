@@ -15,6 +15,8 @@ include_directories (
 add_subdirectory( impl_naive )
 add_subdirectory( impl_multi )
 
+add_subdirectory( gtest )
+
 
 # ===================================================================
 #  ソースファイルの設定

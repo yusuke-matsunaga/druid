@@ -434,14 +434,7 @@ FSIM_CLASSNAME::ppsfp(
   cbtype2 callback
 )
 {
-  TestVector pat_buff[PV_BITLEN];
-  PackedVal pat_mask{PV_ALL0};
-  for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
-    auto& tv = tv_list[index];
-    pat_buff[index] = tv;
-    pat_mask |= (1UL << index);
-  }
-  Tv2InputVals iv{pat_mask, pat_buff};
+  Tv2InputVals iv{tv_list};
 
   // PPSFP コマンドを送る．
   mSyncObj.put_ppsfp_command(iv);

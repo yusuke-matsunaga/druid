@@ -23,6 +23,20 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class DiffBitsArray
 {
+  struct Cell {
+    SizeType output_id;
+    PackedVal bits;
+
+    bool
+    operator==(
+      const Cell& right
+    ) const
+    {
+      return output_id == right.output_id && bits == right.bits;
+    }
+  };
+
+
 public:
 
   /// @brief コンストラクタ
@@ -41,7 +55,7 @@ public:
   SizeType
   elem_num() const
   {
-    return mPosList.size();
+    return mBody.size();
   }
 
   /// @brief 非ゼロの出力番号を返す．
@@ -50,7 +64,8 @@ public:
     SizeType pos ///< [in] 位置番号( 0 <= pos < elem_num() )
   ) const
   {
-    return mPosList[pos];
+    ASSERT_COND( 0 <= pos && pos < elem_num() );
+    return mBody[pos].output_id;
   }
 
   /// @brief 故障伝搬ビットパタンを返す．
@@ -59,7 +74,8 @@ public:
     SizeType pos ///< [in] 位置番号( 0 <= pos < elem_num() )
   ) const
   {
-    return mBody[pos];
+    ASSERT_COND( 0 <= pos && pos < elem_num() );
+    return mBody[pos].bits;
   }
 
   /// @brief 全ての出力のビットパタンの OR を返す．
@@ -70,21 +86,19 @@ public:
   }
 
   /// @brief ビットスライスを得る．
-  void
+  DiffBits
   get_slice(
-    DiffBits& dbits, ///< [out] 結果の格納先
     SizeType pos     ///< [in] ビット位置
   ) const
   {
-    dbits.clear();
+    DiffBits dbits;
     PackedVal mask = 1UL << pos;
-    SizeType N = mPosList.size();
-    for ( SizeType i = 0; i < N; ++ i ) {
-      if ( mBody[i] & mask ) {
-	SizeType pos = mPosList[i];
-	dbits.add_output(pos);
+    for ( auto& cell: mBody ) {
+      if ( (cell.bits & mask) != PV_ALL0 ) {
+	dbits.add_output(cell.output_id);
       }
     }
+    return dbits;
   }
 
   /// @brief ビットマスクを行う．
@@ -94,12 +108,10 @@ public:
   ) const
   {
     DiffBitsArray ans;
-    SizeType N = mPosList.size();
-    for ( SizeType i = 0; i < N; ++ i ) {
-      auto bits = mBody[i] & mask;
+    for ( auto& cell: mBody ) {
+      auto bits = cell.bits & mask;
       if ( bits != PV_ALL0 ) {
-	ans.mPosList.push_back(mPosList[i]);
-	ans.mBody.push_back(bits);
+	ans.mBody.push_back({cell.output_id, bits});
       }
     }
     return ans;
@@ -109,7 +121,6 @@ public:
   void
   clear()
   {
-    mPosList.clear();
     mBody.clear();
     mUnion = 0UL;
   }
@@ -121,8 +132,7 @@ public:
     PackedVal dbits  ///< [in] 故障伝搬ビットパタン
   )
   {
-    mPosList.push_back(output);
-    mBody.push_back(dbits);
+    mBody.push_back({output, dbits});
     mUnion |= dbits;
   }
 
@@ -135,20 +145,35 @@ public:
   {
     PackedVal mask = 1UL << pos;
     unordered_map<SizeType, SizeType> pos_map;
-    for ( SizeType i = 0; i < mPosList.size(); ++ i ) {
-      pos_map.emplace(mPosList[i], i);
+    for ( SizeType i = 0; i < mBody.size(); ++ i ) {
+      pos_map.emplace(mBody[i].output_id, i);
     }
     for ( SizeType i = 0; i < dbits.elem_num(); ++ i ) {
       auto oid = dbits.output(i);
       if ( pos_map.count(oid) ) {
 	SizeType j = pos_map.at(oid);
-	mBody[j] |= mask;
+	mBody[j].bits |= mask;
       }
       else {
-	mPosList.push_back(oid);
-	mBody.push_back(mask);
+	mBody.push_back({oid, mask});
       }
     }
+    mUnion |= mask;
+  }
+
+  /// @brief 内容をソートする．
+  void
+  sort()
+  {
+    std::sort(mBody.begin(), mBody.end(),
+	      [&](
+		const Cell& a,
+		const Cell& b
+	      )
+	      {
+		return a.output_id < b.output_id;
+	      }
+	      );
   }
 
   /// @brief 等価比較演算
@@ -157,7 +182,7 @@ public:
     const DiffBitsArray& right
   ) const
   {
-    return mPosList == right.mPosList && mBody == right.mBody;
+    return mBody == right.mBody;
   }
 
   /// @brief 非等価比較演算
@@ -175,9 +200,10 @@ public:
     ostream& s
   ) const
   {
-    SizeType N = mPosList.size();
-    for ( SizeType i = 0; i < N; ++ i ) {
-      s << " " << mPosList[i] << ": " << hex << setw(16) << mBody[i] << dec;
+    for ( auto& cell: mBody ) {
+      auto pos = cell.output_id;
+      auto bits = cell.bits;
+      s << " " << pos << ": " << hex << setw(16) << bits << dec;
     }
   }
 
@@ -185,11 +211,12 @@ public:
   SizeType
   hash() const
   {
-    SizeType N = mPosList.size();
     SizeType ans = 0;
-    for ( SizeType i = 0; i < N; ++ i ) {
-      ans = (ans * 1021) + mPosList[i];
-      ans = (ans * 2017) + mBody[i];
+    for ( auto& cell: mBody ) {
+      auto pos = cell.output_id;
+      auto bits = cell.bits;
+      ans = (ans * 1021) + pos;
+      ans = (ans * 2017) + bits;
     }
     return ans;
   }
@@ -200,12 +227,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 非ゼロ要素の出力番号のリスト
-  vector<SizeType> mPosList;
-
-  // 本体
-  // サイズは mPosList と等しい
-  vector<PackedVal> mBody;
+  // 非ゼロ要素の出力番号とビットパタンのペアのリスト
+  vector<Cell> mBody;
 
   // mBody の各要素のビットワイズOR
   PackedVal mUnion{0UL};

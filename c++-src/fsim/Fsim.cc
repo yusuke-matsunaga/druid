@@ -200,6 +200,7 @@ Fsim::ppsfp(
   cbtype2 callback
 )
 {
+  ASSERT_COND( tv_list.size() <= PV_BITLEN );
   return mImpl->ppsfp(tv_list, callback);
 }
 

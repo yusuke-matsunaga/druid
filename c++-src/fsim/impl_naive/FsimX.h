@@ -323,16 +323,14 @@ private:
   /// @return 伝搬したビットに1を立てたビットベクタ
   ///
   /// obs_mask が0のビットのイベントはマスクされる．
-  PackedVal
+  DiffBitsArray
   _global_prop(
     SimNode* root,     ///< [in] FFRの根のノード
     PackedVal obs_mask ///< [in] ビットマスク
   )
   {
     mEventQ.put_event(root, obs_mask);
-    auto obs = mEventQ.simulate();
-
-    return obs;
+    return mEventQ.simulate();
   }
 
   /// @brief FFR内の故障シミュレーションを行う．
@@ -405,44 +403,6 @@ private:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // ppsfp のテストパタンを設定する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ppsfp 用のパタンバッファをクリアする．
-  void
-  clear_patterns()
-  {
-    mPatMap = PV_ALL0;
-  }
-
-  /// @brief ppsfp 用のパタンを設定する．
-  void
-  set_pattern(
-    SizeType pos,        ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-    const TestVector& tv ///< [in] テストベクタ
-  )
-  {
-    ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
-
-    mPatBuff[pos] = tv;
-    mPatMap |= (1ULL << pos);
-  }
-
-  /// @brief 設定した ppsfp 用のパタンを読み出す．
-  TestVector
-  get_pattern(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < PV_BITLEN )
-  )
-  {
-    ASSERT_COND( pos >= 0 && pos < PV_BITLEN );
-    ASSERT_COND ( mPatMap & (1ULL << pos) );
-
-    return mPatBuff[pos];
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
   // SimNode / SimFault の設定に関する関数
   //////////////////////////////////////////////////////////////////////
 
@@ -507,12 +467,6 @@ private:
 
   // SimNode のノード番号をキーにして対応する SimFFR を格納する配列
   vector<SimFFR*> mFFRMap;
-
-  // パタンの設定状況を表すビットベクタ
-  PackedVal mPatMap{PV_ALL0};
-
-  // パタンバッファ
-  TestVector mPatBuff[PV_BITLEN];
 
   // イベントキュー
   EventQ mEventQ;

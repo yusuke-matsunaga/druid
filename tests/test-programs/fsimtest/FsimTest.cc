@@ -85,8 +85,8 @@ sppfp_test(
     bool detected = false;
     fsim.sppfp(tv,
 	       [&](
-		 TpgFault f,
-		 DiffBits dbits
+		 const TpgFault& f,
+		 const DiffBits& dbits
 	       )
 	       {
 		 if ( !det_array[f.id()] ) {
@@ -131,8 +131,8 @@ ppsfp_test(
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
       fsim.ppsfp(tv_buff,
 		 [&](
-		   TpgFault f,
-		   DiffBitsArray dbits_array
+		   const TpgFault& f,
+		   const DiffBitsArray& dbits_array
 		 )
 		 {
 		   if ( !det_array[f.id()] ) {
@@ -155,6 +155,7 @@ ppsfp_test(
 		   }
 		 });
       base += tv_buff.size();
+      tv_buff.clear();
     }
   }
   return make_pair(det_num, nepat);

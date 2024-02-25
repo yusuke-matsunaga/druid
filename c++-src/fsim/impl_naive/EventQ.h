@@ -73,25 +73,8 @@ public:
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @retval 出力における変化ビットを返す．
-  PackedVal
+  DiffBitsArray
   simulate();
-
-  /// @brief mPropArray を DiffBits に変換する．
-  void
-  copy_dbits(
-    DiffBits& dbits, ///< [out] 結果の格納先
-    SizeType pos     ///< [in] 対象の位置番号
-  ) const
-  {
-    mPropArray.get_slice(dbits, pos);
-  }
-
-  /// @brief mPropArray を返す．
-  const DiffBitsArray&
-  prop_array() const
-  {
-    return mPropArray;
-  }
 
 
 private:
@@ -200,9 +183,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 出力ごとの故障伝搬パタンの配列
-  DiffBitsArray mPropArray;
 
   // キューの先頭ノードの配列
   vector<SimNode*> mArray;

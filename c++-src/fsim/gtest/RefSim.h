@@ -40,6 +40,14 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障シミュレーションを行う．
+  DiffBits
+  simulate(
+    const TestVector& tv,  ///< [in] テストベクタ
+    const TpgFault& fault, ///< [in] 故障
+    FaultType fault_type   ///< [in] 故障の種類
+  );
+
   /// @brief 縮退故障用の故障シミュレーションを行う．
   DiffBits
   simulate_sa(

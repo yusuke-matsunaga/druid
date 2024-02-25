@@ -144,6 +144,13 @@ TvInputVals::set_val2(
   }
 }
 
+// @brief 有効なビットを表すビットマスク
+PackedVal
+TvInputVals::bitmask() const
+{
+  return PV_ALL1;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス Tv2InputVals
@@ -151,19 +158,11 @@ TvInputVals::set_val2(
 
 // @brief コンストラクタ
 Tv2InputVals::Tv2InputVals(
-  PackedVal pat_map,
-  TestVector pat_array[]
-) : mPatMap{pat_map}
+  const vector<TestVector>& tv_list
+) : mPatNum{tv_list.size()}
 {
-  // パタンのセットされている最初のビット位置を求めておく．
-  mPatFirstBit = PV_BITLEN;
-  for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
-    if ( mPatMap & (1ULL << i) ) {
-      mPatArray[i] = pat_array[i];
-      if ( mPatFirstBit > i ) {
-	mPatFirstBit = i;
-      }
-    }
+  for ( SizeType i = 0; i < mPatNum; ++ i ) {
+    mPatArray[i] = tv_list[i];
   }
 }
 
@@ -182,10 +181,10 @@ Tv2InputVals::set_val(
   SizeType iid = 0;
   for ( auto simnode: fsim.ppi_list() ) {
     auto val = init_val();
-    PackedVal bit = 1ULL;
-    for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
-      SizeType pos = (mPatMap & bit) ? i : mPatFirstBit;
-      auto ival = mPatArray[pos].ppi_val(iid);
+    PackedVal bit = 1UL;
+    for ( SizeType pos = 0; pos < PV_BITLEN; ++ pos, bit <<= 1 ) {
+      SizeType epos = (pos < mPatNum) ? pos : 0;
+      auto ival = mPatArray[epos].ppi_val(iid);
       bit_set(val, ival, bit);
     }
     simnode->set_val(val);
@@ -203,10 +202,10 @@ Tv2InputVals::set_val1(
   SizeType iid = 0;
   for ( auto simnode: fsim.ppi_list() ) {
     auto val = init_val();
-    PackedVal bit = 1ULL;
-    for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
-      SizeType pos = (mPatMap & bit) ? i : mPatFirstBit;
-      auto ival = mPatArray[pos].ppi_val(iid);
+    PackedVal bit = 1UL;
+    for ( SizeType pos = 0; pos < PV_BITLEN; ++ pos, bit <<= 1 ) {
+      SizeType epos = (pos < mPatNum) ? pos : 0;
+      auto ival = mPatArray[epos].ppi_val(iid);
       bit_set(val, ival, bit);
     }
     simnode->set_val(val);
@@ -224,15 +223,25 @@ Tv2InputVals::set_val2(
   SizeType iid = 0;
   for ( auto simnode: fsim.input_list() ) {
     auto val = init_val();
-    PackedVal bit = 1ULL;
-    for ( int i = 0; i < PV_BITLEN; ++ i, bit <<= 1 ) {
-      SizeType pos = (mPatMap & bit) ? i : mPatFirstBit;
-      auto ival = mPatArray[pos].aux_input_val(iid);
+    PackedVal bit = 1UL;
+    for ( SizeType pos = 0; pos < PV_BITLEN; ++ pos, bit <<= 1 ) {
+      SizeType epos = (pos < mPatNum) ? pos : 0;
+      auto ival = mPatArray[epos].aux_input_val(iid);
       bit_set(val, ival, bit);
     }
     simnode->set_val(val);
     ++ iid;
   }
+}
+
+// @brief 有効なビットを表すビットマスク
+PackedVal
+Tv2InputVals::bitmask() const
+{
+  if ( mPatNum == PV_BITLEN ) {
+    return PV_ALL1;
+  }
+  return (1UL << mPatNum) - 1;
 }
 
 
@@ -309,6 +318,13 @@ NvlInputVals::set_val2(
       simnode->set_val(int_to_packedval(nv.val()));
     }
   }
+}
+
+// @brief 有効なビットを表すビットマスク
+PackedVal
+NvlInputVals::bitmask() const
+{
+  return PV_ALL1;
 }
 
 END_NAMESPACE_DRUID_FSIM

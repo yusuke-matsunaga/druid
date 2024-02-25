@@ -24,8 +24,6 @@ EventQ::init(
   SizeType node_num
 )
 {
-  mPropArray.clear();
-
   mArray.clear();
   mArray.resize(max_level + 1, nullptr);
 
@@ -39,13 +37,11 @@ EventQ::init(
 }
 
 // @brief イベントドリブンシミュレーションを行う．
-PackedVal
+DiffBitsArray
 EventQ::simulate()
 {
-  mPropArray.clear();
-
-  // どこかの外部出力で検出されたことを表すビット
-  auto obs = PV_ALL0;
+  // 結果を格納するオブジェクト
+  DiffBitsArray dbits_array;
   for ( ; ; ) {
     auto node = get();
     // イベントが残っていなければ終わる．
@@ -64,8 +60,7 @@ EventQ::simulate()
       add_to_clear_list(node, old_val);
       if ( node->is_output() ) {
 	auto dbits = diff(new_val, old_val);
-	obs |= dbits;
-	mPropArray.add_output(node->output_id(), dbits);
+	dbits_array.add_output(node->output_id(), dbits);
       }
       else {
 	put_fanouts(node);
@@ -86,7 +81,7 @@ EventQ::simulate()
   }
   mMaskPos = 0;
 
-  return obs;
+  return dbits_array;
 }
 
 END_NAMESPACE_DRUID_FSIM

@@ -73,7 +73,7 @@ SimEngine::spsfp(
     auto dbits_array = simulate();
     if ( dbits_array.elem_num() > 0 ) {
       // 検出された
-      dbits_array.get_slice(dbits, 0);
+      dbits = dbits_array.get_slice(0);
       return true;
     }
   }
@@ -97,9 +97,8 @@ SimEngine::ppsfp(
 
   // FFR ごとに処理を行う．
   auto NFFR = mFsim.ffr_num();
-  auto NT = mSyncObj.thread_num();
   for ( auto ffr: mFFRList ) {
-    auto ffr_req = foreach_faults(*ffr);
+    auto ffr_req = foreach_faults(*ffr) & iv.bitmask();
     if ( ffr_req == PV_ALL0 ) {
       // ffr_req が 0 ならその後のシミュレーションは必要ない．
       continue;
@@ -109,17 +108,17 @@ SimEngine::ppsfp(
     auto root = ffr->root();
     put_event(ffr->root(), ffr_req);
     auto dbits_array = simulate();
-    if ( dbits_array.dbits_union() != PV_ALL0 ) {
+    auto gobs = dbits_array.dbits_union();
+    if ( gobs != PV_ALL0 ) {
       // FFR の故障伝搬値とマージする．
       for ( auto ff: ffr->fault_list() ) {
 	if ( ff->skip() ) {
 	  continue;
 	}
-	auto pat = ff->obs_mask() & dbits_array.dbits_union();
-	if ( pat != PV_ALL0 ) {
+	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
 	  // 検出された
 	  auto tpg_f = ff->tpg_fault();
-	  mResList2.push_back({tpg_f, dbits_array});
+	  mResList2.push_back({tpg_f, dbits_array.masking(ff->obs_mask())});
 	}
       }
     }
@@ -204,8 +203,7 @@ SimEngine::sppfp_simulation(
     }
     auto& ffr = *ffr_array[i];
     auto& fault_list = ffr.fault_list();
-    DiffBits dbits;
-    dbits_array.get_slice(dbits, i);
+    auto dbits = dbits_array.get_slice(i);
     for ( auto f: fault_list ) {
       if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
 	auto tpg_f = f->tpg_fault();

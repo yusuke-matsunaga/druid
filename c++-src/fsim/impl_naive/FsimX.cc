@@ -353,9 +353,9 @@ FSIM_CLASSNAME::_spsfp(
   auto root = ff->origin_node()->ffr_root();
 
   // root からの故障伝搬シミュレーションを行う．
-  obs = _global_prop(root, PV_ALL1);
-  if ( obs != PV_ALL0 ) {
-    mEventQ.copy_dbits(dbits, 0);
+  auto dbits_array = _global_prop(root, PV_ALL1);
+  if ( dbits_array.dbits_union() != PV_ALL0 ) {
+    dbits = dbits_array.get_slice(0);
     return true;
   }
   return false;
@@ -443,12 +443,12 @@ FSIM_CLASSNAME::_sppfp_simulation(
   cbtype1 callback
 )
 {
-  auto obs = mEventQ.simulate();
+  auto dbits_array = mEventQ.simulate();
+  auto obs = dbits_array.dbits_union();
   PackedVal mask = 1ULL;
   for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
     if ( obs & mask ) {
-      DiffBits dbits;
-      mEventQ.copy_dbits(dbits, i);
+      auto dbits = dbits_array.get_slice(i);
       auto& ffr = *ffr_buff[i];
       _sppfp_apply_callback(ffr, dbits, callback);
     }
@@ -462,12 +462,7 @@ FSIM_CLASSNAME::ppsfp(
   cbtype2 callback
 )
 {
-  clear_patterns();
-  for ( SizeType index = 0; index < tv_list.size(); ++ index ) {
-    auto& tv = tv_list[index];
-    set_pattern(index, tv);
-  }
-  Tv2InputVals iv{mPatMap, mPatBuff};
+  Tv2InputVals iv{tv_list};
 
   // 正常値の計算を行う．
   _calc_gval(iv);
@@ -477,7 +472,7 @@ FSIM_CLASSNAME::ppsfp(
     // FFR 内の故障伝搬を行う．
     // 結果は SimFault::mObsMask に保存される．
     // FFR 内の全ての obs マスクを ffr_req に入れる．
-    auto ffr_req = _foreach_faults(ffr) & mPatMap;
+    auto ffr_req = _foreach_faults(ffr) & iv.bitmask();
 
     // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
     if ( ffr_req == PV_ALL0 ) {
@@ -485,18 +480,18 @@ FSIM_CLASSNAME::ppsfp(
     }
 
     // FFR の出力の故障伝搬を行う．
-    auto obs = _global_prop(ffr.root(), ffr_req);
-    if ( obs != PV_ALL0 ) {
+    auto dbits_array = _global_prop(ffr.root(), ffr_req);
+    auto gobs = dbits_array.dbits_union();
+    if ( gobs != PV_ALL0 ) {
       // FFR 内の故障伝搬を行う．
       for ( auto ff: ffr.fault_list() ) {
 	if ( ff->skip() ) {
 	  continue;
 	}
-	auto pat = ff->obs_mask() & obs;
-	if ( pat != PV_ALL0 ) {
+	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
 	  // 検出された．
-	  auto dbits_array = mEventQ.prop_array().masking(obs);
-	  callback(ff->tpg_fault(), dbits_array);
+	  auto tpg_f = ff->tpg_fault();
+	  callback(tpg_f, dbits_array.masking(ff->obs_mask()));
 	}
       }
     }

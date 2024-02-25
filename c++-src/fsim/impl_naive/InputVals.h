@@ -55,6 +55,11 @@ public:
     FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
   ) const = 0;
 
+  /// @brief 有効なビットを表すビットマスク
+  virtual
+  PackedVal
+  bitmask() const = 0;
+
 };
 
 
@@ -68,6 +73,7 @@ class TvInputVals :
 public:
 
   /// @brief コンストラクタ
+  explicit
   TvInputVals(
     const TestVector& testvector ///< [in] テストベクタ
   );
@@ -99,6 +105,10 @@ public:
     FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
   ) const override;
 
+  /// @brief 有効なビットを表すビットマスク
+  PackedVal
+  bitmask() const override;
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -121,9 +131,9 @@ class Tv2InputVals :
 public:
 
   /// @brief コンストラクタ
+  explicit
   Tv2InputVals(
-    PackedVal pat_map,     ///< [in] パタンのセットされているビットに1を立てたビットマップ
-    TestVector pat_array[] ///< [in] パタンの配列(サイズは PV_BITLEN の固定長)
+    const vector<TestVector>& tv_list ///< [in] パタンのリスト
   );
 
   /// @brief デストラクタ
@@ -153,18 +163,18 @@ public:
     FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
   ) const override;
 
+  /// @brief 有効なビットを表すビットマスク
+  PackedVal
+  bitmask() const override;
+
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // セットされているパタンを表すビットマップ
-  PackedVal mPatMap;
-
-  // mPatMap の最初の1のビット位置
-  // 全て０の場合には PV_BITLEN が入る．
-  SizeType mPatFirstBit;
+  // パタン数
+  SizeType mPatNum;
 
   // テストベクタの配列
   TestVector mPatArray[PV_BITLEN];
@@ -182,6 +192,7 @@ class NvlInputVals :
 public:
 
   /// @brief コンストラクタ
+  explicit
   NvlInputVals(
     const NodeValList& assign_list ///< [in] 値の割り当てリスト
   );
@@ -212,6 +223,10 @@ public:
   set_val2(
     FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ
   ) const override;
+
+  /// @brief 有効なビットを表すビットマスク
+  PackedVal
+  bitmask() const override;
 
 
 private:

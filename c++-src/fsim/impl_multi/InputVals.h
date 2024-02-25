@@ -76,6 +76,7 @@ class TvInputVals :
 public:
 
   /// @brief コンストラクタ
+  explicit
   TvInputVals(
     const TestVector& testvector ///< [in] テストベクタ
   );
@@ -136,9 +137,9 @@ class Tv2InputVals :
 public:
 
   /// @brief コンストラクタ
+  explicit
   Tv2InputVals(
-    PackedVal pat_map,     ///< [in] パタンのセットされているビットに1を立てたビットマップ
-    TestVector pat_array[] ///< [in] パタンの配列(サイズは PV_BITLEN の固定長)
+    const vector<TestVector>& tv_list ///< [in] パタンのリスト
   );
 
   /// @brief デストラクタ
@@ -181,12 +182,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // セットされているパタンを表すビットマップ
-  PackedVal mPatMap;
-
-  // mPatMap の最初の1のビット位置
-  // 全て０の場合には PV_BITLEN が入る．
-  SizeType mPatFirstBit;
+  // パタン数
+  SizeType mPatNum;
 
   // テストベクタの配列
   TestVector mPatArray[PV_BITLEN];
@@ -204,6 +201,7 @@ class NvlInputVals :
 public:
 
   /// @brief コンストラクタ
+  explicit
   NvlInputVals(
     const NodeValList& assign_list ///< [in] 値の割り当てリスト
   );

@@ -63,6 +63,23 @@ RefSim::~RefSim()
   }
 }
 
+// @brief 故障シミュレーションを行う．
+DiffBits
+RefSim::simulate(
+  const TestVector& tv,
+  const TpgFault& fault,
+  FaultType fault_type
+)
+{
+  switch ( fault_type ) {
+  case FaultType::StuckAt: return simulate_sa(tv, fault);
+  case FaultType::TransitionDelay: return simulate_td(tv, fault);
+  default: break;
+  }
+  // ダミー
+  return DiffBits{};
+}
+
 // @brief 縮退故障用の故障シミュレーションを行う．
 DiffBits
 RefSim::simulate_sa(
