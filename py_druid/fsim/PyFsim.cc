@@ -273,8 +273,8 @@ Fsim_sppfp(
   vector<pair<TpgFault, DiffBits>> ans_list;
   fsim->sppfp(tv,
 	      [&](
-		TpgFault f,
-		DiffBits dbits
+		const TpgFault& f,
+		const DiffBits& dbits
 	      )
 	      {
 		ans_list.push_back({f, dbits});
@@ -312,6 +312,10 @@ Fsim_ppsfp(
 				    &tv_list_obj, &callback_obj) ) {
     return nullptr;
   }
+  if ( PyList_Size(tv_list_obj) > PV_BITLEN ) {
+    PyErr_SetString(PyExc_ValueError, "1st parameter's size is too big");
+    return nullptr;
+  }
   if ( !PyCallable_Check(callback_obj) ) {
     PyErr_SetString(PyExc_TypeError, "2nd parameter must be callable");
     return nullptr;
@@ -324,13 +328,13 @@ Fsim_ppsfp(
   auto fsim = PyFsim::Get(self);
   fsim->ppsfp(tv_list,
 	      [&](
-		TpgFault f,
-		DiffBitsArray dbits_array
+		const TpgFault& f,
+		const DiffBitsArray& dbits_array
 	      )
 	      {
 		auto fault_obj = PyTpgFault::ToPyObject(f);
 		auto dbits_obj = PyDiffBitsArray::ToPyObject(dbits_array);
-		auto cb_args = Py_BuildValue("kOO", index, fault_obj, dbits_obj);
+		auto cb_args = Py_BuildValue("OO", fault_obj, dbits_obj);
 		PyObject_CallObject(callback_obj, cb_args);
 		Py_DECREF(cb_args);
 	      });

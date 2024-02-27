@@ -15,8 +15,8 @@ from druid.ymbase import Mt19937
 from make_filename import make_filename
 
 
-def ppsfp_callback(index, fault, diffbits):
-    print(f'{index}: {fault}')
+def ppsfp_callback(fault, dbits_array):
+    print(f'{fault}: {dbits_array}')
     return True
 
 def test_fsim():
@@ -30,11 +30,11 @@ def test_fsim():
 
     input_num = network.input_num
     dff_num = network.dff_num
-    tv_list = []
     rg = Mt19937()
-    for _ in range(1000):
-        tv = TestVector(input_num, dff_num, True)
-        tv.set_from_random(rg)
-        tv_list.append(tv)
-
-    fsim.ppsfp(tv_list, ppsfp_callback)
+    for _ in range(20):
+        tv_list = []
+        for _ in range(64):
+            tv = TestVector(input_num, dff_num, True)
+            tv.set_from_random(rg)
+            tv_list.append(tv)
+        fsim.ppsfp(tv_list, ppsfp_callback)
