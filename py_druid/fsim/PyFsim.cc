@@ -80,20 +80,23 @@ Fsim_initialize(
     "network",
     "prev_state",
     "val_type",
+    "multi",
     nullptr
   };
   PyObject* network_obj = nullptr;
   int i_prev_state = 0;
   int val_type = 0;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!pi",
+  int i_multi = 0;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!pip",
 				    const_cast<char**>(kwlist),
 				    PyTpgNetwork::_typeobject(), &network_obj,
-				    &i_prev_state, &val_type) ) {
+				    &i_prev_state, &val_type, &i_multi) ) {
     return nullptr;
   }
 
   auto& network = PyTpgNetwork::Get(network_obj);
   bool prev_state = static_cast<bool>(i_prev_state);
+  bool multi = static_cast<bool>(i_multi);
 
   bool has_x = false;
   if ( val_type == 2 ) {
@@ -107,7 +110,7 @@ Fsim_initialize(
     return nullptr;
   }
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  fsim_obj->mPtr->initialize(network, prev_state, has_x);
+  fsim_obj->mPtr->initialize(network, prev_state, has_x, multi);
   Py_RETURN_NONE;
 }
 

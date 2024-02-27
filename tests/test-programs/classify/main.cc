@@ -300,7 +300,7 @@ dtpg_test(
   }
   JsonValue option{option_dict};
 
-  DtpgMgr mgr{network, fault_mgr, option};
+  DtpgMgr mgr{network, fault_mgr, option, multi};
 
   Timer timer;
   timer.start();

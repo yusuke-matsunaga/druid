@@ -136,6 +136,8 @@ dtpg_test(
 
   string mode{};
 
+  bool multi = false;
+
   bool dump = false;
 
   bool verbose = false;
@@ -231,6 +233,9 @@ dtpg_test(
 	}
 	just_type = "just2";
       }
+      else if ( strcmp(argv[pos], "--multi") == 0 ) {
+	multi = true;
+      }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
       }
@@ -297,7 +302,7 @@ dtpg_test(
   }
   JsonValue option{option_dict};
 
-  DtpgMgr mgr{network, fault_mgr, option};
+  DtpgMgr mgr{network, fault_mgr, option, multi};
 
   Timer timer;
   timer.start();

@@ -66,7 +66,7 @@ FsimTest::spsfp_test(
   Fsim fsim;
 
   bool has_prev = fault_type == FaultType::TransitionDelay;
-  fsim.initialize(tpg_network, has_prev, false);
+  fsim.initialize(tpg_network, has_prev, false, false);
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, fault_type);
@@ -109,12 +109,7 @@ FsimTest::sppfp_test(
   Fsim fsim;
 
   bool has_prev = fault_type == FaultType::TransitionDelay;
-  if ( multi ) {
-    fsim.initialize(tpg_network, has_prev, false);
-  }
-  else {
-    fsim.initialize_naive(tpg_network, has_prev, false);
-  }
+  fsim.initialize(tpg_network, has_prev, false, multi);
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, fault_type);
@@ -165,12 +160,7 @@ FsimTest::ppsfp_test(
   Fsim fsim;
   bool has_prev = fault_type == FaultType::TransitionDelay;
 
-  if ( multi ) {
-    fsim.initialize(tpg_network, has_prev, false);
-  }
-  else {
-    fsim.initialize_naive(tpg_network, has_prev, false);
-  }
+  fsim.initialize(tpg_network, has_prev, false, multi);
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, fault_type);

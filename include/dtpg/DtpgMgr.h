@@ -35,7 +35,8 @@ public:
   DtpgMgr(
     const TpgNetwork& network, ///< [in] 対象のネットワーク
     TpgFaultMgr& fault_mgr,    ///< [in] 故障マネージャ
-    const JsonValue& option    ///< [in] オプションを表す JSON オブジェクト
+    const JsonValue& option,   ///< [in] オプションを表す JSON オブジェクト
+    bool multi                 ///< [in] マルチスレッド実行を行う時 true にするフラグ
   );
 
   /// @brief デストラクタ

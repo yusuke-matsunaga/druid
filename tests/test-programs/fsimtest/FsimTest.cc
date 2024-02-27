@@ -222,7 +222,7 @@ fsim2test(
 
   bool drop = false;
 
-  bool old = false;
+  bool multi = false;
 
   argv0 = argv[0];
 
@@ -286,8 +286,8 @@ fsim2test(
       else if ( strcmp(argv[pos], "--drop") == 0 ) {
 	drop = true;
       }
-      else if ( strcmp(argv[pos], "--old") == 0 ) {
-	old = true;
+      else if ( strcmp(argv[pos], "--multi") == 0 ) {
+	multi = true;
       }
       else if ( strcmp(argv[pos], "--blif") == 0 ) {
 	format = "blif";
@@ -346,12 +346,7 @@ fsim2test(
 
   bool prev_state = fault_type == FaultType::TransitionDelay;
   Fsim fsim;
-  if ( old ) {
-    fsim.initialize_naive(network, prev_state, fsim3);
-  }
-  else {
-    fsim.initialize(network, prev_state, fsim3);
-  }
+  fsim.initialize(network, prev_state, fsim3, multi);
 
   fsim.set_fault_list(fmgr.rep_fault_list());
 

@@ -65,7 +65,8 @@ DtpgMgr_new(
   }
   auto self = type->tp_alloc(type, 0);
   auto tpgmgr_obj = reinterpret_cast<DtpgMgrObject*>(self);
-  tpgmgr_obj->mVal = new DtpgMgr{network, fault_mgr, option};
+  bool multi = false;
+  tpgmgr_obj->mVal = new DtpgMgr{network, fault_mgr, option, multi};
   return self;
 }
 

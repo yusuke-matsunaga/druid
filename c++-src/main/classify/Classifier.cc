@@ -75,12 +75,7 @@ Classifier::run(
 )
 {
   Fsim fsim;
-  if ( multi ) {
-    fsim.initialize(network, has_prev_state, false);
-  }
-  else {
-    fsim.initialize_naive(network, has_prev_state, false);
-  }
+  fsim.initialize(network, has_prev_state, false, multi);
   fsim.set_fault_list(fault_list);
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {
@@ -188,12 +183,7 @@ Classifier::run2(
 )
 {
   Fsim fsim;
-  if ( multi ) {
-    fsim.initialize(network, has_prev_state, false);
-  }
-  else {
-    fsim.initialize_naive(network, has_prev_state, false);
-  }
+  fsim.initialize(network, has_prev_state, false, multi);
   fsim.set_fault_list(fault_list);
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {

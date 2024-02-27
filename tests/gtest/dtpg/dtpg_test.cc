@@ -177,7 +177,7 @@ DtpgTestWithParam2::SetUp()
 
   mFaultMgr.gen_fault_list(*mNetwork_p, fault_type());
 
-  mDtpgMgr = new DtpgMgr{*mNetwork_p, mFaultMgr, option};
+  mDtpgMgr = new DtpgMgr{*mNetwork_p, mFaultMgr, option, false};
 }
 
 // @brief 終了処理を行う．

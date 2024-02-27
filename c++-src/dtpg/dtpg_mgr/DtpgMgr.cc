@@ -23,7 +23,8 @@ BEGIN_NAMESPACE_DRUID
 DtpgMgr::DtpgMgr(
   const TpgNetwork& network,
   TpgFaultMgr& fault_mgr,
-  const JsonValue& option
+  const JsonValue& option,
+  bool multi
 ) : mNetwork{network},
     mFaultMgr{fault_mgr},
     mDriver{DtpgDriver::new_driver(*this, network,
@@ -31,7 +32,7 @@ DtpgMgr::DtpgMgr(
 				   option)}
 {
   bool has_previous_state = mFaultMgr.fault_type() == FaultType::TransitionDelay;
-  mFsim.initialize(network, has_previous_state, true);
+  mFsim.initialize(network, has_previous_state, true, multi);
   mFsim.set_fault_list(mFaultMgr.rep_fault_list());
   if ( option.is_object() ) {
     if ( option.has_key("dop") ) {

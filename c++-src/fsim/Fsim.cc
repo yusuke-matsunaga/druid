@@ -33,10 +33,16 @@ void
 Fsim::initialize(
   const TpgNetwork& network,
   bool has_previous_state,
-  bool has_x
+  bool has_x,
+  bool multi
 )
 {
-  initialize_multi(network, has_previous_state, has_x);
+  if ( multi ) {
+    initialize_multi(network, has_previous_state, has_x);
+  }
+  else {
+    initialize_naive(network, has_previous_state, has_x);
+  }
 }
 
 // @brief 対象の故障をセットする．
