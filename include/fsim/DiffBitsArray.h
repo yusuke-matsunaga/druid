@@ -114,6 +114,7 @@ public:
 	ans.mBody.push_back({cell.output_id, bits});
       }
     }
+    ans.mUnion = mUnion & mask;
     return ans;
   }
 
@@ -174,6 +175,15 @@ public:
 		return a.output_id < b.output_id;
 	      }
 	      );
+  }
+
+  /// @brief ソートした内容を返す．
+  DiffBitsArray
+  sorted() const
+  {
+    DiffBitsArray ans{*this};
+    ans.sort();
+    return ans;
   }
 
   /// @brief 等価比較演算

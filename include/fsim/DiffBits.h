@@ -75,6 +75,15 @@ public:
     std::sort(mPosList.begin(), mPosList.end());
   }
 
+  /// @brief ソートした内容を返す．
+  DiffBits
+  sorted() const
+  {
+    DiffBits ans{*this};
+    ans.sort();
+    return ans;
+  }
+
   /// @brief 等価比較演算
   bool
   operator==(

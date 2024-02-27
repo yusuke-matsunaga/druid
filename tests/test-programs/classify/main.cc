@@ -427,7 +427,7 @@ dtpg_test(
     cout << "# of unseparated fault group: " << g << endl;
     cout << "# of unseparated fault pair:  " << c << endl;
   }
-  cout << "Classfiy3 time:               "
+  cout << "Classfiy(drop, sppfp) time: "
        << std::fixed << std::setprecision(2)
        << (class3_time / 1000) << endl;
 
@@ -452,9 +452,59 @@ dtpg_test(
     cout << "# of unseparated fault group: " << g << endl;
     cout << "# of unseparated fault pair:  " << c << endl;
   }
-  cout << "Classfiy4 time:               "
+  cout << "Classfiy(no-drop, sppfp) time: "
        << std::fixed << std::setprecision(2)
        << (class4_time / 1000) << endl;
+
+  timer.reset();
+  timer.start();
+
+  auto fault_group_list5 = Classifier::run2(network, fault_list, td_mode, fixed_tv_list, true, multi);
+
+  timer.stop();
+  auto class5_time = timer.get_time();
+
+  {
+    SizeType g = 0;
+    SizeType c = 0;
+    for ( auto fg: fault_group_list5 ) {
+      SizeType n = fg.size();
+      if ( n >= 2 ) {
+	++ g;
+	c += n * (n - 1) / 2;
+      }
+    }
+    cout << "# of unseparated fault group: " << g << endl;
+    cout << "# of unseparated fault pair:  " << c << endl;
+  }
+  cout << "Classfiy(drop, ppsfp) time: "
+       << std::fixed << std::setprecision(2)
+       << (class5_time / 1000) << endl;
+
+  timer.reset();
+  timer.start();
+
+  auto fault_group_list6 = Classifier::run2(network, fault_list, td_mode, fixed_tv_list, false, multi);
+
+  timer.stop();
+  auto class6_time = timer.get_time();
+
+  {
+    SizeType g = 0;
+    SizeType c = 0;
+    for ( auto fg: fault_group_list6 ) {
+      SizeType n = fg.size();
+      if ( n >= 2 ) {
+	++ g;
+	c += n * (n - 1) / 2;
+      }
+    }
+    cout << "# of unseparated fault group: " << g << endl;
+    cout << "# of unseparated fault pair:  " << c << endl;
+  }
+  cout << "Classfiy(no-drop, ppsfp) time: "
+       << std::fixed << std::setprecision(2)
+       << (class6_time / 1000) << endl;
 
   return 0;
 }
