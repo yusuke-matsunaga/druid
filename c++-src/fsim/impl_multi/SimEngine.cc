@@ -161,6 +161,7 @@ SimEngine::sppfp(
     if ( root->is_output() ) {
       // 常にこの出力のみで観測可能
       DiffBits dbits;
+      // この dbits は1ビットのみなので sort() は必要ない．
       dbits.add_output(root->output_id());
       for ( auto ff: ffr->fault_list() ) {
 	if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
@@ -204,6 +205,7 @@ SimEngine::sppfp_simulation(
     auto& ffr = *ffr_array[i];
     auto& fault_list = ffr.fault_list();
     auto dbits = dbits_array.get_slice(i);
+    dbits.sort();
     for ( auto f: fault_list ) {
       if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
 	auto tpg_f = f->tpg_fault();

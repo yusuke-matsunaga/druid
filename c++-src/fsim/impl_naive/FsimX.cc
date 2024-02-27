@@ -448,8 +448,9 @@ FSIM_CLASSNAME::_sppfp_simulation(
   PackedVal mask = 1ULL;
   for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
     if ( obs & mask ) {
-      auto dbits = dbits_array.get_slice(i);
       auto& ffr = *ffr_buff[i];
+      auto dbits = dbits_array.get_slice(i);
+      dbits.sort();
       _sppfp_apply_callback(ffr, dbits, callback);
     }
   }
@@ -491,7 +492,9 @@ FSIM_CLASSNAME::ppsfp(
 	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
 	  // 検出された．
 	  auto tpg_f = ff->tpg_fault();
-	  callback(tpg_f, dbits_array.masking(ff->obs_mask()));
+	  auto dbits = dbits_array.masking(ff->obs_mask());
+	  dbits.sort();
+	  callback(tpg_f, dbits);
 	}
       }
     }

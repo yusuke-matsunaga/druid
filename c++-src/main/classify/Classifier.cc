@@ -101,7 +101,7 @@ Classifier::run(
 	       )
 	       {
 		 auto fid = fault.id();
-		 SigKey key{dbits.sorted(), fgmap[fid]};
+		 SigKey key{dbits, fgmap[fid]};
 		 SizeType g;
 		 if ( sig_dict.count(key) == 0 ) {
 		   // 新しいグループ番号を割り当てる．
@@ -216,7 +216,7 @@ Classifier::run2(
 		 )
 		 {
 		   auto fid = fault.id();
-		   SigKey2 key{dbits_array.sorted(), fgmap[fid]};
+		   SigKey2 key{dbits_array, fgmap[fid]};
 		   SizeType g;
 		   if ( sig_dict.count(key) == 0 ) {
 		     // 新しいグループ番号を割り当てる．
