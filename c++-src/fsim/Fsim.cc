@@ -32,11 +32,12 @@ Fsim::~Fsim()
 void
 Fsim::initialize(
   const TpgNetwork& network,
-  bool has_previous_state,
+  FaultType fault_type,
   bool has_x,
   bool multi
 )
 {
+  bool has_previous_state = fault_type == FaultType::TransitionDelay;
   if ( multi ) {
     initialize_multi(network, has_previous_state, has_x);
   }

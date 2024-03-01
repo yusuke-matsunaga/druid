@@ -197,45 +197,45 @@ TEST(BitVectorTest, constructor_100_01X)
 }
 
 // from_bin_str() のテスト
-TEST(BitVectorTest, from_bin_str1)
+TEST(BitVectorTest, from_bin1)
 {
   string bin_str = "01X";
-  BitVector bv = BitVector::from_bin_str(bin_str);
+  BitVector bv = BitVector::from_bin(bin_str);
 
   EXPECT_EQ( bin_str.size(), bv.len() );
   EXPECT_EQ( bin_str, bv.bin_str() );
 }
 
 // from_bin_str() のテスト
-TEST(BitVectorTest, from_bin_str2)
+TEST(BitVectorTest, from_bin2)
 {
   string bin_str;
   for ( int i = 0; i < 100; ++ i ) {
     bin_str += "01X";
   }
-  BitVector bv = BitVector::from_bin_str(bin_str);
+  BitVector bv = BitVector::from_bin(bin_str);
 
   EXPECT_EQ( bin_str.size(), bv.len() );
   EXPECT_EQ( bin_str, bv.bin_str() );
 }
 
 // from_hex_str() のテスト
-TEST(BitVectorTest, from_hex_str1)
+TEST(BitVectorTest, from_hex1)
 {
   int len = 13;
   string hex_str = "A5F0";
-  BitVector bv = BitVector::from_hex_str(len, hex_str);
+  BitVector bv = BitVector::from_hex(len, hex_str);
 
   EXPECT_EQ( len, bv.len() );
   EXPECT_EQ( hex_str, bv.hex_str() );
 }
 
 // from_hex_str() のテスト
-TEST(BitVectorTest, from_hex_str2)
+TEST(BitVectorTest, from_hex2)
 {
   int len = 13;
   string hex_str = "A5FF";
-  BitVector bv = BitVector::from_hex_str(len, hex_str);
+  BitVector bv = BitVector::from_hex(len, hex_str);
 
   EXPECT_EQ( len, bv.len() );
   EXPECT_EQ( "A5F1", bv.hex_str() );
@@ -345,9 +345,9 @@ TEST(BitVectorTest, uniq_set_from_random)
 // && のテスト
 TEST(BitVectorTest, compat)
 {
-  auto bv1 = BitVector::from_bin_str("01X0");
-  auto bv2 = BitVector::from_bin_str("000X");
-  auto bv3 = BitVector::from_bin_str("X110");
+  auto bv1 = BitVector::from_bin("01X0");
+  auto bv2 = BitVector::from_bin("000X");
+  auto bv3 = BitVector::from_bin("X110");
 
   EXPECT_FALSE( bv1 && bv2 );
   EXPECT_FALSE( bv2 && bv3 );
@@ -357,9 +357,9 @@ TEST(BitVectorTest, compat)
 // == のテスト
 TEST(BitVectorTest, equal)
 {
-  auto bv1 = BitVector::from_bin_str("01X0");
-  auto bv2 = BitVector::from_bin_str("000X");
-  auto bv3 = BitVector::from_bin_str("01X0");
+  auto bv1 = BitVector::from_bin("01X0");
+  auto bv2 = BitVector::from_bin("000X");
+  auto bv3 = BitVector::from_bin("01X0");
 
   EXPECT_FALSE( bv1 == bv2 );
   EXPECT_TRUE ( bv1 != bv2 );
@@ -372,10 +372,10 @@ TEST(BitVectorTest, equal)
 // < のテスト
 TEST(BitVectorTest, less_than)
 {
-  auto bv1 = BitVector::from_bin_str("01X0");
-  auto bv2 = BitVector::from_bin_str("000X");
-  auto bv3 = BitVector::from_bin_str("X1X0");
-  auto bv4 = BitVector::from_bin_str("01X0");
+  auto bv1 = BitVector::from_bin("01X0");
+  auto bv2 = BitVector::from_bin("000X");
+  auto bv3 = BitVector::from_bin("X1X0");
+  auto bv4 = BitVector::from_bin("01X0");
 
   EXPECT_FALSE( bv1 < bv2 );
   EXPECT_FALSE( bv2 > bv1 );
@@ -392,10 +392,10 @@ TEST(BitVectorTest, less_than)
 // <= のテスト
 TEST(BitVectorTest, less_than_or_equal)
 {
-  auto bv1 = BitVector::from_bin_str("01X0");
-  auto bv2 = BitVector::from_bin_str("000X");
-  auto bv3 = BitVector::from_bin_str("X1X0");
-  auto bv4 = BitVector::from_bin_str("01X0");
+  auto bv1 = BitVector::from_bin("01X0");
+  auto bv2 = BitVector::from_bin("000X");
+  auto bv3 = BitVector::from_bin("X1X0");
+  auto bv4 = BitVector::from_bin("01X0");
 
   EXPECT_FALSE( bv1 <= bv2 );
   EXPECT_FALSE( bv2 >= bv1 );
@@ -412,9 +412,9 @@ TEST(BitVectorTest, less_than_or_equal)
 // &= のテスト
 TEST(BitVectorTest, merge_assign)
 {
-  auto bv1 = BitVector::from_bin_str("0X1X");
-  auto bv2 = BitVector::from_bin_str("01X0");
-  auto bv3 = BitVector::from_bin_str("0110");
+  auto bv1 = BitVector::from_bin("0X1X");
+  auto bv2 = BitVector::from_bin("01X0");
+  auto bv3 = BitVector::from_bin("0110");
 
   ASSERT_TRUE( bv1 && bv2 );
 
@@ -426,9 +426,9 @@ TEST(BitVectorTest, merge_assign)
 // & のテスト
 TEST(BitVectorTest, merge)
 {
-  auto bv1 = BitVector::from_bin_str("0X1X");
-  auto bv2 = BitVector::from_bin_str("01X0");
-  auto bv3 = BitVector::from_bin_str("0110");
+  auto bv1 = BitVector::from_bin("0X1X");
+  auto bv2 = BitVector::from_bin("01X0");
+  auto bv3 = BitVector::from_bin("0110");
 
   ASSERT_TRUE( bv1 && bv2 );
 

@@ -64,8 +64,7 @@ public:
     SizeType dff_num,	 ///< [in] DFF数
     bool has_prev_state  ///< [in] 1時刻前の回路を持つ時 true
   ) : mInputNum{input_num},
-      mDffNum{dff_num},
-      mHasPrevState{has_prev_state},
+      mDffNum{(dff_num << 1) | static_cast<SizeType>(has_prev_state)},
       mVector{_calc_vect_len()}
   {
   }
@@ -75,7 +74,6 @@ public:
     const TestVector& src///< [in] コピー元のソース
   ) : mInputNum{src.mInputNum},
       mDffNum{src.mDffNum},
-      mHasPrevState{src.mHasPrevState},
       mVector{src.mVector}
   {
   }
@@ -88,11 +86,36 @@ public:
   {
     mInputNum = src.mInputNum;
     mDffNum = src.mDffNum;
-    mHasPrevState = src.mHasPrevState;
     mVector = src.mVector;
 
     return *this;
   }
+
+  /// @brief 2進文字列からオブジェクトを作る．
+  ///
+  /// - 有効な文字は '0', '1', 'x', 'X'
+  /// - bin_str が不適切な場合には長さ0のベクタを返す．
+  static
+  TestVector
+  from_bin(
+    SizeType input_num,   ///< [in] 入力数
+    SizeType dff_num,     ///< [in] DFF数
+    bool has_prev_state,  ///< [in] 1時刻前の値を持つ時 true
+    const string& bin_str ///< [in] 元となる2進文字列
+  );
+
+  /// @brief HEX文字列からオブジェクトを作る．
+  ///
+  /// - 有効な文字は '0'〜'9', 'a'〜'f', 'A'〜'F'
+  /// - hex_str が不適切な場合には長さ0のベクタを返す．
+  static
+  TestVector
+  from_hex(
+    SizeType input_num,   ///< [in] 入力数
+    SizeType dff_num,     ///< [in] DFF数
+    bool has_prev_state,  ///< [in] 1時刻前の値を持つ時 true
+    const string& hex_str ///< [in] 元となるHEX文字列
+  );
 
   /// @brief デストラクタ
   ~TestVector() = default;
@@ -130,7 +153,7 @@ public:
   SizeType
   dff_num() const
   {
-    return mDffNum;
+    return mDffNum >> 1;
   }
 
   /// @brief PPI数を得る．
@@ -146,7 +169,7 @@ public:
   bool
   has_aux_input() const
   {
-    return mHasPrevState;
+    return static_cast<bool>(mDffNum & 1);
   }
 
   /// @brief PPIの値を得る．
@@ -236,11 +259,11 @@ public:
     const NodeValList& assign_list ///< [in] 割当リスト
   );
 
+#if 0
   /// @brief HEX文字列から値を設定する．
   ///
-  /// 1時刻目の外部入力，１時刻目のDFF，２時刻目の外部入力の順にならんでいると仮定する．<br>
-  /// hex_string が短い時には残りはXで初期化される．<br>
-  /// hex_string が長い時には余りは捨てられる．<br>
+  /// * 長さは再設定される．
+  /// * 1時刻目の外部入力，１時刻目のDFF，２時刻目の外部入力の順にならんでいると仮定する．<br>
   void
   set_from_hex(
     const string& hex_string ///< [in] HEX 文字列
@@ -248,6 +271,7 @@ public:
   {
     mVector.set_from_hex(hex_string);
   }
+#endif
 
   /// @brief PPIの値を設定する．
   ///
@@ -416,8 +440,8 @@ private:
   SizeType
   _calc_vect_len() const
   {
-    SizeType x = mHasPrevState ? 2 : 1;
-    return mInputNum * x + mDffNum;
+    SizeType x = (mDffNum & 1) + 1;
+    return mInputNum * x + dff_num();
   }
 
 
@@ -429,11 +453,8 @@ private:
   // 入力数
   SizeType mInputNum;
 
-  // DFF数
+  // DFF数(最下位ビットは1時刻前の値を持つかどうかのフラグ)
   SizeType mDffNum;
-
-  // 1時刻前のの回路を持つ時 true にするフラグ
-  bool mHasPrevState{false};
 
   // 本体のビットベクタ
   BitVector mVector;

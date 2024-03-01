@@ -1,8 +1,8 @@
-#ifndef CLASSIFIER_H
-#define CLASSIFIER_H
+#ifndef CLASSIFIER2_H
+#define CLASSIFIER2_H
 
-/// @file Classifier.h
-/// @brief Classifier のヘッダファイル
+/// @file Classifier2.h
+/// @brief Classifier2 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
@@ -16,10 +16,10 @@ BEGIN_NAMESPACE_DRUID
 
 
 //////////////////////////////////////////////////////////////////////
-/// @class Classifier Classifier.h "Classifier.h"
+/// @class Classifier2 Classifier2.h "Classifier2.h"
 /// @brief
 //////////////////////////////////////////////////////////////////////
-class Classifier
+class Classifier2
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -34,12 +34,11 @@ public:
     const vector<TpgFault>& fault_list, ///< [in] 故障リスト
     FaultType fault_type,               ///< [in] 故障の種類
     const vector<TestVector>& tv_list,  ///< [in] テストベクタのリスト
-    bool drop_singleton,                ///< [in] singleton をドロップする時 true
-    bool ppsfp,                         ///< [in] PPSFP を用いる時 true
-    bool multi                          ///< [in] マルチスレッド実行を行う時 true
+    bool ppsfp,                         ///< [in] PPSFP を使う時 true
+    bool multi
   );
 };
 
 END_NAMESPACE_DRUID
 
-#endif // CLASSIFIER_H
+#endif // CLASSIFIER2_H

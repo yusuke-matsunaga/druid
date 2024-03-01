@@ -339,14 +339,13 @@ fsim2test(
     sa_mode = true;
     fault_type = FaultType::TransitionDelay;
   }
-  bool has_prev_state = td_mode;
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(network, fault_type);
 
   bool prev_state = fault_type == FaultType::TransitionDelay;
   Fsim fsim;
-  fsim.initialize(network, prev_state, fsim3, multi);
+  fsim.initialize(network, fault_type, fsim3, multi);
 
   fsim.set_fault_list(fmgr.rep_fault_list());
 
@@ -361,6 +360,7 @@ fsim2test(
 
   int input_num = network.input_num();
   int dff_num = network.dff_num();
+  bool has_prev_state = td_mode;
   randgen(rg, input_num, dff_num, has_prev_state, npat, tv_list);
 
   Timer timer;

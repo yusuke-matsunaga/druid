@@ -25,6 +25,7 @@ set (colcov_SOURCES
 
 set (classify_SOURCES
   classify/Classifier.cc
+  classify/Classifier2.cc
   )
 
 set (minpat_SOURCES

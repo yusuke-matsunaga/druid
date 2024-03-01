@@ -31,8 +31,7 @@ DtpgMgr::DtpgMgr(
 				   mFaultMgr.fault_type() == FaultType::TransitionDelay,
 				   option)}
 {
-  bool has_previous_state = mFaultMgr.fault_type() == FaultType::TransitionDelay;
-  mFsim.initialize(network, has_previous_state, true, multi);
+  mFsim.initialize(network, mFaultMgr.fault_type(), true, multi);
   mFsim.set_fault_list(mFaultMgr.rep_fault_list());
   if ( option.is_object() ) {
     if ( option.has_key("dop") ) {

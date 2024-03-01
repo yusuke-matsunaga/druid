@@ -303,16 +303,16 @@ string
 BitVectorRep::bin_str() const
 {
   // よく問題になるが，ここでは最下位ビット側から出力する．
-  string ans;
+  ostringstream buf;
   for ( auto i: Range_<SizeType>(0, len()) ) {
     switch ( val(i) ) {
-    case Val3::_0: ans += '0'; break;
-    case Val3::_1: ans += '1'; break;
-    case Val3::_X: ans += 'X'; break;
-    default:       ans += '-'; break; // ありえないけどバグで起こりうる．
+    case Val3::_0: buf << '0'; break;
+    case Val3::_1: buf << '1'; break;
+    case Val3::_X: buf << 'X'; break;
+    default:       buf << '-'; break; // ありえないけどバグで起こりうる．
     }
   }
-  return ans;
+  return buf.str();
 }
 
 // @brief 内容を HEX 形式で出力する．
@@ -320,9 +320,9 @@ string
 BitVectorRep::hex_str() const
 {
   // よく問題になるが，ここでは最下位ビット側から出力する．
+  ostringstream buf;
   int tmp = 0U;
   int bit = 1U;
-  string ans;
   for ( SizeType i = 0; ; ++ i ) {
     if ( i < len() ) {
       if ( val(i) == Val3::_1 ) {
@@ -339,15 +339,15 @@ BitVectorRep::hex_str() const
     }
 
     if ( tmp <= 9 ) {
-      ans += static_cast<char>('0' + tmp);
+      buf << static_cast<char>('0' + tmp);
     }
     else {
-      ans += static_cast<char>('A' + tmp - 10);
+      buf << static_cast<char>('A' + tmp - 10);
     }
     bit = 1U;
     tmp = 0U;
   }
-  return ans;
+  return buf.str();
 }
 
 // @brief ハッシュ値を求める．

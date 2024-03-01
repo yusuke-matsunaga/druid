@@ -65,8 +65,7 @@ FsimTest::spsfp_test(
 
   Fsim fsim;
 
-  bool has_prev = fault_type == FaultType::TransitionDelay;
-  fsim.initialize(tpg_network, has_prev, false, false);
+  fsim.initialize(tpg_network, fault_type, false, false);
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, fault_type);
@@ -82,7 +81,7 @@ FsimTest::spsfp_test(
 
   RefSim refsim{tpg_network};
 
-  TestVector tv(input_num, dff_num, has_prev);
+  TestVector tv(input_num, dff_num, fault_type == FaultType::TransitionDelay);
   for ( SizeType i = 0; i < nv; ++ i ) {
     tv.set_from_random(randgen);
     for ( auto fault: fault_list ) {
@@ -108,8 +107,7 @@ FsimTest::sppfp_test(
 
   Fsim fsim;
 
-  bool has_prev = fault_type == FaultType::TransitionDelay;
-  fsim.initialize(tpg_network, has_prev, false, multi);
+  fsim.initialize(tpg_network, fault_type, false, multi);
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, fault_type);
@@ -123,7 +121,7 @@ FsimTest::sppfp_test(
   std::mt19937 randgen;
   SizeType nv = PAT_NUM;
 
-  TestVector tv(input_num, dff_num, has_prev);
+  TestVector tv(input_num, dff_num, fault_type == FaultType::TransitionDelay);
   for ( SizeType i = 0; i < nv; ++ i ) {
     tv.set_from_random(randgen);
     unordered_map<SizeType, DiffBits> dbits_dict;
@@ -158,9 +156,7 @@ FsimTest::ppsfp_test(
   auto tpg_network = TpgNetwork::read_blif(filename);
 
   Fsim fsim;
-  bool has_prev = fault_type == FaultType::TransitionDelay;
-
-  fsim.initialize(tpg_network, has_prev, false, multi);
+  fsim.initialize(tpg_network, fault_type, false, multi);
 
   TpgFaultMgr fmgr;
   fmgr.gen_fault_list(tpg_network, fault_type);
@@ -176,7 +172,7 @@ FsimTest::ppsfp_test(
 
   vector<TestVector> tv_list(nv);
   for ( SizeType i = 0; i < nv; ++ i ) {
-    TestVector tv(input_num, dff_num, has_prev);
+    TestVector tv(input_num, dff_num, fault_type == FaultType::TransitionDelay);
     tv.set_from_random(randgen);
     tv_list[i] = tv;
   }

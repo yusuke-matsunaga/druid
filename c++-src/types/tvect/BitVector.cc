@@ -39,7 +39,7 @@ BitVector::operator=(
 
 // @brief 2進文字列からオブジェクトを作る．
 BitVector
-BitVector::from_bin_str(
+BitVector::from_bin(
   const string& bin_str
 )
 {
@@ -54,7 +54,7 @@ BitVector::from_bin_str(
 
 // @brief HEX文字列からオブジェクトを作る．
 BitVector
-BitVector::from_hex_str(
+BitVector::from_hex(
   SizeType len,
   const string& hex_str
 )

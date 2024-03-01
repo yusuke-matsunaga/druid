@@ -59,7 +59,7 @@ public:
   /// - bin_str が不適切な場合には長さ0のベクタを返す．
   static
   BitVector
-  from_bin_str(
+  from_bin(
     const string& bin_str  ///< [in] 2進文字列
   );
 
@@ -71,7 +71,7 @@ public:
   /// - hex_str が不適切な場合には長さ0のベクタを返す．
   static
   BitVector
-  from_hex_str(
+  from_hex(
     SizeType len,         ///< [in] ベクタ長
     const string& hex_str ///< [in] HEX文字列
   );
@@ -117,7 +117,8 @@ public:
   bin_str() const;
 
   /// @brief 内容を HEX 形式で表す．
-  /// @note X を含む場合の出力は不定
+  ///
+  /// X を含む場合の出力は不定
   string
   hex_str() const;
 

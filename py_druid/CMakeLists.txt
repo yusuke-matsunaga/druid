@@ -46,6 +46,9 @@ set ( py_druid_SOURCES
   fsim/PyDiffBits.cc
   fsim/PyDiffBitsArray.cc
 
+  main/main_module.cc
+  main/PyClassifier.cc
+
   dtpg/dtpg_module.cc
   dtpg/PyDtpgMgr.cc
   )

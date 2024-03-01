@@ -61,21 +61,19 @@ struct Eq2 {
   }
 };
 
-END_NONAMESPACE
-
 // @brief 故障を分類する．
 vector<vector<TpgFault>>
-Classifier::run(
+run_sppfp(
   const TpgNetwork& network,
   const vector<TpgFault>& fault_list,
-  bool has_prev_state,
+  FaultType fault_type,
   const vector<TestVector>& tv_list,
   bool singleton_drop,
   bool multi
 )
 {
   Fsim fsim;
-  fsim.initialize(network, has_prev_state, false, multi);
+  fsim.initialize(network, fault_type, false, multi);
   fsim.set_fault_list(fault_list);
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {
@@ -173,17 +171,17 @@ Classifier::run(
 
 // @brief 故障を分類する．
 vector<vector<TpgFault>>
-Classifier::run2(
+run_ppsfp(
   const TpgNetwork& network,
   const vector<TpgFault>& fault_list,
-  bool has_prev_state,
+  FaultType fault_type,
   const vector<TestVector>& tv_list,
   bool singleton_drop,
   bool multi
 )
 {
   Fsim fsim;
-  fsim.initialize(network, has_prev_state, false, multi);
+  fsim.initialize(network, fault_type, false, multi);
   fsim.set_fault_list(fault_list);
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {
@@ -287,6 +285,29 @@ Classifier::run2(
        << std::fixed << std::setprecision(2)
        << (time / 1000) << std::defaultfloat << endl;
   return fg_list;
+}
+
+END_NONAMESPACE
+
+
+// @brief 故障を分類する．
+vector<vector<TpgFault>>
+Classifier::run(
+  const TpgNetwork& network,
+  const vector<TpgFault>& fault_list,
+  FaultType fault_type,
+  const vector<TestVector>& tv_list,
+  bool singleton_drop,
+  bool ppsfp,
+  bool multi
+)
+{
+  if ( ppsfp ) {
+    return run_ppsfp(network, fault_list, fault_type, tv_list, singleton_drop, multi);
+  }
+  else {
+    return run_sppfp(network, fault_list, fault_type, tv_list, singleton_drop, multi);
+  }
 }
 
 END_NAMESPACE_DRUID

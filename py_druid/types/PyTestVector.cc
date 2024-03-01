@@ -256,6 +256,62 @@ TestVector_init_method(
 }
 
 PyObject*
+TestVector_from_bin(
+  PyObject* Py_UNUSED(self),
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "",
+    "input_num",
+    "dff_num",
+    "has_prev_state",
+    nullptr
+  };
+  SizeType input_num = 0;
+  SizeType dff_num = 0;
+  int tmp = 0;
+  char* bin_str = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "si|ib",
+				    const_cast<char**>(kwlist),
+				    &bin_str, &input_num, &dff_num, &tmp) ) {
+    return nullptr;
+  }
+  bool has_prev_state = static_cast<bool>(tmp);
+  auto tv = TestVector::from_bin(input_num, dff_num, has_prev_state, bin_str);
+  return PyTestVector::ToPyObject(tv);
+}
+
+PyObject*
+TestVector_from_hex(
+  PyObject* Py_UNUSED(self),
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "",
+    "input_num",
+    "dff_num",
+    "has_prev_state",
+    nullptr
+  };
+  SizeType input_num = 0;
+  SizeType dff_num = 0;
+  int tmp = 0;
+  char* hex_str = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "si|ib",
+				    const_cast<char**>(kwlist),
+				    &hex_str, &input_num, &dff_num, &tmp) ) {
+    return nullptr;
+  }
+  bool has_prev_state = static_cast<bool>(tmp);
+  auto tv = TestVector::from_hex(input_num, dff_num, has_prev_state, hex_str);
+  return PyTestVector::ToPyObject(tv);
+}
+
+PyObject*
 TestVector_set_ppi_val(
   PyObject* self,
   PyObject* args
@@ -399,6 +455,12 @@ PyMethodDef TestVector_methods[] = {
    PyDoc_STR("returns a string representation in hexadecimal format")},
   {"init", TestVector_init_method, METH_NOARGS,
    PyDoc_STR("returns a string representation in hexadecimal format")},
+  {"from_bin", reinterpret_cast<PyCFunction>(TestVector_from_bin),
+   METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+   PyDoc_STR("create new object from BIN string")},
+  {"from_hex", reinterpret_cast<PyCFunction>(TestVector_from_hex),
+   METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+   PyDoc_STR("create new object from HEX string")},
   {"set_ppi_val", TestVector_set_ppi_val, METH_VARARGS,
    PyDoc_STR("set value of the specified PPI")},
   {"set_input_val", TestVector_set_input_val, METH_VARARGS,

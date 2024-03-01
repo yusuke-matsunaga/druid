@@ -68,7 +68,7 @@ public:
   void
   initialize(
     const TpgNetwork& network, ///< [in] ネットワーク
-    bool has_previous_state,   ///< [in] 1時刻前の値を持つ時 true にする．
+    FaultType fault_type,      ///< [in] 故障の種類
     bool has_x,                ///< [in] 3値のシミュレーションを行う時 true にする．
     bool multi                 ///< [in] マルチスレッド実行を行う時に true にするフラグ
   );

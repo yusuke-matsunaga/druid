@@ -49,6 +49,7 @@ print_stats(
   SizeType fault_num = mgr.fault_num();
   SizeType detect_num = mgr.detect_count();
   SizeType untest_num = mgr.untest_count();
+  SizeType tv_num = mgr.tv_list().size();
   const DtpgStats& stats = mgr.dtpg_stats();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
@@ -59,6 +60,7 @@ print_stats(
        << "# of total faults       = " << fault_num << endl
        << "# of detected faults    = " << detect_num << endl
        << "# of untestable faults  = " << untest_num << endl
+       << "# of test vectors       = " << tv_num << endl
        << "Total CPU time(s)       = " << (time / 1000.0) << endl;
 
   ios::fmtflags save = cout.flags();
@@ -135,6 +137,10 @@ dtpg_test(
   bool td_mode = false;
 
   string mode{};
+
+  bool drop = false;
+
+  bool fix = false;
 
   bool multi = false;
 
@@ -233,6 +239,12 @@ dtpg_test(
 	}
 	just_type = "just2";
       }
+      else if ( strcmp(argv[pos], "--drop") == 0 ) {
+	drop = true;
+      }
+      else if ( strcmp(argv[pos], "--fix") == 0 ) {
+	fix = true;
+      }
       else if ( strcmp(argv[pos], "--multi") == 0 ) {
 	multi = true;
       }
@@ -294,6 +306,12 @@ dtpg_test(
   vector<JsonValue> dop_list;
   dop_list.push_back(JsonValue{"base"});
   dop_list.push_back(JsonValue{"verify"});
+  if ( drop ) {
+    dop_list.push_back(JsonValue{"drop"});
+  }
+  if ( fix ) {
+    dop_list.push_back(JsonValue{"tvlist"});
+  }
   option_dict.emplace("dop", JsonValue{dop_list});
   option_dict.emplace("uop", JsonValue{"base"});
   if ( sat_type != string{} ) {
@@ -331,6 +349,16 @@ dtpg_test(
       if ( fault_mgr.get_status(f) == FaultStatus::Untestable ) {
 	cout << f << endl;
       }
+    }
+  }
+
+  if ( fix ) {
+    std::mt19937 randgen;
+    auto& tv_list = mgr.tv_list();
+    for ( auto& tv: tv_list ) {
+      TestVector fixed_tv{tv};
+      fixed_tv.fix_x_from_random(randgen);
+      cout << fixed_tv.hex_str() << endl;
     }
   }
 

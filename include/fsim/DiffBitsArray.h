@@ -98,6 +98,7 @@ public:
 	dbits.add_output(cell.output_id);
       }
     }
+    dbits.sort();
     return dbits;
   }
 
