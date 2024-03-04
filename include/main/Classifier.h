@@ -38,6 +38,14 @@ public:
     bool ppsfp,                         ///< [in] PPSFP を用いる時 true
     bool multi                          ///< [in] マルチスレッド実行を行う時 true
   );
+
+  /// @brief verbose フラグをセットする．
+  static
+  void
+  set_verbose(
+    bool flag ///< [in] セットする値
+  );
+
 };
 
 END_NAMESPACE_DRUID

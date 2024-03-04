@@ -103,7 +103,6 @@ Fsim::set_skip(
   const vector<TpgFault>& fault_list
 )
 {
-  clear_skip_all();
   for ( auto f: fault_list ) {
     set_skip(f);
   }

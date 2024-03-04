@@ -206,8 +206,6 @@ dtpg_test(
 
   string mode{};
 
-  bool multi = false;
-
   bool dump = false;
 
   bool verbose = false;
@@ -301,9 +299,6 @@ dtpg_test(
 	}
 	just_type = "just2";
       }
-      else if ( strcmp(argv[pos], "--multi") == 0 ) {
-	multi = true;
-      }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
       }
@@ -369,7 +364,7 @@ dtpg_test(
   }
   JsonValue option{option_dict};
 
-  DtpgMgr mgr{network, fault_mgr, option, multi};
+  DtpgMgr mgr{network, fault_mgr, option, false};
 
   Timer timer;
   timer.start();
@@ -417,22 +412,63 @@ dtpg_test(
     fixed_tv_list.push_back(fixed_tv);
   }
 
+  {
+    vector<TpgFault> fault_list2;
+    Fsim fsim;
+    fsim.initialize(network, fault_type, false, false);
+    fsim.set_fault_list(fault_mgr.rep_fault_list());
+    SizeType base = 0;
+    vector<TestVector> tv_buf;
+    for ( auto& tv: fixed_tv_list ) {
+      tv_buf.push_back(tv);
+      if ( tv_buf.size() == PV_BITLEN || tv_buf.size() + base == tv_list.size() ) {
+	fsim.ppsfp(tv_buf, [&](
+	  const TpgFault& f,
+	  const DiffBitsArray& dbits
+	)
+	{
+	  fault_list2.push_back(f);
+	  fsim.set_skip(f);
+	});
+	base += tv_buf.size();
+	tv_buf.clear();
+      }
+    }
+    if ( fault_list2.size() != fault_list.size() ) {
+      cout << "fault_list.size() = " << fault_list.size() << endl
+	   << "fault_list2.size() = " << fault_list2.size() << endl;
+      abort();
+    }
+  }
+
   cout << "# of faults:  " << fault_list.size() << endl;
   cout << "# of tv_list: " << tv_list.size() << endl;
   cout << "DTPG time:                    "
        << std::fixed << std::setprecision(2) << (time / 1000) << endl;
 
   classify(network, fault_list, fault_type, fixed_tv_list,
-	   false, false, multi, "no-drop, sppfp");
+	   false, false, false, "no-drop, sppfp");
 
   classify(network, fault_list, fault_type, fixed_tv_list,
-	   false, true, multi, "no-drop, ppsfp");
+	   false, true, false, "no-drop, ppsfp");
 
   classify(network, fault_list, fault_type, fixed_tv_list,
-	   true, false, multi, "drop, sppfp");
+	   true, false, false, "drop, sppfp");
 
   classify(network, fault_list, fault_type, fixed_tv_list,
-	   true, true, multi, "drop, ppsfp");
+	   true, true, false, "drop, ppsfp");
+
+  classify(network, fault_list, fault_type, fixed_tv_list,
+	   false, false, true, "no-drop, sppfp, multi");
+
+  classify(network, fault_list, fault_type, fixed_tv_list,
+	   false, true, true, "no-drop, ppsfp, multi");
+
+  classify(network, fault_list, fault_type, fixed_tv_list,
+	   true, false, true, "drop, sppfp, multi");
+
+  classify(network, fault_list, fault_type, fixed_tv_list,
+	   true, true, true, "drop, ppsfp multi");
 
 #if 0
   classify2(network, fault_list, fault_type, fixed_tv_list,

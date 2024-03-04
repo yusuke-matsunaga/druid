@@ -15,6 +15,8 @@ BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
+bool verbose = false;
+
 using SigKey = pair<DiffBits, SizeType>;
 
 struct Hash {
@@ -86,7 +88,7 @@ run_sppfp(
   Timer timer;
   // 最初はすべての故障が一つのグループとなっている．
   vector<SizeType> fgmap(max_id, 0);
-  vector<SizeType> count;
+  vector<SizeType> count{fault_list.size()};
   for ( auto tv: tv_list ) {
     // fgmap を今回のシミュレーション結果で細分化する．
     // 今回未検出の故障のグループ番号は変わらない．
@@ -162,10 +164,12 @@ run_sppfp(
     }
   }
 
-  auto time = timer.get_time();
-  cout << "Fsim time: "
-       << std::fixed << std::setprecision(2)
-       << (time / 1000) << std::defaultfloat << endl;
+  if ( verbose ) {
+    auto time = timer.get_time();
+    cout << "Fsim time: "
+	 << std::fixed << std::setprecision(2)
+	 << (time / 1000) << std::defaultfloat << endl;
+  }
   return fg_list;
 }
 
@@ -196,7 +200,7 @@ run_ppsfp(
   tv_buff.reserve(PV_BITLEN);
   // 最初はすべての故障が一つのグループとなっている．
   vector<SizeType> fgmap(max_id, 0);
-  vector<SizeType> count;
+  vector<SizeType> count{fault_list.size()};
   auto NTV = tv_list.size();
   SizeType base = 0;
   for ( auto tv: tv_list ) {
@@ -280,10 +284,12 @@ run_ppsfp(
     }
   }
 
-  auto time = timer.get_time();
-  cout << "Fsim time: "
-       << std::fixed << std::setprecision(2)
-       << (time / 1000) << std::defaultfloat << endl;
+  if ( verbose ) {
+    auto time = timer.get_time();
+    cout << "Fsim time: "
+	 << std::fixed << std::setprecision(2)
+	 << (time / 1000) << std::defaultfloat << endl;
+  }
   return fg_list;
 }
 
@@ -308,6 +314,14 @@ Classifier::run(
   else {
     return run_sppfp(network, fault_list, fault_type, tv_list, singleton_drop, multi);
   }
+}
+
+void
+Classifier::set_verbose(
+  bool flag
+)
+{
+  verbose = flag;
 }
 
 END_NAMESPACE_DRUID

@@ -30,6 +30,7 @@ classify(
     "drop",
     "ppsfp",
     "multi",
+    "verbose",
     nullptr
   };
   PyObject* network_obj = nullptr;
@@ -39,13 +40,14 @@ classify(
   int i_drop = 0;
   int i_ppsfp = 0;
   int i_multi = 0;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!OO!O|ppp",
+  int i_verbose = 0;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!OO!O|pppp",
 				    const_cast<char**>(kwlist),
 				    PyTpgNetwork::_typeobject(), &network_obj,
 				    &fault_list_obj,
 				    PyFaultType::_typeobject(), &fault_type_obj,
 				    &tv_list_obj,
-				    &i_drop, &i_ppsfp, &i_multi) ) {
+				    &i_drop, &i_ppsfp, &i_multi, &i_verbose) ) {
     return nullptr;
   }
 
@@ -62,6 +64,9 @@ classify(
   bool drop = static_cast<bool>(i_drop);
   bool ppsfp = static_cast<bool>(i_ppsfp);
   bool multi = static_cast<bool>(i_multi);
+  bool verbose = static_cast<bool>(i_verbose);
+
+  Classifier::set_verbose(verbose);
 
   auto fg_list = Classifier::run(network, fault_list, fault_type, tv_list,
 				 drop, ppsfp, multi);

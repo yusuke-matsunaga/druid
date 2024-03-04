@@ -118,7 +118,9 @@ SimEngine::ppsfp(
 	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
 	  // 検出された
 	  auto tpg_f = ff->tpg_fault();
-	  mResList2.push_back({tpg_f, dbits_array.masking(ff->obs_mask())});
+	  auto dbits = dbits_array.masking(ff->obs_mask());
+	  dbits.sort();
+	  mResList2.push_back({tpg_f, dbits});
 	}
       }
     }
