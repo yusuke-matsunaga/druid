@@ -62,6 +62,16 @@ public:
     std::function<void(const TpgNode*)> op   ///< [in] ノードに対するファンクタ
   );
 
+  /// @brief 出力からの DFS を行う．
+  static
+  void
+  dfs(
+    SizeType max_size,                            ///< [in] ノード番号の最大値 + 1
+    const vector<const TpgNode*>& root_list,      ///< [in] 起点となるノード
+    std::function<void(const TpgNode*)> pre_func, ///< [in] pre-order の処理関数
+    std::function<void(const TpgNode*)> post_func ///< [in] post-order の処理関数
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////

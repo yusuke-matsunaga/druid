@@ -99,4 +99,44 @@ TpgNodeSet::get_tfi_list(
   return node_list;
 }
 
+BEGIN_NONAMESPACE
+
+void
+dfs_sub(
+  const TpgNode* node,
+  vector<bool>& mark_array,
+  std::function<void(const TpgNode*)> pre_func,
+  std::function<void(const TpgNode*)> post_func
+)
+{
+  if ( !mark_array[node->id()] ) {
+    mark_array[node->id()] = true;
+
+    pre_func(node);
+
+    for ( auto inode: node->fanin_list() ) {
+      dfs_sub(inode, mark_array, pre_func, post_func);
+    }
+
+    post_func(node);
+  }
+}
+
+END_NONAMESPACE
+
+// @brief 出力からの DFS を行う．
+void
+TpgNodeSet::dfs(
+  SizeType max_size,
+  const vector<const TpgNode*>& root_list,
+  std::function<void(const TpgNode*)> pre_func,
+  std::function<void(const TpgNode*)> post_func
+)
+{
+  vector<bool> mark_array(max_size, false);
+  for ( auto node: root_list ) {
+    dfs_sub(node, mark_array, pre_func, post_func);
+  }
+}
+
 END_NAMESPACE_DRUID

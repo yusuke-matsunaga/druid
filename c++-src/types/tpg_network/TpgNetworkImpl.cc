@@ -19,6 +19,8 @@
 #include "Fval2.h"
 #include "ym/Range.h"
 
+#define DFS_PRE 0
+#define DFS_POST 0
 
 BEGIN_NAMESPACE_DRUID
 
@@ -274,6 +276,33 @@ TpgNetworkImpl::post_op(
   //////////////////////////////////////////////////////////////////////
   vector<const TpgNode*> ffr_root_list;
   vector<const TpgNode*> mffc_root_list;
+#if DFS_PRE
+  TpgNodeSet::dfs(node_num(), mPPOArray2,
+		  [&](const TpgNode* node) {
+		    if ( node->ffr_root() == node ) {
+		      ffr_root_list.push_back(node);
+
+		      // MFFC の根は必ず FFR の根でもある．
+		      if ( node->imm_dom() == nullptr ) {
+			mffc_root_list.push_back(node);
+		      }
+		    }
+		  },
+		  [&](const TpgNode*) {});
+#elif DFS_POST
+  TpgNodeSet::dfs(node_num(), mPPOArray2,
+		  [&](const TpgNode*) {},
+		  [&](const TpgNode* node) {
+		    if ( node->ffr_root() == node ) {
+		      ffr_root_list.push_back(node);
+
+		      // MFFC の根は必ず FFR の根でもある．
+		      if ( node->imm_dom() == nullptr ) {
+			mffc_root_list.push_back(node);
+		      }
+		    }
+		  });
+#else
   for ( auto node: node_list() ) {
     if ( node->ffr_root() == node ) {
       ffr_root_list.push_back(node);
@@ -284,6 +313,7 @@ TpgNetworkImpl::post_op(
       }
     }
   }
+#endif
 
   //////////////////////////////////////////////////////////////////////
   // FFR の情報を作る．
