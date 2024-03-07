@@ -19,10 +19,10 @@ from druid.ymbase import Mt19937
 
 def run_classify(network, fault_list, fault_type, tv_list, drop, ppsfp, multi, name):
     
-    start_time = time.process_time()
+    start_time = time.thread_time()
     fg_list = classify(network, fault_list, fault_type, tv_list, drop, ppsfp, multi,
                        verbose=True)
-    end_time = time.process_time()
+    end_time = time.thread_time()
 
     c = 0
     for fg in fg_list:
@@ -70,7 +70,23 @@ if __name__ == '__main__':
         print(f'{fault_type_str}: illegal value for fault_type')
     verbose = args.verbose
 
-    network = TpgNetwork.read_blif(filename)
+    blif = False
+    iscas89 = False
+    if args.blif:
+        blif = True
+    elif args.iscas89:
+        iscas89 = True
+    else:
+        # デフォルトフォールバック
+        blif = True
+
+    if blif:
+        network = TpgNetwork.read_blif(filename)
+    elif iscas89:
+        network = TpgNetwork.read_bench(filename)
+    else:
+        assert False
+        
     fault_mgr = TpgFaultMgr()
     fault_mgr.gen_fault_list(network, fault_type)
 

@@ -51,21 +51,6 @@ merge(
   }
 }
 
-// pair の最初の要素で比較を行なうファンクター
-// こういうのは lambda 表記があると簡潔にすむ．
-struct Lt
-{
-  bool
-  operator()(
-    const pair<SizeType, SizeType>& left,
-    const pair<SizeType, SizeType>& right
-  )
-  {
-    return left.first < right.first;
-  }
-
-};
-
 void
 check_network_connection(
   const TpgNetworkImpl* network
@@ -231,15 +216,20 @@ TpgNetworkImpl::post_op(
     auto onode = ppo(i);
     // onode の TFI のノード数を計算する．
     SizeType n = 0;
-    TpgNodeSet::get_tfi_list(node_num(), {onode},
-			     [&](const TpgNode*) {
-			       ++ n;
-			     });
+    TpgNodeSet::dfs(node_num(), {onode},
+		    [&](const TpgNode*) { ++ n; },
+		    [](const TpgNode*) {});
     tmp_list[i] = make_pair(n, i);
   }
 
   // TFI のサイズの昇順にソートする．
-  sort(tmp_list.begin(), tmp_list.end(), Lt());
+  sort(tmp_list.begin(), tmp_list.end(),
+       [](const pair<SizeType, SizeType>& a,
+	  const pair<SizeType, SizeType>& b)->bool
+       {
+	 return a.first < b.first;
+       });
+
   // tmp_list の順に mPPOArray2 にセットする．
   for ( auto& p: tmp_list ) {
     SizeType opos = p.second;
@@ -276,33 +266,6 @@ TpgNetworkImpl::post_op(
   //////////////////////////////////////////////////////////////////////
   vector<const TpgNode*> ffr_root_list;
   vector<const TpgNode*> mffc_root_list;
-#if DFS_PRE
-  TpgNodeSet::dfs(node_num(), mPPOArray2,
-		  [&](const TpgNode* node) {
-		    if ( node->ffr_root() == node ) {
-		      ffr_root_list.push_back(node);
-
-		      // MFFC の根は必ず FFR の根でもある．
-		      if ( node->imm_dom() == nullptr ) {
-			mffc_root_list.push_back(node);
-		      }
-		    }
-		  },
-		  [&](const TpgNode*) {});
-#elif DFS_POST
-  TpgNodeSet::dfs(node_num(), mPPOArray2,
-		  [&](const TpgNode*) {},
-		  [&](const TpgNode* node) {
-		    if ( node->ffr_root() == node ) {
-		      ffr_root_list.push_back(node);
-
-		      // MFFC の根は必ず FFR の根でもある．
-		      if ( node->imm_dom() == nullptr ) {
-			mffc_root_list.push_back(node);
-		      }
-		    }
-		  });
-#else
   for ( auto node: node_list() ) {
     if ( node->ffr_root() == node ) {
       ffr_root_list.push_back(node);
@@ -313,7 +276,6 @@ TpgNetworkImpl::post_op(
       }
     }
   }
-#endif
 
   //////////////////////////////////////////////////////////////////////
   // FFR の情報を作る．

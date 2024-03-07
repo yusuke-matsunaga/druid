@@ -72,6 +72,30 @@ public:
     std::function<void(const TpgNode*)> post_func ///< [in] post-order の処理関数
   );
 
+  /// @brief 出力からの DFS を行う．
+  static
+  void
+  dfs_pre(
+    SizeType max_size,                           ///< [in] ノード番号の最大値 + 1
+    const vector<const TpgNode*>& root_list,     ///< [in] 起点となるノード
+    std::function<void(const TpgNode*)> pre_func ///< [in] pre-order の処理関数
+  )
+  {
+    dfs(max_size, root_list, pre_func, [](const TpgNode*){});
+  }
+
+  /// @brief 出力からの DFS を行う．
+  static
+  void
+  dfs_post(
+    SizeType max_size,                            ///< [in] ノード番号の最大値 + 1
+    const vector<const TpgNode*>& root_list,      ///< [in] 起点となるノード
+    std::function<void(const TpgNode*)> post_func ///< [in] post-order の処理関数
+  )
+  {
+    dfs(max_size, root_list, [](const TpgNode*){}, post_func);
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////

@@ -86,6 +86,9 @@ run_sppfp(
   vector<TpgFault> tmp_fault_list{fault_list};
 
   Timer timer;
+  Timer fsim_timer;
+
+  timer.start();
   // 最初はすべての故障が一つのグループとなっている．
   vector<SizeType> fgmap(max_id, 0);
   vector<SizeType> count{fault_list.size()};
@@ -93,7 +96,7 @@ run_sppfp(
     // fgmap を今回のシミュレーション結果で細分化する．
     // 今回未検出の故障のグループ番号は変わらない．
     unordered_map<SigKey, SizeType, Hash, Eq> sig_dict;
-    timer.start();
+    fsim_timer.start();
     fsim.sppfp(tv,
 	       [&](
 		 const TpgFault& fault,
@@ -119,7 +122,7 @@ run_sppfp(
 		 -- count[old_g];
 		 ++ count[g];
 	       });
-    timer.stop();
+    fsim_timer.stop();
 
     // singleton を除外する．
     if ( singleton_drop ) {
@@ -163,12 +166,17 @@ run_sppfp(
       fg_list[new_g].push_back(f);
     }
   }
+  timer.stop();
 
   if ( verbose ) {
     auto time = timer.get_time();
-    cout << "Fsim time: "
+    cout << "total time: "
 	 << std::fixed << std::setprecision(2)
 	 << (time / 1000) << std::defaultfloat << endl;
+    auto fsim_time = timer.get_time();
+    cout << "Fsim time: "
+	 << std::fixed << std::setprecision(2)
+	 << (fsim_time / 1000) << std::defaultfloat << endl;
   }
   return fg_list;
 }
@@ -196,6 +204,9 @@ run_ppsfp(
   vector<TpgFault> tmp_fault_list{fault_list};
 
   Timer timer;
+  Timer fsim_timer;
+
+  timer.start();
   vector<TestVector> tv_buff;
   tv_buff.reserve(PV_BITLEN);
   // 最初はすべての故障が一つのグループとなっている．
@@ -210,7 +221,7 @@ run_ppsfp(
       // fgmap を今回のシミュレーション結果で細分化する．
       // 今回未検出の故障のグループ番号は変わらない．
       unordered_map<SigKey2, SizeType, Hash2, Eq2> sig_dict;
-      timer.start();
+      fsim_timer.start();
       fsim.ppsfp(tv_buff,
 		 [&](
 		   const TpgFault& fault,
@@ -236,7 +247,7 @@ run_ppsfp(
 		   -- count[old_g];
 		   ++ count[g];
 		 });
-      timer.stop();
+      fsim_timer.stop();
       base += buff_size;
       tv_buff.clear();
 
@@ -284,11 +295,16 @@ run_ppsfp(
     }
   }
 
+  timer.stop();
   if ( verbose ) {
     auto time = timer.get_time();
-    cout << "Fsim time: "
+    auto fsim_time = fsim_timer.get_time();
+    cout << "Total time: "
 	 << std::fixed << std::setprecision(2)
 	 << (time / 1000) << std::defaultfloat << endl;
+    cout << "Fsim time: "
+	 << std::fixed << std::setprecision(2)
+	 << (fsim_time / 1000) << std::defaultfloat << endl;
   }
   return fg_list;
 }
