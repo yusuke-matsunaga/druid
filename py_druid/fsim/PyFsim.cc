@@ -435,6 +435,22 @@ PyMethodDef Fsim_methods[] = {
   {nullptr, nullptr, 0, nullptr}
 };
 
+PyObject*
+Fsim_ppsfp_bitlen(
+  PyObject* Py_UNUSED(self),
+  void* Py_UNUSED(colosure)
+)
+{
+  return Py_BuildValue("i", PV_BITLEN);
+}
+
+// getsetter 定義
+PyGetSetDef Fsim_getsetters[] = {
+  {"ppsfp_bitlen", Fsim_ppsfp_bitlen, nullptr,
+   PyDoc_STR("bit length for PPSFP"), nullptr},
+  {nullptr, nullptr, nullptr, nullptr, nullptr}
+};
+
 END_NONAMESPACE
 
 
@@ -451,6 +467,7 @@ PyFsim::init(
   FsimType.tp_flags = Py_TPFLAGS_DEFAULT;
   FsimType.tp_doc = PyDoc_STR("Fsim object");
   FsimType.tp_methods = Fsim_methods;
+  FsimType.tp_getset = Fsim_getsetters;
   FsimType.tp_new = Fsim_new;
 
   // 型オブジェクトの登録
