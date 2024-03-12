@@ -6,6 +6,7 @@ include_directories (
   ${PROJECT_SOURCE_DIR}/include/types
   ${PROJECT_SOURCE_DIR}/include/fsim
   ${PROJECT_SOURCE_DIR}/include/dtpg
+  ${PROJECT_SOURCE_DIR}/include/bist
   ${PROJECT_SOURCE_DIR}/include/main
   ${PROJECT_SOURCE_DIR}/include/pym
   ${PROJECT_BUILD_DIR}/include
@@ -33,6 +34,7 @@ set ( py_druid_SOURCES
   types/PyVal3.cc
   types/PyFaultType.cc
   types/PyFaultStatus.cc
+  types/PyBitVector.cc
   types/PyTestVector.cc
   types/PyInputVector.cc
   types/PyDffVector.cc
@@ -53,6 +55,9 @@ set ( py_druid_SOURCES
 
   dtpg/dtpg_module.cc
   dtpg/PyDtpgMgr.cc
+
+  bist/bist_module.cc
+  bist/PyPhaseShifter.cc
   )
 
 

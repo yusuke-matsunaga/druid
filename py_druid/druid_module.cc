@@ -21,6 +21,7 @@ BEGIN_NAMESPACE_DRUID
 extern bool types_init(PyObject*);
 extern bool fsim_init(PyObject*);
 extern bool dtpg_init(PyObject*);
+extern bool bist_init(PyObject*);
 extern bool main_init(PyObject*);
 
 BEGIN_NONAMESPACE
@@ -69,6 +70,9 @@ PyInit_druid()
     goto error;
   }
   if ( !main_init(m) ) {
+    goto error;
+  }
+  if ( !bist_init(m) ) {
     goto error;
   }
 
