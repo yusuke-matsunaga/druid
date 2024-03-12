@@ -25,7 +25,7 @@ def test_fsim():
     fault_mgr = TpgFaultMgr()
     fault_mgr.gen_fault_list(network, FaultType.TransitionDelay)
     fsim = Fsim()
-    fsim.initialize(network, True, 2)
+    fsim.initialize(network, FaultType.TransitionDelay, 2)
     fsim.set_fault_list(fault_mgr.rep_fault_list())
 
     input_num = network.input_num
