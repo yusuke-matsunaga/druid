@@ -179,6 +179,71 @@ BitVectorRep::init()
   }
 }
 
+// @brief 1ビット左シフトを行う．
+void
+BitVectorRep::lshift(
+  Val3 new_val
+)
+{
+  PackedVal v0 = 1UL;
+  PackedVal v1 = 1UL;
+  switch ( new_val ) {
+  case Val3::_0: v1 = 0UL; break;
+  case Val3::_1: v0 = 0UL; break;
+  default: break;
+  }
+  SizeType nb = block_num(len());
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
+    auto& pat0 = mPat[i + 0];
+    auto& pat1 = mPat[i + 1];
+    if ( i < nb - 2 ) {
+      auto new_v0 = pat0 >> (PV_BITLEN - 1);
+      auto new_v1 = pat1 >> (PV_BITLEN - 1);
+      pat0 = (pat0 << 1) | v0;
+      pat1 = (pat1 << 1) | v1;
+      v0 = new_v0;
+      v1 = new_v1;
+    }
+    else {
+      pat0 = (pat0 << 1) | v0;
+      pat1 = (pat1 << 1) | v1;
+      auto mask = get_mask();
+      pat0 &= mask;
+      pat1 &= mask;
+    }
+  }
+}
+
+// @brief 1ビット右シフトを行う．
+void
+BitVectorRep::rshift(
+  Val3 new_val
+)
+{
+  PackedVal v0 = 1UL;
+  PackedVal v1 = 1UL;
+  switch ( new_val ) {
+  case Val3::_0: v1 = 0UL; break;
+  case Val3::_1: v0 = 0UL; break;
+  default: break;
+  }
+  SizeType s = shift_num(len() - 1);
+  v0 <<= s;
+  v1 <<= s;
+  SizeType nb = block_num(len());
+  for ( auto i: Range_<SizeType, 2>(0, nb) ) {
+    auto ri = nb - i - 2;
+    auto& pat0 = mPat[ri + 0];
+    auto& pat1 = mPat[ri + 1];
+    auto new_v0 = (pat0 & 1UL) << (PV_BITLEN - 1);
+    auto new_v1 = (pat1 & 1UL) << (PV_BITLEN - 1);
+    pat0 = (pat0 >> 1) | v0;
+    pat1 = (pat1 >> 1) | v1;
+    v0 = new_v0;
+    v1 = new_v1;
+  }
+}
+
 // @brief BIN文字列から内容を設定する．
 bool
 BitVectorRep::set_from_bin(

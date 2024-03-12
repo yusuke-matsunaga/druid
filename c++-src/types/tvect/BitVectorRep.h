@@ -164,6 +164,18 @@ public:
   void
   init();
 
+  /// @brief 1ビット左シフトを行う．
+  void
+  lshift(
+    Val3 new_val ///< [in] 右端に挿入する値
+  );
+
+  /// @brief 1ビット右シフトを行う．
+  void
+  rshift(
+    Val3 new_val ///< [in] 左端に挿入する値
+  );
+
   /// @brief 値を設定する．
   void
   set_val(

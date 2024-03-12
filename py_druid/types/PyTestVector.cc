@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "PyTestVector.h"
+#include "PyBitVector.h"
 #include "PyVal3.h"
 #include "PyFaultType.h"
 #include "pym/PyMt19937.h"
@@ -37,25 +38,34 @@ TestVector_new(
   PyObject* kwds
 )
 {
-  SizeType input_num = 0;
-  SizeType dff_num = 0;
-  int tmp = 0;
   static const char* kwlist[] = {
     "input_num",
     "dff_num",
     "has_prev_state",
+    "bits",
     nullptr
   };
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "i|ib",
+  SizeType input_num = 0;
+  SizeType dff_num = 0;
+  int tmp = 0;
+  PyObject* bits_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "i|ibO!",
 				    const_cast<char**>(kwlist),
-				    &input_num, &dff_num, &tmp) ) {
+				    &input_num, &dff_num, &tmp,
+				    PyBitVector::_typeobject(), &bits_obj) ) {
     return nullptr;
   }
 
   auto self = type->tp_alloc(type, 0);
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(self);
   bool has_prev_state = static_cast<bool>(tmp);
-  testvector_obj->mPtr = new TestVector{input_num, dff_num, has_prev_state};
+  if ( bits_obj != nullptr ) {
+    auto& bits = PyBitVector::Get(bits_obj);
+    testvector_obj->mPtr = new TestVector{input_num, dff_num, has_prev_state, bits};
+  }
+  else {
+    testvector_obj->mPtr = new TestVector{input_num, dff_num, has_prev_state};
+  }
   return self;
 }
 

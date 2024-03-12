@@ -3,7 +3,7 @@
 /// @brief types_module の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #define PY_SSIZE_T_CLEAN
@@ -17,6 +17,7 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgMFFC.h"
 #include "PyTpgFFR.h"
+#include "PyBitVector.h"
 #include "PyTestVector.h"
 #include "PyInputVector.h"
 #include "PyDffVector.h"
@@ -75,6 +76,9 @@ PyInit_types()
     goto error;
   }
   if ( !PyTestVector::init(m) ) {
+    goto error;
+  }
+  if ( !PyBitVector::init(m) ) {
     goto error;
   }
   if ( !PyInputVector::init(m) ) {

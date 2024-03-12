@@ -58,6 +58,16 @@ public:
   {
   }
 
+  /// @brief コンストラクタ(組み合わせ回路用)
+  TestVector(
+    SizeType input_num,  ///< [in] 入力数
+    const BitVector& src ///< [in] 内容を表すビットベクタ
+  ) : mInputNum{input_num},
+      mDffNum{0},
+      mVector{src}
+  {
+  }
+
   /// @brief コンストラクタ(順序回路用)
   TestVector(
     SizeType input_num,  ///< [in] 入力数
@@ -66,6 +76,18 @@ public:
   ) : mInputNum{input_num},
       mDffNum{(dff_num << 1) | static_cast<SizeType>(has_prev_state)},
       mVector{_calc_vect_len()}
+  {
+  }
+
+  /// @brief コンストラクタ(順序回路用)
+  TestVector(
+    SizeType input_num,  ///< [in] 入力数
+    SizeType dff_num,	 ///< [in] DFF数
+    bool has_prev_state, ///< [in] 1時刻前の回路を持つ時 true
+    const BitVector& src ///< [in] 内容を表すビットベクタ
+  ) : mInputNum{input_num},
+      mDffNum{(dff_num << 1) | static_cast<SizeType>(has_prev_state)},
+      mVector{src}
   {
   }
 
@@ -258,20 +280,6 @@ public:
   set_from_assign_list(
     const NodeValList& assign_list ///< [in] 割当リスト
   );
-
-#if 0
-  /// @brief HEX文字列から値を設定する．
-  ///
-  /// * 長さは再設定される．
-  /// * 1時刻目の外部入力，１時刻目のDFF，２時刻目の外部入力の順にならんでいると仮定する．<br>
-  void
-  set_from_hex(
-    const string& hex_string ///< [in] HEX 文字列
-  )
-  {
-    mVector.set_from_hex(hex_string);
-  }
-#endif
 
   /// @brief PPIの値を設定する．
   ///

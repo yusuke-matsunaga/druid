@@ -58,6 +58,7 @@ set ( py_druid_SOURCES
 
   bist/bist_module.cc
   bist/PyPhaseShifter.cc
+  bist/PyLFSR.cc
   )
 
 

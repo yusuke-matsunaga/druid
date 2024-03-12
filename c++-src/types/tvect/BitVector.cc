@@ -131,6 +131,28 @@ BitVector::init()
   mPtr->init();
 }
 
+// @brief 1ビット左シフトを行う．
+void
+BitVector::lshift(
+  Val3 new_val
+)
+{
+  uniquefy();
+
+  mPtr->lshift(new_val);
+}
+
+// @brief 1ビット右シフトを行う．
+void
+BitVector::rshift(
+  Val3 new_val
+)
+{
+  uniquefy();
+
+  mPtr->rshift(new_val);
+}
+
 // @brief 値を設定する．
 void
 BitVector::set_val(

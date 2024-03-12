@@ -11,6 +11,7 @@
 
 #include "druid.h"
 #include "PyPhaseShifter.h"
+#include "PyLFSR.h"
 #include "pym/PyModule.h"
 
 
@@ -41,6 +42,9 @@ PyInit_bist()
   }
 
   if ( !PyPhaseShifter::init(m) ) {
+    goto error;
+  }
+  if ( !PyLFSR::init(m) ) {
     goto error;
   }
 

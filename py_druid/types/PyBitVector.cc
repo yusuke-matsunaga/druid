@@ -166,6 +166,46 @@ BitVector_from_hex(
 }
 
 PyObject*
+BitVector_from_bits(
+  PyObject* Py_UNUSED(self),
+  PyObject* args
+)
+{
+  PyObject* bits_obj = nullptr;
+  if ( !PyArg_ParseTuple(args, "O", &bits_obj) ) {
+    return nullptr;
+  }
+  if ( !PySequence_Check(bits_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "not as list of bits(0, 1)");
+    return nullptr;
+  }
+  SizeType n = PySequence_Size(bits_obj);
+  string bin_str = "";
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto obj1 = PySequence_GetItem(bits_obj, i);
+    if ( !PyLong_Check(obj1) ) {
+      Py_DECREF(obj1);
+      PyErr_SetString(PyExc_TypeError, "not as list of bits(0, 1)");
+      return nullptr;
+    }
+    auto v = PyLong_AsLong(obj1);
+    if ( v == 0 ) {
+      bin_str += '0';
+    }
+    else if ( v == 1 ) {
+      bin_str += '1';
+    }
+    else {
+      Py_DECREF(obj1);
+      PyErr_SetString(PyExc_TypeError, "not as list of bits(0, 1)");
+      return nullptr;
+    }
+  }
+  auto bv = BitVector::from_bin(bin_str);
+  return PyBitVector::ToPyObject(bv);
+}
+
+PyObject*
 BitVector_set_val(
   PyObject* self,
   PyObject* args
@@ -240,6 +280,9 @@ PyMethodDef BitVector_methods[] = {
   {"from_hex", reinterpret_cast<PyCFunction>(BitVector_from_hex),
    METH_VARARGS | METH_KEYWORDS | METH_STATIC,
    PyDoc_STR("create new object from HEX string")},
+  {"from_bits", BitVector_from_bits,
+   METH_VARARGS  | METH_STATIC,
+   PyDoc_STR("create new object from bit list")},
   {"set_val", BitVector_set_val, METH_VARARGS,
    PyDoc_STR("set value of the specified PPI")},
   {"set_from_random", BitVector_set_from_random, METH_VARARGS,

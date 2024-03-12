@@ -10,11 +10,10 @@
 
 import random
 import time
-from druid.types import TpgNetwork, TpgFaultMgr, FaultType, FaultStatus
+from druid.types import TpgNetwork, TpgFaultMgr, FaultType, FaultStatus, TestVector, BitVector
 from druid.dtpg import DtpgMgr
 from druid.fsim import Fsim
-from lfsr import LFSR
-from phase_shifter import PhaseShifter
+from druid.bist import PhaseShifter, LFSR
 
 
 def psgen(input_num, dff_num, has_prev_state, lfsr_bitlen, K):
@@ -27,7 +26,7 @@ def psgen(input_num, dff_num, has_prev_state, lfsr_bitlen, K):
     """
     ppi_num = input_num + dff_num
     input_config_list = [ random.sample(range(lfsr_bitlen), K) for _ in range(ppi_num) ]
-    return PhaseShifter(input_num, dff_num, has_prev_state, input_config_list)
+    return PhaseShifter(lfsr_bitlen, input_config_list)
 
     
 if __name__ == '__main__':
@@ -108,12 +107,13 @@ if __name__ == '__main__':
 
     for j in range(args.loop_num):
         seed = random.choices([0, 1], k=lfsr_bitlen)
-        lfsr.set(seed)
+        lfsr.bits = BitVector.from_bits(seed)
         tv_buff = []
         base = 0
         for i in range(args.pat_num):
-            tv = phase_shifter.convert(lfsr.bits)
+            bv = phase_shifter.convert(lfsr.bits)
             lfsr.shift()
+            tv = TestVector(input_num, dff_num, has_prev_state, bv)
             tv_buff.append(tv)
             n = len(tv_buff)
             if n == fsim.ppsfp_bitlen or base + n == args.pat_num:
@@ -123,10 +123,10 @@ if __name__ == '__main__':
     end_time = time.process_time()
 
     print(f'CPU time:   {end_time - start_time:0.2f}')
-    print(f'# Patters:  {i + 1}')
+    print(f'# Patterns:      {i + 1:8d}')
     nf = 0
     for f in fault_mgr.rep_fault_list():
         if fault_mgr.get_status(f) == FaultStatus.Undetected:
             nf += 1
-    print(f'# Total Faults:  {len(fault_mgr.rep_fault_list())}')
-    print(f'# Remain Faults: {nf}')
+    print(f'# Total Faults:  {len(fault_mgr.rep_fault_list()):8d}')
+    print(f'# Remain Faults: {nf:8d}')
