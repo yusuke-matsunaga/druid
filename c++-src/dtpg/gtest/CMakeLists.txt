@@ -4,6 +4,7 @@
 # ===================================================================
 include_directories(
   ${PROJECT_SOURCE_DIR}/include/types
+  ${GTEST_INCLUDE_DIR}
   )
 
 
