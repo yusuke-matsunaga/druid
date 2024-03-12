@@ -437,4 +437,76 @@ TEST(BitVectorTest, merge)
   EXPECT_EQ( bv3, bv4 );
 }
 
+// lshift() のテスト
+TEST(BitVectorTest, lshift1)
+{
+  string bin_str = "01X0";
+  BitVector bv = BitVector::from_bin(bin_str);
+
+  bv.lshift(Val3::_1);
+
+  EXPECT_EQ( bin_str.size(), bv.len() );
+  EXPECT_EQ( "101X", bv.bin_str());
+}
+
+// lshift() のテスト
+TEST(BitVectorTest, lshift2)
+{
+  string bin_str = "01X0";
+  BitVector bv = BitVector::from_bin(bin_str);
+
+  bv.lshift(Val3::_0);
+
+  EXPECT_EQ( bin_str.size(), bv.len() );
+  EXPECT_EQ( "001X", bv.bin_str());
+}
+
+// lshift() のテスト
+TEST(BitVectorTest, lshift3)
+{
+  string bin_str = "01X0";
+  BitVector bv = BitVector::from_bin(bin_str);
+
+  bv.lshift(Val3::_X);
+
+  EXPECT_EQ( bin_str.size(), bv.len() );
+  EXPECT_EQ( "X01X", bv.bin_str());
+}
+
+// rshift() のテスト
+TEST(BitVectorTest, rshift1)
+{
+  string bin_str = "01X0";
+  BitVector bv = BitVector::from_bin(bin_str);
+
+  bv.rshift(Val3::_1);
+
+  EXPECT_EQ( bin_str.size(), bv.len() );
+  EXPECT_EQ( "1X01", bv.bin_str());
+}
+
+// rshift() のテスト
+TEST(BitVectorTest, rshift2)
+{
+  string bin_str = "01X0";
+  BitVector bv = BitVector::from_bin(bin_str);
+
+  bv.rshift(Val3::_0);
+
+  EXPECT_EQ( bin_str.size(), bv.len() );
+  EXPECT_EQ( "1X00", bv.bin_str());
+}
+
+// rshift() のテスト
+TEST(BitVectorTest, rshift3)
+{
+  string bin_str = "01X0";
+  BitVector bv = BitVector::from_bin(bin_str);
+
+  bv.rshift(Val3::_X);
+
+  EXPECT_EQ( bin_str.size(), bv.len() );
+  EXPECT_EQ( "1X0X", bv.bin_str());
+}
+
 END_NAMESPACE_DRUID
