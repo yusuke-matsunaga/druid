@@ -3,7 +3,8 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-  ${YM_SUBMODULE_INCLUDE_LIST}
+  ${PROJECT_SOURCE_DIR}/include/types
+  ${PROJECT_SOURCE_DIR}/include/bist
   )
 
 
@@ -11,11 +12,7 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory ( types )
-add_subdirectory ( main )
-add_subdirectory ( fsim )
-add_subdirectory ( dtpg )
-add_subdirectory ( bist )
+add_subdirectory( gtest )
 
 
 # ===================================================================

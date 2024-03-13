@@ -17,12 +17,17 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class LFSR LFSR.h "LFSR.h"
 /// @brief LFSR(Linear Feedback Shift Register) を表すクラス
+///
+/// x^n + x^i1 + x^i2 + ... + 1 = 0 の形の原始方程式を利用した LFSR
+/// 原始方程式の性質上，常に x^n と x^0 = 1 の係数は1である．
 //////////////////////////////////////////////////////////////////////
 class LFSR
 {
 public:
 
   /// @brief コンストラクタ
+  ///
+  /// タップ位置のリストに最上位ビットは含まない．
   LFSR(
     SizeType bitlen,                 ///< [in] ビット長
     const vector<SizeType>& tap_list ///< [in] タップ位置のリスト
@@ -42,6 +47,8 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief タップ位置のリストを返す．
+  ///
+  /// タップ位置のリストに最上位ビットは含まれない．
   const vector<SizeType>&
   tap_list() const
   {
@@ -75,12 +82,24 @@ public:
   void
   shift()
   {
-    auto v = Val3::_0;
+    auto v = mBits.val(mBits.len() - 1);
     for ( auto p: mTapList ) {
       auto v1 = mBits.val(p);
       v = v ^ v1;
     }
     mBits.lshift(v);
+  }
+
+  /// @brief 逆方向にシフト動作を行う．
+  void
+  rshift()
+  {
+    auto v = mBits.val(0);
+    for ( auto p: mTapList ) {
+      auto v1 = mBits.val(p + 1);
+      v = v ^ v1;
+    }
+    mBits.rshift(v);
   }
 
 
