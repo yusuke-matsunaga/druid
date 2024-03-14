@@ -107,4 +107,57 @@ TEST(LFSR_test, rshift1)
   EXPECT_EQ( "100", lfsr.bits().bin_str() );
 }
 
+TEST(LFSR_test, shift2)
+{
+  const SizeType NBITS = 10;
+  const SizeType NCOUNT = (1 << NBITS) - 1;
+  const char* INIT_PAT = "1000000000";
+
+  LFSR lfsr{NBITS, {6}};
+
+  {
+    auto bv = BitVector::from_bin(INIT_PAT);
+    lfsr.set_bits(bv);
+  }
+
+  vector<BitVector> bv_list;
+  {
+    unordered_set<string> bv_set;
+    for ( ; ; ) {
+      auto bv = lfsr.bits();
+      if ( bv_set.count(bv.bin_str()) > 0 ) {
+	break;
+      }
+      bv_set.emplace(bv.bin_str());
+      bv_list.push_back(bv);
+      lfsr.shift();
+    }
+  }
+  EXPECT_EQ( NCOUNT, bv_list.size() );
+
+  {
+    auto bv = BitVector::from_bin(INIT_PAT);
+    lfsr.set_bits(bv);
+  }
+
+  vector<BitVector> bv_list2;
+  {
+    unordered_set<string> bv_set;
+    for ( ; ; ) {
+      auto bv = lfsr.bits();
+      if ( bv_set.count(bv.bin_str()) > 0 ) {
+	break;
+      }
+      bv_set.emplace(bv.bin_str());
+      bv_list2.push_back(bv);
+      lfsr.rshift();
+    }
+  }
+  EXPECT_EQ( NCOUNT, bv_list2.size() );
+
+  for ( SizeType i = 1; i < NCOUNT; ++ i ) {
+    EXPECT_EQ( bv_list[i], bv_list2[NCOUNT - i] );
+  }
+}
+
 END_NAMESPACE_DRUID
