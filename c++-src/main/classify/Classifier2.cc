@@ -8,6 +8,7 @@
 
 #include "Classifier2.h"
 #include "TestVector.h"
+#include "TpgFault.h"
 #include "ym/Timer.h"
 
 
@@ -64,26 +65,25 @@ struct Eq2 {
 END_NONAMESPACE
 
 // @brief 故障を分類する．
-vector<vector<TpgFault>>
+vector<vector<const TpgFault*>>
 Classifier2::run(
   const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
-  FaultType fault_type,
+  const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list,
   bool ppsfp,
   bool multi
 )
 {
   Fsim fsim;
-  fsim.initialize(network, fault_type, false, multi);
+  fsim.initialize(network, false, multi);
   fsim.set_fault_list(fault_list);
   SizeType max_id = 0;
-  for ( auto& f: fault_list ) {
-    max_id = std::max(max_id, f.id());
+  for ( auto f: fault_list ) {
+    max_id = std::max(max_id, f->id());
   }
   ++ max_id;
 
-  vector<TpgFault> tmp_fault_list{fault_list};
+  vector<const TpgFault*> tmp_fault_list{fault_list};
 
   Timer timer;
   auto NTV = tv_list.size();
@@ -100,11 +100,11 @@ Classifier2::run(
 	timer.start();
 	fsim.ppsfp(tv_buff,
 		   [&](
-		     const TpgFault& fault,
+		     const TpgFault* fault,
 		     const DiffBitsArray& dbits_array
 		   )
 		   {
-		     auto fid = fault.id();
+		     auto fid = fault->id();
 		     for ( SizeType b = 0; b < tv_buff.size(); ++ b ) {
 		       auto dbits = dbits_array.get_slice(b);
 		       if ( dbits.elem_num() == 0 ) {
@@ -140,11 +140,11 @@ Classifier2::run(
       timer.start();
       fsim.sppfp(tv,
 		 [&](
-		   const TpgFault& fault,
+		   const TpgFault* fault,
 		   const DiffBits& dbits
 		 )
 		 {
-		   auto fid = fault.id();
+		   auto fid = fault->id();
 		   SizeType g;
 		   if ( group_dict.count(dbits) == 0 ) {
 		     // 新しいグループ番号を割り当てる．
@@ -187,8 +187,8 @@ Classifier2::run(
 
   // 各グループの要素数を数える．
   unordered_map<SizeType, SizeType> count_dict;
-  for ( auto& f: fault_list ) {
-    SizeType fid = f.id();
+  for ( auto f: fault_list ) {
+    SizeType fid = f->id();
     SizeType gid = fgmap[fid];
     if ( count_dict.count(gid) == 0 ) {
       count_dict.emplace(gid, 1);
@@ -211,9 +211,9 @@ Classifier2::run(
   }
 
   // グループ番号に基づいてリストを作る．
-  vector<vector<TpgFault>> fg_list(last_id);
-  for ( auto& f: fault_list ) {
-    auto g = fgmap[f.id()];
+  vector<vector<const TpgFault*>> fg_list(last_id);
+  for ( auto f: fault_list ) {
+    auto g = fgmap[f->id()];
     if ( gmap.count(g) > 0 ) {
       auto new_g = gmap.at(g);
       fg_list[new_g].push_back(f);

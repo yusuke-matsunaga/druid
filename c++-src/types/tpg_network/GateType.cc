@@ -3,7 +3,7 @@
 /// @brief GateType の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "GateType.h"
@@ -206,6 +206,94 @@ END_NONAMESPACE
 
 
 //////////////////////////////////////////////////////////////////////
+// クラス GateType
+//////////////////////////////////////////////////////////////////////
+
+// @brief PPI のときに true を返す．
+bool
+GateType::is_ppi() const
+{
+  return false;
+}
+
+// @brief PPO のときに true を返す．
+bool
+GateType::is_ppo() const
+{
+  return false;
+}
+
+// @brief 組み込みタイプのときに true を返す．
+bool
+GateType::is_simple() const
+{
+  return false;
+}
+
+// @brief 論理式タイプのときに true を返す．
+bool
+GateType::is_complex() const
+{
+  return false;
+}
+
+// @brief ゲートタイプを返す．
+PrimType
+GateType::primitive_type() const
+{
+  return PrimType::None;
+}
+
+// @brief 論理式を返す．
+Expr
+GateType::expr() const
+{
+  return Expr::make_invalid();
+}
+
+// @brief 追加ノード数を返す．
+SizeType
+GateType::extra_node_num() const
+{
+  return 0;
+}
+
+// @brief 制御値を返す．
+Val3
+GateType::cval(
+  SizeType pos,
+  Val3 val
+) const
+{
+  return Val3::_X;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス GateType_PPI
+//////////////////////////////////////////////////////////////////////
+
+// @brief PPI のときに true を返す．
+bool
+GateType_PPI::is_ppi() const
+{
+  return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス GateType_PPO
+//////////////////////////////////////////////////////////////////////
+
+// @brief PPO のときに true を返す．
+bool
+GateType_PPO::is_ppo() const
+{
+  return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // クラス GateType_Simple
 //////////////////////////////////////////////////////////////////////
 
@@ -230,21 +318,6 @@ PrimType
 GateType_Simple::primitive_type() const
 {
   return mPrimType;
-}
-
-// @brief 論理式を返す．
-Expr
-GateType_Simple::expr() const
-{
-  // ダミー
-  return Expr::make_invalid();
-}
-
-// @brief 追加ノード数を返す．
-SizeType
-GateType_Simple::extra_node_num() const
-{
-  return 0;
 }
 
 // @brief 制御値を返す．
@@ -277,19 +350,11 @@ GateType_Cplx::GateType_Cplx(
   }
 }
 
-// @brief 組み込みタイプのときに true を返す．
+// @brief 論理式タイプのときに true を返す．
 bool
-GateType_Cplx::is_simple() const
+GateType_Cplx::is_complex() const
 {
-  return false;
-}
-
-// @brief ゲートタイプを返す．
-PrimType
-GateType_Cplx::primitive_type() const
-{
-  // ダミー
-  return PrimType::None;
+  return true;
 }
 
 // @brief 論理式を返す．
@@ -325,27 +390,43 @@ GateType_Cplx::cval(
 // @brief コンストラクタ
 GateTypeMgr::GateTypeMgr()
 {
-  mSimpleType[0] = new GateType_Simple{PrimType::C0};
-  mSimpleType[1] = new GateType_Simple{PrimType::C1};
-  mSimpleType[2] = new GateType_Simple{PrimType::Buff};
-  mSimpleType[3] = new GateType_Simple{PrimType::Not};
-  mSimpleType[4] = new GateType_Simple{PrimType::And};
-  mSimpleType[5] = new GateType_Simple{PrimType::Nand};
-  mSimpleType[6] = new GateType_Simple{PrimType::Or};
-  mSimpleType[7] = new GateType_Simple{PrimType::Nor};
-  mSimpleType[8] = new GateType_Simple{PrimType::Xor};
-  mSimpleType[9] = new GateType_Simple{PrimType::Xnor};
+  mSimpleType[0] = new GateType_PPI;
+  mSimpleType[1] = new GateType_PPO;
+  mSimpleType[2] = new GateType_Simple{PrimType::C0};
+  mSimpleType[3] = new GateType_Simple{PrimType::C1};
+  mSimpleType[4] = new GateType_Simple{PrimType::Buff};
+  mSimpleType[5] = new GateType_Simple{PrimType::Not};
+  mSimpleType[6] = new GateType_Simple{PrimType::And};
+  mSimpleType[7] = new GateType_Simple{PrimType::Nand};
+  mSimpleType[8] = new GateType_Simple{PrimType::Or};
+  mSimpleType[9] = new GateType_Simple{PrimType::Nor};
+  mSimpleType[10] = new GateType_Simple{PrimType::Xor};
+  mSimpleType[11] = new GateType_Simple{PrimType::Xnor};
 }
 
 // @brief デストラクタ
 GateTypeMgr::~GateTypeMgr()
 {
-  for ( int i: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9} ) {
+  for ( int i: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12} ) {
     delete mSimpleType[i];
   }
   for ( auto p: mList ) {
     delete p;
   }
+}
+
+// @brief PPI 型のオブジェクトを返す．
+const GateType*
+GateTypeMgr::ppi_type()
+{
+  return mSimpleType[0];
+}
+
+// @brief PPO 型のオブジェクトを返す．
+const GateType*
+GateTypeMgr::ppo_type()
+{
+  return mSimpleType[1];
 }
 
 // @brief GateType を登録する．
@@ -371,16 +452,16 @@ GateTypeMgr::simple_type(
 )
 {
   switch ( prim_type ) {
-  case PrimType::C0:   return mSimpleType[0];
-  case PrimType::C1:   return mSimpleType[1];
-  case PrimType::Buff: return mSimpleType[2];
-  case PrimType::Not:  return mSimpleType[3];
-  case PrimType::And:  return mSimpleType[4];
-  case PrimType::Nand: return mSimpleType[5];
-  case PrimType::Or:   return mSimpleType[6];
-  case PrimType::Nor:  return mSimpleType[7];
-  case PrimType::Xor:  return mSimpleType[8];
-  case PrimType::Xnor: return mSimpleType[9];
+  case PrimType::C0:   return mSimpleType[2];
+  case PrimType::C1:   return mSimpleType[3];
+  case PrimType::Buff: return mSimpleType[4];
+  case PrimType::Not:  return mSimpleType[5];
+  case PrimType::And:  return mSimpleType[6];
+  case PrimType::Nand: return mSimpleType[7];
+  case PrimType::Or:   return mSimpleType[8];
+  case PrimType::Nor:  return mSimpleType[9];
+  case PrimType::Xor:  return mSimpleType[10];
+  case PrimType::Xnor: return mSimpleType[11];
   default: break;
   }
   ASSERT_NOT_REACHED;

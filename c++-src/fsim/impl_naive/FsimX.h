@@ -55,7 +55,7 @@ public:
   /// @brief 対象の故障をセットする．
   void
   set_fault_list(
-    const vector<TpgFault>& fault_list ///< [in] 故障のリスト
+    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
   ) override;
 
   /// @brief 全ての故障にスキップマークをつける．
@@ -65,7 +65,7 @@ public:
   /// @brief 故障にスキップマークをつける．
   void
   set_skip(
-    const TpgFault& f ///< [in] 対象の故障
+    const TpgFault* f ///< [in] 対象の故障
   ) override;
 
   /// @brief 全ての故障のスキップマークを消す．
@@ -75,13 +75,13 @@ public:
   /// @brief 故障のスキップマークを消す．
   void
   clear_skip(
-    const TpgFault& f ///< [in] 対象の故障
+    const TpgFault* f ///< [in] 対象の故障
   ) override;
 
   /// @brief 故障のスキップマークを得る．
   bool
   get_skip(
-    const TpgFault& f ///< [in] 対象の故障
+    const TpgFault* f ///< [in] 対象の故障
   ) const override;
 
 
@@ -96,7 +96,7 @@ public:
   bool
   spsfp(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault& f,    ///< [in] 対象の故障
+    const TpgFault* f,    ///< [in] 対象の故障
     DiffBits& dbits       ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) override;
 
@@ -106,7 +106,7 @@ public:
   bool
   spsfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault& f,              ///< [in] 対象の故障
+    const TpgFault* f,              ///< [in] 対象の故障
     DiffBits& dbits                 ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) override;
 
@@ -267,7 +267,7 @@ private:
   bool
   _spsfp(
     const InputVals& iv, ///< [in] 入力値
-    const TpgFault& f,   ///< [in] 対象の故障
+    const TpgFault* f,   ///< [in] 対象の故障
     DiffBits& dbits      ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 
@@ -478,7 +478,7 @@ private:
   vector<SimFault*> mFaultMap;
 
   // 検出された故障を格納する配列
-  vector<TpgFault> mDetFaultArray;
+  vector<const TpgFault*> mDetFaultArray;
 
   // 故障ごとの検出パタンを収める配列
   // キーは TpgFault.id()

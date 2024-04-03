@@ -9,7 +9,8 @@
 #include "TpgNetwork.h"
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
-#include "TpgDFF.h"
+#include "TpgMFFC.h"
+#include "TpgFFR.h"
 #include "ym/ClibCellLibrary.h"
 
 
@@ -48,16 +49,17 @@ TpgNetwork
 TpgNetwork::read_network(
   const string& filename,
   const string& format,
+  FaultType fault_type,
   const ClibCellLibrary& cell_library,
   const string& clock_name,
   const string& reset_name
 )
 {
   if ( format == "blif" ) {
-    return read_blif(filename, cell_library, clock_name, reset_name);
+    return read_blif(filename, fault_type, cell_library, clock_name, reset_name);
   }
   if ( format == "iscas89" ) {
-    return read_iscas89(filename, clock_name);
+    return read_iscas89(filename, fault_type, clock_name);
   }
   ostringstream buf;
   buf << format << ": Unknown format";
@@ -73,6 +75,8 @@ TpgNetwork::~TpgNetwork()
 SizeType
 TpgNetwork::node_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->node_num();
 }
 
@@ -82,6 +86,8 @@ TpgNetwork::node(
   SizeType id
 ) const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->node(id);
 }
 
@@ -89,6 +95,8 @@ TpgNetwork::node(
 const vector<const TpgNode*>&
 TpgNetwork::node_list() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->node_list();
 }
 
@@ -96,6 +104,8 @@ TpgNetwork::node_list() const
 SizeType
 TpgNetwork::input_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->input_num();
 }
 
@@ -105,6 +115,8 @@ TpgNetwork::input(
   SizeType pos
 ) const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->input(pos);
 }
 
@@ -112,6 +124,8 @@ TpgNetwork::input(
 const vector<const TpgNode*>&
 TpgNetwork::input_list() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->input_list();
 }
 
@@ -119,6 +133,8 @@ TpgNetwork::input_list() const
 SizeType
 TpgNetwork::output_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->output_num();
 }
 
@@ -128,6 +144,8 @@ TpgNetwork::output(
   SizeType pos
 ) const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->output(pos);
 }
 
@@ -135,6 +153,8 @@ TpgNetwork::output(
 const vector<const TpgNode*>&
 TpgNetwork::output_list() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->output_list();
 }
 
@@ -144,6 +164,8 @@ TpgNetwork::output2(
   SizeType pos
 ) const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->output2(pos);
 }
 
@@ -151,6 +173,8 @@ TpgNetwork::output2(
 SizeType
 TpgNetwork::ppi_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->ppi_num();
 }
 
@@ -160,6 +184,8 @@ TpgNetwork::ppi(
   SizeType pos
 ) const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->ppi(pos);
 }
 
@@ -169,6 +195,8 @@ TpgNetwork::ppi_name(
   SizeType input_id
 ) const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->ppi_name(input_id);
 }
 
@@ -183,6 +211,8 @@ TpgNetwork::ppi_list() const
 SizeType
 TpgNetwork::ppo_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->ppo_num();
 }
 
@@ -192,6 +222,8 @@ TpgNetwork::ppo(
   SizeType pos
 ) const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->ppo(pos);
 }
 
@@ -201,6 +233,8 @@ TpgNetwork::ppo_name(
   SizeType output_id
 ) const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->ppo_name(output_id);
 }
 
@@ -208,6 +242,8 @@ TpgNetwork::ppo_name(
 const vector<const TpgNode*>&
 TpgNetwork::ppo_list() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->ppo_list();
 }
 
@@ -215,72 +251,173 @@ TpgNetwork::ppo_list() const
 SizeType
 TpgNetwork::mffc_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->mffc_num();
 }
 
 // @brief MFFC を返す．
-TpgMFFC
+const TpgMFFC*
 TpgNetwork::mffc(
   SizeType pos
 ) const
 {
-  return TpgMFFC{mImpl.get(), pos};
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->mffc(pos);
+}
+
+// @brief MFFC のリストを得る．
+const vector<const TpgMFFC*>&
+TpgNetwork::mffc_list() const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->mffc_list();
 }
 
 // @brief FFR 数を返す．
 SizeType
 TpgNetwork::ffr_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->ffr_num();
 }
 
 // @brief FFR を返す．
-TpgFFR
+const TpgFFR*
 TpgNetwork::ffr(
   SizeType pos
 ) const
 {
-  return TpgFFR{mImpl.get(), pos};
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->ffr(pos);
+}
+
+// @brief FFR のリストを得る．
+const vector<const TpgFFR*>&
+TpgNetwork::ffr_list() const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->ffr_list();
 }
 
 // @brief DFF数を得る．
 SizeType
 TpgNetwork::dff_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->dff_num();
 }
 
-// @brief DFF を得る．
-TpgDFF
-TpgNetwork::dff(
+// @brief DFFの入力ノードを得る．
+const TpgNode*
+TpgNetwork::dff_input(
   SizeType pos
 ) const
 {
-  auto impl = &(mImpl->_dff(pos));
-  return TpgDFF{impl};
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->dff_input(pos);
 }
 
-// @brief DFF のリストを得る．
-TpgDFFList
-TpgNetwork::dff_list() const
+// @brief DFFの出力ノードを得る．
+const TpgNode*
+TpgNetwork::dff_output(
+  SizeType pos
+) const
 {
-  return TpgDFFList{mImpl->dff_list()};
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->dff_output(pos);
 }
 
 // @brief ゲート数を返す．
 SizeType
 TpgNetwork::gate_num() const
 {
+  ASSERT_COND( mImpl != nullptr );
+
   return mImpl->gate_num();
 }
 
 // @brief ゲート情報を得る．
-TpgGate
+const TpgGate*
 TpgNetwork::gate(
   SizeType pos
 ) const
 {
-  return TpgGate{mImpl.get(), pos};
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->gate(pos);
+}
+
+// @brief ゲート情報のリストを得る．
+const vector<const TpgGate*>&
+TpgNetwork::gate_list() const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->gate_list();
+}
+
+// @brief 故障の種類を返す．
+FaultType
+TpgNetwork::fault_type() const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->fault_type();
+}
+
+// @brief 代表故障のリストを得る．
+const vector<const TpgFault*>&
+TpgNetwork::rep_fault_list() const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->rep_fault_list();
+}
+
+// @brief ステムの故障を得る．
+const TpgFault*
+TpgNetwork::find_fault(
+  const TpgGate* gate,
+  Fval2 fval
+) const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->find_fault(gate, fval);
+}
+
+// @brief ブランチの故障を得る．
+const TpgFault*
+TpgNetwork::find_fault(
+  const TpgGate* gate,
+  SizeType ipos,
+  Fval2 fval
+) const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->find_fault(gate, ipos, fval);
+}
+
+// @brief 網羅故障を得る．
+const TpgFault*
+TpgNetwork::find_fault(
+  const TpgGate* gate,
+  const vector<bool>& ivals
+) const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->find_fault(gate, ivals);
 }
 
 // @brief TpgNetwork の内容を出力する関数
@@ -329,31 +466,31 @@ TpgNetwork::print(
   s << endl;
 
   for ( auto ffr: ffr_list() ) {
-    s << "FFR#" << ffr.id() << endl
-      << "  ROOT: " << ffr.root()->str()
+    s << "FFR#" << ffr->id() << endl
+      << "  ROOT: " << ffr->root()->str()
       << endl;
-    SizeType ni = ffr.input_num();
+    SizeType ni = ffr->input_num();
     for ( SizeType i = 0; i < ni; ++ i ) {
       s << "  INPUT#" << i << ": "
-	<< ffr.input(i)->str()
+	<< ffr->input(i)->str()
 	<< endl;
     }
-    SizeType nn = ffr.node_num();
+    SizeType nn = ffr->node_num();
     for ( SizeType i = 0; i < nn; ++ i ) {
-      s << "  " << ffr.node(i)->str()
+      s << "  " << ffr->node(i)->str()
 	<< endl;
     }
   }
   s << endl;
 
   for ( auto mffc: mffc_list() ) {
-    s << "MFFC#" << mffc.id()
+    s << "MFFC#" << mffc->id()
       << endl
-      << "  ROOT: " << mffc.root()->str()
+      << "  ROOT: " << mffc->root()->str()
       << endl;
-    SizeType nf = mffc.ffr_num();
-    for ( auto ffr: mffc.ffr_list() ) {
-      s << "  FFR#" << ffr.id() << endl;
+    SizeType nf = mffc->ffr_num();
+    for ( auto ffr: mffc->ffr_list() ) {
+      s << "  FFR#" << ffr->id() << endl;
     }
   }
   s << endl;
@@ -375,12 +512,12 @@ TpgNetwork::print(
   s << endl;
 
   for ( auto gate: gate_list() ) {
-    s << "GATE#" << gate.id() << ":" << endl
-      << "  Output: " << gate.output_node()->str()
+    s << "GATE#" << gate->id() << ":" << endl
+      << "  Output: " << gate->output_node()->str()
       << endl;
-    SizeType ni = gate.input_num();
+    SizeType ni = gate->input_num();
     for ( SizeType i = 0; i < ni; ++ i ) {
-      auto binfo = gate.branch_info(i);
+      auto binfo = gate->branch_info(i);
       s << "  Input#" << i << ": "
 	<< binfo.node->str()
 	<< "[" << binfo.ipos << "]"

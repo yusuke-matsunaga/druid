@@ -24,7 +24,7 @@ public:
 
   /// @brief コンストラクタ
   DopBase(
-    TpgFaultMgr& fmgr ///< [in] 故障マネージャ
+    DtpgMgr& fmgr ///< [in] DTPGマネージャ
   );
 
   /// @brief デストラクタ
@@ -39,7 +39,7 @@ public:
   /// @brief テストパタンが見つかった時の処理
   void
   operator()(
-    const TpgFault& f,   ///< [in] 故障
+    const TpgFault* f,   ///< [in] 故障
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
@@ -49,8 +49,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障マネージャ
-  TpgFaultMgr& mFaultMgr;
+  // DTPGマネージャ
+  DtpgMgr& mMgr;
 
 };
 

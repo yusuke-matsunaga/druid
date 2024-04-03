@@ -3,12 +3,11 @@
 /// @brief FsimTest の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
-#include "TpgFaultMgr.h"
 #include "TestVector.h"
 #include "Fsim.h"
 #include <random>
@@ -23,7 +22,7 @@ bool verbose = false;
 // 故障を検出したときの出力
 void
 print_fault(
-  const TpgFault& f,
+  const TpgFault* f,
   int tv_id
 )
 {
@@ -36,25 +35,26 @@ print_fault(
 pair<int, int>
 spsfp_test(
   const TpgNetwork& network,
-  TpgFaultMgr& fmgr,
+  const vector<const TpgFault*>& fault_list,
   Fsim& fsim,
   const vector<TestVector>& tv_list
 )
 {
-  int det_num = 0;
-  int nepat = 0;
-  int i = 0;
+  SizeType det_num = 0;
+  SizeType nepat = 0;
+  SizeType i = 0;
+  unordered_set<SizeType> det_mark;
   for ( auto tv: tv_list ) {
     bool detect = false;
-    for ( auto f: fmgr.rep_fault_list() ) {
-      if ( fmgr.get_status(f) == FaultStatus::Detected ) {
+    for ( auto f: fault_list ) {
+      if ( det_mark.count(f->id()) > 0 ) {
 	continue;
       }
       DiffBits dbits;
       if ( fsim.spsfp(tv, f, dbits) ) {
 	++ det_num;
 	detect = true;
-	fmgr.set_status(f, FaultStatus::Detected);
+	det_mark.emplace(f->id());
 	print_fault(f, i);
       }
     }
@@ -85,12 +85,12 @@ sppfp_test(
     bool detected = false;
     fsim.sppfp(tv,
 	       [&](
-		 const TpgFault& f,
+		 const TpgFault* f,
 		 const DiffBits& dbits
 	       )
 	       {
-		 if ( !det_array[f.id()] ) {
-		   det_array[f.id()] = true;
+		 if ( !det_array[f->id()] ) {
+		   det_array[f->id()] = true;
 		   ++ det_num;
 		   if ( drop ) {
 		     fsim.set_skip(f);
@@ -131,12 +131,12 @@ ppsfp_test(
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
       fsim.ppsfp(tv_buff,
 		 [&](
-		   const TpgFault& f,
+		   const TpgFault* f,
 		   const DiffBitsArray& dbits_array
 		 )
 		 {
-		   if ( !det_array[f.id()] ) {
-		     det_array[f.id()] = true;
+		   if ( !det_array[f->id()] ) {
+		     det_array[f->id()] = true;
 		     ++ det_num;
 		     if ( drop ) {
 		       fsim.set_skip(f);
@@ -191,15 +191,16 @@ usage()
 TpgNetwork
 read_network(
   const string& filename,
+  FaultType fault_type,
   bool blif,
   bool iscas89
 )
 {
   ASSERT_COND( blif | iscas89 );
   if ( blif ) {
-    return TpgNetwork::read_blif(filename);
+    return TpgNetwork::read_blif(filename, fault_type);
   }
-  return TpgNetwork::read_iscas89(filename);
+  return TpgNetwork::read_iscas89(filename, fault_type);
 }
 
 int
@@ -324,34 +325,26 @@ fsim2test(
     fsim2 = true;
   }
 
-  string filename = argv[pos];
-  auto network = TpgNetwork::read_network(filename, format);
-
   FaultType fault_type = FaultType::None;
   if ( !sa_mode && !td_mode ) {
     sa_mode = true;
     fault_type = FaultType::StuckAt;
   }
-  if ( td_mode && network.dff_num() == 0 ) {
-    cerr << "Network(" << filename << ") is not sequential,"
-	 << " --transition-delay option is ignored." << endl;
-    td_mode = false;
-    sa_mode = true;
+  if ( td_mode ) {
     fault_type = FaultType::TransitionDelay;
   }
 
-  TpgFaultMgr fmgr;
-  fmgr.gen_fault_list(network, fault_type);
+  string filename = argv[pos];
+  auto network = TpgNetwork::read_network(filename, format, fault_type);
+  auto& fault_list = network.rep_fault_list();
 
-  bool prev_state = fault_type == FaultType::TransitionDelay;
   Fsim fsim;
-  fsim.initialize(network, fault_type, fsim3, multi);
-
-  fsim.set_fault_list(fmgr.rep_fault_list());
+  fsim.initialize(network, fsim3, multi);
+  fsim.set_fault_list(fault_list);
 
   SizeType max_fid = 0;
-  for ( auto f: fmgr.rep_fault_list() ) {
-    max_fid = std::max(max_fid, f.id());
+  for ( auto f: fault_list ) {
+    max_fid = std::max(max_fid, f->id());
   }
   ++ max_fid;
 
@@ -375,7 +368,7 @@ fsim2test(
   }
   else {
     // デフォルトフォールバックは SPSFP
-    dpnum = spsfp_test(network, fmgr, fsim, tv_list);
+    dpnum = spsfp_test(network, fault_list, fsim, tv_list);
   }
 
   int det_num = dpnum.first;
@@ -384,7 +377,7 @@ fsim2test(
   timer.stop();
   auto time = timer.get_time();
 
-  SizeType nf = fmgr.rep_fault_list().size();
+  SizeType nf = fault_list.size();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
        << "# of DFFs               = " << network.dff_num() << endl

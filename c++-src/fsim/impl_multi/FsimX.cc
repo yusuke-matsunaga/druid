@@ -9,10 +9,8 @@
 #include <thread>
 #include "FsimX.h"
 #include "TpgNetwork.h"
-#include "TpgDFF.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "TpgFaultMgr.h"
 
 #include "TestVector.h"
 #include "InputVector.h"
@@ -272,13 +270,13 @@ FSIM_CLASSNAME::set_network(
 // @brief 対象の故障をセットする．
 void
 FSIM_CLASSNAME::set_fault_list(
-  const vector<TpgFault>& fault_list
+  const vector<const TpgFault*>& fault_list
 )
 {
   SizeType nf = fault_list.size();
   SizeType max_fid = 0;
   for ( auto fault: fault_list ) {
-    max_fid = std::max(max_fid, fault.id());
+    max_fid = std::max(max_fid, fault->id());
   }
   ++ max_fid;
 
@@ -289,11 +287,11 @@ FSIM_CLASSNAME::set_fault_list(
   mFaultMap.resize(max_fid, nullptr);
 
   for ( auto fault: fault_list ) {
-    auto tpgnode = fault.origin_node();
+    auto tpgnode = fault->origin_node();
     auto simnode = mSimNodeMap[tpgnode->id()];
     auto sim_f = new SimFault{fault, simnode, mSimNodeMap};
     mFaultList.push_back(unique_ptr<SimFault>{sim_f});
-    mFaultMap[fault.id()] = sim_f;
+    mFaultMap[fault->id()] = sim_f;
     sim_f->set_skip(false);
     auto ffr = mFFRMap[simnode->id()];
     ffr->add_fault(sim_f);
@@ -312,10 +310,10 @@ FSIM_CLASSNAME::set_skip_all()
 // @brief 故障にスキップマークをつける．
 void
 FSIM_CLASSNAME::set_skip(
-  const TpgFault& f
+  const TpgFault* f
 )
 {
-  mFaultMap[f.id()]->set_skip(true);
+  mFaultMap[f->id()]->set_skip(true);
 }
 
 // @brief 全ての故障のスキップマークを消す．
@@ -330,26 +328,26 @@ FSIM_CLASSNAME::clear_skip_all()
 // @brief 故障のスキップマークを消す．
 void
 FSIM_CLASSNAME::clear_skip(
-  const TpgFault& f
+  const TpgFault* f
 )
 {
-  mFaultMap[f.id()]->set_skip(false);
+  mFaultMap[f->id()]->set_skip(false);
 }
 
 // @brief 故障のスキップマークを得る．
 bool
 FSIM_CLASSNAME::get_skip(
-  const TpgFault& f
+  const TpgFault* f
 ) const
 {
-  return mFaultMap[f.id()]->skip();
+  return mFaultMap[f->id()]->skip();
 }
 
 // @brief SPSFP故障シミュレーションを行う．
 bool
 FSIM_CLASSNAME::spsfp(
   const TestVector& tv,
-  const TpgFault& f,
+  const TpgFault* f,
   DiffBits& dbits
 )
 {
@@ -363,7 +361,7 @@ FSIM_CLASSNAME::spsfp(
 bool
 FSIM_CLASSNAME::spsfp(
   const NodeValList& assign_list,
-  const TpgFault& f,
+  const TpgFault* f,
   DiffBits& dbits
 )
 {
@@ -377,12 +375,12 @@ FSIM_CLASSNAME::spsfp(
 bool
 FSIM_CLASSNAME::_spsfp(
   const InputVals& iv,
-  const TpgFault& f,
+  const TpgFault* f,
   DiffBits& dbits
 )
 {
   SimEngine engine{0, mSyncObj, *this, {}};
-  auto ff = mFaultMap[f.id()];
+  auto ff = mFaultMap[f->id()];
   return engine.spsfp(iv, ff, dbits);
 }
 
@@ -659,14 +657,14 @@ FSIM_CLASSNAME::make_gate(
 
 // @brief コンストラクタ
 SimFault::SimFault(
-  const TpgFault& f,
+  const TpgFault* f,
   SimNode* node,
   const vector<SimNode*>& simmap
 ) : mTpgFault{f},
     mNode{node}
 {
   // もとの excitation_condition を SimNode に置き換える．
-  for ( auto nodeval: f.excitation_condition() ) {
+  for ( auto nodeval: f->excitation_condition() ) {
     auto src_node = nodeval.node();
     auto val = nodeval.val();
     auto simnode = simmap[src_node->id()];

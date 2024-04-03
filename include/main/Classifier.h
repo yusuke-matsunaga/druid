@@ -28,15 +28,14 @@ public:
 
   /// @brief 与えられたテストベクタで故障を分類する．
   static
-  vector<vector<TpgFault>>
+  vector<vector<const TpgFault*>>
   run(
-    const TpgNetwork& network,          ///< [in] 対象のネットワーク
-    const vector<TpgFault>& fault_list, ///< [in] 故障リスト
-    FaultType fault_type,               ///< [in] 故障の種類
-    const vector<TestVector>& tv_list,  ///< [in] テストベクタのリスト
-    bool drop_singleton,                ///< [in] singleton をドロップする時 true
-    bool ppsfp,                         ///< [in] PPSFP を用いる時 true
-    bool multi                          ///< [in] マルチスレッド実行を行う時 true
+    const TpgNetwork& network,                 ///< [in] 対象のネットワーク
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障リスト
+    const vector<TestVector>& tv_list,         ///< [in] テストベクタのリスト
+    bool drop_singleton,                       ///< [in] singleton をドロップする時 true
+    bool ppsfp,                                ///< [in] PPSFP を用いる時 true
+    bool multi                                 ///< [in] マルチスレッド実行を行う時 true
   );
 
   /// @brief verbose フラグをセットする．

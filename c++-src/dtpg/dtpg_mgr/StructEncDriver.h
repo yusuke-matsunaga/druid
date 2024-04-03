@@ -48,7 +48,7 @@ protected:
   void
   gen_pattern(
     StructEnc& enc,       ///< [in] 回路構造をエンコードしたもの
-    const TpgFault& fault ///< [in] 対象の故障
+    const TpgFault* fault ///< [in] 対象の故障
   );
 
 };

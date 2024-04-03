@@ -27,7 +27,7 @@ public:
   MFFCEngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
-    const TpgMFFC& mffc,	   ///< [in] 故障伝搬の起点となる MFFC
+    const TpgMFFC* mffc,	   ///< [in] 故障伝搬の起点となる MFFC
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
   );
 
@@ -49,7 +49,7 @@ protected:
   /// デフォルトでは空を返す．
   vector<SatLiteral>
   gen_assumptions(
-    const TpgFault& fault ///< [in] 対象の故障
+    const TpgFault* fault ///< [in] 対象の故障
   ) override;
 
 
@@ -72,7 +72,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // MFFC の情報
-  const TpgMFFC& mMFFC;
+  const TpgMFFC* mMFFC;
 
   // FFR の根のリスト
   // [0] は MFFC の根でもある．

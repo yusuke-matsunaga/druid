@@ -36,7 +36,7 @@ DopDummy::~DopDummy()
 // @brief テストパタンが見つかった時の処理
 void
 DopDummy::operator()(
-  const TpgFault& f,
+  const TpgFault* f,
   const TestVector& tv
 )
 {

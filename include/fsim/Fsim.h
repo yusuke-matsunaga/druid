@@ -11,7 +11,6 @@
 
 #include "druid.h"
 #include "FaultType.h"
-#include "TpgFaultList.h"
 #include "PackedVal.h"
 #include "DiffBits.h"
 #include "DiffBitsArray.h"
@@ -71,7 +70,6 @@ public:
   void
   initialize(
     const TpgNetwork& network, ///< [in] ネットワーク
-    FaultType fault_type,      ///< [in] 故障の種類
     bool has_x,                ///< [in] 3値のシミュレーションを行う時 true にする．
     bool multi                 ///< [in] マルチスレッド実行を行う時に true にするフラグ
   );
@@ -85,13 +83,7 @@ public:
   /// @brief 対象の故障をセットする．
   void
   set_fault_list(
-    const vector<TpgFault>& fault_list ///< [in] 故障のリスト
-  );
-
-  /// @brief 対象の故障をセットする．
-  void
-  set_fault_list(
-    const TpgFaultList& fault_list ///< [in] 故障のリスト
+    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
   );
 
   /// @brief 全ての故障にスキップマークをつける．
@@ -101,7 +93,7 @@ public:
   /// @brief 故障にスキップマークをつける．
   void
   set_skip(
-    const TpgFault& f  ///< [in] 対象の故障
+    const TpgFault* f  ///< [in] 対象の故障
   );
 
   /// @brief 複数の故障にスキップマークをつける．
@@ -109,16 +101,7 @@ public:
   /// fault_list に含まれない故障のスキップマークは消される．
   void
   set_skip(
-    const TpgFaultList& fault_list  ///< [in] 故障のリスト
-
-  );
-
-  /// @brief 複数の故障にスキップマークをつける．
-  ///
-  /// fault_list に含まれない故障のスキップマークは消される．
-  void
-  set_skip(
-    const vector<TpgFault>& fault_list  ///< [in] 故障のリスト
+    const vector<const TpgFault*>& fault_list  ///< [in] 故障のリスト
   );
 
   /// @brief 全ての故障のスキップマークを消す．
@@ -128,7 +111,7 @@ public:
   /// @brief 故障のスキップマークを消す．
   void
   clear_skip(
-    const TpgFault& f  ///< [in] 対象の故障
+    const TpgFault* f  ///< [in] 対象の故障
   );
 
   /// @brief 複数の故障のスキップマークを消す．
@@ -136,21 +119,13 @@ public:
   /// fault_list に含まれない故障のスキップマークは付けられる．
   void
   clear_skip(
-    const TpgFaultList& fault_list  ///< [in] 故障のリスト
-  );
-
-  /// @brief 複数の故障のスキップマークを消す．
-  ///
-  /// fault_list に含まれない故障のスキップマークは付けられる．
-  void
-  clear_skip(
-    const vector<TpgFault>& fault_list  ///< [in] 故障のリスト
+    const vector<const TpgFault*>& fault_list  ///< [in] 故障のリスト
   );
 
   /// @brief 故障のスキップマークを得る．
   bool
   get_skip(
-    const TpgFault& f ///< [in] 対象の故障
+    const TpgFault* f ///< [in] 対象の故障
   ) const;
 
 
@@ -163,13 +138,13 @@ public:
   ///
   /// * 1番目の引数は検出された故障
   /// * 2番目の引数は出力ごとの伝搬状況
-  using cbtype1 = std::function<void(const TpgFault&, const DiffBits&)>;
+  using cbtype1 = std::function<void(const TpgFault*, const DiffBits&)>;
 
   /// @brief PPSFP故障シミュレーションで用いるコールバック関数の型定義
   ///
   /// * 1番目の引数は検出された故障
   /// * 2番目の引数は出力ごとの伝搬状況
-  using cbtype2 = std::function<void(const TpgFault&, const DiffBitsArray&)>;
+  using cbtype2 = std::function<void(const TpgFault*, const DiffBitsArray&)>;
 
   /// @brief SPSFP故障シミュレーションを行う．
   /// @retval true 故障の検出が行えた．
@@ -177,7 +152,7 @@ public:
   bool
   spsfp(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault& f,	  ///< [in] 対象の故障
+    const TpgFault* f,	  ///< [in] 対象の故障
     DiffBits& dbits       ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 
@@ -187,7 +162,7 @@ public:
   bool
   spsfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault& f,  	    ///< [in] 対象の故障
+    const TpgFault* f,  	    ///< [in] 対象の故障
     DiffBits& dbits                 ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 

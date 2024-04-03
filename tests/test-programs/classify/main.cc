@@ -28,29 +28,31 @@ usage()
 TpgNetwork
 read_network(
   const string& filename,
+  FaultType fault_type,
   bool blif,
   bool iscas89
 )
 {
   ASSERT_COND( blif | iscas89 );
   if ( blif ) {
-    return TpgNetwork::read_blif(filename);
+    return TpgNetwork::read_blif(filename, fault_type);
   }
-  return TpgNetwork::read_iscas89(filename);
+  return TpgNetwork::read_iscas89(filename, fault_type);
 }
 
 // @brief 統計情報を出力する．
 void
 print_stats(
   const TpgNetwork& network,
-  DtpgMgr& mgr,
+  const vector<const TpgFault*>& det_fault_list,
+  const vector<const TpgFault*>& untest_fault_list,
+  const DtpgStats& stats,
   double time
 )
 {
-  SizeType fault_num = mgr.fault_num();
-  SizeType detect_num = mgr.detect_count();
-  SizeType untest_num = mgr.untest_count();
-  const DtpgStats& stats = mgr.dtpg_stats();
+  SizeType fault_num = network.rep_fault_list().size();
+  SizeType detect_num = det_fault_list.size();
+  SizeType untest_num = untest_fault_list.size();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
        << "# of DFFs               = " << network.dff_num() << endl
@@ -123,7 +125,7 @@ print_stats(
 void
 classify(
   const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
+  const vector<const TpgFault*>& fault_list,
   FaultType fault_type,
   const vector<TestVector>& tv_list,
   bool drop,
@@ -134,8 +136,7 @@ classify(
 {
   Timer timer;
   timer.start();
-  auto fault_group_list = Classifier::run(network, fault_list, fault_type,
-					  tv_list, drop, ppsfp, multi);
+  auto fault_group_list = Classifier::run(network, fault_list, tv_list, drop, ppsfp, multi);
   timer.stop();
   auto class_time = timer.get_time();
 
@@ -158,7 +159,7 @@ classify(
 void
 classify2(
   const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
+  const vector<const TpgFault*>& fault_list,
   FaultType fault_type,
   const vector<TestVector>& tv_list,
   bool ppsfp,
@@ -168,8 +169,7 @@ classify2(
 {
   Timer timer;
   timer.start();
-  auto fault_group_list = Classifier2::run(network, fault_list, fault_type,
-					   tv_list, ppsfp, multi);
+  auto fault_group_list = Classifier2::run(network, fault_list, tv_list, ppsfp, multi);
   timer.stop();
   auto class_time = timer.get_time();
 
@@ -332,21 +332,12 @@ dtpg_test(
   }
 
   string filename = argv[pos];
-  auto network = TpgNetwork::read_network(filename, format);
-
-  if ( td_mode && network.dff_num() == 0 ) {
-    cerr << "Network is combinational, stuck-at mode is assumed" << endl;
-    td_mode = false;
-    sa_mode = true;
-  }
   FaultType fault_type = sa_mode ? FaultType::StuckAt : FaultType::TransitionDelay;
+  auto network = TpgNetwork::read_network(filename, format, fault_type);
 
   if ( dump ) {
     network.print(cout);
   }
-
-  TpgFaultMgr fault_mgr;
-  fault_mgr.gen_fault_list(network, fault_type);
 
   unordered_map<string, JsonValue> option_dict;
   option_dict.emplace("dtpg_type", mode);
@@ -364,46 +355,53 @@ dtpg_test(
   }
   JsonValue option{option_dict};
 
-  DtpgMgr mgr{network, fault_mgr, option, false};
+  auto& rep_fault_list = network.rep_fault_list();
 
   Timer timer;
   timer.start();
 
-  mgr.run();
+  Fsim fsim;
+  fsim.initialize(network, true, false);
+  fsim.set_fault_list(rep_fault_list);
+  vector<pair<const TpgFault*, TestVector>> ErrorList;
+
+  vector<const TpgFault*> det_fault_list;
+  vector<const TpgFault*> untest_fault_list;
+  vector<const TpgFault*> abort_fault_list;
+  vector<TestVector> tv_list;
+  auto stats = DtpgMgr::run(network, rep_fault_list, option,
+			    [&](const TpgFault* f, TestVector tv) {
+			      DiffBits _dummy;
+			      bool r = fsim.spsfp(tv, f, _dummy);
+			      if ( !r ) {
+				ErrorList.push_back({f, tv});
+			      }
+			    },
+			    [&](const TpgFault* f) {
+			      untest_fault_list.push_back(f);
+			    },
+			    [&](const TpgFault* f) {
+			      abort_fault_list.push_back(f);
+			    });
 
   timer.stop();
   auto time = timer.get_time();
 
   if ( verbose ) {
-    print_stats(network, mgr, time);
+    print_stats(network, det_fault_list, untest_fault_list, stats, time);
   }
 
-  auto& verify_result = mgr.verify_result();
-  SizeType n = verify_result.error_count();
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto f = verify_result.error_fault(i);
-    auto tv = verify_result.error_testvector(i);
+  for ( auto& p: ErrorList ) {
+    auto f = p.first;
+    auto tv = p.second;
     cout << "Error: " << f << " is not detected with "
 	 << tv << endl;
   }
-
-  vector<TpgFault> fault_list;
-  //cout << "Untestable faults:" << endl;
-  for ( auto f: fault_mgr.rep_fault_list() ) {
-    if ( fault_mgr.get_status(f) == FaultStatus::Detected ) {
-      fault_list.push_back(f);
-    }
-    if ( fault_mgr.get_status(f) == FaultStatus::Untestable ) {
-      //cout << f << endl;
-    }
-  }
-  //cout << "====================" << endl;
 
   timer.reset();
   timer.start();
 
   std::mt19937 randgen;
-  auto& tv_list = mgr.tv_list();
   vector<TestVector> fixed_tv_list;
   fixed_tv_list.reserve(tv_list.size());
   for ( auto& tv: tv_list ) {
@@ -413,17 +411,17 @@ dtpg_test(
   }
 
   {
-    vector<TpgFault> fault_list2;
+    vector<const TpgFault*> fault_list2;
     Fsim fsim;
-    fsim.initialize(network, fault_type, false, false);
-    fsim.set_fault_list(fault_mgr.rep_fault_list());
+    fsim.initialize(network, false, false);
+    fsim.set_fault_list(det_fault_list);
     SizeType base = 0;
     vector<TestVector> tv_buf;
     for ( auto& tv: fixed_tv_list ) {
       tv_buf.push_back(tv);
       if ( tv_buf.size() == PV_BITLEN || tv_buf.size() + base == tv_list.size() ) {
 	fsim.ppsfp(tv_buf, [&](
-	  const TpgFault& f,
+	  const TpgFault* f,
 	  const DiffBitsArray& dbits
 	)
 	{
@@ -434,47 +432,47 @@ dtpg_test(
 	tv_buf.clear();
       }
     }
-    if ( fault_list2.size() != fault_list.size() ) {
-      cout << "fault_list.size() = " << fault_list.size() << endl
+    if ( fault_list2.size() != det_fault_list.size() ) {
+      cout << "fault_list.size() = " << det_fault_list.size() << endl
 	   << "fault_list2.size() = " << fault_list2.size() << endl;
       abort();
     }
   }
 
-  cout << "# of faults:  " << fault_list.size() << endl;
+  cout << "# of faults:  " << det_fault_list.size() << endl;
   cout << "# of tv_list: " << tv_list.size() << endl;
   cout << "DTPG time:                    "
        << std::fixed << std::setprecision(2) << (time / 1000) << endl;
 
-  classify(network, fault_list, fault_type, fixed_tv_list,
+  classify(network, det_fault_list, fault_type, fixed_tv_list,
 	   false, false, false, "no-drop, sppfp");
 
-  classify(network, fault_list, fault_type, fixed_tv_list,
+  classify(network, det_fault_list, fault_type, fixed_tv_list,
 	   false, true, false, "no-drop, ppsfp");
 
-  classify(network, fault_list, fault_type, fixed_tv_list,
+  classify(network, det_fault_list, fault_type, fixed_tv_list,
 	   true, false, false, "drop, sppfp");
 
-  classify(network, fault_list, fault_type, fixed_tv_list,
+  classify(network, det_fault_list, fault_type, fixed_tv_list,
 	   true, true, false, "drop, ppsfp");
 
-  classify(network, fault_list, fault_type, fixed_tv_list,
+  classify(network, det_fault_list, fault_type, fixed_tv_list,
 	   false, false, true, "no-drop, sppfp, multi");
 
-  classify(network, fault_list, fault_type, fixed_tv_list,
+  classify(network, det_fault_list, fault_type, fixed_tv_list,
 	   false, true, true, "no-drop, ppsfp, multi");
 
-  classify(network, fault_list, fault_type, fixed_tv_list,
+  classify(network, det_fault_list, fault_type, fixed_tv_list,
 	   true, false, true, "drop, sppfp, multi");
 
-  classify(network, fault_list, fault_type, fixed_tv_list,
+  classify(network, det_fault_list, fault_type, fixed_tv_list,
 	   true, true, true, "drop, ppsfp multi");
 
 #if 0
-  classify2(network, fault_list, fault_type, fixed_tv_list,
+  classify2(network, det_fault_list, fault_type, fixed_tv_list,
 	    false, multi, "sppfp");
 
-  classify2(network, fault_list, fault_type, fixed_tv_list,
+  classify2(network, det_fault_list, fault_type, fixed_tv_list,
 	    true, multi, "ppsfp");
 #endif
   return 0;

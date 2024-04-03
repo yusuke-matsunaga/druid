@@ -208,13 +208,6 @@ TpgLogicAND::noval() const
   return Val3::_1;
 }
 
-// @brief side-input の値を得る．
-Val3
-TpgLogicAND::side_val() const
-{
-  return Val3::_1;
-}
-
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogicNAND
@@ -295,13 +288,6 @@ TpgLogicOR::noval() const
   return Val3::_0;
 }
 
-// @brief side-input の値を得る．
-Val3
-TpgLogicOR::side_val() const
-{
-  return Val3::_0;
-}
-
 
 //////////////////////////////////////////////////////////////////////
 // クラス TpgLogicNOR
@@ -378,13 +364,6 @@ TpgLogicXOR::coval() const
 // @brief noncontroling output value を得る．
 Val3
 TpgLogicXOR::noval() const
-{
-  return Val3::_X;
-}
-
-// @brief side-input の値を得る．
-Val3
-TpgLogicXOR::side_val() const
 {
   return Val3::_X;
 }

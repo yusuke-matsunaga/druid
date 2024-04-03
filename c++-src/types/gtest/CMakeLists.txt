@@ -51,13 +51,6 @@ ym_add_gtest( druid_xor_test
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
-ym_add_gtest ( druid_TpgFaultMgrTest
-  TpgFaultMgrTest.cc
-  $<TARGET_OBJECTS:druid_types_obj_d>
-  ${YM_SUBMODULE_OBJ_D_LIST}
-  DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
-  )
-
 ym_add_gtest(druid_Val3Test
   Val3Test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>

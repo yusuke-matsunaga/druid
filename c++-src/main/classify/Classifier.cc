@@ -8,6 +8,7 @@
 
 #include "Classifier.h"
 #include "TestVector.h"
+#include "TpgFault.h"
 #include "ym/Timer.h"
 
 
@@ -64,26 +65,25 @@ struct Eq2 {
 };
 
 // @brief 故障を分類する．
-vector<vector<TpgFault>>
+vector<vector<const TpgFault*>>
 run_sppfp(
   const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
-  FaultType fault_type,
+  const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list,
   bool singleton_drop,
   bool multi
 )
 {
   Fsim fsim;
-  fsim.initialize(network, fault_type, false, multi);
+  fsim.initialize(network, false, multi);
   fsim.set_fault_list(fault_list);
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {
-    max_id = std::max(max_id, f.id());
+    max_id = std::max(max_id, f->id());
   }
   ++ max_id;
 
-  vector<TpgFault> tmp_fault_list{fault_list};
+  vector<const TpgFault*> tmp_fault_list{fault_list};
 
   Timer timer;
   Timer fsim_timer;
@@ -99,11 +99,11 @@ run_sppfp(
     fsim_timer.start();
     fsim.sppfp(tv,
 	       [&](
-		 const TpgFault& fault,
+		 const TpgFault* fault,
 		 const DiffBits& dbits
 	       )
 	       {
-		 auto fid = fault.id();
+		 auto fid = fault->id();
 		 SigKey key{dbits, fgmap[fid]};
 		 SizeType g;
 		 if ( sig_dict.count(key) == 0 ) {
@@ -126,10 +126,10 @@ run_sppfp(
 
     // singleton を除外する．
     if ( singleton_drop ) {
-      vector<TpgFault> new_list;
+      vector<const TpgFault*> new_list;
       new_list.reserve(tmp_fault_list.size());
-      for ( auto& f: tmp_fault_list ) {
-	auto fid = f.id();
+      for ( auto f: tmp_fault_list ) {
+	auto fid = f->id();
 	SizeType g = fgmap[fid];
 	if ( count[g] <= 1 ) {
 	  // 故障シミュレーションの対象からも外す．
@@ -158,9 +158,9 @@ run_sppfp(
   }
 
   // グループ番号に基づいてリストを作る．
-  vector<vector<TpgFault>> fg_list(last_g);
-  for ( auto& f: fault_list ) {
-    auto g = fgmap[f.id()];
+  vector<vector<const TpgFault*>> fg_list(last_g);
+  for ( auto f: fault_list ) {
+    auto g = fgmap[f->id()];
     if ( gmap.count(g) > 0 ) {
       auto new_g = gmap.at(g);
       fg_list[new_g].push_back(f);
@@ -182,26 +182,25 @@ run_sppfp(
 }
 
 // @brief 故障を分類する．
-vector<vector<TpgFault>>
+vector<vector<const TpgFault*>>
 run_ppsfp(
   const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
-  FaultType fault_type,
+  const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list,
   bool singleton_drop,
   bool multi
 )
 {
   Fsim fsim;
-  fsim.initialize(network, fault_type, false, multi);
+  fsim.initialize(network, false, multi);
   fsim.set_fault_list(fault_list);
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {
-    max_id = std::max(max_id, f.id());
+    max_id = std::max(max_id, f->id());
   }
   ++ max_id;
 
-  vector<TpgFault> tmp_fault_list{fault_list};
+  vector<const TpgFault*> tmp_fault_list{fault_list};
 
   Timer timer;
   Timer fsim_timer;
@@ -224,11 +223,11 @@ run_ppsfp(
       fsim_timer.start();
       fsim.ppsfp(tv_buff,
 		 [&](
-		   const TpgFault& fault,
+		   const TpgFault* fault,
 		   const DiffBitsArray& dbits_array
 		 )
 		 {
-		   auto fid = fault.id();
+		   auto fid = fault->id();
 		   SigKey2 key{dbits_array, fgmap[fid]};
 		   SizeType g;
 		   if ( sig_dict.count(key) == 0 ) {
@@ -253,10 +252,10 @@ run_ppsfp(
 
       // singleton を除外する．
       if ( singleton_drop ) {
-	vector<TpgFault> new_list;
+	vector<const TpgFault*> new_list;
 	new_list.reserve(tmp_fault_list.size());
-	for ( auto& f: tmp_fault_list ) {
-	  auto fid = f.id();
+	for ( auto f: tmp_fault_list ) {
+	  auto fid = f->id();
 	  SizeType g = fgmap[fid];
 	  if ( count[g] <= 1 ) {
 	    // 故障シミュレーションの対象からも外す．
@@ -286,9 +285,9 @@ run_ppsfp(
   }
 
   // グループ番号に基づいてリストを作る．
-  vector<vector<TpgFault>> fg_list(last_g);
-  for ( auto& f: fault_list ) {
-    auto g = fgmap[f.id()];
+  vector<vector<const TpgFault*>> fg_list(last_g);
+  for ( auto f: fault_list ) {
+    auto g = fgmap[f->id()];
     if ( gmap.count(g) > 0 ) {
       auto new_g = gmap.at(g);
       fg_list[new_g].push_back(f);
@@ -313,11 +312,10 @@ END_NONAMESPACE
 
 
 // @brief 故障を分類する．
-vector<vector<TpgFault>>
+vector<vector<const TpgFault*>>
 Classifier::run(
   const TpgNetwork& network,
-  const vector<TpgFault>& fault_list,
-  FaultType fault_type,
+  const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list,
   bool singleton_drop,
   bool ppsfp,
@@ -325,10 +323,10 @@ Classifier::run(
 )
 {
   if ( ppsfp ) {
-    return run_ppsfp(network, fault_list, fault_type, tv_list, singleton_drop, multi);
+    return run_ppsfp(network, fault_list, tv_list, singleton_drop, multi);
   }
   else {
-    return run_sppfp(network, fault_list, fault_type, tv_list, singleton_drop, multi);
+    return run_sppfp(network, fault_list, tv_list, singleton_drop, multi);
   }
 }
 

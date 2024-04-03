@@ -10,7 +10,6 @@
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
-#include "TpgDFF.h"
 #include "GateEnc.h"
 #include "NodeValList.h"
 #include "TestVector.h"
@@ -252,7 +251,7 @@ DtpgEngine::opt_make_cnf()
 // @brief gen_pattern() で用いる検出条件を作る．
 vector<SatLiteral>
 DtpgEngine::gen_assumptions(
-  const TpgFault&
+  const TpgFault*
 )
 {
   return {};
@@ -364,11 +363,11 @@ DtpgEngine::add_to_literal_list(
 // @brief テストパタン生成を行う．
 SatBool3
 DtpgEngine::solve(
-  const TpgFault& fault
+  const TpgFault* fault
 )
 {
   // FFR 内の伝搬条件
-  auto ffr_cond = fault.ffr_propagate_condition();
+  auto ffr_cond = fault->ffr_propagate_condition();
   // fault の活性化条件を求める．
   auto assumptions = gen_assumptions(fault);
   add_to_literal_list(ffr_cond, assumptions);
@@ -378,14 +377,14 @@ DtpgEngine::solve(
 // @brief 十分条件を取り出す．
 NodeValList
 DtpgEngine::get_sufficient_condition(
-  const TpgFault& fault
+  const TpgFault* fault
 )
 {
   // FFR 内の伝搬条件
-  auto ffr_cond = fault.ffr_propagate_condition();
+  auto ffr_cond = fault->ffr_propagate_condition();
   // FFR の根の先の伝搬条件
   const auto& model = mSolver.model();
-  auto ffr_root = fault.ffr_root();
+  auto ffr_root = fault->ffr_root();
   auto suf_cond = extract_sufficient_condition("simple", ffr_root,
 					       mGvarMap, mFvarMap, model);
   suf_cond.merge(ffr_cond);

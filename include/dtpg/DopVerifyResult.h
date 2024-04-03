@@ -38,13 +38,13 @@ public:
   /// @brief 成功結果を追加する．
   void
   add_good(
-    const TpgFault& f ///< [in] 故障
+    const TpgFault* f ///< [in] 故障
   );
 
   /// @brief エラー結果を追加する．
   void
   add_error(
-    const TpgFault& f,   ///< [in] 故障
+    const TpgFault* f,   ///< [in] 故障
     const TestVector& tv ///< [in] テストベクタ
   );
 
@@ -53,7 +53,7 @@ public:
   good_count() const;
 
   /// @brief 成功した故障を得る．
-  TpgFault
+  const TpgFault*
   good_fault(
     SizeType pos  ///< [in] 位置版号 ( 0 <= pos < good_count() )
   ) const;
@@ -63,7 +63,7 @@ public:
   error_count() const;
 
   /// @brief エラーの故障を得る．
-  TpgFault
+  const TpgFault*
   error_fault(
     SizeType pos  ///< [in] 位置版号 ( 0 <= pos < error_count() )
   ) const;
@@ -84,12 +84,12 @@ private:
   {
     // コンストラクタ
     ErrorCase(
-      const TpgFault& f,
+      const TpgFault* f,
       const TestVector& tv
     );
 
     // 故障
-    TpgFault mFault;
+    const TpgFault* mFault;
 
     // テストベクタ
     TestVector mTestVector;
@@ -103,7 +103,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 成功した故障のリスト
-  vector<TpgFault> mGoodList;
+  vector<const TpgFault*> mGoodList;
 
   // エラーのリスト
   vector<ErrorCase> mErrorList;

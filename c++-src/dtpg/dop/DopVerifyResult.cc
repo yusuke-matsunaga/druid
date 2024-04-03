@@ -29,7 +29,7 @@ DopVerifyResult::~DopVerifyResult()
 // @brief 成功結果を追加する．
 void
 DopVerifyResult::add_good(
-  const TpgFault& f
+  const TpgFault* f
 )
 {
   mGoodList.push_back(f);
@@ -38,7 +38,7 @@ DopVerifyResult::add_good(
 // @brief エラー結果を追加する．
 void
 DopVerifyResult::add_error(
-  const TpgFault& f,
+  const TpgFault* f,
   const TestVector& tv
 )
 {
@@ -53,7 +53,7 @@ DopVerifyResult::good_count() const
 }
 
 // @brief 成功した故障を得る．
-TpgFault
+const TpgFault*
 DopVerifyResult::good_fault(
   SizeType pos
 ) const
@@ -71,7 +71,7 @@ DopVerifyResult::error_count() const
 }
 
 // @brief エラーの故障を得る．
-TpgFault
+const TpgFault*
 DopVerifyResult::error_fault(
   SizeType pos
 ) const
@@ -93,7 +93,7 @@ DopVerifyResult::error_testvector(
 }
 
 DopVerifyResult::ErrorCase::ErrorCase(
-  const TpgFault& f,
+  const TpgFault* f,
   const TestVector& tv
 ) : mFault{f},
     mTestVector{tv}

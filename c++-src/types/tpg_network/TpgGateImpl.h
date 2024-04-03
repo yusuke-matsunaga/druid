@@ -14,6 +14,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
+#if 0
 //////////////////////////////////////////////////////////////////////
 /// @class TpgGateImpl TpgGateImpl.h "TpgGateImpl.h"
 /// @brief ゲートの情報を表すクラス
@@ -77,22 +78,23 @@ private:
   const GateType* mGateType;
 
 };
-
+#endif
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgGate_Simple TpgGateImpl.h "TpgGateImpl.h"
 /// @brief TpgNode そのものに対応する TpgGateImpl の派生クラス
 //////////////////////////////////////////////////////////////////////
 class TpgGate_Simple :
-  public TpgGateImpl
+  public TpgGate
 {
 public:
 
   /// @brief コンストラクタ
   TpgGate_Simple(
+    SizeType id,               ///< [in] ID番号
     const GateType* gate_type, ///< [in] ゲートの種類
     const TpgNode* node        ///< [in] ノード
-  ) : TpgGateImpl{gate_type},
+  ) : TpgGate{id, gate_type},
       mNode{node}
   {
   }
@@ -137,16 +139,17 @@ private:
 /// @brief 複合ゲート用の TpgGateImpl
 //////////////////////////////////////////////////////////////////////
 class TpgGate_Cplx :
-  public TpgGateImpl
+  public TpgGate
 {
 public:
 
   /// @brief コンストラクタ
   TpgGate_Cplx(
+    SizeType id,                          ///< [in] ID番号
     const GateType* gate_type,            ///< [in] ゲートの種類
     const TpgNode* node,                  ///< [in] 出力のノード
     const vector<BranchInfo>& branch_info ///< [in] ブランチの情報のリスト
-  ) : TpgGateImpl{gate_type},
+  ) : TpgGate{id, gate_type},
       mOutputNode{node},
       mBranchInfoList{branch_info}
   {

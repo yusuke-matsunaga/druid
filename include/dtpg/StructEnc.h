@@ -113,7 +113,7 @@ public:
   /// fnode から到達可能な外部出力までの故障伝搬条件を考える．
   void
   add_mffc_cone(
-    const TpgMFFC& mffc, ///< [in] MFFC の情報
+    const TpgMFFC* mffc, ///< [in] MFFC の情報
     bool detect		 ///< [in] 故障を検出する時に true にするフラグ
   );
 

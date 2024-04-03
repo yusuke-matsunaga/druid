@@ -20,7 +20,8 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 RefSim::RefSim(
   const TpgNetwork& network
-) : mNodeMap(network.node_num(), nullptr)
+) : mFaultType{network.fault_type()},
+    mNodeMap(network.node_num(), nullptr)
 {
   auto nn = network.node_num();
 
@@ -33,8 +34,8 @@ RefSim::RefSim(
   }
 
   // DFFの出力ノードを作る．
-  for ( auto tpg_dff: network.dff_list() ) {
-    auto tpg_node = tpg_dff.output();
+  for ( SizeType i = 0; i < network.dff_num(); ++ i ) {
+    auto tpg_node = network.dff_output(i);
     auto node = new RefNode(tpg_node->id(), PrimType::None, {});
     mNodeMap[tpg_node->id()] = node;
     mDffOutList.push_back(node);
@@ -48,8 +49,8 @@ RefSim::RefSim(
   }
 
   // DFFの入力ノードを作る．
-  for ( auto tpg_dff: network.dff_list() ) {
-    auto tpg_node = tpg_dff.input();
+  for ( SizeType i = 0; i < network.dff_num(); ++ i ) {
+    auto tpg_node = network.dff_input(i);
     auto node = make_node(tpg_node);
     mDffInList.push_back(node);
   }
@@ -67,11 +68,10 @@ RefSim::~RefSim()
 DiffBits
 RefSim::simulate(
   const TestVector& tv,
-  const TpgFault& fault,
-  FaultType fault_type
+  const TpgFault* fault
 )
 {
-  switch ( fault_type ) {
+  switch ( mFaultType ) {
   case FaultType::StuckAt: return simulate_sa(tv, fault);
   case FaultType::TransitionDelay: return simulate_td(tv, fault);
   default: break;
@@ -84,7 +84,7 @@ RefSim::simulate(
 DiffBits
 RefSim::simulate_sa(
   const TestVector& tv,
-  const TpgFault& fault
+  const TpgFault* fault
 )
 {
   // 入力に値を設定する．
@@ -152,7 +152,7 @@ RefSim::simulate_sa(
 DiffBits
 RefSim::simulate_td(
   const TestVector& tv,
-  const TpgFault& fault
+  const TpgFault* fault
 )
 {
   // 入力に値を設定する．
@@ -262,15 +262,15 @@ RefSim::make_node(
 // @brief 故障の活性化条件をチェックする．
 bool
 RefSim::check_fault_cond(
-  const TpgFault& fault,
+  const TpgFault* fault,
   RefNode* node
 ) const
 {
-  auto onode = mNodeMap[fault.origin_node()->id()];
+  auto onode = mNodeMap[fault->origin_node()->id()];
   if ( onode != node ) {
     return false;
   }
-  for ( auto nv: fault.excitation_condition() ) {
+  for ( auto nv: fault->excitation_condition() ) {
     auto node1 = mNodeMap[nv.node()->id()];
     Val3 val;
     if ( nv.time() == 1 ) {

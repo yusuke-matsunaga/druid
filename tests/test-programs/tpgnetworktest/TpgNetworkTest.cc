@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "TpgNetwork.h"
-#include "TpgFaultMgr.h"
+#include "FaultType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,9 +24,8 @@ loop_test(
 	   << "\r" << i1 << ": " << i2 << "\r";
       cout.flush();
       try {
-	auto network = TpgNetwork::read_iscas89(filename);
-	TpgFaultMgr fmgr;
-	fmgr.gen_fault_list(network, FaultType::StuckAt);
+	auto network = TpgNetwork::read_iscas89(filename, FaultType::StuckAt);
+	auto& fault_list = network.rep_fault_list();
       }
       catch ( std::invalid_argument ) {
 	cerr << "Error in reading " << filename << endl;

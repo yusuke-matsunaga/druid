@@ -11,10 +11,6 @@
 #include "druid.h"
 #include "ym/bn.h"
 #include "ym/ClibCellLibrary.h"
-#include "TpgDFFList.h"
-#include "TpgMFFCList.h"
-#include "TpgFFRList.h"
-#include "TpgGateList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -84,7 +80,8 @@ public:
 
   /// @brief BnModel からの変換コンストラクタ
   TpgNetwork(
-    const BnModel& src ///< [in] 設定元のネットワーク
+    const BnModel& src,  ///< [in] 設定元のネットワーク
+    FaultType fault_type ///< [in] 故障の種類
   );
 
   /// @brief blif ファイルを読み込む．
@@ -94,11 +91,12 @@ public:
   TpgNetwork
   read_blif(
     const string& filename,        ///< [in] ファイル名
+    FaultType fault_type,          ///< [in] 故障の種類
     const string& clock_name = {}, ///< [in] クロック入力名
     const string& reset_name = {}  ///< [in] リセット入力名
   )
   {
-    return read_blif(filename, ClibCellLibrary{}, clock_name, reset_name);
+    return read_blif(filename, fault_type, ClibCellLibrary{}, clock_name, reset_name);
   }
 
   /// @brief blif ファイルを読み込む．
@@ -108,6 +106,7 @@ public:
   TpgNetwork
   read_blif(
     const string& filename,              ///< [in] ファイル名
+    FaultType fault_type,                ///< [in] 故障の種類
     const ClibCellLibrary& cell_library, ///< [in] セルライブラリ
     const string& clock_name = {},       ///< [in] クロック入力名
     const string& reset_name = {}        ///< [in] リセット入力名
@@ -120,6 +119,7 @@ public:
   TpgNetwork
   read_iscas89(
     const string& filename,       ///< [in] ファイル名
+    FaultType fault_type,         ///< [in] 故障の種類
     const string& clock_name = {} ///< [in] クロック入力名
   );
 
@@ -129,6 +129,7 @@ public:
   read_network(
     const string& filename,                   ///< [in] ファイル名
     const string& format,                     ///< [in] ファイルの形式を表す文字列
+    FaultType fault_type,                     ///< [in] 故障の種類
     const ClibCellLibrary& cell_library = {}, ///< [in] セルライブラリ
     const string& clock_name = {},            ///< [in] クロック入力名
     const string& reset_name = {}             ///< [in] リセット入力名
@@ -270,53 +271,54 @@ public:
   mffc_num() const;
 
   /// @brief MFFC を返す．
-  TpgMFFC
+  const TpgMFFC*
   mffc(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
   ) const;
 
   /// @brief MFFC のリストを得る．
-  TpgMFFCList
-  mffc_list() const
-  {
-    return TpgMFFCList{mImpl.get(), mffc_num()};
-  }
+  const vector<const TpgMFFC*>&
+  mffc_list() const;
 
   /// @brief FFR 数を返す．
   SizeType
   ffr_num() const;
 
   /// @brief FFR を返す．
-  TpgFFR
+  const TpgFFR*
   ffr(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
   ) const;
 
   /// @brief FFR のリストを得る．
-  TpgFFRList
-  ffr_list() const
-  {
-    return TpgFFRList{mImpl.get(), ffr_num()};
-  }
+  const vector<const TpgFFR*>&
+  ffr_list() const;
 
   /// @brief DFF数を得る．
   SizeType
   dff_num() const;
 
-  /// @brief DFF を得る．
+  /// @brief DFFの入力ノードを得る．
   ///
   /// @code
-  /// dff = network.dff(dff->id())
+  /// network.dff_input(pos)->dff_id() == pos
   /// @endcode
   /// の関係が成り立つ．
-  TpgDFF
-  dff(
+  const TpgNode*
+  dff_input(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
   ) const;
 
-  /// @brief DFF のリストを得る．
-  TpgDFFList
-  dff_list() const;
+  /// @brief DFFの出力ノードを得る．
+  ///
+  /// @code
+  /// network.dff_output(pos)->dff_id() == pos
+  /// @endcode
+  /// の関係が成り立つ．
+  const TpgNode*
+  dff_output(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
+  ) const;
 
 
 public:
@@ -329,17 +331,56 @@ public:
   gate_num() const;
 
   /// @brief ゲート情報を得る．
-  TpgGate
+  const TpgGate*
   gate(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < gate_num() )
   ) const;
 
   /// @brief ゲート情報のリストを得る．
-  TpgGateList
-  gate_list() const
-  {
-    return TpgGateList{mImpl.get(), gate_num()};
-  }
+  const vector<const TpgGate*>&
+  gate_list() const;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 故障の情報を得る関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障の種類を返す．
+  FaultType
+  fault_type() const;
+
+  /// @brief 代表故障のリストを得る．
+  const vector<const TpgFault*>&
+  rep_fault_list() const;
+
+  /// @brief ステムの故障を得る.
+  ///
+  /// 故障タイプが網羅故障の場合には不正な呼び出しとなる．
+  const TpgFault*
+  find_fault(
+    const TpgGate* gate,  ///< [in] 出力のゲート
+    Fval2 fval            ///< [in] 故障値
+  ) const;
+
+  /// @brief ブランチの故障を得る．
+  ///
+  /// 故障タイプが網羅故障の場合には不正な呼び出しとなる．
+  const TpgFault*
+  find_fault(
+    const TpgGate* gate,  ///< [in] 出力のゲート
+    SizeType ipos,        ///< [in] 入力位置
+    Fval2 val             ///< [in] 故障値
+  ) const;
+
+  /// @brief 網羅故障を得る.
+  ///
+  /// 故障タイプが網羅故障でない場合には不正な呼び出しとなる．
+  const TpgFault*
+  find_fault(
+    const TpgGate* gate,      ///< [in] 出力のゲート
+    const vector<bool>& ivals ///< [in] 入力値のベクトル
+  ) const;
 
 
 public:

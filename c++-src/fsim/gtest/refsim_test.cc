@@ -9,8 +9,9 @@
 #include "druid.h"
 #include "RefSim.h"
 #include "TpgNetwork.h"
-#include "TpgFaultMgr.h"
 #include "TestVector.h"
+#include "TpgFault.h"
+#include "FaultType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,17 +25,14 @@ refsim_test(
   TpgNetwork network;
   if ( argc == 1 ) {
     auto filename = string{TESTDATA_DIR} + "/" + "s27.blif";
-    network = TpgNetwork::read_blif(filename);
+    network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
   }
   else {
     auto filename = argv[1];
-    network = TpgNetwork::read_blif(filename);
+    network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
   }
 
-  TpgFaultMgr fmgr;
-  fmgr.gen_fault_list(network, FaultType::StuckAt);
-
-  auto fault_list = fmgr.fault_list();
+  auto& fault_list = network.rep_fault_list();
 
   SizeType input_num = network.input_num();
   SizeType dff_num = network.dff_num();

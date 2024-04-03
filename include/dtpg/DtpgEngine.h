@@ -102,14 +102,14 @@ public:
   /// @brief テストパタン生成を行う．
   SatBool3
   solve(
-    const TpgFault& fault ///< [in] 故障
+    const TpgFault* fault ///< [in] 故障
   );
 
   /// @brief 十分条件を取り出す．
   /// @return 十分条件を表す割当リストを返す．
   NodeValList
   get_sufficient_condition(
-    const TpgFault& fault ///< [in] 故障
+    const TpgFault* fault ///< [in] 故障
   );
 
   /// @brief SATの統計情報を返す．
@@ -301,7 +301,7 @@ private:
   virtual
   vector<SatLiteral>
   gen_assumptions(
-    const TpgFault& fault ///< [in] 対象の故障
+    const TpgFault* fault ///< [in] 対象の故障
   );
 
   /// @brief 故障伝搬条件を表すCNF式を生成する．

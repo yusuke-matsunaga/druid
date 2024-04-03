@@ -5,15 +5,13 @@
 /// @brief TpgFFR のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-class TpgNetworkImpl;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgFFR TpgFFR.h "TpgFFR.h"
@@ -24,21 +22,26 @@ class TpgNetworkImpl;
 ///
 /// 具体的には以下の情報を持つ．
 /// - FFR の根のノード
+/// - FFR の葉のノードのリスト
+/// - FFR に含まれる全ノードのリスト
+/// - ffR に含まれる故障のリスト
 /// 一度設定された不変のオブジェクトとなる．
+///
+/// FFR の葉のノードはそのFFRには含まれない．
 //////////////////////////////////////////////////////////////////////
 class TpgFFR
 {
 public:
 
   /// @brief コンストラクタ
-  TpgFFR() = default;
-
-  /// @brief コンストラクタ
   TpgFFR(
-    const TpgNetworkImpl* network, ///< [in] ネットワーク
-    SizeType id                    ///< [in] ID番号
-  ) : mNetwork{network},
-      mId{id}
+    SizeType id,                              ///< [in] ID番号
+    const TpgNode* root,                      ///< [in] 根のノード
+    const vector<const TpgNode*>& input_list, ///< [in] 葉のノードのリスト
+    const vector<const TpgNode*>& node_list   ///< [in] 含まれるノードのリスト
+  ) : mId{id},
+      mInputList{input_list},
+      mNodeList{node_list}
   {
   }
 
@@ -60,13 +63,16 @@ public:
 
   /// @brief 根のノードを返す．
   const TpgNode*
-  root() const;
+  root() const
+  {
+    return mRoot;
+  }
 
   /// @brief 葉(FFRの入力)の数を返す．
   SizeType
   input_num() const
   {
-    return input_list().size();
+    return mInputList.size();
   }
 
   /// @brief 葉(FFRの入力)を返す．
@@ -77,18 +83,21 @@ public:
   {
     ASSERT_COND( 0 <= pos && pos < input_num() );
 
-    return input_list()[pos];
+    return mInputList[pos];
   }
 
   /// @brief 葉(FFRの入力)のリストを返す．
   const vector<const TpgNode*>&
-  input_list() const;
+  input_list() const
+  {
+    return mInputList;
+  }
 
   /// @brief このFFRに含まれるノード数を返す．
   SizeType
   node_num() const
   {
-    return node_list().size();
+    return mNodeList.size();
   }
 
   /// @brief このFFRに含まれるノードを返す．
@@ -99,29 +108,14 @@ public:
   {
     ASSERT_COND( 0 <= pos && pos < node_num() );
 
-    return node_list()[pos];
+    return mNodeList[pos];
   }
 
   /// @brief このFFRに含まれるノードのリストを返す．
   const vector<const TpgNode*>&
-  node_list() const;
-
-  /// @brief 等価比較演算子
-  bool
-  operator==(
-    const TpgFFR& right
-  ) const
+  node_list() const
   {
-    return mNetwork == right.mNetwork && mId == right.mId;
-  }
-
-  /// @brief 非等価比較演算子
-  bool
-  operator!=(
-    const TpgFFR& right
-  ) const
-  {
-    return !operator==(right);
+    return mNodeList;
   }
 
 
@@ -130,11 +124,17 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // ネットワーク
-  const TpgNetworkImpl* mNetwork{nullptr};
-
   // ID番号
   SizeType mId;
+
+  // 根のノード
+  const TpgNode* mRoot{nullptr};
+
+  // 葉のノードの配列
+  vector<const TpgNode*> mInputList;
+
+  // ノードのリスト
+  vector<const TpgNode*> mNodeList;
 
 };
 

@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "DopDrop.h"
-#include "TpgFaultMgr.h"
+#include "DtpgMgr.h"
 #include "Fsim.h"
 #include "TpgFault.h"
 #include "TestVector.h"
@@ -18,11 +18,11 @@ BEGIN_NAMESPACE_DRUID
 // @brief 'drop' タイプを生成する．
 DetectOp*
 new_DopDrop(
-  TpgFaultMgr& fmgr,
+  DtpgMgr& mgr,
   Fsim& fsim
 )
 {
-  return new DopDrop{fmgr, fsim};
+  return new DopDrop{mgr, fsim};
 }
 
 
@@ -32,9 +32,9 @@ new_DopDrop(
 
 // @brief コンストラクタ
 DopDrop::DopDrop(
-  TpgFaultMgr& fmgr,
+  DtpgMgr& mgr,
   Fsim& fsim
-) : mFaultMgr{fmgr},
+) : mMgr{mgr},
     mFsim{fsim}
 {
 }
@@ -47,16 +47,15 @@ DopDrop::~DopDrop()
 // @brief テストパタンが見つかった時の処理
 void
 DopDrop::operator()(
-  const TpgFault& f,
+  const TpgFault* f,
   const TestVector& tv
 )
 {
   mFsim.set_skip(f);
   mFsim.sppfp(tv,
-	      [&](TpgFault f, DiffBits _)
+	      [&](const TpgFault* f, DiffBits _)
 	      {
-		ASSERT_COND( mFaultMgr.get_status(f) != FaultStatus::Untestable );
-		mFaultMgr.set_status(f, FaultStatus::Detected);
+		mMgr.update_det(f, tv, 0.0, 0.0);
 		mFsim.set_skip(f);
 	      });
 }

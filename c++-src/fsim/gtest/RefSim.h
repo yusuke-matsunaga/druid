@@ -43,23 +43,22 @@ public:
   /// @brief 故障シミュレーションを行う．
   DiffBits
   simulate(
-    const TestVector& tv,  ///< [in] テストベクタ
-    const TpgFault& fault, ///< [in] 故障
-    FaultType fault_type   ///< [in] 故障の種類
+    const TestVector& tv, ///< [in] テストベクタ
+    const TpgFault* fault ///< [in] 故障
   );
 
   /// @brief 縮退故障用の故障シミュレーションを行う．
   DiffBits
   simulate_sa(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault& fault ///< [in] 故障
+    const TpgFault* fault ///< [in] 故障
   );
 
   /// @brief 遷移故障用の故障シミュレーションを行う．
   DiffBits
   simulate_td(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault& fault ///< [in] 故障
+    const TpgFault* fault ///< [in] 故障
   );
 
 
@@ -77,7 +76,7 @@ private:
   /// @brief 故障の活性化条件をチェックする．
   bool
   check_fault_cond(
-    const TpgFault& fault,
+    const TpgFault* fault,
     RefNode* node
   ) const;
 
@@ -86,6 +85,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // 故障の種類
+  FaultType mFaultType;
 
   // TpgNode のノード番号をキーにして RefNode を格納する配列
   vector<RefNode*> mNodeMap;

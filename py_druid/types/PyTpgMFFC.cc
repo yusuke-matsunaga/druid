@@ -19,7 +19,7 @@ BEGIN_NONAMESPACE
 struct TpgMFFCObject
 {
   PyObject_HEAD
-  TpgMFFC mVal;
+  const TpgMFFC* mVal;
 };
 
 // Python 用のタイプ定義
@@ -63,7 +63,7 @@ TpgMFFC_mffc_id(
 )
 {
   auto val = PyTpgMFFC::Get(self);
-  return PyLong_FromLong(val.id());
+  return PyLong_FromLong(val->id());
 }
 
 // get/set 関数定義
@@ -130,7 +130,7 @@ PyTpgMFFC::init(
 // @brief TpgMFFC を PyObject に変換する．
 PyObject*
 PyTpgMFFC::ToPyObject(
-  const TpgMFFC& val
+  const TpgMFFC* val
 )
 {
   auto obj = TpgMFFCType.tp_alloc(&TpgMFFCType, 0);
@@ -142,23 +142,7 @@ PyTpgMFFC::ToPyObject(
 // @brief TpgMFFC のリストを表す PyObject を作る．
 PyObject*
 PyTpgMFFC::ToPyList(
-  const vector<TpgMFFC>& val_list
-)
-{
-  SizeType n = val_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto mffc = val_list[i];
-    auto mffc_obj = ToPyObject(mffc);
-    PyList_SET_ITEM(ans_obj, i, mffc_obj);
-  }
-  return ans_obj;
-}
-
-// @brief TpgMFFC のリストを表す PyObject を作る．
-PyObject*
-PyTpgMFFC::ToPyList(
-  const TpgMFFCList& val_list
+  const vector<const TpgMFFC*>& val_list
 )
 {
   SizeType n = val_list.size();
@@ -181,7 +165,7 @@ PyTpgMFFC::Check(
 }
 
 // @brief TpgMFFC を表す PyObject から TpgMFFC を取り出す．
-const TpgMFFC&
+const TpgMFFC*
 PyTpgMFFC::Get(
   PyObject* obj
 )

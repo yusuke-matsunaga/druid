@@ -3,12 +3,10 @@
 /// @brief DopBase の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017 Yusuke Matsunaga
+/// Copyright (C) 2017, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "DopBase.h"
-#include "TpgFaultMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -16,10 +14,10 @@ BEGIN_NAMESPACE_DRUID
 // @brief 'base' タイプを生成する．
 DetectOp*
 new_DopBase(
-  TpgFaultMgr& fmgr
+  DtpgMgr& mgr
 )
 {
-  return new DopBase{fmgr};
+  return new DopBase{mgr};
 }
 
 
@@ -29,8 +27,8 @@ new_DopBase(
 
 // @brief コンストラクタ
 DopBase::DopBase(
-  TpgFaultMgr& fmgr
-) : mFaultMgr{fmgr}
+  DtpgMgr& mgr
+) : mMgr{mgr}
 {
 }
 
@@ -42,11 +40,11 @@ DopBase::~DopBase()
 // @brief テストパタンが見つかった時の処理
 void
 DopBase::operator()(
-  const TpgFault& f,
+  const TpgFault* f,
   const TestVector& tv
 )
 {
-  mFaultMgr.set_status(f, FaultStatus::Detected);
+
 }
 
 END_NAMESPACE_DRUID

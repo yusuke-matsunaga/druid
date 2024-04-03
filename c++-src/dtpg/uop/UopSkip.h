@@ -39,7 +39,7 @@ public:
   /// @brief テスト不能故障と判定された時の処理
   void
   operator()(
-    const TpgFault& f ///< [in] 故障
+    const TpgFault* f ///< [in] 故障
   );
 
   /// @brief 検出不能回数とスキップフラグをクリアする．

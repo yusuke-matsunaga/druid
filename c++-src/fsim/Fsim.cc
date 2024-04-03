@@ -8,8 +8,9 @@
 
 #include "Fsim.h"
 #include "FsimImpl.h"
-#include "TpgFaultMgr.h"
+#include "TpgNetwork.h"
 #include "TestVector.h"
+#include "TpgFault.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -32,12 +33,11 @@ Fsim::~Fsim()
 void
 Fsim::initialize(
   const TpgNetwork& network,
-  FaultType fault_type,
   bool has_x,
   bool multi
 )
 {
-  bool has_previous_state = fault_type == FaultType::TransitionDelay;
+  bool has_previous_state = network.fault_type() == FaultType::TransitionDelay;
   if ( multi ) {
     initialize_multi(network, has_previous_state, has_x);
   }
@@ -49,24 +49,10 @@ Fsim::initialize(
 // @brief 対象の故障をセットする．
 void
 Fsim::set_fault_list(
-  const vector<TpgFault>& fault_list ///< [in] 故障のリスト
+  const vector<const TpgFault*>& fault_list
 )
 {
   mImpl->set_fault_list(fault_list);
-}
-
-// @brief 対象の故障をセットする．
-void
-Fsim::set_fault_list(
-  const TpgFaultList& fault_list ///< [in] 故障のリスト
-)
-{
-  vector<TpgFault> tmp_list;
-  tmp_list.reserve(fault_list.size());
-  for ( auto f: fault_list ) {
-    tmp_list.push_back(f);
-  }
-  mImpl->set_fault_list(tmp_list);
 }
 
 // @brief 全ての故障にスキップマークをつける．
@@ -79,7 +65,7 @@ Fsim::set_skip_all()
 // @brief 故障にスキップマークをつける．
 void
 Fsim::set_skip(
-  const TpgFault& f
+  const TpgFault* f
 )
 {
   mImpl->set_skip(f);
@@ -88,19 +74,7 @@ Fsim::set_skip(
 // @brief 複数の故障にスキップマークをつける．
 void
 Fsim::set_skip(
-  const TpgFaultList& fault_list
-)
-{
-  clear_skip_all();
-  for ( auto f: fault_list ) {
-    set_skip(f);
-  }
-}
-
-// @brief 複数の故障にスキップマークをつける．
-void
-Fsim::set_skip(
-  const vector<TpgFault>& fault_list
+  const vector<const TpgFault*>& fault_list
 )
 {
   for ( auto f: fault_list ) {
@@ -118,7 +92,7 @@ Fsim::clear_skip_all()
 // @brief 故障のスキップマークを消す．
 void
 Fsim::clear_skip(
-  const TpgFault& f
+  const TpgFault* f
 )
 {
   mImpl->clear_skip(f);
@@ -127,19 +101,7 @@ Fsim::clear_skip(
 // @brief 複数の故障のスキップマークを消す．
 void
 Fsim::clear_skip(
-  const TpgFaultList& fault_list
-)
-{
-  set_skip_all();
-  for ( auto f: fault_list ) {
-    clear_skip(f);
-  }
-}
-
-// @brief 複数の故障のスキップマークを消す．
-void
-Fsim::clear_skip(
-  const vector<TpgFault>& fault_list
+  const vector<const TpgFault*>& fault_list
 )
 {
   set_skip_all();
@@ -151,7 +113,7 @@ Fsim::clear_skip(
 // @brief 故障のスキップマークを得る．
 bool
 Fsim::get_skip(
-  const TpgFault& f
+  const TpgFault* f
 ) const
 {
   return mImpl->get_skip(f);
@@ -161,7 +123,7 @@ Fsim::get_skip(
 bool
 Fsim::spsfp(
   const TestVector& tv,
-  const TpgFault& f,
+  const TpgFault* f,
   DiffBits& dbits
 )
 {
@@ -172,7 +134,7 @@ Fsim::spsfp(
 bool
 Fsim::spsfp(
   const NodeValList& assign_list,
-  const TpgFault& f,
+  const TpgFault* f,
   DiffBits& dbits
 )
 {

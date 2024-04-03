@@ -27,7 +27,7 @@ public:
   FFREngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
-    const TpgFFR& ffr,	           ///< [in] 故障伝搬の起点となる FFR
+    const TpgFFR* ffr,	           ///< [in] 故障伝搬の起点となる FFR
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
   );
 
@@ -45,7 +45,7 @@ protected:
   /// デフォルトでは空を返す．
   vector<SatLiteral>
   gen_assumptions(
-    const TpgFault& fault ///< [in] 対象の故障
+    const TpgFault* fault ///< [in] 対象の故障
   ) override;
 
 };

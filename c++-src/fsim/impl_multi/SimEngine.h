@@ -283,10 +283,10 @@ private:
   vector<RestoreInfo> mClearArray;
 
   // 結果のリスト(SPPFP)
-  vector<pair<TpgFault, DiffBits>> mResList1;
+  vector<pair<const TpgFault*, DiffBits>> mResList1;
 
   // 結果のリスト(PPSFP)
-  vector<pair<TpgFault, DiffBitsArray>> mResList2;
+  vector<pair<const TpgFault*, DiffBitsArray>> mResList2;
 
   // デバッグフラグ
   bool mDebug{false};

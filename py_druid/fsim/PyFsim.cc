@@ -15,7 +15,6 @@
 #include "PyDffVector.h"
 #include "PyFaultType.h"
 #include "PyTpgFault.h"
-#include "PyTpgFaultMgr.h"
 #include "pym/PyModule.h"
 
 
@@ -78,25 +77,21 @@ Fsim_initialize(
 {
   static const char* kwlist[] = {
     "network",
-    "fault_type",
     "val_type",
     "multi",
     nullptr
   };
   PyObject* network_obj = nullptr;
-  PyObject* fault_type_obj = nullptr;
   int val_type = 0;
   int i_multi = 0;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!i|p",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!i|p",
 				    const_cast<char**>(kwlist),
 				    PyTpgNetwork::_typeobject(), &network_obj,
-				    PyFaultType::_typeobject(), &fault_type_obj,
 				    &val_type, &i_multi) ) {
     return nullptr;
   }
 
   auto& network = PyTpgNetwork::Get(network_obj);
-  auto fault_type = PyFaultType::Get(fault_type_obj);
   bool multi = static_cast<bool>(i_multi);
 
   bool has_x = false;
@@ -107,11 +102,11 @@ Fsim_initialize(
     has_x = true;
   }
   else {
-    PyErr_SetString(PyExc_ValueError, "argument 3 must be 2 or 3");
+    PyErr_SetString(PyExc_ValueError, "argument 2 must be 2 or 3");
     return nullptr;
   }
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  fsim_obj->mPtr->initialize(network, fault_type, has_x, multi);
+  fsim_obj->mPtr->initialize(network, has_x, multi);
   Py_RETURN_NONE;
 }
 
@@ -134,7 +129,7 @@ Fsim_set_fault_list(
     return nullptr;
   }
 
-  vector<TpgFault> fault_list;
+  vector<const TpgFault*> fault_list;
   if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
     return nullptr;
   }
@@ -173,7 +168,7 @@ Fsim_set_skip(
     return nullptr;
   }
 
-  vector<TpgFault> fault_list;
+  vector<const TpgFault*> fault_list;
   if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
     return nullptr;
   }
@@ -212,7 +207,7 @@ Fsim_clear_skip(
     return nullptr;
   }
 
-  vector<TpgFault> fault_list;
+  vector<const TpgFault*> fault_list;
   if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
     return nullptr;
   }
@@ -274,10 +269,10 @@ Fsim_sppfp(
   }
   auto tv = PyTestVector::Get(obj1);
   auto fsim = PyFsim::Get(self);
-  vector<pair<TpgFault, DiffBits>> ans_list;
+  vector<pair<const TpgFault*, DiffBits>> ans_list;
   fsim->sppfp(tv,
 	      [&](
-		const TpgFault& f,
+		const TpgFault* f,
 		const DiffBits& dbits
 	      )
 	      {
@@ -332,7 +327,7 @@ Fsim_ppsfp(
   auto fsim = PyFsim::Get(self);
   fsim->ppsfp(tv_list,
 	      [&](
-		const TpgFault& f,
+		const TpgFault* f,
 		const DiffBitsArray& dbits_array
 	      )
 	      {

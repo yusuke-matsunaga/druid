@@ -34,30 +34,33 @@ BEGIN_NAMESPACE_DRUID
 TpgNetwork
 TpgNetwork::read_blif(
   const string& filename,
+  FaultType fault_type,
   const ClibCellLibrary& cell_library,
   const string& clock_name,
   const string& reset_name
 )
 {
   auto model = BnModel::read_blif(filename, cell_library, clock_name, reset_name);
-  return TpgNetwork{model};
+  return TpgNetwork{model, fault_type};
 }
 
 // @brief iscas89 形式のファイルを読み込む．
 TpgNetwork
 TpgNetwork::read_iscas89(
   const string& filename,
+  FaultType fault_type,
   const string& clock_name
 )
 {
   auto model = BnModel::read_iscas89(filename, clock_name);
-  return TpgNetwork{model};
+  return TpgNetwork{model, fault_type};
 }
 
 // @brief BnModel からの変換コンストラクタ
 TpgNetwork::TpgNetwork(
-  const BnModel& model
-) : mImpl{new TpgNetworkImpl{model}}
+  const BnModel& model,
+  FaultType fault_type
+) : mImpl{new TpgNetworkImpl{model, fault_type}}
 {
 }
 
@@ -90,7 +93,8 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 TpgNetworkImpl::TpgNetworkImpl(
-  const BnModel& model
+  const BnModel& model,
+  FaultType fault_type
 )
 {
   //////////////////////////////////////////////////////////////////////

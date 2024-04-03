@@ -42,21 +42,22 @@ UopSkip::~UopSkip()
 // @brief テスト不能故障と判定された時の処理
 void
 UopSkip::operator()(
-  const TpgFault& f
+  const TpgFault* f
 )
 {
-  if ( mUntestCountMap.count(f.id()) == 0 ) {
+  auto fid = f->id();
+  if ( mUntestCountMap.count(fid) == 0 ) {
     // はじめて検出不能になった．
-    mUntestCountMap.emplace(f.id(), 0);
-    mUntestList.push_back(f.id());
+    mUntestCountMap.emplace(fid, 0);
+    mUntestList.push_back(fid);
   }
 
   // 検出不能回数を1増やす．
-  ++ mUntestCountMap[f.id()];
+  ++ mUntestCountMap[fid];
 
-  if ( mUntestCountMap[f.id()] >= mThreshold ) {
+  if ( mUntestCountMap[fid] >= mThreshold ) {
     // 検出不能回数がしきい値を越えたのでスキップする．
-    mSkipList.push_back(f.id());
+    mSkipList.push_back(fid);
   }
 }
 

@@ -41,7 +41,7 @@ DopTvList::~DopTvList()
 // @brief テストパタンが見つかった時の処理
 void
 DopTvList::operator()(
-  const TpgFault& f,
+  const TpgFault* f,
   const TestVector& tv
 )
 {

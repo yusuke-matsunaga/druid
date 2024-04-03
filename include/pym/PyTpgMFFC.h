@@ -12,7 +12,6 @@
 #include <Python.h>
 
 #include "TpgMFFC.h"
-#include "TpgMFFCList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -45,7 +44,7 @@ public:
   static
   PyObject*
   ToPyObject(
-    const TpgMFFC& val ///< [in] 値
+    const TpgMFFC* val ///< [in] 値
   );
 
   /// @brief TpgMFFC のリストを表す PyObject を作る．
@@ -55,17 +54,7 @@ public:
   static
   PyObject*
   ToPyList(
-    const vector<TpgMFFC>& val_list ///< [in] 値のリスト
-  );
-
-  /// @brief TpgMFFC のリストを表す PyObject を作る．
-  /// @return 生成した PyObject を返す．
-  ///
-  /// 返り値は新しい参照が返される．
-  static
-  PyObject*
-  ToPyList(
-    const TpgMFFCList& val_list ///< [in] 値のリスト
+    const vector<const TpgMFFC*>& val_list ///< [in] 値のリスト
   );
 
   /// @brief PyObject が TpgMFFC タイプか調べる．
@@ -80,7 +69,7 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  const TpgMFFC&
+  const TpgMFFC*
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );

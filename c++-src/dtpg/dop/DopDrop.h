@@ -24,8 +24,8 @@ public:
 
   /// @brief コンストラクタ
   DopDrop(
-    TpgFaultMgr& fmgr, ///< [in] 故障の状態を管理するクラス
-    Fsim& fsim         ///< [in] 故障シミュレータ
+    DtpgMgr& mgr, ///< [in] DTPGマネージャ
+    Fsim& fsim    ///< [in] 故障シミュレータ
   );
 
   /// @brief デストラクタ
@@ -40,7 +40,7 @@ public:
   /// @brief テストパタンが見つかった時の処理
   void
   operator()(
-    const TpgFault& f,   ///< [in] 故障
+    const TpgFault* f,   ///< [in] 故障
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
@@ -50,8 +50,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障の状態を管理するクラス
-  TpgFaultMgr& mFaultMgr;
+  // DTPG マネージャ
+  DtpgMgr& mMgr;
 
   // 故障シミュレータ
   Fsim& mFsim;

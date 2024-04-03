@@ -13,7 +13,6 @@
 #include "PyVal3.h"
 #include "PyFaultType.h"
 #include "PyTpgFault.h"
-#include "PyTpgFaultMgr.h"
 #include "PyTpgNetwork.h"
 #include "PyTpgMFFC.h"
 #include "PyTpgFFR.h"
@@ -61,9 +60,6 @@ PyInit_types()
     goto error;
   }
   if ( !PyTpgFault::init(m) ) {
-    goto error;
-  }
-  if ( !PyTpgFaultMgr::init(m) ) {
     goto error;
   }
   if ( !PyTpgNetwork::init(m) ) {

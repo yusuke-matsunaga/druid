@@ -39,7 +39,7 @@ public:
   virtual
   void
   set_fault_list(
-    const vector<TpgFault>& fault_list ///< [in] 故障のリスト
+    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
   ) = 0;
 
   /// @brief 全ての故障にスキップマークをつける．
@@ -51,7 +51,7 @@ public:
   virtual
   void
   set_skip(
-    const TpgFault& f ///< [in] 対象の故障
+    const TpgFault* f ///< [in] 対象の故障
   ) = 0;
 
   /// @brief 全ての故障のスキップマークを消す．
@@ -63,14 +63,14 @@ public:
   virtual
   void
   clear_skip(
-    const TpgFault& f ///< [in] 対象の故障
+    const TpgFault* f ///< [in] 対象の故障
   ) = 0;
 
   /// @brief 故障のスキップマークを得る．
   virtual
   bool
   get_skip(
-    const TpgFault& f ///< [in] 対象の故障
+    const TpgFault* f ///< [in] 対象の故障
   ) const = 0;
 
 
@@ -92,7 +92,7 @@ public:
   bool
   spsfp(
     const TestVector& tv, ///< [in] テストベクタ
-    const TpgFault& f,    ///< [in] 対象の故障
+    const TpgFault* f,    ///< [in] 対象の故障
     DiffBits& dbits       ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) = 0;
 
@@ -103,7 +103,7 @@ public:
   bool
   spsfp(
     const NodeValList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault& f,              ///< [in] 対象の故障
+    const TpgFault* f,              ///< [in] 対象の故障
     DiffBits& dbits                 ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) = 0;
 

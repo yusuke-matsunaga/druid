@@ -5,14 +5,13 @@
 /// @brief PyTpgFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2022 Yusuke Matsunaga
+/// Copyright (C) 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
 #include "TpgFault.h"
-#include "TpgFaultList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -45,7 +44,7 @@ public:
   static
   PyObject*
   ToPyObject(
-    const TpgFault& val ///< [in] 値
+    const TpgFault* val ///< [in] 値
   );
 
   /// @brief TpgFault のリストを表す PyObject を作る．
@@ -55,17 +54,7 @@ public:
   static
   PyObject*
   ToPyList(
-    const vector<TpgFault>& val_list ///< [in] 値のリスト
-  );
-
-  /// @brief TpgFault のリストを表す PyObject を作る．
-  /// @return 生成した PyObject を返す．
-  ///
-  /// 返り値は新しい参照が返される．
-  static
-  PyObject*
-  ToPyList(
-    const TpgFaultList& val_list ///< [in] 値のリスト
+    const vector<const TpgFault*>& val_list ///< [in] 値のリスト
   );
 
   /// @brief PyObject が TpgFault タイプか調べる．
@@ -80,7 +69,7 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  TpgFault
+  const TpgFault*
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
@@ -92,8 +81,8 @@ public:
   static
   bool
   FromPyList(
-    PyObject* obj,               ///< [in] 変換元の PyObject
-    vector<TpgFault>& fault_list ///< [out] 変換結果を格納する変数
+    PyObject* obj,                      ///< [in] 変換元の PyObject
+    vector<const TpgFault*>& fault_list ///< [out] 変換結果を格納する変数
   );
 
   /// @brief TpgFault を表すオブジェクトの型定義を返す．

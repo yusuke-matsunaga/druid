@@ -3,19 +3,16 @@
 /// @brief TpgNetworkImpl の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2019, 2022 Yusuke Matsunaga
+/// Copyright (C) 2018, 2019, 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgNetworkImpl.h"
 #include "TpgNode.h"
 #include "TpgNodeSet.h"
-#include "TpgPPI.h"
-#include "TpgPPO.h"
 #include "TpgFault.h"
-#include "TpgGateImpl.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
-#include "GateType.h"
+#include "FaultType.h"
 #include "Fval2.h"
 #include "ym/Range.h"
 
@@ -106,15 +103,56 @@ END_NONAMESPACE
 // クラス TpgNetworkImpl
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-TpgNetworkImpl::TpgNetworkImpl()
-{
-}
-
 /// @brief デストラクタ
 TpgNetworkImpl::~TpgNetworkImpl()
 {
   clear();
+}
+
+// @brief ステムの故障を得る.
+const TpgFault*
+TpgNetworkImpl::find_fault(
+  const TpgGate* gate,
+  Fval2 fval
+) const
+{
+  if ( fault_type() == FaultType::GateExhaustive ) {
+    // タイプ違い
+    return nullptr;
+  }
+  SizeType key = gen_key(gate, fval);
+  return _find_fault(key);
+}
+
+// @brief ブランチの故障を得る．
+const TpgFault*
+TpgNetworkImpl::find_fault(
+  const TpgGate* gate,
+  SizeType ipos,
+  Fval2 fval
+) const
+{
+  if ( fault_type() == FaultType::GateExhaustive ) {
+    // タイプ違い
+    return nullptr;
+  }
+  SizeType key = gen_key(gate, ipos, fval);
+  return _find_fault(key);
+}
+
+// @brief 網羅故障を得る.
+const TpgFault*
+TpgNetworkImpl::find_fault(
+  const TpgGate* gate,
+  const vector<bool>& ivals
+) const
+{
+  if ( fault_type() != FaultType::GateExhaustive ) {
+    // タイプ違い
+    return nullptr;
+  }
+  SizeType key = gen_key(gate, ivals);
+  return _find_fault(key);
 }
 
 // @brief 内容をクリアする．
@@ -124,7 +162,13 @@ TpgNetworkImpl::clear()
   for ( auto node: mNodeArray ) {
     delete node;
   }
-  for ( auto gate: mGateArray ) {
+  for ( auto mffc: mMFFCList ) {
+    delete mffc;
+  }
+  for ( auto ffr: mFFRList ) {
+    delete ffr;
+  }
+  for ( auto gate: mGateList ) {
     delete gate;
   }
 }
@@ -141,18 +185,17 @@ TpgNetworkImpl::set_size(
 {
   mInputNum = input_num;
   mOutputNum = output_num;
-  mDFFArray.clear();
-  mDFFArray.resize(dff_num);
-  for ( auto i: Range(dff_num) ) {
-    mDFFArray[i].mId = i;
-  }
+  mDffInputList.clear();
+  mDffInputList.resize(dff_num);
+  mDffOutputList.clear();
+  mDffOutputList.resize(dff_num);
 
   SizeType node_num = input_num + output_num + dff_num * 2 + gate_num + extra_node_num;
 
   mNodeArray.clear();
   mNodeArray.reserve(node_num);
-  mGateArray.clear();
-  mGateArray.reserve(gate_num);
+  mGateList.clear();
+  mGateList.reserve(gate_num);
 
   SizeType nppi = mInputNum + dff_num;
   mPPIArray.clear();
@@ -190,9 +233,9 @@ TpgNetworkImpl::post_op(
   //////////////////////////////////////////////////////////////////////
   // DFF の入力と出力を結びつける．
   //////////////////////////////////////////////////////////////////////
-  for ( auto _dff: mDFFArray ) {
-    auto input = reinterpret_cast<TpgDffInput*>(_dff.mInput);
-    auto output = reinterpret_cast<TpgDffOutput*>(_dff.mOutput);
+  for ( SizeType i = 0; i < dff_num(); ++ i ) {
+    auto input = mDffInputList[i];
+    auto output = mDffOutputList[i];
     input->set_alt_node(output);
     output->set_alt_node(input);
   }
@@ -281,39 +324,78 @@ TpgNetworkImpl::post_op(
   // FFR の情報を作る．
   //////////////////////////////////////////////////////////////////////
   SizeType ffr_num = ffr_root_list.size() ;
-  mFFRArray.clear();
-  mFFRArray.resize(ffr_num);
+  mFFRList.clear();
+  mFFRList.reserve(ffr_num);
   // ノード番号をキーにしてFFR番号を格納する辞書
   // FFRの根のノードだけ設定する．
-  unordered_map<SizeType, SizeType> ffr_map;
-  for ( SizeType i: Range(ffr_num) ) {
-    auto node = ffr_root_list[i];
-    set_ffr(i, node);
-    ffr_map.emplace(node->id(), i);
+  unordered_map<SizeType, const TpgFFR*> ffr_map;
+  for ( auto node: ffr_root_list ) {
+    auto ffr = new_ffr(node);
+    ffr_map.emplace(node->id(), ffr);
   }
 
   //////////////////////////////////////////////////////////////////////
   // MFFC の情報を作る．
   //////////////////////////////////////////////////////////////////////
   SizeType mffc_num = mffc_root_list.size();
-  mMFFCArray.clear();
-  mMFFCArray.resize(mffc_num);
-  for ( SizeType i: Range(mffc_num) ) {
-    auto node = mffc_root_list[i];
-    set_mffc(i, node, ffr_map);
+  mMFFCList.clear();
+  mMFFCList.reserve(mffc_num);
+  for ( auto node: mffc_root_list ) {
+    new_mffc(node, ffr_map);
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  // 故障を作る．
+  //////////////////////////////////////////////////////////////////////
+  // 各ノードの出力の故障を記録する配列
+  // 場合によっては対応する故障がないノードもある．
+  vector<SizeType> fault_map(node_num() * 2, static_cast<SizeType>(-1));
+  for ( auto gate: gate_list() ) {
+    gen_gate_faults(gate, fault_map);
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  // 代表故障を求める．
+  //////////////////////////////////////////////////////////////////////
+  SizeType NF = mFaultArray.size();
+  vector<SizeType> rep_map(NF, static_cast<SizeType>(-1));
+  // この処理は入力からのトポロジカル順で行う必要がある．
+  // gate_list() はトポロジカル順になっているはず．
+  for ( auto gate: gate_list() ) {
+    set_rep_fault(gate, fault_map, rep_map);
+  }
+  // rep_map の情報を元に代表故障を求める．
+  // この処理は出力側からのトポロジカル順だと都合がよい．
+  for ( SizeType i = 0; i < NF; ++ i ) {
+    SizeType fid = NF - i - 1;
+    auto f =  mFaultArray[fid];
+    auto rep_id = rep_map[fid];
+    if ( rep_id != static_cast<SizeType>(-1) ) {
+      auto rep_f = mFaultArray[rep_id];
+      f->set_rep_fault(rep_f->rep_fault());
+    }
+    else {
+      // それ以外は自身が代表故障
+      f->set_rep_fault(f);
+    }
+  }
+  // 求めた代表故障を記録する．
+  mRepFaultList.clear();
+  for ( auto f: mFaultArray ) {
+    if ( f->rep_fault() == f ) {
+      mRepFaultList.push_back(f);
+    }
   }
 }
 
-// @brief FFR の情報を設定する．
-void
-TpgNetworkImpl::set_ffr(
-  SizeType id,
+// @brief FFR を作る．
+const TpgFFR*
+TpgNetworkImpl::new_ffr(
   const TpgNode* root
 )
 {
-  auto& ffr = mFFRArray[id];
-
-  ffr.mRoot = root;
+  vector<const TpgNode*> input_list;
+  vector<const TpgNode*> node_list;
 
   // input_list の重複チェック用のハッシュ表のふりをした配列
   vector<bool> input_hash(node_num(), false);
@@ -321,7 +403,7 @@ TpgNetworkImpl::set_ffr(
   // DFS を行うためのスタック
   vector<const TpgNode*> node_stack;
   node_stack.push_back(root);
-  ffr.mNodeList.push_back(root);
+  node_list.push_back(root);
   while ( !node_stack.empty() ) {
     auto node = node_stack.back();
     node_stack.pop_back();
@@ -330,28 +412,29 @@ TpgNetworkImpl::set_ffr(
 	// inode は他の FFR の根
 	if ( !input_hash[inode->id()] ) {
 	  input_hash[inode->id()] = true;
-	  ffr.mInputList.push_back(inode);
+	  input_list.push_back(inode);
 	}
       }
       else {
 	node_stack.push_back(inode);
-	ffr.mNodeList.push_back(inode);
+	node_list.push_back(inode);
       }
     }
   }
+  SizeType id = mFFRList.size();
+  auto ffr = new TpgFFR{id, root, input_list, node_list};
+  mFFRList.push_back(ffr);
+  return ffr;
 }
 
-// @brief MFFC の情報を設定する．
+// @brief MFFC を作る．
 void
-TpgNetworkImpl::set_mffc(
-  SizeType id,
+TpgNetworkImpl::new_mffc(
   const TpgNode* root,
-  const unordered_map<SizeType, SizeType>& ffr_map
+  const unordered_map<SizeType, const TpgFFR*>& ffr_map
 )
 {
-  auto& mffc = mMFFCArray[id];
-
-  mffc.mRoot = root;
+  vector<const TpgFFR*> ffr_list;
 
   // root を根とする MFFC の情報を得る．
   vector<bool> mark(node_num(), false);
@@ -365,8 +448,8 @@ TpgNetworkImpl::set_mffc(
 
     if ( node->ffr_root() == node ) {
       ASSERT_COND( ffr_map.count(node->id()) > 0 );
-      auto ffr_id = ffr_map.at(node->id());
-      mffc.mFFRList.push_back(TpgFFR{this, ffr_id});
+      auto ffr = ffr_map.at(node->id());
+      ffr_list.push_back(ffr);
     }
 
     for ( auto inode: node->fanin_list() ) {
@@ -377,178 +460,225 @@ TpgNetworkImpl::set_mffc(
       }
     }
   }
+  SizeType id = mMFFCList.size();
+  auto mffc = new TpgMFFC{id, root, ffr_list};
+  mMFFCList.push_back(mffc);
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// クラス TpgMFFC
-//////////////////////////////////////////////////////////////////////
-
-// @brief 根のノードを返す．
-const TpgNode*
-TpgMFFC::root() const
+// @brief ゲートに関連した故障を作る．
+void
+TpgNetworkImpl::gen_gate_faults(
+  const TpgGate* gate,
+  vector<SizeType>& fault_map
+)
 {
-  ASSERT_COND( mNetwork != nullptr );
+  if ( gate->is_ppi() ) {
+    // 入力に関しては網羅故障はないので縮退故障で考える．
+    gen_stem_fault(gate, fault_map);
+  }
+  else if ( gate->is_ppo() ) {
+    // 出力
+    gen_branch_fault(gate);
+  }
+  else {
+    // ゲート
+    switch ( fault_type() ) {
+    case FaultType::StuckAt:
+    case FaultType::TransitionDelay:
+      // ステムの故障
+      gen_stem_fault(gate, fault_map);
+      // ブランチの故障
+      gen_branch_fault(gate);
+      break;
 
-  auto& mffc = mNetwork->_mffc(mId);
-  return mffc.root();
+    case FaultType::GateExhaustive:
+      // ゲート網羅故障
+      gen_ex_fault(gate);
+      break;
+
+    default:
+      ASSERT_NOT_REACHED;
+      break;
+    }
+  }
 }
 
-// @brief このMFFCに含まれるFFR番号のリストを返す．
-const vector<TpgFFR>&
-TpgMFFC::ffr_list() const
+// @brief ステムの故障を作る．
+void
+TpgNetworkImpl::gen_stem_fault(
+  const TpgGate* gate,
+  vector<SizeType>& fault_map
+)
 {
-  ASSERT_COND( mNetwork != nullptr );
-
-  auto& mffc = mNetwork->_mffc(mId);
-  return mffc.ffr_list();
+  auto ftype = fault_type();
+  if ( ftype == FaultType::GateExhaustive ) {
+    ftype = FaultType::StuckAt;
+  }
+  for ( auto fval: {Fval2::zero, Fval2::one} ) {
+    SizeType fid = mFaultArray.size();
+    auto f = TpgFault::new_fault(fid, gate, fval, ftype);
+    reg_fault(f);
+    auto node = gate->output_node();
+    auto b = fval == Fval2::zero ? 0 : 1;
+    fault_map[node->id() * 2 + b] = f->id();
+  }
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// クラス TpgFFR
-//////////////////////////////////////////////////////////////////////
-
-// @brief 根のノードを返す．
-const TpgNode*
-TpgFFR::root() const
+// @brief ブランチの故障を作る．
+void
+TpgNetworkImpl::gen_branch_fault(
+  const TpgGate* gate
+)
 {
-  ASSERT_COND( mNetwork != nullptr );
-
-  auto& ffr = mNetwork->_ffr(mId);
-  return ffr.root();
+  SizeType ni = gate->input_num();
+  for ( SizeType ipos = 0; ipos < ni; ++ ipos ) {
+    for ( auto fval: {Fval2::zero, Fval2::one} ) {
+      SizeType fid = mFaultArray.size();
+      auto f = TpgFault::new_fault(fid, gate, ipos, fval, fault_type());
+      reg_fault(f);
+    }
+  }
 }
 
-// @brief 葉(FFRの入力)のリストを返す．
-const vector<const TpgNode*>&
-TpgFFR::input_list() const
+// @brief ゲート網羅故障を作る．
+void
+TpgNetworkImpl::gen_ex_fault(
+  const TpgGate* gate
+)
 {
-  ASSERT_COND( mNetwork != nullptr );
-
-  auto& ffr = mNetwork->_ffr(mId);
-  return ffr.input_list();
+  SizeType ni = gate->input_num();
+  SizeType ni_exp = 1 << ni;
+  vector<bool> ivals(ni);
+  for ( SizeType b = 0; b < ni_exp; ++ b ) {
+    for ( SizeType i = 0; i < ni; ++ i ) {
+      if ( b & (1 << i) ) {
+	ivals[i] = true;
+      }
+    }
+    SizeType fid = mFaultArray.size();
+    auto f = TpgFault::new_fault(fid, gate, ivals);
+    reg_fault(f);
+  }
 }
 
-// @brief このFFRに含まれるノードのリストを返す．
-const vector<const TpgNode*>&
-TpgFFR::node_list() const
+// @brief 故障を登録する．
+void
+TpgNetworkImpl::reg_fault(
+  TpgFault* fault
+)
 {
-  ASSERT_COND( mNetwork != nullptr );
+  mFaultArray.push_back(fault);
+  SizeType key;
+  switch ( fault->fault_type() ) {
+  case FaultType::StuckAt:
+  case FaultType::TransitionDelay:
+    if ( fault->is_stem() ) {
+      key = gen_key(fault->gate(), fault->fval());
+    }
+    else {
+      key = gen_key(fault->gate(), fault->branch_pos(), fault->fval());
+    }
+    break;
 
-  auto& ffr = mNetwork->_ffr(mId);
-  return ffr.node_list();
+  case FaultType::GateExhaustive:
+    key = gen_key(fault->gate(), fault->input_vals());
+    break;
+
+  default:
+    ASSERT_NOT_REACHED;
+    break;
+  }
+  mFaultDict.emplace(key, fault);
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// クラス TpgGate
-//////////////////////////////////////////////////////////////////////
-
-// @brief 出力に対応するノードを返す．
-const TpgNode*
-TpgGate::output_node() const
-{
-  ASSERT_COND( mNetwork != nullptr );
-
-  auto gate = mNetwork->_gate(mId);
-  return gate->output_node();
-}
-
-// @brief 入力数を返す．
+// @brief ステムの故障用のキーを作る．
 SizeType
-TpgGate::input_num() const
-{
-  ASSERT_COND( mNetwork != nullptr );
-
-  auto gate = mNetwork->_gate(mId);
-  return gate->input_num();
-}
-
-// @brief ブランチの情報を返す．
-TpgGate::BranchInfo
-TpgGate::branch_info(
-  SizeType pos
-) const
-{
-  ASSERT_COND( mNetwork != nullptr );
-
-  auto gate = mNetwork->_gate(mId);
-  return gate->branch_info(pos);
-}
-
-// @brief 代表故障かどうか調べる．
-bool
-TpgGate::is_rep(
-  SizeType pos,
+TpgNetworkImpl::gen_key(
+  const TpgGate* gate,
   Fval2 fval
 ) const
 {
-  ASSERT_COND( mNetwork != nullptr );
-
-  auto gate = mNetwork->_gate(mId);
-  // 具体的には pos の val が制御値でない時に
-  // 代表故障となる．
-  auto val = fval == Fval2::zero ? Val3::_0 : Val3::_1;
-  return gate->gate_type()->cval(pos, val) == Val3::_X;
+  SizeType NG = mGateList.size();
+  SizeType key = fval == Fval2::zero ? 0 : 1;
+  return key * NG + gate->id();
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// クラス TpgGate_Simple
-//////////////////////////////////////////////////////////////////////
-
-// @brief 出力に対応するノードを返す．
-const TpgNode*
-TpgGate_Simple::output_node() const
-{
-  return mNode;
-}
-
-// @brief 入力数を返す．
+// @brief ブランチの故障用のキーを作る．
 SizeType
-TpgGate_Simple::input_num() const
-{
-  return mNode->fanin_num();
-}
-
-// @brief ブランチの情報を返す．
-TpgGate::BranchInfo
-TpgGate_Simple::branch_info(
-  SizeType pos
+TpgNetworkImpl::gen_key(
+  const TpgGate* gate,
+  SizeType ipos,
+  Fval2 fval
 ) const
 {
-  ASSERT_COND( 0 <= pos && pos < input_num() );
-
-  return BranchInfo{mNode, pos};
+  SizeType NG = mGateList.size();
+  SizeType key = fval == Fval2::zero ? 0 : 1;
+  key += (ipos + 1) * 2;
+  return key * NG + gate->id();
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// クラス TpgGate_Cplx
-//////////////////////////////////////////////////////////////////////
-
-// @brief 出力に対応するノードを返す．
-const TpgNode*
-TpgGate_Cplx::output_node() const
-{
-  return mOutputNode;
-}
-
-// @brief 入力数を返す．
+// @brief ゲート網羅故障用のキーを作る．
 SizeType
-TpgGate_Cplx::input_num() const
-{
-  return mBranchInfoList.size();
-}
-
-// @brief ブランチの情報を返す．
-TpgGate::BranchInfo
-TpgGate_Cplx::branch_info(
-  SizeType pos
+TpgNetworkImpl::gen_key(
+  const TpgGate* gate,
+  const vector<bool>& ivals
 ) const
 {
-  ASSERT_COND( 0 <= pos && pos < input_num() );
-  return mBranchInfoList[pos];
+  SizeType NG = mGateList.size();
+  SizeType NI = gate->input_num();
+  SizeType key = (NI + 1) * 2;
+  for ( SizeType i = 0; i < NI; ++ i ) {
+    if ( ivals[i] ) {
+      key += (1 << i);
+    }
+  }
+  return key * NG + gate->id();
+}
+
+// @brief 代表故障を求める．
+void
+TpgNetworkImpl::set_rep_fault(
+  const TpgGate* gate,
+  const vector<SizeType>& fault_map,
+  vector<SizeType>& rep_map
+)
+{
+  // 出力の故障
+  auto f0 = find_fault(gate, Fval2::zero);
+  auto f1 = find_fault(gate, Fval2::one);
+
+  SizeType NI = gate->input_num();
+  for ( SizeType i = 0; i < NI; ++ i ) {
+    for ( SizeType v = 0; v < 2; ++ v ) {
+      auto val = v == 0 ? Val3::_0 : Val3::_1;
+      auto fval = v == 0 ? Fval2::zero : Fval2::one;
+      auto i_fault = find_fault(gate, i, fval);
+
+      // 1. 入力の故障が出力の故障と等価か調べる．
+      auto oval = gate->cval(i, val);
+      const TpgFault* o_fault = nullptr;
+      switch ( oval ) {
+      case Val3::_0:
+	o_fault = f0;
+	break;
+      case Val3::_1:
+	o_fault = f1;
+	break;
+      case Val3::_X:
+	break;
+      }
+      if ( o_fault != nullptr ) {
+	rep_map[i_fault->id()] = o_fault->id();
+      }
+
+      // 2. 入力のファンアウト数が1の時，その入力のステムの故障と等価となる．
+      auto inode = gate->input_node(i);
+      if ( inode->fanout_num() == 1 ) {
+	auto s_id = fault_map[inode->id() * 2 + v];
+	rep_map[s_id] = i_fault->id();
+      }
+    }
+  }
 }
 
 END_NAMESPACE_DRUID

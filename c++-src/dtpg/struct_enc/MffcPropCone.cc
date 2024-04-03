@@ -26,15 +26,15 @@ END_NONAMESPACE
 // @brief コンストラクタ
 MffcPropCone::MffcPropCone(
   StructEnc& struct_sat,
-  const TpgMFFC& mffc,
+  const TpgMFFC* mffc,
   bool detect
-) : PropCone{struct_sat, mffc.root(), detect},
-    mElemArray(mffc.ffr_num()),
-    mElemVarArray(mffc.ffr_num())
+) : PropCone{struct_sat, mffc->root(), detect},
+    mElemArray(mffc->ffr_num()),
+    mElemVarArray(mffc->ffr_num())
 {
   SizeType ffr_id = 0;
-  for ( auto ffr: mffc.ffr_list() ) {
-    auto root = ffr.root();
+  for ( auto ffr: mffc->ffr_list() ) {
+    auto root = ffr->root();
     ASSERT_COND( root != nullptr );
     mElemArray[ffr_id] = root;
     mElemPosMap.emplace(root->id(), ffr_id);

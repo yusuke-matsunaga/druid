@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 #include "TpgNetwork.h"
+#include "FaultType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -16,7 +17,7 @@ TEST(DruidTest, read_iscas89_1)
 {
   string filename = "b01.bench";
   string path = string{TESTDATA_DIR} + "/" + filename;
-  auto network = TpgNetwork::read_iscas89(path);
+  auto network = TpgNetwork::read_iscas89(path, FaultType::StuckAt);
   EXPECT_EQ( 54, network.node_num() );
   EXPECT_EQ( 2, network.input_num() );
   EXPECT_EQ( 2, network.output_num() );
@@ -31,7 +32,7 @@ TEST(DruidTest, bad_read_iscas89_1)
 {
   string path = "file_not_exist.bench";
   EXPECT_THROW( {
-      auto _ = TpgNetwork::read_iscas89(path);
+      auto _ = TpgNetwork::read_iscas89(path, FaultType::StuckAt);
     }, std::invalid_argument );
 }
 

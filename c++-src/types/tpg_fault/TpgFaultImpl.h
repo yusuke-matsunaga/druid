@@ -5,7 +5,7 @@
 /// @brief TpgFaultImpl のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -14,141 +14,34 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgFaultImpl TpgFaultImpl.h "TpgFaultImpl.h"
-/// @brief TpgFault の実装クラス
+/// @class TpgFault_StemSa TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ステムの故障を表すクラス
 //////////////////////////////////////////////////////////////////////
-class TpgFaultImpl
+class TpgFault_Stem :
+  public TpgFault
 {
 public:
 
   /// @brief コンストラクタ
-  TpgFaultImpl(
-    const TpgNode* node, ///< [in] 故障位置のノード
-    const string& str 	 ///< [in] 故障を表す文字列
-  ) : mNode{node},
-      mStr{str}
+  TpgFault_Stem(
+    SizeType id,        ///< [in] ID番号
+    const TpgGate* gate ///< [in] 対象のゲート
+  ) : TpgFault{id, gate}
   {
   }
 
   /// @brief デストラクタ
-  virtual
-  ~TpgFaultImpl() = default;
+  ~TpgFault_Stem() = default;
 
 
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief ID番号を返す．
-  SizeType
-  id() const
-  {
-    return mId;
-  }
 
   /// @brief 故障伝搬の起点となるノードを返す．
   const TpgNode*
-  origin_node() const
-  {
-    return mNode;
-  }
-
-  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  virtual
-  NodeValList
-  excitation_condition() const = 0;
-
-  /// @brief 故障の内容を表す文字列を返す．
-  string
-  str() const
-  {
-    return mStr;
-  }
-
-  /// @brief 支配故障のリストを返す．
-  const vector<TpgFaultImpl*>&
-  dom_fault_list() const
-  {
-    return mDomFaultList;
-  }
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 値を設定する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ID番号をセットする．
-  void
-  set_id(
-    SizeType id ///< [in] ID番号
-  )
-  {
-    mId = id;
-  }
-
-  /// @brief 支配故障を追加する．
-  void
-  add_dom_fault(
-    TpgFaultImpl* dom ///< [in] 支配故障
-  )
-  {
-    mDomFaultList.push_back(dom);
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // ID番号
-  SizeType mId;
-
-  // 故障伝搬の起点ノード
-  const TpgNode* mNode;
-
-  // 故障を表す文字列
-  string mStr;
-
-  // 支配故障のリスト
-  vector<TpgFaultImpl*> mDomFaultList;
-
-};
-
-
-//////////////////////////////////////////////////////////////////////
-/// @class TpgFault_SaStem TpgFaultImpl.h "TpgFaultImpl.h"
-/// @brief 出力の縮退故障を表す基底クラス
-//////////////////////////////////////////////////////////////////////
-class TpgFault_SaStem :
-  public TpgFaultImpl
-{
-public:
-
-  /// @brief コンストラクタ
-  TpgFault_SaStem(
-    const TpgNode* node, ///< [in] 故障位置のノード
-    const string& str,	 ///< [in] 故障を表す文字列
-    Fval2 val            ///< [in] 故障値
-  ) : TpgFaultImpl{node, str},
-      mVal{val}
-  {
-  }
-
-  /// @brief デストラクタ
-  ~TpgFault_SaStem() = default;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeValList
-  excitation_condition() const override;
+  origin_node() const override;
 
 
 protected:
@@ -156,49 +49,32 @@ protected:
   // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障値を得る．
-  Fval2
-  fval() const
-  {
-    return mVal;
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 故障値
-  Fval2 mVal;
+  /// @brief 故障の内容を表す文字列の基本部分を返す．
+  string
+  str_base() const;
 
 };
 
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgFault_SaBranch TpgFaultImpl.h "TpgFaultImpl.h"
-/// @brief 入力の縮退故障を表す基底クラス
-///
-/// 名前が似ているが TpgFault_SaStem とは直接の関係はない．
+/// @class TpgFault_StemSa TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ステムの縮退故障を表すクラス
 //////////////////////////////////////////////////////////////////////
-class TpgFault_SaBranch :
-  public TpgFaultImpl
+class TpgFault_StemSa :
+  public TpgFault_Stem
 {
 public:
 
-  /// @brief コンストラクタ
-  TpgFault_SaBranch(
-    const TpgNode* node, ///< [in] 故障位置のノード
-    const string& str,	 ///< [in] 故障を表す文字列
-    SizeType ipos,       ///< [in] 入力位置
-    Fval2 val            ///< [in] 故障値
-  ) : TpgFaultImpl{node, str},
-      mIposVal{(ipos << 1) | static_cast<SizeType>(val)}
+  /// @brief コンnストラクタ
+  TpgFault_StemSa(
+    SizeType id,        ///< [in] ID番号
+    const TpgGate* gate ///< [in] 対象のゲート
+  ) : TpgFault_Stem{id, gate}
   {
   }
 
   /// @brief デストラクタ
-  ~TpgFault_SaBranch() = default;
+  ~TpgFault_StemSa() = default;
 
 
 public:
@@ -206,9 +82,134 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障の種類を返す．
+  FaultType
+  fault_type() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_StemSa0 TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ステムの0縮退故障
+//////////////////////////////////////////////////////////////////////
+class TpgFault_StemSa0 :
+  public TpgFault_StemSa
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_StemSa0(
+    SizeType id,        ///< [in] ID番号
+    const TpgGate* gate ///< [in] 対象のゲート
+  ) : TpgFault_StemSa{id, gate}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_StemSa0() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障値を得る．
+  Fval2
+  fval() const override;
+
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
   NodeValList
   excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_StemSa1 TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ステムの1縮退故障
+//////////////////////////////////////////////////////////////////////
+class TpgFault_StemSa1 :
+  public TpgFault_StemSa
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_StemSa1(
+    SizeType id,        ///< [in] ID番号
+    const TpgGate* gate ///< [in] 対象のゲート
+  ) : TpgFault_StemSa{id, gate}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_StemSa1() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障値を得る．
+  Fval2
+  fval() const override;
+
+  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
+  NodeValList
+  excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_Branch TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ブランチの故障を表すクラス
+//////////////////////////////////////////////////////////////////////
+class TpgFault_Branch :
+  public TpgFault
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_Branch(
+    SizeType id,         ///< [in] ID番号
+    const TpgGate* gate, ///< [in] 対象のゲート
+    SizeType ipos        ///< [in] 入力位置
+  ) : TpgFault{id, gate},
+      mIpos{ipos}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_Branch() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief ステムの故障の時 true を返す．
+  bool
+  is_stem() const override;
+
+  /// @brief ブランチの故障の時の入力位置を返す．
+  SizeType
+  branch_pos() const override;
+
+  /// @brief 故障伝搬の起点となるノードを返す．
+  const TpgNode*
+  origin_node() const override;
 
 
 protected:
@@ -216,19 +217,22 @@ protected:
   // 継承クラスで用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障の伝搬条件を追加する．
+  void
+  add_gate_propagation_condition(
+    NodeValList& assign_list ///< [out] 条件を追加するオブジェクト
+  ) const;
+
   /// @brief 入力位置を得る．
   SizeType
   ipos() const
   {
-    return mIposVal >> 1;
+    return mIpos;
   }
 
-  /// @brief 故障値を得る．
-  Fval2
-  fval() const
-  {
-    return static_cast<Fval2>(mIposVal & 1);
-  }
+  /// @brief 故障の内容を表す文字列の基本部分を返す．
+  string
+  str_base() const;
 
 
 private:
@@ -236,32 +240,32 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 入力位置 + 故障値
-  SizeType mIposVal;
+  // 入力位置
+  SizeType mIpos;
 
 };
 
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgFault_TdStem TpgFaultImpl.h "TpgFaultImpl.h"
-/// @brief 出力の縮退故障を表す基底クラス
+/// @class TpgFault_BranchSa TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief 入力の縮退故障を表すクラス
 //////////////////////////////////////////////////////////////////////
-class TpgFault_TdStem :
-  public TpgFault_SaStem
+class TpgFault_BranchSa :
+  public TpgFault_Branch
 {
 public:
 
   /// @brief コンストラクタ
-  TpgFault_TdStem(
-    const TpgNode* node, ///< [in] 故障位置のノード
-    const string& str,	 ///< [in] 故障を表す文字列
-    Fval2 val            ///< [in] 故障値
-  ) : TpgFault_SaStem{node, str, val}
+  TpgFault_BranchSa(
+    SizeType id,         ///< [in] ID番号
+    const TpgGate* gate, ///< [in] 対象のゲート
+    SizeType ipos        ///< [in] 入力位置
+  ) : TpgFault_Branch{id, gate, ipos}
   {
   }
 
   /// @brief デストラクタ
-  ~TpgFault_TdStem() = default;
+  ~TpgFault_BranchSa() = default;
 
 
 public:
@@ -269,36 +273,33 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeValList
-  excitation_condition() const override;
+  /// @brief 故障の種類を返す．
+  FaultType
+  fault_type() const override;
 
 };
 
 
 //////////////////////////////////////////////////////////////////////
-/// @class TpgFault_TdBranch TpgFaultImpl.h "TpgFaultImpl.h"
-/// @brief 入力の縮退故障を表す基底クラス
-///
-/// 名前が似ているが TpgFault_TdStem とは直接の関係はない．
+/// @class TpgFault_BranchSa0 TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ブランチの0縮退故障
 //////////////////////////////////////////////////////////////////////
-class TpgFault_TdBranch :
-  public TpgFault_SaBranch
+class TpgFault_BranchSa0 :
+  public TpgFault_BranchSa
 {
 public:
 
   /// @brief コンストラクタ
-  TpgFault_TdBranch(
-    const TpgNode* node, ///< [in] 故障位置のノード
-    const string& str,	 ///< [in] 故障を表す文字列
-    SizeType ipos,       ///< [in] 入力位置
-    Fval2 val            ///< [in] 故障値
-  ) : TpgFault_SaBranch{node, str, ipos, val}
+  TpgFault_BranchSa0(
+    SizeType id,         ///< [in] ID番号
+    const TpgGate* gate, ///< [in] 対象のゲート
+    SizeType ipos        ///< [in] 入力位置
+  ) : TpgFault_BranchSa{id, gate, ipos}
   {
   }
 
   /// @brief デストラクタ
-  ~TpgFault_TdBranch() = default;
+  ~TpgFault_BranchSa0() = default;
 
 
 public:
@@ -306,9 +307,292 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障値を得る．
+  Fval2
+  fval() const override;
+
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
   NodeValList
   excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_BranchSa1 TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ブランチの1縮退故障
+//////////////////////////////////////////////////////////////////////
+class TpgFault_BranchSa1 :
+  public TpgFault_BranchSa
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_BranchSa1(
+    SizeType id,         ///< [in] ID番号
+    const TpgGate* gate, ///< [in] 対象のゲート
+    SizeType ipos        ///< [in] 入力位置
+  ) : TpgFault_BranchSa{id, gate, ipos}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_BranchSa1() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障値を得る．
+  Fval2
+  fval() const override;
+
+  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
+  NodeValList
+  excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_StemTd TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief 出力の縮退故障を表すクラス
+//////////////////////////////////////////////////////////////////////
+class TpgFault_StemTd :
+  public TpgFault_Stem
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_StemTd(
+    SizeType id,        ///< [in] ID番号
+    const TpgGate* gate ///< [in] 対象のゲート
+  ) : TpgFault_Stem{id, gate}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_StemTd() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障の種類を返す．
+  FaultType
+  fault_type() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_StemRise TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ステムの rise 遷移故障
+//////////////////////////////////////////////////////////////////////
+class TpgFault_StemRise :
+  public TpgFault_StemTd
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_StemRise(
+    SizeType id,        ///< [in] ID番号
+    const TpgGate* gate ///< [in] 対象のゲート
+  ) : TpgFault_StemTd{id, gate}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_StemRise() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障値を得る．
+  Fval2
+  fval() const override;
+
+  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
+  NodeValList
+  excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_StemFall TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ステムの fall 遷移故障
+//////////////////////////////////////////////////////////////////////
+class TpgFault_StemFall :
+  public TpgFault_StemTd
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_StemFall(
+    SizeType id,        ///< [in] ID番号
+    const TpgGate* gate ///< [in] 対象のゲート
+  ) : TpgFault_StemTd{id, gate}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_StemFall() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障値を得る．
+  Fval2
+  fval() const override;
+
+  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
+  NodeValList
+  excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_BranchTd TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief 入力の縮退故障を表すクラス
+//////////////////////////////////////////////////////////////////////
+class TpgFault_BranchTd :
+  public TpgFault_Branch
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_BranchTd(
+    SizeType id,         ///< [in] ID番号
+    const TpgGate* gate, ///< [in] 対象のゲート
+    SizeType ipos        ///< [in] 入力位置
+  ) : TpgFault_Branch{id, gate, ipos}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_BranchTd() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障の種類を返す．
+  FaultType
+  fault_type() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_BranchRise TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ブランチの rise 遷移故障
+//////////////////////////////////////////////////////////////////////
+class TpgFault_BranchRise :
+  public TpgFault_BranchTd
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_BranchRise(
+    SizeType id,         ///< [in] ID番号
+    const TpgGate* gate, ///< [in] 対象のゲート
+    SizeType ipos        ///< [in] 入力位置
+  ) : TpgFault_BranchTd{id, gate, ipos}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_BranchRise() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障値を得る．
+  Fval2
+  fval() const override;
+
+  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
+  NodeValList
+  excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgFault_BranchFall TpgFaultImpl.h "TpgFaultImpl.h"
+/// @brief ブランチの rise 遷移故障
+//////////////////////////////////////////////////////////////////////
+class TpgFault_BranchFall :
+  public TpgFault_BranchTd
+{
+public:
+
+  /// @brief コンストラクタ
+  TpgFault_BranchFall(
+    SizeType id,         ///< [in] ID番号
+    const TpgGate* gate, ///< [in] 対象のゲート
+    SizeType ipos        ///< [in] 入力位置
+  ) : TpgFault_BranchTd{id, gate, ipos}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFault_BranchFall() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障値を得る．
+  Fval2
+  fval() const override;
+
+  /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
+  NodeValList
+  excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
 
 };
 
@@ -318,16 +602,16 @@ public:
 /// @brief ゲート網羅故障を表すクラス
 //////////////////////////////////////////////////////////////////////
 class TpgFault_Ex :
-  public TpgFaultImpl
+  public TpgFault
 {
 public:
 
   /// @brief コンストラクタ
   TpgFault_Ex(
-    const TpgNode* node,      ///< [in] 故障位置のノード
-    const string& str,	      ///< [in] 故障を表す文字列
+    SizeType id,              ///< [in] ID番号
+    const TpgGate* gate,      ///< [in] 対象のゲート
     const vector<bool>& ivals ///< [in] 入力の値のリスト
-  ) : TpgFaultImpl{node, str},
+  ) : TpgFault{id, gate},
       mIvals{ivals}
   {
   }
@@ -341,9 +625,27 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障の種類を返す．
+  FaultType
+  fault_type() const override;
+
+  /// @brief 故障値を返す．
+  ///
+  /// 網羅故障の場合は意味を持たない．
+  Fval2
+  fval() const override;
+
+  /// @brief 故障伝搬の起点となるノードを返す．
+  const TpgNode*
+  origin_node() const override;
+
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
   NodeValList
   excitation_condition() const override;
+
+  /// @brief 故障の内容を表す文字列を返す．
+  string
+  str() const override;
 
 
 private:

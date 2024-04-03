@@ -283,10 +283,6 @@ public:
   Val3
   noval() const override;
 
-  /// @brief side-input の値を得る．
-  Val3
-  side_val() const override;
-
 };
 
 
@@ -393,10 +389,6 @@ public:
   Val3
   noval() const override;
 
-  /// @brief side-input の値を得る．
-  Val3
-  side_val() const override;
-
 };
 
 
@@ -502,10 +494,6 @@ public:
   /// ない場合は Val3::_X を返す．
   Val3
   noval() const override;
-
-  /// @brief side-input の値を得る．
-  Val3
-  side_val() const override;
 
 };
 

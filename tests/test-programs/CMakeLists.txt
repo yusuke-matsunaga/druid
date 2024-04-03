@@ -11,10 +11,9 @@ include_directories(
 # ===================================================================
 
 add_subdirectory ( tpgnetworktest )
-add_subdirectory ( tpgfaultmgrtest )
 add_subdirectory ( read_blif )
 add_subdirectory ( read_iscas89 )
-add_subdirectory ( dtpgtest )
+#add_subdirectory ( dtpgtest )
 add_subdirectory ( fsimtest )
 add_subdirectory ( classify )
 

@@ -5,13 +5,13 @@
 /// @brief DtpgMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "TpgFaultMgr.h"
 #include "Fsim.h"
 #include "TestVector.h"
+#include "TpgFault.h"
 #include "DtpgStats.h"
 #include "DopVerifyResult.h"
 #include "ym/JsonValue.h"
@@ -19,28 +19,39 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class DtpgDriver;
-
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgMgr DtpgMgr.h "DtpgMgr.h"
 /// @brief テストパタン生成を行う本体
 ///
-/// 実際の処理は個々の部品クラスが行う．
+/// 基本的には与えられた全ての故障を検出するためのテストベクタの生成を行う
+/// だけの関数．
+/// ただし，ある故障に対するテストベクタが求まった時点でそのテストベクタで
+/// 故障シミュレーションを行って検出できる故障を除外するなどの追加の処理
+/// を行えるように故障検出時などに呼び出されるコールバック関数を引数にとる．
+/// また，検出済みとなった故障の状態を保持するためにクラスの形を取っている．
 //////////////////////////////////////////////////////////////////////
 class DtpgMgr
 {
 public:
 
+  /// @brief 故障とテストベクタを引数にとる関数
+  using FaultTvCallback = std::function<void(const TpgFault*, TestVector)>;
+
+  /// @brief 故障を引数にとる関数
+  using FaultCallback = std::function<void(const TpgFault*)>;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // コンストラクタ/デストラクタ
+  //////////////////////////////////////////////////////////////////////
+
   /// @brief コンストラクタ
   DtpgMgr(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
-    TpgFaultMgr& fault_mgr,    ///< [in] 故障マネージャ
-    const JsonValue& option,   ///< [in] オプションを表す JSON オブジェクト
-    bool multi                 ///< [in] マルチスレッド実行を行う時 true にするフラグ
   );
 
   /// @brief デストラクタ
-  ~DtpgMgr();
+  ~DtpgMgr() = default;
 
 
 public:
@@ -49,100 +60,31 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief テスト生成を行う．
-  void
-  run();
-
-  /// @brief DetectOp を登録する．
-  void
-  add_dop(
-    DetectOp* dop ///< [in] 追加するオペレーター
-  )
-  {
-    mDopList.push_back(dop);
-  }
-
-  /// @brief 組み込み型の DetectOp を登録する．
-  void
-  add_dop(
-    const JsonValue& js_obj ///< [in] オペレータを指定するオブジェクト
+  ///
+  /// 基本的には fault_list に含まれる故障を対象とするが，
+  /// status_mgr 上で Detected/Untestable とマークされている故障は
+  /// スキップする．
+  /// status_mgr は const ではないのでテスト生成の途中で故障の状態は
+  /// 変化しうる(生成されたテストベクタを用いた故障シミュレーションに
+  /// よる故障ドロップなど)
+  static
+  DtpgStats
+  run(
+    const TpgNetwork& network,                 ///< [in] 対象のネットワーク
+    const vector<const TpgFault*>& fault_list, ///< [in] 対象の故障リスト
+    TpgFaultStatusMgr& status_mgr,             ///< [inout] 故障の状態を表すオブジェクト
+    const JsonValue& option,                   ///< [in] オプションを表す JSON オブジェクト
+    FaultTvCallback det_func,                  ///< [in] 検出時に呼ばれる関数
+    FaultCallback untest_func,                 ///< [in] 検出不能の判定時に呼ばれる関数
+    FaultCallback abort_func                   ///< [in] アボート時に呼ばれる関数
   );
 
-  /// @brief UntestOp を登録する．
-  void
-  add_uop(
-    UntestOp* uop ///< [in] 追加するオペレーター
-  )
-  {
-    mUopList.push_back(uop);
-  }
-
-  /// @brief 組み込み型の UntestOp を登録する．
-  void
-  add_uop(
-    const JsonValue& js_obj ///< [in] オペレータを指定するオブジェクト
-  );
-
-  /// @brief 対象のネットワークを返す．
-  const TpgNetwork&
-  network() const
-  {
-    return mNetwork;
-  }
-
-  /// @brief 故障マネージャを返す．
-  TpgFaultMgr&
-  fault_mgr()
-  {
-    return mFaultMgr;
-  }
-
-  /// @brief 故障シミュレーターを返す．
-  Fsim&
-  fsim()
-  {
-    return mFsim;
-  }
-
-  /// @brief 全故障数を返す．
-  SizeType
-  fault_num() const
-  {
-    return mFaultMgr.rep_fault_list().size();
-  }
-
-  /// @brief 検出故障数を返す．
-  SizeType
-  detect_count() const
-  {
-    return mStats.detect_count();
-  }
-
-  /// @brief 検出不能故障数を返す．
-  SizeType
-  untest_count() const
-  {
-    return mStats.untest_count();
-  }
-
-  /// @brief アボート故障数を返す．
-  SizeType
-  abort_count() const
-  {
-    return mStats.abort_count();
-  }
-
+#if 0
   /// @brief テストパタンのリストを返す．
   vector<TestVector>&
   tv_list()
   {
     return mTVList;
-  }
-
-  /// @brief DTPG の統計情報を得る．
-  const DtpgStats&
-  dtpg_stats() const
-  {
-    return mStats;
   }
 
   /// @brief 検証結果を返す．
@@ -155,7 +97,7 @@ public:
   /// @brief テストパタン生成が成功した時の結果を更新する．
   void
   update_det(
-    const TpgFault& fault, ///< [in] 対象の故障
+    const TpgFault* fault, ///< [in] 対象の故障
     const TestVector& tv,  ///< [in] テストパタン
     double sat_time,       ///< [in] SATにかかった時間
     double backtrace_time  ///< [in] バックトレースにかかった時間
@@ -164,14 +106,14 @@ public:
   /// @brief 冗長故障の特定が行えた時の結果を更新する．
   void
   update_untest(
-    const TpgFault& fault, ///< [in] 対象の故障
+    const TpgFault* fault, ///< [in] 対象の故障
     double sat_time        ///< [in] SATにかかった時間
   );
 
   /// @brief アボートした時の結果を更新する．
   void
   update_abort(
-    const TpgFault& fault, ///< [in] 対象の故障
+    const TpgFault* fault, ///< [in] 対象の故障
     double sat_time        ///< [in] SATにかかった時間
   );
 
@@ -186,39 +128,7 @@ public:
   update_sat_stats(
     const SatStats& sat_stats ///< [in] 統計情報
   );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 対象のネットワーク
-  const TpgNetwork& mNetwork;
-
-  // 故障マネージャ
-  TpgFaultMgr& mFaultMgr;
-
-  // 故障シミュレータ
-  Fsim mFsim;
-
-  // 生成されたテストパタンのリスト
-  vector<TestVector> mTVList;
-
-  // DTPG の統計情報
-  DtpgStats mStats;
-
-  // 検証結果
-  DopVerifyResult mVerifyResult;
-
-  // テストパタン生成を行う本体
-  DtpgDriver* mDriver{nullptr};
-
-  // DetectOp のリスト
-  vector<DetectOp*> mDopList;
-
-  // UntestOp のリスト
-  vector<UntestOp*> mUopList;
+#endif
 
 };
 

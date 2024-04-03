@@ -21,7 +21,7 @@ BEGIN_NONAMESPACE
 struct TpgFaultObject
 {
   PyObject_HEAD
-  TpgFault mVal;
+  const TpgFault* mVal;
 };
 
 // Python 用のタイプ定義
@@ -57,7 +57,7 @@ TpgFault_str(
   PyObject* self
 )
 {
-  auto tmp_str = reinterpret_cast<TpgFaultObject*>(self)->mVal.str();
+  auto tmp_str = reinterpret_cast<TpgFaultObject*>(self)->mVal->str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -74,7 +74,7 @@ TpgFault_id(
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto id = fault.id();
+  auto id = fault->id();
   return PyLong_FromLong(id);
 }
 
@@ -85,7 +85,7 @@ TpgFault_origin_node(
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto node = fault.origin_node();
+  auto node = fault->origin_node();
   return PyTpgNode::ToPyObject(node);
 }
 
@@ -96,7 +96,7 @@ TpgFault_ffr_root(
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto node = fault.ffr_root();
+  auto node = fault->ffr_root();
   return PyTpgNode::ToPyObject(node);
 }
 
@@ -133,7 +133,7 @@ TpgFault_excitation_condition(
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto assign_list = fault.excitation_condition();
+  auto assign_list = fault->excitation_condition();
   return assign_list_to_pyobj(assign_list);
 }
 
@@ -144,7 +144,7 @@ TpgFault_ffr_propagate_condition(
 )
 {
   auto fault = PyTpgFault::Get(self);
-  auto assign_list = fault.ffr_propagate_condition();
+  auto assign_list = fault->ffr_propagate_condition();
   return assign_list_to_pyobj(assign_list);
 }
 
@@ -197,7 +197,7 @@ PyTpgFault::init(
 // @brief TpgFault を PyObject に変換する．
 PyObject*
 PyTpgFault::ToPyObject(
-  const TpgFault& val
+  const TpgFault* val
 )
 {
   auto obj = TpgFaultType.tp_alloc(&TpgFaultType, 0);
@@ -209,7 +209,7 @@ PyTpgFault::ToPyObject(
 // @brief TestVector のリストを表す PyObject を作る．
 PyObject*
 PyTpgFault::ToPyList(
-  const vector<TpgFault>& val_list
+  const vector<const TpgFault*>& val_list
 )
 {
   SizeType n = val_list.size();
@@ -218,22 +218,6 @@ PyTpgFault::ToPyList(
     auto f = val_list[i];
     auto f_obj = ToPyObject(f);
     PyList_SET_ITEM(ans_obj, i, f_obj);
-  }
-  return ans_obj;
-}
-
-// @brief TpgFault のリストを表す PyObject を作る．
-PyObject*
-PyTpgFault::ToPyList(
-  const TpgFaultList& val_list
-)
-{
-  SizeType n = val_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto fault = val_list[i];
-    auto fault_obj = PyTpgFault::ToPyObject(fault);
-    PyList_SET_ITEM(ans_obj, i, fault_obj);
   }
   return ans_obj;
 }
@@ -248,7 +232,7 @@ PyTpgFault::Check(
 }
 
 // @brief TpgFault を表す PyObject から TpgFault を取り出す．
-TpgFault
+const TpgFault*
 PyTpgFault::Get(
   PyObject* obj
 )
@@ -261,7 +245,7 @@ PyTpgFault::Get(
 bool
 PyTpgFault::FromPyList(
   PyObject* obj,
-  vector<TpgFault>& fault_list
+  vector<const TpgFault*>& fault_list
 )
 {
   if ( PySequence_Check(obj) ) {

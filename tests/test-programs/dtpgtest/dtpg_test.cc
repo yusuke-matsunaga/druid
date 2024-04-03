@@ -297,9 +297,6 @@ dtpg_test(
     network.print(cout);
   }
 
-  TpgFaultMgr fault_mgr;
-  fault_mgr.gen_fault_list(network, fault_type);
-
   unordered_map<string, JsonValue> option_dict;
   option_dict.emplace("dtpg_type", mode);
   option_dict.emplace("just_type", just_type);
@@ -320,7 +317,9 @@ dtpg_test(
   }
   JsonValue option{option_dict};
 
-  DtpgMgr mgr{network, fault_mgr, option, multi};
+  auto fault_list = network.rep_fault_list(fault_type);
+
+  DtpgMgr mgr{network, fault_list, option, multi};
 
   Timer timer;
   timer.start();
@@ -345,10 +344,12 @@ dtpg_test(
 
   if ( show_untestable_faults ) {
     cout << "Untestabel faults" << endl;
-    for ( auto f: fault_mgr.rep_fault_list() ) {
+    for ( auto f: fault_list ) {
+#if 0
       if ( fault_mgr.get_status(f) == FaultStatus::Untestable ) {
 	cout << f << endl;
       }
+#endif
     }
   }
 

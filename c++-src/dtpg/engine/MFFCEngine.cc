@@ -34,12 +34,12 @@ BEGIN_NAMESPACE_DRUID
 MFFCEngine::MFFCEngine(
   const TpgNetwork& network,
   bool has_prev_state,
-  const TpgMFFC& mffc,
+  const TpgMFFC* mffc,
   const SatInitParam& init_param
-) : DtpgEngine{network, has_prev_state, mffc.root(), true, init_param},
+) : DtpgEngine{network, has_prev_state, mffc->root(), true, init_param},
     mMFFC{mffc},
-    mRootArray(mffc.ffr_num()),
-    mEvarArray(mffc.ffr_num())
+    mRootArray(mffc->ffr_num()),
+    mEvarArray(mffc->ffr_num())
 {
 }
 
@@ -53,8 +53,8 @@ void
 MFFCEngine::opt_make_cnf()
 {
   SizeType ffr_id = 0;
-  for ( auto ffr: mMFFC.ffr_list() ) {
-    auto root = ffr.root();
+  for ( auto ffr: mMFFC->ffr_list() ) {
+    auto root = ffr->root();
     mRootArray[ffr_id] = root;
     mFfrIdMap.emplace(root->id(), ffr_id);
 
@@ -137,11 +137,11 @@ MFFCEngine::opt_make_cnf()
 // @brief gen_pattern() で用いる検出条件を作る．
 vector<SatLiteral>
 MFFCEngine::gen_assumptions(
-  const TpgFault& fault
+  const TpgFault* fault
 )
 {
   vector<SatLiteral> assumptions;
-  auto ffr_root = fault.origin_node()->ffr_root();
+  auto ffr_root = fault->origin_node()->ffr_root();
   if ( ffr_root != root_node() ) {
     // ffr_root のある FFR を活性化する条件を作る．
     if ( mFfrIdMap.count(ffr_root->id()) == 0 ) {

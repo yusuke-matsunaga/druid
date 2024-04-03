@@ -3,7 +3,7 @@
 /// @brief DtpgDriver の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "DtpgEngineDriver.h"
@@ -16,7 +16,6 @@ DtpgDriver*
 DtpgDriver::new_driver(
   DtpgMgr& mgr,
   const TpgNetwork& network,
-  bool has_prev_state,
   const JsonValue& option
 )
 {
@@ -48,19 +47,19 @@ DtpgDriver::new_driver(
   }
 
   if ( dtpg_type == "ffr" ) {
-    return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, init_param};
+    return new DtpgEngineDriver_FFR{network, just_type, init_param};
   }
   if ( dtpg_type == "mffc" ) {
-    return new DtpgEngineDriver_MFFC{mgr, network, has_prev_state, just_type, init_param};
+    return new DtpgEngineDriver_MFFC{network, just_type, init_param};
   }
   if ( dtpg_type == "ffr_se" ) {
-    return new StructEncDriver_FFR{mgr, network, has_prev_state, just_type, init_param};
+    return new StructEncDriver_FFR{network, just_type, init_param};
   }
   if ( dtpg_type == "mffc_se" ) {
-    return new StructEncDriver_MFFC{mgr, network, has_prev_state, just_type, init_param};
+    return new StructEncDriver_MFFC{network, just_type, init_param};
   }
   // デフォルトフォールバック
-  return new DtpgEngineDriver_FFR{mgr, network, has_prev_state, just_type, init_param};
+  return new DtpgEngineDriver_FFR{network, just_type, init_param};
 }
 
 // @brief 正当化を行う．

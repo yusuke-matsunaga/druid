@@ -19,7 +19,7 @@ BEGIN_NONAMESPACE
 struct TpgFFRObject
 {
   PyObject_HEAD
-  TpgFFR mVal;
+  const TpgFFR* mVal;
 };
 
 // Python 用のタイプ定義
@@ -63,7 +63,7 @@ TpgFFR_ffr_id(
 )
 {
   auto val = PyTpgFFR::Get(self);
-  return PyLong_FromLong(val.id());
+  return PyLong_FromLong(val->id());
 }
 
 // get/set 関数定義
@@ -130,7 +130,7 @@ PyTpgFFR::init(
 // @brief TpgFFR を PyObject に変換する．
 PyObject*
 PyTpgFFR::ToPyObject(
-  const TpgFFR& val
+  const TpgFFR* val
 )
 {
   auto obj = TpgFFRType.tp_alloc(&TpgFFRType, 0);
@@ -142,23 +142,7 @@ PyTpgFFR::ToPyObject(
 // @brief TpgFFR のリストを表す PyObject を作る．
 PyObject*
 PyTpgFFR::ToPyList(
-  const vector<TpgFFR>& val_list
-)
-{
-  SizeType n = val_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto ffr = val_list[i];
-    auto ffr_obj = ToPyObject(ffr);
-    PyList_SET_ITEM(ans_obj, i, ffr_obj);
-  }
-  return ans_obj;
-}
-
-// @brief TpgFFR のリストを表す PyObject を作る．
-PyObject*
-PyTpgFFR::ToPyList(
-  const TpgFFRList& val_list
+  const vector<const TpgFFR*>& val_list
 )
 {
   SizeType n = val_list.size();
@@ -181,7 +165,7 @@ PyTpgFFR::Check(
 }
 
 // @brief TpgFFR を表す PyObject から TpgFFR を取り出す．
-const TpgFFR&
+const TpgFFR*
 PyTpgFFR::Get(
   PyObject* obj
 )

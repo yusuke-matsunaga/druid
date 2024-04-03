@@ -65,8 +65,7 @@ TpgNetworkImpl::make_dff_input_node(
   auto node = new TpgDffInput{dff_id, inode};
   reg_ppo(node, name);
 
-  auto& dff = mDFFArray[dff_id];
-  dff.mInput = node;
+  mDffInputList[dff_id] = node;
 
   return node;
 }
@@ -81,8 +80,7 @@ TpgNetworkImpl::make_dff_output_node(
   auto node = new TpgDffOutput{dff_id};
   reg_ppi(node, name);
 
-  auto& dff = mDFFArray[dff_id];
-  dff.mOutput = node;
+  mDffOutputList[dff_id] = node;
 
   return node;
 }
@@ -97,12 +95,13 @@ TpgNetworkImpl::make_logic_node(
 {
 
   TpgNode* node = nullptr;
-  TpgGateImpl* gate = nullptr;
+  TpgGate* gate = nullptr;
+  SizeType gid = mGateList.size();
   if ( gate_type->is_simple() ) {
     // 組み込み型の場合．
     auto prim_type = gate_type->primitive_type();
     node = make_prim_node(prim_type, fanin_list, connection_list);
-    gate = new TpgGate_Simple{gate_type, node};
+    gate = new TpgGate_Simple{gid, gate_type, node};
   }
   else {
     auto expr = gate_type->expr();
@@ -160,10 +159,10 @@ TpgNetworkImpl::make_logic_node(
 
     // expr の内容を表す TpgNode の木を作る．
     node = make_cplx_node(expr, leaf_nodes, branch_info, connection_list);
-    gate = new TpgGate_Cplx{gate_type, node, branch_info};
+    gate = new TpgGate_Cplx{gid, gate_type, node, branch_info};
   }
 
-  mGateArray.push_back(gate);
+  mGateList.push_back(gate);
 
   return node;
 }
@@ -348,6 +347,11 @@ TpgNetworkImpl::reg_ppi(
   node->set_input_id(id);
   mPPIArray.push_back(node);
   mPPINameArray.push_back(name);
+
+  SizeType gid = mGateList.size();
+  auto ppi_type = mGateTypeMgr.ppi_type();
+  auto gate = new TpgGate_Simple{gid, ppi_type, node};
+  mGateList.push_back(gate);
 }
 
 // @brief PPO系のノードの登録
@@ -362,6 +366,11 @@ TpgNetworkImpl::reg_ppo(
   node->set_output_id(id);
   mPPOArray.push_back(node);
   mPPONameArray.push_back(name);
+
+  SizeType gid = mGateList.size();
+  auto ppo_type = mGateTypeMgr.ppo_type();
+  auto gate = new TpgGate_Simple{gid, ppo_type, node};
+  mGateList.push_back(gate);
 }
 
 // @brief 全てのノードの登録

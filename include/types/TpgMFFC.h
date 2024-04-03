@@ -5,7 +5,7 @@
 /// @brief TpgMFFC のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -13,8 +13,6 @@
 
 
 BEGIN_NAMESPACE_DRUID
-
-class TpgNetworkImpl;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgMFFC TpgMFFC.h "TpgMFFC.h"
@@ -26,6 +24,7 @@ class TpgNetworkImpl;
 /// 具体的には以下の情報を持つ．
 /// - MFFC の根のノード
 /// - MFFC に含まれる FFR のリスト
+/// - MFFC に含まれる故障のリスト
 /// 一度設定されたら不変のオブジェクトとなる．
 //////////////////////////////////////////////////////////////////////
 class TpgMFFC
@@ -33,14 +32,13 @@ class TpgMFFC
 public:
 
   /// @brief コンストラクタ
-  TpgMFFC() = default;
-
-  /// @brief コンストラクタ
   TpgMFFC(
-    const TpgNetworkImpl* network, ///< [in] ネットワーク
-    SizeType id                    ///< [in] ID番号
-  ) : mNetwork{network},
-      mId{id}
+    SizeType id,                          ///< [in] ID番号
+    const TpgNode* root,                  ///< [in] 根のノード
+    const vector<const TpgFFR*>& ffr_list ///< [in] FFRのリスト
+  ) : mId{id},
+      mRoot{root},
+      mFFRList{ffr_list}
   {
   }
 
@@ -62,46 +60,34 @@ public:
 
   /// @brief 根のノードを返す．
   const TpgNode*
-  root() const;
+  root() const
+  {
+    return mRoot;
+  }
 
   /// @brief このMFFCに含まれるFFR数を返す．
   SizeType
   ffr_num() const
   {
-    return ffr_list().size();
+    return mFFRList.size();
   }
 
   /// @brief このMFFCに含まれるFFRを返す．
-  TpgFFR
+  const TpgFFR*
   ffr(
     SizeType pos /// [in] 位置番号 ( 0 <= pos < ffr_num() )
   ) const
   {
     ASSERT_COND( pos < ffr_num() );
 
-    return ffr_list()[pos];
+    return mFFRList[pos];
   }
 
   /// @brief このMFFCに含まれるFFRのリストを返す．
-  const vector<TpgFFR>&
-  ffr_list() const;
-
-  /// @brief 等価比較演算子
-  bool
-  operator==(
-    const TpgMFFC& right
-  ) const
+  const vector<const TpgFFR*>&
+  ffr_list() const
   {
-    return mNetwork == right.mNetwork && mId == right.mId;
-  }
-
-  /// @brief 非等価比較演算子
-  bool
-  operator!=(
-    const TpgMFFC& right
-  ) const
-  {
-    return !operator==(right);
+    return mFFRList;
   }
 
 
@@ -110,11 +96,14 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // ネットワーク
-  const TpgNetworkImpl* mNetwork{nullptr};
-
   // ID番号
   SizeType mId;
+
+  // 根のノード
+  const TpgNode* mRoot{nullptr};
+
+  // FFRのリスト
+  vector<const TpgFFR*> mFFRList;
 
 };
 

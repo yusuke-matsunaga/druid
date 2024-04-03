@@ -3,7 +3,7 @@
 /// @brief Extractor の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "Extractor.h"
@@ -86,10 +86,17 @@ Extractor::get_assignment()
     auto node = mQueue[rpos];
     int mark = mMarks.at(node->id());
     switch ( mark ) {
-    case 1: record_sensitized_node(node); break;
-    case 2: record_masking_node(node); break;
+    case 1:
+      // 故障の影響が伝搬しているノードの場合
+      record_sensitized_node(node);
+      break;
+    case 2:
+      // 故障の影響が円パンしていないノードの場合
+      record_masking_node(node);
+      break;
     case 3:
-      {
+      { // Fanout-Cone の外側のノードの場合
+	// 無条件に現在の値を記録する．
 	bool val = (gval(node) == Val3::_1);
 	assign_list.add(node, 1, val);
       }
@@ -133,6 +140,9 @@ Extractor::record_sensitized_node(
     // なにも考えずに現在の値を要求している．
     int t = type(inode);
     put_queue(inode, t);
+    // 正確には
+    // 1. 故障差の伝搬している入力を一つ選ぶ．
+    // 2. その他の入力で伝搬に必要な値を固定する．
   }
 }
 

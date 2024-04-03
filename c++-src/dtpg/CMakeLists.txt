@@ -56,7 +56,7 @@ set (dtpg_mgr_SOURCES
   )
 
 set (dop_SOURCES
-  dop/DopBase.cc
+  #dop/DopBase.cc
   dop/DopDrop.cc
   dop/DopDummy.cc
   dop/DopTvList.cc
@@ -65,7 +65,7 @@ set (dop_SOURCES
   )
 
 set (uop_SOURCES
-  uop/UopBase.cc
+  #uop/UopBase.cc
   uop/UopDummy.cc
   uop/UopSkip.cc
   )
@@ -79,9 +79,9 @@ ym_add_object_library ( druid_dtpg
   ${struct_enc_SOURCES}
   ${ex_SOURCES}
   ${jt_SOURCES}
-  ${dtpg_mgr_SOURCES}
-  ${dop_SOURCES}
-  ${uop_SOURCES}
+  #${dtpg_mgr_SOURCES}
+  #${dop_SOURCES}
+  #${uop_SOURCES}
   )
 
 

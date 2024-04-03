@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "DtpgDriver.h"
@@ -27,12 +27,10 @@ public:
 
   /// @brief コンストラクタ
   DtpgEngineDriver(
-    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
     const string& just_type,	   ///< [in] Justifier の種類を表す文字列
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
-  ) : DtpgDriver{mgr, network, has_prev_state, just_type, init_param}
+  ) : DtpgDriver{network, just_type, init_param}
   {
   }
 
@@ -66,12 +64,10 @@ public:
 
   /// @brief コンストラクタ
   DtpgEngineDriver_FFR(
-    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
     const string& just_type,       ///< [in] 正当化のタイプ
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
-  ) : DtpgEngineDriver{mgr, network, has_prev_state, just_type, init_param}
+  ) : DtpgEngineDriver{network, just_type, init_param}
   {
   }
 
@@ -102,12 +98,10 @@ public:
 
   /// @brief コンストラクタ
   DtpgEngineDriver_MFFC(
-    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
     const string& just_type,       ///< [in] 正当化のタイプ
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
-  ) : DtpgEngineDriver{mgr, network, has_prev_state, just_type, init_param}
+  ) : DtpgEngineDriver{network, just_type, init_param}
   {
   }
 

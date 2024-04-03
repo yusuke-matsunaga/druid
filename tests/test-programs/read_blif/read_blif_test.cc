@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "TpgNetwork.h"
+#include "FaultType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,7 +21,7 @@ read_blif_test(
   if ( argc != 2 ) {
     return 10;
   }
-  auto network = TpgNetwork::read_blif(argv[1]);
+  auto network = TpgNetwork::read_blif(argv[1], FaultType::StuckAt);
   network.print(cout);
 
   return 0;

@@ -26,7 +26,7 @@ set (types_SOURCES
   tpg_network/TpgNetworkImpl.cc
   tpg_network/TpgNetworkImpl_bn.cc
   tpg_network/TpgNetworkImpl_make_node.cc
-  tpg_network/TpgDFF.cc
+  tpg_network/TpgGate.cc
   tpg_network/TpgNode.cc
   tpg_network/TpgPPI.cc
   tpg_network/TpgPPO.cc
@@ -37,8 +37,7 @@ set (types_SOURCES
   tvect/TestVector.cc
 
   tpg_fault/TpgFault.cc
-  tpg_fault/TpgFaultMgr.cc
-  tpg_fault/TpgFaultMgrImpl.cc
+  tpg_fault/TpgFaultStatusMgr.cc
   #tpg_fault/ffr_reduction.cc
   )
 

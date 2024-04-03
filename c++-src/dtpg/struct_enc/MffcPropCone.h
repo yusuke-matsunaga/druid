@@ -26,7 +26,7 @@ public:
   /// @brief コンストラクタ
   MffcPropCone(
     StructEnc& struct_enc, ///< [in] StructEnc
-    const TpgMFFC& mffc,   ///< [in] MFFC の情報
+    const TpgMFFC* mffc,   ///< [in] MFFC の情報
     bool detect		   ///< [in] 故障を検出する時に true にするフラグ
   );
 

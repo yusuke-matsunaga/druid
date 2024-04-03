@@ -73,19 +73,19 @@ StructEnc::add_simple_cone(
 // @brief MFFC cone を追加する．
 void
 StructEnc::add_mffc_cone(
-  const TpgMFFC& mffc,
+  const TpgMFFC* mffc,
   bool detect
 )
 {
-  if ( mffc.ffr_num() == 1 ) {
+  if ( mffc->ffr_num() == 1 ) {
     // FFRモードで作る．
-    return add_simple_cone(mffc.root(), detect);
+    return add_simple_cone(mffc->root(), detect);
   }
   auto mffccone = new MffcPropCone{*this, mffc, detect};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{mffccone});
-  for ( auto ffr: mffc.ffr_list() ) {
-    auto root = ffr.root();
+  for ( auto ffr: mffc->ffr_list() ) {
+    auto root = ffr->root();
     mConeDict.emplace(root->id(), cone_id);
   }
 }

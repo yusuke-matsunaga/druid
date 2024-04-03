@@ -10,7 +10,7 @@
 #include "Fsim.h"
 #include "RefSim.h"
 #include "TpgNetwork.h"
-#include "TpgFaultMgr.h"
+#include "TpgFault.h"
 #include "TestVector.h"
 #include "NodeValList.h"
 
@@ -22,24 +22,34 @@ class FsimTest :
 {
 public:
 
+  TpgNetwork
+  read_network(
+    FaultType fault_type
+  )
+  {
+    auto filename = string{TESTDATA_DIR} + "/" + GetParam();
+    auto tpg_network = TpgNetwork::read_blif(filename, fault_type);
+    return tpg_network;
+  }
+
   /// @brief spsfp のテストを行う．
   void
   spsfp_test(
-    FaultType fault_type
+    const TpgNetwork& network
   );
 
   /// @brief sppfp テストを行う．
   void
   sppfp_test(
-    bool multi,
-    FaultType fault_type
+    const TpgNetwork& network,
+    bool multi
   );
 
   /// @brief ppsfp のテストを行う．
   void
   ppsfp_test(
-    bool multi,
-    FaultType fault_type
+    const TpgNetwork& network,
+    bool multi
   );
 
   void
@@ -57,38 +67,32 @@ private:
 
 void
 FsimTest::spsfp_test(
-  FaultType fault_type
+  const TpgNetwork& network
 )
 {
-  auto filename = string{TESTDATA_DIR} + "/" + GetParam();
-  auto tpg_network = TpgNetwork::read_blif(filename);
-
   Fsim fsim;
 
-  fsim.initialize(tpg_network, fault_type, false, false);
+  fsim.initialize(network, false, false);
 
-  TpgFaultMgr fmgr;
-  fmgr.gen_fault_list(tpg_network, fault_type);
-
-  auto fault_list = fmgr.fault_list();
+  auto& fault_list = network.rep_fault_list();
   fsim.set_fault_list(fault_list);
 
-  SizeType input_num = tpg_network.input_num();
-  SizeType dff_num = tpg_network.dff_num();
+  SizeType input_num = network.input_num();
+  SizeType dff_num = network.dff_num();
 
   std::mt19937 randgen;
   SizeType nv = PAT_NUM;
 
-  RefSim refsim{tpg_network};
+  RefSim refsim{network};
 
-  TestVector tv(input_num, dff_num, fault_type == FaultType::TransitionDelay);
+  TestVector tv(input_num, dff_num, network.fault_type() == FaultType::TransitionDelay);
   for ( SizeType i = 0; i < nv; ++ i ) {
     tv.set_from_random(randgen);
     for ( auto fault: fault_list ) {
       DiffBits dbits;
       auto diff = fsim.spsfp(tv, fault, dbits);
       EXPECT_EQ( dbits.elem_num() > 0, diff );
-      auto ref_dbits = refsim.simulate(tv, fault, fault_type);
+      auto ref_dbits = refsim.simulate(tv, fault);
       dbits.sort();
       ref_dbits.sort();
       EXPECT_EQ( ref_dbits, dbits );
@@ -98,21 +102,15 @@ FsimTest::spsfp_test(
 
 void
 FsimTest::sppfp_test(
-  bool multi,
-  FaultType fault_type
+  const TpgNetwork& tpg_network,
+  bool multi
 )
 {
-  auto filename = string{TESTDATA_DIR} + "/" + GetParam();
-  auto tpg_network = TpgNetwork::read_blif(filename);
-
   Fsim fsim;
 
-  fsim.initialize(tpg_network, fault_type, false, multi);
+  fsim.initialize(tpg_network, false, multi);
 
-  TpgFaultMgr fmgr;
-  fmgr.gen_fault_list(tpg_network, fault_type);
-
-  auto fault_list = fmgr.fault_list();
+  auto& fault_list = tpg_network.rep_fault_list();
   fsim.set_fault_list(fault_list);
 
   SizeType input_num = tpg_network.input_num();
@@ -121,7 +119,7 @@ FsimTest::sppfp_test(
   std::mt19937 randgen;
   SizeType nv = PAT_NUM;
 
-  TestVector tv(input_num, dff_num, fault_type == FaultType::TransitionDelay);
+  TestVector tv(input_num, dff_num, tpg_network.fault_type() == FaultType::TransitionDelay);
   for ( SizeType i = 0; i < nv; ++ i ) {
     tv.set_from_random(randgen);
     unordered_map<SizeType, DiffBits> dbits_dict;
@@ -129,39 +127,33 @@ FsimTest::sppfp_test(
       DiffBits dbits;
       if ( fsim.spsfp(tv, fault, dbits) ) {
 	dbits.sort();
-	dbits_dict.emplace(fault.id(), dbits);
+	dbits_dict.emplace(fault->id(), dbits);
       }
     }
     fsim.sppfp(tv,
 	       [&](
-		 const TpgFault& f,
+		 const TpgFault* f,
 		 const DiffBits& dbits
 	       )
 	       {
-		 EXPECT_TRUE( dbits_dict.count(f.id()) > 0 );
+		 EXPECT_TRUE( dbits_dict.count(f->id()) > 0 );
 		 auto tmp_dbits = dbits;
 		 tmp_dbits.sort();
-		 EXPECT_EQ( dbits_dict.at(f.id()), tmp_dbits );
+		 EXPECT_EQ( dbits_dict.at(f->id()), tmp_dbits );
 	       });
   }
 }
 
 void
 FsimTest::ppsfp_test(
-  bool multi,
-  FaultType fault_type
+  const TpgNetwork& tpg_network,
+  bool multi
 )
 {
-  auto filename = string{TESTDATA_DIR} + "/" + GetParam();
-  auto tpg_network = TpgNetwork::read_blif(filename);
-
   Fsim fsim;
-  fsim.initialize(tpg_network, fault_type, false, multi);
+  fsim.initialize(tpg_network, false, multi);
 
-  TpgFaultMgr fmgr;
-  fmgr.gen_fault_list(tpg_network, fault_type);
-
-  auto fault_list = fmgr.fault_list();
+  auto& fault_list = tpg_network.rep_fault_list();
   fsim.set_fault_list(fault_list);
 
   SizeType input_num = tpg_network.input_num();
@@ -170,19 +162,14 @@ FsimTest::ppsfp_test(
   std::mt19937 randgen;
   SizeType nv = PAT_NUM;
 
-  vector<TestVector> tv_list(nv);
-  for ( SizeType i = 0; i < nv; ++ i ) {
-    TestVector tv(input_num, dff_num, fault_type == FaultType::TransitionDelay);
-    tv.set_from_random(randgen);
-    tv_list[i] = tv;
-  }
-
   vector<TestVector> tv_buff;
   tv_buff.reserve(PV_BITLEN);
   SizeType base = 0;
-  for ( auto& tv: tv_list ) {
+  TestVector tv(input_num, dff_num, tpg_network.fault_type() == FaultType::TransitionDelay);
+  for ( SizeType i = 0; i < nv; ++ i ) {
+    tv.set_from_random(randgen);
     tv_buff.push_back(tv);
-    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == nv ) {
+    if ( tv_buff.size() == PV_BITLEN || i == nv - 1) {
       unordered_map<SizeType, DiffBitsArray> tv_fault_dict;
       for ( auto fault: fault_list ) {
 	DiffBitsArray dbits_array;
@@ -195,21 +182,20 @@ FsimTest::ppsfp_test(
 	}
 	if ( dbits_array.dbits_union() != PV_ALL0 ) {
 	  dbits_array.sort();
-	  tv_fault_dict.emplace(fault.id(), dbits_array);
+	  tv_fault_dict.emplace(fault->id(), dbits_array);
 	}
       }
       unordered_map<SizeType, DiffBitsArray> tv_fault_dict2;
       fsim.ppsfp(tv_buff,
 		 [&](
-		   const TpgFault& f,
+		   const TpgFault* f,
 		   const DiffBitsArray& dbits_array
 		 )
 		 {
 		   auto tmp_dbits_array = dbits_array;
 		   tmp_dbits_array.sort();
-		   tv_fault_dict2.emplace(f.id(), tmp_dbits_array);
+		   tv_fault_dict2.emplace(f->id(), tmp_dbits_array);
 		 });
-      base += tv_buff.size();
       tv_buff.clear();
       compare_results(tv_fault_dict, tv_fault_dict2);
     }
@@ -251,52 +237,62 @@ FsimTest::compare_results(
 
 TEST_P(FsimTest, spsfp_sa_test)
 {
-  spsfp_test(FaultType::StuckAt);
+  auto tpg_network = read_network(FaultType::StuckAt);
+  spsfp_test(tpg_network);
 }
 
 TEST_P(FsimTest, spsfp_td_test)
 {
-  spsfp_test(FaultType::TransitionDelay);
+  auto tpg_network = read_network(FaultType::TransitionDelay);
+  spsfp_test(tpg_network);
 }
 
 TEST_P(FsimTest, sppfp_single_sa_test)
 {
-  sppfp_test(false, FaultType::StuckAt);
+  auto tpg_network = read_network(FaultType::StuckAt);
+  sppfp_test(tpg_network, false);
 }
 
 TEST_P(FsimTest, sppfp_single_td_test)
 {
-  sppfp_test(false, FaultType::TransitionDelay);
+  auto tpg_network = read_network(FaultType::TransitionDelay);
+  sppfp_test(tpg_network, false);
 }
 
 TEST_P(FsimTest, ppsfp_single_sa_test)
 {
-  ppsfp_test(false, FaultType::StuckAt);
+  auto tpg_network = read_network(FaultType::StuckAt);
+  ppsfp_test(tpg_network, false);
 }
 
 TEST_P(FsimTest, ppsfp_single_td_test)
 {
-  ppsfp_test(false, FaultType::TransitionDelay);
+  auto tpg_network = read_network(FaultType::TransitionDelay);
+  ppsfp_test(tpg_network, false);
 }
 
 TEST_P(FsimTest, sppfp_multi_sa_test)
 {
-  sppfp_test(true, FaultType::StuckAt);
+  auto tpg_network = read_network(FaultType::StuckAt);
+  sppfp_test(tpg_network, true);
 }
 
 TEST_P(FsimTest, sppfp_multi_td_test)
 {
-  sppfp_test(true, FaultType::TransitionDelay);
+  auto tpg_network = read_network(FaultType::TransitionDelay);
+  sppfp_test(tpg_network, true);
 }
 
 TEST_P(FsimTest, ppsfp_multi_sa_test)
 {
-  ppsfp_test(true, FaultType::StuckAt);
+  auto tpg_network = read_network(FaultType::StuckAt);
+  ppsfp_test(tpg_network, true);
 }
 
 TEST_P(FsimTest, ppsfp_multi_td_test)
 {
-  ppsfp_test(true, FaultType::TransitionDelay);
+  auto tpg_network = read_network(FaultType::TransitionDelay);
+  ppsfp_test(tpg_network, true);
 }
 
 INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,

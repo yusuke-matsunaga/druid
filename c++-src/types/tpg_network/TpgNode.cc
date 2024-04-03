@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "TpgNode.h"
-#include "TpgDFF.h"
 #include "TpgFFR.h"
 #include "Val3.h"
 
@@ -175,13 +174,6 @@ TpgNode::noval() const
 {
   ASSERT_COND( is_ppo() );
 
-  return Val3::_X;
-}
-
-// @brief side-input の値を得る．
-Val3
-TpgNode::side_val() const
-{
   return Val3::_X;
 }
 

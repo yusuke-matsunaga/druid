@@ -8,7 +8,6 @@
 
 #include "Fsim.h"
 #include "FsimImpl.h"
-#include "TpgFaultMgr.h"
 #include "TestVector.h"
 
 

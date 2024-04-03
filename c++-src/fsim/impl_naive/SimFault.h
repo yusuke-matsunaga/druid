@@ -26,7 +26,7 @@ public:
 
   /// @brief コンストラクタ
   SimFault(
-    const TpgFault& f,             ///< [in] オリジナルの故障
+    const TpgFault* f,             ///< [in] オリジナルの故障
     SimNode* node,                 ///< [in] 故障伝搬の起点となるノード
     const vector<SimNode*>& simmap ///< [in] TpgNode と SimNode の対応関係
   );
@@ -44,11 +44,11 @@ public:
   SizeType
   id() const
   {
-    return mTpgFault.id();
+    return mTpgFault->id();
   }
 
   /// @brief オリジナルの故障を返す．
-  TpgFault
+  const TpgFault*
   tpg_fault() const
   {
     return mTpgFault;
@@ -157,7 +157,7 @@ private:
   };
 
   // 故障
-  TpgFault mTpgFault;
+  const TpgFault* mTpgFault;
 
   // 故障伝搬の起点となるノード
   SimNode* mNode;

@@ -14,18 +14,14 @@
 #include "ym/clib.h"
 #include "ym/logic.h"
 #include "ym/Array.h"
+#include "TpgPPI.h"
+#include "TpgPPO.h"
 #include "TpgGate.h"
-#include "DFFImpl.h"
-#include "MFFCImpl.h"
-#include "FFRImpl.h"
 #include "GateType.h"
+#include "FaultType.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-class TpgPPI;
-class TpgPPO;
-class TpgGateImpl;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TpgNetworkImpl TpgNetworkImpl.h "TpgNetworkImpl.h"
@@ -44,13 +40,14 @@ public:
   // コンストラクタ/デストラクタ
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief コンストラクタ
-  TpgNetworkImpl();
+  /// @brief 空のコンストラクタ
+  TpgNetworkImpl() = default;
 
   /// @brief コンストラクタ
   explicit
   TpgNetworkImpl(
-    const BnModel& model ///< [in] コピー元のモデル
+    const BnModel& model, ///< [in] コピー元のモデル
+    FaultType fault_type  ///< [in] 故障の種類
   );
 
   /// @brief デストラクタ
@@ -263,81 +260,156 @@ public:
   SizeType
   mffc_num() const
   {
-    return mMFFCArray.size();
+    return mMFFCList.size();
   }
 
   /// @brief MFFC を返す．
-  const MFFCImpl&
-  _mffc(
+  const TpgMFFC*
+  mffc(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
   ) const
   {
     ASSERT_COND( 0 <= pos && pos < mffc_num() );
 
-    return mMFFCArray[pos];
+    return mMFFCList[pos];
+  }
+
+  /// @brief MFFC のリストを返す．
+  const vector<const TpgMFFC*>&
+  mffc_list() const
+  {
+    return mMFFCList;
   }
 
   /// @brief FFR 数を返す．
   SizeType
   ffr_num() const
   {
-    return mFFRArray.size();
+    return mFFRList.size();
   }
 
   /// @brief FFR を返す．
-  const FFRImpl&
-  _ffr(
+  const TpgFFR*
+  ffr(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
   ) const
   {
     ASSERT_COND( 0 <= pos && pos < ffr_num() );
 
-    return mFFRArray[pos];
+    return mFFRList[pos];
+  }
+
+  /// @brief FFR のリストを返す．
+  const vector<const TpgFFR*>&
+  ffr_list() const
+  {
+    return mFFRList;
   }
 
   /// @brief DFF数を得る．
   SizeType
   dff_num() const
   {
-    return mDFFArray.size();
+    return mDffInputList.size();
   }
 
-  /// @brief DFF を得る．
+  /// @brief DFFの入力ノードを得る．
   ///
   /// @code
-  /// dff = network.dff(dff->id())
+  /// network.dff_input(pos)->dff_id() == pos
   /// @endcode
   /// の関係が成り立つ．
-  const DFFImpl&
-  _dff(
+  const TpgNode*
+  dff_input(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
   ) const
   {
     ASSERT_COND( 0 <= pos && pos < dff_num() );
 
-    return mDFFArray[pos];
+    return mDffInputList[pos];
   }
 
-  /// @brief DFF のリストを得る．
-  const vector<DFFImpl>&
-  dff_list() const { return mDFFArray; }
+  /// @brief DFFの出力ノードを得る．
+  ///
+  /// @code
+  /// network.dff_output(pos)->dff_id() == pos
+  /// @endcode
+  /// の関係が成り立つ．
+  const TpgNode*
+  dff_output(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < dff_num() )
+  ) const
+  {
+    ASSERT_COND( 0 <= pos && pos < dff_num() );
+
+    return mDffOutputList[pos];
+  }
 
   /// @brief ゲート数を返す．
   SizeType
   gate_num() const
   {
-    return mGateArray.size();
+    return mGateList.size();
   }
 
   /// @brief ゲート情報を得る．
-  const TpgGateImpl*
-  _gate(
+  const TpgGate*
+  gate(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < gate_num() )
   ) const
   {
     ASSERT_COND( 0 <= pos && pos < gate_num() );
-    return mGateArray[pos];
+    return mGateList[pos];
   }
+
+  /// @brief ゲート情報のリストを得る．
+  const vector<const TpgGate*>&
+  gate_list() const
+  {
+    return mGateList;
+  }
+
+  /// @brief 故障の種類を返す．
+  FaultType
+  fault_type() const
+  {
+    return mFaultType;
+  }
+
+  /// @brief 代表故障のリストを得る．
+  const vector<const TpgFault*>&
+  rep_fault_list() const
+  {
+    return mRepFaultList;
+  }
+
+  /// @brief ステムの故障を得る.
+  ///
+  /// 故障タイプが網羅故障の場合には不正な呼び出しとなる．
+  const TpgFault*
+  find_fault(
+    const TpgGate* gate, ///< [in] 出力のゲート
+    Fval2 fval           ///< [in] 故障値
+  ) const;
+
+  /// @brief ブランチの故障を得る．
+  ///
+  /// 故障タイプが網羅故障の場合には不正な呼び出しとなる．
+  const TpgFault*
+  find_fault(
+    const TpgGate* gate, ///< [in] 出力のゲート
+    SizeType ipos,       ///< [in] 入力位置
+    Fval2 fval           ///< [in] 故障値
+  ) const;
+
+  /// @brief 網羅故障を得る.
+  ///
+  /// 故障タイプが網羅故障でない場合には不正な呼び出しとなる．
+  const TpgFault*
+  find_fault(
+    const TpgGate* gate,      ///< [in] 出力のゲート
+    const vector<bool>& ivals ///< [in] 入力値のベクトル
+  ) const;
 
 
 public:
@@ -353,12 +425,6 @@ public:
     SizeType dff_num,
     SizeType gate_num,
     SizeType extra_node_num
-  );
-
-  /// @brief set() の後処理
-  void
-  post_op(
-    const TpgConnectionList& connection_list ///< [in] 接続リスト
   );
 
 
@@ -477,19 +543,97 @@ public:
     TpgNode* node ///< [in] ノード
   );
 
-  /// @brief FFR の情報を設定する．
-  void
-  set_ffr(
-    SizeType id,        ///< [in] ID番号
+  /// @brief FFR を作る．
+  const TpgFFR*
+  new_ffr(
     const TpgNode* root ///< [in] FFR の根のノード
   );
 
-  /// @brief MFFC の情報を設定する．
+  /// @brief MFFC を作る．
   void
-  set_mffc(
-    SizeType id,        ///< [in] ID番号
+  new_mffc(
     const TpgNode* root, ///< [in] root MFFCの根のノード
-    const unordered_map<SizeType, SizeType>& ffr_map ///< [in] ノード番号をキーにしてFFR番号を格納する辞書
+    const unordered_map<SizeType, const TpgFFR*>& ffr_map ///< [in] ノード番号をキーにしてFFRを格納する辞書
+  );
+
+  /// @brief set() の後処理
+  void
+  post_op(
+    const TpgConnectionList& connection_list ///< [in] 接続リスト
+  );
+
+  /// @brief 故障を取り出す．
+  const TpgFault*
+  _find_fault(
+    SizeType key
+  ) const
+  {
+    if ( mFaultDict.count(key) > 0 ) {
+      return mFaultDict.at(key);
+    }
+    return nullptr;
+  }
+
+  /// @brief ゲートに関連した故障を作る．
+  void
+  gen_gate_faults(
+    const TpgGate* gate,        ///< [in] 対象のゲート
+    vector<SizeType>& fault_map ///< [out] 各ノードの出力の故障を記録する配列
+  );
+
+  /// @brief ステムの故障を作る．
+  void
+  gen_stem_fault(
+    const TpgGate* gate,        ///< [in] 対象のゲート
+    vector<SizeType>& fault_map ///< [out] 各ノードの出力の故障を記録する配列
+  );
+
+  /// @brief ブランチの故障を作る．
+  void
+  gen_branch_fault(
+    const TpgGate* gate ///< [in] 対象のゲート
+  );
+
+  /// @brief ゲート網羅故障を作る．
+  void
+  gen_ex_fault(
+    const TpgGate* gate  ///< [in] 対象のゲート
+  );
+
+  /// @brief 故障を登録する．
+  void
+  reg_fault(
+    TpgFault* fault ///< [in] 故障
+  );
+
+  /// @brief ステムの故障用のキーを作る．
+  SizeType
+  gen_key(
+    const TpgGate* gate, ///< [in] 対象のゲート
+    Fval2 fval           ///< [in] 故障値
+  ) const;
+
+  /// @brief ブランチの故障用のキーを作る．
+  SizeType
+  gen_key(
+    const TpgGate* gate, ///< [in] 対象のゲート
+    SizeType ipos,       ///< [in] 入力位置
+    Fval2 fval           ///< [in] 故障値
+  ) const;
+
+  /// @brief ゲート網羅故障用のキーを作る．
+  SizeType
+  gen_key(
+    const TpgGate* gate,      ///< [in] 対象のゲート
+    const vector<bool>& ivals ///< [in] 入力値のベクタ
+  ) const;
+
+  /// @brief 代表故障を求める．
+  void
+  set_rep_fault(
+    const TpgGate* gate,               ///< [in] 対象のゲート
+    const vector<SizeType>& fault_map, ///< [in] 各ノードの出力の故障番号を記録した配列
+    vector<SizeType>& rep_map          ///< [out] 代表故障番号を記録する配列
   );
 
 
@@ -507,14 +651,11 @@ private:
   // ゲートの情報を管理するオブジェクト
   GateTypeMgr mGateTypeMgr;
 
-  // DFFの実体の配列
-  vector<DFFImpl> mDFFArray;
-
-  // ノードのポインタ配列
+  // ノードのポインタ配e列
   vector<const TpgNode*> mNodeArray;
 
   // ゲートに関する情報の配列
-  vector<TpgGateImpl*> mGateArray;
+  vector<const TpgGate*> mGateList;
 
   // PPIノードの配列
   vector<const TpgNode*> mPPIArray;
@@ -531,11 +672,29 @@ private:
   // TFI サイズの降順に整列したPPOノードの配列
   vector<const TpgNode*> mPPOArray2;
 
-  // MFFC の本体の配列
-  vector<MFFCImpl> mMFFCArray;
+  // DFFの入力ノードのリスト
+  vector<TpgDffInput*> mDffInputList;
 
-  // FFR の本体の配列
-  vector<FFRImpl> mFFRArray;
+  // DFFの出力ノードのリスト
+  vector<TpgDffOutput*> mDffOutputList;
+
+  // MFFC のリスト
+  vector<const TpgMFFC*> mMFFCList;
+
+  // FFR のリスト
+  vector<const TpgFFR*> mFFRList;
+
+  // 故障の種類
+  FaultType mFaultType{FaultType::None};
+
+  // 故障の配列
+  vector<TpgFault*> mFaultArray;
+
+  // 代表故障のリスト
+  vector<const TpgFault*> mRepFaultList;
+
+  // 故障の辞書
+  std::unordered_map<SizeType, const TpgFault*> mFaultDict;
 
 };
 

@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "FFREngine.h"
+#include "TpgFFR.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -15,9 +16,9 @@ BEGIN_NAMESPACE_DRUID
 FFREngine::FFREngine(
   const TpgNetwork& network,
   bool has_prev_state,
-  const TpgFFR& ffr,
+  const TpgFFR* ffr,
   const SatInitParam& init_param
-) : DtpgEngine{network, has_prev_state, ffr.root(), true, init_param}
+) : DtpgEngine{network, has_prev_state, ffr->root(), true, init_param}
 {
 }
 
@@ -29,7 +30,7 @@ FFREngine::~FFREngine()
 // @brief gen_pattern() で用いる検出条件を作る．
 vector<SatLiteral>
 FFREngine::gen_assumptions(
-  const TpgFault& fault
+  const TpgFault* fault
 )
 {
   return {};

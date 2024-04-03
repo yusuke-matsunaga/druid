@@ -3,14 +3,11 @@
 /// @brief DtpgMgr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "DtpgMgr.h"
 #include "DtpgDriver.h"
-#include "DtpgResult.h"
-#include "DetectOp.h"
-#include "UntestOp.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -19,65 +16,134 @@ BEGIN_NAMESPACE_DRUID
 // クラス DtpgMgr
 //////////////////////////////////////////////////////////////////////
 
-// @brief コンストラクタ
-DtpgMgr::DtpgMgr(
+// @brief テスト生成を行う．
+DtpgStats
+DtpgMgr::run(
   const TpgNetwork& network,
-  TpgFaultMgr& fault_mgr,
+  const vector<const TpgFault*>& fault_list,
+  TpgFaultStatusMgr& status_mgr,
   const JsonValue& option,
-  bool multi
-) : mNetwork{network},
-    mFaultMgr{fault_mgr},
-    mDriver{DtpgDriver::new_driver(*this, network,
-				   mFaultMgr.fault_type() == FaultType::TransitionDelay,
-				   option)}
+  FaultTvCallback det_func,
+  FaultCallback untest_func,
+  FaultCallback abort_func
+)
 {
-  mFsim.initialize(network, mFaultMgr.fault_type(), true, multi);
-  mFsim.set_fault_list(mFaultMgr.rep_fault_list());
-  if ( option.is_object() ) {
-    if ( option.has_key("dop") ) {
-      auto dop_obj = option.at("dop");
-      if ( dop_obj.is_array() ) {
-	SizeType n = dop_obj.size();
-	for ( SizeType i = 0; i < n; ++ i ) {
-	  auto obj = dop_obj.at(i);
-	  add_dop(obj);
-	}
-      }
-      else {
-	add_dop(dop_obj);
-      }
+  string dtpg_type;
+  bool multi = false;
+  { // option の解析
+    if ( !option.is_object() ) {
+      // エラー
     }
-    if ( option.has_key("uop") ) {
-      auto uop_obj = option.at("uop");
-      if ( uop_obj.is_array() ) {
-	SizeType n = uop_obj.size();
-	for ( SizeType i = 0; i < n; ++ i ) {
-	  auto obj = uop_obj.at(i);
-	  add_uop(obj);
+    else {
+      if ( option.has_key("dtpg_type") ) {
+	auto dtpg_type_obj = option.at("dtpg_type");
+	if ( dtpg_type_obj.is_string() ) {
+	  dtpg_type = dtpg_type_obj.get_string();
+	}
+	else {
+	  throw std::invalid_argument{"'dtpg_type' should be a string"};
 	}
       }
-      else {
-	add_uop(uop_obj);
+      if ( option.has_key("multi_thread") ) {
+	auto multi_obj = option.at("multi_thread");
+	if ( multi_obj.is_bool() ) {
+	  multi = multi_obj.get_bool();
+	}
       }
     }
   }
+
+  // ノード番号をキーにして関係する故障のリストを格納する配列
+  vector<vector<const TpgFault*>> node_fault_list_array(network.node_num());
+  for ( auto fault: fault_list ) {
+    auto node = fault->origin_node();
+    node_fault_list_array[node->id()].push_back(fault);
+  }
+
+  if ( dtpg_type == "ffr" ) {
+    // FFR 単位で処理を行う．
+    for ( auto ffr: network.ffr_list() ) {
+      vector<const TpgFault*> fault_list;
+      for ( auto node: ffr->node_list() ) {
+	for ( auto fault: node_fault_list_array[node->id()] ) {
+	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
+	    fault_list.push_back(fault);
+	  }
+	}
+      }
+      if ( fault_list.empty() ) {
+	continue;
+      }
+      auto driver = DtpgDriver::new_driver(network, ffr, option);
+      for ( auto fault: fault_list ) {
+	// 途中で status が変化している場合がある．
+	if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
+	  driver->gen_pattern(fault, det_func, untest_func, abort_func);
+	}
+      }
+      delete driver;
+    }
+  }
+  else if ( dtpg_type == "mffc" ) {
+    // MFFC 単位で処理を行う．
+    const TpgFFR* ffr1 = nullptr;
+    bool ffr_mode = true;
+    for ( auto mffc: network.mffc_list() ) {
+      vector<const TpgFault*> fault_list;
+      for ( auto ffr: mffc->ffr_list() ) {
+	SizeType nf = 0;
+	for ( auto node: ffr->node_list() ) {
+	  for ( auto fault: node_fault_list_array[node->id()] ) {
+	    if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
+	      fault_list.push_back(fault);
+	      ++ nf;
+	    }
+	  }
+	}
+	if ( nf > 0 ) {
+	  if ( ffr1 == nullptr ) {
+	    ffr1 = ffr;
+	  }
+	  else {
+	    ffr_mode = false;
+	  }
+	}
+      }
+      if ( fault_list.empty() ) {
+	continue;
+      }
+      if ( ffr_mode ) {
+	auto driver = DtpgDriver::new_driver(network, ffr1, option);
+	for ( auto fault: fault_list ) {
+	  // 途中で status が変化している場合がある．
+	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
+	    driver->gen_pattern(fault, det_func, untest_func, abort_func);
+	  }
+	}
+	delete driver;
+      }
+      else {
+	auto drier = DtpgDriver::new_driver(network, mffc, option);
+	for ( auto fault: fault_list ) {
+	  // 途中で status が変化している場合がある．
+	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
+	    driver->gen_pattern(fault, det_func, untest_func, abort_func);
+	  }
+	}
+	delete driver;
+      }
+    }
+  }
+  else {
+    ostringstream buf;
+    buf << dtpg_type << ": unknown value for 'dtpg_type'";
+    throw std::invalid_argument{buf.str()};
+  }
+
+  return stats;
 }
 
-// @brief デストラクタ
-DtpgMgr::~DtpgMgr()
-{
-  delete mDriver;
-}
-
-// @brief テスト生成を行う．
-void
-DtpgMgr::run()
-{
-  mStats.clear();
-
-  mDriver->run();
-}
-
+#if 0
 /// @brief 組み込み型の DetectOp を登録する．
 void
 DtpgMgr::add_dop(
@@ -100,11 +166,14 @@ DtpgMgr::add_dop(
     throw std::invalid_argument{"invalid JSON object for operator specification"};
   }
   DetectOp* op = nullptr;
+#if 0
   if ( type_name == "base" ) {
-    op = new_DopBase(fault_mgr());
+    op = new_DopBase(*this);
   }
-  else if ( type_name == "drop" ) {
-    op = new_DopDrop(fault_mgr(), fsim());
+  else
+#endif
+  if ( type_name == "drop" ) {
+    op = new_DopDrop(*this, fsim());
   }
   else if ( type_name == "tvlist" ) {
     op = new_DopTvList(mTVList);
@@ -142,10 +211,13 @@ DtpgMgr::add_uop(
     throw std::invalid_argument{"invalid JSON object for operator specification"};
   }
   UntestOp* op = nullptr;
+#if 0
   if ( type_name == "base" ) {
     op = new_UopBase(fault_mgr());
   }
-  else if ( type_name == "skip" ) {
+  else
+#endif
+  if ( type_name == "skip" ) {
     if ( js_obj.is_object() ) {
       if ( js_obj.has_key("threshold") ) {
 	auto thr_obj = js_obj.at("threadhold");
@@ -170,7 +242,7 @@ DtpgMgr::add_uop(
 // @brief テストパタン生成が成功した時の結果を更新する．
 void
 DtpgMgr::update_det(
-  const TpgFault& fault,
+  const TpgFault* fault,
   const TestVector& tv,
   double sat_time,
   double backtrace_time
@@ -185,7 +257,7 @@ DtpgMgr::update_det(
 // @brief 冗長故障の特定が行えた時の結果を更新する．
 void
 DtpgMgr::update_untest(
-  const TpgFault& fault,
+  const TpgFault* fault,
   double sat_time
 )
 {
@@ -198,7 +270,7 @@ DtpgMgr::update_untest(
 // @brief アボートした時の結果を更新する．
 void
 DtpgMgr::update_abort(
-  const TpgFault& fault,
+  const TpgFault* fault,
   double sat_time
 )
 {
@@ -222,5 +294,6 @@ DtpgMgr::update_sat_stats(
 {
   mStats.update_sat_stats(sat_stats);
 }
+#endif
 
 END_NAMESPACE_DRUID

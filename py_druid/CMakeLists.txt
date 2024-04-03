@@ -39,7 +39,6 @@ set ( py_druid_SOURCES
   types/PyInputVector.cc
   types/PyDffVector.cc
   types/PyTpgFault.cc
-  types/PyTpgFaultMgr.cc
   types/PyTpgNetwork.cc
   types/PyTpgNode.cc
   types/PyTpgMFFC.cc
@@ -54,7 +53,7 @@ set ( py_druid_SOURCES
   main/PyClassifier.cc
 
   dtpg/dtpg_module.cc
-  dtpg/PyDtpgMgr.cc
+  #dtpg/PyDtpgMgr.cc
 
   bist/bist_module.cc
   bist/PyPhaseShifter.cc

@@ -47,7 +47,7 @@ DopVerify::~DopVerify()
 // @brief テストパタンが見つかった時の処理
 void
 DopVerify::operator()(
-  const TpgFault& f,
+  const TpgFault* f,
   const TestVector& tv
 )
 {

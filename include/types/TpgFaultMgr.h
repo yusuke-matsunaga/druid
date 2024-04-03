@@ -8,6 +8,7 @@
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
+#error "obsolete"
 #include "druid.h"
 #include "FaultType.h"
 #include "FaultStatus.h"

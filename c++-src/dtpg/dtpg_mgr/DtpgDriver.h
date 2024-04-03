@@ -5,7 +5,7 @@
 /// @brief DtpgDriver のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -28,17 +28,31 @@ BEGIN_NAMESPACE_DRUID
 class DtpgDriver
 {
 public:
+
+  using FaultTvCallback = DtpgMgr::FaultTvCallback;
+  using FaultCallback = DtpgMgr::FaultCallback;
+
+public:
   //////////////////////////////////////////////////////////////////////
   // 派生クラスを作るクラスメソッド
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief FFRモード用のドライバを生成する．
   static
   DtpgDriver*
   new_driver(
-    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
-    const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
-    const JsonValue& option        ///< [in] オプションを表す JSON オブジェクト
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const TpgFFR* ffr,         ///< [in] 対象のFFR
+    const JsonValue& option    ///< [in] オプションを表す JSON オブジェクト
+  );
+
+  /// @brief MFFCモード用のドライバを生成する．
+  static
+  DtpgDriver*
+  new_driver(
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const TpgMFFC* mffc,       ///< [in] 対象のMFFC
+    const JsonValue& option    ///< [in] オプションを表す JSON オブジェクト
   );
 
 
@@ -49,14 +63,10 @@ public:
 
   /// @brief コンストラクタ
   DtpgDriver(
-    DtpgMgr& mgr,                  ///< [in] 親のマネージャ
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
     const string& just_type,       ///< [in] 正当化のタイプ
     const SatInitParam& init_param ///< [in] SATソルバのタイプ
-  ) : mMgr{mgr},
-      mNetwork{network},
-      mHasPrevState{has_prev_state},
+  ) : mNetwork{network},
       mJustifier{just_type, network},
       mInitParam{init_param}
   {
@@ -74,28 +84,19 @@ public:
 
   /// @brief テストパタン生成を行う．
   virtual
-  void
-  run() = 0;
+  DtpgStats
+  gen_pattern(
+    const TpgFault* fault,     ///< [in] 対象の故障
+    FaultTvCallback det_func,  ///< [in] 検出時に呼び出される関数
+    FaultCallback untest_func, ///< [in] 検出不能判定時に呼び出される関数
+    FaultCallback abort_func   ///< [in] アボート時に呼び出される関数
+  ) = 0;
 
 
 protected:
   //////////////////////////////////////////////////////////////////////
   // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 親のマネージャを返す．
-  DtpgMgr&
-  mgr()
-  {
-    return mMgr;
-  }
-
-  /// @brief 故障マネージャを返す．
-  TpgFaultMgr&
-  fault_mgr()
-  {
-    return mMgr.fault_mgr();
-  }
 
   /// @brief ネットワークを返す．
   const TpgNetwork&
@@ -127,6 +128,7 @@ protected:
     return mInitParam;
   }
 
+#if 0
   /// @brief CNF の生成開始
   void
   cnf_begin()
@@ -143,38 +145,6 @@ protected:
     mMgr.update_cnf(mTimer.get_time());
   }
 
-  /// @brief テストパタン生成が成功した時の結果を更新する．
-  void
-  update_det(
-    const TpgFault& fault, ///< [in] 対象の故障
-    const TestVector& tv,  ///< [in] テストパタン
-    double sat_time,       ///< [in] SATにかかった時間
-    double backtrace_time  ///< [in] バックトレースにかかった時間
-  )
-  {
-    mgr().update_det(fault, tv, sat_time, backtrace_time);
-  }
-
-  /// @brief 冗長故障の特定が行えた時の結果を更新する．
-  void
-  update_untest(
-    const TpgFault& fault, ///< [in] 対象の故障
-    double sat_time        ///< [in] SATにかかった時間
-  )
-  {
-    mgr().update_untest(fault, sat_time);
-  }
-
-  /// @brief アボートした時の結果を更新する．
-  void
-  update_abort(
-    const TpgFault& fault, ///< [in] 対象の故障
-    double sat_time        ///< [in] SATにかかった時間
-  )
-  {
-    mgr().update_abort(fault, sat_time);
-  }
-
   /// @brief SATの統計情報を更新する．
   void
   update_sat_stats(
@@ -183,15 +153,12 @@ protected:
   {
     mgr().update_sat_stats(sat_stats);
   }
-
+#endif
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 親の DtpgMgr
-  DtpgMgr& mMgr;
 
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
@@ -205,8 +172,13 @@ private:
   // SATソルバの初期化パラメータ
   SatInitParam mInitParam;
 
+#if 0
   // 時間計測用のタイマー
   Timer mTimer;
+
+  // 統計情報
+  DtpgStats* mStatsPtr{nullptr};
+#endif
 
 };
 

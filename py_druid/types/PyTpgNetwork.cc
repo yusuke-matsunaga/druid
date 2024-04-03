@@ -9,6 +9,7 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgMFFC.h"
 #include "PyTpgFFR.h"
+#include "PyFaultType.h"
 #include "pym/PyClibCellLibrary.h"
 #include "pym/PyModule.h"
 
@@ -60,25 +61,31 @@ TpgNetwork_read_blif(
 )
 {
   static const char* kwlist[] = {
+    "filename",
+    "fault_type",
     "cell_library",
     nullptr
   };
   const char* blif_file = nullptr;
+  PyObject* fault_type_obj = nullptr;
   PyObject* clib_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "s|$!O",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "s|O!$O!",
 				    const_cast<char**>(kwlist),
 				    &blif_file,
+				    PyFaultType::_typeobject(),
+				    &fault_type_obj,
 				    PyClibCellLibrary::_typeobject(),
 				    &clib_obj) ) {
     return nullptr;
   }
-  // blif ファイルを読み込む．
+  auto fault_type = PyFaultType::Get(fault_type_obj);
   ClibCellLibrary cell_library;
   if ( clib_obj != nullptr ) {
     cell_library = PyClibCellLibrary::Get(clib_obj);
   }
   try {
-    auto src_network = TpgNetwork::read_blif(blif_file, cell_library);
+    // blif ファイルを読み込む．
+    auto src_network = TpgNetwork::read_blif(blif_file, fault_type, cell_library);
     auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
     auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
     tpgnetwork_obj->mPtr = new TpgNetwork{std::move(src_network)};
@@ -99,11 +106,16 @@ TpgNetwork_read_bench(
 )
 {
   const char* bench_file = nullptr;
-  if ( !PyArg_ParseTuple(args, "s", &bench_file) ) {
+  PyObject* fault_type_obj = nullptr;
+  if ( !PyArg_ParseTuple(args, "s!O",
+			 &bench_file,
+			 PyFaultType::_typeobject(),
+			 &fault_type_obj) ) {
     return nullptr;
   }
+  auto fault_type = PyFaultType::Get(fault_type_obj);
   try {
-    auto src_network = TpgNetwork::read_iscas89(bench_file);
+    auto src_network = TpgNetwork::read_iscas89(bench_file, fault_type);
     auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
     auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
     tpgnetwork_obj->mPtr = new TpgNetwork{std::move(src_network)};

@@ -52,7 +52,7 @@ classify(
   }
 
   auto& network = PyTpgNetwork::Get(network_obj);
-  vector<TpgFault> fault_list;
+  vector<const TpgFault*> fault_list;
   if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
     return nullptr;
   }
@@ -68,8 +68,7 @@ classify(
 
   Classifier::set_verbose(verbose);
 
-  auto fg_list = Classifier::run(network, fault_list, fault_type, tv_list,
-				 drop, ppsfp, multi);
+  auto fg_list = Classifier::run(network, fault_list, tv_list, drop, ppsfp, multi);
   SizeType NG = fg_list.size();
   auto ans_obj = PyList_New(NG);
   for ( SizeType i = 0; i < NG; ++ i ) {

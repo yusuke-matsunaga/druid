@@ -3,7 +3,7 @@
 /// @brief DtpgTest の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2023 Yusuke Matsunaga
+/// Copyright (C) 2017, 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "gtest/gtest.h"
@@ -139,20 +139,41 @@ private:
   string
   just_type();
 
+};
 
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
+struct DtpgTestResult
+{
+  /// @brief 検出故障数
+  SizeType DetCount;
+  /// @brief 検出不能故障数
+  SizeType UntestCount;
+  /// @brief アボート故障数
+  SizeType AbortCount;
 
-  TpgNetwork* mNetwork_p{nullptr};
+  void
+  det_func(
+    const TpgFault* f,
+    TestVector tv
+  )
+  {
+    ++ DetCount;
+  }
 
-  TpgFaultMgr mFaultMgr;
+  void
+  untest_func(
+    const TpgFault* f
+  )
+  {
+    ++ UntestCount;
+  }
 
-  DtpgMgr* mDtpgMgr{nullptr};
-
-  DopVerifyResult mVerifyResult;
-
+  void
+  abort_func(
+    const TpgFault* f
+  )
+  {
+    ++ AbortCount;
+  }
 };
 
 
@@ -164,40 +185,54 @@ DtpgTestWithParam2::DtpgTestWithParam2()
 void
 DtpgTestWithParam2::SetUp()
 {
-  auto network = TpgNetwork::read_blif(filename());
-  mNetwork_p = new TpgNetwork{std::move(network)};
-
-  unordered_map<string, JsonValue> option_dict;
-  option_dict.emplace("dtpg_type", test_mode());
-  option_dict.emplace("just_type", just_type());
-  option_dict.emplace("dop", JsonValue{"verify"});
-  auto sat_obj = JsonValue{sat_type()};
-  option_dict.emplace("sat_param", sat_obj);
-  JsonValue option{option_dict};
-
-  mFaultMgr.gen_fault_list(*mNetwork_p, fault_type());
-
-  mDtpgMgr = new DtpgMgr{*mNetwork_p, mFaultMgr, option, false};
 }
 
 // @brief 終了処理を行う．
 void
 DtpgTestWithParam2::TearDown()
 {
-  delete mNetwork_p;
-  delete mDtpgMgr;
 }
 
 void
 DtpgTestWithParam2::do_test()
 {
-  mDtpgMgr->run();
+  unordered_map<string, JsonValue> option_dict;
+  option_dict.emplace("dtpg_type", test_mode());
+  option_dict.emplace("just_type", just_type());
+  auto sat_obj = JsonValue{sat_type()};
+  option_dict.emplace("sat_param", sat_obj);
+  JsonValue option{option_dict};
 
-  EXPECT_EQ( total_fault_num(), mDtpgMgr->fault_num() );
-  EXPECT_EQ( detect_fault_num(), mDtpgMgr->detect_count() );
-  EXPECT_EQ( untest_fault_num(), mDtpgMgr->untest_count() );
+  DtpgTestResult result;
+  auto network = TpgNetwork::read_blif(filename(), fault_type());
+  auto fault_list = network.rep_fault_list();
 
-  EXPECT_EQ( 0, mDtpgMgr->verify_result().error_count() );
+  Fsim fsim;
+  fsim.initialize(network, true, false);
+  fsim.set_fault_list(fault_list);
+  SizeType ErrorCount = 0;
+  auto stats = DtpgMgr::run(network, fault_list, option,
+			    [&](const TpgFault* f, TestVector tv) {
+			      result.det_func(f, tv);
+			      DiffBits dbits;
+			      bool r = fsim.spsfp(tv, f, dbits);
+			      if ( !r ) {
+				++ ErrorCount;
+			      }
+			    },
+			    [&](const TpgFault* f) {
+			      result.untest_func(f);
+			    },
+			    [&](const TpgFault* f) {
+			      result.abort_func(f);
+			    });
+
+  EXPECT_EQ( total_fault_num(), fault_list.size() );
+  EXPECT_EQ( detect_fault_num(), result.DetCount );
+  EXPECT_EQ( untest_fault_num(), result.UntestCount );
+  EXPECT_EQ( 0, result.AbortCount );
+
+  EXPECT_EQ( 0, ErrorCount );
 }
 
 // @brief テストパラメータからファイル名を取り出す．

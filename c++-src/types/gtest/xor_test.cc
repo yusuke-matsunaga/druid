@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 #include "TpgNetwork.h"
+#include "FaultType.h"
 #include "ym/BnModel.h"
 #include "ym/BnNode.h"
 #include "ym/BnFunc.h"
@@ -25,7 +26,7 @@ TEST(TpgNetworkTest, xor2)
   auto node = model.new_primitive(PrimType::Xor, {a, b});
   model.new_output(node, "x");
 
-  auto tpg_network = TpgNetwork{model};
+  auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -70,7 +71,7 @@ TEST(TpgNetworkTest, xor3)
   auto node = model.new_primitive(PrimType::Xor, {a, b, c});
   model.new_output(node, "x");
 
-  auto tpg_network = TpgNetwork{model};
+  auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -120,7 +121,7 @@ TEST(TpgNetworkTest, xor4)
   auto node = model.new_primitive(PrimType::Xor, {a, b, c, d});
   model.new_output(node, "x");
 
-  auto tpg_network = TpgNetwork{model};
+  auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -180,7 +181,7 @@ TEST(TpgNetworkTest, aoi22)
   auto node = model.new_func(func, {a1, a2, b1, b2});
   model.new_output(node, "x");
 
-  auto tpg_network = TpgNetwork{model};
+  auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -250,7 +251,7 @@ TEST(TpgNetworkTest, oai21)
   auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
 
-  auto tpg_network = TpgNetwork{model};
+  auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -312,7 +313,7 @@ TEST(TpgNetworkTest, cplx1)
   auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
 
-  auto tpg_network = TpgNetwork{model};
+  auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
   ostringstream buf;
   tpg_network.print(buf);
@@ -368,7 +369,7 @@ TEST(TpgNetworkTest, cplx2)
   auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
 
-  auto tpg_network = TpgNetwork{model};
+  auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
   ostringstream buf;
   tpg_network.print(buf);

@@ -9,7 +9,10 @@
 #include "gtest/gtest.h"
 #include "TpgNetwork.h"
 #include "TpgNode.h"
-#include "TpgDFF.h"
+#include "TpgFFR.h"
+#include "TpgMFFC.h"
+//#include "TpgDFF.h"
+#include "FaultType.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -18,7 +21,7 @@ TEST(DruidTest, read_blif_1)
 {
   string filename = "s27.blif";
   string path = string{TESTDATA_DIR} + "/" + filename;
-  auto network = TpgNetwork::read_blif(path);
+  auto network = TpgNetwork::read_blif(path, FaultType::StuckAt);
 
   EXPECT_EQ( 21, network.node_num() );
   EXPECT_EQ( 4, network.input_num() );
@@ -66,21 +69,22 @@ TEST(DruidTest, read_blif_1)
   auto nmffc = network.mffc_num();
   for ( SizeType i = 0; i < nmffc; ++ i ) {
     auto mffc = network.mffc(i);
-    EXPECT_EQ( i, mffc.id() );
+    EXPECT_EQ( i, mffc->id() );
   }
 
   auto nffr = network.ffr_num();
   for ( SizeType i = 0; i < nffr; ++ i ) {
     auto ffr = network.ffr(i);
-    EXPECT_EQ( i, ffr.id() );
+    EXPECT_EQ( i, ffr->id() );
   }
-
   auto nd = network.dff_num();
   for ( SizeType i = 0; i < nd; ++ i ) {
-    auto dff = network.dff(i);
-    EXPECT_EQ( i, dff.id() );
-    EXPECT_TRUE( dff.input() != nullptr );
-    EXPECT_TRUE( dff.output() != nullptr );
+    auto input = network.dff_input(i);
+    auto output = network.dff_output(i);
+    EXPECT_EQ( i, input->dff_id() );
+    EXPECT_EQ( i, output->dff_id() );
+    EXPECT_EQ( output, input->alt_node() );
+    EXPECT_EQ( input, output->alt_node() );
   }
 }
 
@@ -88,7 +92,7 @@ TEST(DruidTest, read_blif_2)
 {
   string filename = "s38584.blif";
   string path = string{TESTDATA_DIR} + "/" + filename;
-  auto network = TpgNetwork::read_blif(path);
+  auto network = TpgNetwork::read_blif(path, FaultType::StuckAt);
 
   EXPECT_EQ( 22447, network.node_num() );
   EXPECT_EQ( 12, network.input_num() );
@@ -136,21 +140,23 @@ TEST(DruidTest, read_blif_2)
   auto nmffc = network.mffc_num();
   for ( SizeType i = 0; i < nmffc; ++ i ) {
     auto mffc = network.mffc(i);
-    EXPECT_EQ( i, mffc.id() );
+    EXPECT_EQ( i, mffc->id() );
   }
 
   auto nffr = network.ffr_num();
   for ( SizeType i = 0; i < nffr; ++ i ) {
     auto ffr = network.ffr(i);
-    EXPECT_EQ( i, ffr.id() );
+    EXPECT_EQ( i, ffr->id() );
   }
 
   auto nd = network.dff_num();
   for ( SizeType i = 0; i < nd; ++ i ) {
-    auto dff = network.dff(i);
-    EXPECT_EQ( i, dff.id() );
-    EXPECT_TRUE( dff.input() != nullptr );
-    EXPECT_TRUE( dff.output() != nullptr );
+    auto input = network.dff_input(i);
+    auto output = network.dff_output(i);
+    EXPECT_EQ( i, input->dff_id() );
+    EXPECT_EQ( i, output->dff_id() );
+    EXPECT_EQ( output, input->alt_node() );
+    EXPECT_EQ( input, output->alt_node() );
   }
 }
 
@@ -158,7 +164,7 @@ TEST(DruidTest, read_blif_bad_1)
 {
   string path = "file_not_exist.blif";
   EXPECT_THROW( {
-      auto _ = TpgNetwork::read_blif(path);
+      auto _ = TpgNetwork::read_blif(path, FaultType::StuckAt);
     }, std::invalid_argument );
 }
 

@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"

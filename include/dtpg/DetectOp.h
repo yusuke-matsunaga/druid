@@ -35,12 +35,13 @@ public:
   virtual
   void
   operator()(
-    const TpgFault& f,   ///< [in] 故障
+    const TpgFault* f,   ///< [in] 故障
     const TestVector& tv ///< [in] テストベクタ
   ) = 0;
 
 };
 
+#if 0
 /// @brief 'base' タイプを生成する．
 ///
 /// 故障マネージャの状態を変更する．
@@ -48,6 +49,7 @@ DetectOp*
 new_DopBase(
   TpgFaultMgr& fmgr ///< [in] 故障マネージャ
 );
+#endif
 
 /// @brief 'drop' タイプを生成する．
 ///
@@ -55,8 +57,8 @@ new_DopBase(
 /// 検出できる故障を求める．
 DetectOp*
 new_DopDrop(
-  TpgFaultMgr& fmgr, ///< [in] 故障マネージャ
-  Fsim& fsim  	     ///< [in] 故障シミュレータ
+  DtpgMgr& mgr, ///< [in] DTPGマネージャ
+  Fsim& fsim  	///< [in] 故障シミュレータ
 );
 
 /// @brief 'tvlist' タイプを生成する．

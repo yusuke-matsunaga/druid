@@ -39,53 +39,118 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief PPI のときに true を返す．
+  virtual
+  bool
+  is_ppi() const;
+
+  /// @brief PPO のときに true を返す．
+  virtual
+  bool
+  is_ppo() const;
+
   /// @brief 組み込みタイプのときに true を返す．
   virtual
   bool
-  is_simple() const = 0;
+  is_simple() const;
 
   /// @brief 論理式タイプのときに true を返す．
-  ///
-  /// = !is_simple();
+  virtual
   bool
-  is_complex() const
-  {
-    return !is_simple();
-  }
+  is_complex() const;
 
   /// @brief ゲートタイプを返す．
   ///
   /// 組み込みタイプ(is_simple() = true)のときのみ意味を持つ．
   virtual
   PrimType
-  primitive_type() const = 0;
+  primitive_type() const;
 
   /// @brief 論理式を返す．
   ///
   /// 論理式タイプ(is_complex() = true)のときのみ意味を持つ．
   virtual
   Expr
-  expr() const = 0;
+  expr() const;
 
   /// @brief 追加ノード数を返す．
   virtual
   SizeType
-  extra_node_num() const = 0;
+  extra_node_num() const;
 
   /// @brief 制御値を返す．
+  ///
+  /// pos に val を与えた時の出力値を返す．
+  /// 他の入力値に依存している場合は val3::_X を返す．
   virtual
   Val3
   cval(
     SizeType pos, ///< [in] 入力位置
     Val3 val      ///< [in] 値
-  ) const = 0;
+  ) const;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class GateType_PPI GateType.h "GateType.h"
+/// @brief PPI タイプの GateType
+//////////////////////////////////////////////////////////////////////
+class GateType_PPI :
+  public GateType
+{
+public:
+
+  /// @brief コンストラクタ
+  GateType_PPI() = default;
+
+  /// @brief デストラクタ
+  ~GateType_PPI() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief PPI のときに true を返す．
+  bool
+  is_ppi() const override;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class GateType_PPO GateType.h "GateType.h"
+/// @brief PPO タイプの GateType
+//////////////////////////////////////////////////////////////////////
+class GateType_PPO :
+  public GateType
+{
+public:
+
+  /// @brief コンストラクタ
+  GateType_PPO() = default;
+
+  /// @brief デストラクタ
+  ~GateType_PPO() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief PPO のときに true を返す．
+  bool
+  is_ppo() const override;
 
 };
 
 
 //////////////////////////////////////////////////////////////////////
 /// @class GateType_Simple GateType_Simple.h "GateType_Simple.h"
-/// @brief 組み込み型の GateType_Simple
+/// @brief 組み込み型の GateType
 //////////////////////////////////////////////////////////////////////
 class GateType_Simple :
   public GateType
@@ -114,19 +179,11 @@ public:
   PrimType
   primitive_type() const override;
 
-  /// @brief 論理式を返す．
-  Expr
-  expr() const override;
-
-  /// @brief 追加ノード数を返す．
-  SizeType
-  extra_node_num() const override;
-
   /// @brief 制御値を返す．
   Val3
   cval(
     SizeType pos, ///< [in] 入力位置
-    Val3 val      ///< [in] 値
+    Val3 val      ///< [in] 入力値
   ) const override;
 
 
@@ -168,13 +225,9 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 組み込みタイプのときに true を返す．
+  /// @brief 論理式タイプのときに true を返す．
   bool
-  is_simple() const override;
-
-  /// @brief ゲートタイプを返す．
-  PrimType
-  primitive_type() const override;
+  is_complex() const override;
 
   /// @brief 論理式を返す．
   Expr
@@ -229,7 +282,15 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief GateType を登録する．
+  /// @brief PPI 型のオブジェクトを返す．
+  const GateType*
+  ppi_type();
+
+  /// @brief PPO 型のオブジェクトを返す．
+  const GateType*
+  ppo_type();
+
+  /// @brief オブジェクトを登録して返す．
   const GateType*
   new_type(
     SizeType ni,     ///< [in] 入力数
@@ -261,8 +322,14 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
+  // PPI 型のオブジェクト
+  GateType* mPPI;
+
+  // PPO 型のオブジェクト
+  GateType* mPPO;
+
   // 組み込み型のオブジェクトの配列
-  GateType* mSimpleType[10];
+  GateType* mSimpleType[12];
 
   // 普通のオブジェクトのリスト
   vector<GateType*> mList;
