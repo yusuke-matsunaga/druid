@@ -9,6 +9,7 @@
 #include "gtest/gtest.h"
 #include "DtpgMgr.h"
 #include "TpgNetwork.h"
+#include "TpgFaultStatusMgr.h"
 #include "ym/SatInitParam.h"
 #include "DetectOp.h"
 #include "DopVerifyResult.h"
@@ -203,17 +204,18 @@ DtpgTestWithParam2::do_test()
   option_dict.emplace("sat_param", sat_obj);
   JsonValue option{option_dict};
 
-  DtpgTestResult result;
   auto network = TpgNetwork::read_blif(filename(), fault_type());
   auto fault_list = network.rep_fault_list();
 
+  TpgFaultStatusMgr fs_mgr{fault_list};
   Fsim fsim;
   fsim.initialize(network, true, false);
   fsim.set_fault_list(fault_list);
+  SizeType AbortCount = 0;
   SizeType ErrorCount = 0;
-  auto stats = DtpgMgr::run(network, fault_list, option,
+  auto stats = DtpgMgr::run(network, fault_list, fs_mgr, option,
 			    [&](const TpgFault* f, TestVector tv) {
-			      result.det_func(f, tv);
+			      fs_mgr.set_status(f, FaultStatus::Detected);
 			      DiffBits dbits;
 			      bool r = fsim.spsfp(tv, f, dbits);
 			      if ( !r ) {
@@ -221,17 +223,16 @@ DtpgTestWithParam2::do_test()
 			      }
 			    },
 			    [&](const TpgFault* f) {
-			      result.untest_func(f);
+			      fs_mgr.set_status(f, FaultStatus::Untestable);
 			    },
 			    [&](const TpgFault* f) {
-			      result.abort_func(f);
+			      ++ AbortCount;
 			    });
 
   EXPECT_EQ( total_fault_num(), fault_list.size() );
-  EXPECT_EQ( detect_fault_num(), result.DetCount );
-  EXPECT_EQ( untest_fault_num(), result.UntestCount );
-  EXPECT_EQ( 0, result.AbortCount );
-
+  EXPECT_EQ( detect_fault_num(), fs_mgr.detected_count() );
+  EXPECT_EQ( untest_fault_num(), fs_mgr.untestable_count() );
+  EXPECT_EQ( 0, AbortCount );
   EXPECT_EQ( 0, ErrorCount );
 }
 

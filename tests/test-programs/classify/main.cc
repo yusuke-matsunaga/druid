@@ -9,6 +9,7 @@
 #include "TpgNetwork.h"
 #include "DtpgMgr.h"
 #include "TpgFault.h"
+#include "TpgFaultStatusMgr.h"
 #include "DopVerifyResult.h"
 #include "Classifier.h"
 #include "Classifier2.h"
@@ -44,15 +45,14 @@ read_network(
 void
 print_stats(
   const TpgNetwork& network,
-  const vector<const TpgFault*>& det_fault_list,
-  const vector<const TpgFault*>& untest_fault_list,
+  const TpgFaultStatusMgr& fs_mgr,
   const DtpgStats& stats,
   double time
 )
 {
   SizeType fault_num = network.rep_fault_list().size();
-  SizeType detect_num = det_fault_list.size();
-  SizeType untest_num = untest_fault_list.size();
+  SizeType detect_num = fs_mgr.detected_count();
+  SizeType untest_num = fs_mgr.untestable_count();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
        << "# of DFFs               = " << network.dff_num() << endl
@@ -365,12 +365,13 @@ dtpg_test(
   fsim.set_fault_list(rep_fault_list);
   vector<pair<const TpgFault*, TestVector>> ErrorList;
 
+  TpgFaultStatusMgr fs_mgr{rep_fault_list};
   vector<const TpgFault*> det_fault_list;
-  vector<const TpgFault*> untest_fault_list;
-  vector<const TpgFault*> abort_fault_list;
   vector<TestVector> tv_list;
-  auto stats = DtpgMgr::run(network, rep_fault_list, option,
+  auto stats = DtpgMgr::run(network, rep_fault_list, fs_mgr, option,
 			    [&](const TpgFault* f, TestVector tv) {
+			      fs_mgr.set_status(f, FaultStatus::Detected);
+			      tv_list.push_back(tv);
 			      DiffBits _dummy;
 			      bool r = fsim.spsfp(tv, f, _dummy);
 			      if ( !r ) {
@@ -378,17 +379,16 @@ dtpg_test(
 			      }
 			    },
 			    [&](const TpgFault* f) {
-			      untest_fault_list.push_back(f);
+			      fs_mgr.set_status(f, FaultStatus::Untestable);
 			    },
 			    [&](const TpgFault* f) {
-			      abort_fault_list.push_back(f);
 			    });
 
   timer.stop();
   auto time = timer.get_time();
 
   if ( verbose ) {
-    print_stats(network, det_fault_list, untest_fault_list, stats, time);
+    print_stats(network, fs_mgr, stats, time);
   }
 
   for ( auto& p: ErrorList ) {
