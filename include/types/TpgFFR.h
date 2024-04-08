@@ -40,6 +40,7 @@ public:
     const vector<const TpgNode*>& input_list, ///< [in] 葉のノードのリスト
     const vector<const TpgNode*>& node_list   ///< [in] 含まれるノードのリスト
   ) : mId{id},
+      mRoot{root},
       mInputList{input_list},
       mNodeList{node_list}
   {

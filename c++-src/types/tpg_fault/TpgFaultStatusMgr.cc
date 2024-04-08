@@ -24,6 +24,7 @@ max_id(
     auto id = fault->id();
     max_val = std::max(max_val, id);
   }
+  ++ max_val;
   return max_val;
 }
 
@@ -36,7 +37,8 @@ END_NONAMESPACE
 // @brief コンストラクタ
 TpgFaultStatusMgr::TpgFaultStatusMgr(
   const vector<const TpgFault*>& fault_list
-) : mStatusArray(max_id(fault_list), FaultStatus::Undetected)
+) : mFaultList{fault_list},
+    mStatusArray(max_id(fault_list), FaultStatus::Undetected)
 {
   mRemainCount = fault_list.size();
   mDetCount = 0;

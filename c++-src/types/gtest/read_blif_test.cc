@@ -21,7 +21,9 @@ TEST(DruidTest, read_blif_1)
 {
   string filename = "s27.blif";
   string path = string{TESTDATA_DIR} + "/" + filename;
+  cout << "read_blif(" << path << ")" << endl;
   auto network = TpgNetwork::read_blif(path, FaultType::StuckAt);
+  cout << "done" << endl;
 
   EXPECT_EQ( 21, network.node_num() );
   EXPECT_EQ( 4, network.input_num() );

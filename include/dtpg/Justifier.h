@@ -46,7 +46,6 @@ public:
   /// @return テストベクタ
   TestVector
   operator()(
-    bool has_prev_state,            ///< [in] 1時刻前の回路を持つ時 true
     const NodeValList& assign_list, ///< [in] 値の割り当てリスト
     const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
     const VidMap& var2_map,	    ///< [in] 2時刻目の変数番号のマップ

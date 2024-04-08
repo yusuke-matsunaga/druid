@@ -379,6 +379,7 @@ TpgNetworkImpl::post_op(
       f->set_rep_fault(f);
     }
   }
+
   // 求めた代表故障を記録する．
   mRepFaultList.clear();
   for ( auto f: mFaultArray ) {
@@ -497,6 +498,7 @@ TpgNetworkImpl::gen_gate_faults(
       break;
 
     default:
+      cerr << "wrong fault type" << endl;
       ASSERT_NOT_REACHED;
       break;
     }

@@ -407,7 +407,7 @@ GateTypeMgr::GateTypeMgr()
 // @brief デストラクタ
 GateTypeMgr::~GateTypeMgr()
 {
-  for ( int i: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12} ) {
+  for ( int i: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11} ) {
     delete mSimpleType[i];
   }
   for ( auto p: mList ) {

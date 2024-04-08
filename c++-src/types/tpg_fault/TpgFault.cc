@@ -432,7 +432,7 @@ TpgFault_StemRise::str() const
 Fval2
 TpgFault_StemFall::fval() const
 {
-  return Fval2::zero;
+  return Fval2::one;
 }
 
 // @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
@@ -508,7 +508,7 @@ TpgFault_BranchRise::str() const
 Fval2
 TpgFault_BranchFall::fval() const
 {
-  return Fval2::zero;
+  return Fval2::one;
 }
 
 /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．

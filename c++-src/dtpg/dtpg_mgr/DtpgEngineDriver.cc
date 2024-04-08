@@ -41,8 +41,8 @@ DtpgEngineDriver::gen_pattern(
     timer.reset();
     timer.start();
 
-    const auto& model = engine.solver().model();
     auto assign_list = engine.get_sufficient_condition(fault);
+    const auto& model = engine.solver().model();
     auto testvect = justify(assign_list, engine.hvar_map(), engine.gvar_map(), model);
 
     timer.stop();

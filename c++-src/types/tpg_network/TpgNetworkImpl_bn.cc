@@ -30,6 +30,28 @@ BEGIN_NAMESPACE_DRUID
 // クラス TpgNetwork
 //////////////////////////////////////////////////////////////////////
 
+// @brief ファイルを読み込む
+TpgNetwork
+TpgNetwork::read_network(
+  const string& filename,
+  const string& format,
+  FaultType fault_type,
+  const ClibCellLibrary& cell_library,
+  const string& clock_name,
+  const string& reset_name
+)
+{
+  if ( format == "blif" ) {
+    return read_blif(filename, fault_type, cell_library, clock_name, reset_name);
+  }
+  if ( format == "iscas89" ) {
+    return read_iscas89(filename, fault_type, clock_name);
+  }
+  ostringstream buf;
+  buf << format << ": Unknown format";
+  throw std::invalid_argument(buf.str());
+}
+
 // @brief blif ファイルを読み込む．
 TpgNetwork
 TpgNetwork::read_blif(
@@ -95,7 +117,7 @@ END_NONAMESPACE
 TpgNetworkImpl::TpgNetworkImpl(
   const BnModel& model,
   FaultType fault_type
-)
+) : mFaultType{fault_type}
 {
   //////////////////////////////////////////////////////////////////////
   // NodeInfoMgr にノードの論理関数を登録する．

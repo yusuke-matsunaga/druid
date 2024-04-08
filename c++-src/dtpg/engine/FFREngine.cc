@@ -15,10 +15,13 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 FFREngine::FFREngine(
   const TpgNetwork& network,
-  bool has_prev_state,
   const TpgFFR* ffr,
+  bool make_dchain,
+  const string& ex_mode,
+  const string& just_mode,
   const SatInitParam& init_param
-) : DtpgEngine{network, has_prev_state, ffr->root(), true, init_param}
+) : DtpgEngine{network, ffr->root(), make_dchain,
+	       ex_mode, just_mode, init_param}
 {
 }
 

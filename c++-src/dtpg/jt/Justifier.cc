@@ -61,13 +61,13 @@ Justifier::~Justifier()
 // @brief 正当化に必要な割当を求める
 TestVector
 Justifier::operator()(
-  bool has_prev_state,
   const NodeValList& assign_list,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model
 )
 {
+  bool has_prev_state = mNetwork.fault_type() == FaultType::TransitionDelay;
   TestVector tv{mNetwork.input_num(), mNetwork.dff_num(), has_prev_state};
   if ( has_prev_state ) {
     auto pi_assign_list = mImpl->justify(assign_list, var1_map, var2_map, model);

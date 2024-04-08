@@ -199,7 +199,7 @@ DtpgTestWithParam2::do_test()
 {
   unordered_map<string, JsonValue> option_dict;
   option_dict.emplace("dtpg_type", test_mode());
-  option_dict.emplace("just_type", just_type());
+  option_dict.emplace("justify_mode", just_type());
   auto sat_obj = JsonValue{sat_type()};
   option_dict.emplace("sat_param", sat_obj);
   JsonValue option{option_dict};
@@ -213,7 +213,7 @@ DtpgTestWithParam2::do_test()
   fsim.set_fault_list(fault_list);
   SizeType AbortCount = 0;
   SizeType ErrorCount = 0;
-  auto stats = DtpgMgr::run(network, fault_list, fs_mgr, option,
+  auto stats = DtpgMgr::run(network, fs_mgr, option,
 			    [&](const TpgFault* f, TestVector tv) {
 			      fs_mgr.set_status(f, FaultStatus::Detected);
 			      DiffBits dbits;
@@ -320,7 +320,7 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam2,
 					    ::testing::Values("ffr"),
 					    ::testing::Values(FaultType::StuckAt),
 					    ::testing::Values("just1")));
-
+#if 0
 INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
 			 ::testing::Combine(::testing::ValuesIn(mydata2),
 					    ::testing::Values("ymsat2"),
@@ -328,5 +328,13 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
 							      "mffc",   "mffc_se"),
 					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
 					    ::testing::Values("just1", "just2")));
+#else
+INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
+			 ::testing::Combine(::testing::ValuesIn(mydata2),
+					    ::testing::Values("ymsat2"),
+					    ::testing::Values("ffr", "mffc"),
+					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
+					    ::testing::Values("just1", "just2")));
+#endif
 
 END_NAMESPACE_DRUID

@@ -50,13 +50,13 @@ set (jt_SOURCES
 
 set (dtpg_mgr_SOURCES
   dtpg_mgr/DtpgMgr.cc
-  dtpg_mgr/DtpgDriver.cc
-  dtpg_mgr/DtpgEngineDriver.cc
-  dtpg_mgr/StructEncDriver.cc
+  #dtpg_mgr/DtpgDriver.cc
+  #dtpg_mgr/DtpgEngineDriver.cc
+  #dtpg_mgr/StructEncDriver.cc
   )
 
 set (dop_SOURCES
-  #dop/DopBase.cc
+  dop/DopBase.cc
   dop/DopDrop.cc
   dop/DopDummy.cc
   dop/DopTvList.cc
@@ -65,7 +65,7 @@ set (dop_SOURCES
   )
 
 set (uop_SOURCES
-  #uop/UopBase.cc
+  uop/UopBase.cc
   uop/UopDummy.cc
   uop/UopSkip.cc
   )
@@ -79,7 +79,7 @@ ym_add_object_library ( druid_dtpg
   ${struct_enc_SOURCES}
   ${ex_SOURCES}
   ${jt_SOURCES}
-  #${dtpg_mgr_SOURCES}
+  ${dtpg_mgr_SOURCES}
   #${dop_SOURCES}
   #${uop_SOURCES}
   )

@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -18,6 +18,8 @@
 #include "FaultType.h"
 #include "Val3.h"
 #include "VidMap.h"
+#include "NodeValList.h"
+#include "Justifier.h"
 
 #include "ym/SatBool3.h"
 #include "ym/SatLiteral.h"
@@ -37,9 +39,10 @@ public:
   /// @brief コンストラクタ
   DtpgEngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
     const TpgNode* root,	   ///< [in] 故障伝搬の起点となるノード
     bool make_dchain,              ///< [in] dchain を作る時 true にする．
+    const string& ex_mode,         ///< [in] extractor のモード
+    const string& just_mode,       ///< [in] justifier のモード
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
   );
 
@@ -87,7 +90,7 @@ public:
   SatLiteral
   new_variable()
   {
-    return solver().new_variable();
+    return solver().new_variable(true);
   }
 
   /// @brief SATソルバに節を追加する．
@@ -105,11 +108,27 @@ public:
     const TpgFault* fault ///< [in] 故障
   );
 
+  /// @brief solve() が成功した時にテストパタンを生成する．
+  TestVector
+  gen_pattern(
+    const TpgFault* fault ///< [in] 故障
+  )
+  {
+    auto assign_list = get_sufficient_condition(fault);
+    return justify(assign_list);
+  }
+
   /// @brief 十分条件を取り出す．
   /// @return 十分条件を表す割当リストを返す．
   NodeValList
   get_sufficient_condition(
     const TpgFault* fault ///< [in] 故障
+  );
+
+  /// @brief 十分条件からテストベクタを作る．
+  TestVector
+  justify(
+    const NodeValList& assign_list ///< [in] 十分条件
   );
 
   /// @brief SATの統計情報を返す．
@@ -322,14 +341,17 @@ private:
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
 
-  // 1時刻前のの回路を持つ時 true にするフラグ
-  bool mHasPrevState;
-
   // 故障伝搬の起点となるノード
   const TpgNode* mRoot;
 
   // dchain を生成するとき true にするフラグ
   bool mDchain{false};
+
+  // extractor のモード
+  string mExMode;
+
+  // justifier
+  Justifier mJustifier;
 
   // TFOノードを入れておくリスト
   vector<const TpgNode*> mTfoList;

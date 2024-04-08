@@ -42,6 +42,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障リストを得る．
+  const vector<const TpgFault*>&
+  fault_list() const
+  {
+    return mFaultList;
+  }
+
   /// @brief 故障の状態を得る．
   FaultStatus
   get_status(
@@ -59,7 +66,7 @@ public:
   SizeType
   total_count() const
   {
-    return detected_count() + untestable_count() + remain_count();
+    return mFaultList.size();
   }
 
   /// @brief 検出された故障数を得る．
@@ -88,6 +95,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // 故障のリスト
+  vector<const TpgFault*> mFaultList;
 
   // 故障の状態の配列
   vector<FaultStatus> mStatusArray;

@@ -3,7 +3,7 @@
 /// @brief MFFCEngine の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2017, 2018, 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "MFFCEngine.h"
@@ -33,10 +33,13 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 MFFCEngine::MFFCEngine(
   const TpgNetwork& network,
-  bool has_prev_state,
   const TpgMFFC* mffc,
+  bool make_dchain,
+  const string& ex_mode,
+  const string& just_mode,
   const SatInitParam& init_param
-) : DtpgEngine{network, has_prev_state, mffc->root(), true, init_param},
+) : DtpgEngine{network, mffc->root(), make_dchain,
+	       ex_mode, just_mode, init_param},
     mMFFC{mffc},
     mRootArray(mffc->ffr_num()),
     mEvarArray(mffc->ffr_num())

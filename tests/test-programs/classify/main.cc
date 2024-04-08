@@ -368,7 +368,7 @@ dtpg_test(
   TpgFaultStatusMgr fs_mgr{rep_fault_list};
   vector<const TpgFault*> det_fault_list;
   vector<TestVector> tv_list;
-  auto stats = DtpgMgr::run(network, rep_fault_list, fs_mgr, option,
+  auto stats = DtpgMgr::run(network, fs_mgr, option,
 			    [&](const TpgFault* f, TestVector tv) {
 			      fs_mgr.set_status(f, FaultStatus::Detected);
 			      tv_list.push_back(tv);

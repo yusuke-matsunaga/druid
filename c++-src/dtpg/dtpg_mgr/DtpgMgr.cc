@@ -7,10 +7,107 @@
 /// All rights reserved.
 
 #include "DtpgMgr.h"
-#include "DtpgDriver.h"
+#include "FFREngine.h"
+#include "MFFCEngine.h"
+#include "TpgFFR.h"
+#include "TpgMFFC.h"
+#include "TpgFaultStatusMgr.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+BEGIN_NONAMESPACE
+
+// bool型のオプションを取り出す．
+//
+// 結果は value に上書きされる．
+// エラーが起こったら std::invalid_argument 例外を送出する．
+void
+get_bool(
+  const JsonValue& option,
+  const string& keyword,
+  bool& value
+)
+{
+  if ( option.has_key(keyword) ) {
+    auto value_obj = option.at(keyword);
+    if ( value_obj.is_bool() ) {
+      value = value_obj.get_bool();
+    }
+    else {
+      ostringstream buf;
+      buf << "'" << keyword << "' should be a bool";
+      throw std::invalid_argument{buf.str()};
+    }
+  }
+}
+
+// 文字列型のオプションを取り出す．
+//
+// 結果は value に上書きされる．
+// エラーが起こったら std::invalid_argument 例外を送出する．
+void
+get_string(
+  const JsonValue& option,
+  const string& keyword,
+  string& value
+)
+{
+  if ( option.has_key(keyword) ) {
+    auto value_obj = option.at(keyword);
+    if ( value_obj.is_string() ) {
+      value = value_obj.get_string();
+    }
+    else {
+      ostringstream buf;
+      buf << "'" << keyword << "' should be a string";
+      throw std::invalid_argument{buf.str()};
+    }
+  }
+}
+
+// 一つの故障に対するテスト生成を行う．
+void
+gen_pattern(
+  DtpgEngine& engine,
+  const TpgFault* fault,
+  DtpgStats& stats,
+  FaultTvCallback det_func,
+  FaultCallback untest_func,
+  FaultCallback abort_func
+)
+{
+  Timer timer;
+  timer.start();
+  auto ans = engine.solve(fault);
+  timer.stop();
+  auto sat_time = timer.get_time();
+
+  if ( ans == SatBool3::True ) {
+    // パタンが求まった．
+    timer.reset();
+    timer.start();
+    auto testvect = engine.gen_pattern(fault);
+    timer.stop();
+    auto backtrace_time = timer.get_time();
+
+    det_func(fault, testvect);
+    stats.update_det(sat_time, backtrace_time);
+  }
+  else if ( ans == SatBool3::False ) {
+    // 検出不能と判定された．
+    untest_func(fault);
+    stats.update_untest(sat_time);
+  }
+  else { // SatBool3::X
+    // つまりアボート
+    abort_func(fault);
+    stats.update_abort(sat_time);
+  }
+}
+
+END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // クラス DtpgMgr
@@ -20,7 +117,6 @@ BEGIN_NAMESPACE_DRUID
 DtpgStats
 DtpgMgr::run(
   const TpgNetwork& network,
-  const vector<const TpgFault*>& fault_list,
   TpgFaultStatusMgr& status_mgr,
   const JsonValue& option,
   FaultTvCallback det_func,
@@ -28,41 +124,40 @@ DtpgMgr::run(
   FaultCallback abort_func
 )
 {
-  string dtpg_type;
+  string dtpg_type = "ffr";
   bool multi = false;
-  { // option の解析
-    if ( !option.is_object() ) {
-      // エラー
-    }
-    else {
-      if ( option.has_key("dtpg_type") ) {
-	auto dtpg_type_obj = option.at("dtpg_type");
-	if ( dtpg_type_obj.is_string() ) {
-	  dtpg_type = dtpg_type_obj.get_string();
-	}
-	else {
-	  throw std::invalid_argument{"'dtpg_type' should be a string"};
-	}
-      }
-      if ( option.has_key("multi_thread") ) {
-	auto multi_obj = option.at("multi_thread");
-	if ( multi_obj.is_bool() ) {
-	  multi = multi_obj.get_bool();
-	}
-      }
+  bool dchain = true;
+  string ex_mode = "simple";
+  string just_mode = "just2";
+  SatInitParam init_param;
+  // option の解析
+  if ( !option.is_object() ) {
+    // エラー
+    throw std::invalid_argument{"option should be a JsonObject"};
+  }
+  else {
+    get_string(option, "dtpg_type", dtpg_type);
+    get_bool(option, "multi_thread", multi);
+    get_bool(option, "dchain", dchain);
+    get_string(option, "extract_mode", ex_mode);
+    get_string(option, "justify_mode", just_mode);
+    if ( option.has_key("sat_param") ) {
+      init_param = SatInitParam{option.at("sat_param")};
     }
   }
 
   // ノード番号をキーにして関係する故障のリストを格納する配列
   vector<vector<const TpgFault*>> node_fault_list_array(network.node_num());
-  for ( auto fault: fault_list ) {
+  for ( auto fault: status_mgr.fault_list() ) {
     auto node = fault->origin_node();
     node_fault_list_array[node->id()].push_back(fault);
   }
 
+  DtpgStats stats;
   if ( dtpg_type == "ffr" ) {
     // FFR 単位で処理を行う．
     for ( auto ffr: network.ffr_list() ) {
+      // ffr に関係する故障を集める．
       vector<const TpgFault*> fault_list;
       for ( auto node: ffr->node_list() ) {
 	for ( auto fault: node_fault_list_array[node->id()] ) {
@@ -74,14 +169,14 @@ DtpgMgr::run(
       if ( fault_list.empty() ) {
 	continue;
       }
-      auto driver = DtpgDriver::new_driver(network, ffr, option);
+      FFREngine engine{network, ffr, dchain, ex_mode, just_mode, init_param};
+      engine.make_cnf();
       for ( auto fault: fault_list ) {
-	// 途中で status が変化している場合がある．
+	// 途中で status が変化している場合があるので再度チェック
 	if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	  driver->gen_pattern(fault, det_func, untest_func, abort_func);
+	  gen_pattern(engine, fault, stats, det_func, untest_func, abort_func);
 	}
       }
-      delete driver;
     }
   }
   else if ( dtpg_type == "mffc" ) {
@@ -113,24 +208,24 @@ DtpgMgr::run(
 	continue;
       }
       if ( ffr_mode ) {
-	auto driver = DtpgDriver::new_driver(network, ffr1, option);
+	FFREngine engine{network, ffr1, dchain, ex_mode, just_mode, init_param};
+	engine.make_cnf();
 	for ( auto fault: fault_list ) {
-	  // 途中で status が変化している場合がある．
+	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    driver->gen_pattern(fault, det_func, untest_func, abort_func);
+	    gen_pattern(engine, fault, stats, det_func, untest_func, abort_func);
 	  }
 	}
-	delete driver;
       }
       else {
-	auto drier = DtpgDriver::new_driver(network, mffc, option);
+	MFFCEngine engine{network, mffc, dchain, ex_mode, just_mode, init_param};
+	engine.make_cnf();
 	for ( auto fault: fault_list ) {
-	  // 途中で status が変化している場合がある．
+	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    driver->gen_pattern(fault, det_func, untest_func, abort_func);
+	    gen_pattern(engine, fault, stats, det_func, untest_func, abort_func);
 	  }
 	}
-	delete driver;
       }
     }
   }
@@ -142,158 +237,5 @@ DtpgMgr::run(
 
   return stats;
 }
-
-#if 0
-/// @brief 組み込み型の DetectOp を登録する．
-void
-DtpgMgr::add_dop(
-  const JsonValue& js_obj
-)
-{
-  string type_name;
-  if ( js_obj.is_string() ) {
-    type_name = js_obj.get_string();
-  }
-  else if ( js_obj.is_object() ) {
-    if ( js_obj.has_key("type") ) {
-      auto type_obj = js_obj.at("type");
-      if ( type_obj.is_string() ) {
-	type_name = type_obj.get_string();
-      }
-    }
-  }
-  if ( type_name == string{} ) {
-    throw std::invalid_argument{"invalid JSON object for operator specification"};
-  }
-  DetectOp* op = nullptr;
-#if 0
-  if ( type_name == "base" ) {
-    op = new_DopBase(*this);
-  }
-  else
-#endif
-  if ( type_name == "drop" ) {
-    op = new_DopDrop(*this, fsim());
-  }
-  else if ( type_name == "tvlist" ) {
-    op = new_DopTvList(mTVList);
-  }
-  else if ( type_name == "verify" ) {
-    op = new_DopVerify(fsim(), mVerifyResult);
-  }
-  else {
-    ostringstream buf;
-    buf << type_name << ": unknown DetectOp name";
-    throw std::invalid_argument{buf.str()};
-  }
-  add_dop(op);
-}
-
-// @brief 組み込み型の UntestOp を登録する．
-void
-DtpgMgr::add_uop(
-  const JsonValue& js_obj
-)
-{
-  string type_name;
-  if ( js_obj.is_string() ) {
-    type_name = js_obj.get_string();
-  }
-  else if ( js_obj.is_object() ) {
-    if ( js_obj.has_key("type") ) {
-      auto type_obj = js_obj.at("type");
-      if ( type_obj.is_string() ) {
-	type_name = type_obj.get_string();
-      }
-    }
-  }
-  if ( type_name == string{} ) {
-    throw std::invalid_argument{"invalid JSON object for operator specification"};
-  }
-  UntestOp* op = nullptr;
-#if 0
-  if ( type_name == "base" ) {
-    op = new_UopBase(fault_mgr());
-  }
-  else
-#endif
-  if ( type_name == "skip" ) {
-    if ( js_obj.is_object() ) {
-      if ( js_obj.has_key("threshold") ) {
-	auto thr_obj = js_obj.at("threadhold");
-	if ( thr_obj.is_int() ) {
-	  SizeType thr = thr_obj.get_int();
-	  op = new_UopSkip(thr);
-	}
-      }
-    }
-    if ( op == nullptr ) {
-      throw std::invalid_argument{"'skip' type requires 'threthold' parameter"};
-    }
-  }
-  else {
-    ostringstream buf;
-    buf << type_name << ": unknown UntestOp name";
-    throw std::invalid_argument{buf.str()};
-  }
-  add_uop(op);
-}
-
-// @brief テストパタン生成が成功した時の結果を更新する．
-void
-DtpgMgr::update_det(
-  const TpgFault* fault,
-  const TestVector& tv,
-  double sat_time,
-  double backtrace_time
-)
-{
-  for ( auto dop: mDopList ) {
-    (*dop)(fault, tv);
-  }
-  mStats.update_det(sat_time, backtrace_time);
-}
-
-// @brief 冗長故障の特定が行えた時の結果を更新する．
-void
-DtpgMgr::update_untest(
-  const TpgFault* fault,
-  double sat_time
-)
-{
-  for ( auto uop: mUopList ) {
-    (*uop)(fault);
-  }
-  mStats.update_untest(sat_time);
-}
-
-// @brief アボートした時の結果を更新する．
-void
-DtpgMgr::update_abort(
-  const TpgFault* fault,
-  double sat_time
-)
-{
-  mStats.update_abort(sat_time);
-}
-
-// @brief CNF 生成に関する情報を更新する．
-void
-DtpgMgr::update_cnf(
-  double time
-)
-{
-  mStats.update_cnf(time);
-}
-
-// @brief SATの統計情報を更新する．
-void
-DtpgMgr::update_sat_stats(
-  const SatStats& sat_stats
-)
-{
-  mStats.update_sat_stats(sat_stats);
-}
-#endif
 
 END_NAMESPACE_DRUID

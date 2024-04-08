@@ -3,7 +3,7 @@
 /// @brief DtpgEngine の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2022, 2023 Yusuke Matsunaga
+/// Copyright (C) 2017, 2022, 2023, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "DtpgEngine.h"
@@ -39,15 +39,17 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 DtpgEngine::DtpgEngine(
   const TpgNetwork& network,
-  bool has_prev_state,
   const TpgNode* root,
   bool make_dchain,
+  const string& ex_mode,
+  const string& just_mode,
   const SatInitParam& init_param
 ) : mSolver{init_param},
     mNetwork{network},
-    mHasPrevState{has_prev_state},
     mRoot{root},
     mDchain{make_dchain},
+    mExMode{ex_mode},
+    mJustifier{just_mode, network},
     mHvarMap{network.node_num()},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
@@ -108,17 +110,18 @@ DtpgEngine::prepare_vars()
 					}
 				      });
 
+  bool has_prev_state = mNetwork.fault_type() == FaultType::TransitionDelay;
   // TFO の TFI を mTfiList に入れる．
   // そのうちの DFF の出力に対応するDFFの入力を tmp_list に入れておく．
   mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), mTfoList,
 				      [&](const TpgNode* node) {
-					if ( mHasPrevState &&
+					if ( has_prev_state &&
 					     node->is_dff_output() ) {
 					  mDffInputList.push_back(node->alt_node());
 					}
 				      });
 
-if ( mHasPrevState ) {
+  if ( has_prev_state ) {
     auto tmp_list = mDffInputList;
     if ( mRoot->is_dff_output() ) {
       tmp_list.push_back(mRoot->alt_node());
@@ -131,7 +134,7 @@ if ( mHasPrevState ) {
 
   // 正常回路の変数を作る．
   for ( auto node: mTfiList ) {
-    auto gvar = mSolver.new_variable(true);
+    auto gvar = new_variable();
 
     mGvarMap.set_vid(node, gvar);
     mFvarMap.set_vid(node, gvar);
@@ -145,7 +148,7 @@ if ( mHasPrevState ) {
 
   // 故障回路の変数を作る．
   for ( auto node: mTfoList ) {
-    auto fvar = mSolver.new_variable(true);
+    auto fvar = new_variable();
     mFvarMap.set_vid(node, fvar);
 
     if ( debug_dtpg ) {
@@ -154,7 +157,7 @@ if ( mHasPrevState ) {
     }
 
     if ( mDchain ) {
-      auto dvar = mSolver.new_variable(true);
+      auto dvar = new_variable();
       mDvarMap.set_vid(node, dvar);
       if ( debug_dtpg ) {
 	DEBUG_OUT << node->str() << ": dvar = " << dvar << endl;
@@ -164,7 +167,7 @@ if ( mHasPrevState ) {
 
   // 1時刻前の正常回路の変数を作る．
   for ( auto node: mTfi2List ) {
-    auto hvar = mSolver.new_variable(true);
+    auto hvar = new_variable();
 
     mHvarMap.set_vid(node, hvar);
 
@@ -366,10 +369,10 @@ DtpgEngine::solve(
   const TpgFault* fault
 )
 {
-  // FFR 内の伝搬条件
-  auto ffr_cond = fault->ffr_propagate_condition();
-  // fault の活性化条件を求める．
+  // fault 用の追加条件
   auto assumptions = gen_assumptions(fault);
+  // fault の活性化条件と FFR 内の伝搬条件を加える．
+  auto ffr_cond = fault->ffr_propagate_condition();
   add_to_literal_list(ffr_cond, assumptions);
   return mSolver.solve(assumptions);
 }
@@ -380,15 +383,25 @@ DtpgEngine::get_sufficient_condition(
   const TpgFault* fault
 )
 {
-  // FFR 内の伝搬条件
-  auto ffr_cond = fault->ffr_propagate_condition();
   // FFR の根の先の伝搬条件
   const auto& model = mSolver.model();
   auto ffr_root = fault->ffr_root();
-  auto suf_cond = extract_sufficient_condition("simple", ffr_root,
+  auto suf_cond = extract_sufficient_condition(mExMode, ffr_root,
 					       mGvarMap, mFvarMap, model);
+  // FFR 内の伝搬条件を加える．
+  auto ffr_cond = fault->ffr_propagate_condition();
   suf_cond.merge(ffr_cond);
   return suf_cond;
+}
+
+// @brief 十分条件からテストベクタを作る．
+TestVector
+DtpgEngine::justify(
+  const NodeValList& assign_list
+)
+{
+  const auto& model = mSolver.model();
+  return mJustifier(assign_list, mHvarMap, mGvarMap, model);
 }
 
 END_NAMESPACE_DRUID
