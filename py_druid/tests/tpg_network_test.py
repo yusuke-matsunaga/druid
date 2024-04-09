@@ -9,7 +9,7 @@
 
 import pytest
 import os
-from druid.types import TpgNetwork
+from druid.types import TpgNetwork, FaultType
 from make_filename import make_filename
 
 

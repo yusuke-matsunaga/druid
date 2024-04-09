@@ -12,6 +12,7 @@
 #include "PyTpgFault.h"
 #include "PyTpgFaultStatusMgr.h"
 #include "PyTestVector.h"
+#include "PyDtpgStats.h"
 #include "pym/PyJsonValue.h"
 
 
@@ -129,6 +130,7 @@ DtpgMgr_run(
 			      Py_DECREF(f_obj);
 			    },
 			    option);
+  return PyDtpgStats::ToPyObject(stats);
 }
 
 // メソッド定義

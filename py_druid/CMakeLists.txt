@@ -55,6 +55,7 @@ set ( py_druid_SOURCES
 
   dtpg/dtpg_module.cc
   dtpg/PyDtpgMgr.cc
+  dtpg/PyDtpgStats.cc
 
   bist/bist_module.cc
   bist/PyPhaseShifter.cc

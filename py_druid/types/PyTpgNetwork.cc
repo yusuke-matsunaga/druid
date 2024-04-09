@@ -70,7 +70,7 @@ TpgNetwork_read_blif(
   const char* blif_file = nullptr;
   PyObject* fault_type_obj = nullptr;
   PyObject* clib_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "s|O!$O!",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "sO!|$O!",
 				    const_cast<char**>(kwlist),
 				    &blif_file,
 				    PyFaultType::_typeobject(),
@@ -103,15 +103,22 @@ TpgNetwork_read_blif(
 PyObject*
 TpgNetwork_read_bench(
   PyObject* Py_UNUSED(self),
-  PyObject* args
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kw_list[] = {
+    "filename",
+    "fault_type",
+    nullptr
+  };
   const char* bench_file = nullptr;
   PyObject* fault_type_obj = nullptr;
-  if ( !PyArg_ParseTuple(args, "s!O",
-			 &bench_file,
-			 PyFaultType::_typeobject(),
-			 &fault_type_obj) ) {
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "sO!",
+				    const_cast<char**>(kw_list),
+				    &bench_file,
+				    PyFaultType::_typeobject(),
+				    &fault_type_obj) ) {
     return nullptr;
   }
   auto fault_type = PyFaultType::Get(fault_type_obj);
@@ -135,7 +142,7 @@ PyMethodDef TpgNetwork_methods[] = {
   {"read_blif", reinterpret_cast<PyCFunction>(TpgNetwork_read_blif),
    METH_VARARGS | METH_KEYWORDS | METH_STATIC,
    PyDoc_STR("read 'blif' format")},
-  {"read_bench", TpgNetwork_read_bench,
+  {"read_bench", reinterpret_cast<PyCFunction>(TpgNetwork_read_bench),
    METH_VARARGS | METH_STATIC,
    PyDoc_STR("read 'iscas89(.bench)' format")},
   {nullptr, nullptr, 0, nullptr}

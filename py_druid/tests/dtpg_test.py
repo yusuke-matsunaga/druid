@@ -29,6 +29,6 @@ def test_dtpg():
     def afunc(f):
         pass
     DtpgMgr.run(network, fault_mgr, dfunc, ufunc, afunc, option)
-    assert mgr.detect_count == 32
-    assert mgr.untest_count == 0
-    assert mgr.abort_count == 0
+    assert fault_mgr.detected_count == 32
+    assert fault_mgr.untestable_count == 0
+    assert fault_mgr.remain_count == 0

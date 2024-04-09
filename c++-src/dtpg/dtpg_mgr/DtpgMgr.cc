@@ -72,6 +72,7 @@ void
 gen_pattern(
   DtpgEngine& engine,
   const TpgFault* fault,
+  TpgFaultStatusMgr& status_mgr,
   DtpgStats& stats,
   FaultTvCallback det_func,
   FaultCallback untest_func,
@@ -93,11 +94,13 @@ gen_pattern(
     auto backtrace_time = timer.get_time();
 
     det_func(fault, testvect);
+    status_mgr.set_status(fault, FaultStatus::Detected);
     stats.update_det(sat_time, backtrace_time);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
     untest_func(fault);
+    status_mgr.set_status(fault, FaultStatus::Untestable);
     stats.update_untest(sat_time);
   }
   else { // SatBool3::X
@@ -174,7 +177,8 @@ DtpgMgr::run(
       for ( auto fault: fault_list ) {
 	// 途中で status が変化している場合があるので再度チェック
 	if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	  gen_pattern(engine, fault, stats, det_func, untest_func, abort_func);
+	  gen_pattern(engine, fault, status_mgr, stats,
+		      det_func, untest_func, abort_func);
 	}
       }
     }
@@ -213,7 +217,8 @@ DtpgMgr::run(
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    gen_pattern(engine, fault, stats, det_func, untest_func, abort_func);
+	    gen_pattern(engine, fault, status_mgr, stats,
+			det_func, untest_func, abort_func);
 	  }
 	}
       }
@@ -223,7 +228,8 @@ DtpgMgr::run(
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    gen_pattern(engine, fault, stats, det_func, untest_func, abort_func);
+	    gen_pattern(engine, fault, status_mgr, stats,
+			det_func, untest_func, abort_func);
 	  }
 	}
       }
