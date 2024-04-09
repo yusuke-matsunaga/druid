@@ -37,23 +37,6 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief PyObject が DtpgMgr タイプか調べる．
-  static
-  bool
-  Check(
-    PyObject* obj ///< [in] 対象の PyObject
-  );
-
-  /// @brief DtpgMgr を表す PyObject から DtpgMgr を取り出す．
-  /// @return DtpgMgr を返す．
-  ///
-  /// Check(obj) == true であると仮定している．
-  static
-  DtpgMgr&
-  Get(
-    PyObject* obj ///< [in] 変換元の PyObject
-  );
-
   /// @brief DtpgMgr を表すオブジェクトの型定義を返す．
   static
   PyTypeObject*

@@ -10,7 +10,7 @@
 #include <Python.h>
 
 #include "druid.h"
-//#include "PyDtpgMgr.h"
+#include "PyDtpgMgr.h"
 #include "pym/PyModule.h"
 
 
@@ -40,11 +40,9 @@ PyInit_dtpg()
     return nullptr;
   }
 
-#if 0
   if ( !PyDtpgMgr::init(m) ) {
     goto error;
   }
-#endif
 
   return m;
 
