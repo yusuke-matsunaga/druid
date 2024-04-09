@@ -50,10 +50,10 @@ public:
   run(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     TpgFaultStatusMgr& status_mgr, ///< [inout] 故障の状態を表すオブジェクト
-    const JsonValue& option,       ///< [in] オプションを表す JSON オブジェクト
     FaultTvCallback det_func,      ///< [in] 検出時に呼ばれる関数
     FaultCallback untest_func,     ///< [in] 検出不能の判定時に呼ばれる関数
-    FaultCallback abort_func       ///< [in] アボート時に呼ばれる関数
+    FaultCallback abort_func,      ///< [in] アボート時に呼ばれる関数
+    const JsonValue& option        ///< [in] オプションを表す JSON オブジェクト
   );
 
 };

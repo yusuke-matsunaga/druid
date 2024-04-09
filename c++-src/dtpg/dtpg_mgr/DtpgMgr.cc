@@ -118,10 +118,10 @@ DtpgStats
 DtpgMgr::run(
   const TpgNetwork& network,
   TpgFaultStatusMgr& status_mgr,
-  const JsonValue& option,
   FaultTvCallback det_func,
   FaultCallback untest_func,
-  FaultCallback abort_func
+  FaultCallback abort_func,
+  const JsonValue& option
 )
 {
   string dtpg_type = "ffr";

@@ -213,7 +213,7 @@ DtpgTestWithParam2::do_test()
   fsim.set_fault_list(fault_list);
   SizeType AbortCount = 0;
   SizeType ErrorCount = 0;
-  auto stats = DtpgMgr::run(network, fs_mgr, option,
+  auto stats = DtpgMgr::run(network, fs_mgr,
 			    [&](const TpgFault* f, TestVector tv) {
 			      fs_mgr.set_status(f, FaultStatus::Detected);
 			      DiffBits dbits;
@@ -227,7 +227,8 @@ DtpgTestWithParam2::do_test()
 			    },
 			    [&](const TpgFault* f) {
 			      ++ AbortCount;
-			    });
+			    },
+			    option);
 
   EXPECT_EQ( total_fault_num(), fault_list.size() );
   EXPECT_EQ( detect_fault_num(), fs_mgr.detected_count() );

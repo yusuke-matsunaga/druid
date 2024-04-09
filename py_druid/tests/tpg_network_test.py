@@ -15,7 +15,7 @@ from make_filename import make_filename
 
 def test_read_blif():
     filename = make_filename('s38584.blif')
-    network = TpgNetwork.read_blif(filename)
+    network = TpgNetwork.read_blif(filename, FaultType.StuckAt)
 
     assert network.node_num == 22447
     assert network.input_num == 12
@@ -28,7 +28,7 @@ def test_read_blif():
             
 def test_read_bench():
     filename = make_filename('b01.bench')
-    network = TpgNetwork.read_bench(filename)
+    network = TpgNetwork.read_bench(filename, FaultType.StuckAt)
     
     assert network.node_num == 54
     assert network.input_num == 2

@@ -10,6 +10,7 @@
 #include "PyTpgMFFC.h"
 #include "PyTpgFFR.h"
 #include "PyFaultType.h"
+#include "PyTpgFault.h"
 #include "pym/PyClibCellLibrary.h"
 #include "pym/PyModule.h"
 
@@ -250,6 +251,28 @@ TpgNetwork_ffr_list(
   return PyTpgFFR::ToPyList(ffr_list);
 }
 
+PyObject*
+TpgNetwork_fault_type(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::Get(self);
+  auto fault_type = network.fault_type();
+  return PyFaultType::ToPyObject(fault_type);
+}
+
+PyObject*
+TpgNetwork_rep_fault_list(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& network = PyTpgNetwork::Get(self);
+  auto& fault_list = network.rep_fault_list();
+  return PyTpgFault::ToPyList(fault_list);
+}
+
 // get/set 関数定義
 PyGetSetDef TpgNetwork_getset[] = {
   {"node_num", TpgNetwork_node_num, nullptr, PyDoc_STR("# of nodes"), nullptr},
@@ -262,6 +285,8 @@ PyGetSetDef TpgNetwork_getset[] = {
   {"dff_num", TpgNetwork_dff_num, nullptr, PyDoc_STR("# of D-FFs"), nullptr},
   {"mffc_list", TpgNetwork_mffc_list, nullptr, PyDoc_STR("list for all MFFCs"), nullptr},
   {"ffr_list", TpgNetwork_ffr_list, nullptr, PyDoc_STR("list for all FFRs"), nullptr},
+  {"fault_type", TpgNetwork_fault_type, nullptr, PyDoc_STR("fault type"), nullptr},
+  {"rep_fault_list", TpgNetwork_rep_fault_list, nullptr, PyDoc_STR("list for all representitive faults"), nullptr},
   {nullptr, nullptr, nullptr, nullptr, nullptr},
 };
 

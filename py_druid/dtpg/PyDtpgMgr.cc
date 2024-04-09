@@ -9,6 +9,7 @@
 #include "PyDtpgMgr.h"
 #include "pym/PyModule.h"
 #include "PyTpgNetwork.h"
+#include "PyTpgFault.h"
 #include "PyTpgFaultStatusMgr.h"
 #include "PyTestVector.h"
 #include "pym/PyJsonValue.h"
@@ -60,12 +61,16 @@ DtpgMgr_dealloc(
 PyObject*
 DtpgMgr_run(
   PyObject* self,
-  PyObject* Py_UNUSED(args)
+  PyObject* args,
+  PyObject* kwds
 )
 {
   static const char* kw_list[] = {
     "network",
     "fault_mgr",
+    "det_func",
+    "untest_func",
+    "abort_func",
     "option",
     nullptr
   };
@@ -79,25 +84,57 @@ DtpgMgr_run(
 				    const_cast<char**>(kw_list),
 				    PyTpgNetwork::_typeobject(), &network_obj,
 				    PyTpgFaultStatusMgr::_typeobject(), &fault_mgr_obj,
+				    &dfunc_obj, &ufunc_obj, &afunc_obj,
 				    &option_obj) ) {
     return nullptr;
   }
   auto& network = PyTpgNetwork::Get(network_obj);
   auto& fault_mgr = PyTpgFaultStatusMgr::Get(fault_mgr_obj);
-  if ( Py
+  if ( !PyCallable_Check(dfunc_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "3rd argument must be callable");
+    return nullptr;
+  }
+  if ( !PyCallable_Check(ufunc_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "4th argument must be callable");
+    return nullptr;
+  }
+  if ( !PyCallable_Check(afunc_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "5th argument must be callable");
+    return nullptr;
+  }
   JsonValue option;
   if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
     PyErr_SetString(PyExc_ValueError, "illegal value for option");
     return nullptr;
   }
   auto stats = DtpgMgr::run(network, fault_mgr,
-			    det_func, untest_func, abort_func,
+			    [&](const TpgFault* f, const TestVector& tv) {
+			      auto f_obj = PyTpgFault::ToPyObject(f);
+			      auto tv_obj = PyTestVector::ToPyObject(tv);
+			      auto args = Py_BuildValue("(OO)", f_obj, tv_obj);
+			      auto ans_obj = PyObject_CallObject(dfunc_obj, args);
+			      Py_DECREF(ans_obj);
+			      Py_DECREF(args);
+			    },
+			    [&](const TpgFault* f) {
+			      auto f_obj = PyTpgFault::ToPyObject(f);
+			      auto ans_obj = PyObject_CallObject(ufunc_obj, f_obj);
+			      Py_DECREF(ans_obj);
+			      Py_DECREF(f_obj);
+			    },
+			    [&](const TpgFault* f) {
+			      auto f_obj = PyTpgFault::ToPyObject(f);
+			      auto ans_obj = PyObject_CallObject(afunc_obj, f_obj);
+			      Py_DECREF(ans_obj);
+			      Py_DECREF(f_obj);
+			    },
 			    option);
 }
 
 // メソッド定義
 PyMethodDef DtpgMgr_methods[] = {
-  {"run", DtpgMgr_run, METH_VARARGS | METH_STATIC,
+  {"run", reinterpret_cast<PyCFunction>(DtpgMgr_run),
+   METH_VARARGS | METH_STATIC,
    PyDoc_STR("run")},
   {nullptr, nullptr, 0, nullptr}
 };

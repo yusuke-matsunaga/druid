@@ -9,7 +9,7 @@
 
 import pytest
 import os
-from druid.types import TpgNetwork, TpgFaultMgr, FaultType, FaultStatus, TestVector
+from druid.types import TpgNetwork, FaultType, FaultStatus, TestVector
 from druid.fsim import Fsim
 from druid.ymbase import Mt19937
 from make_filename import make_filename
@@ -21,12 +21,10 @@ def ppsfp_callback(fault, dbits_array):
 
 def test_fsim():
     filename = make_filename('s27.blif')
-    network = TpgNetwork.read_blif(filename)
-    fault_mgr = TpgFaultMgr()
-    fault_mgr.gen_fault_list(network, FaultType.TransitionDelay)
+    network = TpgNetwork.read_blif(filename, FaultType.TransitionDelay)
     fsim = Fsim()
-    fsim.initialize(network, FaultType.TransitionDelay, 2)
-    fsim.set_fault_list(fault_mgr.rep_fault_list())
+    fsim.initialize(network, 2)
+    fsim.set_fault_list(network.rep_fault_list)
 
     input_num = network.input_num
     dff_num = network.dff_num
