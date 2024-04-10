@@ -67,6 +67,56 @@ get_string(
   }
 }
 
+// FFR に関係する故障を求める．
+bool
+get_faults(
+  const TpgFFR* ffr,
+  const TpgFaultStatusMgr& status_mgr,
+  const vector<vector<const TpgFault*>>& node_fault_list_array,
+  vector<const TpgFault*>& fault_list
+)
+{
+  bool has_faults = false;
+  for ( auto node: ffr->node_list() ) {
+    for ( auto fault: node_fault_list_array[node->id()] ) {
+      if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
+	fault_list.push_back(fault);
+	has_faults = true;
+      }
+    }
+  }
+  return has_faults;
+}
+
+// MFFC に関係する故障を求める．
+//
+// 故障が唯一のFFR内にのみ存在する場合にはそのFFRを返す．
+const TpgFFR*
+get_faults(
+  const TpgMFFC* mffc,
+  const TpgFaultStatusMgr& status_mgr,
+  const vector<vector<const TpgFault*>>& node_fault_list_array,
+  vector<const TpgFault*>& fault_list
+)
+{
+  bool ffr_mode = true;
+  const TpgFFR* ffr1 = nullptr;
+  for ( auto ffr: mffc->ffr_list() ) {
+    if ( get_faults(ffr, status_mgr, node_fault_list_array, fault_list) ) {
+      if ( ffr1 == nullptr ) {
+	ffr1 = ffr;
+      }
+      else {
+	ffr_mode = false;
+      }
+    }
+  }
+  if ( !ffr_mode ) {
+    ffr1 = nullptr;
+  }
+  return ffr1;
+}
+
 // 一つの故障に対するテスト生成を行う．
 void
 gen_pattern(
@@ -93,20 +143,20 @@ gen_pattern(
     timer.stop();
     auto backtrace_time = timer.get_time();
 
-    det_func(fault, testvect);
     status_mgr.set_status(fault, FaultStatus::Detected);
     stats.update_det(sat_time, backtrace_time);
+    det_func(fault, testvect);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    untest_func(fault);
     status_mgr.set_status(fault, FaultStatus::Untestable);
     stats.update_untest(sat_time);
+    untest_func(fault);
   }
   else { // SatBool3::X
-    // つまりアボート
-    abort_func(fault);
+    // アボート
     stats.update_abort(sat_time);
+    abort_func(fault);
   }
 }
 
@@ -129,7 +179,6 @@ DtpgMgr::run(
 {
   string dtpg_type = "ffr";
   bool multi = false;
-  bool dchain = true;
   string ex_mode = "simple";
   string just_mode = "just2";
   SatInitParam init_param;
@@ -141,7 +190,6 @@ DtpgMgr::run(
   else {
     get_string(option, "dtpg_type", dtpg_type);
     get_bool(option, "multi_thread", multi);
-    get_bool(option, "dchain", dchain);
     get_string(option, "extract_mode", ex_mode);
     get_string(option, "justify_mode", just_mode);
     if ( option.has_key("sat_param") ) {
@@ -162,18 +210,10 @@ DtpgMgr::run(
     for ( auto ffr: network.ffr_list() ) {
       // ffr に関係する故障を集める．
       vector<const TpgFault*> fault_list;
-      for ( auto node: ffr->node_list() ) {
-	for ( auto fault: node_fault_list_array[node->id()] ) {
-	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    fault_list.push_back(fault);
-	  }
-	}
-      }
-      if ( fault_list.empty() ) {
+      if ( !get_faults(ffr, status_mgr, node_fault_list_array, fault_list) ) {
 	continue;
       }
-      FFREngine engine{network, ffr, dchain, ex_mode, just_mode, init_param};
-      engine.make_cnf();
+      FFREngine engine{network, ffr, ex_mode, just_mode, init_param};
       for ( auto fault: fault_list ) {
 	// 途中で status が変化している場合があるので再度チェック
 	if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
@@ -185,35 +225,14 @@ DtpgMgr::run(
   }
   else if ( dtpg_type == "mffc" ) {
     // MFFC 単位で処理を行う．
-    const TpgFFR* ffr1 = nullptr;
-    bool ffr_mode = true;
     for ( auto mffc: network.mffc_list() ) {
       vector<const TpgFault*> fault_list;
-      for ( auto ffr: mffc->ffr_list() ) {
-	SizeType nf = 0;
-	for ( auto node: ffr->node_list() ) {
-	  for ( auto fault: node_fault_list_array[node->id()] ) {
-	    if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	      fault_list.push_back(fault);
-	      ++ nf;
-	    }
-	  }
-	}
-	if ( nf > 0 ) {
-	  if ( ffr1 == nullptr ) {
-	    ffr1 = ffr;
-	  }
-	  else {
-	    ffr_mode = false;
-	  }
-	}
-      }
+      auto ffr = get_faults(mffc, status_mgr, node_fault_list_array, fault_list);
       if ( fault_list.empty() ) {
 	continue;
       }
-      if ( ffr_mode ) {
-	FFREngine engine{network, ffr1, dchain, ex_mode, just_mode, init_param};
-	engine.make_cnf();
+      if ( ffr != nullptr ) {
+	FFREngine engine{network, ffr, ex_mode, just_mode, init_param};
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
@@ -223,8 +242,7 @@ DtpgMgr::run(
 	}
       }
       else {
-	MFFCEngine engine{network, mffc, dchain, ex_mode, just_mode, init_param};
-	engine.make_cnf();
+	MFFCEngine engine{network, mffc, ex_mode, just_mode, init_param};
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {

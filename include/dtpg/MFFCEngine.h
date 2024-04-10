@@ -27,7 +27,6 @@ public:
   MFFCEngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     const TpgMFFC* mffc,	   ///< [in] 故障伝搬の起点となる MFFC
-    bool make_dchain,              ///< [in] dchain を作る時 true にする．
     const string& ex_mode,         ///< [in] extractor のモード
     const string& just_mode,       ///< [in] justifier のモード
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
@@ -37,14 +36,10 @@ public:
   ~MFFCEngine();
 
 
-protected:
+private:
   //////////////////////////////////////////////////////////////////////
-  // 継承クラスから用いられる関数
+  // DtpgEngine の仮想関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief make_cnf() の追加処理
-  void
-  opt_make_cnf() override;
 
   /// @brief gen_pattern() で用いる検出条件を作る．
   ///
@@ -59,6 +54,10 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief make_cnf() の追加処理
+  void
+  opt_make_cnf();
 
   /// @brief 故障挿入回路のCNFを作る．
   void

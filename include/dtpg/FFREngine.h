@@ -27,7 +27,6 @@ public:
   FFREngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     const TpgFFR* ffr,	           ///< [in] 故障伝搬の起点となる FFR
-    bool make_dchain,              ///< [in] dchain を作る時 true にする．
     const string& ex_mode,         ///< [in] extractor のモード
     const string& just_mode,       ///< [in] justifier のモード
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
@@ -37,14 +36,14 @@ public:
   ~FFREngine();
 
 
-protected:
+private:
   //////////////////////////////////////////////////////////////////////
-  // 継承クラスから用いられる関数
+  // DtpgEngine の仮想関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief gen_pattern() で用いる検出条件を作る．
   ///
-  /// デフォルトでは空を返す．
+  /// このクラスでは空を返す．
   vector<SatLiteral>
   gen_assumptions(
     const TpgFault* fault ///< [in] 対象の故障

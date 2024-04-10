@@ -40,14 +40,12 @@ BEGIN_NAMESPACE_DRUID
 DtpgEngine::DtpgEngine(
   const TpgNetwork& network,
   const TpgNode* root,
-  bool make_dchain,
   const string& ex_mode,
   const string& just_mode,
   const SatInitParam& init_param
 ) : mSolver{init_param},
     mNetwork{network},
     mRoot{root},
-    mDchain{make_dchain},
     mExMode{ex_mode},
     mJustifier{just_mode, network},
     mHvarMap{network.node_num()},
@@ -55,6 +53,7 @@ DtpgEngine::DtpgEngine(
     mFvarMap{network.node_num()},
     mDvarMap{network.node_num()}
 {
+  make_cnf();
 }
 
 // @brief CNF の生成を行う．
@@ -73,23 +72,19 @@ DtpgEngine::make_cnf()
   //////////////////////////////////////////////////////////////////////
   // 故障の検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
   //////////////////////////////////////////////////////////////////////
-  if ( mDchain ) {
-    vector<SatLiteral> odiff;
-    odiff.reserve(output_list().size());
-    for ( auto node: output_list() ) {
-      auto dlit = dvar(node);
-      odiff.push_back(dlit);
-    }
-    solver().add_clause(odiff);
-
-    if ( !root_node()->is_ppo() ) {
-      // root_node() の dlit が1でなければならない．
-      auto dlit0 = dvar(root_node());
-      solver().add_clause(dlit0);
-    }
+  vector<SatLiteral> odiff;
+  odiff.reserve(output_list().size());
+  for ( auto node: output_list() ) {
+    auto dlit = dvar(node);
+    odiff.push_back(dlit);
   }
+  solver().add_clause(odiff);
 
-  opt_make_cnf();
+  if ( !root_node()->is_ppo() ) {
+    // root_node() の dlit が1でなければならない．
+    auto dlit0 = dvar(root_node());
+    solver().add_clause(dlit0);
+  }
 }
 
 // @brief 対象の部分回路の関係を表す変数を用意する．
@@ -156,12 +151,10 @@ DtpgEngine::prepare_vars()
 		<< ": fvar = " << fvar << endl;
     }
 
-    if ( mDchain ) {
-      auto dvar = new_variable();
-      mDvarMap.set_vid(node, dvar);
-      if ( debug_dtpg ) {
-	DEBUG_OUT << node->str() << ": dvar = " << dvar << endl;
-      }
+    auto dvar = new_variable();
+    mDvarMap.set_vid(node, dvar);
+    if ( debug_dtpg ) {
+      DEBUG_OUT << node->str() << ": dvar = " << dvar << endl;
     }
   }
 
@@ -239,16 +232,8 @@ DtpgEngine::gen_faulty_cnf()
     if ( node != mRoot ) {
       fval_enc.make_cnf(node);
     }
-    if ( mDchain ) {
-      make_dchain_cnf(node);
-    }
+    make_dchain_cnf(node);
   }
-}
-
-// @brief make_cnf() の追加処理
-void
-DtpgEngine::opt_make_cnf()
-{
 }
 
 // @brief gen_pattern() で用いる検出条件を作る．

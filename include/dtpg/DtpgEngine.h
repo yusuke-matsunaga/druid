@@ -40,7 +40,6 @@ public:
   DtpgEngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     const TpgNode* root,	   ///< [in] 故障伝搬の起点となるノード
-    bool make_dchain,              ///< [in] dchain を作る時 true にする．
     const string& ex_mode,         ///< [in] extractor のモード
     const string& just_mode,       ///< [in] justifier のモード
     const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
@@ -307,14 +306,7 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief make_cnf() の追加処理
-  ///
-  /// デフォルトではなにもしない．
-  virtual
-  void
-  opt_make_cnf();
-
-  /// @brief gen_pattern() で用いる検出条件を作る．
+  /// @brief gen_pattern() で用いる追加の検出条件を作る．
   ///
   /// デフォルトでは空を返す．
   virtual
@@ -343,9 +335,6 @@ private:
 
   // 故障伝搬の起点となるノード
   const TpgNode* mRoot;
-
-  // dchain を生成するとき true にするフラグ
-  bool mDchain{false};
 
   // extractor のモード
   string mExMode;

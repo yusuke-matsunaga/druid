@@ -34,16 +34,16 @@ BEGIN_NAMESPACE_DRUID
 MFFCEngine::MFFCEngine(
   const TpgNetwork& network,
   const TpgMFFC* mffc,
-  bool make_dchain,
   const string& ex_mode,
   const string& just_mode,
   const SatInitParam& init_param
-) : DtpgEngine{network, mffc->root(), make_dchain,
+) : DtpgEngine{network, mffc->root(),
 	       ex_mode, just_mode, init_param},
     mMFFC{mffc},
     mRootArray(mffc->ffr_num()),
     mEvarArray(mffc->ffr_num())
 {
+  opt_make_cnf();
 }
 
 // @brief デストラクタ
