@@ -77,21 +77,28 @@ Fsim_initialize(
 {
   static const char* kwlist[] = {
     "network",
+    "fault_list",
     "val_type",
     "multi",
     nullptr
   };
   PyObject* network_obj = nullptr;
+  PyObject* fault_list_obj = nullptr;
   int val_type = 0;
   int i_multi = 0;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!i|p",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!Oi|p",
 				    const_cast<char**>(kwlist),
 				    PyTpgNetwork::_typeobject(), &network_obj,
+				    &fault_list_obj,
 				    &val_type, &i_multi) ) {
     return nullptr;
   }
 
   auto& network = PyTpgNetwork::Get(network_obj);
+  vector<const TpgFault*> fault_list;
+  if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
+    return nullptr;
+  }
   bool multi = static_cast<bool>(i_multi);
 
   bool has_x = false;
@@ -106,35 +113,7 @@ Fsim_initialize(
     return nullptr;
   }
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  fsim_obj->mPtr->initialize(network, has_x, multi);
-  Py_RETURN_NONE;
-}
-
-PyObject*
-Fsim_set_fault_list(
-  PyObject* self,
-  PyObject* args,
-  PyObject* kwds
-)
-{
-  static const char* kwlist[] = {
-    "fault_list",
-    nullptr
-  };
-
-  PyObject* obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
-				    const_cast<char**>(kwlist),
-				    &obj) ) {
-    return nullptr;
-  }
-
-  vector<const TpgFault*> fault_list;
-  if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
-    return nullptr;
-  }
-  auto fsim = PyFsim::Get(self);
-  fsim->set_fault_list(fault_list);
+  fsim_obj->mPtr->initialize(network, fault_list, has_x, multi);
   Py_RETURN_NONE;
 }
 
@@ -399,9 +378,6 @@ PyMethodDef Fsim_methods[] = {
   {"initialize", reinterpret_cast<PyCFunction>(Fsim_initialize),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("initialize")},
-  {"set_fault_list", reinterpret_cast<PyCFunction>(Fsim_set_fault_list),
-   METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("set fault list")},
   {"set_skip_all", Fsim_set_skip_all, METH_NOARGS,
    PyDoc_STR("set skip mark for all fatuls")},
   {"set_skip", reinterpret_cast<PyCFunction>(Fsim_set_skip),

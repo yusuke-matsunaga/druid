@@ -41,7 +41,8 @@ public:
 
   /// @brief コンストラクタ
   FSIM_CLASSNAME (
-    const TpgNetwork& network ///< [in] ネットワーク
+    const TpgNetwork& network,                ///< [in] ネットワーク
+    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
   );
 
   /// @brief デストラクタ
@@ -52,12 +53,6 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 故障を設定する関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 対象の故障をセットする．
-  void
-  set_fault_list(
-    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
-  ) override;
 
   /// @brief 全ての故障にスキップマークをつける．
   void
@@ -332,6 +327,12 @@ private:
   void
   set_network(
     const TpgNetwork& network ///< [in] ネットワーク
+  );
+
+  /// @brief 対象の故障をセットする．
+  void
+  set_fault_list(
+    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
   );
 
   /// @brief SPSFP故障シミュレーションの本体

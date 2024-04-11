@@ -361,8 +361,7 @@ dtpg_test(
   timer.start();
 
   Fsim fsim;
-  fsim.initialize(network, true, false);
-  fsim.set_fault_list(rep_fault_list);
+  fsim.initialize(network, rep_fault_list, true, false);
   vector<pair<const TpgFault*, TestVector>> ErrorList;
 
   TpgFaultStatusMgr fs_mgr{rep_fault_list};
@@ -414,8 +413,7 @@ dtpg_test(
   {
     vector<const TpgFault*> fault_list2;
     Fsim fsim;
-    fsim.initialize(network, false, false);
-    fsim.set_fault_list(det_fault_list);
+    fsim.initialize(network, det_fault_list, false, false);
     SizeType base = 0;
     vector<TestVector> tv_buf;
     for ( auto& tv: fixed_tv_list ) {

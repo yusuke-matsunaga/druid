@@ -339,8 +339,7 @@ fsim2test(
   auto& fault_list = network.rep_fault_list();
 
   Fsim fsim;
-  fsim.initialize(network, fsim3, multi);
-  fsim.set_fault_list(fault_list);
+  fsim.initialize(network, fault_list, fsim3, multi);
 
   SizeType max_fid = 0;
   for ( auto f: fault_list ) {

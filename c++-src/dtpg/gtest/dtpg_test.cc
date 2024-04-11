@@ -208,8 +208,7 @@ DtpgTestWithParam2::do_test()
 
   TpgFaultStatusMgr fs_mgr{fault_list};
   Fsim fsim;
-  fsim.initialize(network, true, false);
-  fsim.set_fault_list(fault_list);
+  fsim.initialize(network, fault_list, true, false);
   SizeType AbortCount = 0;
   SizeType ErrorCount = 0;
   auto stats = DtpgMgr::run(network, fs_mgr,

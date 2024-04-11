@@ -69,9 +69,10 @@ public:
   /// @brief 初期化を行う．
   void
   initialize(
-    const TpgNetwork& network, ///< [in] ネットワーク
-    bool has_x,                ///< [in] 3値のシミュレーションを行う時 true にする．
-    bool multi                 ///< [in] マルチスレッド実行を行う時に true にするフラグ
+    const TpgNetwork& network,                 ///< [in] ネットワーク
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
+    bool has_x,       ///< [in] 3値のシミュレーションを行う時 true にする．
+    bool multi        ///< [in] マルチスレッド実行を行う時に true にするフラグ
   );
 
 
@@ -79,12 +80,6 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 故障を設定する関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 対象の故障をセットする．
-  void
-  set_fault_list(
-    const vector<const TpgFault*>& fault_list ///< [in] 故障のリスト
-  );
 
   /// @brief 全ての故障にスキップマークをつける．
   void
@@ -247,6 +242,7 @@ private:
   void
   initialize_multi(
     const TpgNetwork& network, ///< [in] ネットワーク
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
     bool has_previous_state,   ///< [in] 1時刻前の値を持つ時 true にする．
     bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
   );
@@ -255,6 +251,7 @@ private:
   void
   initialize_naive(
     const TpgNetwork& network, ///< [in] ネットワーク
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
     bool has_previous_state,   ///< [in] 1時刻前の値を持つ時 true にする．
     bool has_x                 ///< [in] 3値のシミュレーションを行う時 true にする．
   );

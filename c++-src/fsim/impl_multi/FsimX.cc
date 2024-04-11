@@ -74,10 +74,11 @@ END_NONAMESPACE
 
 std::unique_ptr<FsimImpl>
 new_Fsim(
-  const TpgNetwork& network
+  const TpgNetwork& network,
+  const vector<const TpgFault*>& fault_list
 )
 {
-  return static_cast<std::unique_ptr<FsimImpl>>(new FSIM_CLASSNAME{network});
+  return static_cast<std::unique_ptr<FsimImpl>>(new FSIM_CLASSNAME{network, fault_list});
 }
 
 
@@ -87,12 +88,14 @@ new_Fsim(
 
 // @brief コンストラクタ
 FSIM_CLASSNAME::FSIM_CLASSNAME(
-  const TpgNetwork& network
+  const TpgNetwork& network,
+  const vector<const TpgFault*>& fault_list
 ) : mSyncObj{0},
     mEngineList(mSyncObj.thread_num()),
     mThreadList(mSyncObj.thread_num())
 {
   set_network(network);
+  set_fault_list(fault_list);
 
   auto NT = mSyncObj.thread_num();
   auto NFFR = mFFRArray.size();

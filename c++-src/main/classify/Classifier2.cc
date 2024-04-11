@@ -75,8 +75,7 @@ Classifier2::run(
 )
 {
   Fsim fsim;
-  fsim.initialize(network, false, multi);
-  fsim.set_fault_list(fault_list);
+  fsim.initialize(network, fault_list, false, multi);
   SizeType max_id = 0;
   for ( auto f: fault_list ) {
     max_id = std::max(max_id, f->id());

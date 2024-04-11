@@ -33,26 +33,18 @@ Fsim::~Fsim()
 void
 Fsim::initialize(
   const TpgNetwork& network,
+  const vector<const TpgFault*>& fault_list,
   bool has_x,
   bool multi
 )
 {
   bool has_previous_state = network.fault_type() == FaultType::TransitionDelay;
   if ( multi ) {
-    initialize_multi(network, has_previous_state, has_x);
+    initialize_multi(network, fault_list, has_previous_state, has_x);
   }
   else {
-    initialize_naive(network, has_previous_state, has_x);
+    initialize_naive(network, fault_list, has_previous_state, has_x);
   }
-}
-
-// @brief 対象の故障をセットする．
-void
-Fsim::set_fault_list(
-  const vector<const TpgFault*>& fault_list
-)
-{
-  mImpl->set_fault_list(fault_list);
 }
 
 // @brief 全ての故障にスキップマークをつける．
