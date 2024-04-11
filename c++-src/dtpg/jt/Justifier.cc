@@ -20,19 +20,34 @@ BEGIN_NONAMESPACE
 
 JustImpl*
 new_just(
-  const string& just_type,
+  const JsonValue& option,
   SizeType max_id
 )
 {
-  if ( just_type == "just1" ) {
-    return new Just1(max_id);
-  }
-  if ( just_type == "just2" ) {
+  if ( option.is_null() ) {
+    // デフォルトフォールバックは Just2
     return new Just2(max_id);
   }
+  if ( option.is_string() ) {
+    auto just_type = option.get_string();
+    if ( just_type == "just1" ) {
+      return new Just1(max_id);
+    }
+    if ( just_type == "just2" ) {
+      return new Just2(max_id);
+    }
+    // 知らない型だった．
+    ostringstream buf;
+    buf << just_type << ": unknown value for 'justifier'";
+    throw std::invalid_argument{buf.str()};
+  }
 
-  // デフォルトフォールバックは Just2
-  return new Just2(max_id);
+  // 文字列型ではなかった．
+  ostringstream buf;
+  buf << "value for 'justifier' should be a string or null";
+  throw std::invalid_argument{buf.str()};
+  // ダミー
+  return nullptr;
 }
 
 END_NONAMESPACE
@@ -44,10 +59,10 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 Justifier::Justifier(
-  const string& just_type,
-  const TpgNetwork& network
+  const TpgNetwork& network,
+  const JsonValue& option
 ) : mNetwork{network},
-    mImpl{new_just(just_type, network.node_num())}
+    mImpl{new_just(option, network.node_num())}
 {
 }
 

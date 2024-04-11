@@ -16,11 +16,8 @@ BEGIN_NAMESPACE_DRUID
 FFREngine::FFREngine(
   const TpgNetwork& network,
   const TpgFFR* ffr,
-  const string& ex_mode,
-  const string& just_mode,
-  const SatInitParam& init_param
-) : DtpgEngine{network, ffr->root(),
-	       ex_mode, just_mode, init_param}
+  const JsonValue& option
+) : DtpgEngine{network, ffr->root(), option}
 {
 }
 

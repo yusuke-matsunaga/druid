@@ -5,11 +5,12 @@
 /// @brief Justifier のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2022, 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "ym/sat.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -29,8 +30,8 @@ public:
 
   /// @brief コンストラクタ
   Justifier(
-    const string& type,       ///< [in] 種類を表す文字列
-    const TpgNetwork& network ///< [in] 対象のネットワーク
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const JsonValue& option    ///< [in] オプション
   );
 
   /// @brief デストラクタ

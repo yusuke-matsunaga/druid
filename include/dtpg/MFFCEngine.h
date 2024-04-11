@@ -27,9 +27,7 @@ public:
   MFFCEngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     const TpgMFFC* mffc,	   ///< [in] 故障伝搬の起点となる MFFC
-    const string& ex_mode,         ///< [in] extractor のモード
-    const string& just_mode,       ///< [in] justifier のモード
-    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
+    const JsonValue& option        ///< [in] オプション
   );
 
   /// @brief デストラクタ

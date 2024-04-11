@@ -199,11 +199,10 @@ DtpgTestWithParam2::do_test()
 {
   unordered_map<string, JsonValue> option_dict;
   option_dict.emplace("dtpg_type", test_mode());
-  option_dict.emplace("justify_mode", just_type());
+  option_dict.emplace("justifier", just_type());
   auto sat_obj = JsonValue{sat_type()};
   option_dict.emplace("sat_param", sat_obj);
   JsonValue option{option_dict};
-
   auto network = TpgNetwork::read_blif(filename(), fault_type());
   auto fault_list = network.rep_fault_list();
 

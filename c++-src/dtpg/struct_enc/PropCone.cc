@@ -134,7 +134,7 @@ PropCone::extract_condition(
   const TpgNode* root
 )
 {
-  return extract_sufficient_condition("simple", root, gvar_map(), fvar_map(), model);
+  return extract_sufficient_condition(root, gvar_map(), fvar_map(), model);
 }
 
 // @brief node に関する故障伝搬条件を作る．

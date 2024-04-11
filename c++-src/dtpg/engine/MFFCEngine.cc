@@ -34,11 +34,8 @@ BEGIN_NAMESPACE_DRUID
 MFFCEngine::MFFCEngine(
   const TpgNetwork& network,
   const TpgMFFC* mffc,
-  const string& ex_mode,
-  const string& just_mode,
-  const SatInitParam& init_param
-) : DtpgEngine{network, mffc->root(),
-	       ex_mode, just_mode, init_param},
+  const JsonValue& option
+) : DtpgEngine{network, mffc->root(), option},
     mMFFC{mffc},
     mRootArray(mffc->ffr_num()),
     mEvarArray(mffc->ffr_num())

@@ -36,18 +36,65 @@ END_NONAMESPACE
 
 BEGIN_NAMESPACE_DRUID
 
+BEGIN_NONAMESPACE
+
+SatInitParam
+get_init_param(
+  const JsonValue& option
+)
+{
+  if ( option.is_object() ) {
+    if ( option.has_key("sat_param") ) {
+      auto val = option.at("sat_param");
+      return SatInitParam{val};
+    }
+  }
+  // デフォルト値
+  return SatInitParam{};
+}
+
+JsonValue
+get_ex_opt(
+  const JsonValue& option
+)
+{
+  if ( option.is_object() ) {
+    const char* key = "extractor";
+    if ( option.has_key(key) ) {
+      return option.at(key);
+    }
+  }
+  // デフォルト値(null)
+  return JsonValue::null();
+}
+
+JsonValue
+get_just_opt(
+  const JsonValue& option
+)
+{
+  if ( option.is_object() ) {
+    const char* key = "justifier";
+    if ( option.has_key(key) ) {
+      return option.at(key);
+    }
+  }
+  // デフォルト値(null)
+  return JsonValue::null();
+}
+
+END_NONAMESPACE
+
 // @brief コンストラクタ
 DtpgEngine::DtpgEngine(
   const TpgNetwork& network,
   const TpgNode* root,
-  const string& ex_mode,
-  const string& just_mode,
-  const SatInitParam& init_param
-) : mSolver{init_param},
+  const JsonValue& option
+) : mSolver{get_init_param(option)},
     mNetwork{network},
     mRoot{root},
-    mExMode{ex_mode},
-    mJustifier{just_mode, network},
+    mExOpt{get_ex_opt(option)},
+    mJustifier{network, get_just_opt(option)},
     mHvarMap{network.node_num()},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
@@ -371,8 +418,9 @@ DtpgEngine::get_sufficient_condition(
   // FFR の根の先の伝搬条件
   const auto& model = mSolver.model();
   auto ffr_root = fault->ffr_root();
-  auto suf_cond = extract_sufficient_condition(mExMode, ffr_root,
-					       mGvarMap, mFvarMap, model);
+  auto suf_cond = extract_sufficient_condition(ffr_root,
+					       mGvarMap, mFvarMap, model,
+					       mExOpt);
   // FFR 内の伝搬条件を加える．
   auto ffr_cond = fault->ffr_propagate_condition();
   suf_cond.merge(ffr_cond);

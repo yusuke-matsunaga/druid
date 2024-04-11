@@ -9,6 +9,7 @@
 #include "Extractor.h"
 #include "ExtSimple.h"
 #include "TpgNode.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -19,20 +20,36 @@ END_NONAMESPACE
 
 NodeValList
 extract_sufficient_condition(
-  const string& mode,
   const TpgNode* root,
   const VidMap& gvar_map,
   const VidMap& fvar_map,
-  const SatModel& model
+  const SatModel& model,
+  const JsonValue& option
 )
 {
-  if ( mode == "simple" ) {
+  if ( option.is_null() ) {
+    // デフォルトフォールバック
     ExtSimple ex{root, gvar_map, fvar_map, model};
     return ex.get_assignment();
   }
-  // デフォルトフォールバック
-  ExtSimple ex{root, gvar_map, fvar_map, model};
-  return ex.get_assignment();
+  if ( option.is_string() ) {
+    auto mode = option.get_string();
+    if ( mode == "simple" ) {
+      ExtSimple ex{root, gvar_map, fvar_map, model};
+      return ex.get_assignment();
+    }
+    // 知らない型だった．
+    ostringstream buf;
+    buf << mode << ": unknown value for 'extractor'";
+    throw std::invalid_argument{buf.str()};
+  }
+
+  // 文字列型ではなかった．
+  ostringstream buf;
+  buf << "value for 'extractor' should be a string or null";
+  throw std::invalid_argument{buf.str()};
+  // ダミー
+  return NodeValList{};
 }
 
 

@@ -5,10 +5,11 @@
 /// @brief extract のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -17,11 +18,12 @@ BEGIN_NAMESPACE_DRUID
 extern
 NodeValList
 extract_sufficient_condition(
-  const string& mode,     ///< [in] モードを表す文字列
   const TpgNode* root,    ///< [in] 起点となるノード
   const VidMap& gvar_map, ///< [in] 正常値のマップ
   const VidMap& fvar_map, ///< [in] 故障値のマップ
-  const SatModel& model   ///< [in] SAT問題の解
+  const SatModel& model,  ///< [in] SAT問題の解
+  const JsonValue& option ///< [in] オプション
+  = JsonValue::null()
 );
 
 END_NAMESPACE_DRUID

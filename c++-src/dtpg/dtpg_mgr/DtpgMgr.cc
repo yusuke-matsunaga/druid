@@ -179,9 +179,6 @@ DtpgMgr::run(
 {
   string dtpg_type = "ffr";
   bool multi = false;
-  string ex_mode = "simple";
-  string just_mode = "just2";
-  SatInitParam init_param;
   // option の解析
   if ( !option.is_object() ) {
     // エラー
@@ -190,11 +187,6 @@ DtpgMgr::run(
   else {
     get_string(option, "dtpg_type", dtpg_type);
     get_bool(option, "multi_thread", multi);
-    get_string(option, "extract_mode", ex_mode);
-    get_string(option, "justify_mode", just_mode);
-    if ( option.has_key("sat_param") ) {
-      init_param = SatInitParam{option.at("sat_param")};
-    }
   }
 
   // ノード番号をキーにして関係する故障のリストを格納する配列
@@ -213,7 +205,7 @@ DtpgMgr::run(
       if ( !get_faults(ffr, status_mgr, node_fault_list_array, fault_list) ) {
 	continue;
       }
-      FFREngine engine{network, ffr, ex_mode, just_mode, init_param};
+      FFREngine engine{network, ffr, option};
       for ( auto fault: fault_list ) {
 	// 途中で status が変化している場合があるので再度チェック
 	if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
@@ -232,7 +224,7 @@ DtpgMgr::run(
 	continue;
       }
       if ( ffr != nullptr ) {
-	FFREngine engine{network, ffr, ex_mode, just_mode, init_param};
+	FFREngine engine{network, ffr, option};
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
@@ -242,7 +234,7 @@ DtpgMgr::run(
 	}
       }
       else {
-	MFFCEngine engine{network, mffc, ex_mode, just_mode, init_param};
+	MFFCEngine engine{network, mffc, option};
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
