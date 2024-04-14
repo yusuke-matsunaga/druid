@@ -11,8 +11,6 @@
 #include "TpgNetwork.h"
 #include "TpgFaultStatusMgr.h"
 #include "ym/SatInitParam.h"
-#include "DetectOp.h"
-#include "DopVerifyResult.h"
 
 
 BEGIN_NAMESPACE_DRUID

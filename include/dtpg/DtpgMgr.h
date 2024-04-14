@@ -13,7 +13,6 @@
 #include "TestVector.h"
 #include "TpgFault.h"
 #include "DtpgStats.h"
-#include "DopVerifyResult.h"
 #include "ym/JsonValue.h"
 
 

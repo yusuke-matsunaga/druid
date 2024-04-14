@@ -10,7 +10,6 @@
 #include "DtpgMgr.h"
 #include "TpgFault.h"
 #include "TpgFaultStatusMgr.h"
-#include "DopVerifyResult.h"
 #include "Classifier.h"
 #include "Classifier2.h"
 #include "ym/Timer.h"
