@@ -9,6 +9,7 @@
 #include "DtpgDriver.h"
 #include "DtpgDriverImpl.h"
 #include "TestVector.h"
+#include "ym/SatStats.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -41,6 +42,13 @@ DtpgDriver::gen_pattern(
 )
 {
   return mImpl->gen_pattern(fault);
+}
+
+// @brief SATの統計情報を返す．
+SatStats
+DtpgDriver::sat_stats() const
+{
+  return mImpl->sat_stats();
 }
 
 END_NAMESPACE_DRUID

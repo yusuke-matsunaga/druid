@@ -207,7 +207,12 @@ DtpgMgr::run(
       if ( !get_faults(ffr, status_mgr, node_fault_list_array, fault_list) ) {
 	continue;
       }
+      Timer timer;
+      timer.start();
       FFRDriver driver{network, ffr, option};
+      timer.stop();
+      auto time = timer.get_time();
+      stats.update_cnf(time);
       for ( auto fault: fault_list ) {
 	// 途中で status が変化している場合があるので再度チェック
 	if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
@@ -215,6 +220,8 @@ DtpgMgr::run(
 		      det_func, untest_func, abort_func);
 	}
       }
+      auto sat_stats = driver.sat_stats();
+      stats.update_sat_stats(sat_stats);
     }
   }
   else if ( group_mode == "mffc" ) {
@@ -226,7 +233,12 @@ DtpgMgr::run(
 	continue;
       }
       if ( ffr != nullptr ) {
+	Timer timer;
+	timer.start();
 	FFRDriver driver{network, ffr, option};
+	timer.stop();
+	auto time = timer.get_time();
+	stats.update_cnf(time);
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
@@ -234,9 +246,16 @@ DtpgMgr::run(
 			det_func, untest_func, abort_func);
 	  }
 	}
+	auto sat_stats = driver.sat_stats();
+	stats.update_sat_stats(sat_stats);
       }
       else {
+	Timer timer;
+	timer.start();
 	MFFCDriver driver{network, mffc, option};
+	timer.stop();
+	auto time = timer.get_time();
+	stats.update_cnf(time);
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
@@ -244,6 +263,8 @@ DtpgMgr::run(
 			det_func, untest_func, abort_func);
 	  }
 	}
+	auto sat_stats = driver.sat_stats();
+	stats.update_sat_stats(sat_stats);
       }
     }
   }

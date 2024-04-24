@@ -47,4 +47,11 @@ FFREngineDriver::gen_pattern(
   return mEngine.gen_pattern(fault);
 }
 
+// @brief SATの統計情報を返す．
+SatStats
+FFREngineDriver::sat_stats() const
+{
+  return mEngine.sat_stats();
+}
+
 END_NAMESPACE_DRUID

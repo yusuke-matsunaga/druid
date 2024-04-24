@@ -92,6 +92,10 @@ public:
     return mHvarMap(node);
   }
 
+  /// @brief SATの統計情報を返す．
+  SatStats
+  sat_stats() const { return mSolver.get_stats(); }
+
 
 public:
   //////////////////////////////////////////////////////////////////////

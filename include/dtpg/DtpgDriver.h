@@ -55,6 +55,10 @@ public:
     const TpgFault* fault ///< [in] 対象の故障
   );
 
+  /// @brief SATの統計情報を返す．
+  SatStats
+  sat_stats() const;
+
 
 private:
   //////////////////////////////////////////////////////////////////////

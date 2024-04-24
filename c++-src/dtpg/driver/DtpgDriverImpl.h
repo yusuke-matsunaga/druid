@@ -53,6 +53,11 @@ public:
     const TpgFault* fault ///< [in] 対象の故障
   ) = 0;
 
+  /// @brief SATの統計情報を返す．
+  virtual
+  SatStats
+  sat_stats() const = 0;
+
 };
 
 END_NAMESPACE_DRUID

@@ -60,4 +60,11 @@ FFRStructEncDriver::gen_pattern(
   return mJustifier(assign_list, mStructEnc.hvar_map(), mStructEnc.gvar_map(), model);
 }
 
+// @brief SATの統計情報を返す．
+SatStats
+FFRStructEncDriver::sat_stats() const
+{
+  return mStructEnc.sat_stats();
+}
+
 END_NAMESPACE_DRUID
