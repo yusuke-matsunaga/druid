@@ -369,6 +369,7 @@ dtpg_test(
   auto stats = DtpgMgr::run(network, fs_mgr,
 			    [&](const TpgFault* f, TestVector tv) {
 			      fs_mgr.set_status(f, FaultStatus::Detected);
+			      det_fault_list.push_back(f);
 			      tv_list.push_back(tv);
 			      DiffBits _dummy;
 			      bool r = fsim.spsfp(tv, f, _dummy);

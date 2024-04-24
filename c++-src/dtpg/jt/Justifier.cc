@@ -24,12 +24,19 @@ new_just(
   SizeType max_id
 )
 {
-  if ( option.is_null() ) {
+  JsonValue jt_opt{JsonValue::null()};
+  if ( option.is_object() ) {
+    const char* key = "justifier";
+    if ( option.has_key(key) ) {
+      jt_opt = option.at(key);
+    }
+  }
+  if ( jt_opt.is_null() ) {
     // デフォルトフォールバックは Just2
     return new Just2(max_id);
   }
-  if ( option.is_string() ) {
-    auto just_type = option.get_string();
+  if ( jt_opt.is_string() ) {
+    auto just_type = jt_opt.get_string();
     if ( just_type == "just1" ) {
       return new Just1(max_id);
     }

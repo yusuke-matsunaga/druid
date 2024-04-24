@@ -17,6 +17,10 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class FFREngine FFREngine.h "FFREngine.h"
 /// @brief FFR 単位で DTPG の基本的な処理を行うクラス
+///
+/// FFR 内の故障のFFRのrootまでの故障伝搬条件は single literal の積で
+/// 表されるので，このクラスではFFRのrootから外部出力までの故障伝搬条件
+/// を最初に作っておく．
 //////////////////////////////////////////////////////////////////////
 class FFREngine :
   public DtpgEngine

@@ -68,21 +68,6 @@ get_ex_opt(
   return JsonValue::null();
 }
 
-JsonValue
-get_just_opt(
-  const JsonValue& option
-)
-{
-  if ( option.is_object() ) {
-    const char* key = "justifier";
-    if ( option.has_key(key) ) {
-      return option.at(key);
-    }
-  }
-  // デフォルト値(null)
-  return JsonValue::null();
-}
-
 END_NONAMESPACE
 
 // @brief コンストラクタ
@@ -94,7 +79,7 @@ DtpgEngine::DtpgEngine(
     mNetwork{network},
     mRoot{root},
     mExOpt{get_ex_opt(option)},
-    mJustifier{network, get_just_opt(option)},
+    mJustifier{network, option},
     mHvarMap{network.node_num()},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},

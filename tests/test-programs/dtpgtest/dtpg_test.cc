@@ -9,7 +9,6 @@
 #include "TpgNetwork.h"
 #include "DtpgMgr.h"
 #include "TpgFault.h"
-#include "DopVerifyResult.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
@@ -42,7 +41,7 @@ read_network(
 void
 print_stats(
   const TpgNetwork& network,
-  DtpgMgr& mgr,
+  TpgFaultStatusMgr& mgr,
   double time
 )
 {

@@ -24,6 +24,18 @@ set ( dtpg_SOURCES
   engine/DtpgEngine.cc
   engine/FFREngine.cc
   engine/MFFCEngine.cc
+  engine/ConeEnc.cc
+  engine/BSEnc.cc
+  )
+
+set ( driver_SOURCES
+  driver/DtpgDriver.cc
+  driver/FFRDriver.cc
+  driver/FFREngineDriver.cc
+  driver/FFRStructEncDriver.cc
+  driver/MFFCDriver.cc
+  driver/MFFCEngineDriver.cc
+  driver/MFFCStructEncDriver.cc
   )
 
 set ( struct_enc_SOURCES
@@ -76,6 +88,7 @@ set (uop_SOURCES
 # ===================================================================
 ym_add_object_library ( druid_dtpg
   ${dtpg_SOURCES}
+  ${driver_SOURCES}
   ${struct_enc_SOURCES}
   ${ex_SOURCES}
   ${jt_SOURCES}

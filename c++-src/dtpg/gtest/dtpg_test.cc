@@ -81,7 +81,7 @@ TestData mydata2[] = {
 
 
 class DtpgTestWithParam2 :
-  public ::testing::TestWithParam<std::tuple<TestData, string, string, FaultType, string>>
+  public ::testing::TestWithParam<std::tuple<TestData, string, string, string, FaultType, string>>
 {
 public:
 
@@ -126,9 +126,13 @@ private:
   string
   sat_type();
 
-  /// @brief テストパラメータからテストモードを取り出す．
+  /// @brief テストパラメータからグループモードを取り出す．
   string
-  test_mode();
+  group_mode();
+
+  /// @brief テストパラメータからドライバタイプを取り出す．
+  string
+  driver_type();
 
   /// @brief テストパラメータから FaultType を取り出す．
   FaultType
@@ -196,7 +200,8 @@ void
 DtpgTestWithParam2::do_test()
 {
   unordered_map<string, JsonValue> option_dict;
-  option_dict.emplace("dtpg_type", test_mode());
+  option_dict.emplace("group_mode", group_mode());
+  option_dict.emplace("driver_type", driver_type());
   option_dict.emplace("justifier", just_type());
   auto sat_obj = JsonValue{sat_type()};
   option_dict.emplace("sat_param", sat_obj);
@@ -282,25 +287,32 @@ DtpgTestWithParam2::sat_type()
   return std::get<1>(GetParam());
 }
 
-// @brief テストパラメータからテストモードを取り出す．
+// @brief テストパラメータからグループモードを取り出す．
 string
-DtpgTestWithParam2::test_mode()
+DtpgTestWithParam2::group_mode()
 {
   return std::get<2>(GetParam());
+}
+
+// @brief テストパラメータからドライバタイプを取り出す．
+string
+DtpgTestWithParam2::driver_type()
+{
+  return std::get<3>(GetParam());
 }
 
 // @brief テストパラメータから FaultType を取り出す．
 FaultType
 DtpgTestWithParam2::fault_type()
 {
-  return std::get<3>(GetParam());
+  return std::get<4>(GetParam());
 }
 
 // @brief テストパラメータから just_type を取り出す．
 string
 DtpgTestWithParam2::just_type()
 {
-  return std::get<4>(GetParam());
+  return std::get<5>(GetParam());
 }
 
 TEST_P(DtpgTestWithParam2, test1)
@@ -315,23 +327,15 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam2,
 							      "ymsat1", "ymsat2",
 							      "ymsat1_old"),
 					    ::testing::Values("ffr"),
+					    ::testing::Values("engine"),
 					    ::testing::Values(FaultType::StuckAt),
 					    ::testing::Values("just1")));
-#if 0
-INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
-			 ::testing::Combine(::testing::ValuesIn(mydata2),
-					    ::testing::Values("ymsat2"),
-					    ::testing::Values("ffr",    "ffr_se",
-							      "mffc",   "mffc_se"),
-					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
-					    ::testing::Values("just1", "just2")));
-#else
 INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
 			 ::testing::Combine(::testing::ValuesIn(mydata2),
 					    ::testing::Values("ymsat2"),
 					    ::testing::Values("ffr", "mffc"),
+					    ::testing::Values("engine", "se"),
 					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
 					    ::testing::Values("just1", "just2")));
-#endif
 
 END_NAMESPACE_DRUID

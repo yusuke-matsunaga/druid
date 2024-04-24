@@ -7,10 +7,12 @@
 /// All rights reserved.
 
 #include "DtpgMgr.h"
-#include "FFREngine.h"
-#include "MFFCEngine.h"
+#include "FFRDriver.h"
+#include "MFFCDriver.h"
+#include "TpgNetwork.h"
 #include "TpgFFR.h"
 #include "TpgMFFC.h"
+#include "TpgNode.h"
 #include "TpgFaultStatusMgr.h"
 #include "ym/Timer.h"
 
@@ -120,7 +122,7 @@ get_faults(
 // 一つの故障に対するテスト生成を行う．
 void
 gen_pattern(
-  DtpgEngine& engine,
+  DtpgDriver& driver,
   const TpgFault* fault,
   TpgFaultStatusMgr& status_mgr,
   DtpgStats& stats,
@@ -131,7 +133,7 @@ gen_pattern(
 {
   Timer timer;
   timer.start();
-  auto ans = engine.solve(fault);
+  auto ans = driver.solve(fault);
   timer.stop();
   auto sat_time = timer.get_time();
 
@@ -139,7 +141,7 @@ gen_pattern(
     // パタンが求まった．
     timer.reset();
     timer.start();
-    auto testvect = engine.gen_pattern(fault);
+    auto testvect = driver.gen_pattern(fault);
     timer.stop();
     auto backtrace_time = timer.get_time();
 
@@ -177,7 +179,7 @@ DtpgMgr::run(
   const JsonValue& option
 )
 {
-  string dtpg_type = "ffr";
+  string group_mode = "ffr";
   bool multi = false;
   // option の解析
   if ( !option.is_object() ) {
@@ -185,7 +187,7 @@ DtpgMgr::run(
     throw std::invalid_argument{"option should be a JsonObject"};
   }
   else {
-    get_string(option, "dtpg_type", dtpg_type);
+    get_string(option, "group_mode", group_mode);
     get_bool(option, "multi_thread", multi);
   }
 
@@ -197,7 +199,7 @@ DtpgMgr::run(
   }
 
   DtpgStats stats;
-  if ( dtpg_type == "ffr" ) {
+  if ( group_mode == "ffr" ) {
     // FFR 単位で処理を行う．
     for ( auto ffr: network.ffr_list() ) {
       // ffr に関係する故障を集める．
@@ -205,17 +207,17 @@ DtpgMgr::run(
       if ( !get_faults(ffr, status_mgr, node_fault_list_array, fault_list) ) {
 	continue;
       }
-      FFREngine engine{network, ffr, option};
+      FFRDriver driver{network, ffr, option};
       for ( auto fault: fault_list ) {
 	// 途中で status が変化している場合があるので再度チェック
 	if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	  gen_pattern(engine, fault, status_mgr, stats,
+	  gen_pattern(driver, fault, status_mgr, stats,
 		      det_func, untest_func, abort_func);
 	}
       }
     }
   }
-  else if ( dtpg_type == "mffc" ) {
+  else if ( group_mode == "mffc" ) {
     // MFFC 単位で処理を行う．
     for ( auto mffc: network.mffc_list() ) {
       vector<const TpgFault*> fault_list;
@@ -224,21 +226,21 @@ DtpgMgr::run(
 	continue;
       }
       if ( ffr != nullptr ) {
-	FFREngine engine{network, ffr, option};
+	FFRDriver driver{network, ffr, option};
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    gen_pattern(engine, fault, status_mgr, stats,
+	    gen_pattern(driver, fault, status_mgr, stats,
 			det_func, untest_func, abort_func);
 	  }
 	}
       }
       else {
-	MFFCEngine engine{network, mffc, option};
+	MFFCDriver driver{network, mffc, option};
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    gen_pattern(engine, fault, status_mgr, stats,
+	    gen_pattern(driver, fault, status_mgr, stats,
 			det_func, untest_func, abort_func);
 	  }
 	}
@@ -247,7 +249,7 @@ DtpgMgr::run(
   }
   else {
     ostringstream buf;
-    buf << dtpg_type << ": unknown value for 'dtpg_type'";
+    buf << group_mode << ": unknown value for 'group_mode'";
     throw std::invalid_argument{buf.str()};
   }
 

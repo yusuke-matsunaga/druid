@@ -5,7 +5,7 @@
 /// @brief StructEnc のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2016, 2017, 2018, 2022, 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -33,9 +33,8 @@ public:
 
   /// @brief コンストラクタ
   StructEnc(
-    const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    bool has_prev_state,	   ///< [in] 1時刻前の回路を持つ時 true
-    const SatInitParam& init_param ///< [in] SATソルバの初期化パラメータ
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const JsonValue& option    ///< [in] オプション
   );
 
   /// @brief デストラクタ

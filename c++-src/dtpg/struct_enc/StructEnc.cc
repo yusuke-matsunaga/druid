@@ -29,6 +29,21 @@ const int debug_make_node_cnf = 2U;
 const int debug_extract = 32U;
 const int debug_justify = 64U;
 
+SatInitParam
+get_init_param(
+  const JsonValue& option
+)
+{
+  if ( option.is_object() ) {
+    if ( option.has_key("sat_param") ) {
+      auto val = option.at("sat_param");
+      return SatInitParam{val};
+    }
+  }
+  // デフォルト値
+  return SatInitParam{};
+}
+
 END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
@@ -38,11 +53,10 @@ END_NONAMESPACE
 // @brief コンストラクタ
 StructEnc::StructEnc(
   const TpgNetwork& network,
-  bool has_prev_state,
-  const SatInitParam& init_param
+  const JsonValue& option
 ) : mNetwork{network},
-    mHasPrevState{has_prev_state},
-    mSolver{init_param},
+    mHasPrevState{network.fault_type() == FaultType::TransitionDelay},
+    mSolver{get_init_param(option)},
     mMaxId{network.node_num()},
     mGvarMap(mMaxId),
     mHvarMap(mMaxId)
