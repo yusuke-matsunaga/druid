@@ -230,20 +230,6 @@ dtpg_test(
 	}
 	mode = "mffc";
       }
-      else if ( strcmp(argv[pos], "--ffr_se") == 0 ) {
-	if ( mode != string{} ) {
-	  cerr << "--ffr_se  and --" << mode << " are mutually exclusive" << endl;
-	  return -1;
-	}
-	mode = "ffr_se";
-      }
-      else if ( strcmp(argv[pos], "--mffc_se") == 0 ) {
-	if ( mode != string{} ) {
-	  cerr << "--mffc_new and --" << mode << " are mutually exclusive" << endl;
-	  return -1;
-	}
-	mode = "mffc_se";
-      }
       else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
 	++ pos;
 	if ( pos < argc ) {
@@ -339,15 +325,8 @@ dtpg_test(
   }
 
   unordered_map<string, JsonValue> option_dict;
-  option_dict.emplace("dtpg_type", mode);
+  option_dict.emplace("group_mode", mode);
   option_dict.emplace("just_type", just_type);
-  vector<JsonValue> dop_list;
-  dop_list.push_back(JsonValue{"base"});
-  dop_list.push_back(JsonValue{"verify"});
-  dop_list.push_back(JsonValue{"drop"});
-  dop_list.push_back(JsonValue{"tvlist"});
-  option_dict.emplace("dop", JsonValue{dop_list});
-  option_dict.emplace("uop", JsonValue{"base"});
   if ( sat_type != string{} ) {
     auto sat_obj = JsonValue::parse(sat_type);
     option_dict.emplace("sat_param", sat_obj);

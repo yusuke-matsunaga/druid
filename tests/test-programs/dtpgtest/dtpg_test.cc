@@ -9,6 +9,7 @@
 #include "TpgNetwork.h"
 #include "DtpgMgr.h"
 #include "TpgFault.h"
+#include "TpgFaultStatusMgr.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
@@ -23,33 +24,20 @@ usage()
   cerr << "USAGE: " << argv0 << " ?--mffc? --blif|--iscas89 <file>" << endl;
 }
 
-TpgNetwork
-read_network(
-  const string& filename,
-  bool blif,
-  bool iscas89
-)
-{
-  ASSERT_COND( blif | iscas89 );
-  if ( blif ) {
-    return TpgNetwork::read_blif(filename);
-  }
-  return TpgNetwork::read_iscas89(filename);
-}
-
 // @brief 統計情報を出力する．
 void
 print_stats(
   const TpgNetwork& network,
+  const DtpgStats& stats,
   TpgFaultStatusMgr& mgr,
+  const vector<TestVector>& tv_list,
   double time
 )
 {
-  SizeType fault_num = mgr.fault_num();
-  SizeType detect_num = mgr.detect_count();
-  SizeType untest_num = mgr.untest_count();
-  SizeType tv_num = mgr.tv_list().size();
-  const DtpgStats& stats = mgr.dtpg_stats();
+  SizeType fault_num = mgr.total_count();
+  SizeType detect_num = mgr.detected_count();
+  SizeType untest_num = mgr.untestable_count();
+  SizeType tv_num = tv_list.size();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
        << "# of DFFs               = " << network.dff_num() << endl
@@ -134,21 +122,14 @@ dtpg_test(
 
   bool sa_mode = false;
   bool td_mode = false;
-
   string mode{};
-
+  string driver{};
   bool drop = false;
-
   bool fix = false;
-
   bool multi = false;
-
   bool dump = false;
-
   bool verbose = false;
-
   bool show_untestable_faults = false;
-
   string just_type;
 
   argv0 = argv[0];
@@ -170,19 +151,19 @@ dtpg_test(
 	}
 	mode = "mffc";
       }
-      else if ( strcmp(argv[pos], "--ffr_se") == 0 ) {
-	if ( mode != string{} ) {
-	  cerr << "--ffr_se  and --" << mode << " are mutually exclusive" << endl;
+      else if ( strcmp(argv[pos], "--engine") == 0 ) {
+	if ( driver != string{} ) {
+	  cerr << "--engine  and --" << driver << " are mutually exclusive" << endl;
 	  return -1;
 	}
-	mode = "ffr_se";
+	driver = "engine";
       }
-      else if ( strcmp(argv[pos], "--mffc_se") == 0 ) {
-	if ( mode != string{} ) {
-	  cerr << "--mffc_new and --" << mode << " are mutually exclusive" << endl;
+      else if ( strcmp(argv[pos], "--struct_enc") == 0 ) {
+	if ( driver != string{} ) {
+	  cerr << "--struct_enc and --" << mode << " are mutually exclusive" << endl;
 	  return -1;
 	}
-	mode = "mffc_se";
+	driver = "struct_enc";
       }
       else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
 	++ pos;
@@ -276,69 +257,76 @@ dtpg_test(
     // ffr をデフォルトにする．
     mode = "ffr";
   }
+  if ( driver == string{} ) {
+    // engine をデフォルトにする．
+    driver = "engine";
+  }
 
   if ( !sa_mode && !td_mode ) {
     // sa_mode をデフォルトにする．
     sa_mode = true;
   }
+  FaultType fault_type = sa_mode ? FaultType::StuckAt : FaultType::TransitionDelay;
 
   string filename = argv[pos];
-  auto network = TpgNetwork::read_network(filename, format);
-
-  if ( td_mode && network.dff_num() == 0 ) {
-    cerr << "Network is combinational, stuck-at mode is assumed" << endl;
-    td_mode = false;
-    sa_mode = true;
-  }
-  FaultType fault_type = sa_mode ? FaultType::StuckAt : FaultType::TransitionDelay;
+  auto network = TpgNetwork::read_network(filename, format, fault_type);
 
   if ( dump ) {
     network.print(cout);
   }
 
   unordered_map<string, JsonValue> option_dict;
-  option_dict.emplace("dtpg_type", mode);
+  option_dict.emplace("group_mode", mode);
+  option_dict.emplace("driver_type", driver);
   option_dict.emplace("just_type", just_type);
-  vector<JsonValue> dop_list;
-  dop_list.push_back(JsonValue{"base"});
-  dop_list.push_back(JsonValue{"verify"});
-  if ( drop ) {
-    dop_list.push_back(JsonValue{"drop"});
-  }
-  if ( fix ) {
-    dop_list.push_back(JsonValue{"tvlist"});
-  }
-  option_dict.emplace("dop", JsonValue{dop_list});
-  option_dict.emplace("uop", JsonValue{"base"});
   if ( sat_type != string{} ) {
     auto sat_obj = JsonValue{sat_type};
     option_dict.emplace("sat_param", sat_obj);
   }
   JsonValue option{option_dict};
 
-  auto fault_list = network.rep_fault_list(fault_type);
-
-  DtpgMgr mgr{network, fault_list, option, multi};
+  auto fault_list = network.rep_fault_list();
 
   Timer timer;
   timer.start();
 
-  mgr.run();
+  Fsim fsim;
+  fsim.initialize(network, fault_list, true, false);
+
+  vector<pair<const TpgFault*, TestVector>> ErrorList;
+  TpgFaultStatusMgr fs_mgr{fault_list};
+  vector<const TpgFault*> det_fault_list;
+  vector<TestVector> tv_list;
+  auto stats = DtpgMgr::run(network, fs_mgr,
+			    [&](const TpgFault* f, TestVector tv) {
+			      fs_mgr.set_status(f, FaultStatus::Detected);
+			      det_fault_list.push_back(f);
+			      tv_list.push_back(tv);
+			      DiffBits _dummy;
+			      bool r = fsim.spsfp(tv, f, _dummy);
+			      if ( !r ) {
+				ErrorList.push_back({f, tv});
+			      }
+			      fsim.set_skip(f);
+			      if ( drop ) {
+				fsim.sppfp(tv, [&](const TpgFault* f, const DiffBits&) {
+				  fs_mgr.set_status(f, FaultStatus::Detected);
+				  fsim.set_skip(f);
+				});
+			      }
+			    },
+			    [&](const TpgFault* f) {
+			      fs_mgr.set_status(f, FaultStatus::Untestable);
+			    },
+			    [&](const TpgFault* f) {
+			    },
+			    option);
 
   timer.stop();
   auto time = timer.get_time();
 
   if ( verbose ) {
-    print_stats(network, mgr, time);
-  }
-
-  auto& verify_result = mgr.verify_result();
-  SizeType n = verify_result.error_count();
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto f = verify_result.error_fault(i);
-    auto tv = verify_result.error_testvector(i);
-    cout << "Error: " << f << " is not detected with "
-	 << tv << endl;
+    print_stats(network, stats, fs_mgr, tv_list, time);
   }
 
   if ( show_untestable_faults ) {
@@ -354,7 +342,6 @@ dtpg_test(
 
   if ( fix ) {
     std::mt19937 randgen;
-    auto& tv_list = mgr.tv_list();
     for ( auto& tv: tv_list ) {
       TestVector fixed_tv{tv};
       fixed_tv.fix_x_from_random(randgen);
@@ -362,7 +349,7 @@ dtpg_test(
     }
   }
 
-  return n;
+  return 0;
 }
 
 END_NAMESPACE_DRUID
