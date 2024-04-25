@@ -53,6 +53,11 @@ public:
     const TpgFault* fault ///< [in] 対象の故障
   ) = 0;
 
+  /// @brief CNF の生成時間を返す．
+  virtual
+  double
+  cnf_time() const = 0;
+
   /// @brief SATの統計情報を返す．
   virtual
   SatStats

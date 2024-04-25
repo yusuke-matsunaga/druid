@@ -55,7 +55,7 @@ private:
 
   /// @brief make_cnf() の追加処理
   void
-  opt_make_cnf();
+  opt_make_cnf() override;
 
   /// @brief 故障挿入回路のCNFを作る．
   void

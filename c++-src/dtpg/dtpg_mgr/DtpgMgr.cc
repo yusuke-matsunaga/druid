@@ -119,49 +119,6 @@ get_faults(
   return ffr1;
 }
 
-// 一つの故障に対するテスト生成を行う．
-void
-gen_pattern(
-  DtpgDriver& driver,
-  const TpgFault* fault,
-  TpgFaultStatusMgr& status_mgr,
-  DtpgStats& stats,
-  FaultTvCallback det_func,
-  FaultCallback untest_func,
-  FaultCallback abort_func
-)
-{
-  Timer timer;
-  timer.start();
-  auto ans = driver.solve(fault);
-  timer.stop();
-  auto sat_time = timer.get_time();
-
-  if ( ans == SatBool3::True ) {
-    // パタンが求まった．
-    timer.reset();
-    timer.start();
-    auto testvect = driver.gen_pattern(fault);
-    timer.stop();
-    auto backtrace_time = timer.get_time();
-
-    status_mgr.set_status(fault, FaultStatus::Detected);
-    stats.update_det(sat_time, backtrace_time);
-    det_func(fault, testvect);
-  }
-  else if ( ans == SatBool3::False ) {
-    // 検出不能と判定された．
-    status_mgr.set_status(fault, FaultStatus::Untestable);
-    stats.update_untest(sat_time);
-    untest_func(fault);
-  }
-  else { // SatBool3::X
-    // アボート
-    stats.update_abort(sat_time);
-    abort_func(fault);
-  }
-}
-
 END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
@@ -207,19 +164,16 @@ DtpgMgr::run(
       if ( !get_faults(ffr, status_mgr, node_fault_list_array, fault_list) ) {
 	continue;
       }
-      Timer timer;
-      timer.start();
       FFRDriver driver{network, ffr, option};
-      timer.stop();
-      auto time = timer.get_time();
-      stats.update_cnf(time);
       for ( auto fault: fault_list ) {
 	// 途中で status が変化している場合があるので再度チェック
 	if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	  gen_pattern(driver, fault, status_mgr, stats,
-		      det_func, untest_func, abort_func);
+	  driver.gen_pattern(fault, status_mgr, stats,
+			     det_func, untest_func, abort_func);
 	}
       }
+      auto cnf_time = driver.cnf_time();
+      stats.update_cnf(cnf_time);
       auto sat_stats = driver.sat_stats();
       stats.update_sat_stats(sat_stats);
     }
@@ -233,36 +187,30 @@ DtpgMgr::run(
 	continue;
       }
       if ( ffr != nullptr ) {
-	Timer timer;
-	timer.start();
 	FFRDriver driver{network, ffr, option};
-	timer.stop();
-	auto time = timer.get_time();
-	stats.update_cnf(time);
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    gen_pattern(driver, fault, status_mgr, stats,
-			det_func, untest_func, abort_func);
+	    driver.gen_pattern(fault, status_mgr, stats,
+			       det_func, untest_func, abort_func);
 	  }
 	}
+	auto cnf_time = driver.cnf_time();
+	stats.update_cnf(cnf_time);
 	auto sat_stats = driver.sat_stats();
 	stats.update_sat_stats(sat_stats);
       }
       else {
-	Timer timer;
-	timer.start();
 	MFFCDriver driver{network, mffc, option};
-	timer.stop();
-	auto time = timer.get_time();
-	stats.update_cnf(time);
 	for ( auto fault: fault_list ) {
 	  // 途中で status が変化している場合があるので再度チェックする．
 	  if ( status_mgr.get_status(fault) == FaultStatus::Undetected ) {
-	    gen_pattern(driver, fault, status_mgr, stats,
-			det_func, untest_func, abort_func);
+	    driver.gen_pattern(fault, status_mgr, stats,
+			       det_func, untest_func, abort_func);
 	  }
 	}
+	auto cnf_time = driver.cnf_time();
+	stats.update_cnf(cnf_time);
 	auto sat_stats = driver.sat_stats();
 	stats.update_sat_stats(sat_stats);
       }

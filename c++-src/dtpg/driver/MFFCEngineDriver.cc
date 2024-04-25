@@ -22,6 +22,7 @@ MFFCEngineDriver::MFFCEngineDriver(
   const JsonValue& option
 ) : mEngine{network, mffc, option}
 {
+  mEngine.make_cnf();
 }
 
 // @brief デストラクタ
@@ -45,6 +46,13 @@ MFFCEngineDriver::gen_pattern(
 )
 {
   return mEngine.gen_pattern(fault);
+}
+
+// @brief CNF の生成時間を返す．
+double
+MFFCEngineDriver::cnf_time() const
+{
+  return mEngine.cnf_time();
 }
 
 // @brief SATの統計情報を返す．

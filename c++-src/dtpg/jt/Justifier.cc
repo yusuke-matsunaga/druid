@@ -24,19 +24,12 @@ new_just(
   SizeType max_id
 )
 {
-  JsonValue jt_opt{JsonValue::null()};
-  if ( option.is_object() ) {
-    const char* key = "justifier";
-    if ( option.has_key(key) ) {
-      jt_opt = option.at(key);
-    }
-  }
-  if ( jt_opt.is_null() ) {
+  if ( option.is_null() ) {
     // デフォルトフォールバックは Just2
     return new Just2(max_id);
   }
-  if ( jt_opt.is_string() ) {
-    auto just_type = jt_opt.get_string();
+  if ( option.is_string() ) {
+    auto just_type = option.get_string();
     if ( just_type == "just1" ) {
       return new Just1(max_id);
     }
@@ -48,7 +41,7 @@ new_just(
     buf << just_type << ": unknown value for 'justifier'";
     throw std::invalid_argument{buf.str()};
   }
-
+  abort();
   // 文字列型ではなかった．
   ostringstream buf;
   buf << "value for 'justifier' should be a string or null";

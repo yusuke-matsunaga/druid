@@ -14,6 +14,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class DtpgStats;
 class DtpgDriverImpl;
 
 //////////////////////////////////////////////////////////////////////
@@ -38,22 +39,22 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障を検出する条件を求める．
-  ///
-  /// - f はコンストラクタで指定した FFR 内の故障でなければならない．
-  SatBool3
-  solve(
-    const TpgFault* fault ///< [in] 対象の故障
-  );
-
   /// @brief 故障のテストパタンを求める．
   ///
   /// - f はコンストラクタで指定した FFR 内の故障でなければならない．
-  /// - 直前に solve(f) を呼んで SatBool3::True が返された場合のみ有効
-  TestVector
+  void
   gen_pattern(
-    const TpgFault* fault ///< [in] 対象の故障
+    const TpgFault* fault,         ///< [in] 対象の故障
+    TpgFaultStatusMgr& status_mgr, ///< [in] 故障の状態を管理するオブジェクト
+    DtpgStats& stats,              ///< [out] 統計情報
+    FaultTvCallback det_func,      ///< [in] 検出時のコールバック関数
+    FaultCallback untest_func,     ///< [in] 検出不能時のコールバック関数
+    FaultCallback abort_func       ///< [in] アボート時のコールバック関数
   );
+
+  /// @brief CNF の生成時間を返す．
+  double
+  cnf_time() const;
 
   /// @brief SATの統計情報を返す．
   SatStats

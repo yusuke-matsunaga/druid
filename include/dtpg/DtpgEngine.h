@@ -52,6 +52,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief CNF の生成を行う．
+  ///
+  /// root からいずれかの外部出力へ故障の影響が伝搬する
+  /// 条件を表す CNF を作る．
+  void
+  make_cnf();
+
   /// @brief solve() が成功した時にテストパタンを生成する．
   TestVector
   gen_pattern(
@@ -241,6 +248,10 @@ public:
     return mFvarMap;
   }
 
+  /// @brief CNF の生成時間を返す．
+  double
+  cnf_time() const { return mCnfTime; }
+
   /// @brief SATの統計情報を返す．
   SatStats
   sat_stats() const { return mSolver.get_stats(); }
@@ -250,13 +261,6 @@ protected:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief CNF の生成を行う．
-  ///
-  /// root からいずれかの外部出力へ故障の影響が伝搬する
-  /// 条件を表す CNF を作る．
-  void
-  make_cnf();
 
   /// @brief 対象の部分回路の関係を表す変数を用意する．
   void
@@ -316,6 +320,11 @@ protected:
     mDvarMap.set_vid(node, var);
   }
 
+  /// @brief make_cnf() の追加処理
+  virtual
+  void
+  opt_make_cnf();
+
   /// @brief gen_pattern() で用いる追加の検出条件を作る．
   ///
   /// デフォルトでは空を返す．
@@ -372,6 +381,9 @@ private:
 
   // 故障伝搬条件を表す変数のマップ
   VidMap mDvarMap;
+
+  // CNFの生成時間
+  double mCnfTime;
 
 };
 

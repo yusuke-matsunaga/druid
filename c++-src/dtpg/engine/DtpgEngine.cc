@@ -36,62 +36,30 @@ END_NONAMESPACE
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-SatInitParam
-get_init_param(
-  const JsonValue& option
-)
-{
-  if ( option.is_object() ) {
-    if ( option.has_key("sat_param") ) {
-      auto val = option.at("sat_param");
-      return SatInitParam{val};
-    }
-  }
-  // デフォルト値
-  return SatInitParam{};
-}
-
-JsonValue
-get_ex_opt(
-  const JsonValue& option
-)
-{
-  if ( option.is_object() ) {
-    const char* key = "extractor";
-    if ( option.has_key(key) ) {
-      return option.at(key);
-    }
-  }
-  // デフォルト値(null)
-  return JsonValue::null();
-}
-
-END_NONAMESPACE
-
 // @brief コンストラクタ
 DtpgEngine::DtpgEngine(
   const TpgNetwork& network,
   const TpgNode* root,
   const JsonValue& option
-) : mSolver{get_init_param(option)},
+) : mSolver{option.get("sat_param")},
     mNetwork{network},
     mRoot{root},
-    mExOpt{get_ex_opt(option)},
-    mJustifier{network, option},
+    mExOpt{option.get("extractor")},
+    mJustifier{network, option.get("justifier")},
     mHvarMap{network.node_num()},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
     mDvarMap{network.node_num()}
 {
-  make_cnf();
 }
 
 // @brief CNF の生成を行う．
 void
 DtpgEngine::make_cnf()
 {
+  Timer timer;
+  timer.start();
+
   // 変数割り当て
   prepare_vars();
 
@@ -117,6 +85,17 @@ DtpgEngine::make_cnf()
     auto dlit0 = dvar(root_node());
     solver().add_clause(dlit0);
   }
+
+  opt_make_cnf();
+
+  timer.stop();
+  mCnfTime = timer.get_time();
+}
+
+// @brief make_cnf() の追加処理
+void
+DtpgEngine::opt_make_cnf()
+{
 }
 
 // @brief 対象の部分回路の関係を表す変数を用意する．

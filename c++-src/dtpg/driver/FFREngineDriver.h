@@ -54,6 +54,10 @@ public:
     const TpgFault* fault ///< [in] 対象の故障
   ) override;
 
+  /// @brief CNF の生成時間を返す．
+  double
+  cnf_time() const override;
+
   /// @brief SATの統計情報を返す．
   SatStats
   sat_stats() const override;

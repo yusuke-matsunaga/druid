@@ -40,7 +40,6 @@ MFFCEngine::MFFCEngine(
     mRootArray(mffc->ffr_num()),
     mEvarArray(mffc->ffr_num())
 {
-  opt_make_cnf();
 }
 
 // @brief デストラクタ

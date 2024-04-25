@@ -10,6 +10,7 @@
 #include "TpgMFFC.h"
 #include "TpgFault.h"
 #include "TestVector.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -25,10 +26,14 @@ MFFCStructEncDriver::MFFCStructEncDriver(
   const JsonValue& option
 ) : mStructEnc{network, option},
     mRoot{mffc->root()},
-    mJustifier{network, option}
+    mJustifier{network, option.get("justifier")}
 {
+  Timer timer;
+  timer.start();
   mStructEnc.add_mffc_cone(mffc, true);
   mStructEnc.make_cnf();
+  timer.stop();
+  mCnfTime = timer.get_time();
 }
 
 // @brief デストラクタ
@@ -60,6 +65,13 @@ MFFCStructEncDriver::gen_pattern(
   auto assign_list2 = mStructEnc.extract_prop_condition(root);
   assign_list.merge(assign_list2);
   return mJustifier(assign_list, mStructEnc.hvar_map(), mStructEnc.gvar_map(), model);
+}
+
+// @brief CNF の生成時間を返す．
+double
+MFFCStructEncDriver::cnf_time() const
+{
+  return mCnfTime;
 }
 
 // @brief SATの統計情報を返す．
