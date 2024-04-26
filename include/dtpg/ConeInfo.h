@@ -30,20 +30,20 @@ public:
     const TpgNetwork& network, ///< [in] 対象のネットワーク
     const TpgNode* root        ///< [in] 故障伝搬の起点となるノード
   ) : mNetwork{network},
-      mRoot{root},
-      mTFOList{TpgNodeSet::get_tfo_list(network.node_num(), root,
+      mRoot{root}
+  {
+    mTFOList = TpgNodeSet::get_tfo_list(network.node_num(), root,
 					[&](const TpgNode* node) {
 					  if ( node->is_ppo() ) {
 					    mPPOList.push_back(node);
 					  }
-					})},
-      mTFIList{TpgNodeSet::get_tfi_list(network.node_num(), mTFOList,
+					});
+    mTFIList = TpgNodeSet::get_tfi_list(network.node_num(), mTFOList,
 					[&](const TpgNode* node) {
 					  if ( node->is_dff_output() ) {
 					    mDffOutputList.push_back(node);
 					  }
-					})}
-  {
+					});
   }
 
   /// @brief デストラクタ

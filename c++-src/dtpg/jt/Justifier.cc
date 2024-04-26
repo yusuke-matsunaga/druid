@@ -41,7 +41,7 @@ new_just(
     buf << just_type << ": unknown value for 'justifier'";
     throw std::invalid_argument{buf.str()};
   }
-  abort();
+
   // 文字列型ではなかった．
   ostringstream buf;
   buf << "value for 'justifier' should be a string or null";

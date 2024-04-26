@@ -33,6 +33,7 @@ set ( driver_SOURCES
   driver/FFRDriver.cc
   driver/FFREngineDriver.cc
   driver/FFRStructEncDriver.cc
+  driver/FFREncDriver.cc
   driver/MFFCDriver.cc
   driver/MFFCEngineDriver.cc
   driver/MFFCStructEncDriver.cc

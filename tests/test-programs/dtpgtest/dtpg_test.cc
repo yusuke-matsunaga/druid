@@ -165,6 +165,13 @@ dtpg_test(
 	}
 	driver = "struct_enc";
       }
+      else if ( strcmp(argv[pos], "--enc") == 0 ) {
+	if ( driver != string{} ) {
+	  cerr << "--enc and --" << mode << " are mutually exclusive" << endl;
+	  return -1;
+	}
+	driver = "enc";
+      }
       else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
 	++ pos;
 	if ( pos < argc ) {

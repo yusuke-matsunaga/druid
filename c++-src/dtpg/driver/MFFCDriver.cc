@@ -33,17 +33,9 @@ gen_impl(
       if ( value == "engine" ) {
 	return new MFFCEngineDriver{network, mffc, option};
       }
-      if ( value == "se" ) {
+      if ( value == "struct_enc" || value == "enc" ) {
 	return new MFFCStructEncDriver{network, mffc, option};
       }
-#if 0
-      if ( value == "mffc_enc" ) {
-	if ( has_prev_state ) {
-	  return new MFFCEnc{network, mffc, option};
-	}
-	return new MFFCEnc2{network, mffc, option};
-      }
-#endif
     }
   }
   // デフォルトフォールバック
