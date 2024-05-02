@@ -86,7 +86,7 @@ PropCone::make_vars(
       cout << "fvar(Node#" << node->id() << ") = " << fvar << endl;
     }
     if ( mDetect ) {
-      auto dvar = solver().new_variable(true);
+      auto dvar = solver().new_variable(false);
       set_dvar(node, dvar);
     }
   }

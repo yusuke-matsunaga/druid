@@ -162,7 +162,7 @@ DtpgEngine::prepare_vars()
 		<< ": fvar = " << fvar << endl;
     }
 
-    auto dvar = new_variable();
+    auto dvar = new_variable(false);
     mDvarMap.set_vid(node, dvar);
     if ( debug_dtpg ) {
       DEBUG_OUT << node->str() << ": dvar = " << dvar << endl;

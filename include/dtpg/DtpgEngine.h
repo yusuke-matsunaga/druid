@@ -169,9 +169,11 @@ public:
 
   /// @brief SATソルバに変数を割り当てる．
   SatLiteral
-  new_variable()
+  new_variable(
+    bool decision = true
+  )
   {
-    return solver().new_variable(true);
+    return solver().new_variable(decision);
   }
 
   /// @brief SATソルバに節を追加する．

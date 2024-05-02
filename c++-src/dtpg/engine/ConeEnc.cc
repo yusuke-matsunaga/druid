@@ -109,7 +109,7 @@ make_dchain_cnf(
   //////////////////////////////////////////////////////////////////////
   VidMap dvar_map{info.network().node_num()};
   for ( auto node: info.tfo_list() ) {
-    auto dvar = solver.new_variable(true);
+    auto dvar = solver.new_variable(false);
     dvar_map.set_vid(node, dvar);
     if ( debug_dtpg ) {
       DEBUG_OUT << node->str() << ": dvar = " << dvar << endl;
