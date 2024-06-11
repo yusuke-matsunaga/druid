@@ -82,7 +82,7 @@ TpgNetwork_read_blif(
   auto fault_type = PyFaultType::Get(fault_type_obj);
   ClibCellLibrary cell_library;
   if ( clib_obj != nullptr ) {
-    cell_library = PyClibCellLibrary::Get(clib_obj);
+    cell_library = ClibCellLibrary{PyClibCellLibrary::Get(clib_obj)};
   }
   try {
     // blif ファイルを読み込む．
