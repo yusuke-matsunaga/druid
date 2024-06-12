@@ -143,7 +143,7 @@ PyMethodDef TpgNetwork_methods[] = {
    METH_VARARGS | METH_KEYWORDS | METH_STATIC,
    PyDoc_STR("read 'blif' format")},
   {"read_bench", reinterpret_cast<PyCFunction>(TpgNetwork_read_bench),
-   METH_VARARGS | METH_STATIC,
+   METH_KEYWORDS | METH_VARARGS | METH_STATIC,
    PyDoc_STR("read 'iscas89(.bench)' format")},
   {nullptr, nullptr, 0, nullptr}
 };

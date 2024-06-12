@@ -136,7 +136,7 @@ DtpgMgr_run(
 // メソッド定義
 PyMethodDef DtpgMgr_methods[] = {
   {"run", reinterpret_cast<PyCFunction>(DtpgMgr_run),
-   METH_VARARGS | METH_STATIC,
+   METH_KEYWORDS | METH_VARARGS | METH_STATIC,
    PyDoc_STR("run")},
   {nullptr, nullptr, 0, nullptr}
 };
