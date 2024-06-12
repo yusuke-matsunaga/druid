@@ -10,7 +10,6 @@ include_directories (
   ${PROJECT_SOURCE_DIR}/include/main
   ${PROJECT_SOURCE_DIR}/include/pym
   ${PROJECT_BUILD_DIR}/include
-  ${YM_SUBMODULE_INCLUDE_LIST}
   ${Python3_INCLUDE_DIRS}
   )
 

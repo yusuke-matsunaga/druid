@@ -16,6 +16,7 @@ add_subdirectory ( main )
 add_subdirectory ( fsim )
 add_subdirectory ( dtpg )
 add_subdirectory ( bist )
+add_subdirectory ( py_capi )
 
 
 # ===================================================================
