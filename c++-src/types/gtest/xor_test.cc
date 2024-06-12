@@ -25,6 +25,7 @@ TEST(TpgNetworkTest, xor2)
   auto b = model.new_input("b");
   auto node = model.new_primitive(PrimType::Xor, {a, b});
   model.new_output(node, "x");
+  model.wrap_up();
 
   auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
@@ -80,6 +81,7 @@ TEST(TpgNetworkTest, xor3)
   auto c = model.new_input("c");
   auto node = model.new_primitive(PrimType::Xor, {a, b, c});
   model.new_output(node, "x");
+  model.wrap_up();
 
   auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
@@ -143,6 +145,7 @@ TEST(TpgNetworkTest, xor4)
   auto d = model.new_input("d");
   auto node = model.new_primitive(PrimType::Xor, {a, b, c, d});
   model.new_output(node, "x");
+  model.wrap_up();
 
   auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
@@ -219,6 +222,7 @@ TEST(TpgNetworkTest, aoi22)
   auto func = model.reg_expr(aoi22_expr);
   auto node = model.new_func(func, {a1, a2, b1, b2});
   model.new_output(node, "x");
+  model.wrap_up();
 
   auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
@@ -305,6 +309,7 @@ TEST(TpgNetworkTest, oai21)
   auto func = model.reg_expr(oai21_expr);
   auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
+  model.wrap_up();
 
   auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
@@ -380,6 +385,7 @@ TEST(TpgNetworkTest, cplx1)
   auto func = model.reg_expr(cplx1_expr);
   auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
+  model.wrap_up();
 
   auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 
@@ -449,6 +455,7 @@ TEST(TpgNetworkTest, cplx2)
   auto func = model.reg_expr(cplx2_expr);
   auto node = model.new_func(func, {a1, a2, b1});
   model.new_output(node, "x");
+  model.wrap_up();
 
   auto tpg_network = TpgNetwork{model, FaultType::StuckAt};
 

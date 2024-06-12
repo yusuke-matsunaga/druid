@@ -26,8 +26,8 @@ add_subdirectory ( tests )
 #  ソースファイルの設定
 # ===================================================================
 
-set ( py_druid_SOURCES
-  py_druid.cc
+set ( druid_SOURCES
+  druid.cc
   druid_module.cc
 
   types/types_module.cc
@@ -67,8 +67,8 @@ set ( py_druid_SOURCES
 # ターゲットの設定
 # ===================================================================
 
-add_executable ( py_druid
-  ${py_druid_SOURCES}
+add_executable ( druid
+  ${druid_SOURCES}
   $<TARGET_OBJECTS:py_ymbase_obj>
   $<TARGET_OBJECTS:py_ymcell_obj>
   $<TARGET_OBJECTS:py_ymsat_obj>
@@ -89,18 +89,18 @@ add_executable ( py_druid
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
-target_include_directories ( py_druid
+target_include_directories ( druid
   PRIVATE
   ${PYTHON_INCLUDE_DIR}
   )
 
-target_link_libraries ( py_druid
+target_link_libraries ( druid
   ${YM_LIB_DEPENDS}
   ${Python3_LIBRARIES}
   )
 
-add_executable ( py_druid_d
-  ${py_druid_SOURCES}
+add_executable ( druid_d
+  ${druid_SOURCES}
   $<TARGET_OBJECTS:py_ymbase_obj_d>
   $<TARGET_OBJECTS:py_ymcell_obj_d>
   $<TARGET_OBJECTS:py_ymsat_obj_d>
@@ -121,16 +121,16 @@ add_executable ( py_druid_d
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
-target_compile_options ( py_druid_d
+target_compile_options ( druid_d
   PRIVATE "-g"
   )
 
-target_include_directories ( py_druid_d
+target_include_directories ( druid_d
   PRIVATE
   ${PYTHON_INCLUDE_DIR}
   )
 
-target_link_libraries ( py_druid_d
+target_link_libraries ( druid_d
   ${YM_LIB_DEPENDS}
   ${Python3_LIBRARIES}
   )
@@ -145,5 +145,5 @@ target_link_libraries ( py_druid_d
 #  インストールターゲットの設定
 # ===================================================================
 
-install ( TARGETS py_druid DESTINATION bin )
-install ( TARGETS py_druid_d DESTINATION bin )
+install ( TARGETS druid DESTINATION bin )
+install ( TARGETS druid_d DESTINATION bin )
