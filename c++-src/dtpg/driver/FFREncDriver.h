@@ -112,9 +112,6 @@ private:
   // 位置時刻前の正常値の変数マップ
   VidMap mHvarMap;
 
-  // FFR の根のノード
-  const TpgNode* mRoot;
-
   // justifier
   Justifier mJustifier;
 

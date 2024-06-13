@@ -34,7 +34,6 @@ FFREncDriver::FFREncDriver(
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
     mHvarMap{network.node_num()},
-    mRoot{ffr->root()},
     mJustifier{network, option.get("justifier")},
     mExOpt{option.get("extractor")}
 {
