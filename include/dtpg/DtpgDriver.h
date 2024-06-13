@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "DtpgMgr.h"
 #include "ym/SatBool3.h"
 
 
@@ -25,8 +26,14 @@ class DtpgDriver
 {
 public:
 
+  using Callback_Det = DtpgMgr::Callback_Det;
+  using Callback_Undet = DtpgMgr::Callback_Undet;
+
+public:
+
   /// @brief コンストラクタ
   DtpgDriver(
+    DtpgMgr& mgr,        ///< [in] DTPGマネージャ
     DtpgDriverImpl* impl ///< [in] 実装クラス
   );
 
@@ -44,12 +51,11 @@ public:
   /// - f はコンストラクタで指定した FFR 内の故障でなければならない．
   void
   gen_pattern(
-    const TpgFault* fault,         ///< [in] 対象の故障
-    TpgFaultStatusMgr& status_mgr, ///< [in] 故障の状態を管理するオブジェクト
-    DtpgStats& stats,              ///< [out] 統計情報
-    FaultTvCallback det_func,      ///< [in] 検出時のコールバック関数
-    FaultCallback untest_func,     ///< [in] 検出不能時のコールバック関数
-    FaultCallback abort_func       ///< [in] アボート時のコールバック関数
+    const TpgFault* fault,      ///< [in] 対象の故障
+    DtpgStats& stats,           ///< [out] 統計情報
+    Callback_Det det_func,      ///< [in] 検出時のコールバック関数
+    Callback_Undet untest_func, ///< [in] 検出不能時のコールバック関数
+    Callback_Undet abort_func   ///< [in] アボート時のコールバック関数
   );
 
   /// @brief CNF の生成時間を返す．
@@ -65,6 +71,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // DTPGマネージャ
+  DtpgMgr& mMgr;
 
   // 実装クラスのポインタ
   std::unique_ptr<DtpgDriverImpl> mImpl;

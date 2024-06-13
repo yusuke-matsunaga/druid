@@ -8,7 +8,7 @@
 
 #include "DtpgDriver.h"
 #include "DtpgDriverImpl.h"
-#include "TpgFaultStatusMgr.h"
+#include "DtpgResult.h"
 #include "TestVector.h"
 #include "DtpgStats.h"
 #include "ym/SatStats.h"
@@ -19,8 +19,10 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 DtpgDriver::DtpgDriver(
+  DtpgMgr& mgr,
   DtpgDriverImpl* impl
-) : mImpl{impl}
+) : mMgr{mgr},
+    mImpl{impl}
 {
 }
 
@@ -32,12 +34,11 @@ DtpgDriver::~DtpgDriver()
 // @brief 故障のテストパタンを求める．
 void
 DtpgDriver::gen_pattern(
-  const TpgFault* fault,         ///< [in] 対象の故障
-  TpgFaultStatusMgr& status_mgr, ///< [in] 故障の状態を管理するオブジェクト
-  DtpgStats& stats,              ///< [out] 統計情報
-  FaultTvCallback det_func,      ///< [in] 検出時のコールバック関数
-  FaultCallback untest_func,     ///< [in] 検出不能時のコールバック関数
-  FaultCallback abort_func       ///< [in] アボート時のコールバック関数
+  const TpgFault* fault,
+  DtpgStats& stats,
+  Callback_Det det_func,
+  Callback_Undet untest_func,
+  Callback_Undet abort_func
 )
 {
   Timer timer;
@@ -54,20 +55,20 @@ DtpgDriver::gen_pattern(
     timer.stop();
     auto backtrace_time = timer.get_time();
 
-    status_mgr.set_status(fault, FaultStatus::Detected);
+    mMgr.set_dtpg_result(fault, DtpgResult::detected(testvect));
     stats.update_det(sat_time, backtrace_time);
-    det_func(fault, testvect);
+    det_func(mMgr, fault, testvect);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    status_mgr.set_status(fault, FaultStatus::Untestable);
+    mMgr.set_dtpg_result(fault, DtpgResult::untestable());
     stats.update_untest(sat_time);
-    untest_func(fault);
+    untest_func(mMgr, fault);
   }
   else { // SatBool3::X
     // アボート
     stats.update_abort(sat_time);
-    abort_func(fault);
+    abort_func(mMgr, fault);
   }
 }
 

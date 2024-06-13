@@ -31,9 +31,9 @@ public:
 
   /// @brief コンストラクタ
   FFRDriver(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,	       ///< [in] 故障伝搬の起点となる FFR
-    const JsonValue& option    ///< [in] オプション
+    DtpgMgr& mgr,           ///< [in] DTPGマネージャ
+    const TpgFFR* ffr,	    ///< [in] 故障伝搬の起点となる FFR
+    const JsonValue& option ///< [in] オプション
   );
 
   /// @brief デストラクタ

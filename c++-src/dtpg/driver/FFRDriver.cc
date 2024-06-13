@@ -51,10 +51,10 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 FFRDriver::FFRDriver(
-  const TpgNetwork& network,
+  DtpgMgr& mgr,
   const TpgFFR* ffr,
   const JsonValue& option
-) : DtpgDriver{gen_impl(network, ffr, option)}
+) : DtpgDriver{mgr, gen_impl(mgr.network(), ffr, option)}
 {
 }
 

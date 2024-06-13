@@ -93,12 +93,6 @@ enum class FaultType : std::uint8_t;
 enum class Val3 : std::uint8_t;
 enum class Fval2 : std::uint8_t;
 
-/// @brief 故障とテストベクタを引数にとる関数
-using FaultTvCallback = std::function<void(const TpgFault*, TestVector)>;
-
-/// @brief 故障を引数にとる関数
-using FaultCallback = std::function<void(const TpgFault*)>;
-
 END_NAMESPACE_DRUID
 
 #endif // DRUID_H

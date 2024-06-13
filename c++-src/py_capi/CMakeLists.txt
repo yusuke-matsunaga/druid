@@ -38,7 +38,6 @@ set ( druid_SOURCES
   types/PyInputVector.cc
   types/PyDffVector.cc
   types/PyTpgFault.cc
-  types/PyTpgFaultStatusMgr.cc
   types/PyTpgNetwork.cc
   types/PyTpgNode.cc
   types/PyTpgMFFC.cc

@@ -9,7 +9,6 @@
 #include "TpgNetwork.h"
 #include "DtpgMgr.h"
 #include "TpgFault.h"
-#include "TpgFaultStatusMgr.h"
 #include "Classifier.h"
 #include "Classifier2.h"
 #include "ym/Timer.h"
@@ -43,15 +42,15 @@ read_network(
 // @brief 統計情報を出力する．
 void
 print_stats(
-  const TpgNetwork& network,
-  const TpgFaultStatusMgr& fs_mgr,
+  const DtpgMgr& mgr,
   const DtpgStats& stats,
   double time
 )
 {
+  auto& network = mgr.network();
   SizeType fault_num = network.rep_fault_list().size();
-  SizeType detect_num = fs_mgr.detected_count();
-  SizeType untest_num = fs_mgr.untestable_count();
+  SizeType detect_num = mgr.detected_count();
+  SizeType untest_num = mgr.untestable_count();
   cout << "# of inputs             = " << network.input_num() << endl
        << "# of outputs            = " << network.output_num() << endl
        << "# of DFFs               = " << network.dff_num() << endl
@@ -340,34 +339,34 @@ dtpg_test(
 
   Fsim fsim;
   fsim.initialize(network, rep_fault_list, true, false);
+
+  DtpgMgr mgr{network, rep_fault_list};
+
   vector<pair<const TpgFault*, TestVector>> ErrorList;
 
-  TpgFaultStatusMgr fs_mgr{rep_fault_list};
   vector<const TpgFault*> det_fault_list;
   vector<TestVector> tv_list;
-  auto stats = DtpgMgr::run(network, fs_mgr,
-			    [&](const TpgFault* f, TestVector tv) {
-			      fs_mgr.set_status(f, FaultStatus::Detected);
-			      det_fault_list.push_back(f);
-			      tv_list.push_back(tv);
-			      DiffBits _dummy;
-			      bool r = fsim.spsfp(tv, f, _dummy);
-			      if ( !r ) {
-				ErrorList.push_back({f, tv});
-			      }
-			    },
-			    [&](const TpgFault* f) {
-			      fs_mgr.set_status(f, FaultStatus::Untestable);
-			    },
-			    [&](const TpgFault* f) {
-			    },
-			    option);
+  auto stats = mgr.run(
+    [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) {
+      det_fault_list.push_back(f);
+      tv_list.push_back(tv);
+      DiffBits _dummy;
+      bool r = fsim.spsfp(tv, f, _dummy);
+      if ( !r ) {
+	ErrorList.push_back({f, tv});
+      }
+    },
+    [&](DtpgMgr& mgr, const TpgFault* f) {
+    },
+    [&](DtpgMgr& mgr, const TpgFault* f) {
+    },
+    option);
 
   timer.stop();
   auto time = timer.get_time();
 
   if ( verbose ) {
-    print_stats(network, fs_mgr, stats, time);
+    print_stats(mgr, stats, time);
   }
 
   for ( auto& p: ErrorList ) {

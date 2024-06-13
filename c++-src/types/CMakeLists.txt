@@ -37,8 +37,6 @@ set (types_SOURCES
   tvect/TestVector.cc
 
   tpg_fault/TpgFault.cc
-  tpg_fault/TpgFaultStatusMgr.cc
-  #tpg_fault/ffr_reduction.cc
   )
 
 

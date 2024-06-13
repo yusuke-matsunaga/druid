@@ -29,6 +29,35 @@ class DtpgResult
 {
 public:
 
+  /// @brief 検出状態を表すオブジェクトを作るクラスメソッド
+  static
+  DtpgResult
+  detected(
+    const TestVector& testvect  ///< [in] testvect テストベクタ
+  )
+  {
+    return DtpgResult{testvect};
+  }
+
+  /// @brief 検出不能を表すオブジェクトを作るクラスメソッド
+  static
+  DtpgResult
+  untestable()
+  {
+    return DtpgResult{FaultStatus::Untestable};
+  }
+
+  /// @brief 未検出を表すオブジェクトを作るクラスメソッド
+  static
+  DtpgResult
+  undetected()
+  {
+    return DtpgResult{FaultStatus::Undetected};
+  }
+
+
+private:
+
   /// @brief 空のコンストラクタ
   ///
   /// * status が省略された場合は FaultStatus::Undetected となる．
@@ -51,6 +80,9 @@ public:
       mTestVector{testvect}
   {
   }
+
+
+public:
 
   /// @brief コピーコンストラクタ
   DtpgResult(

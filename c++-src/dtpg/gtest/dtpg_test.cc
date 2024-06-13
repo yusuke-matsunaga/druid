@@ -9,7 +9,6 @@
 #include "gtest/gtest.h"
 #include "DtpgMgr.h"
 #include "TpgNetwork.h"
-#include "TpgFaultStatusMgr.h"
 #include "ym/SatInitParam.h"
 
 
@@ -209,31 +208,31 @@ DtpgTestWithParam2::do_test()
   auto network = TpgNetwork::read_blif(filename(), fault_type());
   auto fault_list = network.rep_fault_list();
 
-  TpgFaultStatusMgr fs_mgr{fault_list};
   Fsim fsim;
   fsim.initialize(network, fault_list, true, false);
+
+  DtpgMgr mgr{network, fault_list};
+
   SizeType AbortCount = 0;
   SizeType ErrorCount = 0;
-  auto stats = DtpgMgr::run(network, fs_mgr,
-			    [&](const TpgFault* f, TestVector tv) {
-			      fs_mgr.set_status(f, FaultStatus::Detected);
-			      DiffBits dbits;
-			      bool r = fsim.spsfp(tv, f, dbits);
-			      if ( !r ) {
-				++ ErrorCount;
-			      }
-			    },
-			    [&](const TpgFault* f) {
-			      fs_mgr.set_status(f, FaultStatus::Untestable);
-			    },
-			    [&](const TpgFault* f) {
-			      ++ AbortCount;
-			    },
-			    option);
+  auto stats = mgr.run(
+    [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) {
+      DiffBits dbits;
+      bool r = fsim.spsfp(tv, f, dbits);
+      if ( !r ) {
+	++ ErrorCount;
+      }
+    },
+    [&](DtpgMgr& mgr, const TpgFault* f) {
+    },
+    [&](DtpgMgr& mgr, const TpgFault* f) {
+      ++ AbortCount;
+    },
+    option);
 
-  EXPECT_EQ( total_fault_num(), fault_list.size() );
-  EXPECT_EQ( detect_fault_num(), fs_mgr.detected_count() );
-  EXPECT_EQ( untest_fault_num(), fs_mgr.untestable_count() );
+  EXPECT_EQ( total_fault_num(), mgr.total_count() );
+  EXPECT_EQ( detect_fault_num(), mgr.detected_count() );
+  EXPECT_EQ( untest_fault_num(), mgr.untestable_count() );
   EXPECT_EQ( 0, AbortCount );
   EXPECT_EQ( 0, ErrorCount );
 }

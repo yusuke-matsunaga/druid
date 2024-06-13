@@ -50,10 +50,10 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 MFFCDriver::MFFCDriver(
-  const TpgNetwork& network,
+  DtpgMgr& mgr,
   const TpgMFFC* mffc,
   const JsonValue& option
-) : DtpgDriver{gen_impl(network, mffc, option)}
+) : DtpgDriver{mgr, gen_impl(mgr.network(), mffc, option)}
 {
 }
 

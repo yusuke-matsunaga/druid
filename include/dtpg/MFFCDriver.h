@@ -32,9 +32,9 @@ public:
 
   /// @brief コンストラクタ
   MFFCDriver(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
-    const TpgMFFC* ffr,	       ///< [in] 故障伝搬の起点となる MFFC
-    const JsonValue& option    ///< [in] オプション
+    DtpgMgr& mgr,           ///< [in] DTPGマネージャ
+    const TpgMFFC* ffr,	    ///< [in] 故障伝搬の起点となる MFFC
+    const JsonValue& option ///< [in] オプション
   );
 
   /// @brief デストラクタ

@@ -21,14 +21,7 @@ add_subdirectory( gtest )
 # ===================================================================
 
 set ( dtpg_SOURCES
-  engine/DtpgEngine.cc
-  engine/FFREngine.cc
-  engine/MFFCEngine.cc
-  engine/ConeEnc.cc
-  engine/BSEnc.cc
-  )
-
-set ( driver_SOURCES
+  dtpg_mgr/DtpgMgr.cc
   driver/DtpgDriver.cc
   driver/FFRDriver.cc
   driver/FFREngineDriver.cc
@@ -37,6 +30,14 @@ set ( driver_SOURCES
   driver/MFFCDriver.cc
   driver/MFFCEngineDriver.cc
   driver/MFFCStructEncDriver.cc
+  engine/DtpgEngine.cc
+  engine/FFREngine.cc
+  engine/MFFCEngine.cc
+  engine/ConeEnc.cc
+  engine/BSEnc.cc
+  )
+
+set ( driver_SOURCES
   )
 
 set ( struct_enc_SOURCES
@@ -62,25 +63,6 @@ set (jt_SOURCES
   )
 
 set (dtpg_mgr_SOURCES
-  dtpg_mgr/DtpgMgr.cc
-  #dtpg_mgr/DtpgDriver.cc
-  #dtpg_mgr/DtpgEngineDriver.cc
-  #dtpg_mgr/StructEncDriver.cc
-  )
-
-set (dop_SOURCES
-  dop/DopBase.cc
-  dop/DopDrop.cc
-  dop/DopDummy.cc
-  dop/DopTvList.cc
-  dop/DopVerify.cc
-  dop/DopVerifyResult.cc
-  )
-
-set (uop_SOURCES
-  uop/UopBase.cc
-  uop/UopDummy.cc
-  uop/UopSkip.cc
   )
 
 
@@ -94,8 +76,6 @@ ym_add_object_library ( druid_dtpg
   ${ex_SOURCES}
   ${jt_SOURCES}
   ${dtpg_mgr_SOURCES}
-  #${dop_SOURCES}
-  #${uop_SOURCES}
   )
 
 

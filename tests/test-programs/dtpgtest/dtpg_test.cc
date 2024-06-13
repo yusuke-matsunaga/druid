@@ -9,7 +9,6 @@
 #include "TpgNetwork.h"
 #include "DtpgMgr.h"
 #include "TpgFault.h"
-#include "TpgFaultStatusMgr.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
@@ -27,13 +26,13 @@ usage()
 // @brief 統計情報を出力する．
 void
 print_stats(
-  const TpgNetwork& network,
+  const DtpgMgr& mgr,
   const DtpgStats& stats,
-  TpgFaultStatusMgr& mgr,
   const vector<TestVector>& tv_list,
   double time
 )
 {
+  auto& network = mgr.network();
   SizeType fault_num = mgr.total_count();
   SizeType detect_num = mgr.detected_count();
   SizeType untest_num = mgr.untestable_count();
@@ -300,40 +299,40 @@ dtpg_test(
   Fsim fsim;
   fsim.initialize(network, fault_list, true, false);
 
+  DtpgMgr mgr{network, fault_list};
+
   vector<pair<const TpgFault*, TestVector>> ErrorList;
-  TpgFaultStatusMgr fs_mgr{fault_list};
   vector<const TpgFault*> det_fault_list;
   vector<TestVector> tv_list;
-  auto stats = DtpgMgr::run(network, fs_mgr,
-			    [&](const TpgFault* f, TestVector tv) {
-			      fs_mgr.set_status(f, FaultStatus::Detected);
-			      det_fault_list.push_back(f);
-			      tv_list.push_back(tv);
-			      DiffBits _dummy;
-			      bool r = fsim.spsfp(tv, f, _dummy);
-			      if ( !r ) {
-				ErrorList.push_back({f, tv});
-			      }
-			      fsim.set_skip(f);
-			      if ( drop ) {
-				fsim.sppfp(tv, [&](const TpgFault* f, const DiffBits&) {
-				  fs_mgr.set_status(f, FaultStatus::Detected);
-				  fsim.set_skip(f);
-				});
-			      }
-			    },
-			    [&](const TpgFault* f) {
-			      fs_mgr.set_status(f, FaultStatus::Untestable);
-			    },
-			    [&](const TpgFault* f) {
-			    },
-			    option);
+  auto stats = mgr.run(
+    // detected callback
+    [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) {
+      det_fault_list.push_back(f);
+      tv_list.push_back(tv);
+      DiffBits _dummy;
+      bool r = fsim.spsfp(tv, f, _dummy);
+      if ( !r ) {
+	ErrorList.push_back({f, tv});
+      }
+      fsim.set_skip(f);
+      if ( drop ) {
+	fsim.sppfp(tv, [&](const TpgFault* f, const DiffBits&) {
+	  mgr.set_dtpg_result(f, DtpgResult::detected(tv));
+	  fsim.set_skip(f);
+	});
+      }
+    },
+    // untestable callback
+    [&](DtpgMgr&, const TpgFault* f) { },
+    // abort callback
+    [&](DtpgMgr&, const TpgFault* f) { },
+    option);
 
   timer.stop();
   auto time = timer.get_time();
 
   if ( verbose ) {
-    print_stats(network, stats, fs_mgr, tv_list, time);
+    print_stats(mgr, stats, tv_list, time);
   }
 
   if ( show_untestable_faults ) {
