@@ -3,7 +3,7 @@
 /// @brief Analyzer の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "Analyzer.h"
@@ -68,10 +68,8 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 Analyzer::Analyzer(
-  const TpgNetwork& network,
-  FaultType fault_type
-) : mNetwork{network},
-    mFaultType{fault_type}
+  const TpgNetwork& network
+)
 {
 }
 

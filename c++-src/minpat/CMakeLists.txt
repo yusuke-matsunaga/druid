@@ -3,9 +3,10 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-  ${PROJECT_SOURCE_DIR}/include/type
+  ${PROJECT_SOURCE_DIR}/include/types
   ${PROJECT_SOURCE_DIR}/include/dtpg
-  ${YM_SUBMODULE_INCLUDE_LIST}
+  ${PROJECT_SOURCE_DIR}/include/fsim
+  include
   )
 
 
@@ -13,23 +14,25 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory ( types )
-add_subdirectory ( main )
-add_subdirectory ( fsim )
-add_subdirectory ( dtpg )
-add_subdirectory ( minpat )
-add_subdirectory ( bist )
-add_subdirectory ( py_capi )
+#add_subdirectory( gtest )
 
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
 
+set ( minpat_SOURCES
+  UndetChecker.cc
+  DomChecker.cc
+  )
+
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
+ym_add_object_library ( druid_minpat
+  ${minpat_SOURCES}
+  )
 
 
 # ===================================================================

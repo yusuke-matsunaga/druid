@@ -5,7 +5,7 @@
 /// @brief Analyzer のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -26,8 +26,7 @@ public:
 
   /// @brief コンストラクタ
   Analyzer(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
-    FaultType fault_type       ///< [in] 故障の種類
+    const TpgNetwork& network ///< [in] 対象のネットワーク
   );
 
   /// @brief デストラクタ
@@ -116,9 +115,6 @@ private:
 
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
-
-  // 故障の種類
-  FaultType mFaultType;
 
   // 故障情報のリスト
   vector<FaultInfo*> mFaultInfoList;

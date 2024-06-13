@@ -6,6 +6,7 @@ include_directories (
   ${PROJECT_SOURCE_DIR}/include/types
   ${PROJECT_SOURCE_DIR}/include/dtpg
   ${PROJECT_SOURCE_DIR}/include/fsim
+  include
   )
 
 
@@ -20,8 +21,11 @@ add_subdirectory( gtest )
 #  ソースファイルの設定
 # ===================================================================
 
-set ( dtpg_SOURCES
+set ( mgr_SOURCES
   dtpg_mgr/DtpgMgr.cc
+  )
+
+set ( driver_SOURCES
   driver/DtpgDriver.cc
   driver/FFRDriver.cc
   driver/FFREngineDriver.cc
@@ -30,14 +34,14 @@ set ( dtpg_SOURCES
   driver/MFFCDriver.cc
   driver/MFFCEngineDriver.cc
   driver/MFFCStructEncDriver.cc
+  )
+
+set ( engine_SOURCES
   engine/DtpgEngine.cc
   engine/FFREngine.cc
   engine/MFFCEngine.cc
   engine/ConeEnc.cc
   engine/BSEnc.cc
-  )
-
-set ( driver_SOURCES
   )
 
 set ( struct_enc_SOURCES
@@ -62,20 +66,17 @@ set (jt_SOURCES
   jt/Just2.cc
   )
 
-set (dtpg_mgr_SOURCES
-  )
-
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
 ym_add_object_library ( druid_dtpg
-  ${dtpg_SOURCES}
+  ${mgr_SOURCES}
   ${driver_SOURCES}
+  ${engine_SOURCES}
   ${struct_enc_SOURCES}
   ${ex_SOURCES}
   ${jt_SOURCES}
-  ${dtpg_mgr_SOURCES}
   )
 
 

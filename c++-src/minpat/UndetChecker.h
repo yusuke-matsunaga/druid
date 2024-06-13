@@ -39,10 +39,9 @@ public:
 
   /// @brief コンストラクタ
   UndetChecker(
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    FaultType fault_type,                 ///< [in] 故障の種類
-    const TpgFault* fault,                ///< [in] 故障伝搬をさせない故障
-    const SatSolverType& solver_type = {} ///< [in] SATソルバの実装タイプ
+    const TpgNetwork& network,          ///< [in] 対象のネットワーク
+    const TpgFault* fault,              ///< [in] 故障伝搬をさせない故障
+    const SatInitParam& init_param = {} ///< [in] SATソルバの初期化パラメータ
   );
 
   /// @brief デストラクタ

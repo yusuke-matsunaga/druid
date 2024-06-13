@@ -10,8 +10,6 @@
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
-#include "TpgDFF.h"
-#include "FaultyGateEnc.h"
 #include "Val3.h"
 #include "NodeValList.h"
 
@@ -37,21 +35,19 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 UndetChecker::UndetChecker(
   const TpgNetwork& network,
-  FaultType fault_type,
   const TpgFault* fault,
-  const SatSolverType& solver_type
-) : mSolver(solver_type),
-    mNetwork(network),
-    mFaultType(fault_type),
-    mFault(fault),
+  const SatInitParam& init_param
+) : mSolver{init_param},
+    mNetwork{network},
+    mFault{fault},
     mMarkArray(mNetwork.node_num(), 0U),
     mHvarMap(network.node_num()),
     mGvarMap(network.node_num()),
     mFvarMap(network.node_num()),
-    mGvalEnc(mSolver, mGvarMap),
-    mHvalEnc(mSolver, mHvarMap),
-    mFvalEnc(mSolver, mFvarMap),
-    mTimerEnable(true)
+    mGvalEnc{mSolver, mGvarMap},
+    mHvalEnc{mSolver, mHvarMap},
+    mFvalEnc{mSolver, mFvarMap},
+    mTimerEnable{true}
 {
   mRoot = fault->origin_node();
   mTfiList.reserve(network.node_num());
@@ -86,10 +82,10 @@ UndetChecker::~UndetChecker()
 }
 
 // @brief テスト生成を行なう．
-// @param[in] cond 条件
-// @return 結果を返す．
 SatBool3
-UndetChecker::check(const NodeValList& cond)
+UndetChecker::check(
+  const NodeValList& cond
+)
 {
   vector<SatLiteral> assumptions;
   if ( !conv_to_assumptions(cond, assumptions) ) {
@@ -265,30 +261,29 @@ UndetChecker::gen_faulty_cnf()
   //////////////////////////////////////////////////////////////////////
   // 故障回路の CNF を生成
   //////////////////////////////////////////////////////////////////////
-  FaultyGateEnc fenc2(mSolver, mFvarMap, mFault);
-  fenc2.make_cnf();
-
+  GateEnc fval_enc{mSolver, mFvarMap};
   for ( auto node: mTfoList ) {
-    if ( node == mRoot ) continue;
-    mFvalEnc.make_cnf(node);
+    if ( node != mRoot ) {
+      fval_enc.make_cnf(node);
+      if ( debug_dtpg ) {
+	DEBUG_OUT << "Node#" << node->id() << ": fvar("
+		  << fvar(node) << ") := " << node->gate_type()
+		  << "(";
+	for ( auto inode: node->fanin_list() ) {
+	  DEBUG_OUT << " " << fvar(inode);
+	}
 
-    if ( debug_dtpg ) {
-      DEBUG_OUT << "Node#" << node->id() << ": fvar("
-		<< fvar(node) << ") := " << node->gate_type()
-		<< "(";
-      for ( auto inode: node->fanin_list() ) {
-	DEBUG_OUT << " " << fvar(inode);
+	DEBUG_OUT << ")" << endl;
       }
-
-      DEBUG_OUT << ")" << endl;
     }
-    //make_dchain_cnf(node);
   }
 }
 
 // @brief 値割り当てをリテラルに変換する．
 SatLiteral
-UndetChecker::conv_to_literal(NodeVal node_val)
+UndetChecker::conv_to_literal(
+  NodeVal node_val
+)
 {
   const TpgNode* node = node_val.node();
   bool inv = !node_val.val(); // 0 の時が inv = true
@@ -312,11 +307,11 @@ UndetChecker::conv_to_literal(NodeVal node_val)
 }
 
 // @brief 値割り当てをリテラルのリストに変換する．
-// @param[in] assign_list 値の割り当てリスト
-// @param[out] assumptions 変換したリテラルを追加するリスト
 bool
-UndetChecker::conv_to_assumptions(const NodeValList& assign_list,
-				  vector<SatLiteral>& assumptions)
+UndetChecker::conv_to_assumptions(
+  const NodeValList& assign_list,
+  vector<SatLiteral>& assumptions
+)
 {
   int n0 = assumptions.size();
   int n = assign_list.size();
@@ -336,10 +331,10 @@ UndetChecker::conv_to_assumptions(const NodeValList& assign_list,
 }
 
 // @brief 一つの SAT問題を解く．
-// @param[in] assumptions 値の決まっている変数のリスト
-// @return 結果を返す．
 SatBool3
-UndetChecker::solve(const vector<SatLiteral>& assumptions)
+UndetChecker::solve(
+  const vector<SatLiteral>& assumptions
+)
 {
   Timer timer;
   timer.start();
@@ -396,7 +391,9 @@ UndetChecker::make_good_cnf(const TpgNode* node)
 
 // @brief 1時刻前の正常回路の CNF を作る．
 void
-UndetChecker::make_prev_cnf(const TpgNode* node)
+UndetChecker::make_prev_cnf(
+  const TpgNode* node
+)
 {
   if ( has_hvar(node) ) {
     return;

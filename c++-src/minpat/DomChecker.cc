@@ -3,16 +3,14 @@
 /// @brief DomChecker の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "DomChecker.h"
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
-#include "TpgDFF.h"
 #include "GateEnc.h"
-#include "FaultyGateEnc.h"
 #include "Val3.h"
 #include "NodeValList.h"
 
@@ -36,24 +34,19 @@ END_NONAMESPACE
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-// @param[in] network 対象のネットワーク
-// @param[in] fault_type 故障の種類
-// @param[in] root 故障伝搬の起点となるノード
-// @param[in] fault 故障伝搬をさせない故障
-// @param[in] solver_type SATソルバの実装タイプ
-DomChecker::DomChecker(const TpgNetwork& network,
-		       FaultType fault_type,
-		       const TpgNode* root,
-		       const TpgFault* fault,
-		       const SatSolverType& solver_type) :
-  mSolver(solver_type),
-  mNetwork(network),
-  mFaultType(fault_type),
-  mFault(fault),
+DomChecker::DomChecker(
+  const TpgNetwork& network,
+  const TpgNode* root,
+  const TpgFault* fault,
+  const SatInitParam& init_param
+) :
+  mSolver{init_param},
+  mNetwork{network},
+  mFault{fault},
   mMarkArray(mNetwork.node_num(), 0U),
   mHvarMap(network.node_num()),
   mGvarMap(network.node_num()),
-  mTimerEnable(true)
+  mTimerEnable{true}
 {
   mRoot[0] = root;
   mRoot[1] = fault->origin_node();
@@ -79,7 +72,7 @@ DomChecker::DomChecker(const TpgNetwork& network,
   // 故障の検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
   //////////////////////////////////////////////////////////////////////
   {
-    int no = mOutputList[0].size();
+    SizeType no = mOutputList[0].size();
     vector<SatLiteral> odiff;
     odiff.reserve(no);
     for ( auto node: mOutputList[0] ) {
@@ -314,11 +307,8 @@ DomChecker::gen_faulty_cnf()
   //////////////////////////////////////////////////////////////////////
   // 故障回路の CNF を生成
   //////////////////////////////////////////////////////////////////////
-  FaultyGateEnc fenc2(mSolver, mFvarMap[1], mFault);
-  fenc2.make_cnf();
-
   for ( int pos: { 0, 1 } ) {
-    GateEnc fval_enc(mSolver, mFvarMap[pos]);
+    GateEnc fval_enc{mSolver, mFvarMap[pos]};
     for ( auto node: mTfoList[pos] ) {
       if ( node != mRoot[pos] ) {
 	fval_enc.make_cnf(node);
@@ -345,13 +335,14 @@ DomChecker::gen_faulty_cnf()
 }
 
 // @brief 故障伝搬条件を表すCNF式を生成する．
-// @param[in] node 対象のノード
 void
-DomChecker::make_dchain_cnf(const TpgNode* node)
+DomChecker::make_dchain_cnf(
+  const TpgNode* node
+)
 {
-  SatLiteral glit(mGvarMap(node));
-  SatLiteral flit(mFvarMap[0](node));
-  SatLiteral dlit(mDvarMap(node));
+  SatLiteral glit{mGvarMap(node)};
+  SatLiteral flit{mFvarMap[0](node)};
+  SatLiteral dlit{mDvarMap(node)};
 
   // dlit -> XOR(glit, flit) を追加する．
   // 要するに正常回路と故障回路で異なっているとき dlit が 1 となる．
@@ -430,7 +421,9 @@ DomChecker::make_dchain_cnf(const TpgNode* node)
 
 // @brief 値割り当てをリテラルに変換する．
 SatLiteral
-DomChecker::conv_to_literal(NodeVal node_val)
+DomChecker::conv_to_literal(
+  NodeVal node_val
+)
 {
   const TpgNode* node = node_val.node();
   bool inv = !node_val.val(); // 0 の時が inv = true
@@ -442,11 +435,11 @@ DomChecker::conv_to_literal(NodeVal node_val)
 }
 
 // @brief 値割り当てをリテラルのリストに変換する．
-// @param[in] assign_list 値の割り当てリスト
-// @param[out] assumptions 変換したリテラルを追加するリスト
 void
-DomChecker::conv_to_assumptions(const NodeValList& assign_list,
-				vector<SatLiteral>& assumptions)
+DomChecker::conv_to_assumptions(
+  const NodeValList& assign_list,
+  vector<SatLiteral>& assumptions
+)
 {
   int n0 = assumptions.size();
   int n = assign_list.size();
@@ -458,11 +451,10 @@ DomChecker::conv_to_assumptions(const NodeValList& assign_list,
 }
 
 // @brief 一つの SAT問題を解く．
-// @param[in] assumptions 値の決まっている変数のリスト
-// @param[out] model SAT モデル
-// @return 結果を返す．
 SatBool3
-DomChecker::solve(const vector<SatLiteral>& assumptions)
+DomChecker::solve(
+  const vector<SatLiteral>& assumptions
+)
 {
   Timer timer;
   timer.start();

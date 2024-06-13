@@ -38,12 +38,11 @@ public:
 
   /// @brief コンストラクタ
   DomChecker(
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    FaultType fault_type,	     ///< [in] 故障の種類
-    const TpgNode* root,	     ///< [in] 故障伝搬の起点となるノード
-    const TpgFault* fault,	     ///< [in] 故障伝搬をさせない故障
-    const SatSolverType& solver_type ///< [in] SATソルバの実装タイプ
-    = SatSolverType{}
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    const TpgNode* root,	   ///< [in] 故障伝搬の起点となるノード
+    const TpgFault* fault,	   ///< [in] 故障伝搬をさせない故障
+    const SatInitParam& init_param ///< [in] SATソルバの実装タイプ
+    = SatInitParam{}
   );
 
   /// @brief デストラクタ
