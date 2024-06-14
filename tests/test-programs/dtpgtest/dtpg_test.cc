@@ -296,8 +296,7 @@ dtpg_test(
   Timer timer;
   timer.start();
 
-  Fsim fsim;
-  fsim.initialize(network, fault_list, true, false);
+  Fsim fsim{network, fault_list, true, false};
 
   DtpgMgr mgr{network, fault_list};
 

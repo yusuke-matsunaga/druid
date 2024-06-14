@@ -41,7 +41,12 @@ class Fsim
 public:
 
   /// @brief コンストラクタ
-  Fsim();
+  Fsim(
+    const TpgNetwork& network,                 ///< [in] ネットワーク
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
+    bool has_x,                                ///< [in] 3値のシミュレーションを行う時 true にする．
+    bool multi                                 ///< [in] マルチスレッド実行を行う時に true にするフラグ
+  );
 
   /// @brief コピーコンストラクタは禁止
   Fsim(const Fsim& src) = delete;
@@ -59,21 +64,6 @@ public:
 
   /// @brief デストラクタ
   ~Fsim();
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 初期化
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 初期化を行う．
-  void
-  initialize(
-    const TpgNetwork& network,                 ///< [in] ネットワーク
-    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
-    bool has_x,       ///< [in] 3値のシミュレーションを行う時 true にする．
-    bool multi        ///< [in] マルチスレッド実行を行う時に true にするフラグ
-  );
 
 
 public:

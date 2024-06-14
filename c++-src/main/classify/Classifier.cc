@@ -74,8 +74,7 @@ run_sppfp(
   bool multi
 )
 {
-  Fsim fsim;
-  fsim.initialize(network, fault_list, false, multi);
+  Fsim fsim{network, fault_list, false, multi};
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {
     max_id = std::max(max_id, f->id());
@@ -190,8 +189,7 @@ run_ppsfp(
   bool multi
 )
 {
-  Fsim fsim;
-  fsim.initialize(network, fault_list, false, multi);
+  Fsim fsim{network, fault_list, false, multi};
   SizeType max_id = 0;
   for ( auto& f: fault_list ) {
     max_id = std::max(max_id, f->id());

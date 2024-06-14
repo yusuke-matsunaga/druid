@@ -70,10 +70,8 @@ FsimTest::spsfp_test(
   const TpgNetwork& network
 )
 {
-  Fsim fsim;
-
   auto& fault_list = network.rep_fault_list();
-  fsim.initialize(network, fault_list, false, false);
+  Fsim fsim{network, fault_list, false, false};
 
   SizeType input_num = network.input_num();
   SizeType dff_num = network.dff_num();
@@ -104,9 +102,8 @@ FsimTest::sppfp_test(
   bool multi
 )
 {
-  Fsim fsim;
   auto& fault_list = tpg_network.rep_fault_list();
-  fsim.initialize(tpg_network, fault_list, false, multi);
+  Fsim fsim{tpg_network, fault_list, false, multi};
 
   SizeType input_num = tpg_network.input_num();
   SizeType dff_num = tpg_network.dff_num();
@@ -145,9 +142,8 @@ FsimTest::ppsfp_test(
   bool multi
 )
 {
-  Fsim fsim;
   auto& fault_list = tpg_network.rep_fault_list();
-  fsim.initialize(tpg_network, fault_list, false, multi);
+  Fsim fsim{tpg_network, fault_list, false, multi};
 
   SizeType input_num = tpg_network.input_num();
   SizeType dff_num = tpg_network.dff_num();

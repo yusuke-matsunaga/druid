@@ -338,8 +338,7 @@ fsim2test(
   auto network = TpgNetwork::read_network(filename, format, fault_type);
   auto& fault_list = network.rep_fault_list();
 
-  Fsim fsim;
-  fsim.initialize(network, fault_list, fsim3, multi);
+  Fsim fsim{network, fault_list, fsim3, multi};
 
   SizeType max_fid = 0;
   for ( auto f: fault_list ) {

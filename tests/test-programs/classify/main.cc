@@ -337,8 +337,7 @@ dtpg_test(
   Timer timer;
   timer.start();
 
-  Fsim fsim;
-  fsim.initialize(network, rep_fault_list, true, false);
+  Fsim fsim{network, rep_fault_list, true, false};
 
   DtpgMgr mgr{network, rep_fault_list};
 
@@ -390,8 +389,7 @@ dtpg_test(
 
   {
     vector<const TpgFault*> fault_list2;
-    Fsim fsim;
-    fsim.initialize(network, det_fault_list, false, false);
+    Fsim fsim{network, det_fault_list, false, false};
     SizeType base = 0;
     vector<TestVector> tv_buf;
     for ( auto& tv: fixed_tv_list ) {

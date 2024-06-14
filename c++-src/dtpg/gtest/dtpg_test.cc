@@ -208,12 +208,10 @@ DtpgTestWithParam2::do_test()
   auto network = TpgNetwork::read_blif(filename(), fault_type());
   auto fault_list = network.rep_fault_list();
 
-  Fsim fsim;
-  fsim.initialize(network, fault_list, true, false);
+  Fsim fsim{network, fault_list, true, false};
 
   DtpgMgr mgr{network, fault_list};
 
-  SizeType AbortCount = 0;
   SizeType ErrorCount = 0;
   auto stats = mgr.run(
     [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) {
@@ -226,14 +224,13 @@ DtpgTestWithParam2::do_test()
     [&](DtpgMgr& mgr, const TpgFault* f) {
     },
     [&](DtpgMgr& mgr, const TpgFault* f) {
-      ++ AbortCount;
     },
     option);
 
   EXPECT_EQ( total_fault_num(), mgr.total_count() );
   EXPECT_EQ( detect_fault_num(), mgr.detected_count() );
   EXPECT_EQ( untest_fault_num(), mgr.untestable_count() );
-  EXPECT_EQ( 0, AbortCount );
+  EXPECT_EQ( 0, mgr.undetected_count() );
   EXPECT_EQ( 0, ErrorCount );
 }
 

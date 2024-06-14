@@ -22,8 +22,7 @@ def ppsfp_callback(fault, dbits_array):
 def test_fsim():
     filename = make_filename('s27.blif')
     network = TpgNetwork.read_blif(filename, FaultType.TransitionDelay)
-    fsim = Fsim()
-    fsim.initialize(network, network.rep_fault_list, 2)
+    fsim = Fsim(network, network.rep_fault_list, 2)
 
     input_num = network.input_num
     dff_num = network.dff_num

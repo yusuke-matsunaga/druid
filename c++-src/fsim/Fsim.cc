@@ -20,18 +20,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-Fsim::Fsim()
-{
-}
-
-// @brief デストラクタ
-Fsim::~Fsim()
-{
-}
-
-// @brief 初期化
-void
-Fsim::initialize(
+Fsim::Fsim(
   const TpgNetwork& network,
   const vector<const TpgFault*>& fault_list,
   bool has_x,
@@ -45,6 +34,11 @@ Fsim::initialize(
   else {
     initialize_naive(network, fault_list, has_previous_state, has_x);
   }
+}
+
+// @brief デストラクタ
+Fsim::~Fsim()
+{
 }
 
 // @brief 全ての故障にスキップマークをつける．

@@ -42,39 +42,6 @@ Fsim_new(
   PyObject* kwds
 )
 {
-  // 位置引数もキーワード引数も受け取らない．
-  static const char* kwlist[] = {
-    nullptr
-  };
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "",
-				    const_cast<char**>(kwlist)) ) {
-    return nullptr;
-  }
-
-  auto self = type->tp_alloc(type, 0);
-  auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  fsim_obj->mPtr = new Fsim;
-  return self;
-}
-
-// 終了関数
-void
-Fsim_dealloc(
-  PyObject* self
-)
-{
-  auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  delete fsim_obj->mPtr;
-  Py_TYPE(self)->tp_free(self);
-}
-
-PyObject*
-Fsim_initialize(
-  PyObject* self,
-  PyObject* args,
-  PyObject* kwds
-)
-{
   static const char* kwlist[] = {
     "network",
     "fault_list",
@@ -112,9 +79,22 @@ Fsim_initialize(
     PyErr_SetString(PyExc_ValueError, "argument 2 must be 2 or 3");
     return nullptr;
   }
+
+  auto self = type->tp_alloc(type, 0);
   auto fsim_obj = reinterpret_cast<FsimObject*>(self);
-  fsim_obj->mPtr->initialize(network, fault_list, has_x, multi);
-  Py_RETURN_NONE;
+  fsim_obj->mPtr = new Fsim{network, fault_list, has_x, multi};
+  return self;
+}
+
+// 終了関数
+void
+Fsim_dealloc(
+  PyObject* self
+)
+{
+  auto fsim_obj = reinterpret_cast<FsimObject*>(self);
+  delete fsim_obj->mPtr;
+  Py_TYPE(self)->tp_free(self);
 }
 
 PyObject*
@@ -375,9 +355,6 @@ Fsim_get_state(
 
 // メソッド定義
 PyMethodDef Fsim_methods[] = {
-  {"initialize", reinterpret_cast<PyCFunction>(Fsim_initialize),
-   METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("initialize")},
   {"set_skip_all", Fsim_set_skip_all, METH_NOARGS,
    PyDoc_STR("set skip mark for all fatuls")},
   {"set_skip", reinterpret_cast<PyCFunction>(Fsim_set_skip),
