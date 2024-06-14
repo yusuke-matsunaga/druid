@@ -1,8 +1,8 @@
-#ifndef PYTPGFAULTSTATUSMGR_H
-#define PYTPGFAULTSTATUSMGR_H
+#ifndef PYDTPGRESULT_H
+#define PYDTPGRESULT_H
 
-/// @file PyTpgFaultStatusMgr.h
-/// @brief PyTpgFaultStatusMgr のヘッダファイル
+/// @file PyDtpgResult.h
+/// @brief PyDtpgResult のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -11,18 +11,18 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "TpgFaultStatusMgr.h"
+#include "DtpgResult.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyTpgFaultStatusMgr PyTpgFaultStatusMgr.h "PyTpgFaultStatusMgr.h"
-/// @brief Python 用の TpgFaultStatusMgr 拡張
+/// @class PyDtpgResult PyDtpgResult.h "PyDtpgResult.h"
+/// @brief Python 用の DtpgResult 拡張
 ///
 /// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
 //////////////////////////////////////////////////////////////////////
-class PyTpgFaultStatusMgr
+class PyDtpgResult
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -37,24 +37,34 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief PyObject が TpgFaultStatusMgr タイプか調べる．
+  /// @brief DtpgResult を表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyObject(
+    const DtpgResult& val  ///< [in] 値
+  );
+
+  /// @brief PyObject が DtpgResult タイプか調べる．
   static
   bool
   Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
-  /// @brief TpgFaultStatusMgr を表す PyObject から TpgFaultStatusMgr を取り出す．
-  /// @return TpgFaultStatusMgr を返す．
+  /// @brief DtpgResult を表す PyObject から DtpgResult を取り出す．
+  /// @return DtpgResult を返す．
   ///
   /// Check(obj) == true であると仮定している．
   static
-  TpgFaultStatusMgr&
+  const DtpgResult&
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 
-  /// @brief TpgFaultStatusMgr を表すオブジェクトの型定義を返す．
+  /// @brief DtpgResult を表すオブジェクトの型定義を返す．
   static
   PyTypeObject*
   _typeobject();
@@ -63,4 +73,4 @@ public:
 
 END_NAMESPACE_DRUID
 
-#endif // PYTPGFAULTSTATUSMGR_H
+#endif // PYDTPGRESULT_H

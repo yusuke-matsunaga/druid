@@ -11,6 +11,7 @@
 
 #include "druid.h"
 #include "PyDtpgMgr.h"
+#include "PyDtpgResult.h"
 #include "PyDtpgStats.h"
 #include "pym/PyModule.h"
 
@@ -42,6 +43,10 @@ PyInit_dtpg()
   }
 
   if ( !PyDtpgMgr::init(m) ) {
+    goto error;
+  }
+
+  if ( !PyDtpgResult::init(m) ) {
     goto error;
   }
 

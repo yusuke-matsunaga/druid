@@ -11,6 +11,7 @@
 #include "PyTpgNetwork.h"
 #include "PyTpgFault.h"
 #include "PyTestVector.h"
+#include "PyDtpgResult.h"
 #include "PyDtpgStats.h"
 #include "pym/PyJsonValue.h"
 
@@ -88,26 +89,27 @@ DtpgMgr_run(
     "option",
     nullptr
   };
-  PyObject* option_obj = nullptr;
+
   PyObject* dfunc_obj = nullptr;
   PyObject* ufunc_obj = nullptr;
   PyObject* afunc_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "OOO|O",
+  PyObject* option_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "|OOOO",
 				    const_cast<char**>(kw_list),
 				    &dfunc_obj, &ufunc_obj, &afunc_obj,
 				    &option_obj) ) {
     return nullptr;
   }
-  if ( !PyCallable_Check(dfunc_obj) ) {
-    PyErr_SetString(PyExc_TypeError, "3rd argument must be callable");
+  if ( dfunc_obj != nullptr && !PyCallable_Check(dfunc_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "1st argument(det_func) must be callable");
     return nullptr;
   }
-  if ( !PyCallable_Check(ufunc_obj) ) {
-    PyErr_SetString(PyExc_TypeError, "4th argument must be callable");
+  if ( ufunc_obj != nullptr && !PyCallable_Check(ufunc_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "2nd argument(untest_func) must be callable");
     return nullptr;
   }
-  if ( !PyCallable_Check(afunc_obj) ) {
-    PyErr_SetString(PyExc_TypeError, "5th argument must be callable");
+  if ( afunc_obj != nullptr && !PyCallable_Check(afunc_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "3rd argument(abort_func) must be callable");
     return nullptr;
   }
   JsonValue option;
@@ -115,30 +117,95 @@ DtpgMgr_run(
     PyErr_SetString(PyExc_ValueError, "illegal value for option");
     return nullptr;
   }
+
   auto& mgr = PyDtpgMgr::Get(self);
   auto stats = mgr.run(
     [&](DtpgMgr& mgr, const TpgFault* f, const TestVector& tv) {
-      auto f_obj = PyTpgFault::ToPyObject(f);
-      auto tv_obj = PyTestVector::ToPyObject(tv);
-      auto args = Py_BuildValue("(OO)", f_obj, tv_obj);
-      auto ans_obj = PyObject_CallObject(dfunc_obj, args);
-      Py_DECREF(ans_obj);
-      Py_DECREF(args);
+      if ( dfunc_obj != nullptr ) {
+	auto f_obj = PyTpgFault::ToPyObject(f);
+	auto tv_obj = PyTestVector::ToPyObject(tv);
+	Py_INCREF(self);
+	auto args = Py_BuildValue("(OOO)", self, f_obj, tv_obj);
+	auto ans_obj = PyObject_CallObject(dfunc_obj, args);
+	Py_DECREF(self);
+	Py_DECREF(ans_obj);
+	Py_DECREF(args);
+      }
     },
     [&](DtpgMgr& mgr, const TpgFault* f) {
-      auto f_obj = PyTpgFault::ToPyObject(f);
-      auto ans_obj = PyObject_CallObject(ufunc_obj, f_obj);
-      Py_DECREF(ans_obj);
-      Py_DECREF(f_obj);
+      if ( ufunc_obj != nullptr ) {
+	auto f_obj = PyTpgFault::ToPyObject(f);
+	Py_INCREF(self);
+	auto args = Py_BuildValue("(OO)", self, f_obj);
+	auto ans_obj = PyObject_CallObject(ufunc_obj, args);
+	Py_DECREF(self);
+	Py_DECREF(ans_obj);
+	Py_DECREF(args);
+      }
     },
     [&](DtpgMgr& mgr, const TpgFault* f) {
-      auto f_obj = PyTpgFault::ToPyObject(f);
-      auto ans_obj = PyObject_CallObject(afunc_obj, f_obj);
-      Py_DECREF(ans_obj);
-      Py_DECREF(f_obj);
+      if ( afunc_obj != nullptr ) {
+	auto f_obj = PyTpgFault::ToPyObject(f);
+	Py_INCREF(self);
+	auto args = Py_BuildValue("(OO)", self, f_obj);
+	auto ans_obj = PyObject_CallObject(afunc_obj, args);
+	Py_DECREF(self);
+	Py_DECREF(ans_obj);
+	Py_DECREF(args);
+      }
     },
     option);
   return PyDtpgStats::ToPyObject(stats);
+}
+
+PyObject*
+DtpgMgr_dtpg_result(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kw_list[] = {
+    "fault",
+    nullptr
+  };
+  PyObject* fault_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
+				    const_cast<char**>(kw_list),
+				    PyTpgFault::_typeobject(), &fault_obj) ) {
+    return nullptr;
+  }
+  auto fault = PyTpgFault::Get(fault_obj);
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto result = mgr.dtpg_result(fault);
+  return PyDtpgResult::ToPyObject(result);
+}
+
+PyObject*
+DtpgMgr_set_dtpg_result(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kw_list[] = {
+    "fault",
+    "result",
+    nullptr
+  };
+  PyObject* fault_obj = nullptr;
+  PyObject* result_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
+				    const_cast<char**>(kw_list),
+				    PyTpgFault::_typeobject(), &fault_obj,
+				    PyDtpgResult::_typeobject(), &result_obj) ) {
+    return nullptr;
+  }
+  auto fault = PyTpgFault::Get(fault_obj);
+  auto result = PyDtpgResult::Get(result_obj);
+  auto& mgr = PyDtpgMgr::Get(self);
+  mgr.set_dtpg_result(fault, result);
+  Py_RETURN_NONE;
 }
 
 // メソッド定義
@@ -146,7 +213,82 @@ PyMethodDef DtpgMgr_methods[] = {
   {"run", reinterpret_cast<PyCFunction>(DtpgMgr_run),
    METH_KEYWORDS | METH_VARARGS,
    PyDoc_STR("run")},
+  {"dtpg_result", reinterpret_cast<PyCFunction>(DtpgMgr_dtpg_result),
+   METH_KEYWORDS | METH_VARARGS,
+   PyDoc_STR("get dtpg_result")},
+  {"set_dtpg_result", reinterpret_cast<PyCFunction>(DtpgMgr_set_dtpg_result),
+   METH_KEYWORDS | METH_VARARGS,
+   PyDoc_STR("set dtpg_result")},
   {nullptr, nullptr, 0, nullptr}
+};
+
+PyObject*
+DtpgMgr_fault_list(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto& fault_list = mgr.fault_list();
+  return PyTpgFault::ToPyList(fault_list);
+}
+
+PyObject*
+DtpgMgr_total_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto val = mgr.total_count();
+  return Py_BuildValue("k", val);
+}
+
+PyObject*
+DtpgMgr_detected_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto val = mgr.detected_count();
+  return Py_BuildValue("k", val);
+}
+
+PyObject*
+DtpgMgr_untestable_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto val = mgr.untestable_count();
+  return Py_BuildValue("k", val);
+}
+
+PyObject*
+DtpgMgr_undetected_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto val = mgr.undetected_count();
+  return Py_BuildValue("k", val);
+}
+
+PyGetSetDef DtpgMgr_getset[] = {
+  {"fault_list", DtpgMgr_fault_list, nullptr,
+   PyDoc_STR("fault list"), nullptr},
+  {"total_count", DtpgMgr_total_count, nullptr,
+   PyDoc_STR("total faults count"), nullptr},
+  {"detected_count", DtpgMgr_detected_count, nullptr,
+   PyDoc_STR("detected faults count"), nullptr},
+  {"untestable_count", DtpgMgr_untestable_count, nullptr,
+   PyDoc_STR("untestable faults count"), nullptr},
+  {"undetected_count", DtpgMgr_undetected_count, nullptr,
+   PyDoc_STR("undetected faults count"), nullptr},
+  {nullptr, nullptr, nullptr, nullptr, nullptr}
 };
 
 END_NONAMESPACE
@@ -165,6 +307,7 @@ PyDtpgMgr::init(
   DtpgMgrType.tp_flags = Py_TPFLAGS_DEFAULT;
   DtpgMgrType.tp_doc = PyDoc_STR("DtpgMgr object");
   DtpgMgrType.tp_methods = DtpgMgr_methods;
+  DtpgMgrType.tp_getset = DtpgMgr_getset;
   DtpgMgrType.tp_new = DtpgMgr_new;
 
   // 型オブジェクトの登録

@@ -9,7 +9,7 @@
 
 import pytest
 import os
-from druid.types import TpgNetwork, TpgFaultStatusMgr, FaultType, FaultStatus
+from druid.types import TpgNetwork, FaultType
 from druid.dtpg import DtpgMgr
 from make_filename import make_filename
 
@@ -18,17 +18,11 @@ def test_dtpg():
     filename = make_filename('s27.blif')
     network = TpgNetwork.read_blif(filename, FaultType.TransitionDelay)
     fault_list = network.rep_fault_list
-    fault_mgr = TpgFaultStatusMgr(fault_list)
     option = {
         'dtpg_type': 'mffc'
         }
-    def dfunc(f, tv):
-        pass
-    def ufunc(f):
-        pass
-    def afunc(f):
-        pass
-    DtpgMgr.run(network, fault_mgr, dfunc, ufunc, afunc, option)
-    assert fault_mgr.detected_count == 32
-    assert fault_mgr.untestable_count == 0
-    assert fault_mgr.remain_count == 0
+    mgr = DtpgMgr(network, fault_list)
+    stats = mgr.run(option=option)
+    assert mgr.detected_count == 32
+    assert mgr.untestable_count == 0
+    assert mgr.undetected_count == 0
