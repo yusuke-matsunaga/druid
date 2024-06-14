@@ -170,7 +170,7 @@ DtpgMgr_dtpg_result(
     nullptr
   };
   PyObject* fault_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
 				    const_cast<char**>(kw_list),
 				    PyTpgFault::_typeobject(), &fault_obj) ) {
     return nullptr;
@@ -234,6 +234,17 @@ DtpgMgr_fault_list(
 }
 
 PyObject*
+DtpgMgr_testvector_list(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& mgr = PyDtpgMgr::Get(self);
+  auto& tv_list = mgr.testvector_list();
+  return PyTestVector::ToPyList(tv_list);
+}
+
+PyObject*
 DtpgMgr_total_count(
   PyObject* self,
   void* Py_UNUSED(closure)
@@ -279,6 +290,8 @@ DtpgMgr_undetected_count(
 
 PyGetSetDef DtpgMgr_getset[] = {
   {"fault_list", DtpgMgr_fault_list, nullptr,
+   PyDoc_STR("fault list"), nullptr},
+  {"testvector_list", DtpgMgr_testvector_list, nullptr,
    PyDoc_STR("fault list"), nullptr},
   {"total_count", DtpgMgr_total_count, nullptr,
    PyDoc_STR("total faults count"), nullptr},

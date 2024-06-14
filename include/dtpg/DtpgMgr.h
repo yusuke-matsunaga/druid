@@ -85,6 +85,13 @@ public:
     return mFaultList;
   }
 
+  /// @brief 直前の run() で生成されたテストベクタのリスト
+  const vector<TestVector>&
+  testvector_list() const
+  {
+    return mTvList;
+  }
+
   /// @brief 故障に対するテスト生成の結果を返す．
   DtpgResult
   dtpg_result(
@@ -113,6 +120,12 @@ public:
   // コールバック関数から使用される関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief テストパタンを追加する．
+  void
+  add_testvector(
+    const TestVector& tv ///< [in] テストパタン
+  );
+
   /// @brief 故障に対するテスト生成の結果を設定する．
   void
   set_dtpg_result(
@@ -131,6 +144,9 @@ private:
 
   // 対象の故障リスト
   vector<const TpgFault*> mFaultList;
+
+  // テストベクタのリスト
+  vector<TestVector> mTvList;
 
   // 故障番号をキーとして結果を格納する配列
   vector<DtpgResult> mDtpgResult;

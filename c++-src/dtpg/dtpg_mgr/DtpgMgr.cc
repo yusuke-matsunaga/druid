@@ -177,6 +177,12 @@ DtpgMgr::run(
     node_fault_list_array[node->id()].push_back(fault);
   }
 
+  // 結果をクリアしておく．
+  mTvList.clear();
+  for ( auto& r: mDtpgResult ) {
+    r = DtpgResult::undetected();
+  }
+
   DtpgStats stats;
   if ( group_mode == "ffr" ) {
     // FFR 単位で処理を行う．
@@ -255,6 +261,15 @@ DtpgMgr::dtpg_result(
 {
   ASSERT_COND( fault->id() < mDtpgResult.size() );
   return mDtpgResult[fault->id()];
+}
+
+// @brief テストパタンを追加する．
+void
+DtpgMgr::add_testvector(
+  const TestVector& tv
+)
+{
+  mTvList.push_back(tv);
 }
 
 // @brief 故障に対するテスト生成の結果を設定する．

@@ -10,7 +10,7 @@
 
 import argparse
 import time
-from druid.types import TpgNetwork, TpgFaultMgr, FaultType, FaultStatus
+from druid.types import TpgNetwork, FaultType, FaultStatus
 from druid.dtpg import DtpgMgr
 from druid.fsim import Fsim
 
@@ -33,6 +33,15 @@ parser.add_argument('-v', '--verbose',
 args = parser.parse_args()
 if not args:
     exit(1)
+
+blif = False
+iscas89 = False
+if args.blif:
+    blif = True
+if args.iscas89:
+    iscas89 = True
+if not blif and not iscas89:
+    blif = True
     
 filename = args.filename
 if args.fault_type:
@@ -47,44 +56,46 @@ else:
     print(f'{fault_type_str}: illegal value for fault_type')
 verbose = args.verbose
 
-network = TpgNetwork.read_blif(filename)
-fault_mgr = TpgFaultMgr()
-fault_mgr.gen_fault_list(network, fault_type)
+if blif:
+    network = TpgNetwork.read_blif(filename, fault_type)
+elif iscas89:
+    network = TpgNetwork.read_iscas89(filename, fault_type)
+else:
+    assert False
+
+fault_list = network.rep_fault_list
+dtpg = DtpgMgr(network, fault_list)
 
 option = {
     "dtpg_type": "mffc",
     "just_type": "just1",
-    "dop": [ "base", "drop", "tvlist" ]
     }
-dtpg = DtpgMgr(network, fault_mgr, option)
 
-dtpg.run()
+dtpg.run(option=option)
 
-tv_list = dtpg.tv_list
+tv_list = dtpg.testvector_list
 
-fault_list = []
-for f in fault_mgr.rep_fault_list():
-    fs = fault_mgr.get_status(f)
-    if fs == FaultStatus.Detected:
-        fault_list.append(f)
-print(f'# of faults: {len(fault_list)}')
+det_fault_list = []
+for f in fault_list:
+    r = dtpg.dtpg_result(f)
+    if r.status == FaultStatus.Detected:
+        det_fault_list.append(f)
+print(f'# of faults: {len(det_fault_list)}')
 print(f'# of tv_list: {len(tv_list)}')
 
-fsim = Fsim()
-fsim.initialize(network, False, 2);
-fsim.set_fault_list(fault_list)
+fsim = Fsim(network, det_fault_list, 2, False)
 
 start_time = time.process_time()
 
-max_fid = max([ f.id for f in fault_list ]) + 1
+max_fid = max([ f.id for f in det_fault_list ]) + 1
 fgmap = [ None for _ in range(max_fid) ]
-for f in fault_list:
+for f in det_fault_list:
     fgmap[f.id] = 0
-count_array = [ len(fault_list) ]
+count_array = [ len(det_fault_list) ]
 for i, tv in enumerate(tv_list):
-    det_fault_list = fsim.sppfp(tv)
+    tmp_list = fsim.sppfp(tv)
     dbits_dict = {}
-    for fault, dbits in det_fault_list:
+    for fault, dbits in tmp_list:
         fid = fault.id
         key = (fgmap[fid], dbits)
         if key not in dbits_dict:
@@ -98,7 +109,7 @@ for i, tv in enumerate(tv_list):
         count_array[old_g] -= 1
         count_array[g] += 1
     ng = len(count_array)
-    for f in fault_list:
+    for f in det_fault_list:
         fid = f.id
         g = fgmap[fid]
         if count_array[g] <= 1:
@@ -106,7 +117,7 @@ for i, tv in enumerate(tv_list):
             fsim.set_skip(f)
 
     fg_list = [[] for _ in range(ng)]
-    for f in fault_list:
+    for f in det_fault_list:
         fid = f.id
         g = fgmap[fid]
         if g >= 0:

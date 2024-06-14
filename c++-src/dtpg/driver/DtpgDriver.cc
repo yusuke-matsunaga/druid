@@ -55,6 +55,7 @@ DtpgDriver::gen_pattern(
     timer.stop();
     auto backtrace_time = timer.get_time();
 
+    mMgr.add_testvector(testvect);
     mMgr.set_dtpg_result(fault, DtpgResult::detected(testvect));
     stats.update_det(sat_time, backtrace_time);
     det_func(mMgr, fault, testvect);
