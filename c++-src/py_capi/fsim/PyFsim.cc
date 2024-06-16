@@ -237,6 +237,7 @@ Fsim_sppfp(
 	      {
 		ans_list.push_back({f, dbits});
 	      });
+
   SizeType n = ans_list.size();
   auto ans_obj = PyList_New(n);
   for ( SizeType i = 0; i < n; ++ i ) {

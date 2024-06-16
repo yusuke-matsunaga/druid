@@ -126,9 +126,8 @@ DtpgMgr_run(
 	auto tv_obj = PyTestVector::ToPyObject(tv);
 	Py_INCREF(self);
 	auto args = Py_BuildValue("(OOO)", self, f_obj, tv_obj);
-	auto ans_obj = PyObject_CallObject(dfunc_obj, args);
+	PyObject_CallObject(dfunc_obj, args);
 	Py_DECREF(self);
-	Py_DECREF(ans_obj);
 	Py_DECREF(args);
       }
     },
@@ -137,9 +136,8 @@ DtpgMgr_run(
 	auto f_obj = PyTpgFault::ToPyObject(f);
 	Py_INCREF(self);
 	auto args = Py_BuildValue("(OO)", self, f_obj);
-	auto ans_obj = PyObject_CallObject(ufunc_obj, args);
+	PyObject_CallObject(ufunc_obj, args);
 	Py_DECREF(self);
-	Py_DECREF(ans_obj);
 	Py_DECREF(args);
       }
     },
@@ -148,9 +146,8 @@ DtpgMgr_run(
 	auto f_obj = PyTpgFault::ToPyObject(f);
 	Py_INCREF(self);
 	auto args = Py_BuildValue("(OO)", self, f_obj);
-	auto ans_obj = PyObject_CallObject(afunc_obj, args);
+	PyObject_CallObject(afunc_obj, args);
 	Py_DECREF(self);
-	Py_DECREF(ans_obj);
 	Py_DECREF(args);
       }
     },
