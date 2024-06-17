@@ -29,8 +29,7 @@ public:
 
   /// @brief コンストラクタ
   FaultReducer(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
-    FaultType fault_type       ///< [in] 故障の種類
+    const TpgNetwork& network ///< [in] 対象のネットワーク
   );
 
   /// @brief デストラクタ
@@ -58,7 +57,7 @@ public:
   void
   fault_reduction(
     vector<const TpgFault*>& fault_list, ///< [inout] 対象の故障リスト
-    const string& algorithm ///< [in] アルゴリズム
+    const string& algorithm              ///< [in] アルゴリズム
   );
 
 
@@ -138,15 +137,12 @@ private:
     vector<const TpgFault*> mDomCandList;
 
     // 検出回数
-    int mDetCount;
+    SizeType mDetCount;
 
   };
 
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
-
-  // 故障の種類
-  FaultType mFaultType;
 
   // 故障シミュレータ
   Fsim mFsim;

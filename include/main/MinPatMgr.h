@@ -43,7 +43,6 @@ public:
   fault_reduction(
     vector<const TpgFault*>& fault_list,
     const TpgNetwork& network,
-    FaultType fault_type,
     const string& algorithm,
     bool debug
   );
@@ -63,7 +62,6 @@ public:
     const vector<const TpgFault*>& fault_list,
     const vector<TestVector>& tv_list,	       ///< [in] 初期テストパタンのリスト
     const TpgNetwork& network,
-    FaultType fault_type,
     vector<TestVector>& new_tv_list            ///< [out] 圧縮結果のテストパタンのリスト
   );
 

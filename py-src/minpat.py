@@ -93,7 +93,8 @@ class DetCallBack:
 
 det_callback = DetCallBack(fsim)
 
-dtpg.run(option=option, det_func=det_callback)
+#dtpg.run(option=option, det_func=det_callback)
+dtpg.run(option=option)
 
 end_time = time.process_time()
 

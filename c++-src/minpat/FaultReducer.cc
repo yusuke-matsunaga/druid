@@ -3,7 +3,7 @@
 /// @brief FaultReducer の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "FaultReducer.h"
@@ -64,9 +64,7 @@ END_NONAMESPACE
 // @brief コンストラクタ
 FaultReducer::FaultReducer(
   const TpgNetwork& network,
-  FaultType fault_type
 ) : mNetwork{network},
-    mFaultType{fault_type},
     mFsim{network, mFaultType, true},
     mDebug{false}
 {
