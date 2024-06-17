@@ -24,7 +24,7 @@ include_directories (
 set ( minpat_SOURCES
   UndetChecker.cc
   DomChecker.cc
-  MatrixGen.cc
+  FaultReducer.cc
   )
 
 

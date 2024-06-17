@@ -5,15 +5,14 @@
 /// @brief FaultReducer のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "Fsim.h"
 #include "NodeValList.h"
 #include "TestVector.h"
-#include "ym/McMatrix.h"
-#include "ym/SatSolverType.h"
+#include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
 
@@ -29,7 +28,9 @@ public:
 
   /// @brief コンストラクタ
   FaultReducer(
-    const TpgNetwork& network ///< [in] 対象のネットワーク
+    const TpgNetwork& network,           ///< [in] 対象のネットワーク
+    vector<const TpgFault*>& fault_list, ///< [in] 対象の故障リスト
+    const JsonValue& option              ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -41,24 +42,10 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @breif 内部で用いる SAT ソルバのタイプの設定を行う．
-  void
-  set_solver_type(
-    const SatSolverType& solver_type ///< [in] SATソルバのタイプ
-  );
-
-  /// @brief デバッグフラグをセットする．
-  void
-  set_debug(
-    bool debug ///< [in] 設定する値 (true/false)
-  );
-
   /// @brief 故障の支配関係を調べて故障リストを縮約する．
-  void
-  fault_reduction(
-    vector<const TpgFault*>& fault_list, ///< [inout] 対象の故障リスト
-    const string& algorithm              ///< [in] アルゴリズム
-  );
+  /// @return 縮約した故障リストを返す．
+  vector<const TpgFault*>
+  run();
 
 
 private:
@@ -69,14 +56,13 @@ private:
   /// @brief 内部のデータ構造を初期化する．
   void
   init(
-    const vector<const TpgFault*>& fault_list, ///< [in] 故障情報のリスト
     bool need_mand_cond
   );
 
   /// @brief 故障シミュレーションを行って支配故障の候補を作る．
   void
   make_dom_candidate(
-    int loop_limit ///< [in] 変化がなくなってから繰り返すループ数
+    SizeType loop_limit ///< [in] 変化がなくなってから繰り返すループ数
   );
 
   /// @brief 一回の故障シミュレーションを行う．
@@ -91,22 +77,18 @@ private:
 
   /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
   void
-  dom_reduction1(
-    bool simple
-  );
+  dom_reduction1();
 
   /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
   void
   dom_reduction2();
 
-  ///< [inout] fi_list 故障情報のリスト
+  /// @brief 異なる FFR 間の支配故障のチェックを行う．
   void
-  dom_reduction3(
-    bool simple
-  );
+  dom_reduction3();
 
   /// @brief mFaultList 中の mDeleted マークが付いていない故障数を数える．
-  int
+  SizeType
   count_faults() const;
 
 
@@ -144,19 +126,32 @@ private:
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
 
-  // 故障シミュレータ
-  Fsim mFsim;
-
-  // SATソルバのタイプ
-  SatSolverType mSolverType;
-
-  // デバッグフラグ
-  bool mDebug;
-
   // 故障リスト
   vector<const TpgFault*> mFaultList;
 
+  // 故障シミュレータ
+  Fsim mFsim;
+
+  // DtpgEngine 用のオプション
+  JsonValue mDtpgOption;
+
+  // DomChecker 用のSATオプション
+  SatInitParam mDomCheckerParam;
+
+  // UndetChecker 用のSATオプション
+  SatInitParam mUndetCheckerParam;
+
+  // アルゴリズム
+  string mAlgorithm;
+
+  // simple オプション
+  bool mSimple;
+
+  // デバッグフラグ
+  bool mDebug{false};
+
   // 故障に関する情報を入れた配列
+  // キーは TpgFault::id()
   vector<FaultInfo> mFaultInfoArray;
 
   // テストベクタのリスト
