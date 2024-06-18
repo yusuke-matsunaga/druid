@@ -76,7 +76,7 @@ public:
   const TestVector&
   testvect() const
   {
-    reutrn mTestVector;
+    return mTestVector;
   }
 
 

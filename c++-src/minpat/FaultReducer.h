@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "TpgFault.h"
 #include "Fsim.h"
 #include "NodeValList.h"
 #include "TestVector.h"
@@ -17,6 +18,8 @@
 
 
 BEGIN_NAMESPACE_DRUID
+
+class FaultInfo;
 
 //////////////////////////////////////////////////////////////////////
 /// @class FaultReducer FaultReducer.h "FaultReducer.h"
@@ -28,9 +31,9 @@ public:
 
   /// @brief コンストラクタ
   FaultReducer(
-    const TpgNetwork& network,           ///< [in] 対象のネットワーク
-    vector<const TpgFault*>& fault_list, ///< [in] 対象の故障リスト
-    const JsonValue& option              ///< [in] オプション
+    const TpgNetwork& network,                ///< [in] 対象のネットワーク
+    const vector<FaultInfo>& fault_info_list, ///< [in] 対象の故障リスト
+    const JsonValue& option                   ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -43,7 +46,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障の支配関係を調べて故障リストを縮約する．
-  /// @return 縮約した故障リストを返す．
+  /// @return 代表故障のリストを返す．
   vector<const TpgFault*>
   run();
 
@@ -58,18 +61,6 @@ private:
   init(
     bool need_mand_cond
   );
-
-  /// @brief 故障シミュレーションを行って支配故障の候補を作る．
-  void
-  make_dom_candidate(
-    SizeType loop_limit ///< [in] 変化がなくなってから繰り返すループ数
-  );
-
-  /// @brief 一回の故障シミュレーションを行う．
-  /// @retval true 支配故障のリストに変化があった．
-  /// @retval false 変化がなかった．
-  bool
-  do_fsim();
 
   /// @brief 同一 FFR 内の支配故障のチェックを行う．
   void
@@ -87,6 +78,27 @@ private:
   void
   dom_reduction3();
 
+  /// @brief 対象の故障が削除されていたら true を返す．
+  bool
+  is_deleted(
+    const TpgFault* fault ///< [in] 対象の故障
+  ) const
+  {
+    return mDeleted[fault->id()];
+  }
+
+  /// @brief 支配された故障を削除する．
+  void
+  delete_fault(
+    const TpgFault* fault ///< [in] 対象の故障
+  )
+  {
+    // 削除済みマークをつける．
+    mDeleted[fault->id()] = true;
+    // 不要となったベクタの領域を解放するハックコード
+    vector<const TpgFault*>{}.swap(mDomCandList[fault->id()]);
+  }
+
   /// @brief mFaultList 中の mDeleted マークが付いていない故障数を数える．
   SizeType
   count_faults() const;
@@ -97,48 +109,31 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障に関するいくつかの情報をまとめたもの
-  struct FaultInfo
-  {
-    // 削除マーク
-    bool mDeleted;
-
-    // 故障シミュレーションの検出パタン
-    PackedVal mPat;
-
-    // FFR 内の伝搬条件
-    NodeValList mFFRCond;
-
-    // 十分条件
-    NodeValList mSuffCond;
-
-    // 必要条件
-    NodeValList mMandCond;
-
-    // この故障が支配している故障の候補リスト
-    vector<const TpgFault*> mDomCandList;
-
-    // 検出回数
-    SizeType mDetCount;
-
-  };
-
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
 
-  // 故障リスト
-  vector<const TpgFault*> mFaultList;
+  // 故障情報のリスト
+  const vector<FaultInfo>& mFaultInfoList;
 
-  // 故障シミュレータ
-  Fsim mFsim;
+  // FFR ごとの故障リストの配列
+  vector<vector<const TpgFault*>> mFFRFaultList;
 
-  // DtpgEngine 用のオプション
-  JsonValue mDtpgOption;
+  // 故障番号をキーにして削除されたかを表すフラグの配列
+  vector<bool> mDeleted;
 
-  // DomChecker 用のSATオプション
+  // 支配故障の候補のリストの配列
+  vector<vector<const TpgFault*>> mDomCandList;
+
+  // 故障シミュレータの制御パラメータ
+  SizeType mLoopLimit;
+
+  // FFRChecker 用のSATパラメータ
+  JsonValue mFFRCheckerOption;
+
+  // DomChecker 用のSATパラメータ
   SatInitParam mDomCheckerParam;
 
-  // UndetChecker 用のSATオプション
+  // UndetChecker 用のSATパラメータ
   SatInitParam mUndetCheckerParam;
 
   // アルゴリズム
@@ -149,13 +144,6 @@ private:
 
   // デバッグフラグ
   bool mDebug{false};
-
-  // 故障に関する情報を入れた配列
-  // キーは TpgFault::id()
-  vector<FaultInfo> mFaultInfoArray;
-
-  // テストベクタのリスト
-  vector<TestVector> mTvList;
 
   // 計時を行うオブジェクト
   Timer mTimer;

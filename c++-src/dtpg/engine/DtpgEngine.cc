@@ -370,7 +370,7 @@ DtpgEngine::solve(
   // fault の活性化条件と FFR 内の伝搬条件を加える．
   auto ffr_cond = fault->ffr_propagate_condition();
   add_to_literal_list(ffr_cond, assumptions);
-  return mSolver.solve(assumptions);
+  return check(assumptions);
 }
 
 // @brief 十分条件を取り出す．

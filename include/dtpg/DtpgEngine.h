@@ -191,6 +191,15 @@ public:
     const TpgFault* fault ///< [in] 故障
   );
 
+  /// @brief solve() の下請け関数
+  SatBool3
+  check(
+    const vector<SatLiteral>& assumptions ///< [in] 制約条件
+  )
+  {
+    return mSolver.solve(assumptions);
+  }
+
   /// @brief 1時刻前の正常値の変数を返す．
   SatLiteral
   hvar(
