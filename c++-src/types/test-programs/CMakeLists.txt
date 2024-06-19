@@ -3,10 +3,6 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories(
-  ${PROJECT_SOURCE_DIR}/include/dtpg
-  ${PROJECT_SOURCE_DIR}/include/main
-  ${PROJECT_SOURCE_DIR}/include/fsim
-  ${PROJECT_SOURCE_DIR}/include/types
   )
 
 
@@ -14,7 +10,11 @@ include_directories(
 # サブディレクトリの設定
 # ===================================================================
 
+add_subdirectory ( tpgnetworktest )
+add_subdirectory ( read_blif )
+add_subdirectory ( read_iscas89 )
+
 
 # ===================================================================
-# テストターゲットの定義
+#  ソースファイルの設定
 # ===================================================================

@@ -16,16 +16,15 @@ include_directories(
 # ===================================================================
 
 
+
 # ===================================================================
-#  classify_test
+#  dtpg_test
 # ===================================================================
 
-add_executable ( classify_test
-  main.cc
-  #Classifier2.cc
+add_executable ( dtpg_test
+  dtpg_test.cc
   $<TARGET_OBJECTS:druid_types_obj>
   $<TARGET_OBJECTS:druid_dtpg_obj>
-  $<TARGET_OBJECTS:druid_main_obj>
   $<TARGET_OBJECTS:druid_fsim_obj>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj>
@@ -38,32 +37,30 @@ add_executable ( classify_test
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
-target_compile_options ( classify_test
+target_compile_options ( dtpg_test
   PRIVATE "-O3"
   )
 
-target_compile_definitions ( classify_test
+target_compile_definitions ( dtpg_test
   PRIVATE "-DNDEBUG"
   )
 
-target_link_libraries ( classify_test
+target_link_libraries ( dtpg_test
   ${YM_LIB_DEPENDS}
   )
 
 if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( classify_test
+  target_link_libraries ( dtpg_test
     ${GPERFTOOLS_LIBRARIES}
     )
 endif ()
 
 
-add_executable ( classify_test_d
-  main.cc
-  #Classifier2.cc
+add_executable ( dtpg_test_d
+  dtpg_test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_dtpg_obj_d>
   $<TARGET_OBJECTS:druid_fsim_obj_d>
-  $<TARGET_OBJECTS:druid_main_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_bside2_obj_d>
@@ -75,16 +72,16 @@ add_executable ( classify_test_d
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
-target_compile_options ( classify_test_d
+target_compile_options ( dtpg_test_d
   PRIVATE "-g"
   )
 
-target_link_libraries ( classify_test_d
+target_link_libraries ( dtpg_test_d
   ${YM_LIB_DEPENDS}
   )
 
 if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( classify_test_d
+  target_link_libraries ( dtpg_test_d
     ${GPERFTOOLS_LIBRARIES}
     )
 endif ()

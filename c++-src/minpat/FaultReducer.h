@@ -19,7 +19,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class FaultInfo;
+//class FaultInfo;
 
 //////////////////////////////////////////////////////////////////////
 /// @class FaultReducer FaultReducer.h "FaultReducer.h"
@@ -31,13 +31,14 @@ public:
 
   /// @brief コンストラクタ
   FaultReducer(
-    const TpgNetwork& network,                ///< [in] 対象のネットワーク
-    const vector<FaultInfo>& fault_info_list, ///< [in] 対象の故障リスト
-    const JsonValue& option                   ///< [in] オプション
+    const TpgNetwork& network,                 ///< [in] 対象のネットワーク
+    const vector<const TpgFault*>& fault_list, ///< [in] 対象の故障リスト
+    const vector<TestVector>& tv_list,         ///< [in] テストベクタのリスト
+    const JsonValue& option = {}               ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~FaultReducer();
+  ~FaultReducer() = default;
 
 
 public:
@@ -66,6 +67,7 @@ private:
   void
   ffr_reduction();
 
+#if 0
   /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
   void
   dom_reduction1();
@@ -77,6 +79,11 @@ private:
   /// @brief 異なる FFR 間の支配故障のチェックを行う．
   void
   dom_reduction3();
+#else
+  /// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
+  void
+  dom_reduction();
+#endif
 
   /// @brief 対象の故障が削除されていたら true を返す．
   bool
@@ -112,8 +119,16 @@ private:
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
 
+#if 0
   // 故障情報のリスト
   const vector<FaultInfo>& mFaultInfoList;
+#else
+  // 故障のリスト
+  const vector<const TpgFault*>& mFaultList;
+
+  // テストベクタのリスト
+  const vector<TestVector>& mTvList;
+#endif
 
   // FFR ごとの故障リストの配列
   vector<vector<const TpgFault*>> mFFRFaultList;
@@ -125,7 +140,7 @@ private:
   vector<vector<const TpgFault*>> mDomCandList;
 
   // 故障シミュレータの制御パラメータ
-  SizeType mLoopLimit;
+  SizeType mLoopLimit{1};
 
   // FFRChecker 用のSATパラメータ
   JsonValue mFFRCheckerOption;
@@ -136,11 +151,13 @@ private:
   // UndetChecker 用のSATパラメータ
   SatInitParam mUndetCheckerParam;
 
+#if 0
   // アルゴリズム
   string mAlgorithm;
 
   // simple オプション
   bool mSimple;
+#endif
 
   // デバッグフラグ
   bool mDebug{false};

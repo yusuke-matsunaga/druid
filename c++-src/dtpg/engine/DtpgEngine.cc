@@ -36,16 +36,43 @@ END_NONAMESPACE
 
 BEGIN_NAMESPACE_DRUID
 
+BEGIN_NONAMESPACE
+
+SatInitParam
+get_sat_param(
+  const JsonValue& option
+)
+{
+  if ( option.is_object() && option.has_key("sat_param") ) {
+    return SatInitParam{option.get("sat_param")};
+  }
+  return SatInitParam{};
+}
+
+JsonValue
+get_option(
+  const JsonValue& option,
+  const char* keyword
+)
+{
+  if ( option.is_object() && option.has_key(keyword) ) {
+    return option.get(keyword);
+  }
+  return JsonValue{};
+}
+
+END_NONAMESPACE
+
 // @brief コンストラクタ
 DtpgEngine::DtpgEngine(
   const TpgNetwork& network,
   const TpgNode* root,
   const JsonValue& option
-) : mSolver{option.get("sat_param")},
+) : mSolver{get_sat_param(option)},
     mNetwork{network},
     mRoot{root},
-    mExOpt{option.get("extractor")},
-    mJustifier{network, option.get("justifier")},
+    mExOpt{get_option(option, "extractor")},
+    mJustifier{network, get_option(option, "justifier")},
     mHvarMap{network.node_num()},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
