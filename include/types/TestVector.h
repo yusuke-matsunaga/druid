@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "TpgNetwork.h"
 #include "FaultType.h"
 #include "BitVector.h"
 #include <random>
@@ -89,6 +90,28 @@ public:
       mDffNum{(dff_num << 1) | static_cast<SizeType>(has_prev_state)},
       mVector{src}
   {
+  }
+
+  /// @brief ネットワークから入力数などの諸元を取ってくるコンストラクタ
+  explicit
+  TestVector(
+    const TpgNetwork& network
+  ) : TestVector{
+      network.input_num(),
+      network.dff_num(),
+      network.fault_type() == FaultType::TransitionDelay
+    }
+  {
+  }
+
+  /// @brief ネットワークから入力数などの諸元を取ってくるコンストラクタ
+  explicit
+  TestVector(
+    const TpgNetwork& network,
+    const NodeValList& pi_assign_list
+  ) : TestVector{network}
+  {
+    set_from_assign_list(pi_assign_list);
   }
 
   /// @brief コピーコンストラクタ

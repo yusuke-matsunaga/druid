@@ -31,6 +31,7 @@ FFREncDriver::FFREncDriver(
   const TpgFFR* ffr,
   const JsonValue& option
 ) : mSolver{option.get("sat_param")},
+    mNetwork{network},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
     mHvarMap{network.node_num()},
@@ -77,7 +78,8 @@ FFREncDriver::gen_pattern(
 					       model, mExOpt);
   auto ffr_cond = fault->ffr_propagate_condition();
   suf_cond.merge(ffr_cond);
-  return mJustifier(suf_cond, mHvarMap, mGvarMap, model);
+  auto pi_assign_list = mJustifier(suf_cond, mHvarMap, mGvarMap, model);
+  return TestVector{mNetwork, pi_assign_list};
 }
 
 // @brief CNF の生成時間を返す．

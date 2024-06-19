@@ -64,7 +64,9 @@ MFFCStructEncDriver::gen_pattern(
   auto assign_list = fault->ffr_propagate_condition();
   auto assign_list2 = mStructEnc.extract_prop_condition(root);
   assign_list.merge(assign_list2);
-  return mJustifier(assign_list, mStructEnc.hvar_map(), mStructEnc.gvar_map(), model);
+  auto pi_assign_list = mJustifier(assign_list, mStructEnc.hvar_map(),
+				   mStructEnc.gvar_map(), model);
+  return TestVector{mStructEnc.network(), pi_assign_list};
 }
 
 // @brief CNF の生成時間を返す．

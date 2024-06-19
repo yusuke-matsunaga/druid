@@ -27,6 +27,7 @@ set ( minpat_SOURCES
   DomChecker.cc
   DomCandGen.cc
   FaultReducer.cc
+  TestCubeGen.cc
   )
 
 

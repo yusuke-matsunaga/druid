@@ -79,7 +79,8 @@ public:
   )
   {
     auto assign_list = get_sufficient_condition(fault);
-    return justify(assign_list);
+    auto pi_assign_list = justify(assign_list);
+    return TestVector{network(), pi_assign_list};
   }
 
   /// @brief 十分条件を取り出す．
@@ -89,8 +90,8 @@ public:
     const TpgFault* fault ///< [in] 故障
   );
 
-  /// @brief 十分条件からテストベクタを作る．
-  TestVector
+  /// @brief 十分条件から入力の値割り当てを作る．
+  NodeValList
   justify(
     const NodeValList& assign_list ///< [in] 十分条件
   );

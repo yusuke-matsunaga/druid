@@ -14,7 +14,6 @@
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "NodeValList.h"
-//#include "FaultInfo.h"
 #include "ym/Range.h"
 #include <random>
 

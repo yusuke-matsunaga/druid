@@ -61,8 +61,7 @@ END_NONAMESPACE
 Justifier::Justifier(
   const TpgNetwork& network,
   const JsonValue& option
-) : mNetwork{network},
-    mImpl{new_just(option, network.node_num())}
+) : mImpl{new_just(option, network.node_num())}
 {
 }
 
@@ -74,7 +73,18 @@ Justifier::~Justifier()
 }
 
 // @brief 正当化に必要な割当を求める
-TestVector
+NodeValList
+Justifier::operator()(
+  const NodeValList& assign_list,
+  const VidMap& var1_map,
+  const SatModel& model
+)
+{
+  return mImpl->justify(assign_list, var1_map, model);
+}
+
+// @brief 正当化に必要な割当を求める
+NodeValList
 Justifier::operator()(
   const NodeValList& assign_list,
   const VidMap& var1_map,
@@ -82,17 +92,7 @@ Justifier::operator()(
   const SatModel& model
 )
 {
-  bool has_prev_state = mNetwork.fault_type() == FaultType::TransitionDelay;
-  TestVector tv{mNetwork.input_num(), mNetwork.dff_num(), has_prev_state};
-  if ( has_prev_state ) {
-    auto pi_assign_list = mImpl->justify(assign_list, var1_map, var2_map, model);
-    tv.set_from_assign_list(pi_assign_list);
-  }
-  else {
-    auto pi_assign_list = mImpl->justify(assign_list, var2_map, model);
-    tv.set_from_assign_list(pi_assign_list);
-  }
-  return tv;
+  return mImpl->justify(assign_list, var1_map, var2_map, model);
 }
 
 END_NAMESPACE_DRUID

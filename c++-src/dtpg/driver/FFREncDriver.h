@@ -103,6 +103,9 @@ private:
   // SATソルバ
   SatSolver mSolver;
 
+  // 対象のネットワーク
+  const TpgNetwork& mNetwork;
+
   // 正常値の変数マップ
   VidMap mGvarMap;
 

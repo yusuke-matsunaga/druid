@@ -12,6 +12,7 @@ include_directories(
 # ===================================================================
 
 add_subdirectory ( fault_reducer )
+add_subdirectory ( testcube_gen )
 
 
 # ===================================================================

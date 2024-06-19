@@ -46,6 +46,13 @@ public:
   // データメンバに対するアクセス関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 対象のネットワークを返す．
+  const TpgNetwork&
+  network() const
+  {
+    return mNetwork;
+  }
+
   /// @brief SATソルバを返す．
   SatSolver&
   solver()

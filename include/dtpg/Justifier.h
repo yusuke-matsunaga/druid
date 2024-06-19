@@ -43,9 +43,18 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 正当化に必要な割当を求める
-  /// @return テストベクタ
-  TestVector
+  /// @brief 正当化に必要な割当を求める(縮退故障用)
+  /// @return 入力の値割り当て
+  NodeValList
+  operator()(
+    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
+    const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
+    const SatModel& model           ///< [in] SAT問題の解
+  );
+
+  /// @brief 正当化に必要な割当を求める(遷移故障用)
+  /// @return 入力の値割り当て
+  NodeValList
   operator()(
     const NodeValList& assign_list, ///< [in] 値の割り当てリスト
     const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
@@ -58,10 +67,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 対象のネットワーク
-  // input_num, dff_num を取得するために用いる．
-  const TpgNetwork& mNetwork;
 
   // 実装クラス
   std::unique_ptr<JustImpl> mImpl;

@@ -19,8 +19,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-//class FaultInfo;
-
 //////////////////////////////////////////////////////////////////////
 /// @class FaultReducer FaultReducer.h "FaultReducer.h"
 /// @brief 支配故障を求めるクラス

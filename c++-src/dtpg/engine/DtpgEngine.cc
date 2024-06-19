@@ -419,13 +419,19 @@ DtpgEngine::get_sufficient_condition(
 }
 
 // @brief 十分条件からテストベクタを作る．
-TestVector
+NodeValList
 DtpgEngine::justify(
   const NodeValList& assign_list
 )
 {
   const auto& model = mSolver.model();
-  return mJustifier(assign_list, mHvarMap, mGvarMap, model);
+  bool has_prev_state = mNetwork.fault_type() == FaultType::TransitionDelay;
+  if ( has_prev_state ) {
+    return mJustifier(assign_list, mHvarMap, mGvarMap, model);
+  }
+  else {
+    return mJustifier(assign_list, mGvarMap, model);
+  }
 }
 
 END_NAMESPACE_DRUID
