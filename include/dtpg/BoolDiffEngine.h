@@ -1,25 +1,22 @@
-﻿#ifndef DTPGENGINE_H
-#define DTPGENGINE_H
+﻿#ifndef BOOLDIFFENGINE_H
+#define BOOLDIFFENGINE_H
 
-/// @file DtpgEngine.h
-/// @brief DtpgEngine のヘッダファイル
+/// @file BoolDiffEngine.h
+/// @brief BoolDiffEngine のヘッダファイル
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023, 2024 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 
 #include "TpgNetwork.h"
 #include "TpgNode.h"
-#include "DtpgResult.h"
 #include "DtpgStats.h"
-#include "FaultType.h"
 #include "Val3.h"
 #include "VidMap.h"
 #include "NodeValList.h"
-#include "Justifier.h"
 
 #include "ym/SatBool3.h"
 #include "ym/SatLiteral.h"
@@ -29,35 +26,31 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class DtpgEngine DtpgEngine.h "DtpgEngine.h"
-/// @brief DTPG の基本的な処理を行うクラス
+/// @class BoolDiffEngine BoolDiffEngine.h "BoolDiffEngine.h"
+/// @brief ブール微分を行うクラス
 ///
-/// network 上で root の値の反転がいずれかの外部出力まで伝搬する
+/// network 上で node の値の反転がいずれかの外部出力まで伝搬する
 /// 条件を表す CNF を生成する．
 /// いわゆる「ブール微分」を行っている．
 ///
 /// option の仕様は以下の通り
 /// - "sat_param": JSONオブジェクト
 ///                SATソルバの初期化パラメータ
-/// - "extractor": JSONオブジェクト(null or string)
-///                extractor の初期化パラメータ
-/// - "justifier": JSONオブジェクト(null or string)
-///                justifier の初期化パラメータ
 //////////////////////////////////////////////////////////////////////
-class DtpgEngine
+class BoolDiffEngine
 {
 public:
 
   /// @brief コンストラクタ
-  DtpgEngine(
+  BoolDiffEngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    const TpgNode* root,	   ///< [in] 故障伝搬の起点となるノード
+    const TpgNode* root_node,	   ///< [in] 起点となるノード
     const JsonValue& option        ///< [in] オプション
     = JsonValue{}
   );
 
   /// @brief デストラクタ
-  ~DtpgEngine() = default;
+  ~BoolDiffEngine() = default;
 
 
 public:
@@ -67,33 +60,10 @@ public:
 
   /// @brief CNF の生成を行う．
   ///
-  /// root からいずれかの外部出力へ故障の影響が伝搬する
+  /// node からいずれかの外部出力へ故障の影響が伝搬する
   /// 条件を表す CNF を作る．
   void
   make_cnf();
-
-  /// @brief solve() が成功した時にテストパタンを生成する．
-  TestVector
-  gen_pattern(
-    const TpgFault* fault ///< [in] 故障
-  )
-  {
-    auto assign_list = get_sufficient_condition(fault);
-    return justify(assign_list);
-  }
-
-  /// @brief 十分条件を取り出す．
-  /// @return 十分条件を表す割当リストを返す．
-  NodeValList
-  get_sufficient_condition(
-    const TpgFault* fault ///< [in] 故障
-  );
-
-  /// @brief 十分条件からテストベクタを作る．
-  TestVector
-  justify(
-    const NodeValList& assign_list ///< [in] 十分条件
-  );
 
 
 public:
@@ -344,20 +314,6 @@ protected:
     mDvarMap.set_vid(node, var);
   }
 
-  /// @brief make_cnf() の追加処理
-  virtual
-  void
-  opt_make_cnf();
-
-  /// @brief gen_pattern() で用いる追加の検出条件を作る．
-  ///
-  /// デフォルトでは空を返す．
-  virtual
-  vector<SatLiteral>
-  gen_assumptions(
-    const TpgFault* fault ///< [in] 対象の故障
-  );
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -372,12 +328,6 @@ private:
 
   // 故障伝搬の起点となるノード
   const TpgNode* mRoot;
-
-  // extractor のオプション
-  JsonValue mExOpt;
-
-  // justifier
-  Justifier mJustifier;
 
   // TFOノードを入れておくリスト
   vector<const TpgNode*> mTfoList;
@@ -413,4 +363,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // DTPGENGINE_H
+#endif // BOOLDIFFENGINE_H

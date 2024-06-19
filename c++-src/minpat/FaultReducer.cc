@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "FaultReducer.h"
-#include "FFREngine.h"
+#include "BoolDiffEngine.h"
 #include "DomCandGen.h"
 #include "UndetChecker.h"
 #include "DomChecker.h"
@@ -54,11 +54,11 @@ FaultReducer::FaultReducer(
       auto val = option.get("simple");
       mSimple = val.get_bool();
     }
+#endif
     if ( option.has_key("debug") ) {
       auto val = option.get("debug");
       mDebug = val.get_bool();
     }
-#endif
   }
 }
 
@@ -102,12 +102,8 @@ FaultReducer::run()
     mTimer.start();
   }
 
-  cout << "DomCandGen" << endl;
-
   DomCandGen dc_gen{mNetwork, mFaultList, mTvList};
   dc_gen.run(mLoopLimit, mDomCandList);
-
-  cout << "DomCandGen end" << endl;
 
   if ( mDebug ) {
     mTimer.stop();
@@ -167,7 +163,7 @@ FaultReducer::ffr_reduction()
       continue;
     }
 
-    FFREngine dtpg{mNetwork, ffr, mFFRCheckerOption};
+    BoolDiffEngine engine{mNetwork, ffr->root(), mFFRCheckerOption};
 
     // 支配関係を調べ，代表故障のみを残す．
     SizeType nf = tmp_fault_list.size();
@@ -177,7 +173,7 @@ FaultReducer::ffr_reduction()
 	continue;
       }
       auto f1_ffr_cond = fault1->ffr_propagate_condition();
-      auto assumptions = dtpg.conv_to_literal_list(f1_ffr_cond);
+      auto assumptions = engine.conv_to_literal_list(f1_ffr_cond);
       for ( auto fault2: mDomCandList[fault1->id()] ) {
 	if ( fault2->ffr_root() != fault1->ffr_root() ) {
 	  continue;
@@ -188,13 +184,13 @@ FaultReducer::ffr_reduction()
 	auto f2_ffr_cond = fault2->ffr_propagate_condition();
 	f2_ffr_cond.diff(f1_ffr_cond);
 	bool unsat = true;
-	vector<SatLiteral> assumptions1(assumptions);
+	vector<SatLiteral> assumptions1{assumptions};
 	// プレースホルダ
 	assumptions1.push_back(SatLiteral::X);
 	for ( auto nv: f2_ffr_cond ) {
-	  auto lit1 = dtpg.conv_to_literal(nv);
+	  auto lit1 = engine.conv_to_literal(nv);
 	  assumptions1[assumptions.size()] = ~lit1;
-	  if ( dtpg.check(assumptions1) == SatBool3::True ) {
+	  if ( engine.check(assumptions1) == SatBool3::True ) {
 	    unsat = false;
 	    break;
 	  }
@@ -478,6 +474,7 @@ FaultReducer::dom_reduction()
 	if ( is_deleted(fault2) ) {
 	  continue;
 	}
+	// 支配する故障の候補中に fault1 が含まれるか調べる．
 	bool found = false;
 	for ( auto fault3: mDomCandList[fault2->id()] ) {
 	  if ( fault3 == fault1 ) {

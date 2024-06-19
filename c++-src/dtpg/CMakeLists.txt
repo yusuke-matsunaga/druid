@@ -38,6 +38,7 @@ set ( driver_SOURCES
   )
 
 set ( engine_SOURCES
+  engine/BoolDiffEngine.cc
   engine/DtpgEngine.cc
   engine/FFREngine.cc
   engine/MFFCEngine.cc

@@ -76,7 +76,7 @@ DomChecker::DomChecker(
     vector<SatLiteral> odiff;
     odiff.reserve(no);
     for ( auto node: mOutputList[0] ) {
-      SatLiteral dlit(dvar(node));
+      auto dlit = dvar(node);
       odiff.push_back(dlit);
     }
     mSolver.add_clause(odiff);
@@ -90,8 +90,8 @@ DomChecker::DomChecker(
   // 故障の非検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
   //////////////////////////////////////////////////////////////////////
   for ( auto node: mOutputList[1] ) {
-    SatLiteral glit(gvar(node));
-    SatLiteral flit(fvar(node, 1));
+    auto glit = gvar(node);
+    auto flit = fvar(node, 1);
     mSolver.add_clause( glit, ~flit);
     mSolver.add_clause(~glit,  flit);
   }
@@ -163,16 +163,16 @@ DomChecker::prepare_vars()
   for ( int pos: { 0, 1 } ) {
     // root[pos] の TFO を mTfoList[pos] に入れる．
     set_tfo_mark(mRoot[pos], pos);
-    for ( int rpos = 0; rpos < mTfoList[pos].size(); ++ rpos ) {
-      const TpgNode* node = mTfoList[pos][rpos];
+    for ( SizeType rpos = 0; rpos < mTfoList[pos].size(); ++ rpos ) {
+      auto node = mTfoList[pos][rpos];
       for ( auto onode: node->fanout_list() ) {
 	set_tfo_mark(onode, pos);
       }
     }
   }
 
-  for ( int rpos = 0; rpos < mTfiList.size(); ++ rpos ) {
-    const TpgNode* node = mTfiList[rpos];
+  for ( SizeType rpos = 0; rpos < mTfiList.size(); ++ rpos ) {
+    auto node = mTfiList[rpos];
     for ( auto inode: node->fanin_list() ) {
       set_tfi_mark(inode);
     }
@@ -190,8 +190,8 @@ DomChecker::prepare_vars()
     }
     set_prev_tfi_mark(mRoot[0]);
     set_prev_tfi_mark(mRoot[1]);
-    for ( int rpos = 0; rpos < mPrevTfiList.size(); ++ rpos) {
-      const TpgNode* node = mPrevTfiList[rpos];
+    for ( SizeType rpos = 0; rpos < mPrevTfiList.size(); ++ rpos) {
+      auto node = mPrevTfiList[rpos];
       for ( auto inode: node->fanin_list() ) {
 	set_prev_tfi_mark(inode);
       }
@@ -340,9 +340,9 @@ DomChecker::make_dchain_cnf(
   const TpgNode* node
 )
 {
-  SatLiteral glit{mGvarMap(node)};
-  SatLiteral flit{mFvarMap[0](node)};
-  SatLiteral dlit{mDvarMap(node)};
+  auto glit = mGvarMap(node);
+  auto flit = mFvarMap[0](node);
+  auto dlit = mDvarMap(node);
 
   // dlit -> XOR(glit, flit) を追加する．
   // 要するに正常回路と故障回路で異なっているとき dlit が 1 となる．
@@ -372,10 +372,10 @@ DomChecker::make_dchain_cnf(
       DEBUG_OUT << node->str()
 		<< ": dvar -> ";
     }
-    int nfo = node->fanout_num();
+    SizeType nfo = node->fanout_num();
     if ( nfo == 1 ) {
       auto onode = node->fanout_list()[0];
-      SatLiteral odlit(mDvarMap(onode));
+      auto odlit = mDvarMap(onode);
       mSolver.add_clause(~dlit, odlit);
 
       if ( debug_dtpg ) {
@@ -387,7 +387,7 @@ DomChecker::make_dchain_cnf(
       vector<SatLiteral> tmp_lits;
       tmp_lits.reserve(nfo + 1);
       for ( auto onode: node->fanout_list() ) {
-	SatLiteral dlit1(mDvarMap(onode));
+	auto dlit1 = mDvarMap(onode);
 	tmp_lits.push_back(dlit1);
 
 	if ( debug_dtpg ) {
@@ -403,9 +403,9 @@ DomChecker::make_dchain_cnf(
       tmp_lits.push_back(~dlit);
       mSolver.add_clause(tmp_lits);
 
-      const TpgNode* imm_dom = node->imm_dom();
+      auto imm_dom = node->imm_dom();
       if ( imm_dom != nullptr ) {
-	SatLiteral odlit(mDvarMap(imm_dom));
+	auto odlit = mDvarMap(imm_dom);
 	mSolver.add_clause(~dlit, odlit);
 
 	if ( debug_dtpg ) {
@@ -425,7 +425,7 @@ DomChecker::conv_to_literal(
   NodeVal node_val
 )
 {
-  const TpgNode* node = node_val.node();
+  auto node = node_val.node();
   bool inv = !node_val.val(); // 0 の時が inv = true
   auto vid = (node_val.time() == 0) ? hvar(node) : gvar(node);
   if ( inv ) {
@@ -441,8 +441,8 @@ DomChecker::conv_to_assumptions(
   vector<SatLiteral>& assumptions
 )
 {
-  int n0 = assumptions.size();
-  int n = assign_list.size();
+  SizeType n0 = assumptions.size();
+  SizeType n = assign_list.size();
   assumptions.reserve(n + n0);
   for ( auto nv: assign_list ) {
     auto lit = conv_to_literal(nv);
