@@ -493,7 +493,7 @@ FaultReducer::dom_reduction()
       DomChecker dom_checker{mNetwork, ffr2->root(), fault1, mDomCheckerParam};
       for ( auto fault2: fault2_list ) {
 	++ check_num;
-	SatBool3 res = dom_checker.check_detectable(fault2);
+	SatBool3 res = dom_checker.check(fault2);
 	if ( res == SatBool3::False ) {
 	  ++ success_num;
 	  // fault2 が検出可能の条件のもとで fault1 が検出不能となることはない．

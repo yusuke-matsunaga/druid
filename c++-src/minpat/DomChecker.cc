@@ -69,7 +69,7 @@ DomChecker::DomChecker(
   gen_faulty_cnf();
 
   //////////////////////////////////////////////////////////////////////
-  // 故障の検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
+  // 故障の検出条件(正確には mRoot[0] から外部出力までの故障の伝搬条件)
   //////////////////////////////////////////////////////////////////////
   {
     SizeType no = mOutputList[0].size();
@@ -87,13 +87,31 @@ DomChecker::DomChecker(
   }
 
   //////////////////////////////////////////////////////////////////////
-  // 故障の非検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
+  // 故障の非検出条件(正確には mRoot[1] から外部出力までの故障の伝搬条件)
   //////////////////////////////////////////////////////////////////////
   for ( auto node: mOutputList[1] ) {
     auto glit = gvar(node);
     auto flit = fvar(node, 1);
     mSolver.add_clause( glit, ~flit);
     mSolver.add_clause(~glit,  flit);
+  }
+  {
+    auto glit = gvar(mRoot[1]);
+    auto flit = fvar(mRoot[1], 1);
+    // flit が glit と異なるのは fault->excitation_condition()
+    // が成り立っている時．
+    auto dlit = new_variable();
+    mSolver.add_xorgate(dlit, glit, flit);
+    auto ex_cond = fault->excitation_condition();
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(ex_cond.size() + 1);
+    for ( auto nv: ex_cond ) {
+      auto lit = conv_to_literal(nv);
+      mSolver.add_clause(lit, ~dlit);
+      tmp_lits.push_back(~lit);
+    }
+    tmp_lits.push_back(dlit);
+    mSolver.add_clause(tmp_lits);
   }
 }
 
@@ -102,9 +120,9 @@ DomChecker::~DomChecker()
 {
 }
 
-// @brief テスト生成を行なう．
+// @brief チェックする．
 SatBool3
-DomChecker::check_detectable(
+DomChecker::check(
   const TpgFault* fault
 )
 {
@@ -179,7 +197,7 @@ DomChecker::prepare_vars()
   }
 
   // TFI に含まれる DFF のさらに TFI を mTfi2List に入れる．
-  if ( mFaultType == FaultType::TransitionDelay ) {
+  if ( has_prev_state() ) {
     for ( int pos: { 0, 1 } ) {
       if ( mRoot[pos]->is_dff_output() ) {
 	mDffInputList.push_back(mRoot[pos]->alt_node());

@@ -15,7 +15,6 @@
 #include "TpgNode.h"
 #include "DtpgResult.h"
 #include "DtpgStats.h"
-#include "FaultType.h"
 
 #include "ym/sat.h"
 #include "ym/SatBool3.h"
@@ -31,6 +30,11 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class DomChecker DomChecker.h "DomChecker.h"
 /// @brief 支配関係の判定を行うクラス
+///
+/// f1 が検出可能で f2 が検出不可能なパタンが存在しないことを調べるための
+/// クラス．
+/// f1 の属する FFR の根のノードを root で指定する．
+/// f2 は fault で指定する．
 //////////////////////////////////////////////////////////////////////
 class DomChecker
 {
@@ -54,10 +58,14 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief テスト生成を行なう．
+  /// @brief チェックする．
   /// @return 結果を返す．
+  ///
+  /// fault の結果が FFR の根まで伝搬する条件のもとで
+  /// SAT かどうかを調べる．
+  /// UNSAT の場合には支配故障であることがわかる．
   SatBool3
-  check_detectable(
+  check(
     const TpgFault* fault ///< [in] 対象の故障
   );
 
@@ -295,6 +303,13 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 1時刻前の状態を保持する時に true を返す．
+  bool
+  has_prev_state() const
+  {
+    return mNetwork.fault_type() == FaultType::TransitionDelay;
+  }
+
   /// @brief 故障伝搬条件を表すCNF式を生成する．
   void
   make_dchain_cnf(
@@ -337,7 +352,7 @@ private:
     if ( (mMarkArray[id] & mask) == 0U ) {
       mMarkArray[id] |= mask;
       mTfiList.push_back(node);
-      if ( mFaultType == FaultType::TransitionDelay && node->is_dff_output() ) {
+      if ( has_prev_state() && node->is_dff_output() ) {
 	mDffInputList.push_back(node->alt_node());
       }
     }
@@ -373,9 +388,6 @@ private:
 
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
-
-  // 故障の種類
-  FaultType mFaultType;
 
   // 故障
   const TpgFault* mFault;
