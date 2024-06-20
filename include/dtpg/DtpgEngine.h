@@ -14,7 +14,7 @@
 #include "BoolDiffEngine.h"
 #include "DtpgResult.h"
 #include "DtpgStats.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "Justifier.h"
 
 #include "ym/SatBool3.h"
@@ -75,7 +75,7 @@ public:
 
   /// @brief 十分条件を取り出す．
   /// @return 十分条件を表す割当リストを返す．
-  NodeValList
+  NodeTimeValList
   get_sufficient_condition(
     const TpgFault* fault ///< [in] 故障
   );
@@ -86,9 +86,18 @@ protected:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障の活性化条件
+  /// @brief 故障伝搬の起点ノードを返す．
   virtual
-  NodeValList
+  const TpgNode*
+  fault_origin(
+    const TpgFault* fault ///< [in] 対象の故障
+  ) = 0;
+
+  /// @brief 故障の活性化条件
+  ///
+  /// fault_origin() まで故障の影響が伝搬する条件を返す．
+  virtual
+  NodeTimeValList
   fault_condition(
     const TpgFault* fault ///< [in] 対象の故障
   ) = 0;

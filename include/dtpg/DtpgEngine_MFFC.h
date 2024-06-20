@@ -25,9 +25,9 @@ public:
 
   /// @brief コンストラクタ
   DtpgEngine_MFFC(
-    const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    const TpgMFFC* mffc,	   ///< [in] 故障伝搬の起点となる MFFC
-    const JsonValue& option        ///< [in] オプション
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const TpgMFFC* mffc,       ///< [in] 故障伝搬の起点となる MFFC
+    const JsonValue& option    ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -39,8 +39,14 @@ private:
   // DtpgEngine の仮想関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障伝搬の起点ノードを返す．
+  const TpgNode*
+  fault_origin(
+    const TpgFault* fault ///< [in] 対象の故障
+  ) override;
+
   /// @brief 故障の活性化条件
-  NodeValList
+  NodeTimeValList
   fault_condition(
     const TpgFault* fault ///< [in] 対象の故障
   ) override;
@@ -86,7 +92,7 @@ private:
   vector<SatLiteral> mEvarArray;
 
   // ノード番号をキーにしてFFR番号を入れる連想配列
-  unordered_map<SizeType, SizeType> mFfrIdMap;
+  unordered_map<SizeType, SizeType> mFFRIdMap;
 
 };
 

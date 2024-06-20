@@ -17,7 +17,7 @@ BEGIN_NAMESPACE_DRUID_FSIM
 /// @class InputVals InputVals.h "InputVals.h"
 /// @brief シミュレーションの入力パタンを表すクラス
 ///
-/// 実際には TestVector と NodeValList の２通りがあるので仮想関数で
+/// 実際には TestVector と NodeTimeValList の２通りがあるので仮想関数で
 /// 抽象化する．
 //////////////////////////////////////////////////////////////////////
 class InputVals
@@ -184,7 +184,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////
 /// @class NvlInputVals InputVals.h "InputVals.h"
-/// @brief NodeValList を用いた InputVals の実装
+/// @brief NodeTimeValList を用いた InputVals の実装
 //////////////////////////////////////////////////////////////////////
 class NvlInputVals :
   public InputVals
@@ -194,7 +194,7 @@ public:
   /// @brief コンストラクタ
   explicit
   NvlInputVals(
-    const NodeValList& assign_list ///< [in] 値の割り当てリスト
+    const NodeTimeValList& assign_list ///< [in] 値の割り当てリスト
   );
 
   /// @brief デストラクタ
@@ -235,7 +235,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 値の割り当てリスト
-  const NodeValList& mAssignList;
+  const NodeTimeValList& mAssignList;
 
 };
 

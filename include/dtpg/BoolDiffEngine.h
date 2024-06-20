@@ -16,7 +16,7 @@
 #include "DtpgStats.h"
 #include "Val3.h"
 #include "VidMap.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "Justifier.h"
 
 #include "ym/SatBool3.h"
@@ -123,13 +123,13 @@ public:
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
   conv_to_literal(
-    NodeVal node_val ///< [in] 値割当リスト
+    NodeTimeVal node_val ///< [in] 値割当リスト
   );
 
   /// @brief 値割り当てをリテラルのリストに変換する．
   vector<SatLiteral>
   conv_to_literal_list(
-    const NodeValList& assign_list ///< [in] 値の割り当てリスト
+    const NodeTimeValList& assign_list ///< [in] 値の割り当てリスト
   )
   {
     vector<SatLiteral> ans_list;
@@ -140,7 +140,7 @@ public:
   /// @brief 値割り当てをリテラルのリストに追加する．
   void
   add_to_literal_list(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
+    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
     vector<SatLiteral>& lit_list    ///< [out] 変換したリテラルを追加するリスト
   );
 
@@ -172,8 +172,12 @@ public:
   }
 
   /// @brief 直前の check() が成功したときの十分条件を求める．
-  NodeValList
-  extract_sufficient_condition();
+  ///
+  /// root はコンストラクタの root_node とは異なる可能性がある．
+  NodeTimeValList
+  extract_sufficient_condition(
+    const TpgNode* root ///< [in] 故障伝搬の起点となるノード
+  );
 
   /// @brief 与えられた割当の正当化を行う．
   /// @return 外部入力の値割り当てを返す．
@@ -181,9 +185,9 @@ public:
   /// この関数内では SAt ソルバを起動しない．
   /// assign_list の割当は直前の check() の結果に沿ったものになっている
   /// 必要がある．
-  NodeValList
+  NodeTimeValList
   justify(
-    const NodeValList& assign_list ///< [in] もととなる値割り当て
+    const NodeTimeValList& assign_list ///< [in] もととなる値割り当て
   );
 
   /// @brief 1時刻前の正常値の変数を返す．

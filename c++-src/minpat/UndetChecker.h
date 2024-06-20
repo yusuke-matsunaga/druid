@@ -57,7 +57,7 @@ public:
   /// @return 結果を返す．
   SatBool3
   check(
-    const NodeValList& cond ///< [in] 条件
+    const NodeTimeValList& cond ///< [in] 条件
   );
 
   /// @brief 統計情報を得る．
@@ -70,7 +70,7 @@ public:
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
   conv_to_literal(
-    NodeVal node_val ///< [in] 値割り当て
+    NodeTimeVal node_val ///< [in] 値割り当て
   );
 
   /// @brief 値割り当てをリテラルのリストに変換する．
@@ -78,8 +78,8 @@ public:
   /// @retval false CNF節を作っていない部分の割り当てがあった．
   bool
   conv_to_assumptions(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    vector<SatLiteral>& assumptions ///< [ou] 変換したリテラルを追加するリスト
+    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
+    vector<SatLiteral>& assumptions     ///< [ou] 変換したリテラルを追加するリスト
   );
 
   /// @brief 一つの SAT問題を解く．

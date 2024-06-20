@@ -16,7 +16,7 @@ BEGIN_NAMESPACE_DRUID
 
 /// @brief 十分条件を取り出す．
 extern
-NodeValList
+NodeTimeValList
 extract_sufficient_condition(
   const TpgNode* root,    ///< [in] 起点となるノード
   const VidMap& gvar_map, ///< [in] 正常値のマップ

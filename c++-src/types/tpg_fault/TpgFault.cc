@@ -3,7 +3,7 @@
 /// @brief TpgFault の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023, 2024 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgFault.h"
@@ -11,7 +11,7 @@
 #include "FaultType.h"
 #include "TpgGate.h"
 #include "TpgNode.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "Fval2.h"
 #include "Val3.h"
 
@@ -129,7 +129,7 @@ TpgFault::ffr_root() const
 }
 
 // @brief 故障が励起してFFRの根まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault::ffr_propagate_condition() const
 {
   // ノードの出力に故障が現れる励起条件
@@ -203,10 +203,10 @@ TpgFault_StemSa0::fval() const
 }
 
 // @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_StemSa0::excitation_condition() const
 {
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   // 0 縮退故障なので 1 にする．
   assign_list.add(origin_node(), 1, true);
   return assign_list;
@@ -232,10 +232,10 @@ TpgFault_StemSa1::fval() const
 }
 
 // @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_StemSa1::excitation_condition() const
 {
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   // 1 縮退故障なので 0 にする．
   assign_list.add(origin_node(), 1, false);
   return assign_list;
@@ -277,7 +277,7 @@ TpgFault_Branch::origin_node() const
 // @brief 故障の伝搬条件を追加する．
 void
 TpgFault_Branch::add_gate_propagation_condition(
-  NodeValList& assign_list
+  NodeTimeValList& assign_list
 ) const
 {
   const auto& bi = gate()->branch_info(ipos());
@@ -330,10 +330,10 @@ TpgFault_BranchSa0::fval() const
 }
 
 // @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_BranchSa0::excitation_condition() const
 {
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   // 故障の励起条件
   auto inode = gate()->input_node(ipos());
   assign_list.add(inode, 1, true);
@@ -362,10 +362,10 @@ TpgFault_BranchSa1::fval() const
 }
 
 // @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_BranchSa1::excitation_condition() const
 {
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   // 故障の励起条件
   auto inode = gate()->input_node(ipos());
   assign_list.add(inode, 1, false);
@@ -406,11 +406,11 @@ TpgFault_StemRise::fval() const
 }
 
 // @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_StemRise::excitation_condition() const
 {
   // 0 -> 1 の遷移を起こす．
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   assign_list.add(origin_node(), 0, false);
   assign_list.add(origin_node(), 1, true);
   return assign_list;
@@ -436,11 +436,11 @@ TpgFault_StemFall::fval() const
 }
 
 // @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_StemFall::excitation_condition() const
 {
   // 1 -> 0 の遷移を起こす．
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   assign_list.add(origin_node(), 0, true);
   assign_list.add(origin_node(), 1, false);
   return assign_list;
@@ -478,10 +478,10 @@ TpgFault_BranchRise::fval() const
 }
 
 /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_BranchRise::excitation_condition() const
 {
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   // 故障の励起条件
   // 0 -> 1 の遷移を起こす．
   auto inode = gate()->input_node(ipos());
@@ -512,10 +512,10 @@ TpgFault_BranchFall::fval() const
 }
 
 /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_BranchFall::excitation_condition() const
 {
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   // 故障の励起条件
   // 0 -> 1 の遷移を起こす．
   auto inode = gate()->input_node(ipos());
@@ -561,10 +561,10 @@ TpgFault_Ex::origin_node() const
 }
 
 // @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-NodeValList
+NodeTimeValList
 TpgFault_Ex::excitation_condition() const
 {
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   SizeType ni = gate()->input_num();
   for ( SizeType i = 0; i < ni; ++ i ) {
     auto inode = gate()->input_node(i);

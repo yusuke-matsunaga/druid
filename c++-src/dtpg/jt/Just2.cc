@@ -41,7 +41,7 @@ Just2::~Just2()
 // @brief 初期化処理
 void
 Just2::just_init(
-  const NodeValList& assign_list
+  const NodeTimeValList& assign_list
 )
 {
   // ヒューリスティックで用いる重みを計算する．

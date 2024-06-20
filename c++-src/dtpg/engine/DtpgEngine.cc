@@ -76,13 +76,14 @@ DtpgEngine::gen_pattern(
 }
 
 // @brief 十分条件を取り出す．
-NodeValList
+NodeTimeValList
 DtpgEngine::get_sufficient_condition(
   const TpgFault* fault
 )
 {
   // FFR の根の先の伝搬条件
-  auto suf_cond = extract_sufficient_condition();
+  auto root = fault_origin(fault);
+  auto suf_cond = extract_sufficient_condition(root);
 
   // 故障の活性化条件
   auto fault_cond = fault_condition(fault);

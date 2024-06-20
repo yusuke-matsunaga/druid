@@ -352,6 +352,13 @@ TpgNetwork::fault_type() const
   return mImpl->fault_type();
 }
 
+// @brief 1時刻前の状態を持つ時 true を返す．
+bool
+TpgNetwork::has_prev_state() const
+{
+  return fault_type() == FaultType::TransitionDelay;
+}
+
 // @brief 代表故障のリストを得る．
 const vector<const TpgFault*>&
 TpgNetwork::rep_fault_list() const

@@ -79,14 +79,14 @@ public:
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
   conv_to_literal(
-    NodeVal node_val
+    NodeTimeVal node_val
   );
 
   /// @brief 値割り当てをリテラルのリストに変換する．
   void
   conv_to_assumptions(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    vector<SatLiteral>& assumptions ///< [out] 変換したリテラルを追加するリスト
+    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
+    vector<SatLiteral>& assumptions     ///< [out] 変換したリテラルを追加するリスト
   );
 
   /// @brief SATソルバに変数を割り当てる．

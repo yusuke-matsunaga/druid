@@ -9,8 +9,7 @@
 #include "Justifier.h"
 #include "Just1.h"
 #include "Just2.h"
-#include "NodeValList.h"
-#include "TestVector.h"
+#include "NodeTimeValList.h"
 #include "TpgNetwork.h"
 
 
@@ -20,10 +19,11 @@ BEGIN_NONAMESPACE
 
 JustImpl*
 new_just(
-  const JsonValue& option,
-  SizeType max_id
+  const TpgNetwork& network,
+  const JsonValue& option
 )
 {
+  SizeType max_id = network.node_num();
   if ( option.is_null() ) {
     // デフォルトフォールバックは Just2
     return new Just2(max_id);
@@ -61,7 +61,8 @@ END_NONAMESPACE
 Justifier::Justifier(
   const TpgNetwork& network,
   const JsonValue& option
-) : mImpl{new_just(option, network.node_num())}
+) : mHasPrevState{network.has_prev_state()},
+    mImpl{new_just(network, option)}
 {
 }
 
@@ -73,26 +74,20 @@ Justifier::~Justifier()
 }
 
 // @brief 正当化に必要な割当を求める
-NodeValList
+NodeTimeValList
 Justifier::operator()(
-  const NodeValList& assign_list,
-  const VidMap& var1_map,
-  const SatModel& model
-)
-{
-  return mImpl->justify(assign_list, var1_map, model);
-}
-
-// @brief 正当化に必要な割当を求める
-NodeValList
-Justifier::operator()(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model
 )
 {
-  return mImpl->justify(assign_list, var1_map, var2_map, model);
+  if ( mHasPrevState ) {
+    return mImpl->justify(assign_list, var1_map, var2_map, model);
+  }
+  else {
+    return mImpl->justify(assign_list, var2_map, model);
+  }
 }
 
 END_NAMESPACE_DRUID

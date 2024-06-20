@@ -78,15 +78,8 @@ FFREncDriver::gen_pattern(
 					       model, mExOpt);
   auto ffr_cond = fault->ffr_propagate_condition();
   suf_cond.merge(ffr_cond);
-  auto has_prev_state = mNetwork.fault_type() == FaultType::TransitionDelay;
-  if ( has_prev_state ) {
-    auto pi_assign_list = mJustifier(suf_cond, mHvarMap, mGvarMap, model);
-    return TestVector{mNetwork, pi_assign_list};
-  }
-  else {
-    auto pi_assign_list = mJustifier(suf_cond, mGvarMap, model);
-    return TestVector{mNetwork, pi_assign_list};
-  }
+  auto pi_assign_list = mJustifier(suf_cond, mHvarMap, mGvarMap, model);
+  return TestVector{mNetwork, pi_assign_list};
 }
 
 // @brief CNF の生成時間を返す．
@@ -106,7 +99,7 @@ FFREncDriver::sat_stats() const
 // @brief 値割り当てをリテラルに変換する．
 SatLiteral
 FFREncDriver::conv_to_literal(
-  NodeVal node_val
+  NodeTimeVal node_val
 )
 {
   auto node = node_val.node();
@@ -118,7 +111,7 @@ FFREncDriver::conv_to_literal(
 // @brief 値割り当てをリテラルのリストに変換する．
 void
 FFREncDriver::add_to_literal_list(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   vector<SatLiteral>& lit_list
 )
 {

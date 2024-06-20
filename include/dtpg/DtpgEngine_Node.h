@@ -43,8 +43,14 @@ private:
   // DtpgEngine の仮想関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障伝搬の起点ノードを返す．
+  const TpgNode*
+  fault_origin(
+    const TpgFault* fault ///< [in] 対象の故障
+  ) override;
+
   /// @brief 故障の活性化条件
-  NodeValList
+  NodeTimeValList
   fault_condition(
     const TpgFault* fault ///< [in] 対象の故障
   ) override;

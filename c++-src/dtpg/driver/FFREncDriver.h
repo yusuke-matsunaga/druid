@@ -72,13 +72,13 @@ private:
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
   conv_to_literal(
-    NodeVal node_val ///< [in] 値割当リスト
+    NodeTimeVal node_val ///< [in] 値割当リスト
   );
 
   /// @brief 値割り当てをリテラルのリストに変換する．
   vector<SatLiteral>
   conv_to_literal_list(
-    const NodeValList& assign_list ///< [in] 値の割り当てリスト
+    const NodeTimeValList& assign_list ///< [in] 値の割り当てリスト
   )
   {
     vector<SatLiteral> ans_list;
@@ -89,10 +89,9 @@ private:
   /// @brief 値割り当てをリテラルのリストに追加する．
   void
   add_to_literal_list(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    vector<SatLiteral>& lit_list    ///< [out] 変換したリテラルを追加するリスト
+    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
+    vector<SatLiteral>& lit_list        ///< [out] 変換したリテラルを追加するリスト
   );
-
 
 
 private:

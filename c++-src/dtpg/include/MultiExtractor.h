@@ -5,11 +5,11 @@
 /// @brief MultiExtractor のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2014, 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "VidMap.h"
 #include "Val3.h"
 #include "ym/Expr.h"

@@ -119,7 +119,7 @@ Fsim::spsfp(
 // @brief SPSFP故障シミュレーションを行う．
 bool
 Fsim::spsfp(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   const TpgFault* f,
   DiffBits& dbits
 )
@@ -140,7 +140,7 @@ Fsim::sppfp(
 // @brief ひとつのパタンで故障シミュレーションを行う．
 void
 Fsim::sppfp(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   cbtype1 callback
 )
 {

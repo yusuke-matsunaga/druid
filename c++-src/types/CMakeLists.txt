@@ -22,6 +22,7 @@ add_subdirectory( test-programs )
 set (types_SOURCES
   tpg_network/GateType.cc
   tpg_network/NodeValList.cc
+  tpg_network/NodeTimeValList.cc
   tpg_network/TpgNodeSet.cc
   tpg_network/TpgNetwork.cc
   tpg_network/TpgNetworkImpl.cc

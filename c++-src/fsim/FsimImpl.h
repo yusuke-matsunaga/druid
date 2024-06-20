@@ -95,9 +95,9 @@ public:
   virtual
   bool
   spsfp(
-    const NodeValList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault* f,              ///< [in] 対象の故障
-    DiffBits& dbits                 ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+    const NodeTimeValList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault* f,                  ///< [in] 対象の故障
+    DiffBits& dbits                     ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -114,10 +114,10 @@ public:
   virtual
   void
   sppfp(
-    const NodeValList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback                ///< [in] コールバック関数
-                                    ///<      1番目の引数は検出された故障
-                                    ///<      2番目の引数は出力の伝搬状況
+    const NodeTimeValList& assign_list, ///< [in] 値の割当リスト
+    cbtype1 callback                    ///< [in] コールバック関数
+                                        ///<      1番目の引数は検出された故障
+                                        ///<      2番目の引数は出力の伝搬状況
   ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．

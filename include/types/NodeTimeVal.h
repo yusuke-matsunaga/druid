@@ -1,8 +1,8 @@
-#ifndef NODEVAL_H
-#define NODEVAL_H
+#ifndef NODETIMEVAL_H
+#define NODETIMEVAL_H
 
-/// @file NodeVal.h
-/// @brief NodeVal のヘッダファイル
+/// @file NodeTimeVal.h
+/// @brief NodeTimeVal のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -14,7 +14,7 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class NodeVal NodeVal.h "td/NodeVal.h"
+/// @class NodeTimeVal NodeTimeVal.h "td/NodeTimeVal.h"
 /// @brief ノードに対する値の割当を表すクラス
 ///
 /// 昔の C でよく使われていたポインタの下位ビットが0であることを
@@ -23,32 +23,33 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// なお，縮退故障モードのときは時刻は 1 となる．
 //////////////////////////////////////////////////////////////////////
-class NodeVal
+class NodeTimeVal
 {
 public:
 
   /// @brief 空のコンストラクタ
   ///
   /// 内容は不定
-  NodeVal(
+  NodeTimeVal(
   ) : mPackVal{0UL}
   {
   }
 
   /// @brief 値を指定したコンストラクタ
-  NodeVal(
+  NodeTimeVal(
     const TpgNode* node, ///< [in] ノード
+    int time,		 ///< [in] 時刻 ( 0 or 1 )
     bool val		 ///< [in] 値
-  ) : mPackVal{reinterpret_cast<PtrIntType>(node) | val}
+  ) : mPackVal{reinterpret_cast<PtrIntType>(node) | (time << 1) | val}
   {
   }
 
   /// @brief コピーコンストラクタ
-  NodeVal(const NodeVal& src) = default;
+  NodeTimeVal(const NodeTimeVal& src) = default;
 
   /// @brief コピー代入演算子
-  NodeVal&
-  operator=(const NodeVal& src) = default;
+  NodeTimeVal&
+  operator=(const NodeTimeVal& src) = default;
 
 
 public:
@@ -63,6 +64,22 @@ public:
     return reinterpret_cast<const TpgNode*>(mPackVal & ~3UL);
   }
 
+  /// @brief 時刻を返す．
+  int
+  time() const
+  {
+    return static_cast<int>((mPackVal >> 1) & 1U);
+  }
+
+  /// @brief ノードと時刻をパックした値を返す．
+  ///
+  /// 結果は等価比較のみに用いる．
+  PtrIntType
+  node_time() const
+  {
+    return mPackVal & ~1UL;
+  }
+
   /// @brief 値を返す．
   bool
   val() const
@@ -74,8 +91,8 @@ public:
   friend
   bool
   operator<(
-    const NodeVal& left,
-    const NodeVal& right
+    const NodeTimeVal& left,
+    const NodeTimeVal& right
   );
 
 
@@ -93,8 +110,8 @@ private:
 /// @return s を返す．
 ostream&
 operator<<(
-  ostream& s, ///< [in] 出力先のストリーム
-  NodeVal nv  ///< [in] 値の割り当て
+  ostream& s,    ///< [in] 出力先のストリーム
+  NodeTimeVal nv ///< [in] 値の割り当て
 );
 
 
@@ -102,8 +119,8 @@ operator<<(
 inline
 bool
 operator>(
-  const NodeVal& left,
-  const NodeVal& right
+  const NodeTimeVal& left,
+  const NodeTimeVal& right
 )
 {
   return operator<(right, left);
@@ -113,8 +130,8 @@ operator>(
 inline
 bool
 operator<=(
-  const NodeVal& left,
-  const NodeVal& right
+  const NodeTimeVal& left,
+  const NodeTimeVal& right
 )
 {
   return !operator<(right, left);
@@ -124,8 +141,8 @@ operator<=(
 inline
 bool
 operator>=(
-  const NodeVal& left,
-  const NodeVal& right
+  const NodeTimeVal& left,
+  const NodeTimeVal& right
 )
 {
   return !operator<(left, right);
@@ -133,4 +150,4 @@ operator>=(
 
 END_NAMESPACE_DRUID
 
-#endif // NODEVAL_H
+#endif // NODETIMEVAL_H

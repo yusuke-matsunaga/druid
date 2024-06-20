@@ -350,6 +350,10 @@ public:
   FaultType
   fault_type() const;
 
+  /// @brief 1時刻前の状態を持つ時 true を返す．
+  bool
+  has_prev_state() const;
+
   /// @brief 代表故障のリストを得る．
   const vector<const TpgFault*>&
   rep_fault_list() const;

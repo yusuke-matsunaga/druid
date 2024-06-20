@@ -11,7 +11,7 @@
 #include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "Val3.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
@@ -84,7 +84,7 @@ UndetChecker::~UndetChecker()
 // @brief テスト生成を行なう．
 SatBool3
 UndetChecker::check(
-  const NodeValList& cond
+  const NodeTimeValList& cond
 )
 {
   vector<SatLiteral> assumptions;
@@ -282,7 +282,7 @@ UndetChecker::gen_faulty_cnf()
 // @brief 値割り当てをリテラルに変換する．
 SatLiteral
 UndetChecker::conv_to_literal(
-  NodeVal node_val
+  NodeTimeVal node_val
 )
 {
   const TpgNode* node = node_val.node();
@@ -309,7 +309,7 @@ UndetChecker::conv_to_literal(
 // @brief 値割り当てをリテラルのリストに変換する．
 bool
 UndetChecker::conv_to_assumptions(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   vector<SatLiteral>& assumptions
 )
 {

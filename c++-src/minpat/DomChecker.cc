@@ -12,7 +12,7 @@
 #include "TpgFault.h"
 #include "GateEnc.h"
 #include "Val3.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
@@ -440,7 +440,7 @@ DomChecker::make_dchain_cnf(
 // @brief 値割り当てをリテラルに変換する．
 SatLiteral
 DomChecker::conv_to_literal(
-  NodeVal node_val
+  NodeTimeVal node_val
 )
 {
   auto node = node_val.node();
@@ -455,7 +455,7 @@ DomChecker::conv_to_literal(
 // @brief 値割り当てをリテラルのリストに変換する．
 void
 DomChecker::conv_to_assumptions(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   vector<SatLiteral>& assumptions
 )
 {

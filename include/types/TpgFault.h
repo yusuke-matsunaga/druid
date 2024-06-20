@@ -5,10 +5,11 @@
 /// @brief TpgFault のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022, 2024 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
+#include "NodeTimeValList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -168,7 +169,7 @@ public:
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
   virtual
-  NodeValList
+  NodeTimeValList
   excitation_condition() const = 0;
 
   /// @brief origin_node を含む FFR の根のノードを返す．
@@ -176,7 +177,7 @@ public:
   ffr_root() const;
 
   /// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
-  NodeValList
+  NodeTimeValList
   ffr_propagate_condition() const;
 
 

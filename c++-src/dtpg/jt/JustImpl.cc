@@ -29,9 +29,9 @@ JustImpl::~JustImpl()
 }
 
 // @brief 正当化に必要な割当を求める(縮退故障用)．
-NodeValList
+NodeTimeValList
 JustImpl::justify(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   const VidMap& var_map,
   const SatModel& model
 )
@@ -42,9 +42,9 @@ JustImpl::justify(
 }
 
 // @brief 正当化に必要な割当を求める(遷移故障用)．
-NodeValList
+NodeTimeValList
 JustImpl::justify(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model
@@ -56,10 +56,10 @@ JustImpl::justify(
 }
 
 // @brief justify の実際の処理
-NodeValList
+NodeTimeValList
 JustImpl::_justify(
   const JustData& jd,
-  const NodeValList& assign_list
+  const NodeTimeValList& assign_list
 )
 {
   mJustDataPtr = &jd;
@@ -78,7 +78,7 @@ JustImpl::_justify(
     put_queue(node, time);
   }
 
-  NodeValList pi_assign_list;
+  NodeTimeValList pi_assign_list;
   for ( SizeType rpos = 0; rpos < mQueue.size(); ++ rpos ) {
     auto& nv = mQueue[rpos];
     auto node = nv.node();
@@ -98,7 +98,7 @@ void
 JustImpl::just_main(
   const TpgNode* node,
   int time,
-  NodeValList& pi_assign_list
+  NodeTimeValList& pi_assign_list
 )
 {
   if ( node->is_primary_input() ) {

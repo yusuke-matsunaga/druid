@@ -18,7 +18,7 @@ BEGIN_NONAMESPACE
 int debug = false;
 END_NONAMESPACE
 
-NodeValList
+NodeTimeValList
 extract_sufficient_condition(
   const TpgNode* root,
   const VidMap& gvar_map,
@@ -49,7 +49,7 @@ extract_sufficient_condition(
   buf << "value for 'extractor' should be a string or null";
   throw std::invalid_argument{buf.str()};
   // ダミー
-  return NodeValList{};
+  return NodeTimeValList{};
 }
 
 
@@ -89,7 +89,7 @@ Extractor::Extractor(
 }
 
 // @brief 値割り当てを１つ求める．
-NodeValList
+NodeTimeValList
 Extractor::get_assignment()
 {
   // 故障差の伝搬している経路を探す．
@@ -97,7 +97,7 @@ Extractor::get_assignment()
   auto spo = select_output(mSpoList);
 
   // その経路の side input の値を記録する．
-  NodeValList assign_list;
+  NodeTimeValList assign_list;
   put_queue(spo, 1);
   for ( SizeType rpos = 0; rpos < mQueue.size(); ++ rpos ) {
     auto node = mQueue[rpos];

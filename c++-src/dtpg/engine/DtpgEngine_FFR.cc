@@ -27,8 +27,17 @@ DtpgEngine_FFR::~DtpgEngine_FFR()
 {
 }
 
+// @brief 故障伝搬の起点ノードを返す．
+const TpgNode*
+DtpgEngine_FFR::fault_origin(
+  const TpgFault* fault
+)
+{
+  return fault->ffr_root();
+}
+
 // @brief gen_pattern() で用いる検出条件を作る．
-NodeValList
+NodeTimeValList
 DtpgEngine_FFR::fault_condition(
   const TpgFault* fault
 )

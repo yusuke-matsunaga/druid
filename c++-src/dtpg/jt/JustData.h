@@ -5,13 +5,13 @@
 /// @brief JustData のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "TpgNode.h"
 #include "VidMap.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "Val3.h"
 #include "ym/SatModel.h"
 
@@ -79,9 +79,9 @@ public:
   /// @brief 入力ノードの値を記録する．
   void
   record_value(
-    const TpgNode* node,     ///< [in] 対象の外部入力ノード
-    int time,		     ///< [in] 時刻 ( 0 or 1 )
-    NodeValList& assign_list ///< [out] 値の割当リスト
+    const TpgNode* node,         ///< [in] 対象の外部入力ノード
+    int time,	  	         ///< [in] 時刻 ( 0 or 1 )
+    NodeTimeValList& assign_list ///< [out] 値の割当リスト
   ) const
   {
     auto v = val(node, time);

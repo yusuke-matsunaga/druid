@@ -12,7 +12,7 @@
 #include "TpgFault.h"
 #include "FaultType.h"
 #include "GateEnc.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "TpgNodeSet.h"
 #include "extract.h"
 
@@ -345,7 +345,7 @@ BoolDiffEngine::make_dchain_cnf(
 // @brief 値割り当てをリテラルに変換する．
 SatLiteral
 BoolDiffEngine::conv_to_literal(
-  NodeVal node_val
+  NodeTimeVal node_val
 )
 {
   auto node = node_val.node();
@@ -357,7 +357,7 @@ BoolDiffEngine::conv_to_literal(
 // @brief 値割り当てをリテラルのリストに変換する．
 void
 BoolDiffEngine::add_to_literal_list(
-  const NodeValList& assign_list,
+  const NodeTimeValList& assign_list,
   vector<SatLiteral>& lit_list
 )
 {
@@ -371,27 +371,25 @@ BoolDiffEngine::add_to_literal_list(
 }
 
 // @brief 直前の check() が成功したときの十分条件を求める．
-NodeValList
-BoolDiffEngine::extract_sufficient_condition()
-{
-  auto& model = mSolver.model();
-  return DRUID_NAMESPACE::extract_sufficient_condition(mRoot, mGvarMap, mFvarMap, model, mExOption);
-}
-
-// @brief 与えられた割当の正当化を行う．
-NodeValList
-BoolDiffEngine::justify(
-  const NodeValList& assign_list
+NodeTimeValList
+BoolDiffEngine::extract_sufficient_condition(
+  const TpgNode* root
 )
 {
   auto& model = mSolver.model();
-  bool has_prev_state = mNetwork.fault_type() == FaultType::TransitionDelay;
-  if ( has_prev_state ) {
-    return mJustifier(assign_list, mHvarMap, mGvarMap, model);
-  }
-  else {
-    return mJustifier(assign_list, mGvarMap, model);
-  }
+  return DRUID_NAMESPACE::extract_sufficient_condition(root, mGvarMap,
+						       mFvarMap, model,
+						       mExOption);
+}
+
+// @brief 与えられた割当の正当化を行う．
+NodeTimeValList
+BoolDiffEngine::justify(
+  const NodeTimeValList& assign_list
+)
+{
+  auto& model = mSolver.model();
+  return mJustifier(assign_list, mHvarMap, mGvarMap, model);
 }
 
 END_NAMESPACE_DRUID

@@ -8,6 +8,7 @@
 
 #include "DtpgMgr.h"
 #include "DtpgResult.h"
+#include "NodeDriver.h"
 #include "FFRDriver.h"
 #include "MFFCDriver.h"
 #include "TpgNetwork.h"
@@ -184,7 +185,24 @@ DtpgMgr::run(
   }
 
   DtpgStats stats;
-  if ( group_mode == "ffr" ) {
+  if ( group_mode == "node" ) {
+    // ノード単位で処理を行う．
+    for ( auto node: mNetwork.node_list() ) {
+      NodeDriver driver{*this, node, option};
+      for ( auto fault: node_fault_list_array[node->id()] ) {
+	// 途中で status が変化している場合があるので再度チェック
+	if ( dtpg_result(fault).status() == FaultStatus::Undetected ) {
+	  driver.gen_pattern(fault, stats,
+			     det_func, untest_func, abort_func);
+	}
+      }
+      auto cnf_time = driver.cnf_time();
+      stats.update_cnf(cnf_time);
+      auto sat_stats = driver.sat_stats();
+      stats.update_sat_stats(sat_stats);
+    }
+  }
+  else if ( group_mode == "ffr" ) {
     // FFR 単位で処理を行う．
     for ( auto ffr: mNetwork.ffr_list() ) {
       // ffr に関係する故障を集める．

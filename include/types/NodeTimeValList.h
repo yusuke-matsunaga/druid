@@ -1,21 +1,21 @@
-#ifndef NODEVALLIST_H
-#define NODEVALLIST_H
+#ifndef NODETIMEVALLIST_H
+#define NODETIMEVALLIST_H
 
-/// @file NodeValList.h
-/// @brief NodeValList のヘッダファイル
+/// @file NodeTimeValList.h
+/// @brief NodeTimeValList のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "NodeVal.h"
+#include "NodeTimeVal.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class NodeValList NodeValList.h "td/NodeValList.h"
+/// @class NodeTimeValList NodeTimeValList.h "td/NodeTimeValList.h"
 /// @brief ノードに対する値の割当を記録するクラス
 ///
 /// * このクラスのメソッドはすべてソートされていると仮定している．
@@ -23,34 +23,34 @@ BEGIN_NAMESPACE_DRUID
 ///   mDirty を true にしておく．
 ///   内容を参照する際に mDirty が true なら _sort() を呼ぶ．
 //////////////////////////////////////////////////////////////////////
-class NodeValList
+class NodeTimeValList
 {
 public:
 
   /// @brief コンストラクタ
   ///
   /// 空のリストが生成される．
-  NodeValList(
+  NodeTimeValList(
   ) : mDirty{false}
   {
   }
 
   /// @brief コピーコンストラクタ
-  NodeValList(const NodeValList& src) = default;
+  NodeTimeValList(const NodeTimeValList& src) = default;
 
   /// @brief ムーブコンストラクタ
-  NodeValList(NodeValList&& src) = default;
+  NodeTimeValList(NodeTimeValList&& src) = default;
 
   /// @brief コピー代入演算子
-  NodeValList&
-  operator=(const NodeValList& src) = default;
+  NodeTimeValList&
+  operator=(const NodeTimeValList& src) = default;
 
   /// @brief ムーブ代入演算子
-  NodeValList&
-  operator=(NodeValList&& src) = default;
+  NodeTimeValList&
+  operator=(NodeTimeValList&& src) = default;
 
   /// @brief デストラクタ
-  ~NodeValList() = default;
+  ~NodeTimeValList() = default;
 
 
 public:
@@ -70,16 +70,17 @@ public:
   void
   add(
     const TpgNode* node, ///< [in] ノード
+    int time,		 ///< [in] 時刻 ( 0 or 1 )
     bool val		 ///< [in] 値
   )
   {
-    add(NodeVal{node, val});
+    add(NodeTimeVal{node, time, val});
   }
 
   /// @brief 値を追加する．
   void
   add(
-    NodeVal node_val  ///< [in] 値の割り当て情報
+    NodeTimeVal node_val  ///< [in] 値の割り当て情報
   )
   {
     mAsList.push_back(node_val);
@@ -91,13 +92,13 @@ public:
   /// 矛盾する割当があった場合の動作は不定
   void
   merge(
-    const NodeValList& src_list  ///< [in] マージするリスト
+    const NodeTimeValList& src_list  ///< [in] マージするリスト
   );
 
   /// @brief 差分を計算する．
   void
   diff(
-    const NodeValList& src_list  ///< [in] 差分の対象のリスト
+    const NodeTimeValList& src_list  ///< [in] 差分の対象のリスト
   );
 
   /// @brief 要素数を返す．
@@ -108,7 +109,7 @@ public:
   }
 
   /// @brief 要素を返す．
-  NodeVal
+  NodeTimeVal
   elem(
     SizeType pos  ///< [in] 位置 ( 0 <= pos < size() )
   ) const
@@ -119,10 +120,10 @@ public:
     return mAsList[pos];
   }
 
-  /// @brief add(NodeVal) の別名
-  NodeValList&
+  /// @brief add(NodeTimeVal) の別名
+  NodeTimeValList&
   operator+=(
-    NodeVal node_val  ///< [in] 追加する要素
+    NodeTimeVal node_val  ///< [in] 追加する要素
   )
   {
     add(node_val);
@@ -131,9 +132,9 @@ public:
   }
 
   /// @brief merge() の別名
-  NodeValList&
+  NodeTimeValList&
   operator+=(
-    const NodeValList& src_list  ///< [in] 追加する要素のリスト
+    const NodeTimeValList& src_list  ///< [in] 追加する要素のリスト
   )
   {
     merge(src_list);
@@ -142,9 +143,9 @@ public:
   }
 
   /// @brief diff() の別名
-  NodeValList&
+  NodeTimeValList&
   operator-=(
-    const NodeValList& src_list  ///< [in] 差分の対象のリスト
+    const NodeTimeValList& src_list  ///< [in] 差分の対象のリスト
   )
   {
     diff(src_list);
@@ -153,7 +154,7 @@ public:
   }
 
   /// @brief elem() の別名
-  NodeVal
+  NodeTimeVal
   operator[](
     int pos  ///< [in] 位置 ( 0 <= pos < size() )
   ) const
@@ -170,7 +171,7 @@ public:
   sanity_check() const;
 
   /// @brief 先頭の反復子を返す．
-  vector<NodeVal>::const_iterator
+  vector<NodeTimeVal>::const_iterator
   begin() const
   {
     _sort();
@@ -178,7 +179,7 @@ public:
   }
 
   /// @brief 末尾の反復子を返す．
-  vector<NodeVal>::const_iterator
+  vector<NodeTimeVal>::const_iterator
   end() const
   {
     _sort();
@@ -213,7 +214,7 @@ private:
 
   // 値割り当てのリスト
   mutable
-  vector<NodeVal> mAsList;
+  vector<NodeTimeVal> mAsList;
 
 };
 
@@ -225,16 +226,16 @@ private:
 /// @retval  3 等しい
 int
 compare(
-  const NodeValList& src_list1,
-  const NodeValList& src_list2
+  const NodeTimeValList& src_list1,
+  const NodeTimeValList& src_list2
 );
 
 /// @brief 2つの割当リストが矛盾しているか調べる．
 inline
 bool
 check_conflict(
-  const NodeValList& src_list1,
-  const NodeValList& src_list2
+  const NodeTimeValList& src_list1,
+  const NodeTimeValList& src_list2
 )
 {
   return compare(src_list1, src_list2) == -1;
@@ -244,8 +245,8 @@ check_conflict(
 inline
 bool
 check_contain(
-  const NodeValList& src_list1,
-  const NodeValList& src_list2
+  const NodeTimeValList& src_list1,
+  const NodeTimeValList& src_list2
 )
 {
   return (compare(src_list1, src_list2) & 1) == 1;
@@ -253,25 +254,25 @@ check_contain(
 
 /// @brief 2つのリストを結合して新しいリストを返す．
 inline
-NodeValList
+NodeTimeValList
 operator+(
-  const NodeValList& src_list1,
-  const NodeValList& src_list2
+  const NodeTimeValList& src_list1,
+  const NodeTimeValList& src_list2
 )
 {
-  NodeValList tmp(src_list1);
+  NodeTimeValList tmp(src_list1);
   return tmp.operator+=(src_list2);
 }
 
 /// @brief 2つのリストの差分を計算して新しいリストを返す．
 inline
-NodeValList
+NodeTimeValList
 operator-(
-  const NodeValList& src_list1,
-  const NodeValList& src_list2
+  const NodeTimeValList& src_list1,
+  const NodeTimeValList& src_list2
 )
 {
-  NodeValList tmp(src_list1);
+  NodeTimeValList tmp(src_list1);
   return tmp.operator-=(src_list2);
 }
 
@@ -280,7 +281,7 @@ operator-(
 ostream&
 operator<<(
   ostream& s, ///< [in] 出力先のストリーム
-  NodeVal nv  ///< [in] 値の割り当て
+  NodeTimeVal nv  ///< [in] 値の割り当て
 );
 
 /// @brief 割当リストの内容を出力する．
@@ -288,9 +289,9 @@ operator<<(
 ostream&
 operator<<(
   ostream& s,                 ///< [in] 出力先のストリーム
-  const NodeValList& src_list ///< [in] 値の割り当てリスト
+  const NodeTimeValList& src_list ///< [in] 値の割り当てリスト
 );
 
 END_NAMESPACE_DRUID
 
-#endif // NODEVALLIST_H
+#endif // NODETIMEVALLIST_H

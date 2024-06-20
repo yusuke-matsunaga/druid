@@ -12,7 +12,7 @@
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
 #include "GateEnc.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "TestVector.h"
 #include "ym/Range.h"
 
@@ -56,7 +56,7 @@ DtpgEngine_MFFC::opt_make_cnf()
   for ( auto ffr: mMFFC->ffr_list() ) {
     auto root = ffr->root();
     mRootArray[ffr_id] = root;
-    mFfrIdMap.emplace(root->id(), ffr_id);
+    mFFRIdMap.emplace(root->id(), ffr_id);
 
     auto cvar = new_variable(true);
     mEvarArray[ffr_id] = cvar;
@@ -109,8 +109,8 @@ DtpgEngine_MFFC::opt_make_cnf()
   GateEnc fval_enc{solver(), fvar_map()};
   for ( auto node: node_list ) {
     auto ovar = fvar(node);
-    if ( mFfrIdMap.count(node->id()) > 0 ) {
-      SizeType ffr_pos = mFfrIdMap.at(node->id());
+    if ( mFFRIdMap.count(node->id()) > 0 ) {
+      SizeType ffr_pos = mFFRIdMap.at(node->id());
       // 実際のゲートの出力と ovar の間に XOR ゲートを挿入する．
       // XORの一方の入力は mEvarArray[ffr_pos]
       ovar = new_variable();
@@ -134,8 +134,17 @@ DtpgEngine_MFFC::opt_make_cnf()
   }
 }
 
+// @brief 故障伝搬の起点ノードを返す．
+const TpgNode*
+DtpgEngine_MFFC::fault_origin(
+  const TpgFault* fault
+)
+{
+  return fault->ffr_root();
+}
+
 // @brief 故障の活性化条件
-NodeValList
+NodeTimeValList
 DtpgEngine_MFFC::fault_condition(
   const TpgFault* fault
 )
@@ -153,14 +162,14 @@ DtpgEngine_MFFC::extra_assumptions(
   auto ffr_root = fault->origin_node()->ffr_root();
   if ( ffr_root != root_node() ) {
     // ffr_root のある FFR を活性化する条件を作る．
-    if ( mFfrIdMap.count(ffr_root->id()) == 0 ) {
+    if ( mFFRIdMap.count(ffr_root->id()) == 0 ) {
       cerr << "Error[DtpgEngine_MFFC::dtpg()]: "
 	   << ffr_root->id() << " is not within the MFFC" << endl;
       ASSERT_NOT_REACHED;
       return {};
     }
 
-    SizeType ffr_id = mFfrIdMap.at(ffr_root->id());
+    SizeType ffr_id = mFFRIdMap.at(ffr_root->id());
     SizeType ffr_num = mRootArray.size();
     if ( ffr_num > 1 ) {
       // FFR の根の出力に故障を挿入する．

@@ -38,7 +38,7 @@ Just1::~Just1()
 // @brief 初期化処理
 void
 Just1::just_init(
-  const NodeValList& assign_list
+  const NodeTimeValList& assign_list
 )
 {
   // なにもしない．

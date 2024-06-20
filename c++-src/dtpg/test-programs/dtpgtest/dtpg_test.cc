@@ -330,6 +330,12 @@ dtpg_test(
   timer.stop();
   auto time = timer.get_time();
 
+  for ( auto& p: ErrorList ) {
+    auto f = p.first;
+    auto tv = p.second;
+    cout << f->str() << ": " << tv.hex_str() << endl;
+  }
+
   if ( verbose ) {
     print_stats(mgr, stats, tv_list, time);
   }

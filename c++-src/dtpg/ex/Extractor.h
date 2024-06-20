@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "VidMap.h"
 #include "Val3.h"
 #include "ym/SatModel.h"
@@ -55,7 +55,7 @@ public:
 
   /// @brief 値割り当てを１つ求める．
   /// @return 値の割当リスト
-  NodeValList
+  NodeTimeValList
   get_assignment();
 
 

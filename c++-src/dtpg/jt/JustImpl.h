@@ -5,12 +5,12 @@
 /// @brief JustImpl のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "TpgNode.h"
-#include "NodeVal.h"
+#include "NodeTimeVal.h"
 #include "ym/SatModel.h"
 
 
@@ -43,21 +43,21 @@ public:
 
   /// @brief 正当化に必要な割当を求める(縮退故障用)．
   /// @return 外部入力上の値の割当リスト
-  NodeValList
+  NodeTimeValList
   justify(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    const VidMap& var_map,	    ///< [in] 変数番号のマップ
-    const SatModel& model	    ///< [in] SAT問題の解
+    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
+    const VidMap& var_map,	        ///< [in] 変数番号のマップ
+    const SatModel& model	        ///< [in] SAT問題の解
   );
 
   /// @brief 正当化に必要な割当を求める(遷移故障用)．
   /// @return 外部入力上の値の割当リスト
-  NodeValList
+  NodeTimeValList
   justify(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
-    const VidMap& var2_map,	    ///< [in] 2時刻目の変数番号のマップ
-    const SatModel& model	    ///< [in] SAT問題の解
+    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
+    const VidMap& var1_map,	        ///< [in] 1時刻目の変数番号のマップ
+    const VidMap& var2_map,	        ///< [in] 2時刻目の変数番号のマップ
+    const SatModel& model	        ///< [in] SAT問題の解
   );
 
 
@@ -80,25 +80,25 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief justify の実際の処理
-  NodeValList
+  NodeTimeValList
   _justify(
     const JustData& jd,
-    const NodeValList& assign_list
+    const NodeTimeValList& assign_list ///< [in] 割当リスト
   );
 
   /// @brief 初期化処理
   virtual
   void
   just_init(
-    const NodeValList& assign_list ///< [in] 割当リスト
+    const NodeTimeValList& assign_list ///< [in] 割当リスト
   ) = 0;
 
   /// @brief 正当化処理
   void
   just_main(
-    const TpgNode* node,	///< [in] 対象のノード
-    int time,			///< [in] 時刻 ( 0 or 1 )
-    NodeValList& pi_assign_list	///< [in] 結果の割当を保持するリスト
+    const TpgNode* node,	    ///< [in] 対象のノード
+    int time,			    ///< [in] 時刻 ( 0 or 1 )
+    NodeTimeValList& pi_assign_list ///< [in] 結果の割当を保持するリスト
   );
 
   /// @brief 制御値を持つファンインを一つ選ぶ．
@@ -130,7 +130,7 @@ private:
   {
     if ( !mark(node, time) ) {
       set_mark(node, time);
-      mQueue.push_back(NodeVal{node, time, false});
+      mQueue.push_back(NodeTimeVal{node, time, false});
     }
   }
 
@@ -171,7 +171,7 @@ private:
   const JustData* mJustDataPtr{nullptr};
 
   // 対象のノードを入れるキュー
-  vector<NodeVal> mQueue;
+  vector<NodeTimeVal> mQueue;
 
 };
 

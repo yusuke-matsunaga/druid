@@ -43,23 +43,16 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 正当化に必要な割当を求める(縮退故障用)
+  /// @brief 正当化に必要な割当を求める
   /// @return 入力の値割り当て
-  NodeValList
+  ///
+  /// 縮退故障の場合は var1_map は無視される．
+  NodeTimeValList
   operator()(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
-    const SatModel& model           ///< [in] SAT問題の解
-  );
-
-  /// @brief 正当化に必要な割当を求める(遷移故障用)
-  /// @return 入力の値割り当て
-  NodeValList
-  operator()(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    const VidMap& var1_map,	    ///< [in] 1時刻目の変数番号のマップ
-    const VidMap& var2_map,	    ///< [in] 2時刻目の変数番号のマップ
-    const SatModel& model           ///< [in] SAT問題の解
+    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
+    const VidMap& var1_map,	        ///< [in] 1時刻目の変数番号のマップ
+    const VidMap& var2_map,	        ///< [in] 2時刻目の変数番号のマップ
+    const SatModel& model               ///< [in] SAT問題の解
   );
 
 
@@ -67,6 +60,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // 1時刻前の状態を持つ時 true にするフラグ
+  bool mHasPrevState;
 
   // 実装クラス
   std::unique_ptr<JustImpl> mImpl;

@@ -1,12 +1,12 @@
 
-/// @file NodeValList.cc
-/// @brief NodeValList の実装ファイル
+/// @file NodeTimeValList.cc
+/// @brief NodeTimeValList の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "TpgNode.h"
 
 
@@ -14,11 +14,11 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief マージする．
 void
-NodeValList::merge(
-  const NodeValList& src_list
+NodeTimeValList::merge(
+  const NodeTimeValList& src_list
 )
 {
-  vector<NodeVal> tmp_list;
+  vector<NodeTimeVal> tmp_list;
   SizeType n1 = mAsList.size();
   SizeType n2 = src_list.mAsList.size();
   tmp_list.reserve(n1 + n2);
@@ -56,11 +56,11 @@ NodeValList::merge(
 
 // @brief 差分を計算する．
 void
-NodeValList::diff(
-  const NodeValList& src_list
+NodeTimeValList::diff(
+  const NodeTimeValList& src_list
 )
 {
-  vector<NodeVal> tmp_list;
+  vector<NodeTimeVal> tmp_list;
   SizeType n1 = mAsList.size();
   SizeType n2 = src_list.mAsList.size();
   tmp_list.reserve(n1);
@@ -92,11 +92,11 @@ NodeValList::diff(
 
 // @brief 矛盾した内容になっていないかチェックする．
 bool
-NodeValList::sanity_check() const
+NodeTimeValList::sanity_check() const
 {
-  NodeVal prev{nullptr, false};
+  NodeTimeVal prev{nullptr, 0, false};
   for ( auto nv: mAsList ) {
-    if ( prev.node() == nv.node() && prev.val() != nv.val() ) {
+    if ( prev.node_time() == nv.node_time() && prev.val() != nv.val() ) {
       return false;
     }
     prev = nv;
@@ -107,8 +107,8 @@ NodeValList::sanity_check() const
 // @brief 2つの割当リストを比較する．
 int
 compare(
-  const NodeValList& src_list1,
-  const NodeValList& src_list2
+  const NodeTimeValList& src_list1,
+  const NodeTimeValList& src_list2
 )
 {
   SizeType n1 = src_list1.size();
@@ -119,7 +119,7 @@ compare(
   while ( i1 < n1 && i2 < n2 ) {
     auto nv1 = src_list1[i1];
     auto nv2 = src_list2[i2];
-    if ( nv1.node() == nv2.node() ) {
+    if ( nv1.node_time() == nv2.node_time() ) {
       if ( nv1.val() != nv2.val() ) {
 	// 矛盾している．
 	return -1;
@@ -156,10 +156,11 @@ compare(
 ostream&
 operator<<(
   ostream& s,
-  NodeVal nv
+  NodeTimeVal nv
 )
 {
   s << "Node#" << nv.node()->id()
+    << "@" << nv.time()
     << " = " << nv.val();
   return s;
  }
@@ -168,7 +169,7 @@ operator<<(
 ostream&
 operator<<(
   ostream& s,
-  const NodeValList& src_list
+  const NodeTimeValList& src_list
 )
 {
   const char* comma = "";
@@ -182,8 +183,8 @@ operator<<(
 // @brief 大小関係の比較関数
 bool
 operator<(
-  const NodeVal& left,
-  const NodeVal& right
+  const NodeTimeVal& left,
+  const NodeTimeVal& right
 )
 {
   auto node1 = left.node();
@@ -192,6 +193,12 @@ operator<(
     return true;
   }
   if ( node1->id() > node2->id() ) {
+    return false;
+  }
+  if ( left.time() < right.time() ) {
+    return true;
+  }
+  if ( left.time() > right.time() ) {
     return false;
   }
   return left.val() < right.val();

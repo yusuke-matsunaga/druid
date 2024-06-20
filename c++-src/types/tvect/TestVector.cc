@@ -3,12 +3,12 @@
 /// @brief TestVector の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TestVector.h"
 #include "TpgNode.h"
-#include "NodeValList.h"
+#include "NodeTimeValList.h"
 #include "ym/Range.h"
 
 
@@ -45,7 +45,7 @@ TestVector::from_hex(
 // @brief 割当リストから値を設定する．
 void
 TestVector::set_from_assign_list(
-  const NodeValList& assign_list
+  const NodeTimeValList& assign_list
 )
 {
   for ( auto nv: assign_list ) {
