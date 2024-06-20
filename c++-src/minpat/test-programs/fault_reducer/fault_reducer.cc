@@ -10,6 +10,7 @@
 #include "DtpgMgr.h"
 #include "TpgFault.h"
 #include "FaultReducer.h"
+#include "NaiveDomChecker.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
@@ -123,6 +124,7 @@ fault_reducer(
   bool sa_mode = false;
   bool td_mode = false;
   bool multi = false;
+  bool naive = false;
   bool verbose = false;
   string just_type;
   int loop = 1;
@@ -199,6 +201,9 @@ fault_reducer(
 	  return -1;
 	}
       }
+      else if ( strcmp(argv[pos], "--naive") == 0 ) {
+	naive = true;
+      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
@@ -267,16 +272,48 @@ fault_reducer(
     }
   }
 
-  unordered_map<string, JsonValue> fr_option_dict;
-  fr_option_dict.emplace("debug", JsonValue{true});
-  fr_option_dict.emplace("loop_limit", JsonValue{loop});
-  JsonValue fr_option{fr_option_dict};
-  FaultReducer fr{network, det_fault_list, mgr.testvector_list(), fr_option};
+  if ( naive ) {
+    SizeType n = det_fault_list.size();
+    vector<bool> deleted(n, false);
+    JsonValue option;
+    for ( SizeType i1 = 0; i1 < n; ++ i1 ) {
+      if ( deleted[i1] ) {
+	continue;
+      }
+      auto f1 = det_fault_list[i1];
+      for ( SizeType i2 = 0; i2 < n; ++ i2 ) {
+	if ( deleted[i2] ) {
+	  continue;
+	}
+	auto f2 = det_fault_list[i2];
+	NaiveDomChecker checker{network, f1, f2, option};
+	if ( checker.check() == SatBool3::False ) {
+	  deleted[i2] = true;
+	}
+      }
+    }
+    SizeType n2 = 0;
+    for ( SizeType i = 0; i < n; ++ i ) {
+      if ( !deleted[i] ) {
+	++ n2;
+      }
+    }
 
-  auto reduced_fault_list = fr.run();
+    cout << "Detected Faults: " << n << endl
+	 << "Reduced Faults:  " << n2 << endl;
+  }
+  else {
+    unordered_map<string, JsonValue> fr_option_dict;
+    fr_option_dict.emplace("debug", JsonValue{true});
+    fr_option_dict.emplace("loop_limit", JsonValue{loop});
+    JsonValue fr_option{fr_option_dict};
+    FaultReducer fr{network, det_fault_list, mgr.testvector_list(), fr_option};
 
-  cout << "Detected Faults: " << det_fault_list.size() << endl
-       << "Reduced Faults:  " << reduced_fault_list.size() << endl;
+    auto reduced_fault_list = fr.run();
+
+    cout << "Detected Faults: " << det_fault_list.size() << endl
+	 << "Reduced Faults:  " << reduced_fault_list.size() << endl;
+  }
 
   return 0;
 }
