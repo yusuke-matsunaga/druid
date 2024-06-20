@@ -29,6 +29,17 @@ const int debug_make_node_cnf = 2U;
 const int debug_extract = 32U;
 const int debug_justify = 64U;
 
+SatInitParam
+get_sat_param(
+  const JsonValue& option
+)
+{
+  if ( option.is_object() && option.has_key("sat_param") ) {
+    return SatInitParam{option.get("sat_param")};
+  }
+  return SatInitParam{};
+}
+
 END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
@@ -41,7 +52,7 @@ StructEnc::StructEnc(
   const JsonValue& option
 ) : mNetwork{network},
     mHasPrevState{network.fault_type() == FaultType::TransitionDelay},
-    mSolver{option.get("sat_param")},
+    mSolver{get_sat_param(option)},
     mMaxId{network.node_num()},
     mGvarMap(mMaxId),
     mHvarMap(mMaxId)

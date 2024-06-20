@@ -177,17 +177,25 @@ protected:
     return mGvarMap(node);
   }
 
-  /// @brief 故障値の変数を返す．
+  /// @brief 故障1の故障値の変数を返す．
   SatLiteral
-  fvar(
-    const TpgNode* node, ///< [in] 対象のノード
-    int pos
+  fvar1(
+    const TpgNode* node ///< [in] 対象のノード
   )
   {
-    return mFvarMap[pos](node);
+    return mFvarMap1(node);
   }
 
-  /// @brief 伝搬条件の変数を返す．
+  /// @brief 故障2の故障値の変数を返す．
+  SatLiteral
+  fvar2(
+    const TpgNode* node ///< [in] 対象のノード
+  )
+  {
+    return mFvarMap2(node);
+  }
+
+  /// @brief 故障1の伝搬条件の変数を返す．
   SatLiteral
   dvar(
     const TpgNode* node ///< [in] 対象のノード
@@ -216,15 +224,24 @@ protected:
     mGvarMap.set_vid(node, var);
   }
 
-  /// @brief 故障値値の変数を設定する．
+  /// @brief 故障1の故障値値の変数を設定する．
   void
-  set_fvar(
+  set_fvar1(
     const TpgNode* node,  ///< [in] 対象のノード
-    SatLiteral var,       ///< [in] 設定する変数
-    int pos
+    SatLiteral var        ///< [in] 設定する変数
   )
   {
-    mFvarMap[pos].set_vid(node, var);
+    mFvarMap1.set_vid(node, var);
+  }
+
+  /// @brief 故障2の故障値値の変数を設定する．
+  void
+  set_fvar2(
+    const TpgNode* node,  ///< [in] 対象のノード
+    SatLiteral var        ///< [in] 設定する変数
+  )
+  {
+    mFvarMap2.set_vid(node, var);
   }
 
   /// @brief 故障伝搬条件の変数を設定する．
@@ -251,22 +268,18 @@ protected:
     return mGvarMap;
   }
 
-  /// @brief 故障値の変数マップを返す．
+  /// @brief 故障1の故障値の変数マップを返す．
   const VidMap&
-  fvar_map(
-    int pos
-  ) const
+  fvar1_map() const
   {
-    return mFvarMap[pos];
+    return mFvarMap1;
   }
 
-  /// @brief 起点となるノードを返す．
-  const TpgNode*
-  root_node(
-    int pos
-  ) const
+  /// @brief 故障2の故障値の変数マップを返す．
+  const VidMap&
+  fvar2_map() const
   {
-    return mRoot[pos];
+    return mFvarMap2;
   }
 
   /// @brief 関係するノードのリストを返す．
@@ -287,7 +300,11 @@ protected:
 
   /// @brief 対象の部分回路の故障値の関係を表す CNF 式を作る．
   void
-  gen_faulty_cnf();
+  gen_faulty_cnf1();
+
+  /// @brief 対象の部分回路の故障値の関係を表す CNF 式を作る．
+  void
+  gen_faulty_cnf2();
 
   /// @brief root の影響が外部出力まで伝搬する条件のCNF式を作る．
   void
@@ -303,76 +320,11 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 1時刻前の状態を保持する時に true を返す．
-  bool
-  has_prev_state() const
-  {
-    return mNetwork.fault_type() == FaultType::TransitionDelay;
-  }
-
   /// @brief 故障伝搬条件を表すCNF式を生成する．
   void
   make_dchain_cnf(
     const TpgNode* node ///< [in] 対象のノード
   );
-
-  /// @brief TFO マークをつける．
-  ///
-  /// と同時に mTfoList に入れる．<br>
-  /// 出力ノードの場合は mOutputList にも入れる．<br>
-  /// すでにマークされていたら何もしない．
-  void
-  set_tfo_mark(
-    const TpgNode* node,  ///< [in] 対象のノード
-    int pos
-  )
-  {
-    int id = node->id();
-    std::uint8_t mask = 1U << pos;
-    if ( (mMarkArray[id] & mask) == 0U ) {
-      mMarkArray[id] |= mask;
-      mTfoList[pos].push_back(node);
-      if ( node->is_ppo() ) {
-	mOutputList[pos].push_back(node);
-      }
-      set_tfi_mark(node);
-    }
-  }
-
-  /// @brief TFI マークをつける．
-  ///
-  /// と同時に mTfiList に入れる．
-  void
-  set_tfi_mark(
-    const TpgNode* node  ///< [in] 対象のノード
-  )
-  {
-    int id = node->id();
-    std::uint8_t mask = 4U;
-    if ( (mMarkArray[id] & mask) == 0U ) {
-      mMarkArray[id] |= mask;
-      mTfiList.push_back(node);
-      if ( has_prev_state() && node->is_dff_output() ) {
-	mDffInputList.push_back(node->alt_node());
-      }
-    }
-  }
-
-  /// @brief prev TFI マークをつける．
-  ///
-  /// と同時に mPrevTfiList に入れる．
-  void
-  set_prev_tfi_mark(
-    const TpgNode* node  ///< [in] 対象のノード
-  )
-  {
-    int id = node->id();
-    std::uint8_t mask = 8U;
-    if ( (mMarkArray[id] & mask) == 0U ) {
-      mMarkArray[id] |= mask;
-      mPrevTfiList.push_back(node);
-    }
-  }
 
 
 private:
@@ -389,14 +341,26 @@ private:
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
 
-  // 故障
-  const TpgFault* mFault;
+  // 故障2
+  const TpgFault* mFault2;
 
-  // 故障伝搬の起点となるノード
-  const TpgNode* mRoot[2];
+  // 故障1の故障伝搬の起点となるノード
+  const TpgNode* mRoot1;
 
-  // TFOノードを入れておくリスト
-  vector<const TpgNode*> mTfoList[2];
+  // 故障2の故障伝搬の起点となるノード
+  const TpgNode* mRoot2;
+
+  // 故障1のTFOノードを入れておくリスト
+  vector<const TpgNode*> mTfoList1;
+
+  // 故障2のTFOノードを入れておくリスト
+  vector<const TpgNode*> mTfoList2;
+
+  // 故障1に関係する出力ノードを入れておくリスト
+  vector<const TpgNode*> mOutputList1;
+
+  // 故障2に関係する出力ノードを入れておくリスト
+  vector<const TpgNode*> mOutputList2;
 
   // TFIノードを入れておくリスト
   vector<const TpgNode*> mTfiList;
@@ -407,23 +371,19 @@ private:
   // 1時刻前関係するノードを入れておくリスト
   vector<const TpgNode*> mPrevTfiList;
 
-  // 関係する出力ノードを入れておくリスト
-  vector<const TpgNode*> mOutputList[2];
-
-  // 作業用のマークを入れておく配列
-  // サイズは mMaxNodeId
-  vector<std::uint8_t> mMarkArray;
-
   // 1時刻前の正常値を表す変数のマップ
   VidMap mHvarMap;
 
   // 正常値を表す変数のマップ
   VidMap mGvarMap;
 
-  // 故障値を表す変数のマップ
-  VidMap mFvarMap[2];
+  // 故障1の故障値を表す変数のマップ
+  VidMap mFvarMap1;
 
-  // 故障伝搬条件を表す変数のマップ
+  // 故障2の故障値を表す変数のマップ
+  VidMap mFvarMap2;
+
+  // 故障1の故障伝搬条件を表す変数のマップ
   VidMap mDvarMap;
 
   // 時間計測を行なうかどうかの制御フラグ

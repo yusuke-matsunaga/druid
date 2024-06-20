@@ -10,6 +10,7 @@
 
 #include "TpgNetwork.h"
 #include "TpgFault.h"
+#include "TpgNodeSet.h"
 #include "GateEnc.h"
 #include "Val3.h"
 #include "NodeTimeValList.h"
@@ -42,21 +43,50 @@ DomChecker::DomChecker(
 ) :
   mSolver{init_param},
   mNetwork{network},
-  mFault{fault},
-  mMarkArray(mNetwork.node_num(), 0U),
+  mFault2{fault},
+  mRoot1{root},
+  mRoot2{fault->origin_node()},
   mHvarMap(network.node_num()),
   mGvarMap(network.node_num()),
+  mFvarMap1(network.node_num()),
+  mFvarMap2(network.node_num()),
+  mDvarMap(network.node_num()),
   mTimerEnable{true}
 {
-  mRoot[0] = root;
-  mRoot[1] = fault->origin_node();
-  mTfiList.reserve(network.node_num());
-  mPrevTfiList.reserve(network.node_num());
-  for ( int pos: { 0, 1 } ) {
-    mTfoList[pos].reserve(network.node_num());
-    mOutputList[pos].reserve(network.ppo_num());
-    mFvarMap[pos].init(network.node_num());
-    mDvarMap.init(network.node_num());
+  vector<const TpgNode*> tmp_list;
+  mTfoList1 = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot1,
+				       [&](const TpgNode* node) {
+					 if ( node->is_ppo() ) {
+					   mOutputList1.push_back(node);
+					 }
+					 tmp_list.push_back(node);
+				       });
+  mTfoList2 = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot2,
+				       [&](const TpgNode* node) {
+					 if ( node->is_ppo() ) {
+					   mOutputList2.push_back(node);
+					 }
+					 tmp_list.push_back(node);
+				       });
+  auto has_prev_state = mNetwork.has_prev_state();
+  mTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list,
+				      [&](const TpgNode* node) {
+					if ( has_prev_state && node->is_dff_output() ) {
+					  auto alt_node = node->alt_node();
+					  mDffInputList.push_back(alt_node);
+					}
+				      });
+  if ( has_prev_state ) {
+    auto tmp_list = mDffInputList;
+    tmp_list.push_back(mRoot1);
+    if ( mRoot1->is_dff_output() ) {
+      tmp_list.push_back(mRoot1->alt_node());
+    }
+    tmp_list.push_back(mRoot2);
+    if ( mRoot2->is_dff_output() ) {
+      tmp_list.push_back(mRoot2->alt_node());
+    }
+    mPrevTfiList = TpgNodeSet::get_tfi_list(mNetwork.node_num(), tmp_list);
   }
 
   // 変数割り当て
@@ -65,54 +95,11 @@ DomChecker::DomChecker(
   // 正常回路の CNF を生成
   gen_good_cnf();
 
-  // 故障回路の CNF を生成
-  gen_faulty_cnf();
+  // 故障回路1の CNF を生成
+  gen_faulty_cnf1();
 
-  //////////////////////////////////////////////////////////////////////
-  // 故障の検出条件(正確には mRoot[0] から外部出力までの故障の伝搬条件)
-  //////////////////////////////////////////////////////////////////////
-  {
-    SizeType no = mOutputList[0].size();
-    vector<SatLiteral> odiff;
-    odiff.reserve(no);
-    for ( auto node: mOutputList[0] ) {
-      auto dlit = dvar(node);
-      odiff.push_back(dlit);
-    }
-    mSolver.add_clause(odiff);
-  }
-  if ( !mRoot[0]->is_ppo() ) {
-    // mRoot の dlit が1でなければならない．
-    mSolver.add_clause(SatLiteral(dvar(mRoot[0])));
-  }
-
-  //////////////////////////////////////////////////////////////////////
-  // 故障の非検出条件(正確には mRoot[1] から外部出力までの故障の伝搬条件)
-  //////////////////////////////////////////////////////////////////////
-  for ( auto node: mOutputList[1] ) {
-    auto glit = gvar(node);
-    auto flit = fvar(node, 1);
-    mSolver.add_clause( glit, ~flit);
-    mSolver.add_clause(~glit,  flit);
-  }
-  {
-    auto glit = gvar(mRoot[1]);
-    auto flit = fvar(mRoot[1], 1);
-    // flit が glit と異なるのは fault->excitation_condition()
-    // が成り立っている時．
-    auto dlit = new_variable();
-    mSolver.add_xorgate(dlit, glit, flit);
-    auto ex_cond = fault->excitation_condition();
-    vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(ex_cond.size() + 1);
-    for ( auto nv: ex_cond ) {
-      auto lit = conv_to_literal(nv);
-      mSolver.add_clause(lit, ~dlit);
-      tmp_lits.push_back(~lit);
-    }
-    tmp_lits.push_back(dlit);
-    mSolver.add_clause(tmp_lits);
-  }
+  // 故障回路2の CNF を生成
+  gen_faulty_cnf2();
 }
 
 // @brief デストラクタ
@@ -178,51 +165,13 @@ DomChecker::timer_stop()
 void
 DomChecker::prepare_vars()
 {
-  for ( int pos: { 0, 1 } ) {
-    // root[pos] の TFO を mTfoList[pos] に入れる．
-    set_tfo_mark(mRoot[pos], pos);
-    for ( SizeType rpos = 0; rpos < mTfoList[pos].size(); ++ rpos ) {
-      auto node = mTfoList[pos][rpos];
-      for ( auto onode: node->fanout_list() ) {
-	set_tfo_mark(onode, pos);
-      }
-    }
-  }
-
-  for ( SizeType rpos = 0; rpos < mTfiList.size(); ++ rpos ) {
-    auto node = mTfiList[rpos];
-    for ( auto inode: node->fanin_list() ) {
-      set_tfi_mark(inode);
-    }
-  }
-
-  // TFI に含まれる DFF のさらに TFI を mTfi2List に入れる．
-  if ( has_prev_state() ) {
-    for ( int pos: { 0, 1 } ) {
-      if ( mRoot[pos]->is_dff_output() ) {
-	mDffInputList.push_back(mRoot[pos]->alt_node());
-      }
-    }
-    for ( auto node: mDffInputList ) {
-      mPrevTfiList.push_back(node);
-    }
-    set_prev_tfi_mark(mRoot[0]);
-    set_prev_tfi_mark(mRoot[1]);
-    for ( SizeType rpos = 0; rpos < mPrevTfiList.size(); ++ rpos) {
-      auto node = mPrevTfiList[rpos];
-      for ( auto inode: node->fanin_list() ) {
-	set_prev_tfi_mark(inode);
-      }
-    }
-  }
-
   // TFI の部分に変数を割り当てる．
   for ( auto node: mTfiList ) {
     auto gvar = mSolver.new_variable(true);
 
     mGvarMap.set_vid(node, gvar);
-    mFvarMap[0].set_vid(node, gvar);
-    mFvarMap[1].set_vid(node, gvar);
+    mFvarMap1.set_vid(node, gvar);
+    mFvarMap2.set_vid(node, gvar);
 
     if ( debug_dtpg ) {
       DEBUG_OUT << "gvar(" << node->str() << ") = " << gvar
@@ -230,29 +179,36 @@ DomChecker::prepare_vars()
     }
   }
 
-  for ( int pos: { 0, 1 } ) {
-    // TFO の部分に変数を割り当てる．
-    for ( auto node: mTfoList[pos] ) {
-      auto fvar = mSolver.new_variable(true);
+  // 故障1の TFO の部分に変数を割り当てる．
+  for ( auto node: mTfoList1 ) {
+    auto fvar = mSolver.new_variable(true);
+    mFvarMap1.set_vid(node, fvar);
+    auto dvar = mSolver.new_variable();
+    mDvarMap.set_vid(node, dvar);
 
-      mFvarMap[pos].set_vid(node, fvar);
-      if ( pos == 0 ) {
-	auto dvar = mSolver.new_variable();
-	mDvarMap.set_vid(node, dvar);
-      }
+    if ( debug_dtpg ) {
+      DEBUG_OUT << "gvar(" << node->str() << ") = " << gvar(node)
+		<< endl;
+      DEBUG_OUT << "fvar1("
+		<< node->str()
+		<< ") = " << fvar << endl;
+      DEBUG_OUT << "dvar("
+		<< node->str()
+		<< ") = " << dvar << endl;
+    }
+  }
 
-      if ( debug_dtpg ) {
-	DEBUG_OUT << "gvar(" << node->str() << ") = " << gvar(node)
-		  << endl;
-	DEBUG_OUT << "fvar[" << pos << "]("
-		  << node->str()
-		  << ") = " << fvar << endl;
-	if ( pos == 0 ) {
-	  DEBUG_OUT << "dvar("
-		    << node->str()
-		    << ") = " << dvar(node) << endl;
-	}
-      }
+  // 故障2の TFO の部分に変数を割り当てる．
+  for ( auto node: mTfoList2 ) {
+    auto fvar = mSolver.new_variable(true);
+    mFvarMap2.set_vid(node, fvar);
+
+    if ( debug_dtpg ) {
+      DEBUG_OUT << "gvar(" << node->str() << ") = " << gvar(node)
+		<< endl;
+      DEBUG_OUT << "fvar2("
+		<< node->str()
+		<< ") = " << fvar << endl;
     }
   }
 
@@ -320,35 +276,100 @@ DomChecker::gen_good_cnf()
 
 // @brief 対象の部分回路の故障値の関係を表す CNF 式を作る．
 void
-DomChecker::gen_faulty_cnf()
+DomChecker::gen_faulty_cnf1()
 {
   //////////////////////////////////////////////////////////////////////
-  // 故障回路の CNF を生成
+  // 故障回路1の CNF を生成
   //////////////////////////////////////////////////////////////////////
-  for ( int pos: { 0, 1 } ) {
-    GateEnc fval_enc{mSolver, mFvarMap[pos]};
-    for ( auto node: mTfoList[pos] ) {
-      if ( node != mRoot[pos] ) {
-	fval_enc.make_cnf(node);
+  GateEnc fval_enc{mSolver, mFvarMap1};
+  for ( auto node: mTfoList1 ) {
+    if ( node != mRoot1 ) {
+      fval_enc.make_cnf(node);
 
-	if ( debug_dtpg ) {
-	  DEBUG_OUT << node->str()
-		    << ": fvar[" << pos << "]("
-		    << fvar(node, pos) << ") := "
-		    << node->gate_type() << "(";
-	  for ( auto inode: node->fanin_list() ) {
-	    DEBUG_OUT << " "
-		      << node->str()
-		      << ": fvar[" << pos << "]("
-		      << fvar(inode, pos) << ")";
-	  }
-	  DEBUG_OUT << ")" << endl;
+      if ( debug_dtpg ) {
+	DEBUG_OUT << node->str()
+		  << ": fvar1("
+		  << fvar1(node) << ") := "
+		  << node->gate_type() << "(";
+	for ( auto inode: node->fanin_list() ) {
+	  DEBUG_OUT << " "
+		    << node->str()
+		    << ": fvar1("
+		    << fvar1(inode) << ")";
 	}
-      }
-      if ( pos == 0 ) {
-	make_dchain_cnf(node);
+	DEBUG_OUT << ")" << endl;
       }
     }
+    make_dchain_cnf(node);
+  }
+  {
+    SizeType no = mOutputList1.size();
+    vector<SatLiteral> odiff;
+    odiff.reserve(no);
+    for ( auto node: mOutputList1 ) {
+      auto dlit = dvar(node);
+      odiff.push_back(dlit);
+    }
+    mSolver.add_clause(odiff);
+  }
+  if ( !mRoot1->is_ppo() ) {
+    // mRoot の dlit が1でなければならない．
+    mSolver.add_clause(SatLiteral(dvar(mRoot1)));
+  }
+}
+
+// @brief 対象の部分回路の故障値の関係を表す CNF 式を作る．
+void
+DomChecker::gen_faulty_cnf2()
+{
+  //////////////////////////////////////////////////////////////////////
+  // 故障回路2の CNF を生成
+  //////////////////////////////////////////////////////////////////////
+  GateEnc fval_enc{mSolver, mFvarMap2};
+  for ( auto node: mTfoList2 ) {
+    if ( node != mRoot2 ) {
+      fval_enc.make_cnf(node);
+
+      if ( debug_dtpg ) {
+	DEBUG_OUT << node->str()
+		  << ": fvar2("
+		  << fvar2(node) << ") := "
+		  << node->gate_type() << "(";
+	for ( auto inode: node->fanin_list() ) {
+	  DEBUG_OUT << " "
+		    << node->str()
+		    << ": fvar2("
+		    << fvar2(inode) << ")";
+	}
+	DEBUG_OUT << ")" << endl;
+      }
+    }
+  }
+
+  // こちらは故障の影響が伝搬しない条件を創る．
+  for ( auto node: mOutputList2 ) {
+    auto glit = gvar(node);
+    auto flit = fvar2(node);
+    mSolver.add_clause( glit, ~flit);
+    mSolver.add_clause(~glit,  flit);
+  }
+  {
+    auto glit = gvar(mRoot2);
+    auto flit = fvar2(mRoot2);
+    // flit が glit と異なるのは fault->excitation_condition()
+    // が成り立っている時．
+    auto dlit = new_variable();
+    mSolver.add_xorgate(dlit, glit, flit);
+    auto ex_cond = mFault2->excitation_condition();
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(ex_cond.size() + 1);
+    for ( auto nv: ex_cond ) {
+      auto lit = conv_to_literal(nv);
+      mSolver.add_clause(lit, ~dlit);
+      tmp_lits.push_back(~lit);
+    }
+    tmp_lits.push_back(dlit);
+    mSolver.add_clause(tmp_lits);
   }
 }
 
@@ -359,7 +380,7 @@ DomChecker::make_dchain_cnf(
 )
 {
   auto glit = mGvarMap(node);
-  auto flit = mFvarMap[0](node);
+  auto flit = mFvarMap1(node);
   auto dlit = mDvarMap(node);
 
   // dlit -> XOR(glit, flit) を追加する．
