@@ -182,6 +182,7 @@ FaultReducer::ffr_reduction()
 	}
 	auto f2_ffr_cond = fault2->ffr_propagate_condition();
 	f2_ffr_cond.diff(f1_ffr_cond);
+	// f2_ffr_cond が空の場合には UNSAT となる．
 	bool unsat = true;
 	vector<SatLiteral> assumptions1{assumptions};
 	// プレースホルダ
