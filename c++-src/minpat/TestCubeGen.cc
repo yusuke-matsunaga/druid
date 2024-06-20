@@ -55,6 +55,7 @@ testcube_gen1(
       tv_list.push_back(tv);
     }
   }
+
   return tv_list;
 }
 
@@ -122,10 +123,43 @@ TestCubeGen::run(
       dtpg_option = option.get("dtpg");
     }
   }
+  vector<TestVector> tv_list;
   if ( cube_per_fault == 1 ) {
-    return testcube_gen1(network, fault_list, dtpg_option);
+    tv_list = testcube_gen1(network, fault_list, dtpg_option);
   }
-  return testcube_gen2(network, fault_list, cube_per_fault, dtpg_option);
+  else {
+    tv_list = testcube_gen2(network, fault_list, cube_per_fault, dtpg_option);
+  }
+
+  // 同一のパタンを取り除く．
+  SizeType n0 = tv_list.size();
+  sort(tv_list.begin(), tv_list.end(),
+       [](const TestVector& a, const TestVector& b)->bool{
+	 auto a_str = a.hex_str();
+	 auto b_str = b.hex_str();
+	 return a_str < b_str;
+       });
+  auto rpos = tv_list.begin();
+  auto end = tv_list.end();
+  auto wpos = tv_list.begin();
+  TestVector prev_tv;
+  for ( ; rpos != end; ++ rpos ) {
+    auto cur_tv = *rpos;
+    if ( cur_tv != prev_tv ) {
+      if ( rpos != wpos ) {
+	*wpos = cur_tv;
+      }
+      ++ wpos;
+      prev_tv = cur_tv;
+    }
+  }
+  if ( wpos != end ) {
+    tv_list.erase(wpos, end);
+  }
+
+  cout << n0 << " -> " << tv_list.size() << endl;
+
+  return tv_list;
 }
 
 END_NAMESPACE_DRUID
