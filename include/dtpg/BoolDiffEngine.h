@@ -17,6 +17,7 @@
 #include "Val3.h"
 #include "VidMap.h"
 #include "NodeValList.h"
+#include "Justifier.h"
 
 #include "ym/SatBool3.h"
 #include "ym/SatLiteral.h"
@@ -33,6 +34,9 @@ BEGIN_NAMESPACE_DRUID
 /// 条件を表す CNF を生成する．
 /// いわゆる「ブール微分」を行っている．
 ///
+/// network で仮定されている故障タイプが遷移故障の場合，１時刻前の
+/// 値を表す CNF も生成される．
+///
 /// option の仕様は以下の通り
 /// - "sat_param": JSONオブジェクト
 ///                SATソルバの初期化パラメータ
@@ -42,6 +46,9 @@ class BoolDiffEngine
 public:
 
   /// @brief コンストラクタ
+  ///
+  /// このオブジェクトが生成された時点で root_node の値の反転が
+  /// いずれかの外部出力まで伝搬する条件を表す CNF が生成されている．
   BoolDiffEngine(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     const TpgNode* root_node,	   ///< [in] 起点となるノード
@@ -51,19 +58,6 @@ public:
 
   /// @brief デストラクタ
   ~BoolDiffEngine() = default;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief CNF の生成を行う．
-  ///
-  /// node からいずれかの外部出力へ故障の影響が伝搬する
-  /// 条件を表す CNF を作る．
-  void
-  make_cnf();
 
 
 public:
@@ -168,13 +162,7 @@ public:
     solver().add_clause(lits);
   }
 
-  /// @brief テストパタン生成を行う．
-  SatBool3
-  solve(
-    const TpgFault* fault ///< [in] 故障
-  );
-
-  /// @brief solve() の下請け関数
+  /// @brief 制約条件のもとでSAT問題を解く．
   SatBool3
   check(
     const vector<SatLiteral>& assumptions ///< [in] 制約条件
@@ -182,6 +170,21 @@ public:
   {
     return mSolver.solve(assumptions);
   }
+
+  /// @brief 直前の check() が成功したときの十分条件を求める．
+  NodeValList
+  extract_sufficient_condition();
+
+  /// @brief 与えられた割当の正当化を行う．
+  /// @return 外部入力の値割り当てを返す．
+  ///
+  /// この関数内では SAt ソルバを起動しない．
+  /// assign_list の割当は直前の check() の結果に沿ったものになっている
+  /// 必要がある．
+  NodeValList
+  justify(
+    const NodeValList& assign_list ///< [in] もととなる値割り当て
+  );
 
   /// @brief 1時刻前の正常値の変数を返す．
   SatLiteral
@@ -255,6 +258,13 @@ protected:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief CNF の生成を行う．
+  ///
+  /// node からいずれかの外部出力へ故障の影響が伝搬する
+  /// 条件を表す CNF を作る．
+  void
+  make_cnf();
 
   /// @brief 対象の部分回路の関係を表す変数を用意する．
   void
@@ -358,6 +368,12 @@ private:
 
   // CNFの生成時間
   double mCnfTime;
+
+  // extractor 用のオプションパラメータ
+  JsonValue mExOption;
+
+  // justifier
+  Justifier mJustifier;
 
 };
 

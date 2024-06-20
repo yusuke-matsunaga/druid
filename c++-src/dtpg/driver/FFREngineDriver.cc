@@ -22,7 +22,6 @@ FFREngineDriver::FFREngineDriver(
   const JsonValue& option
 ) : mEngine{network, ffr, option}
 {
-  mEngine.make_cnf();
 }
 
 // @brief デストラクタ

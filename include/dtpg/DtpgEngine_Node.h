@@ -1,8 +1,8 @@
-﻿#ifndef FFRENGINE_H
-#define FFRENGINE_H
+﻿#ifndef DTPGENGINE_NODE_H
+#define DTPGENGINE_NODE_H
 
-/// @file FFREngine.h
-/// @brief FFREngine のヘッダファイル
+/// @file DtpgEngine_Node.h
+/// @brief DtpgEngine_Node のヘッダファイル
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
@@ -15,27 +15,27 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class FFREngine FFREngine.h "FFREngine.h"
-/// @brief FFR 単位で DTPG の基本的な処理を行うクラス
+/// @class DtpgEngine_Node DtpgEngine_Node.h "DtpgEngine_Node.h"
+/// @brief ノード単位で DTPG の基本的な処理を行うクラス
 ///
-/// FFR 内の故障のFFRのrootまでの故障伝搬条件は single literal の積で
-/// 表されるので，このクラスではFFRのrootから外部出力までの故障伝搬条件
-/// を最初に作っておく．
+/// ノードの出力までの故障伝搬条件は single literal の積で
+/// 表されるので，このクラスではノードの出力から外部出力までの
+/// 故障伝搬条件を最初に作っておく．
 //////////////////////////////////////////////////////////////////////
-class FFREngine :
+class DtpgEngine_Node :
   public DtpgEngine
 {
 public:
 
   /// @brief コンストラクタ
-  FFREngine(
+  DtpgEngine_Node(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,	           ///< [in] 故障伝搬の起点となる FFR
+    const TpgNode* node,           ///< [in] 故障のあるノード
     const JsonValue& option        ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~FFREngine();
+  ~DtpgEngine_Node();
 
 
 private:
@@ -43,11 +43,9 @@ private:
   // DtpgEngine の仮想関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief gen_pattern() で用いる検出条件を作る．
-  ///
-  /// このクラスでは空を返す．
-  vector<SatLiteral>
-  gen_assumptions(
+  /// @brief 故障の活性化条件
+  NodeValList
+  fault_condition(
     const TpgFault* fault ///< [in] 対象の故障
   ) override;
 
@@ -55,4 +53,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // FFRENGINE_H
+#endif // DTPGENGINE_NODE_H

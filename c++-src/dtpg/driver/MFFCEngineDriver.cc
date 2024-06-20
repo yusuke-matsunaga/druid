@@ -22,7 +22,6 @@ MFFCEngineDriver::MFFCEngineDriver(
   const JsonValue& option
 ) : mEngine{network, mffc, option}
 {
-  mEngine.make_cnf();
 }
 
 // @brief デストラクタ

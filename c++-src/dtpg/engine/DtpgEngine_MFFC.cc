@@ -1,12 +1,12 @@
 ﻿
-/// @file MFFCEngine.cc
-/// @brief MFFCEngine の実装ファイル
+/// @file DtpgEngine_MFFC.cc
+/// @brief DtpgEngine_MFFC の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2017, 2018, 2022, 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "MFFCEngine.h"
+#include "DtpgEngine_MFFC.h"
 
 #include "TpgFault.h"
 #include "TpgMFFC.h"
@@ -31,7 +31,7 @@ END_NONAMESPACE
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-MFFCEngine::MFFCEngine(
+DtpgEngine_MFFC::DtpgEngine_MFFC(
   const TpgNetwork& network,
   const TpgMFFC* mffc,
   const JsonValue& option
@@ -40,16 +40,17 @@ MFFCEngine::MFFCEngine(
     mRootArray(mffc->ffr_num()),
     mEvarArray(mffc->ffr_num())
 {
+  opt_make_cnf();
 }
 
 // @brief デストラクタ
-MFFCEngine::~MFFCEngine()
+DtpgEngine_MFFC::~DtpgEngine_MFFC()
 {
 }
 
 // @brief make_cnf() の追加処理
 void
-MFFCEngine::opt_make_cnf()
+DtpgEngine_MFFC::opt_make_cnf()
 {
   SizeType ffr_id = 0;
   for ( auto ffr: mMFFC->ffr_list() ) {
@@ -57,7 +58,7 @@ MFFCEngine::opt_make_cnf()
     mRootArray[ffr_id] = root;
     mFfrIdMap.emplace(root->id(), ffr_id);
 
-    auto cvar = solver().new_variable(true);
+    auto cvar = new_variable(true);
     mEvarArray[ffr_id] = cvar;
 
     if ( debug_mffc ) {
@@ -77,7 +78,7 @@ MFFCEngine::opt_make_cnf()
     }
     for ( auto onode: node->fanout_list() ) {
       if ( fvar(onode) == gvar(onode) ) {
-	auto var = solver().new_variable(true);
+	auto var = new_variable(true);
 	set_fvar(onode, var);
 	node_list.push_back(onode);
 
@@ -98,7 +99,7 @@ MFFCEngine::opt_make_cnf()
       continue;
     }
 
-    auto fvar = solver().new_variable(true);
+    auto fvar = new_variable(true);
     set_fvar(node, fvar);
 
     inject_fault(i, gvar(node));
@@ -112,7 +113,7 @@ MFFCEngine::opt_make_cnf()
       SizeType ffr_pos = mFfrIdMap.at(node->id());
       // 実際のゲートの出力と ovar の間に XOR ゲートを挿入する．
       // XORの一方の入力は mEvarArray[ffr_pos]
-      ovar = solver().new_variable();
+      ovar = new_variable();
       inject_fault(ffr_pos, ovar);
       // ovar が fvar(node) ではない！
       fval_enc.make_cnf(node, ovar);
@@ -133,9 +134,18 @@ MFFCEngine::opt_make_cnf()
   }
 }
 
+// @brief 故障の活性化条件
+NodeValList
+DtpgEngine_MFFC::fault_condition(
+  const TpgFault* fault
+)
+{
+  return fault->ffr_propagate_condition();
+}
+
 // @brief gen_pattern() で用いる検出条件を作る．
 vector<SatLiteral>
-MFFCEngine::gen_assumptions(
+DtpgEngine_MFFC::extra_assumptions(
   const TpgFault* fault
 )
 {
@@ -144,7 +154,7 @@ MFFCEngine::gen_assumptions(
   if ( ffr_root != root_node() ) {
     // ffr_root のある FFR を活性化する条件を作る．
     if ( mFfrIdMap.count(ffr_root->id()) == 0 ) {
-      cerr << "Error[MFFCEngine::dtpg()]: "
+      cerr << "Error[DtpgEngine_MFFC::dtpg()]: "
 	   << ffr_root->id() << " is not within the MFFC" << endl;
       ASSERT_NOT_REACHED;
       return {};
@@ -169,7 +179,7 @@ MFFCEngine::gen_assumptions(
 
 // @brief 故障挿入回路のCNFを作る．
 void
-MFFCEngine::inject_fault(
+DtpgEngine_MFFC::inject_fault(
   SizeType ffr_id,
   SatLiteral ovar
 )

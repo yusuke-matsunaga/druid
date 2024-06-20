@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "DtpgDriverImpl.h"
-#include "MFFCEngine.h"
+#include "DtpgEngine_MFFC.h"
 #include "ym/JsonValue.h"
 
 
@@ -69,7 +69,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // エンジン本体
-  MFFCEngine mEngine;
+  DtpgEngine_MFFC mEngine;
 
 };
 

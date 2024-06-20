@@ -11,7 +11,8 @@
 #include "TpgFFR.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "FFREngine.h"
+#include "DtpgEngine_Node.h"
+#include "DtpgEngine_FFR.h"
 #include "ym/JsonValue.h"
 
 
@@ -46,8 +47,7 @@ testcube_gen1(
 
   vector<TestVector> tv_list;
   for ( auto ffr: network.ffr_list() ) {
-    FFREngine engine{network, ffr, option};
-    engine.make_cnf();
+    DtpgEngine_FFR engine{network, ffr, option};
     for ( auto f: ffr_fault_list[ffr->id()] ) {
       auto res = engine.solve(f);
       ASSERT_COND( res == SatBool3::True );
@@ -71,8 +71,7 @@ testcube_gen2(
   // 故障ごとに使い捨てのSATソルバを作る．
   for ( auto f: fault_list ) {
     auto node = f->ffr_root();
-    DtpgEngine engine{network, node, option};
-    engine.make_cnf();
+    DtpgEngine_Node engine{network, node, option};
     auto res = engine.solve(f);
     ASSERT_COND( res == SatBool3::True );
     auto suf_cond = engine.get_sufficient_condition(f);

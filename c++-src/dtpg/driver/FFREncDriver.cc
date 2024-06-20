@@ -78,8 +78,15 @@ FFREncDriver::gen_pattern(
 					       model, mExOpt);
   auto ffr_cond = fault->ffr_propagate_condition();
   suf_cond.merge(ffr_cond);
-  auto pi_assign_list = mJustifier(suf_cond, mHvarMap, mGvarMap, model);
-  return TestVector{mNetwork, pi_assign_list};
+  auto has_prev_state = mNetwork.fault_type() == FaultType::TransitionDelay;
+  if ( has_prev_state ) {
+    auto pi_assign_list = mJustifier(suf_cond, mHvarMap, mGvarMap, model);
+    return TestVector{mNetwork, pi_assign_list};
+  }
+  else {
+    auto pi_assign_list = mJustifier(suf_cond, mGvarMap, model);
+    return TestVector{mNetwork, pi_assign_list};
+  }
 }
 
 // @brief CNF の生成時間を返す．

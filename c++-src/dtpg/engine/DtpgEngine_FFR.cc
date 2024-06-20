@@ -1,19 +1,20 @@
 ﻿
-/// @file FFREngine.cc
-/// @brief FFREngine の実装ファイル
+/// @file DtpgEngine_FFR.cc
+/// @brief DtpgEngine_FFR の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "FFREngine.h"
+#include "DtpgEngine_FFR.h"
 #include "TpgFFR.h"
+#include "TpgFault.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-FFREngine::FFREngine(
+DtpgEngine_FFR::DtpgEngine_FFR(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
@@ -22,17 +23,17 @@ FFREngine::FFREngine(
 }
 
 // @brief デストラクタ
-FFREngine::~FFREngine()
+DtpgEngine_FFR::~DtpgEngine_FFR()
 {
 }
 
 // @brief gen_pattern() で用いる検出条件を作る．
-vector<SatLiteral>
-FFREngine::gen_assumptions(
+NodeValList
+DtpgEngine_FFR::fault_condition(
   const TpgFault* fault
 )
 {
-  return {};
+  return fault->ffr_propagate_condition();
 }
 
 END_NAMESPACE_DRUID

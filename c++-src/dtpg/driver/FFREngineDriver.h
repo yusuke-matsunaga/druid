@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "DtpgDriverImpl.h"
-#include "FFREngine.h"
+#include "DtpgEngine_FFR.h"
 #include "ym/JsonValue.h"
 
 
@@ -17,7 +17,7 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class FFREngineDriver FFREngineDriver.h "FFREngineDriver.h"
-/// @brief FFREngine を用いたドライバ
+/// @brief DtpgEngine_FFR を用いたドライバ
 //////////////////////////////////////////////////////////////////////
 class FFREngineDriver :
   public DtpgDriverImpl
@@ -69,7 +69,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // エンジン本体
-  FFREngine mEngine;
+  DtpgEngine_FFR mEngine;
 
 };
 

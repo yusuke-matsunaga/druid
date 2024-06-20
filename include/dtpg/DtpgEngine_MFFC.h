@@ -1,8 +1,8 @@
-﻿#ifndef MFFCENGINE_H
-#define MFFCENGINE_H
+﻿#ifndef DTPGENGINE_MFFC_H
+#define DTPGENGINE_MFFC_H
 
-/// @file MFFCEngine.h
-/// @brief MFFCEngine のヘッダファイル
+/// @file DtpgEngine_MFFC.h
+/// @brief DtpgEngine_MFFC のヘッダファイル
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
@@ -15,23 +15,23 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class MFFCEngine MFFCEngine.h "MFFCEngine.h"
+/// @class DtpgEngine_MFFC DtpgEngine_MFFC.h "DtpgEngine_MFFC.h"
 /// @brief MFFC 単位で DTPG の基本的な処理を行うクラス
 //////////////////////////////////////////////////////////////////////
-class MFFCEngine :
+class DtpgEngine_MFFC :
   public DtpgEngine
 {
 public:
 
   /// @brief コンストラクタ
-  MFFCEngine(
+  DtpgEngine_MFFC(
     const TpgNetwork& network,     ///< [in] 対象のネットワーク
     const TpgMFFC* mffc,	   ///< [in] 故障伝搬の起点となる MFFC
     const JsonValue& option        ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~MFFCEngine();
+  ~DtpgEngine_MFFC();
 
 
 private:
@@ -39,11 +39,15 @@ private:
   // DtpgEngine の仮想関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief gen_pattern() で用いる検出条件を作る．
-  ///
-  /// デフォルトでは空を返す．
+  /// @brief 故障の活性化条件
+  NodeValList
+  fault_condition(
+    const TpgFault* fault ///< [in] 対象の故障
+  ) override;
+
+  /// @brief gen_pattern() で用いる追加の検出条件
   vector<SatLiteral>
-  gen_assumptions(
+  extra_assumptions(
     const TpgFault* fault ///< [in] 対象の故障
   ) override;
 
@@ -55,7 +59,7 @@ private:
 
   /// @brief make_cnf() の追加処理
   void
-  opt_make_cnf() override;
+  opt_make_cnf();
 
   /// @brief 故障挿入回路のCNFを作る．
   void
@@ -88,4 +92,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // MFFCENGINE_H
+#endif // DTPGENGINE_MFFC_H

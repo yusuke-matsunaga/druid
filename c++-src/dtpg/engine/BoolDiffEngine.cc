@@ -14,6 +14,7 @@
 #include "GateEnc.h"
 #include "NodeValList.h"
 #include "TpgNodeSet.h"
+#include "extract.h"
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
@@ -48,6 +49,18 @@ get_sat_param(
   return SatInitParam{};
 }
 
+JsonValue
+get_option(
+  const JsonValue& option,
+  const char* keyword
+)
+{
+  if ( option.is_object() && option.has_key(keyword) ) {
+    return option.get(keyword);
+  }
+  return JsonValue{};
+}
+
 END_NONAMESPACE
 
 // @brief コンストラクタ
@@ -61,7 +74,9 @@ BoolDiffEngine::BoolDiffEngine(
     mHvarMap{network.node_num()},
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
-    mDvarMap{network.node_num()}
+    mDvarMap{network.node_num()},
+    mExOption{get_option(option, "extractor")},
+    mJustifier{network, get_option(option, "justifier")}
 {
   make_cnf();
 }
@@ -352,6 +367,30 @@ BoolDiffEngine::add_to_literal_list(
   for ( auto nv: assign_list ) {
     auto lit = conv_to_literal(nv);
     lit_list.push_back(lit);
+  }
+}
+
+// @brief 直前の check() が成功したときの十分条件を求める．
+NodeValList
+BoolDiffEngine::extract_sufficient_condition()
+{
+  auto& model = mSolver.model();
+  return DRUID_NAMESPACE::extract_sufficient_condition(mRoot, mGvarMap, mFvarMap, model, mExOption);
+}
+
+// @brief 与えられた割当の正当化を行う．
+NodeValList
+BoolDiffEngine::justify(
+  const NodeValList& assign_list
+)
+{
+  auto& model = mSolver.model();
+  bool has_prev_state = mNetwork.fault_type() == FaultType::TransitionDelay;
+  if ( has_prev_state ) {
+    return mJustifier(assign_list, mHvarMap, mGvarMap, model);
+  }
+  else {
+    return mJustifier(assign_list, mGvarMap, model);
   }
 }
 
