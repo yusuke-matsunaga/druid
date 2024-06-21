@@ -43,7 +43,7 @@ NaiveDomChecker::NaiveDomChecker(
 					 tmp_list.push_back(node);
 				       });
 
-  mTfoList1 = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot2,
+  mTfoList2 = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot2,
 				       [&](const TpgNode* node) {
 					 if ( node->is_ppo() ) {
 					   mOutputList2.push_back(node);
