@@ -1,0 +1,196 @@
+#ifndef DCGRAPH_H
+#define DCGRAPH_H
+
+/// @file DcGraph.h
+/// @brief DcGraph のヘッダファイル
+/// @author Yusuke Matsunaga (松永 裕介)
+///
+/// Copyright (C) 2024 Yusuke Matsunaga
+/// All rights reserved.
+
+#include "druid.h"
+
+
+BEGIN_NAMESPACE_DRUID
+
+class TpgFault;
+class DcNode;
+class DcEdge;
+
+//////////////////////////////////////////////////////////////////////
+/// @class DcGraph DcGraph.h "DcGraph.h"
+/// @brief 故障の支配関係を表すグラフ
+//////////////////////////////////////////////////////////////////////
+class DcGraph
+{
+public:
+
+  /// @brief コンストラクタ
+  DcGraph(
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
+    const vector<vector<const TpgFault*>>& dom_cand_list ///< [in] 支配故障の候補リスト
+  );
+
+  /// @brief デストラクタ
+  ~DcGraph();
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障に対応したノードを返す．
+  DcNode*
+  node(
+    const TpgFault* f ///< [in] 故障
+  ) const;
+
+  /// @brief トポロジカル順にソートする．
+  /// @return ソートしたノードのリストを返す．
+  vector<DcNode*>
+  sorted() const;
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 故障番号をキーにしたノードの配列
+  vector<DcNode*> mNodeArray;
+
+  // 枝野リスト
+  vector<DcEdge*> mEdgeList;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class DcNode DcGraph.h "DcGraph.h"
+/// @brief DcGraph の節点を表すクラス
+//////////////////////////////////////////////////////////////////////
+class DcNode
+{
+  friend class DcGraph;
+
+public:
+
+  /// @brief コンストラクタ
+  DcNode(
+    const TpgFault* f ///< [in] 対応する故障
+  ) : mFault{f}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~DcNode() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 対応する故障を返す．
+  const TpgFault*
+  fault() const
+  {
+    return mFault;
+  }
+
+  /// @brief 出枝のリストを返す．
+  const vector<DcEdge*>
+  outedge_list() const
+  {
+    return mOutEdgeList;
+  }
+
+  /// @brief 入枝のリストを返す．
+  const vector<DcEdge*>
+  inedge_list() const
+  {
+    return mInEdgeList;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 対応する故障
+  const TpgFault* mFault;
+
+  // 出枝のリスト
+  vector<DcEdge*> mOutEdgeList;
+
+  // 入枝のリスト
+  vector<DcEdge*> mInEdgeList;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class DcEdge DcGraph.h "DcGraph.h"
+/// @brief DcGraph の枝を表すクラス
+//////////////////////////////////////////////////////////////////////
+class DcEdge
+{
+public:
+
+  /// @brief コンストラクタ
+  DcEdge(
+    DcNode* from, ///< [in] 始点のノード
+    DcNode* to    ///< [in] 終点のノード
+  ) : mFrom{from},
+      mTo{to}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~DcEdge() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 始点のノードを返す．
+  DcNode*
+  from_node() const
+  {
+    return mFrom;
+  }
+
+  /// @brief 終点のノードを返す．
+  DcNode*
+  to_node() const
+  {
+    return mTo;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 始点のノード
+  DcNode* mFrom;
+
+  // 終点のノード
+  DcNode* mTo;
+
+};
+
+END_NAMESPACE_DRUID
+
+#endif // DCGRAPH_H

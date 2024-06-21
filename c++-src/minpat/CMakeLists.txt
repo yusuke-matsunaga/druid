@@ -30,6 +30,7 @@ set ( minpat_SOURCES
   TestCubeGen.cc
   NaiveDomChecker.cc
   StructDomChecker.cc
+  DcGraph.cc
   )
 
 

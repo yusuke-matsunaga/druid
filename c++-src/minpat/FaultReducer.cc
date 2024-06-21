@@ -9,6 +9,7 @@
 #include "FaultReducer.h"
 #include "BoolDiffEngine.h"
 #include "DomCandGen.h"
+#include "DcGraph.h"
 #include "UndetChecker.h"
 #include "DomChecker.h"
 #include "TpgFFR.h"
@@ -109,9 +110,17 @@ FaultReducer::run()
 
   if ( mDebug ) {
     mTimer.stop();
+    SizeType n = 0;
+    for ( auto f: mFaultList ) {
+      n += mDomCandList[f->id()].size();
+    }
     cout << "Fault Simulation" << endl;
+    cout << "Total Candidates:                      " << n << endl;
     cout << "CPU time:                              " << mTimer.get_time() << endl;
   }
+
+  DcGraph dc_graph{mFaultList, mDomCandList};
+  auto node_list = dc_graph.sorted();
 
   ffr_reduction();
 
