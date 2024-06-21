@@ -85,9 +85,6 @@ NaiveDomChecker::NaiveDomChecker(
   // 故障回路2の CNF を生成
   gen_faulty_cnf2();
 
-  //////////////////////////////////////////////////////////////////////
-  // 故障の非検出条件(正確には mRoot[1] から外部出力までの故障の伝搬条件)
-  //////////////////////////////////////////////////////////////////////
 }
 
 // @brief デストラクタ
@@ -96,10 +93,10 @@ NaiveDomChecker::~NaiveDomChecker()
 }
 
 // @brief チェックする．
-SatBool3
+bool
 NaiveDomChecker::check()
 {
-  return solver().solve();
+  return solver().solve() == SatBool3::False;
 }
 
 // @brief 対象の部分回路の関係を表す変数を用意する．

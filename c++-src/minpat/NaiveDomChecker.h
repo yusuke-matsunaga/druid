@@ -48,7 +48,7 @@ public:
   ///
   /// fault1 を検出して fault2 を検出しないテストパタンがあるか調べる．
   /// UNSAT の場合には fault1 が fault2 を支配している．
-  SatBool3
+  bool
   check();
 
 

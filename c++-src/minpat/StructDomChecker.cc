@@ -36,12 +36,15 @@ StructDomChecker::~StructDomChecker()
 }
 
 // @brief チェックする．
-SatBool3
+bool
 StructDomChecker::check()
 {
   auto ex_cond1 = mFault1->excitation_condition();
   auto ex_cond2 = mFault2->excitation_condition();
-  return mEngine.check_sat(ex_cond1, ex_cond2);
+  if ( mEngine.check_sat(ex_cond1, ex_cond2) == SatBool3::False ) {
+    return true;
+  }
+  return false;
 }
 
 END_NAMESPACE_DRUID

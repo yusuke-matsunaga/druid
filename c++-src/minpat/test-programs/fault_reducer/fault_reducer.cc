@@ -10,7 +10,7 @@
 #include "DtpgMgr.h"
 #include "TpgFault.h"
 #include "FaultReducer.h"
-#include "StructDomChecker.h"
+#include "NaiveDomChecker.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
@@ -286,8 +286,8 @@ fault_reducer(
 	  continue;
 	}
 	auto f2 = det_fault_list[i2];
-	StructDomChecker checker{network, f1, f2, option};
-	if ( checker.check() == SatBool3::False ) {
+	NaiveDomChecker checker{network, f1, f2, option};
+	if ( checker.check() ) {
 	  deleted[i2] = true;
 	}
       }
