@@ -65,9 +65,6 @@ DomCandGen::run(
   vector<vector<const TpgFault*>>& dom_cand_list
 )
 {
-  dom_cand_list.clear();
-  dom_cand_list.resize(mWorkArray.size());
-
   vector<TestVector> tv_buff;
   tv_buff.reserve(PV_BITLEN);
   // 与えられたテストベクタを用いる．

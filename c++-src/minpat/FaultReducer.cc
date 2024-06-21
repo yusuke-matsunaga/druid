@@ -77,6 +77,9 @@ FaultReducer::run()
   }
   ++ max_fault_id;
 
+  mDomCandList.clear();
+  mDomCandList.resize(max_fault_id, {});
+
   // 削除マークを初期化する．
   mDeleted.clear();
   mDeleted.resize(max_fault_id, true);
