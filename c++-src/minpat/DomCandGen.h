@@ -93,6 +93,9 @@ private:
   // 故障のリスト
   const vector<const TpgFault*>& mFaultList;
 
+  // 故障番号の最大値 + 1
+  SizeType mMaxFaultId;
+
   // テストベクタのリスト
   const vector<TestVector>& mTvList;
 
@@ -109,6 +112,7 @@ private:
   SizeType mDffNum;
 
   // 作業領域の配列
+  // サイズは mMaxFaultId
   // キーは故障番号
   vector<Work> mWorkArray;
 

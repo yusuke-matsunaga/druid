@@ -39,14 +39,17 @@ DomCandGen::DomCandGen(
   const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list
 ) : mFaultList{fault_list},
+    mMaxFaultId{get_max_fault_id(fault_list)},
     mTvList{tv_list},
-    mFsim{network, fault_list, false, true},
+    mFsim{network, fault_list, false, false},
     mHasPrevState{network.fault_type() == FaultType::TransitionDelay},
     mInputNum{network.input_num()},
     mDffNum{network.dff_num()},
-    mWorkArray(get_max_fault_id(fault_list))
+    mWorkArray(mMaxFaultId)
 {
+  mFsim.set_skip_all();
   for ( auto f: fault_list ) {
+    mFsim.clear_skip(f);
     auto& work = mWorkArray[f->id()];
     work.mPat = PV_ALL0;
     work.mHasDomCandList = false;
@@ -65,11 +68,13 @@ DomCandGen::run(
   vector<vector<const TpgFault*>>& dom_cand_list
 )
 {
+  std::mt19937 rg;
   vector<TestVector> tv_buff;
   tv_buff.reserve(PV_BITLEN);
   // 与えられたテストベクタを用いる．
   // これで各故障が最低1回は検出されるはず．
-  for ( auto& tv: mTvList ) {
+  for ( auto tv: mTvList ) {
+    tv.fix_x_from_random(rg);
     tv_buff.push_back(tv);
     if ( tv_buff.size() == PV_BITLEN ) {
       do_fsim(tv_buff, dom_cand_list);
@@ -81,7 +86,6 @@ DomCandGen::run(
   }
 
   // 乱数を用いて故障シミュレーションを行う．
-  std::mt19937 rg;
   TestVector tv{mInputNum, mDffNum, mHasPrevState};
   for ( SizeType nc_count = 0; nc_count < loop_limit; ) {
     // 変化がなくなってから loop_limit 回過ぎたら終わる．
@@ -125,6 +129,7 @@ DomCandGen::do_fsim(
     auto& w1 = mWorkArray[f1->id()];
     auto pat1 = w1.mPat;
     auto& dst_list = dom_cand_list[f1->id()];
+    SizeType n0 = dst_list.size();
     if ( !w1.mHasDomCandList ) {
       // まだ dom_cand_list がない．
       // det_fault_list に含まれる他の故障を対象に調べる．
