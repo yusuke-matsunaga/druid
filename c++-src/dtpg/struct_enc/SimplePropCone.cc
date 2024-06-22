@@ -3,7 +3,7 @@
 /// @brief SimplePropCone の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012-2014, 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "SimplePropCone.h"
@@ -24,9 +24,8 @@ END_NONAMESPACE
 // @brief コンストラクタ
 SimplePropCone::SimplePropCone(
   StructEnc& struct_enc,
-  const TpgNode* root_node,
-  bool detect
-) : PropCone{struct_enc, root_node, detect}
+  const TpgNode* root_node
+) : PropCone{struct_enc, root_node}
 {
 }
 

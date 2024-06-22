@@ -254,9 +254,6 @@ private:
   // struct SAT ソルバ
   StructEnc& mStructEnc;
 
-  // 故障検出フラグ
-  bool mDetect;
-
   // ノードのIDの最大値
   SizeType mMaxNodeId;
 

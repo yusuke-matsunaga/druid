@@ -42,7 +42,6 @@ PropCone::PropCone(
   StructEnc& struct_enc,
   const TpgNode* root_node
 ) : mStructEnc{struct_enc},
-    mDetect{detect},
     mMaxNodeId{struct_enc.max_node_id()},
     mMarkArray(max_id()),
     mFvarMap(max_id()),
@@ -59,6 +58,8 @@ PropCone::PropCone(
 
   // 出力のリストを output_id2() の昇順に整列しておく．
   sort(mOutputList.begin(), mOutputList.end(), Lt());
+
+  mPropVar = solver().new_variable(true);
 }
 
 // @brief デストラクタ
@@ -81,16 +82,13 @@ PropCone::make_vars(
   for ( auto node: mNodeList ) {
     auto fvar = solver().new_variable(true);
     set_fvar(node, fvar);
+    auto dvar = solver().new_variable(false);
+    set_dvar(node, dvar);
     if ( debug ) {
-      cout << "fvar(Node#" << node->id() << ") = " << fvar << endl;
-    }
-    if ( mDetect ) {
-      auto dvar = solver().new_variable(false);
-      set_dvar(node, dvar);
+      cout << "Node#" << node->id() << "fvar = " << fvar
+	   << ", dvar = " << dvar << endl;
     }
   }
-
-  mPropVar = new_variable(true);
 }
 
 // @brief 関係するノードの入出力の関係を表すCNFを作る．
@@ -103,29 +101,23 @@ PropCone::make_cnf()
       // 故障回路のゲートの入出力関係を表すCNFを作る．
       gate_enc.make_cnf(node);
     }
-    if ( mDetect ) {
-      // D-Chain 制約を作る．
-      make_dchain_cnf(node);
-    }
+    // D-Chain 制約を作る．
+    make_dchain_cnf(node);
   }
 
-  if ( mDetect ) {
-    // 外部出力へ故障の影響が伝搬する条件を作る．
-    vector<SatLiteral> odiff;
-    odiff.reserve(mOutputList.size());
-    for ( auto node: mOutputList ) {
-      auto dlit = dvar(node);
-      odiff.push_back(dlit);
-    }
-    solver().add_clause(odiff);
-
-    auto root = root_node();
-    if ( !root->is_ppo() ) {
-      // root の dlit が1でなければならない．
-      auto dlit = dvar(root);
-      solver().add_clause(dlit);
-    }
+  // 外部出力へ故障の影響が伝搬する条件を作る．
+  vector<SatLiteral> odiff;
+  odiff.reserve(mOutputList.size());
+  for ( auto node: mOutputList ) {
+    auto dlit = dvar(node);
+    odiff.push_back(dlit);
   }
+  solver().add_orgate(mPropVar, odiff);
+
+  auto root = root_node();
+  // root の dlit が1でなければならない．
+  auto dlit = dvar(root);
+  solver().add_clause(dlit);
 }
 
 // @brief 故障検出に必要な割り当てを求める．

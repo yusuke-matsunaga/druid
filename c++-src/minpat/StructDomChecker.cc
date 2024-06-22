@@ -25,9 +25,14 @@ StructDomChecker::StructDomChecker(
     mFault1{fault1},
     mFault2{fault2}
 {
-  mEngine.add_simple_cone(fault1->origin_node(), true);
-  mEngine.add_simple_cone(fault2->origin_node(), false);
+  mVar1 = mEngine.add_simple_cone(fault1->origin_node());
+  mVar2 = mEngine.add_simple_cone(fault2->origin_node());
   mEngine.make_cnf();
+  auto ex_cond2 = mFault2->excitation_condition();
+  auto exlit = mEngine.solver().new_variable();
+  auto tmp_lits = mEngine.conv_to_literal_list(ex_cond2);
+  mEngine.solver().add_andgate(exlit, tmp_lits);
+  //mEngine.solver().add_clause(~mVar2, ~exlit);
 }
 
 // @brief デストラクタ
@@ -39,11 +44,16 @@ StructDomChecker::~StructDomChecker()
 bool
 StructDomChecker::check()
 {
+#if 0
   auto ex_cond1 = mFault1->excitation_condition();
-  auto ex_cond2 = mFault2->excitation_condition();
-  if ( mEngine.check_sat(ex_cond1, ex_cond2) == SatBool3::False ) {
+  if ( mEngine.check_sat(ex_cond1) == SatBool3::False ) {
     return true;
   }
+#else
+  if ( mEngine.check_sat() == SatBool3::False ) {
+    return true;
+  }
+#endif
   return false;
 }
 

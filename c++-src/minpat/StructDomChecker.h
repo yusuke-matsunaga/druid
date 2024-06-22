@@ -70,6 +70,12 @@ private:
   // 故障2
   const TpgFault* mFault2;
 
+  // 故障1を検出する条件
+  SatLiteral mVar1;
+
+  // 故障2を検出する条件
+  SatLiteral mVar2;
+
 };
 
 END_NAMESPACE_DRUID

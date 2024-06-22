@@ -6,7 +6,7 @@
 ///
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "PropCone.h"
@@ -25,9 +25,8 @@ public:
 
   /// @brief コンストラクタ
   SimplePropCone(
-    StructEnc& struct_enc,    ///< [in] StructEnc ソルバ
-    const TpgNode* root_node, ///< [in] FFRの根のノード
-    bool detect		      ///< [in] 故障を検出する時に true にするフラグ
+    StructEnc& struct_enc,   ///< [in] StructEnc ソルバ
+    const TpgNode* root_node ///< [in] FFRの根のノード
   );
 
   /// @brief デストラクタ

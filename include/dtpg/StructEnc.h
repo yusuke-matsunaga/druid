@@ -110,21 +110,21 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief fault cone を追加する．
+  /// @return 故障伝搬条件を表す変数を返す．
   ///
   /// fnode から到達可能な外部出力までの故障伝搬条件を考える．
-  void
+  SatLiteral
   add_simple_cone(
-    const TpgNode* fnode, ///< [in] 故障のあるノード
-    bool detect		  ///< [in] 故障を検出する時に true にするフラグ
+    const TpgNode* fnode ///< [in] 故障のあるノード
   );
 
   /// @brief MFFC cone を追加する．
+  /// @return 故障伝搬条件を表す変数を返す．
   ///
   /// fnode から到達可能な外部出力までの故障伝搬条件を考える．
-  void
+  SatLiteral
   add_mffc_cone(
-    const TpgMFFC* mffc, ///< [in] MFFC の情報
-    bool detect		 ///< [in] 故障を検出する時に true にするフラグ
+    const TpgMFFC* mffc ///< [in] MFFC の情報
   );
 
   /// @brief 故障の伝搬条件を求める．

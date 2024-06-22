@@ -30,8 +30,9 @@ FFRStructEncDriver::FFRStructEncDriver(
 {
   Timer timer;
   timer.start();
-  mStructEnc.add_simple_cone(mRoot, true);
+  auto var = mStructEnc.add_simple_cone(mRoot);
   mStructEnc.make_cnf();
+  mStructEnc.solver().add_clause(var);
   timer.stop();
   mCnfTime = timer.get_time();
 }

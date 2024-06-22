@@ -30,8 +30,9 @@ MFFCStructEncDriver::MFFCStructEncDriver(
 {
   Timer timer;
   timer.start();
-  mStructEnc.add_mffc_cone(mffc, true);
+  auto var = mStructEnc.add_mffc_cone(mffc);
   mStructEnc.make_cnf();
+  mStructEnc.solver().add_clause(var);
   timer.stop();
   mCnfTime = timer.get_time();
 }

@@ -11,6 +11,7 @@
 #include "TpgFault.h"
 #include "FaultReducer.h"
 #include "NaiveDomChecker.h"
+#include "StructDomChecker.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
@@ -288,6 +289,7 @@ fault_reducer(
 	auto f2 = det_fault_list[i2];
 	NaiveDomChecker checker{network, f1, f2, option};
 	if ( checker.check() ) {
+	  cout << f2->str() << endl;
 	  deleted[i2] = true;
 	}
       }

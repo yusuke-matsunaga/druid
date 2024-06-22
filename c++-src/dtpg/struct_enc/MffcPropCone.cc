@@ -3,7 +3,7 @@
 /// @brief MffcPropCone の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2010, 2012-2014, 2017, 2022, 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "MffcPropCone.h"
@@ -26,9 +26,8 @@ END_NONAMESPACE
 // @brief コンストラクタ
 MffcPropCone::MffcPropCone(
   StructEnc& struct_sat,
-  const TpgMFFC* mffc,
-  bool detect
-) : PropCone{struct_sat, mffc->root(), detect},
+  const TpgMFFC* mffc
+) : PropCone{struct_sat, mffc->root()},
     mElemArray(mffc->ffr_num()),
     mElemVarArray(mffc->ffr_num())
 {

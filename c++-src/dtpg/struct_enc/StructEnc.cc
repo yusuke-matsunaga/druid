@@ -3,7 +3,7 @@
 /// @brief StructEnc の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2017, 2022, 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "StructEnc.h"
@@ -51,7 +51,7 @@ StructEnc::StructEnc(
   const TpgNetwork& network,
   const JsonValue& option
 ) : mNetwork{network},
-    mHasPrevState{network.fault_type() == FaultType::TransitionDelay},
+    mHasPrevState{network.has_prev_state()},
     mSolver{get_sat_param(option)},
     mMaxId{network.node_num()},
     mGvarMap(mMaxId),
@@ -68,36 +68,36 @@ StructEnc::~StructEnc()
 }
 
 // @brief fault cone を追加する．
-void
+SatLiteral
 StructEnc::add_simple_cone(
-  const TpgNode* fnode,
-  bool detect
+  const TpgNode* fnode
 )
 {
-  auto focone = new SimplePropCone{*this, fnode, detect};
+  auto focone = new SimplePropCone{*this, fnode};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{focone});
   mConeDict.emplace(fnode->id(), cone_id);
+  return focone->prop_var();
 }
 
 // @brief MFFC cone を追加する．
-void
+SatLiteral
 StructEnc::add_mffc_cone(
-  const TpgMFFC* mffc,
-  bool detect
+  const TpgMFFC* mffc
 )
 {
   if ( mffc->ffr_num() == 1 ) {
     // FFRモードで作る．
-    return add_simple_cone(mffc->root(), detect);
+    return add_simple_cone(mffc->root());
   }
-  auto mffccone = new MffcPropCone{*this, mffc, detect};
+  auto mffccone = new MffcPropCone{*this, mffc};
   SizeType cone_id = mConeList.size();
   mConeList.push_back(unique_ptr<PropCone>{mffccone});
   for ( auto ffr: mffc->ffr_list() ) {
     auto root = ffr->root();
     mConeDict.emplace(root->id(), cone_id);
   }
+  return mffccone->prop_var();
 }
 
 // @brief 故障の伝搬条件を求める．
