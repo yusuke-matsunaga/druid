@@ -100,19 +100,18 @@ BoolDiffEngine::make_cnf()
   //////////////////////////////////////////////////////////////////////
   // 故障の検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
   //////////////////////////////////////////////////////////////////////
-  vector<SatLiteral> odiff;
-  odiff.reserve(output_list().size());
+  mPropVar = new_variable(true);
+  vector<SatLiteral> tmp_lits;
+  tmp_lits.reserve(output_list().size() + 1);
   for ( auto node: output_list() ) {
     auto dlit = dvar(node);
-    odiff.push_back(dlit);
+    tmp_lits.push_back(dlit);
   }
-  solver().add_clause(odiff);
+  solver().add_orgate(mPropVar, tmp_lits);
 
-  if ( !root_node()->is_ppo() ) {
-    // root_node() の dlit が1でなければならない．
-    auto dlit0 = dvar(root_node());
-    solver().add_clause(dlit0);
-  }
+  // root_node() の dlit が1でなければならない．
+  auto dlit0 = dvar(root_node());
+  solver().add_clause(dlit0);
 
   timer.stop();
   mCnfTime = timer.get_time();

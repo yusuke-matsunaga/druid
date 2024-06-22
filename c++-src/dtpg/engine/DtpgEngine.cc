@@ -61,6 +61,7 @@ DtpgEngine::solve(
   // fault の活性化条件
   auto fault_cond = fault_condition(fault);
   add_to_literal_list(fault_cond, assumptions);
+  assumptions.push_back(prop_var());
   return check(assumptions);
 }
 

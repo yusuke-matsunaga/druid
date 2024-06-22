@@ -120,6 +120,13 @@ public:
     return mSolver;
   }
 
+  /// @brief 伝搬条件を表す変数を返す．
+  SatLiteral
+  prop_var()
+  {
+    return mPropVar;
+  }
+
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
   conv_to_literal(
@@ -369,6 +376,9 @@ private:
 
   // 故障伝搬条件を表す変数のマップ
   VidMap mDvarMap;
+
+  // 外部出力に伝搬するときに true となる変数
+  SatLiteral mPropVar;
 
   // CNFの生成時間
   double mCnfTime;

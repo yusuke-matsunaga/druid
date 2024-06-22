@@ -40,8 +40,7 @@ END_NONAMESPACE
 // @brief コンストラクタ
 PropCone::PropCone(
   StructEnc& struct_enc,
-  const TpgNode* root_node,
-  bool detect
+  const TpgNode* root_node
 ) : mStructEnc{struct_enc},
     mDetect{detect},
     mMaxNodeId{struct_enc.max_node_id()},
@@ -90,6 +89,8 @@ PropCone::make_vars(
       set_dvar(node, dvar);
     }
   }
+
+  mPropVar = new_variable(true);
 }
 
 // @brief 関係するノードの入出力の関係を表すCNFを作る．

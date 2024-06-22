@@ -27,7 +27,6 @@ NaiveDomChecker::NaiveDomChecker(
     mFault2{fault2},
     mRoot1{fault1->origin_node()},
     mRoot2{fault2->origin_node()},
-    mMarkArray(mNetwork.node_num(), 0U),
     mHvarMap(mNetwork.node_num()),
     mGvarMap(mNetwork.node_num()),
     mFvarMap1(mNetwork.node_num()),
@@ -96,7 +95,10 @@ NaiveDomChecker::~NaiveDomChecker()
 bool
 NaiveDomChecker::check()
 {
-  return solver().solve() == SatBool3::False;
+  // mFault1->excitation_condition() が成り立っていなければならない．
+  auto ex_cond = mFault1->excitation_condition();
+  auto assumptions = conv_to_literals(ex_cond);
+  return solver().solve(assumptions) == SatBool3::False;
 }
 
 // @brief 対象の部分回路の関係を表す変数を用意する．
@@ -194,7 +196,7 @@ NaiveDomChecker::gen_faulty_cnf1()
   }
   {
     auto glit = gvar(mRoot1);
-    auto flit = fvar2(mRoot1);
+    auto flit = fvar1(mRoot1);
     // flit が glit と異なるのは fault->excitation_condition()
     // が成り立っている時．
     auto dlit = new_variable(false);
@@ -222,11 +224,9 @@ NaiveDomChecker::gen_faulty_cnf1()
   }
   solver().add_clause(odiff);
 
-  if ( !mRoot1->is_ppo() ) {
-    // mRoot1 の dlit が1でなければならない．
-    auto dlit0 = dvar(mRoot1);
-    solver().add_clause(dlit0);
-  }
+  // mRoot1 の dlit が1でなければならない．
+  auto dlit0 = dvar(mRoot1);
+  solver().add_clause(dlit0);
 }
 
 // @brief 対象の部分回路の故障値の関係を表す CNF 式を作る．
@@ -238,35 +238,44 @@ NaiveDomChecker::gen_faulty_cnf2()
   //////////////////////////////////////////////////////////////////////
   GateEnc fval_enc{mSolver, mFvarMap2};
   for ( auto node: mTfoList2 ) {
-    if ( node != mRoot1 ) {
+    if ( node != mRoot2 ) {
       fval_enc.make_cnf(node);
     }
   }
 
+  // いずれかの外部出力の値が異なるとき true になる変数
+  auto odlit = mSolver.new_variable();
   for ( auto node: mOutputList2 ) {
+    auto dlit = mSolver.new_variable();
     auto glit = gvar(node);
     auto flit = fvar2(node);
-    mSolver.add_clause( glit, ~flit);
-    mSolver.add_clause(~glit,  flit);
+    mSolver.add_xorgate(dlit, glit, flit);
   }
+  // mRoot2 の値は異なる．
   {
     auto glit = gvar(mRoot2);
     auto flit = fvar2(mRoot2);
-    // flit が glit と異なるのは fault->excitation_condition()
-    // が成り立っている時．
-    auto dlit = new_variable(false);
-    mSolver.add_xorgate(dlit, glit, flit);
-    auto ex_cond = mFault2->excitation_condition();
-    vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(ex_cond.size() + 1);
-    for ( auto nv: ex_cond ) {
-      auto lit = conv_to_literal(nv);
-      mSolver.add_clause(lit, ~dlit);
-      tmp_lits.push_back(~lit);
-    }
-    tmp_lits.push_back(dlit);
-    mSolver.add_clause(tmp_lits);
+    solver().add_clause(glit, flit);
+    solver().add_clause(~glit, ~flit);
   }
+
+  // mFault2->excitation_condition() が成り立つ時に true になる
+  // 変数を作る．
+  auto ex_cond = mFault2->excitation_condition();
+  vector<SatLiteral> tmp_lits;
+  tmp_lits.reserve(ex_cond.size() + 1);
+  auto exlit = mSolver.new_variable();
+  for ( auto nv: ex_cond ) {
+    auto lit = conv_to_literal(nv);
+    mSolver.add_clause(lit, ~exlit);
+    tmp_lits.push_back(~lit);
+  }
+  tmp_lits.push_back(exlit);
+  mSolver.add_clause(tmp_lits);
+
+  // mFault2 が非検出になるのは mFault2->excitation_condition()
+  // が false か odlit が false
+  mSolver.add_clause(~odlit, ~exlit);
 }
 
 // @brief 故障伝搬条件を表すCNF式を生成する．

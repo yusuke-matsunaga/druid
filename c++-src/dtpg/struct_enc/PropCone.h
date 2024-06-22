@@ -25,9 +25,8 @@ public:
 
   /// @brief コンストラクタ
   PropCone(
-    StructEnc& struct_enc,     ///< [in] StructEnc ソルバ
-    const TpgNode* root_node,  ///< [in] FFRの根のノード
-    bool detect		       ///< [in] 故障を検出する時に true にするフラグ
+    StructEnc& struct_enc,   ///< [in] StructEnc ソルバ
+    const TpgNode* root_node ///< [in] FFRの根のノード
   );
 
   /// @brief デストラクタ
@@ -45,6 +44,13 @@ public:
   max_id() const
   {
     return mMaxNodeId;
+  }
+
+  /// @brief 故障の伝搬条件を表す変数を返す．
+  SatLiteral
+  prop_var() const
+  {
+    return mPropVar;
   }
 
   /// @brief 関係するノードの変数を作る．
@@ -265,6 +271,9 @@ private:
 
   // 現在の故障に関係ありそうな外部出力のリスト
   vector<const TpgNode*> mOutputList;
+
+  // 故障の伝搬条件を表す変数
+  SatLiteral mPropVar;
 
   // 故障値の変数マップ
   VidMap mFvarMap;
