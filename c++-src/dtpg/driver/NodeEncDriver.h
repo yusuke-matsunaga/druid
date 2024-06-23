@@ -72,6 +72,9 @@ private:
   // エンジン本体
   BaseEnc mBaseEnc;
 
+  // BoolDiff
+  BoolDiffEnc* mBdEnc;
+
 };
 
 END_NAMESPACE_DRUID

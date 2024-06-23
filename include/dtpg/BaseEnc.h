@@ -13,6 +13,7 @@
 #include "Justifier.h"
 #include "NodeTimeValList.h"
 #include "ym/SatSolver.h"
+#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -30,8 +31,6 @@ class SubEnc;
 //////////////////////////////////////////////////////////////////////
 class BaseEnc
 {
-  friend class SubEnc;
-
 public:
 
   /// @brief コンストラクタ
@@ -112,6 +111,13 @@ public:
     return mSolver;
   }
 
+  /// @brief SATソルバを返す．
+  const SatSolver&
+  solver() const
+  {
+    return mSolver;
+  }
+
   /// @brief ノードの値を表す変数を返す．
   SatLiteral
   gvar(
@@ -135,6 +141,13 @@ public:
   ) const
   {
     return mHvarMap(node);
+  }
+
+  /// @brief CNF の生成時間を返す．
+  double
+  cnf_time() const
+  {
+    return mCnfTime;
   }
 
 
@@ -175,6 +188,12 @@ private:
 
   // justifier
   Justifier mJustifier;
+
+  // 時間計測用のタイマ
+  Timer mTimer;
+
+  // CNF生成時間
+  double mCnfTime;
 
 };
 

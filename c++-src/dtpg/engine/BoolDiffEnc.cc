@@ -15,14 +15,32 @@
 
 BEGIN_NAMESPACE_DRUID
 
+BEGIN_NONAMESPACE
+
+JsonValue
+get_option(
+  const JsonValue& option,
+  const char* keyword
+)
+{
+  if ( option.is_object() && option.has_key(keyword) ) {
+    return option.get(keyword);
+  }
+  return JsonValue{};
+}
+
+END_NONAMESPACE
+
 // @brief コンストラクタ
 BoolDiffEnc::BoolDiffEnc(
   BaseEnc& base_enc,
-  const TpgNode* root
+  const TpgNode* root,
+  const JsonValue& option
 ) : SubEnc{base_enc},
     mRoot{root},
     mFvarMap{base_enc.network().node_num()},
-    mDvarMap{base_enc.network().node_num()}
+    mDvarMap{base_enc.network().node_num()},
+    mExOption{get_option(option, "extractor")}
 {
   mTfoList = TpgNodeSet::get_tfo_list(
     base_enc.network().node_num(), mRoot,
@@ -61,12 +79,13 @@ BoolDiffEnc::make_cnf()
     make_dchain_cnf(node);
   }
 
-  // root_node() の dlit が1でなければならない．
-  {
-    auto dlit = dvar(root_node());
+  if ( !mRoot->is_ppo() ) {
+    // mRoot の dlit を true にする．
+    auto dlit = dvar(mRoot);
     solver().add_clause(dlit);
   }
 
+#if 0
   // 微分結果を表す変数を作る．
   mPropVar = solver().new_variable(true);
   {
@@ -78,6 +97,15 @@ BoolDiffEnc::make_cnf()
     }
     solver().add_orgate(mPropVar, tmp_lits);
   }
+#else
+  vector<SatLiteral> tmp_lits;
+  tmp_lits.reserve(mOutputList.size());
+  for ( auto node: mOutputList ) {
+    auto dlit = dvar(node);
+    tmp_lits.push_back(dlit);
+  }
+  solver().add_clause(tmp_lits);
+#endif
 }
 
 // @brief 関連するノードのリストを返す．

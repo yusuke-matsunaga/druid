@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "NodeDriver.h"
+#include "NodeEncDriver.h"
 #include "NodeEngineDriver.h"
 
 
@@ -26,6 +27,9 @@ gen_impl(
     auto value_obj = option.at(keyword);
     if ( value_obj.is_string() ) {
       auto value = value_obj.get_string();
+      if ( value == "enc" ) {
+	return new NodeEncDriver{network, node, option};
+      }
       if ( value == "engine" ) {
 	return new NodeEngineDriver{network, node, option};
       }

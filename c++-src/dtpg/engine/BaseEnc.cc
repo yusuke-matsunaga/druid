@@ -54,6 +54,10 @@ BaseEnc::~BaseEnc()
 void
 BaseEnc::make_cnf()
 {
+  mTimer.reset();
+  mTimer.start();
+
+  // 関係するノードのリストを作る．
   vector<const TpgNode*> node_list;
   for ( auto sub: mSubEncList ) {
     auto& node_list1 = sub->node_list();
@@ -75,15 +79,53 @@ BaseEnc::make_cnf()
     mNetwork.node_num(),
     mDffInputList);
 
+  // 変数を割り当てる．
+  for ( auto node: mCurNodeList ) {
+    auto glit = solver().new_variable(true);
+    mGvarMap.set_vid(node, glit);
+  }
+  for ( auto node: mPrevNodeList ) {
+    auto hlit = solver().new_variable(true);
+    mHvarMap.set_vid(node, hlit);
+  }
+
   // 現時刻の値の関係を表すCNFを作る．
   GateEnc gvar_enc{mSolver, mGvarMap};
   for ( auto node: mCurNodeList ) {
+    {
+      auto olit = gvar(node);
+      if ( olit == SatLiteral::X ) {
+	cout << node->str() << ": gvar = X" << endl;
+	abort();
+      }
+      for ( auto inode: node->fanin_list() ) {
+	auto ilit = gvar(inode);
+	if ( ilit == SatLiteral::X ) {
+	  cout << inode->str() << ": gvar = X" << endl;
+	  abort();
+	}
+      }
+    }
     gvar_enc.make_cnf(node);
   }
 
   // 1時刻前の値の関係を表すCNFを作る．
   GateEnc hvar_enc{mSolver, mHvarMap};
   for ( auto node: mPrevNodeList ) {
+    {
+      auto olit = hvar(node);
+      if ( olit == SatLiteral::X ) {
+	cout << node->str() << ": hvar = X" << endl;
+	abort();
+      }
+      for ( auto inode: node->fanin_list() ) {
+	auto ilit = hvar(inode);
+	if ( ilit == SatLiteral::X ) {
+	  cout << inode->str() << ": hvar = X" << endl;
+	  abort();
+	}
+      }
+    }
     hvar_enc.make_cnf(node);
   }
 
@@ -106,6 +148,9 @@ BaseEnc::make_cnf()
   for ( auto sub: mSubEncList ) {
     sub->make_cnf();
   }
+
+  mTimer.stop();
+  mCnfTime = mTimer.get_time();
 }
 
 // @brief 与えられた割り当てを満足する外部入力の割り当てを求める．

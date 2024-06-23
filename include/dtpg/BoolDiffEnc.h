@@ -25,8 +25,10 @@ public:
 
   /// @brief コンストラクタ
   BoolDiffEnc(
-    BaseEnc& base_enc,  ///< [in] 親の BaseEnc
-    const TpgNode* root ///< [in] 起点のノード
+    BaseEnc& base_enc,      ///< [in] 親の BaseEnc
+    const TpgNode* root,    ///< [in] 起点のノード
+    const JsonValue& option ///< [in] オプション
+    = JsonValue{}
   );
 
   /// @brief デストラクタ
@@ -146,6 +148,9 @@ private:
 
   // 伝搬条件を表す変数マップ
   VidMap mDvarMap;
+
+  // extractor 用のオプション
+  JsonValue mExOption;
 
 };
 

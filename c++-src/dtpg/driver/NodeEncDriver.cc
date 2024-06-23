@@ -7,6 +7,8 @@
 /// All rights reserved.
 
 #include "NodeEncDriver.h"
+#include "TpgFault.h"
+#include "TestVector.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -22,10 +24,9 @@ NodeEncDriver::NodeEncDriver(
   const JsonValue& option
 ) : mBaseEnc{network, option}
 {
-  auto bd = new BoolDiffEnc{mBaseEnc, node};
-  mBaseEnc.reg_subenc(bd);
+  mBdEnc = new BoolDiffEnc{mBaseEnc, node, option};
+  mBaseEnc.reg_subenc(mBdEnc);
   mBaseEnc.make_cnf();
-  mBaseEnc.solver().add_clause(bd->prop_var());
 }
 
 // @brief デストラクタ
@@ -41,6 +42,7 @@ NodeEncDriver::solve(
 {
   auto ex_cond = fault->excitation_condition();
   auto assumptions = mBaseEnc.conv_to_literal_list(ex_cond);
+  //assumptions.push_back(mBdEnc->prop_var());
   return mBaseEnc.solver().solve(assumptions);
 }
 
@@ -50,7 +52,11 @@ NodeEncDriver::gen_pattern(
   const TpgFault* fault
 )
 {
-  return mEngine.gen_pattern(fault);
+  auto assign_list = mBdEnc->extract_sufficient_condition();
+  auto ex_cond = fault->excitation_condition();
+  assign_list.merge(ex_cond);
+  auto pi_assign_list = mBaseEnc.justify(assign_list);
+  return TestVector{mBaseEnc.network(), pi_assign_list};
 }
 
 // @brief CNF の生成時間を返す．
@@ -64,7 +70,7 @@ NodeEncDriver::cnf_time() const
 SatStats
 NodeEncDriver::sat_stats() const
 {
-  return mBaseEnc.solver().sat_stats();
+  return mBaseEnc.solver().get_stats();
 }
 
 END_NAMESPACE_DRUID

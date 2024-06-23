@@ -128,6 +128,7 @@ dtpg_test(
   bool multi = false;
   bool dump = false;
   bool verbose = false;
+  string sat_log;
   bool show_untestable_faults = false;
   string just_type;
 
@@ -149,6 +150,13 @@ dtpg_test(
 	  return -1;
 	}
 	mode = "mffc";
+      }
+      else if ( strcmp(argv[pos], "--node") == 0 ) {
+	if ( mode != string{} ) {
+	  cerr << "--node and --" << mode << " are mutually exclusive" << endl;
+	  return -1;
+	}
+	mode = "node";
       }
       else if ( strcmp(argv[pos], "--engine") == 0 ) {
 	if ( driver != string{} ) {
@@ -243,6 +251,16 @@ dtpg_test(
       else if ( strcmp(argv[pos], "--show_untestable_faults") == 0 ) {
 	show_untestable_faults = true;
       }
+      else if ( strcmp(argv[pos], "--sat_log") == 0 ) {
+	++ pos;
+	if ( pos < argc ) {
+	  sat_log = argv[pos];
+	}
+	else {
+	  cerr << "--sat_log requires <string> argument" << endl;
+	  return -1;
+	}
+      }
       else {
 	cerr << argv[pos] << ": illegal option" << endl;
 	usage();
@@ -287,9 +305,43 @@ dtpg_test(
   option_dict.emplace("just_type", just_type);
   if ( sat_type != string{} ) {
     auto sat_obj = JsonValue{sat_type};
+    if ( sat_log != string{} ) {
+      unordered_map<string, JsonValue> log_option_dict;
+      if ( sat_log == "stdout" ) {
+	log_option_dict.emplace("stdout", JsonValue{true});
+      }
+      else if ( sat_log == "stderr" ) {
+	log_option_dict.emplace("stderr", JsonValue{true});
+      }
+      else {
+	log_option_dict.emplace("file", JsonValue{sat_log});
+      }
+      unordered_map<string, JsonValue> sat_option_dict;
+      sat_option_dict.emplace("log", JsonValue{log_option_dict});
+      sat_option_dict.emplace("type", sat_obj);
+      sat_obj = JsonValue{sat_option_dict};
+    }
     option_dict.emplace("sat_param", sat_obj);
   }
+  else if ( sat_log != string{} ) {
+      unordered_map<string, JsonValue> log_option_dict;
+      if ( sat_log == "stdout" ) {
+	log_option_dict.emplace("stdout", JsonValue{true});
+      }
+      else if ( sat_log == "stderr" ) {
+	log_option_dict.emplace("stderr", JsonValue{true});
+      }
+      else {
+	log_option_dict.emplace("file", JsonValue{sat_log});
+      }
+      unordered_map<string, JsonValue> sat_option_dict;
+      sat_option_dict.emplace("log", JsonValue{log_option_dict});
+      option_dict.emplace("sat_param", JsonValue{sat_option_dict});
+  }
   JsonValue option{option_dict};
+  {
+    option.write(cout, true);
+  }
 
   auto fault_list = network.rep_fault_list();
 
@@ -343,11 +395,9 @@ dtpg_test(
   if ( show_untestable_faults ) {
     cout << "Untestabel faults" << endl;
     for ( auto f: fault_list ) {
-#if 0
-      if ( fault_mgr.get_status(f) == FaultStatus::Untestable ) {
-	cout << f << endl;
+      if ( mgr.dtpg_result(f).status() == FaultStatus::Untestable ) {
+	cout << f->str() << endl;
       }
-#endif
     }
   }
 

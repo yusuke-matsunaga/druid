@@ -29,6 +29,7 @@ set ( mgr_SOURCES
 set ( driver_SOURCES
   driver/DtpgDriver.cc
   driver/NodeDriver.cc
+  driver/NodeEncDriver.cc
   driver/NodeEngineDriver.cc
   driver/FFRDriver.cc
   driver/FFREngineDriver.cc
