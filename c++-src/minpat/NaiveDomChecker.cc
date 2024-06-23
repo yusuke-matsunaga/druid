@@ -33,6 +33,8 @@ NaiveDomChecker::NaiveDomChecker(
     mFvarMap2(mNetwork.node_num()),
     mDvarMap(mNetwork.node_num())
 {
+  network.print(cout);
+  cout << "fault2: " << fault2->str() << endl;
   vector<const TpgNode*> tmp_list;
   mTfoList1 = TpgNodeSet::get_tfo_list(mNetwork.node_num(), mRoot1,
 				       [&](const TpgNode* node) {
@@ -79,7 +81,7 @@ NaiveDomChecker::NaiveDomChecker(
   gen_good_cnf();
 
   // 故障回路1の CNF を生成
-  //gen_faulty_cnf1();
+  gen_faulty_cnf1();
 
   // 故障回路2の CNF を生成
   gen_faulty_cnf2();
@@ -226,7 +228,7 @@ NaiveDomChecker::gen_faulty_cnf2()
   }
 
   // mRoot2 の値は異なる．
-  {
+  if ( !mRoot2->is_ppo() ) {
     auto glit = gvar(mRoot2);
     auto flit = fvar2(mRoot2);
     solver().add_clause(glit, flit);
@@ -258,13 +260,13 @@ NaiveDomChecker::gen_faulty_cnf2()
       auto lit = conv_to_literal(nv);
       tmp_lits.push_back(lit);
     }
+    cout << endl;
     mSolver.add_andgate(exlit, tmp_lits);
   }
 
   // mFault2 が非検出になるのは mFault2->excitation_condition()
   // が false か odlit が false
-  //mSolver.add_clause(~odlit, ~exlit);
-  mSolver.add_clause(~exlit);
+  mSolver.add_clause(~odlit, ~exlit);
 }
 
 // @brief 故障伝搬条件を表すCNF式を生成する．

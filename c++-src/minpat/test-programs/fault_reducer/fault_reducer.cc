@@ -126,6 +126,7 @@ fault_reducer(
   bool td_mode = false;
   bool multi = false;
   bool naive = false;
+  bool se = false;
   bool verbose = false;
   string just_type;
   int loop = 1;
@@ -205,6 +206,9 @@ fault_reducer(
       else if ( strcmp(argv[pos], "--naive") == 0 ) {
 	naive = true;
       }
+      else if ( strcmp(argv[pos], "--struct_enc") == 0 ) {
+	se = true;
+      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
@@ -283,6 +287,9 @@ fault_reducer(
       }
       auto f1 = det_fault_list[i1];
       for ( SizeType i2 = 0; i2 < n; ++ i2 ) {
+	if ( i2 == i1 ) {
+	  continue;
+	}
 	if ( deleted[i2] ) {
 	  continue;
 	}
@@ -290,6 +297,45 @@ fault_reducer(
 	NaiveDomChecker checker{network, f1, f2, option};
 	if ( checker.check() ) {
 	  cout << f2->str() << endl;
+	  deleted[i2] = true;
+	}
+      }
+    }
+    SizeType n2 = 0;
+    for ( SizeType i = 0; i < n; ++ i ) {
+      if ( !deleted[i] ) {
+	++ n2;
+      }
+    }
+
+    cout << "Detected Faults: " << n << endl
+	 << "Reduced Faults:  " << n2 << endl;
+  }
+  else if ( se ) {
+    SizeType n = det_fault_list.size();
+    vector<bool> deleted(n, false);
+    JsonValue option;
+    for ( SizeType i1 = 0; i1 < n; ++ i1 ) {
+      if ( deleted[i1] ) {
+	continue;
+      }
+      auto f1 = det_fault_list[i1];
+      for ( SizeType i2 = 0; i2 < n; ++ i2 ) {
+	if ( i2 == i1 ) {
+	  continue;
+	}
+	if ( deleted[i2] ) {
+	  continue;
+	}
+	auto f2 = det_fault_list[i2];
+	StructDomChecker checker{network, f1, f2, option};
+	if ( checker.check() ) {
+	  {
+	    cout << endl;
+	    network.print(cout);
+	    cout << endl;
+	  }
+	  cout << f1->str() << " ==> " << f2->str() << endl;
 	  deleted[i2] = true;
 	}
       }

@@ -40,6 +40,9 @@ set ( driver_SOURCES
   )
 
 set ( engine_SOURCES
+  engine/BaseEnc.cc
+  engine/BoolDiffEnc.cc
+  engine/FFREnc.cc
   engine/BoolDiffEngine.cc
   engine/DtpgEngine.cc
   engine/DtpgEngine_Node.cc

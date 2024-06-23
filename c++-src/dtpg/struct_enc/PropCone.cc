@@ -22,19 +22,6 @@ BEGIN_NONAMESPACE
 
 bool debug = false;
 
-// TpgNode::output_id2() の値に基づく比較を行う．
-struct Lt
-{
-  bool
-  operator()(
-    const TpgNode* left,
-    const TpgNode* right
-  )
-  {
-    return left->output_id2() < right->output_id2();
-  }
-};
-
 END_NONAMESPACE
 
 // @brief コンストラクタ
@@ -57,7 +44,10 @@ PropCone::PropCone(
 				       });
 
   // 出力のリストを output_id2() の昇順に整列しておく．
-  sort(mOutputList.begin(), mOutputList.end(), Lt());
+  sort(mOutputList.begin(), mOutputList.end(),
+       [](const TpgNode* left, const TpgNode* right) {
+	 return left->output_id2() < right->output_id2();
+       });
 
   mPropVar = solver().new_variable(true);
 }
@@ -115,9 +105,11 @@ PropCone::make_cnf()
   solver().add_orgate(mPropVar, odiff);
 
   auto root = root_node();
-  // root の dlit が1でなければならない．
-  auto dlit = dvar(root);
-  solver().add_clause(dlit);
+  if ( !root->is_ppo() ) {
+    // root の dlit が1でなければならない．
+    auto dlit = dvar(root);
+    solver().add_clause(dlit);
+  }
 }
 
 // @brief 故障検出に必要な割り当てを求める．

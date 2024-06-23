@@ -98,16 +98,18 @@ BoolDiffEngine::make_cnf()
   gen_faulty_cnf();
 
   //////////////////////////////////////////////////////////////////////
-  // 故障の検出条件(正確には mRoot から外部出力までの故障の伝搬条件)
+  // mRoot から外部出力までの故障の伝搬条件を表す変数を作る．
   //////////////////////////////////////////////////////////////////////
   mPropVar = new_variable(true);
-  vector<SatLiteral> tmp_lits;
-  tmp_lits.reserve(output_list().size() + 1);
-  for ( auto node: output_list() ) {
-    auto dlit = dvar(node);
-    tmp_lits.push_back(dlit);
+  {
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(output_list().size() + 1);
+    for ( auto node: output_list() ) {
+      auto dlit = dvar(node);
+      tmp_lits.push_back(dlit);
+    }
+    solver().add_orgate(mPropVar, tmp_lits);
   }
-  solver().add_orgate(mPropVar, tmp_lits);
 
   // root_node() の dlit が1でなければならない．
   auto dlit0 = dvar(root_node());
@@ -160,44 +162,37 @@ BoolDiffEngine::prepare_vars()
   // 正常回路の変数を作る．
   for ( auto node: mTfiList ) {
     auto gvar = new_variable();
-
     mGvarMap.set_vid(node, gvar);
     mFvarMap.set_vid(node, gvar);
 
     if ( debug_dtpg ) {
       DEBUG_OUT << node->str()
-		<< ": gvar|fvar = "
-		<< gvar << endl;
+		<< ": gvar|fvar = " << gvar << endl;
     }
   }
 
   // 故障回路の変数を作る．
   for ( auto node: mTfoList ) {
     auto fvar = new_variable();
+    auto dvar = new_variable(false);
     mFvarMap.set_vid(node, fvar);
+    mDvarMap.set_vid(node, dvar);
 
     if ( debug_dtpg ) {
       DEBUG_OUT	<< node->id()
-		<< ": fvar = " << fvar << endl;
-    }
-
-    auto dvar = new_variable(false);
-    mDvarMap.set_vid(node, dvar);
-    if ( debug_dtpg ) {
-      DEBUG_OUT << node->str() << ": dvar = " << dvar << endl;
+		<< ": fvar = " << fvar
+		<< ", dvar = " << dvar << endl;
     }
   }
 
   // 1時刻前の正常回路の変数を作る．
   for ( auto node: mTfi2List ) {
     auto hvar = new_variable();
-
     mHvarMap.set_vid(node, hvar);
 
     if ( debug_dtpg ) {
       DEBUG_OUT << node->str()
-		<< ": hvar = " << hvar
-		<< endl;
+		<< ": hvar = " << hvar << endl;
     }
   }
 
@@ -215,29 +210,31 @@ BoolDiffEngine::gen_good_cnf()
   //////////////////////////////////////////////////////////////////////
   GateEnc gval_enc{mSolver, mGvarMap};
   for ( auto node: mTfiList ) {
-    {
-      auto olit = gvar(node);
-      if ( olit == SatLiteral::X ) {
-	cout << node->str() << ": gvar = X" << endl;
+#if 0
+    auto olit = gvar(node);
+    if ( olit == SatLiteral::X ) {
+      cout << node->str() << ": gvar = X" << endl;
+      abort();
+    }
+    for ( auto inode: node->fanin_list() ) {
+      auto ilit = gvar(inode);
+      if ( ilit == SatLiteral::X ) {
+	cout << inode->str() << ": gvar = X" << endl;
 	abort();
       }
-      for ( auto inode: node->fanin_list() ) {
-	auto ilit = gvar(inode);
-	if ( ilit == SatLiteral::X ) {
-	  cout << inode->str() << ": gvar = X" << endl;
-	  abort();
-	}
-      }
     }
+#endif
     gval_enc.make_cnf(node);
   }
 
   GateEnc hval_enc{mSolver, mHvarMap};
   for ( auto node: mTfi2List ) {
+#if 0
     if ( hvar(node) == SatLiteral::X ) {
       cout << node->str() << ": hvar = X" << endl;
       abort();
     }
+#endif
     hval_enc.make_cnf(node);
   }
 
