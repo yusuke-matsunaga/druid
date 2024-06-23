@@ -10,6 +10,7 @@
 #include "TpgNetwork.h"
 #include "TpgNodeSet.h"
 #include "GateEnc.h"
+#include "extract.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -129,6 +130,17 @@ BoolDiffEnc::make_dchain_cnf(
       }
     }
   }
+}
+
+// @brief 直前の check() が成功したときの十分条件を求める．
+NodeTimeValList
+BoolDiffEnc::extract_sufficient_condition()
+{
+  auto& model = solver().model();
+  return DRUID_NAMESPACE::extract_sufficient_condition(
+    root_node(), base_enc().gvar_map(),
+    mFvarMap, model,
+    mExOption);
 }
 
 END_NAMESPACE_DRUID

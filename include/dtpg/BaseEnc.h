@@ -121,6 +121,13 @@ public:
     return mGvarMap(node);
   }
 
+  /// @brief ノードの値を表す変数の辞書を返す．
+  const VidMap&
+  gvar_map() const
+  {
+    return mGvarMap;
+  }
+
   /// @brief ノードの1時刻前の値を表す変数を返す．
   SatLiteral
   hvar(

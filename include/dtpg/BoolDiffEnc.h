@@ -66,6 +66,10 @@ public:
     return mPropVar;
   }
 
+  /// @brief 直前の check() が成功したときの十分条件を求める．
+  NodeTimeValList
+  extract_sufficient_condition();
+
 
 private:
   //////////////////////////////////////////////////////////////////////
