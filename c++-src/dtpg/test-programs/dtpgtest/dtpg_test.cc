@@ -339,9 +339,6 @@ dtpg_test(
       option_dict.emplace("sat_param", JsonValue{sat_option_dict});
   }
   JsonValue option{option_dict};
-  {
-    option.write(cout, true);
-  }
 
   auto fault_list = network.rep_fault_list();
 

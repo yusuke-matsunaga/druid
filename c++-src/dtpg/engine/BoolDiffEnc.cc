@@ -85,7 +85,6 @@ BoolDiffEnc::make_cnf()
     solver().add_clause(dlit);
   }
 
-#if 0
   // 微分結果を表す変数を作る．
   mPropVar = solver().new_variable(true);
   {
@@ -97,15 +96,6 @@ BoolDiffEnc::make_cnf()
     }
     solver().add_orgate(mPropVar, tmp_lits);
   }
-#else
-  vector<SatLiteral> tmp_lits;
-  tmp_lits.reserve(mOutputList.size());
-  for ( auto node: mOutputList ) {
-    auto dlit = dvar(node);
-    tmp_lits.push_back(dlit);
-  }
-  solver().add_clause(tmp_lits);
-#endif
 }
 
 // @brief 関連するノードのリストを返す．
@@ -113,13 +103,6 @@ const vector<const TpgNode*>&
 BoolDiffEnc::node_list() const
 {
   return mTfoList;
-}
-
-// @brief 1時刻前の値に関連するノードのリストを返す．
-const vector<const TpgNode*>&
-BoolDiffEnc::prev_node_list() const
-{
-  return {};
 }
 
 // @brief 故障伝搬条件を表すCNF式を生成する．

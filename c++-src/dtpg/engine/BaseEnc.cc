@@ -201,4 +201,27 @@ BaseEnc::conv_to_literal_list(
   return ans_list;
 }
 
+
+//////////////////////////////////////////////////////////////////////
+// クラス SubEnc
+//////////////////////////////////////////////////////////////////////
+
+BEGIN_NONAMESPACE
+static vector<const TpgNode*> dummy;
+END_NONAMESPACE
+
+// @brief 関連するノードのリストを返す．
+const vector<const TpgNode*>&
+SubEnc::node_list() const
+{
+  return dummy;
+}
+
+// @brief 1時刻前の値に関連するノードのリストを返す．
+const vector<const TpgNode*>&
+SubEnc::prev_node_list() const
+{
+  return dummy;
+}
+
 END_NAMESPACE_DRUID

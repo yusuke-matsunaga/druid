@@ -283,12 +283,12 @@ private:
   /// @brief 関連するノードのリストを返す．
   virtual
   const vector<const TpgNode*>&
-  node_list() const = 0;
+  node_list() const;
 
   /// @brief 1時刻前の値に関連するノードのリストを返す．
   virtual
   const vector<const TpgNode*>&
-  prev_node_list() const = 0;
+  prev_node_list() const;
 
 
 private:

@@ -81,11 +81,4 @@ FFREnc::node_list() const
   return mFFR->node_list();
 }
 
-// @brief 1時刻前の値に関連するノードのリストを返す．
-const vector<const TpgNode*>&
-FFREnc::prev_node_list() const
-{
-  return {};
-}
-
 END_NAMESPACE_DRUID

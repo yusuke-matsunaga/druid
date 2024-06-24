@@ -40,10 +40,9 @@ NodeEncDriver::solve(
   const TpgFault* fault
 )
 {
-  cout << "solve(" << fault->str() << ")" << endl;
   auto ex_cond = fault->excitation_condition();
   auto assumptions = mBaseEnc.conv_to_literal_list(ex_cond);
-  //assumptions.push_back(mBdEnc->prop_var());
+  assumptions.push_back(mBdEnc->prop_var());
   return mBaseEnc.solver().solve(assumptions);
 }
 
@@ -53,7 +52,6 @@ NodeEncDriver::gen_pattern(
   const TpgFault* fault
 )
 {
-  cout << "gen_pattern(" << fault->str() << ")" << endl;
   auto assign_list = mBdEnc->extract_sufficient_condition();
   auto ex_cond = fault->excitation_condition();
   assign_list.merge(ex_cond);

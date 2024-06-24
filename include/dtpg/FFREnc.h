@@ -63,10 +63,6 @@ private:
   const vector<const TpgNode*>&
   node_list() const override;
 
-  /// @brief 1時刻前の値に関連するノードのリストを返す．
-  const vector<const TpgNode*>&
-  prev_node_list() const override;
-
 
 private:
   //////////////////////////////////////////////////////////////////////
