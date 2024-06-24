@@ -20,7 +20,13 @@ FaultEnc::FaultEnc(
   mNodeList.reserve(ex_cond.size());
   for ( auto nv: ex_cond ) {
     auto node = nv.node();
-    mNodeList.push_back(node);
+    auto time = nv.time();
+    if ( time == 1 ) {
+      mNodeList.push_back(node);
+    }
+    else {
+      mPrevList.push_back(node);
+    }
   }
 }
 
@@ -39,6 +45,13 @@ const vector<const TpgNode*>&
 FaultEnc::node_list() const
 {
   return mNodeList;
+}
+
+// @brief 1時刻前の値に関連するノードのリストを返す．
+const vector<const TpgNode*>&
+FaultEnc::prev_node_list() const
+{
+  return mPrevList;
 }
 
 END_NAMESPACE_DRUID

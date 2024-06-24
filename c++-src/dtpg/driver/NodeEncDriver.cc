@@ -26,7 +26,7 @@ NodeEncDriver::NodeEncDriver(
 {
   mBdEnc = new BoolDiffEnc{mBaseEnc, node, option};
   mBaseEnc.reg_subenc(mBdEnc);
-  mBaseEnc.make_cnf();
+  mBaseEnc.make_cnf({}, {node});
 }
 
 // @brief デストラクタ
@@ -40,6 +40,7 @@ NodeEncDriver::solve(
   const TpgFault* fault
 )
 {
+  cout << "solve(" << fault->str() << ")" << endl;
   auto ex_cond = fault->excitation_condition();
   auto assumptions = mBaseEnc.conv_to_literal_list(ex_cond);
   //assumptions.push_back(mBdEnc->prop_var());
@@ -52,6 +53,7 @@ NodeEncDriver::gen_pattern(
   const TpgFault* fault
 )
 {
+  cout << "gen_pattern(" << fault->str() << ")" << endl;
   auto assign_list = mBdEnc->extract_sufficient_condition();
   auto ex_cond = fault->excitation_condition();
   assign_list.merge(ex_cond);

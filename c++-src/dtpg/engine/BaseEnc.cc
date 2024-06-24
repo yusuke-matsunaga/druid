@@ -52,13 +52,16 @@ BaseEnc::~BaseEnc()
 
 // @brief 回路の構造を表すCNFを生成する．
 void
-BaseEnc::make_cnf()
+BaseEnc::make_cnf(
+  const vector<const TpgNode*>& cur_node_list,
+  const vector<const TpgNode*>& prev_node_list
+)
 {
   mTimer.reset();
   mTimer.start();
 
   // 関係するノードのリストを作る．
-  vector<const TpgNode*> node_list;
+  vector<const TpgNode*> node_list{cur_node_list};
   for ( auto sub: mSubEncList ) {
     auto& node_list1 = sub->node_list();
     node_list.insert(node_list.end(), node_list1.begin(), node_list1.end());
@@ -75,9 +78,17 @@ BaseEnc::make_cnf()
       }
     });
 
-  mPrevNodeList = TpgNodeSet::get_tfi_list(
-    mNetwork.node_num(),
-    mDffInputList);
+  if ( has_prev_state ) {
+    vector<const TpgNode*> prev_list{mDffInputList};
+    prev_list.insert(prev_list.end(), prev_node_list.begin(), prev_node_list.end());
+    for ( auto sub: mSubEncList ) {
+      auto& node_list1 = sub->prev_node_list();
+      prev_list.insert(prev_list.end(), node_list1.begin(), node_list1.end());
+    }
+    mPrevNodeList = TpgNodeSet::get_tfi_list(
+      mNetwork.node_num(),
+      prev_list);
+  }
 
   // 変数を割り当てる．
   for ( auto node: mCurNodeList ) {

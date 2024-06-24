@@ -67,7 +67,10 @@ public:
 
   /// @brief 回路の構造を表すCNFを生成する．
   void
-  make_cnf();
+  make_cnf(
+    const vector<const TpgNode*>& cur_node_list, ///< [in] 関係するノードのリスト
+    const vector<const TpgNode*>& prev_node_list ///< [in] 1時刻前の値に関係するノードのリスト
+  );
 
   /// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
   /// @return 外部入力の割り当てリストを返す．
@@ -281,6 +284,11 @@ private:
   virtual
   const vector<const TpgNode*>&
   node_list() const = 0;
+
+  /// @brief 1時刻前の値に関連するノードのリストを返す．
+  virtual
+  const vector<const TpgNode*>&
+  prev_node_list() const = 0;
 
 
 private:

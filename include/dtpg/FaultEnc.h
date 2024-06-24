@@ -62,6 +62,10 @@ private:
   const vector<const TpgNode*>&
   node_list() const override;
 
+  /// @brief 1時刻前の値に関連するノードのリストを返す．
+  const vector<const TpgNode*>&
+  prev_node_list() const override;
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -73,6 +77,9 @@ private:
 
   // 関係するノードのリスト
   vector<const TpgNode*> mNodeList;
+
+  // 1時刻前の値に関係するノードのリスト
+  vector<const TpgNode*> mPrevList;
 
   // 故障の活性化条件を表す変数
   SatLiteral mPropVar;

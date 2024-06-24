@@ -67,7 +67,7 @@ BoolDiffEnc::make_cnf()
     auto flit = solver().new_variable(true);
     auto dlit = solver().new_variable(false);
     mFvarMap.set_vid(node, flit);
-    mDvarMap.set_vid(node, flit);
+    mDvarMap.set_vid(node, dlit);
   }
 
   // CNF の生成
@@ -113,6 +113,13 @@ const vector<const TpgNode*>&
 BoolDiffEnc::node_list() const
 {
   return mTfoList;
+}
+
+// @brief 1時刻前の値に関連するノードのリストを返す．
+const vector<const TpgNode*>&
+BoolDiffEnc::prev_node_list() const
+{
+  return {};
 }
 
 // @brief 故障伝搬条件を表すCNF式を生成する．
