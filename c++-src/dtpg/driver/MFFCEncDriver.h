@@ -1,15 +1,17 @@
 #ifndef FFRENCDRIVER_H
 #define FFRENCDRIVER_H
 
-/// @file FFREncDriver.h
-/// @brief FFREncDriver のヘッダファイル
+/// @file MFFCEncDriver.h
+/// @brief MFFCEncDriver のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "DtpgDriverImpl.h"
-#include "StructEnc.h"
+#include "BaseEnc.h"
+#include "BoolDiffEnc.h"
+#include "MFFCEnc.h"
 #include "Justifier.h"
 #include "ym/JsonValue.h"
 
@@ -17,23 +19,23 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class FFREncDriver FFREncDriver.h "FFREncDriver.h"
-/// @brief FFREnc を用いたドライバ
+/// @class MFFCEncDriver MFFCEncDriver.h "MFFCEncDriver.h"
+/// @brief MFFCEnc を用いたドライバ
 //////////////////////////////////////////////////////////////////////
-class FFREncDriver :
+class MFFCEncDriver :
   public DtpgDriverImpl
 {
 public:
 
   /// @brief コンストラクタ
-  FFREncDriver(
+  MFFCEncDriver(
     const TpgNetwork& network, ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,	       ///< [in] 故障伝搬の起点となる FFR
+    const TpgMFFC* mffc,       ///< [in] 故障伝搬の起点となる MFFC
     const JsonValue& option    ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~FFREncDriver();
+  ~MFFCEncDriver() = default;
 
 
 public:
@@ -66,63 +68,17 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 値割り当てをリテラルに変換する．
-  SatLiteral
-  conv_to_literal(
-    NodeVal node_val ///< [in] 値割当リスト
-  );
-
-  /// @brief 値割り当てをリテラルのリストに変換する．
-  vector<SatLiteral>
-  conv_to_literal_list(
-    const NodeValList& assign_list ///< [in] 値の割り当てリスト
-  )
-  {
-    vector<SatLiteral> ans_list;
-    add_to_literal_list(assign_list, ans_list);
-    return ans_list;
-  }
-
-  /// @brief 値割り当てをリテラルのリストに追加する．
-  void
-  add_to_literal_list(
-    const NodeValList& assign_list, ///< [in] 値の割り当てリスト
-    vector<SatLiteral>& lit_list    ///< [out] 変換したリテラルを追加するリスト
-  );
-
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // SATソルバ
-  SatSolver mSolver;
+  // 基本のエンコーダ
+  BaseEnc mBaseEnc;
 
-  // 正常値の変数マップ
-  VidMap mGvarMap;
+  // BoolDiffEnc
+  BoolDiffEnc* mBdEnc;
 
-  // 故障値の変数マップ
-  VidMap mFvarMap;
-
-  // 位置時刻前の正常値の変数マップ
-  VidMap mHvarMap;
-
-  // FFR の根のノード
-  const TpgNode* mRoot;
-
-  // justifier
-  Justifier mJustifier;
-
-  // extractor のオプション
-  JsonValue mExOpt;
-
-  // CNFの生成時間
-  double mCnfTime;
+  // MFFCEnc
+  MFFCEnc* mMFFCEnc;
 
 };
 

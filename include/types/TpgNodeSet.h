@@ -104,20 +104,20 @@ private:
 
   /// @brief マークをつける．
   ///
-  /// と同時に node_list に入れる．<br>
+  /// と同時に queue に入れる．<br>
   /// すでにマークされていたら何もしない．
   static
   void
   set_mark(
     const TpgNode* node,               ///< [in] 対象のノード
-    vector<const TpgNode*>& node_list, ///< [in] 結果のノードを格納するリスト
+    std::deque<const TpgNode*>& queue, ///< [in] キュー
     vector<bool>& mark_array           ///< [in] 処理済みの印を入れた配列
   )
   {
     SizeType id = node->id();
     if ( !mark_array[id] ) {
       mark_array[id] = true;
-      node_list.push_back(node);
+      queue.push_back(node);
     }
   }
 

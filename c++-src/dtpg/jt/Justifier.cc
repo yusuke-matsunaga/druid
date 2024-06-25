@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "Justifier.h"
+#include "JustNaive.h"
 #include "Just1.h"
 #include "Just2.h"
 #include "NodeTimeValList.h"
@@ -23,18 +24,20 @@ new_just(
   const JsonValue& option
 )
 {
-  SizeType max_id = network.node_num();
   if ( option.is_null() ) {
     // デフォルトフォールバックは Just2
-    return new Just2(max_id);
+    return new Just2(network);
   }
   if ( option.is_string() ) {
     auto just_type = option.get_string();
+    if ( just_type == "naive" ) {
+      return new JustNaive(network);
+    }
     if ( just_type == "just1" ) {
-      return new Just1(max_id);
+      return new Just1(network);
     }
     if ( just_type == "just2" ) {
-      return new Just2(max_id);
+      return new Just2(network);
     }
     // 知らない型だった．
     ostringstream buf;

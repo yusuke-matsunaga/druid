@@ -5,10 +5,10 @@
 /// @brief Just1 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "JustImpl.h"
+#include "JustBase.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,13 +20,13 @@ class JustData;
 /// @brief 正当化に必要な割当を求めるファンクター
 //////////////////////////////////////////////////////////////////////
 class Just1 :
-  public JustImpl
+  public JustBase
 {
 public:
 
   /// @brief コンストラクタ
   Just1(
-    SizeType max_id ///< [in] ノード番号の最大値
+    const TpgNetwork& network ///< [in] 対象のネットワーク
   );
 
   /// @brief デストラクタ

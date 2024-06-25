@@ -22,15 +22,16 @@ TpgNodeSet::get_tfo_list(
   vector<const TpgNode*> node_list;
   node_list.reserve(max_size);
   vector<bool> mark_array(max_size, false);
+  std::deque<const TpgNode*> queue;
 
-  set_mark(root, node_list, mark_array);
-  for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
-    // set_tfo_mark() 中で node_list に要素を追加しているので
-    // 古いタイプの for 文を用いている．
-    auto node = node_list[rpos];
+  set_mark(root, queue, mark_array);
+  while ( !queue.empty() ) {
+    auto node = queue.front();
+    queue.pop_front();
+    node_list.push_back(node);
     if ( node != bnode ) {
       for ( auto onode: node->fanout_list() ) {
-	set_mark(onode, node_list, mark_array);
+	set_mark(onode, queue, mark_array);
       }
     }
   }
@@ -48,15 +49,16 @@ TpgNodeSet::get_tfo_list(
   vector<const TpgNode*> node_list;
   node_list.reserve(max_size);
   vector<bool> mark_array(max_size, false);
+  std::deque<const TpgNode*> queue;
 
-  set_mark(root, node_list, mark_array);
-  for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
-    // set_tfo_mark() 中で node_list に要素を追加しているので
-    // 古いタイプの for 文を用いている．
-    auto node = node_list[rpos];
+  set_mark(root, queue, mark_array);
+  while ( !queue.empty() ) {
+    auto node = queue.front();
+    queue.pop_front();
     op(node);
+    node_list.push_back(node);
     for ( auto onode: node->fanout_list() ) {
-      set_mark(onode, node_list, mark_array);
+      set_mark(onode, queue, mark_array);
     }
   }
   return node_list;
@@ -81,19 +83,18 @@ TpgNodeSet::get_tfi_list(
 )
 {
   vector<const TpgNode*> node_list;
-  node_list.reserve(max_size);
   vector<bool> mark_array(max_size, false);
-
+  std::deque<const TpgNode*> queue;
   for ( auto node: root_list ) {
-    set_mark(node, node_list, mark_array);
+    set_mark(node, queue, mark_array);
   }
-  for ( SizeType rpos = 0; rpos < node_list.size(); ++ rpos ) {
-    // set_tfo_mark() 中で node_list に要素を追加しているので
-    // 古いタイプの for 文を用いている．
-    auto node = node_list[rpos];
+  while ( !queue.empty() ) {
+    auto node = queue.front();
+    queue.pop_front();
     op(node);
+    node_list.push_back(node);
     for ( auto onode: node->fanin_list() ) {
-      set_mark(onode, node_list, mark_array);
+      set_mark(onode, queue, mark_array);
     }
   }
   return node_list;

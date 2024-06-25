@@ -1,126 +1,93 @@
 
-/// @file FFREncDriver.cc
-/// @brief FFREncDriver の実装ファイル
+/// @file MFFCEncDriver.cc
+/// @brief MFFCEncDriver の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "FFREncDriver.h"
+#include "MFFCEncDriver.h"
 #include "TpgNetwork.h"
-#include "TpgFFR.h"
+#include "TpgMFFC.h"
 #include "TpgFault.h"
 #include "TestVector.h"
-#include "ConeInfo.h"
-#include "BSInfo.h"
-#include "ConeEnc.h"
-#include "BSEnc.h"
-#include "extract.h"
 #include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス FFREncDriver
+// クラス MFFCEncDriver
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-FFREncDriver::FFREncDriver(
+MFFCEncDriver::MFFCEncDriver(
   const TpgNetwork& network,
-  const TpgFFR* ffr,
+  const TpgMFFC* mffc,
   const JsonValue& option
-) : mSolver{option.get("sat_param")},
-    mGvarMap{network.node_num()},
-    mFvarMap{network.node_num()},
-    mHvarMap{network.node_num()},
-    mRoot{ffr->root()},
-    mJustifier{network, option.get("justifier")},
-    mExOpt{option.get("extractor")}
+) : mBaseEnc{network, option}
 {
-  Timer timer;
-  timer.start();
-  ConeInfo cone_info{network, ffr->root()};
-  ConeEnc::encode(mSolver, cone_info, mGvarMap, mFvarMap);
-  if ( network.fault_type() == FaultType::TransitionDelay ) {
-    BSInfo bs_info{cone_info};
-    BSEnc::encode(mSolver, cone_info, bs_info, mGvarMap, mHvarMap);
-  }
-  timer.stop();
-  mCnfTime = timer.get_time();
-}
-
-// @brief デストラクタ
-FFREncDriver::~FFREncDriver()
-{
+  auto node = mffc->root();
+  mBdEnc = new BoolDiffEnc{mBaseEnc, node, option};
+  mMFFCEnc = new MFFCEnc{mBaseEnc, mffc};
+  mBaseEnc.reg_subenc(mBdEnc);
+  mBaseEnc.reg_subenc(mMFFCEnc);
+  mBaseEnc.make_cnf({}, {node});
 }
 
 // @brief 故障を検出する条件を求める．
 SatBool3
-FFREncDriver::solve(
+MFFCEncDriver::solve(
   const TpgFault* fault
 )
 {
   auto assign_list = fault->ffr_propagate_condition();
-  auto assumptions = conv_to_literal_list(assign_list);
-  return mSolver.solve(assumptions);
+  auto assumptions = mBaseEnc.conv_to_literal_list(assign_list);
+  assumptions.push_back(mBdEnc->prop_var());
+  assumptions.push_back(mMFFCEnc->prop_var());
+  auto assumptions1 = mMFFCEnc->cvar_assumptions(fault);
+  assumptions.insert(assumptions.end(), assumptions1.begin(), assumptions1.end());
+  return mBaseEnc.solver().solve(assumptions);
 }
 
 // @brief テストパタン生成を行う．
 TestVector
-FFREncDriver::gen_pattern(
+MFFCEncDriver::gen_pattern(
   const TpgFault* fault
 )
 {
-  auto& model = mSolver.model();
-  auto suf_cond = extract_sufficient_condition(fault->ffr_root(),
-					       mGvarMap, mFvarMap,
-					       model, mExOpt);
-  auto ffr_cond = fault->ffr_propagate_condition();
-  suf_cond.merge(ffr_cond);
-  return mJustifier(suf_cond, mHvarMap, mGvarMap, model);
+  auto assign_list = mBdEnc->extract_sufficient_condition();
+  auto mffc_cond = mMFFCEnc->extract_sufficient_condition(fault);
+  assign_list.merge(mffc_cond);
+  auto prop_cond = fault->ffr_propagate_condition();
+  assign_list.merge(prop_cond);
+  if ( fault->str() == "G#204:O:FALL" ) {
+    cout << "-------------------" << endl;
+    cout << "assign_list = " << assign_list << endl;
+  }
+  auto pi_assign_list = mBaseEnc.justify(assign_list);
+  if ( fault->str() == "G#204:O:FALL" ) {
+    cout << "pi_assign_list = " << endl;
+    for ( auto nv: pi_assign_list ) {
+      cout << nv << endl;
+    }
+    cout << "-------------------" << endl;
+  }
+  return TestVector{mBaseEnc.network(), pi_assign_list};
 }
 
 // @brief CNF の生成時間を返す．
 double
-FFREncDriver::cnf_time() const
+MFFCEncDriver::cnf_time() const
 {
-  return mCnfTime;
+  return mBaseEnc.cnf_time();
 }
 
 // @brief SATの統計情報を返す．
 SatStats
-FFREncDriver::sat_stats() const
+MFFCEncDriver::sat_stats() const
 {
-  return mSolver.get_stats();
-}
-
-// @brief 値割り当てをリテラルに変換する．
-SatLiteral
-FFREncDriver::conv_to_literal(
-  NodeVal node_val
-)
-{
-  auto node = node_val.node();
-  bool inv = !node_val.val(); // 0 の時が inv = true
-  auto vid = (node_val.time() == 0) ? mHvarMap(node) : mGvarMap(node);
-  return vid * inv;
-}
-
-// @brief 値割り当てをリテラルのリストに変換する．
-void
-FFREncDriver::add_to_literal_list(
-  const NodeValList& assign_list,
-  vector<SatLiteral>& lit_list
-)
-{
-  SizeType n0 = lit_list.size();
-  SizeType n = assign_list.size();
-  lit_list.reserve(n + n0);
-  for ( auto nv: assign_list ) {
-    auto lit = conv_to_literal(nv);
-    lit_list.push_back(lit);
-  }
+  return mBaseEnc.solver().get_stats();
 }
 
 END_NAMESPACE_DRUID

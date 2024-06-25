@@ -107,6 +107,13 @@ public:
     return mCurNodeList;
   }
 
+  /// @brief 1時刻前の値に関連するノードのリスト
+  const vector<const TpgNode*>&
+  prev_node_list() const
+  {
+    return mPrevNodeList;
+  }
+
   /// @brief SATソルバを返す．
   SatSolver&
   solver()

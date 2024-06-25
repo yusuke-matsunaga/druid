@@ -36,6 +36,7 @@ set ( driver_SOURCES
   driver/FFRStructEncDriver.cc
   driver/FFREncDriver.cc
   driver/MFFCDriver.cc
+  driver/MFFCEncDriver.cc
   driver/MFFCEngineDriver.cc
   driver/MFFCStructEncDriver.cc
   )
@@ -44,6 +45,7 @@ set ( engine_SOURCES
   engine/BaseEnc.cc
   engine/BoolDiffEnc.cc
   engine/FFREnc.cc
+  engine/MFFCEnc.cc
   engine/BoolDiffEngine.cc
   engine/DtpgEngine.cc
   engine/DtpgEngine_Node.cc
@@ -71,6 +73,8 @@ set ( ex_SOURCES
 set (jt_SOURCES
   jt/Justifier.cc
   jt/JustImpl.cc
+  jt/JustNaive.cc
+  jt/JustBase.cc
   jt/Just1.cc
   jt/Just2.cc
   )

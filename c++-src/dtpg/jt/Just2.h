@@ -5,29 +5,27 @@
 /// @brief Just2 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "JustImpl.h"
+#include "JustBase.h"
 #include "TpgNode.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-class JustData;
 
 //////////////////////////////////////////////////////////////////////
 /// @class Just2 Just2.h "td/Just2.h"
 /// @brief 正当化に必要な割当を求めるファンクター
 //////////////////////////////////////////////////////////////////////
 class Just2 :
-  public JustImpl
+  public JustBase
 {
 public:
 
   /// @brief コンストラクタ
   Just2(
-    SizeType max_id ///< [in] ノード番号の最大値
+    const TpgNetwork& network ///< [in] 対象のネットワーク
   );
 
   /// @brief デストラクタ

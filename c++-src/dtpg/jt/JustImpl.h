@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "TpgNode.h"
+#include "TpgNetwork.h"
 #include "NodeTimeVal.h"
 #include "ym/SatModel.h"
 
@@ -28,12 +28,14 @@ public:
 
   /// @brief コンストラクタ
   JustImpl(
-    SizeType max_id ///< [in] ID番号の最大値
-  );
+    const TpgNetwork& network ///< [in] 対象のネットワーク
+  ) : mNetwork{network}
+  {
+  }
 
   /// @brief デストラクタ
   virtual
-  ~JustImpl();
+  ~JustImpl() = default;
 
 
 public:
@@ -66,6 +68,20 @@ protected:
   // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 対象のネットワークを返す．
+  const TpgNetwork&
+  network() const
+  {
+    return mNetwork;
+  }
+
+  /// @brief 1時刻前の値を持つ時に true を返す．
+  bool
+  has_prev_state() const
+  {
+    return network().has_prev_state();
+  }
+
   /// @brief JustData を得る．
   const JustData&
   just_data()
@@ -76,87 +92,15 @@ protected:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
+  // 継承クラスが実装する仮想関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief justify の実際の処理
+  virtual
   NodeTimeValList
   _justify(
-    const JustData& jd,
-    const NodeTimeValList& assign_list ///< [in] 割当リスト
-  );
-
-  /// @brief 初期化処理
-  virtual
-  void
-  just_init(
     const NodeTimeValList& assign_list ///< [in] 割当リスト
   ) = 0;
-
-  /// @brief 正当化処理
-  void
-  just_main(
-    const TpgNode* node,	    ///< [in] 対象のノード
-    int time,			    ///< [in] 時刻 ( 0 or 1 )
-    NodeTimeValList& pi_assign_list ///< [in] 結果の割当を保持するリスト
-  );
-
-  /// @brief 制御値を持つファンインを一つ選ぶ．
-  /// @return 選んだファンインのノードを返す．
-  virtual
-  const TpgNode*
-  select_cval_node(
-    const TpgNode* node, ///< [in] 対象のノード
-    int time		 ///< [in] 時刻 ( 0 or 1 )
-  ) = 0;
-
-  /// @brief 終了処理
-  virtual
-  void
-  just_end() = 0;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // マークに関するアクセス関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief キューに追加する
-  void
-  put_queue(
-    const TpgNode* node, ///< [in] 対象のノード
-    int time		 ///< [in] タイムフレーム ( 0 or 1 )
-  )
-  {
-    if ( !mark(node, time) ) {
-      set_mark(node, time);
-      mQueue.push_back(NodeTimeVal{node, time, false});
-    }
-  }
-
-  /// @brief justified マークをつけ，mJustifiedNodeList に加える．
-  void
-  set_mark(
-    const TpgNode* node, ///< [in] 対象のノード
-    int time		 ///< [in] タイムフレーム ( 0 or 1 )
-  )
-  {
-    // 念のため time の最下位ビットだけ使う．
-    time &= 1;
-    mMarkArray[node->id()][time] = true;
-  }
-
-  /// @brief justified マークを読む．
-  bool
-  mark(
-    const TpgNode* node, ///< [in] 対象のノード
-    int time		 ///< [in] タイムフレーム ( 0 or 1 )
-  ) const
-  {
-    // 念のため time の最下位ビットだけ使う．
-    time &= 1;
-    return mMarkArray[node->id()][time];
-  }
 
 
 private:
@@ -164,14 +108,11 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 個々のノードのマークを表す配列
-  vector<bitset<2>> mMarkArray;
+  // 対象のネットワーク
+  const TpgNetwork& mNetwork;
 
   // JustData
   const JustData* mJustDataPtr{nullptr};
-
-  // 対象のノードを入れるキュー
-  vector<NodeTimeVal> mQueue;
 
 };
 

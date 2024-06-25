@@ -24,13 +24,14 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 Just2::Just2(
-  SizeType max_id
-) : JustImpl{max_id},
-    mWeightArray(max_id * 2, 0U),
-    mTmpArray(max_id * 2, 0.0)
+  const TpgNetwork& network
+) : JustBase{network},
+    mWeightArray(network.node_num() * 2, 0U),
+    mTmpArray(network.node_num() * 2, 0.0)
 {
-  mNodeList[0].reserve(max_id);
-  mNodeList[1].reserve(max_id);
+  for ( auto i: {0, 1} ) {
+    mNodeList[i].reserve(network.node_num());
+  }
 }
 
 // @brief デストラクタ
@@ -120,7 +121,7 @@ Just2::add_weight(
     ;
   }
   else if ( node->is_dff_output() ) {
-    if ( time == 1 && just_data().td_mode() ) {
+    if ( time == 1 && has_prev_state() ) {
       // 1時刻前のタイムフレームに戻る．
       auto alt_node = node->alt_node();
       add_weight(alt_node, 0);
@@ -166,7 +167,7 @@ Just2::calc_value(
     val = 1.0;
   }
   else if ( node->is_dff_output() ) {
-    if ( time == 1 && just_data().td_mode() ) {
+    if ( time == 1 && has_prev_state() ) {
       auto alt_node = node->alt_node();
       val = node_value(alt_node, 0);
     }

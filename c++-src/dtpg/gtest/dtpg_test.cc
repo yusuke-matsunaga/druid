@@ -332,6 +332,6 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
 					    ::testing::Values("node", "ffr", "mffc"),
 					    ::testing::Values("engine", "struct_enc", "enc"),
 					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
-					    ::testing::Values("just1", "just2")));
+					    ::testing::Values("naive", "just1", "just2")));
 
 END_NAMESPACE_DRUID

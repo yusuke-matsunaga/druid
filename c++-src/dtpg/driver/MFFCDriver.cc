@@ -7,10 +7,9 @@
 /// All rights reserved.
 
 #include "MFFCDriver.h"
+#include "MFFCEncDriver.h"
 #include "MFFCEngineDriver.h"
 #include "MFFCStructEncDriver.h"
-//#include "MFFCEnc.h"
-//#include "MFFCEnc2.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -33,8 +32,11 @@ gen_impl(
       if ( value == "engine" ) {
 	return new MFFCEngineDriver{network, mffc, option};
       }
-      if ( value == "struct_enc" || value == "enc" ) {
+      if ( value == "struct_enc" ) {
 	return new MFFCStructEncDriver{network, mffc, option};
+      }
+      if ( value == "enc" ) {
+	return new MFFCEncDriver{network, mffc, option};
       }
     }
   }

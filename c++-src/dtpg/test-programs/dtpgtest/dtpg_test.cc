@@ -219,16 +219,23 @@ dtpg_test(
 	}
 	td_mode = true;
       }
-      else if ( strcmp(argv[pos], "--bt1") == 0 ) {
+      else if ( strcmp(argv[pos], "--just_naive") == 0 ) {
 	if ( just_type != "" ) {
-	  cerr << "--bt0, --bt1, and --bt2 are mutually exclusive" << endl;
+	  cerr << "--just_naive and " << just_type << " are mutually exclusive" << endl;
+	  return -1;
+	}
+	just_type = "naive";
+      }
+      else if ( strcmp(argv[pos], "--just1") == 0 ) {
+	if ( just_type != "" ) {
+	  cerr << "--just1 and " << just_type << " are mutually exclusive" << endl;
 	  return -1;
 	}
 	just_type = "just1";
       }
-      else if ( strcmp(argv[pos], "--bt2") == 0 ) {
+      else if ( strcmp(argv[pos], "--just2") == 0 ) {
 	if ( just_type != "" ) {
-	  cerr << "--bt0, --bt1, and --bt2 are mutually exclusive" << endl;
+	  cerr << "--just2 and " << just_type << " are mutually exclusive" << endl;
 	  return -1;
 	}
 	just_type = "just2";
@@ -302,7 +309,7 @@ dtpg_test(
   unordered_map<string, JsonValue> option_dict;
   option_dict.emplace("group_mode", mode);
   option_dict.emplace("driver_type", driver);
-  option_dict.emplace("just_type", just_type);
+  option_dict.emplace("justifier", just_type);
   if ( sat_type != string{} ) {
     auto sat_obj = JsonValue{sat_type};
     if ( sat_log != string{} ) {
@@ -379,10 +386,13 @@ dtpg_test(
   timer.stop();
   auto time = timer.get_time();
 
-  for ( auto& p: ErrorList ) {
-    auto f = p.first;
-    auto tv = p.second;
-    cout << f->str() << ": " << tv.hex_str() << endl;
+  if ( !ErrorList.empty() ) {
+    cout << "Error!" << endl;
+    for ( auto& p: ErrorList ) {
+      auto f = p.first;
+      auto tv = p.second;
+      cout << f->str() << ": " << tv.hex_str() << endl;
+    }
   }
 
   if ( verbose ) {

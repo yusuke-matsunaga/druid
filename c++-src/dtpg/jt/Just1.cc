@@ -25,8 +25,8 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 Just1::Just1(
-  SizeType max_id
-) : JustImpl{max_id}
+  const TpgNetwork& network
+) : JustBase{network}
 {
 }
 

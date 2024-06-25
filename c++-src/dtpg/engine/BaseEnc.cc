@@ -12,6 +12,18 @@
 #include "GateEnc.h"
 
 
+//#define DEBUG_DTPG
+#define DEBUG_OUT cout
+
+
+BEGIN_NONAMESPACE
+#ifdef DEBUG_DTPG
+int debug_base_enc = 1;
+#else
+const int debug_base_enc = 0;
+#endif
+END_NONAMESPACE
+
 BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
@@ -94,10 +106,20 @@ BaseEnc::make_cnf(
   for ( auto node: mCurNodeList ) {
     auto glit = solver().new_variable(true);
     mGvarMap.set_vid(node, glit);
+
+    if ( debug_base_enc ) {
+      DEBUG_OUT << "Node#" << node->id()
+		<< ": gvar = " << glit << endl;
+    }
   }
   for ( auto node: mPrevNodeList ) {
     auto hlit = solver().new_variable(true);
     mHvarMap.set_vid(node, hlit);
+
+    if ( debug_base_enc ) {
+      DEBUG_OUT << "Node#" << node->id()
+		<< ": hvar = " << hlit << endl;
+    }
   }
 
   // 現時刻の値の関係を表すCNFを作る．

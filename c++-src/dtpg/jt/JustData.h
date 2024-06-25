@@ -32,8 +32,7 @@ public:
     const SatModel& model  ///< [in] SATソルバの作ったモデル
   ) : mVar1Map{var_map},
       mVar2Map{var_map},
-      mSatModel{model},
-      mTdMode{false}
+      mSatModel{model}
   {
   }
 
@@ -44,8 +43,7 @@ public:
     const SatModel& model   ///< [in] SATソルバの作ったモデル
   ) : mVar1Map{var1_map},
       mVar2Map{var2_map},
-      mSatModel{model},
-      mTdMode{true}
+      mSatModel{model}
   {
   }
 
@@ -57,13 +55,6 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 遷移故障モードの時 true を返す．
-  bool
-  td_mode() const
-  {
-    return mTdMode;
-  }
 
   /// @brief ノードの正常値を返す．
   Val3
@@ -105,9 +96,6 @@ private:
 
   // SAT ソルバの解
   const SatModel& mSatModel;
-
-  // 遷移故障モード
-  bool mTdMode;
 
 };
 
