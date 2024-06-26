@@ -309,7 +309,9 @@ dtpg_test(
   unordered_map<string, JsonValue> option_dict;
   option_dict.emplace("group_mode", mode);
   option_dict.emplace("driver_type", driver);
-  option_dict.emplace("justifier", just_type);
+  if ( just_type != string{} ) {
+    option_dict.emplace("justifier", just_type);
+  }
   if ( sat_type != string{} ) {
     auto sat_obj = JsonValue{sat_type};
     if ( sat_log != string{} ) {
