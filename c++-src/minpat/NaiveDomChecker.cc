@@ -25,18 +25,28 @@ NaiveDomChecker::NaiveDomChecker(
 {
   auto node1 = fault1->origin_node();
   mBdEnc1 = new BoolDiffEnc{mBaseEnc, node1, option};
+  mFaultEnc1 = new FaultEnc{mBaseEnc, fault1};
+
   auto node2 = fault2->origin_node();
-  if ( node1 != node2 ) {
-    mBdEnc2 = new BoolDiffEnc{mBaseEnc, node2, option};
-  }
-  //mFaultEnc1 = new FaultEnc{mBaseEnc, fault1};
-  //mFaultEnc2 = new FaultEnc{mBaseEnc, fault2};
+  mBdEnc2 = new BoolDiffEnc{mBaseEnc, node2, option};
+  mFaultEnc2 = new FaultEnc{mBaseEnc, fault2};
+
   mBaseEnc.make_cnf({}, {node1, node2});
+
+  // fault1 の検出条件を追加する．
+  {
+    auto pvar1 = mBdEnc1->prop_var();
+    auto pvar2 = mFaultEnc1->prop_var();
+    mBaseEnc.solver().add_clause(pvar1);
+    mBaseEnc.solver().add_clause(pvar2);
+  }
   // fault2 は検出しないので mBdEnc2->prop_var() か mFaultEnc2->prop_var()
   // のいずれかは false
-  auto pvar1 = mBdEnc2->prop_var();
-  auto pvar2 = mFaultEnc2->prop_var();
-  //mBaseEnc.solver().add_clause(~pvar1, ~pvar2);
+  {
+    auto pvar1 = mBdEnc2->prop_var();
+    auto pvar2 = mFaultEnc2->prop_var();
+    mBaseEnc.solver().add_clause(~pvar1, ~pvar2);
+  }
 }
 
 // @brief デストラクタ
@@ -48,12 +58,7 @@ NaiveDomChecker::~NaiveDomChecker()
 bool
 NaiveDomChecker::check()
 {
-#if 0
-  vector<SatLiteral> assumptions{mBdEnc1->prop_var(), mFaultEnc1->prop_var()};
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
-#else
   return mBaseEnc.solver().solve() == SatBool3::False;
-#endif
 }
 
 END_NAMESPACE_DRUID
