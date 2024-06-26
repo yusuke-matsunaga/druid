@@ -81,10 +81,11 @@ BoolDiffEnc::make_cnf()
     make_dchain_cnf(node);
   }
 
-  if ( !mRoot->is_ppo() ) {
-    // mRoot の dlit を true にする．
-    auto dlit = dvar(mRoot);
-    solver().add_clause(dlit);
+  { // mRoot には故障の影響が伝搬している．
+    auto glit = gvar(mRoot);
+    auto flit = fvar(mRoot);
+    solver().add_clause( glit,  flit);
+    solver().add_clause(~glit, ~flit);
   }
 
   // 微分結果を表す変数を作る．
