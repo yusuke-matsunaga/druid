@@ -29,6 +29,7 @@ set ( minpat_SOURCES
   FaultReducer.cc
   TestCubeGen.cc
   NaiveDomChecker.cc
+  NaiveDomChecker2.cc
   StructDomChecker.cc
   DcGraph.cc
   )

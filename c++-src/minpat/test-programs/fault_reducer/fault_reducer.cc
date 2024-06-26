@@ -11,6 +11,7 @@
 #include "TpgFault.h"
 #include "FaultReducer.h"
 #include "NaiveDomChecker.h"
+#include "NaiveDomChecker2.h"
 #include "StructDomChecker.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
@@ -126,6 +127,7 @@ fault_reducer(
   bool td_mode = false;
   bool multi = false;
   bool naive = false;
+  bool naive2 = false;
   bool se = false;
   bool verbose = false;
   string just_type;
@@ -205,6 +207,9 @@ fault_reducer(
       }
       else if ( strcmp(argv[pos], "--naive") == 0 ) {
 	naive = true;
+      }
+      else if ( strcmp(argv[pos], "--naive2") == 0 ) {
+	naive2 = true;
       }
       else if ( strcmp(argv[pos], "--struct_enc") == 0 ) {
 	se = true;
@@ -295,6 +300,40 @@ fault_reducer(
 	}
 	auto f2 = det_fault_list[i2];
 	NaiveDomChecker checker{network, f1, f2, option};
+	if ( checker.check() ) {
+	  cout << f2->str() << " is dominated by " << f1->str() << endl;
+	  deleted[i2] = true;
+	}
+      }
+    }
+    SizeType n2 = 0;
+    for ( SizeType i = 0; i < n; ++ i ) {
+      if ( !deleted[i] ) {
+	++ n2;
+      }
+    }
+
+    cout << "Detected Faults: " << n << endl
+	 << "Reduced Faults:  " << n2 << endl;
+  }
+  else if ( naive2 ) {
+    SizeType n = det_fault_list.size();
+    vector<bool> deleted(n, false);
+    JsonValue option;
+    for ( SizeType i1 = 0; i1 < n; ++ i1 ) {
+      if ( deleted[i1] ) {
+	continue;
+      }
+      auto f1 = det_fault_list[i1];
+      for ( SizeType i2 = 0; i2 < n; ++ i2 ) {
+	if ( i2 == i1 ) {
+	  continue;
+	}
+	if ( deleted[i2] ) {
+	  continue;
+	}
+	auto f2 = det_fault_list[i2];
+	NaiveDomChecker2 checker{network, f1, f2, option};
 	if ( checker.check() ) {
 	  cout << f2->str() << " is dominated by " << f1->str() << endl;
 	  deleted[i2] = true;
