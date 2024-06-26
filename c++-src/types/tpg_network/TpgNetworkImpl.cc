@@ -409,7 +409,7 @@ TpgNetworkImpl::new_ffr(
     auto node = node_stack.back();
     node_stack.pop_back();
     for ( auto inode: node->fanin_list() ) {
-      if ( inode->ffr_root() == inode || inode->is_ppi() ) {
+      if ( inode->ffr_root() == inode ) {
 	// inode は他の FFR の根
 	if ( !input_hash[inode->id()] ) {
 	  input_hash[inode->id()] = true;
@@ -417,7 +417,9 @@ TpgNetworkImpl::new_ffr(
 	}
       }
       else {
-	node_stack.push_back(inode);
+	if ( !inode->is_ppi() ) {
+	  node_stack.push_back(inode);
+	}
 	node_list.push_back(inode);
       }
     }
