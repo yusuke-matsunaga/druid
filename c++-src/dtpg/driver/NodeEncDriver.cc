@@ -25,7 +25,6 @@ NodeEncDriver::NodeEncDriver(
 ) : mBaseEnc{network, option}
 {
   mBdEnc = new BoolDiffEnc{mBaseEnc, node, option};
-  mBaseEnc.reg_subenc(mBdEnc);
   mBaseEnc.make_cnf({}, {node});
 }
 

@@ -30,8 +30,6 @@ MFFCEncDriver::MFFCEncDriver(
   auto node = mffc->root();
   mBdEnc = new BoolDiffEnc{mBaseEnc, node, option};
   mMFFCEnc = new MFFCEnc{mBaseEnc, mffc};
-  mBaseEnc.reg_subenc(mBdEnc);
-  mBaseEnc.reg_subenc(mMFFCEnc);
   mBaseEnc.make_cnf({}, {node});
 }
 

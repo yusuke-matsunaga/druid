@@ -20,7 +20,8 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// 実は検出条件は SatLiteral の論理積なので節を作る必要はない．
 //////////////////////////////////////////////////////////////////////
-class FaultEnc
+class FaultEnc :
+  public SubEnc
 {
 public:
 

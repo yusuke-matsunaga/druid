@@ -7,14 +7,17 @@
 /// All rights reserved.
 
 #include "FaultEnc.h"
+#include "TpgFault.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 FaultEnc::FaultEnc(
+  BaseEnc& base_enc,
   const TpgFault* fault
-) : mFault{fault}
+) : SubEnc{base_enc},
+    mFault{fault}
 {
   auto ex_cond = mFault->excitation_condition();
   mNodeList.reserve(ex_cond.size());

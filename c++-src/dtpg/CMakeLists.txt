@@ -46,6 +46,7 @@ set ( engine_SOURCES
   engine/BoolDiffEnc.cc
   engine/FFREnc.cc
   engine/MFFCEnc.cc
+  engine/FaultEnc.cc
   engine/BoolDiffEngine.cc
   engine/DtpgEngine.cc
   engine/DtpgEngine_Node.cc

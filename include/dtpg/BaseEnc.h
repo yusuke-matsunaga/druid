@@ -31,6 +31,8 @@ class SubEnc;
 //////////////////////////////////////////////////////////////////////
 class BaseEnc
 {
+  friend class SubEnc;
+
 public:
 
   /// @brief コンストラクタ
@@ -53,17 +55,6 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 部品を登録する．
-  ///
-  /// subenc の所有権は BaseEnc に委譲される．
-  void
-  reg_subenc(
-    SubEnc* subenc ///< [in] 部品のエンコーダ
-  )
-  {
-    mSubEncList.push_back(subenc);
-  }
 
   /// @brief 回路の構造を表すCNFを生成する．
   void
@@ -166,6 +157,17 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 部品を登録する．
+  ///
+  /// subenc の所有権は BaseEnc に委譲される．
+  void
+  reg_subenc(
+    SubEnc* subenc ///< [in] 部品のエンコーダ
+  )
+  {
+    mSubEncList.push_back(subenc);
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -225,6 +227,7 @@ public:
     BaseEnc& base_enc ///< [in] 親の BaseEnc
   ) : mBaseEnc{base_enc}
   {
+    base_enc.reg_subenc(this);
   }
 
   /// @brief デストラクタ

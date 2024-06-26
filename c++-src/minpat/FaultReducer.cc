@@ -211,6 +211,8 @@ FaultReducer::ffr_reduction()
 	  // fault1 を検出する条件のもとでは fault2 も検出される．
 	  // → fault2 は支配されている．
 	  delete_fault(fault2);
+	  cout << fault2->str() << " is dominated by " << fault1->str()
+	       << " (same FFR)" << endl;
 	}
       }
     }
@@ -511,6 +513,7 @@ FaultReducer::dom_reduction()
 	  // fault2 が検出可能の条件のもとで fault1 が検出不能となることはない．
 	  // fault2 が fault1 を支配している．
 	  delete_fault(fault1);
+	  cout << fault1->str() << " is dominated by " << fault2->str() << endl;
 	  break;
 	}
       }

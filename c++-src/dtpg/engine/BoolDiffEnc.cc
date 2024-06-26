@@ -58,10 +58,12 @@ BoolDiffEnc::make_cnf()
 {
   // fvar/dvar の割り当て
   for ( auto node: base_enc().cur_node_list() ) {
-    // まず gvar をデフォルト値として設定しておく．
-    // 実際に使われるのは TfoList の境界部分のノードだけ
-    auto glit = gvar(node);
-    mFvarMap.set_vid(node, glit);
+    for ( auto inode: node->fanin_list() ) {
+      // まず gvar をデフォルト値として設定しておく．
+      // 実際に使われるのは TfoList の境界部分のノードだけ
+      auto glit = gvar(inode);
+      mFvarMap.set_vid(inode, glit);
+    }
   }
   for ( auto node: mTfoList ) {
     auto flit = solver().new_variable(true);
@@ -86,8 +88,9 @@ BoolDiffEnc::make_cnf()
   }
 
   // 微分結果を表す変数を作る．
-  mPropVar = solver().new_variable(true);
-  {
+  ASSERT_COND( !mOutputList.empty() );
+  if ( mOutputList.size() > 1 ) {
+    mPropVar = solver().new_variable(true);
     vector<SatLiteral> tmp_lits;
     tmp_lits.reserve(mOutputList.size());
     for ( auto node: mOutputList ) {
@@ -95,6 +98,10 @@ BoolDiffEnc::make_cnf()
       tmp_lits.push_back(dlit);
     }
     solver().add_orgate(mPropVar, tmp_lits);
+  }
+  else {
+    // 1出力ならその出力の dlit が伝搬条件そのもの
+    mPropVar = dvar(mOutputList[0]);
   }
 }
 
