@@ -15,7 +15,7 @@ BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
-int debug = 0;
+int debug_jt = 0;
 
 END_NONAMESPACE
 
@@ -61,8 +61,10 @@ JustNaive::_justify(
   TpgNodeSet::get_tfi_list(
     network().node_num(), cur_list,
     [&](const TpgNode* node) {
-      cout << "Node#" << node->id()
-	   << ", 1: " << get_bval(node, 1) << endl;
+      if ( debug_jt ) {
+	cout << "Node#" << node->id()
+	     << "@1: " << get_bval(node, 1) << endl;
+      }
       if ( node->is_ppi() ) {
 	bool bval = get_bval(node, 1);
 	if ( has_prev_state() ) {
@@ -83,8 +85,10 @@ JustNaive::_justify(
     TpgNodeSet::get_tfi_list(
       network().node_num(), prev_list,
       [&](const TpgNode* node) {
-	cout << "Node#" << node->id()
-	     << ", 0: " << get_bval(node, 0) << endl;
+	if ( debug_jt ) {
+	  cout << "Node#" << node->id()
+	       << "@0: " << get_bval(node, 0) << endl;
+	}
 	if ( node->is_ppi() ) {
 	  bool bval = get_bval(node, 0);
 	  pi_assign_list.add(node, 0, bval);

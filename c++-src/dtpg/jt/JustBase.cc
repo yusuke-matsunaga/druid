@@ -10,6 +10,13 @@
 #include "JustData.h"
 
 
+BEGIN_NONAMESPACE
+
+int debug_jt = 0;
+
+END_NONAMESPACE
+
+
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
@@ -70,9 +77,9 @@ JustBase::just_main(
   NodeTimeValList& pi_assign_list
 )
 {
-  {
+  if ( debug_jt ) {
     auto oval = just_data().val(node, time);
-    cout << "Node#" << node->id() << ", " << time << ": " << oval << endl;
+    cout << "Node#" << node->id() << "@" << time << ": " << oval << endl;
   }
 
   if ( node->is_primary_input() ) {
