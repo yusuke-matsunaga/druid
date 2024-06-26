@@ -14,7 +14,6 @@
 #include "GateEnc.h"
 #include "NodeTimeValList.h"
 #include "TpgNodeSet.h"
-#include "extract.h"
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"
@@ -75,7 +74,7 @@ BoolDiffEngine::BoolDiffEngine(
     mGvarMap{network.node_num()},
     mFvarMap{network.node_num()},
     mDvarMap{network.node_num()},
-    mExOption{get_option(option, "extractor")},
+    mExtractor{get_option(option, "extractor")},
     mJustifier{network, get_option(option, "justifier")}
 {
   make_cnf();
@@ -372,10 +371,12 @@ BoolDiffEngine::extract_sufficient_condition(
   const TpgNode* root
 )
 {
-  auto& model = mSolver.model();
-  return DRUID_NAMESPACE::extract_sufficient_condition(root, mGvarMap,
-						       mFvarMap, model,
-						       mExOption);
+  return mExtractor(
+    root,
+    mGvarMap,
+    mFvarMap,
+    mSolver.model()
+  );
 }
 
 // @brief 与えられた割当の正当化を行う．
@@ -384,8 +385,7 @@ BoolDiffEngine::justify(
   const NodeTimeValList& assign_list
 )
 {
-  auto& model = mSolver.model();
-  return mJustifier(assign_list, mHvarMap, mGvarMap, model);
+  return mJustifier(assign_list, mHvarMap, mGvarMap, mSolver.model());
 }
 
 END_NAMESPACE_DRUID

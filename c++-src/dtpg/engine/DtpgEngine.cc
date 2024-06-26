@@ -14,7 +14,6 @@
 #include "NodeValList.h"
 #include "TestVector.h"
 #include "TpgNodeSet.h"
-#include "extract.h"
 
 #include "ym/SatSolver.h"
 #include "ym/SatStats.h"

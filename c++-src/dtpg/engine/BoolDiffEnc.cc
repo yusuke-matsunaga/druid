@@ -10,7 +10,6 @@
 #include "TpgNetwork.h"
 #include "TpgNodeSet.h"
 #include "GateEnc.h"
-#include "extract.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -40,7 +39,7 @@ BoolDiffEnc::BoolDiffEnc(
     mRoot{root},
     mFvarMap{base_enc.network().node_num()},
     mDvarMap{base_enc.network().node_num()},
-    mExOption{get_option(option, "extractor")}
+    mExtractor{get_option(option, "extractor")}
 {
   mTfoList = TpgNodeSet::get_tfo_list(
     base_enc.network().node_num(), mRoot,
@@ -162,11 +161,12 @@ BoolDiffEnc::make_dchain_cnf(
 NodeTimeValList
 BoolDiffEnc::extract_sufficient_condition()
 {
-  auto& model = solver().model();
-  return DRUID_NAMESPACE::extract_sufficient_condition(
-    root_node(), base_enc().gvar_map(),
-    mFvarMap, model,
-    mExOption);
+  return mExtractor(
+    root_node(),
+    base_enc().gvar_map(),
+    mFvarMap,
+    solver().model()
+  );
 }
 
 END_NAMESPACE_DRUID

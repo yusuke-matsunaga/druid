@@ -10,6 +10,7 @@
 /// All rights reserved.
 
 #include "StructEnc.h"
+#include "Extractor.h"
 #include "TpgNode.h"
 
 
@@ -277,6 +278,9 @@ private:
 
   // 故障伝搬値の変数マップ
   VidMap mDvarMap;
+
+  // Extractor
+  Extractor mExtractor;
 
 };
 

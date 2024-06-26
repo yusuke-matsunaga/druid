@@ -13,7 +13,6 @@
 #include "NodeTimeValList.h"
 #include "GateEnc.h"
 #include "TpgNodeSet.h"
-#include "extract.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -119,7 +118,7 @@ PropCone::extract_condition(
   const TpgNode* root
 )
 {
-  return extract_sufficient_condition(root, gvar_map(), fvar_map(), model);
+  return mExtractor(root, gvar_map(), fvar_map(), model);
 }
 
 // @brief node に関する故障伝搬条件を作る．

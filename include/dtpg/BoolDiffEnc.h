@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "BaseEnc.h"
+#include "Extractor.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -149,8 +150,8 @@ private:
   // 伝搬条件を表す変数マップ
   VidMap mDvarMap;
 
-  // extractor 用のオプション
-  JsonValue mExOption;
+  // 十分条件を取り出すオブジェクト
+  Extractor mExtractor;
 
 };
 

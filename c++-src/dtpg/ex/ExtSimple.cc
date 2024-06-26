@@ -3,7 +3,7 @@
 /// @brief ExtSimple の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "ExtSimple.h"
@@ -17,12 +17,10 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief 対象の出力を選ぶ．
 const TpgNode*
-ExtSimple::select_output(
-  const vector<const TpgNode*>& output_list
-)
+ExtSimple::select_output()
 {
   // 最初の要素を返す．
-  return output_list[0];
+  return data().sensitized_output_list()[0];
 }
 
 // @brief 制御値を持つ side input を選ぶ．

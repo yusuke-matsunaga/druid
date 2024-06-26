@@ -9,29 +9,22 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "Extractor.h"
+#include "ExImpl.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class ExtSimple ExtSimple.h "ExtSimple.h"
-/// @brief Extractor の実装クラス
+/// @brief ExImpl の実装クラス
 //////////////////////////////////////////////////////////////////////
 class ExtSimple :
-  public Extractor
+  public ExImpl
 {
 public:
 
   /// @brief コンストラクタ
-  ExtSimple(
-    const TpgNode* root,    ///< [in] 起点となるノード
-    const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
-    const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
-    const SatModel& model   ///< [in] SATソルバの作ったモデル
-  ) : Extractor{root, gvar_map, fvar_map, model}
-  {
-  }
+  ExtSimple() = default;
 
   /// @brief デストラクタ
   ~ExtSimple() = default;
@@ -44,9 +37,7 @@ private:
 
   /// @brief 対象の出力を選ぶ．
   const TpgNode*
-  select_output(
-    const vector<const TpgNode*>& output_list ///< [in] 対象の出力ノードのリスト
-  ) override;
+  select_output() override;
 
   /// @brief 制御値を持つ side input を選ぶ．
   const TpgNode*

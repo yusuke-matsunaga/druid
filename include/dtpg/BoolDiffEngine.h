@@ -17,6 +17,7 @@
 #include "Val3.h"
 #include "VidMap.h"
 #include "NodeTimeValList.h"
+#include "Extractor.h"
 #include "Justifier.h"
 
 #include "ym/SatBool3.h"
@@ -384,7 +385,7 @@ private:
   double mCnfTime;
 
   // extractor 用のオプションパラメータ
-  JsonValue mExOption;
+  Extractor mExtractor;
 
   // justifier
   Justifier mJustifier;
