@@ -61,18 +61,7 @@ MFFCEncDriver::gen_pattern(
   assign_list.merge(mffc_cond);
   auto prop_cond = fault->ffr_propagate_condition();
   assign_list.merge(prop_cond);
-  if ( fault->str() == "G#204:O:FALL" ) {
-    cout << "-------------------" << endl;
-    cout << "assign_list = " << assign_list << endl;
-  }
   auto pi_assign_list = mBaseEnc.justify(assign_list);
-  if ( fault->str() == "G#204:O:FALL" ) {
-    cout << "pi_assign_list = " << endl;
-    for ( auto nv: pi_assign_list ) {
-      cout << nv << endl;
-    }
-    cout << "-------------------" << endl;
-  }
   return TestVector{mBaseEnc.network(), pi_assign_list};
 }
 
