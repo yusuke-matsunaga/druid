@@ -26,10 +26,13 @@ FFREnc::FFREnc(
 void
 FFREnc::make_cnf()
 {
+  cout << endl;
+  cout << "FFREnc::make_cnf()" << endl;
   // 変数を用意する．
   for ( auto node: mFFR->node_list() ) {
     auto plit = solver().new_variable(true);
     mPropVarMap.emplace(node->id(), plit);
+    cout << "prop_var(Node#" << node->id() << ") = " << plit << endl;
   }
   // DFS の in-order で条件を作る．
   make_cnf_sub(mFFR->root(), {});
@@ -41,26 +44,34 @@ FFREnc::make_cnf_sub(
   const vector<SatLiteral>& cond
 )
 {
-  if ( !cond.empty() ) {
-    auto plit = solver().new_variable(true);
-    mPropVarMap.emplace(node->id(), plit);
+  if ( node->is_ppi() ) {
+    return;
   }
   auto nval = node->nval();
   if ( nval != Val3::_X ) {
     auto bval = nval == Val3::_1;
     for ( auto inode: node->fanin_list() ) {
+      if ( inode->ffr_root() == inode ) {
+	// inode は他の FFR の根のノードだった．
+	continue;
+      }
       // inode から node の出力までの伝搬条件
       // inode 以外の side-input の値が nval() であること．
-      vector<SatLiteral> tmp_lits{cond};
-      tmp_lits.reserve(tmp_lits.size() + node->fanin_num() - 1);
+      vector<SatLiteral> cond1{cond};
+      cond1.reserve(cond1.size() + node->fanin_num() - 1);
       for ( auto inode1: node->fanin_list() ) {
 	if ( inode1 == inode ) {
 	  continue;
 	}
 	auto lit = conv_to_literal(NodeTimeVal{inode1, 1, bval});
-	tmp_lits.push_back(lit);
+	cond1.push_back(lit);
       }
-      make_cnf_sub(inode, tmp_lits);
+      if ( !cond1.empty() ) {
+	cout << "get prop_var(Node#" << inode->id() << ")" << endl;
+	auto plit = mPropVarMap.at(inode->id());
+	solver().add_andgate(plit, cond1);
+      }
+      make_cnf_sub(inode, cond1);
     }
   }
 }
@@ -71,6 +82,7 @@ FFREnc::prop_var(
   const TpgNode* node
 )
 {
+  cout << "get prop_var(Node#" << node->id() << ")" << endl;
   return mPropVarMap.at(node->id());
 }
 
