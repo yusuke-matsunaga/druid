@@ -107,6 +107,29 @@ MFFCEnc::cvar_assumptions(
   return assumptions;
 }
 
+BEGIN_NONAMESPACE
+
+void
+dfs(
+  const TpgNode* node,
+  const TpgNode* end_node,
+  unordered_set<SizeType>& mark
+)
+{
+  if ( mark.count(node->id()) > 0 ) {
+    return;
+  }
+  mark.emplace(node->id());
+  if ( node == end_node ) {
+    return;
+  }
+  for ( auto onode: node->fanout_list() ) {
+    dfs(onode, end_node, mark);
+  }
+}
+
+END_NONAMESPACE
+
 // @brief 直前の check() が成功したときの十分条件を求める．
 NodeTimeValList
 MFFCEnc::extract_sufficient_condition(
@@ -116,12 +139,14 @@ MFFCEnc::extract_sufficient_condition(
   auto start = mMFFC->root();
   auto end = fault->ffr_root();
   // start から end までの故障伝搬条件を求める．
-  // ここでは単純に gvar(node) == fvar(node) のノード
-  // の場合に値を記憶する．
+  // ここでは単純に end の TFO に*含まれない*
+  // ノードの値を記憶する．
   // これだと無駄な値割り当てを含む可能性がある．
+  unordered_set<SizeType> fmark;
+  dfs(end, start, fmark);
   NodeTimeValList assign_list;
   unordered_set<SizeType> mark;
-  ex_sub(start, end, assign_list, mark);
+  ex_sub(start, end, fmark, assign_list, mark);
   return assign_list;
 }
 
@@ -130,6 +155,7 @@ void
 MFFCEnc::ex_sub(
   const TpgNode* node,
   const TpgNode* end_node,
+  const unordered_set<SizeType>& fmark,
   NodeTimeValList& assign_list,
   unordered_set<SizeType>& mark
 )
@@ -144,8 +170,8 @@ MFFCEnc::ex_sub(
 
   // node は sensitized node のはず．
   for ( auto inode: node->fanin_list() ) {
-    if ( is_in_fcone(inode) ) {
-      ex_sub(inode, end_node, assign_list, mark);
+    if ( fmark.count(inode->id()) > 0 ) {
+      ex_sub(inode, end_node, fmark, assign_list, mark);
     }
     else {
       auto& model = solver().model();
