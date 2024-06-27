@@ -18,6 +18,15 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class BoolDiffEnc BoolDiffEnc.h "BoolDiffEnc.h"
 /// @brief ブール微分を表すCNFを生成するクラス
+///
+/// BaseEnc に部品として組み込んで用いる SubEnc の継承クラス
+///
+/// 起点となるノードにおける値の反転がいずれかの外部出力に伝搬する
+/// 条件を表す変数を生成する．
+/// 生成された変数は prop_var() で取得できる．
+///
+/// prop_var() が true になったときの十分条件は
+/// extract_sufficient_condition() で取得できる．
 //////////////////////////////////////////////////////////////////////
 class BoolDiffEnc :
   public SubEnc
