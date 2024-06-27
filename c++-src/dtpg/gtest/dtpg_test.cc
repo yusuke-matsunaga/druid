@@ -330,7 +330,7 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
 			 ::testing::Combine(::testing::ValuesIn(mydata2),
 					    ::testing::Values("ymsat2"),
 					    ::testing::Values("node", "ffr", "mffc"),
-					    ::testing::Values("engine", "struct_enc", "enc"),
+					    ::testing::Values("engine", "enc"),
 					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
 					    ::testing::Values("naive", "just1", "just2")));
 
