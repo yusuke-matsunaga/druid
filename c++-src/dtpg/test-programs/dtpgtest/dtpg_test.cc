@@ -179,6 +179,13 @@ dtpg_test(
 	}
 	driver = "enc";
       }
+      else if ( strcmp(argv[pos], "--enc2") == 0 ) {
+	if ( driver != string{} ) {
+	  cerr << "--enc2 and --" << mode << " are mutually exclusive" << endl;
+	  return -1;
+	}
+	driver = "enc2";
+      }
       else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
 	++ pos;
 	if ( pos < argc ) {
@@ -361,13 +368,16 @@ dtpg_test(
   vector<pair<const TpgFault*, TestVector>> ErrorList;
   vector<const TpgFault*> det_fault_list;
   vector<TestVector> tv_list;
+  std::mt19937 rg;
   auto stats = mgr.run(
     // detected callback
     [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) {
       det_fault_list.push_back(f);
       tv_list.push_back(tv);
+      TestVector tv1{tv};
+      tv1.fix_x_from_random(rg);
       DiffBits _dummy;
-      bool r = fsim.spsfp(tv, f, _dummy);
+      bool r = fsim.spsfp(tv1, f, _dummy);
       if ( !r ) {
 	ErrorList.push_back({f, tv});
       }

@@ -16,6 +16,7 @@
 
 BEGIN_NONAMESPACE
 int debug = false;
+//int debug = true;
 END_NONAMESPACE
 
 BEGIN_NAMESPACE_DRUID
@@ -51,6 +52,9 @@ ExImpl::get_assignment(
   put_queue(spo, 1);
   while ( !mQueue.empty() ) {
     auto node = get_queue();
+    if ( node == root ) {
+      continue;
+    }
     int mark = mMarks.at(node->id());
     if ( debug ) {
       DBG_OUT << "visit at Node#" << node->id()

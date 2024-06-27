@@ -10,6 +10,7 @@
 #include "FFREngineDriver.h"
 #include "FFRStructEncDriver.h"
 #include "FFREncDriver.h"
+#include "FFREncDriver2.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -36,6 +37,9 @@ gen_impl(
       }
       if ( value == "enc" ) {
 	return new FFREncDriver{network, ffr, option};
+      }
+      if ( value == "enc2" ) {
+	return new FFREncDriver2{network, ffr, option};
       }
     }
   }

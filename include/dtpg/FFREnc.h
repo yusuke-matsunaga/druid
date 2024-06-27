@@ -72,8 +72,7 @@ private:
   /// @brief make_cnf() の下請け関数
   void
   make_cnf_sub(
-    const TpgNode* node,
-    const vector<SatLiteral>& cond
+    const TpgNode* node
   );
 
 
