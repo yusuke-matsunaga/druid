@@ -72,17 +72,8 @@ private:
   // 故障2用の BoolDIff
   BoolDiffEnc* mBdEnc2;
 
-  // 故障1用の mFFREnc
-  FFREnc* mFFREnc1;
-
   // 故障2用の mFFREnc
   FFREnc* mFFREnc2;
-
-  // 故障1用の FaultEnc
-  FaultEnc* mFaultEnc1;
-
-  // 故障2用の FaultEnc
-  FaultEnc* mFaultEnc2;
 
 };
 

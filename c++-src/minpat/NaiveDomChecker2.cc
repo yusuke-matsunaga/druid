@@ -38,8 +38,7 @@ NaiveDomChecker2::NaiveDomChecker2(
   {
     mBdEnc2 = new BoolDiffEnc{mBaseEnc, node2, option};
     auto ffr2 = ffr_map.at(node2->id());
-    mFFREnc2 = new FFREnc{mBaseEnc, ffr2};
-    mFaultEnc2 = new FaultEnc{mBaseEnc, fault2};
+    mFFREnc2 = new FFREnc{mBaseEnc, mBdEnc2, ffr2, {fault2}};
   }
   mBaseEnc.make_cnf({}, {node1, node2});
 
@@ -49,13 +48,10 @@ NaiveDomChecker2::NaiveDomChecker2(
     mBaseEnc.solver().add_clause(pvar1);
   }
   // fault2 は検出しないので mBdEnc2->prop_var() か
-  // mFFREnc2->prop_var()，mFaultEnc2->prop_var()
-  // のいずれかは false
+  // mFFREnc2->prop_var() のいずれかは false
   {
-    auto pvar1 = mBdEnc2->prop_var();
-    auto pvar2 = mFFREnc2->prop_var(fault2->origin_node());
-    auto pvar3 = mFaultEnc2->prop_var();
-    mBaseEnc.solver().add_clause(~pvar1, ~pvar2, ~pvar3);
+    auto pvar2 = mFFREnc2->prop_var(fault2);
+    mBaseEnc.solver().add_clause(~pvar2);
   }
 }
 
