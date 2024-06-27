@@ -30,8 +30,12 @@ FFREnc::make_cnf()
   auto root = mFFR->root();
   auto pvar = solver().new_variable(true);
   mPropVarMap.emplace(root->id(), pvar);
+  solver().add_clause(pvar);
+
   // DFS の in-order で条件を作る．
-  make_cnf_sub(root);
+  if ( !root->is_ppi() ) {
+    make_cnf_sub(root);
+  }
 }
 
 void
@@ -51,20 +55,25 @@ FFREnc::make_cnf_sub(
   else {
     // side-input の値を nval にしたものを伝搬条件に加える．
     auto bval = nval == Val3::_1;
-    // 2乗のループを避けるため前半と後半の配列を作る．
     SizeType ni = node->fanin_num();
+    vector<SatLiteral> lit_array(ni);
+    for ( SizeType i = 0; i < ni; ++ i ) {
+      auto inode = node->fanin(i);
+      auto nv = NodeTimeVal{inode, 1, bval};
+      auto lit = conv_to_literal(nv);
+      lit_array[i] = lit;
+    }
+    // 2乗のループを避けるため前半と後半の配列を作る．
     vector<vector<SatLiteral>> tmp_list1(ni);
     vector<vector<SatLiteral>> tmp_list2(ni);
     for ( SizeType i = 1; i < ni; ++ i ) {
       tmp_list1[i] = tmp_list1[i - 1];
-      auto inode = node->fanin(i - 1);
-      auto lit = conv_to_literal(NodeTimeVal{inode, 1, bval});
+      auto lit = lit_array[i - 1];
       tmp_list1[i].push_back(lit);
     }
     for ( SizeType i = 1; i < ni; ++ i ) {
       tmp_list2[ni - i - 1] = tmp_list2[ni - i];
-      auto inode = node->fanin(ni - i);
-      auto lit = conv_to_literal(NodeTimeVal{inode, 1, bval});
+      auto lit = lit_array[ni - i];
       tmp_list2[ni - i - 1].push_back(lit);
     }
     for ( SizeType i = 0; i < ni; ++ i ) {
