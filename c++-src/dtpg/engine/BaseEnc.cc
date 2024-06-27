@@ -20,7 +20,7 @@ BEGIN_NONAMESPACE
 #ifdef DEBUG_DTPG
 int debug_base_enc = 1;
 #else
-const int debug_base_enc = 0;
+int debug_base_enc = 0;
 #endif
 END_NONAMESPACE
 
