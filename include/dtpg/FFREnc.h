@@ -10,9 +10,12 @@
 
 #include "druid.h"
 #include "BaseEnc.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+class BoolDiffEnc;
 
 //////////////////////////////////////////////////////////////////////
 /// @class FFREnc FFREnc.h "FFREnc.h"
@@ -28,8 +31,10 @@ public:
 
   /// @brief コンストラクタ
   FFREnc(
-    BaseEnc& base_enc, ///< [in] 親の BaseEnc
-    const TpgFFR* ffr  ///< [in] 対象の FFR
+    BaseEnc& base_enc,                        ///< [in] 親の BaseEnc
+    BoolDiffEnc* bd_enc,                      ///< [in] FFR の出力の先のエンコーダ
+    const TpgFFR* ffr,                        ///< [in] 対象の FFR
+    const vector<const TpgFault*>& fault_list ///< [in] 対象の故障リスト
   );
 
   /// @brief デストラクタ
@@ -43,10 +48,10 @@ public:
 
   /// @brief 故障伝搬条件を表す変数を返す．
   ///
-  /// node の出力から FFR の根のノードの出力までの伝搬条件
+  /// FFR の根のノードの出力までの故障伝搬条件を返す．
   SatLiteral
   prop_var(
-    const TpgNode* node ///< [in] 起点となるノード
+    const TpgFault* fault ///< [in] 対象の故障
   );
 
 
@@ -62,6 +67,10 @@ private:
   /// @brief 関連するノードのリストを返す．
   const vector<const TpgNode*>&
   node_list() const override;
+
+  /// @brief 1時刻前の値に関連するノードのリストを返す．
+  const vector<const TpgNode*>&
+  prev_node_list() const override;
 
 
 private:
@@ -81,12 +90,25 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
+  // 根の故障伝搬エンコーダ
+  BoolDiffEnc* mBdEnc;
+
   // 対象のFFR
   const TpgFFR* mFFR;
 
-  // 伝搬条件を表す変数の辞書
+  // 対象の故障リスト
+  vector<const TpgFault*> mFaultList;
+
+  // 1時刻前の値に関係するノードのリスト
+  vector<const TpgNode*> mPrevNodeList;
+
+  // ノードの伝搬条件を表す変数の辞書
   // キーはノード番号
-  unordered_map<SizeType, SatLiteral> mPropVarMap;
+  unordered_map<SizeType, SatLiteral> mPropNodeVarMap;
+
+  // 故障伝搬条件を表す変数の辞書
+  // キーは故障番号
+  unordered_map<SizeType, SatLiteral> mPropFaultVarMap;
 
 };
 

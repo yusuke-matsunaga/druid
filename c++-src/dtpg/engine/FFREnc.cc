@@ -7,7 +7,9 @@
 /// All rights reserved.
 
 #include "FFREnc.h"
+#include "BoolDiffEnc.h"
 #include "TpgFFR.h"
+#include "TpgFault.h"
 #include "Val3.h"
 
 
@@ -16,25 +18,49 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 FFREnc::FFREnc(
   BaseEnc& base_enc,
-  const TpgFFR* ffr
+  BoolDiffEnc* bd_enc,
+  const TpgFFR* ffr,
+  const vector<const TpgFault*>& fault_list
 ) : SubEnc{base_enc},
-    mFFR{ffr}
+    mBdEnc{bd_enc},
+    mFFR{ffr},
+    mFaultList{fault_list}
 {
+  for ( auto f: mFaultList ) {
+    auto ex_cond = f->excitation_condition();
+    for ( auto nv: ex_cond ) {
+      if ( nv.time() == 0 ) {
+	auto node = nv.node();
+	mPrevNodeList.push_back(node);
+      }
+    }
+  }
 }
 
 // @brief 必要な変数を割り当てCNF式を作る．
 void
 FFREnc::make_cnf()
 {
-  // 根のノードは無条件で伝搬する．
+  // 根のノードは BoolDiffEnc::prop_var() を用いる．
   auto root = mFFR->root();
-  auto pvar = solver().new_variable(true);
-  mPropVarMap.emplace(root->id(), pvar);
-  solver().add_clause(pvar);
+  auto pvar = mBdEnc->prop_var();
+  mPropNodeVarMap.emplace(root->id(), pvar);
 
-  // DFS の in-order で条件を作る．
+  // DFS の in-order でノードごとの伝搬条件を作る．
   if ( !root->is_ppi() ) {
     make_cnf_sub(root);
+  }
+
+  // 故障の伝搬条件を作る．
+  for ( auto fault: mFaultList ) {
+    auto pvar = solver().new_variable(true);
+    auto ex_cond = fault->excitation_condition();
+    auto tmp_lits = conv_to_literal_list(ex_cond);
+    auto node = fault->origin_node();
+    auto nvar = mPropNodeVarMap.at(node->id());
+    tmp_lits.push_back(nvar);
+    solver().add_andgate(pvar, tmp_lits);
+    mPropFaultVarMap.emplace(fault->id(), pvar);
   }
 }
 
@@ -44,12 +70,12 @@ FFREnc::make_cnf_sub(
 )
 {
   // node の伝搬条件を表す変数
-  auto ovar = mPropVarMap.at(node->id());
+  auto ovar = mPropNodeVarMap.at(node->id());
   auto nval = node->nval();
   if ( node->fanin_num() == 1 || node->nval() == Val3::_X ) {
     // ovar をそのままファンインの条件とする．
     for ( auto inode: node->fanin_list() ) {
-      mPropVarMap.emplace(inode->id(), ovar);
+      mPropNodeVarMap.emplace(inode->id(), ovar);
     }
   }
   else {
@@ -89,7 +115,7 @@ FFREnc::make_cnf_sub(
       }
       auto plit = solver().new_variable(true);
       solver().add_andgate(plit, cond);
-      mPropVarMap.emplace(inode->id(), plit);
+      mPropNodeVarMap.emplace(inode->id(), plit);
     }
   }
   for ( auto inode: node->fanin_list() ) {
@@ -103,10 +129,10 @@ FFREnc::make_cnf_sub(
 // @brief 故障伝搬条件を表す変数を返す．
 SatLiteral
 FFREnc::prop_var(
-  const TpgNode* node
+  const TpgFault* fault
 )
 {
-  return mPropVarMap.at(node->id());
+  return mPropFaultVarMap.at(fault->id());
 }
 
 // @brief 関連するノードのリストを返す．
@@ -114,6 +140,13 @@ const vector<const TpgNode*>&
 FFREnc::node_list() const
 {
   return mFFR->node_list();
+}
+
+// @brief 1時刻前の値に関連するノードのリストを返す．
+const vector<const TpgNode*>&
+FFREnc::prev_node_list() const
+{
+  return mPrevNodeList;
 }
 
 END_NAMESPACE_DRUID

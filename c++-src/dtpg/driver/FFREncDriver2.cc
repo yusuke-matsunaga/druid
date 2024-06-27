@@ -27,10 +27,18 @@ FFREncDriver2::FFREncDriver2(
   const JsonValue& option
 ) : mBaseEnc{network, option}
 {
-  auto node = ffr->root();
-  mBdEnc = new BoolDiffEnc{mBaseEnc, node, option};
-  mFFREnc = new FFREnc{mBaseEnc, ffr};
-  mBaseEnc.make_cnf({}, {node});
+  vector<const TpgFault*> fault_list;
+  {
+    auto root = ffr->root();
+    for ( auto fault: network.rep_fault_list() ) {
+      if ( fault->ffr_root() == root ) {
+	fault_list.push_back(fault);
+      }
+    }
+  }
+  mBdEnc = new BoolDiffEnc{mBaseEnc, ffr->root(), option};
+  mFFREnc = new FFREnc{mBaseEnc, mBdEnc, ffr, fault_list};
+  mBaseEnc.make_cnf({}, {});
 }
 
 // @brief デストラクタ
@@ -46,8 +54,7 @@ FFREncDriver2::solve(
 {
   auto ex_cond = fault->excitation_condition();
   auto assumptions = mBaseEnc.conv_to_literal_list(ex_cond);
-  assumptions.push_back(mBdEnc->prop_var());
-  assumptions.push_back(mFFREnc->prop_var(fault->origin_node()));
+  assumptions.push_back(mFFREnc->prop_var(fault));
   return mBaseEnc.solver().solve(assumptions);
 }
 

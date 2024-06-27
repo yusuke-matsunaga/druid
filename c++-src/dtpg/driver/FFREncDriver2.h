@@ -73,7 +73,7 @@ private:
   // 基本のエンコーダ
   BaseEnc mBaseEnc;
 
-  // BoolDiff
+  // BoolDiffEnc
   BoolDiffEnc* mBdEnc;
 
   // FFREnc
