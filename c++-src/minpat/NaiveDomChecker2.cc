@@ -29,40 +29,33 @@ NaiveDomChecker2::NaiveDomChecker2(
     auto node = ffr->root();
     ffr_map.emplace(node->id(), ffr);
   }
+
   auto node1 = fault1->ffr_root();
-  //auto node1 = fault1->origin_node();
-  mBdEnc1 = new BoolDiffEnc{mBaseEnc, node1, option};
-  auto ffr1 = ffr_map.at(node1->id());
-  mFFREnc1 = new FFREnc{mBaseEnc, ffr1};
-  mFaultEnc1 = new FaultEnc{mBaseEnc, fault1};
-
-  //auto node2 = fault2->ffr_root();
-  auto node2 = fault2->origin_node();
-  mBdEnc2 = new BoolDiffEnc{mBaseEnc, node2, option};
-  //auto ffr2 = ffr_map.at(node2->id());
-  //mFFREnc2 = new FFREnc{mBaseEnc, ffr2};
-  mFaultEnc2 = new FaultEnc{mBaseEnc, fault2};
-
+  {
+    mBdEnc1 = new BoolDiffEnc{mBaseEnc, node1, option};
+  }
+  auto node2 = fault2->ffr_root();
+  {
+    mBdEnc2 = new BoolDiffEnc{mBaseEnc, node2, option};
+    auto ffr2 = ffr_map.at(node2->id());
+    mFFREnc2 = new FFREnc{mBaseEnc, ffr2};
+    mFaultEnc2 = new FaultEnc{mBaseEnc, fault2};
+  }
   mBaseEnc.make_cnf({}, {node1, node2});
 
   // fault1 の検出条件を追加する．
   {
     auto pvar1 = mBdEnc1->prop_var();
-    auto pvar2 = mFFREnc1->prop_var(fault1->origin_node());
-    auto pvar3 = mFaultEnc1->prop_var();
     mBaseEnc.solver().add_clause(pvar1);
-    mBaseEnc.solver().add_clause(pvar2);
-    mBaseEnc.solver().add_clause(pvar3);
   }
   // fault2 は検出しないので mBdEnc2->prop_var() か
   // mFFREnc2->prop_var()，mFaultEnc2->prop_var()
   // のいずれかは false
   {
     auto pvar1 = mBdEnc2->prop_var();
-    //auto pvar2 = mFFREnc2->prop_var(fault2->origin_node());
+    auto pvar2 = mFFREnc2->prop_var(fault2->origin_node());
     auto pvar3 = mFaultEnc2->prop_var();
-    //mBaseEnc.solver().add_clause(~pvar1, ~pvar2, ~pvar3);
-    mBaseEnc.solver().add_clause(~pvar1, ~pvar3);
+    mBaseEnc.solver().add_clause(~pvar1, ~pvar2, ~pvar3);
   }
 }
 
@@ -75,13 +68,9 @@ NaiveDomChecker2::~NaiveDomChecker2()
 bool
 NaiveDomChecker2::check()
 {
-#if 1
-  return mBaseEnc.solver().solve() == SatBool3::False;
-#else
   auto prop_cond = mFault1->ffr_propagate_condition();
   auto assumptions = mBaseEnc.conv_to_literal_list(prop_cond);
   return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
-#endif
 }
 
 END_NAMESPACE_DRUID
