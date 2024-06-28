@@ -12,6 +12,7 @@
 #include "DcGraph.h"
 #include "UndetChecker.h"
 #include "DomChecker.h"
+#include "FFRDomChecker.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "NodeValList.h"
@@ -174,6 +175,7 @@ FaultReducer::ffr_reduction()
       continue;
     }
 
+#if 0
     BoolDiffEngine engine{mNetwork, ffr->root(), mFFRCheckerOption};
 
     // 支配関係を調べ，代表故障のみを残す．
@@ -214,6 +216,25 @@ FaultReducer::ffr_reduction()
 	}
       }
     }
+#else
+    FFRDomChecker dom_checker{mNetwork, ffr, tmp_fault_list, mFFRCheckerOption};
+    for ( auto fault1: tmp_fault_list ) {
+      if ( is_deleted(fault1) ) {
+	continue;
+      }
+      for ( auto fault2: mDomCandList[fault1->id()] ) {
+	if ( is_deleted(fault2) ) {
+	  continue;
+	}
+	if ( fault2->ffr_root() != fault1->ffr_root() ) {
+	  continue;
+	}
+	if ( dom_checker.check(fault1, fault2) ) {
+	  delete_fault(fault2);
+	}
+      }
+    }
+#endif
   }
 
   if ( mDebug ) {

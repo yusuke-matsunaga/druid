@@ -34,6 +34,8 @@ class FFREnc :
 public:
 
   /// @brief コンストラクタ
+  ///
+  /// bd_enc が nullptr の場合には FFR 内の伝搬条件のみを考慮する．
   FFREnc(
     BaseEnc& base_enc,                        ///< [in] 親の BaseEnc
     BoolDiffEnc* bd_enc,                      ///< [in] FFR の出力の先のエンコーダ

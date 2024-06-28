@@ -41,10 +41,17 @@ FFREnc::FFREnc(
 void
 FFREnc::make_cnf()
 {
-  // 根のノードは BoolDiffEnc::prop_var() を用いる．
   auto root = mFFR->root();
-  auto pvar = mBdEnc->prop_var();
-  mPropNodeVarMap.emplace(root->id(), pvar);
+  // 根のノードは BoolDiffEnc::prop_var() を用いる．
+  if ( mBdEnc != nullptr ) {
+    auto pvar = mBdEnc->prop_var();
+    mPropNodeVarMap.emplace(root->id(), pvar);
+  }
+  else {
+    auto pvar = solver().new_variable(true);
+    solver().add_clause(pvar);
+    mPropNodeVarMap.emplace(root->id(), pvar);
+  }
 
   // DFS の in-order でノードごとの伝搬条件を作る．
   if ( !root->is_ppi() ) {
