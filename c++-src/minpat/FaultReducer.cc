@@ -120,10 +120,10 @@ FaultReducer::run()
     cout << "CPU time:                              " << mTimer.get_time() << endl;
   }
 
+  ffr_reduction();
+
   DcGraph dc_graph{mFaultList, mDomCandList};
   auto node_list = dc_graph.sorted();
-
-  ffr_reduction();
 
 #if 0
   // algorithm に従って縮約を行う．
@@ -175,53 +175,14 @@ FaultReducer::ffr_reduction()
       continue;
     }
 
-#if 0
-    BoolDiffEngine engine{mNetwork, ffr->root(), mFFRCheckerOption};
+    FFRDomChecker checker{mNetwork, ffr, mFFRCheckerOption};
 
     // 支配関係を調べ，代表故障のみを残す．
-    SizeType nf = tmp_fault_list.size();
-    for ( auto i1: Range(nf) ) {
-      auto fault1 = tmp_fault_list[i1];
-      if ( is_deleted(fault1) ) {
-	continue;
-      }
-      auto f1_ffr_cond = fault1->ffr_propagate_condition();
-      auto assumptions = engine.conv_to_literal_list(f1_ffr_cond);
-      for ( auto fault2: mDomCandList[fault1->id()] ) {
-	if ( fault2->ffr_root() != fault1->ffr_root() ) {
-	  continue;
-	}
-	if ( is_deleted(fault2) ) {
-	  continue;
-	}
-	auto f2_ffr_cond = fault2->ffr_propagate_condition();
-	f2_ffr_cond.diff(f1_ffr_cond);
-	// f2_ffr_cond が空の場合には UNSAT となる．
-	bool unsat = true;
-	vector<SatLiteral> assumptions1{assumptions};
-	// プレースホルダ
-	assumptions1.push_back(SatLiteral::X);
-	for ( auto nv: f2_ffr_cond ) {
-	  auto lit1 = engine.conv_to_literal(nv);
-	  assumptions1[assumptions.size()] = ~lit1;
-	  if ( engine.check(assumptions1) == SatBool3::True ) {
-	    unsat = false;
-	    break;
-	  }
-	}
-	if ( unsat ) {
-	  // fault1 を検出する条件のもとでは fault2 も検出される．
-	  // → fault2 は支配されている．
-	  delete_fault(fault2);
-	}
-      }
-    }
-#else
-    FFRDomChecker dom_checker{mNetwork, ffr, tmp_fault_list, mFFRCheckerOption};
     for ( auto fault1: tmp_fault_list ) {
       if ( is_deleted(fault1) ) {
 	continue;
       }
+      vector<const TpgFault*> fault2_list;
       for ( auto fault2: mDomCandList[fault1->id()] ) {
 	if ( is_deleted(fault2) ) {
 	  continue;
@@ -229,12 +190,13 @@ FaultReducer::ffr_reduction()
 	if ( fault2->ffr_root() != fault1->ffr_root() ) {
 	  continue;
 	}
-	if ( dom_checker.check(fault1, fault2) ) {
-	  delete_fault(fault2);
-	}
+	fault2_list.push_back(fault2);
+      }
+      auto del_list = checker.check(fault1, fault2_list);
+      for ( auto fault2: del_list ) {
+	delete_fault(fault2);
       }
     }
-#endif
   }
 
   if ( mDebug ) {

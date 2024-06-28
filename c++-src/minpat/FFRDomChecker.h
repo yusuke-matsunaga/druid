@@ -37,7 +37,6 @@ public:
   FFRDomChecker(
     const TpgNetwork& network,                  ///< [in] 対象のネットワーク
     const TpgFFR* ffr,	                        ///< [in] 対象の FFR
-    const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
     const JsonValue& option = JsonValue{}       ///< [in] オプション
   );
 
@@ -51,24 +50,16 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief チェックする．
-  /// @return 結果を返す．
+  /// @return 被支配故障のリストを返す．
   ///
   /// fault1 を検出して fault2 を検出しないテストパタンが
-  /// 存在「しない」ことを確かめる．
-  /// その場合には支配故障であることがわかる．
-  /// fault1, fault2 は ffr に含まれると仮定している．
-  bool
+  /// 存在「しない」場合に fault1 は fault2 を支配している．
+  /// fault1, fault2_list は ffr に含まれると仮定している．
+  vector<const TpgFault*>
   check(
-    const TpgFault* fault1, ///< [in] 支配故障の候補
-    const TpgFault* fault2  ///< [in] 被支配故障の候補
+    const TpgFault* fault1,                    ///< [in] 支配故障の候補
+    const vector<const TpgFault*>& fault2_list ///< [in] 被支配故障の候補リスト
   );
-
-  /// @brief 統計情報を得る．
-  const DtpgStats&
-  stats() const
-  {
-    return mStats;
-  }
 
 
 private:
@@ -79,26 +70,11 @@ private:
   // 対象の FFR
   const TpgFFR* mFFR;
 
-  // 被支配故障の候補のリスト
-  const vector<const TpgFault*>& mFault2List;
-
   // 基本のエンコーダ
   BaseEnc mBaseEnc;
 
   // mFFR 用の BoolDiffエンコーダ
   BoolDiffEnc* mBdEnc;
-
-  // 被支配故障用の FFRエンコーダ
-  FFREnc* mFFREnc;
-
-  // 時間計測を行なうかどうかの制御フラグ
-  bool mTimerEnable;
-
-  // 時間計測用のタイマー
-  Timer mTimer;
-
-  // 統計情報
-  DtpgStats mStats;
 
 };
 
