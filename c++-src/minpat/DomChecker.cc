@@ -45,7 +45,7 @@ DomChecker::DomChecker(
   mBdEnc2 = new BoolDiffEnc{mBaseEnc, ffr2->root(), option};
   mFFREnc2 = new FFREnc{mBaseEnc, mBdEnc2, ffr2, fault2_list};
   mBaseEnc.make_cnf({}, {ffr1->root(), ffr2->root()});
-  mBaseEnc.solver().add_clause(mBdEnc1.prop_var());
+  mBaseEnc.solver().add_clause(mBdEnc1->prop_var());
 }
 
 // @brief デストラクタ
@@ -62,7 +62,7 @@ DomChecker::check(
 {
   auto ffr_cond = fault1->ffr_propagate_condition();
   auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond);
-  assumptions.push_back(~mFFREnc2->prop_var(fault2->id()));
+  assumptions.push_back(~mFFREnc2->prop_var(fault2));
   SatBool3 res = mBaseEnc.solver().solve(assumptions);
 
   return res == SatBool3::False;

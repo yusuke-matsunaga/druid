@@ -40,7 +40,7 @@ FaultReducer::FaultReducer(
       mFFRCheckerOption = option.get("ffr_checker");
     }
     if ( option.has_key("dom_chcker_param") ) {
-      mDomCheckerParam = SatInitParam{option.get("dom_checker_param")};
+      mDomCheckerOption = option.get("dom_checker_param");
     }
     if ( option.has_key("undet_chcker_param") ) {
       mUndetCheckerParam = SatInitParam{option.get("undet_checker_param")};
@@ -211,8 +211,6 @@ FaultReducer::ffr_reduction()
 	  // fault1 を検出する条件のもとでは fault2 も検出される．
 	  // → fault2 は支配されている．
 	  delete_fault(fault2);
-	  cout << fault2->str() << " is dominated by " << fault1->str()
-	       << " (same FFR)" << endl;
 	}
       }
     }
@@ -336,11 +334,10 @@ FaultReducer::dom_reduction2()
 	continue;
       }
       ++ dom_num;
-      DomChecker dom_checker{mNetwork, ffr2->root(), fault1, mDomCheckerParam};
+      DomChecker dom_checker{mNetwork, ffr2->root(), fault1->ffr_root(), {fault1}, mDomCheckerOption};
       for ( auto fault2: fault2_list ) {
 	++ check_num;
-	SatBool3 res = dom_checker.check_detectable(fault2);
-	if ( res == SatBool3::False ) {
+	if ( dom_checker.check(fault2, fault1) ) {
 	  ++ success_num;
 	  // fault2 が検出可能の条件のもとで fault1 が検出不能となることはない．
 	  // fault2 が fault1 を支配している．
@@ -462,7 +459,7 @@ FaultReducer::dom_reduction3()
 }
 #else
 
-// @brief 異なる FFR 間の支配故障の簡易チェックを行う．
+// @brief 異なる FFR 間の支配故障のチェックを行う．
 void
 FaultReducer::dom_reduction()
 {
@@ -471,54 +468,74 @@ FaultReducer::dom_reduction()
     mTimer.start();
   }
 
+  // チェックが必要な故障を持つFFRのリスト
+  vector<const TpgFFR*> ffr_list;
+  // 根のノード番号をキーにしたFFRの辞書
+  unordered_map<SizeType, const TpgFFR*> ffr_map;
+  for ( auto ffr: mNetwork.ffr_list() ) {
+    bool found = false;
+    for ( auto fault: mFFRFaultList[ffr->id()] ) {
+      if ( !is_deleted(fault) ) {
+	found = true;
+	break;
+      }
+    }
+    if ( found ) {
+      ffr_list.push_back(ffr);
+      auto root = ffr->root();
+      ffr_map.emplace(root->id(), ffr);
+    }
+  }
+
   SizeType check_num = 0;
   SizeType dom_num = 0;
   SizeType success_num = 0;
-  for ( auto fault1: mFaultList ) {
-    if ( is_deleted(fault1) ) {
-      continue;
-    }
-    for ( auto ffr2: mNetwork.ffr_list() ) {
-      if ( ffr2->root() == fault1->ffr_root() ) {
-	// 同じ FFR ならチェック済みのはず
+  for ( auto ffr1: ffr_list ) {
+    // ffr1 に含まれる故障の被支配故障の候補が属するFFRを求める．
+    vector<const TpgFFR*> ffr2_list;
+    // FFR番号をキーにしてそのFFRに属する故障のリストを保持する辞書
+    unordered_map<SizeType, vector<const TpgFault*>> fault2_list_map;
+    for ( auto fault1: mFFRFaultList[ffr1->id()] ) {
+      if ( is_deleted(fault1) ) {
 	continue;
       }
-      vector<const TpgFault*> fault2_list;
-      for ( auto fault2: mFFRFaultList[ffr2->id()] ) {
+      for ( auto fault2: mDomCandList[fault1->id()] ) {
 	if ( is_deleted(fault2) ) {
 	  continue;
 	}
-	// 支配する故障の候補中に fault1 が含まれるか調べる．
-	bool found = false;
-	for ( auto fault3: mDomCandList[fault2->id()] ) {
-	  if ( fault3 == fault1 ) {
-	    found = true;
-	    break;
+	auto ffr2 = ffr_map.at(fault2->ffr_root()->id());
+	if ( ffr2 == ffr1 ) {
+	  continue;
+	}
+	if ( fault2_list_map.count(ffr2->id()) == 0 ) {
+	  fault2_list_map.emplace(ffr2->id(), vector<const TpgFault*>{});
+	  ffr2_list.push_back(ffr2);
+	}
+	fault2_list_map[ffr2->id()].push_back(fault2);
+      }
+    }
+    for ( auto ffr2: ffr2_list ) {
+      ++ dom_num;
+      DomChecker dom_checker{mNetwork, ffr1, ffr2, fault2_list_map.at(ffr2->id()), mDomCheckerOption};
+      for ( auto fault1: mFFRFaultList[ffr1->id()] ) {
+	if ( is_deleted(fault1) ) {
+	  continue;
+	}
+	for ( auto fault2: mDomCandList[fault1->id()] ) {
+	  if ( is_deleted(fault2) ) {
+	    continue;
+	  }
+	  if ( ffr_map.at(fault2->ffr_root()->id()) == ffr2 ) {
+	    ++ check_num;
+	    if ( dom_checker.check(fault1, fault2) ) {
+	      ++ success_num;
+	      // fault1 が検出可能の条件のもとで fault2 が検出不能となることはない．
+	      // fault1 が fault2 を支配している．
+	      delete_fault(fault2);
+	      break;
+	    }
 	  }
 	}
-	if ( found ) {
-	  fault2_list.push_back(fault2);
-	}
-      }
-      if ( fault2_list.empty() ) {
-	continue;
-      }
-      ++ dom_num;
-      DomChecker dom_checker{mNetwork, ffr2->root(), fault1, mDomCheckerParam};
-      for ( auto fault2: fault2_list ) {
-	++ check_num;
-	SatBool3 res = dom_checker.check(fault2);
-	if ( res == SatBool3::False ) {
-	  ++ success_num;
-	  // fault2 が検出可能の条件のもとで fault1 が検出不能となることはない．
-	  // fault2 が fault1 を支配している．
-	  delete_fault(fault1);
-	  cout << fault1->str() << " is dominated by " << fault2->str() << endl;
-	  break;
-	}
-      }
-      if ( is_deleted(fault1) ) {
-	break;
       }
     }
   }

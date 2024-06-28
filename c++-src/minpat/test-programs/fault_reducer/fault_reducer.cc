@@ -301,7 +301,6 @@ fault_reducer(
 	auto f2 = det_fault_list[i2];
 	NaiveDomChecker checker{network, f1, f2, option};
 	if ( checker.check() ) {
-	  cout << f2->str() << " is dominated by " << f1->str() << endl;
 	  deleted[i2] = true;
 	}
       }
@@ -335,7 +334,6 @@ fault_reducer(
 	auto f2 = det_fault_list[i2];
 	NaiveDomChecker2 checker{network, f1, f2, option};
 	if ( checker.check() ) {
-	  cout << f2->str() << " is dominated by " << f1->str() << endl;
 	  deleted[i2] = true;
 	}
       }

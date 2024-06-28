@@ -144,7 +144,7 @@ private:
   JsonValue mFFRCheckerOption;
 
   // DomChecker 用のSATパラメータ
-  SatInitParam mDomCheckerParam;
+  JsonValue mDomCheckerOption;
 
   // UndetChecker 用のSATパラメータ
   SatInitParam mUndetCheckerParam;
