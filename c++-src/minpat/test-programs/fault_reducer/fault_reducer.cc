@@ -392,9 +392,9 @@ fault_reducer(
     fr_option_dict.emplace("debug", JsonValue{true});
     fr_option_dict.emplace("loop_limit", JsonValue{loop});
     JsonValue fr_option{fr_option_dict};
-    FaultReducer fr{network, det_fault_list, mgr.testvector_list(), fr_option};
+    FaultReducer fr{network, fr_option};
 
-    auto reduced_fault_list = fr.run();
+    auto reduced_fault_list = fr.run(det_fault_list, mgr.testvector_list());
 
     cout << "Detected Faults: " << det_fault_list.size() << endl
 	 << "Reduced Faults:  " << reduced_fault_list.size() << endl;

@@ -31,7 +31,7 @@ BEGIN_NAMESPACE_DRUID
 /// 同一の FFR 内の故障の検出条件は共通部分が多いので FFR 単位で指定する．
 ///
 /// ffr1 と ffr2 同じ場合にも正しく動くはずだが，非効率的なので
-/// 別途処理したほうがよい．
+/// 別途処理したほうがよい(FFRDomChecker)．
 //////////////////////////////////////////////////////////////////////
 class DomChecker
 {
@@ -39,11 +39,10 @@ public:
 
   /// @brief コンストラクタ
   DomChecker(
-    const TpgNetwork& network,                  ///< [in] 対象のネットワーク
-    const TpgFFR* ffr1,	                        ///< [in] 支配故障の FFR
-    const TpgFFR* ffr2,	                        ///< [in] 被支配故障の FFR
-    const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
-    const JsonValue& option = JsonValue{}       ///< [in] オプション
+    const TpgNetwork& network,            ///< [in] 対象のネットワーク
+    const TpgFFR* ffr1,	                  ///< [in] 支配故障の FFR
+    const TpgFFR* ffr2,	                  ///< [in] 被支配故障の FFR
+    const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -63,18 +62,12 @@ public:
   /// その場合には支配故障であることがわかる．
   /// fault1 は ffr1 に，fault2 は ffr2 に含まれると
   /// 仮定している．
-  bool
+  SizeType
   check(
-    const TpgFault* fault1, ///< [in] 支配故障の候補
-    const TpgFault* fault2  ///< [in] 被支配故障の候補
+    const TpgFault* fault1,                     ///< [in] 支配故障の候補
+    const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
+    vector<bool>& del_mark                      ///< [out] 削除マーク
   );
-
-  /// @brief 統計情報を得る．
-  const DtpgStats&
-  stats() const
-  {
-    return mStats;
-  }
 
 
 private:
@@ -88,9 +81,6 @@ private:
   // 被支配故障を含む FFR
   const TpgFFR* mFFR2;
 
-  // 被支配故障の候補のリスト
-  const vector<const TpgFault*>& mFault2List;
-
   // 基本のエンコーダ
   BaseEnc mBaseEnc;
 
@@ -99,18 +89,6 @@ private:
 
   // mFFR2 用の BoolDiffエンコーダ
   BoolDiffEnc* mBdEnc2;
-
-  // mFFR2 用の FFRエンコーダ
-  FFREnc* mFFREnc2;
-
-  // 時間計測を行なうかどうかの制御フラグ
-  bool mTimerEnable;
-
-  // 時間計測用のタイマー
-  Timer mTimer;
-
-  // 統計情報
-  DtpgStats mStats;
 
 };
 

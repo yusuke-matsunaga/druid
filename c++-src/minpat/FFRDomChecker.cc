@@ -47,13 +47,14 @@ FFRDomChecker::~FFRDomChecker()
 }
 
 // @brief チェックする．
-vector<const TpgFault*>
+void
 FFRDomChecker::check(
   const TpgFault* fault1,
-  const vector<const TpgFault*>& fault2_list
+  const vector<const TpgFault*>& fault2_list,
+  vector<bool>& del_mark
 )
 {
-  vector<const TpgFault*> ans_list;
+  // チェック結果を保持する辞書
   unordered_map<SatLiteral, bool> result_map;
 
   // fault1 の検出条件
@@ -88,10 +89,9 @@ FFRDomChecker::check(
       }
     }
     if ( unsat ) {
-      ans_list.push_back(fault2);
+      del_mark[fault2->id()] = true;
     }
   }
-  return ans_list;
 }
 
 END_NAMESPACE_DRUID

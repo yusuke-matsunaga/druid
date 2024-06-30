@@ -12,12 +12,7 @@
 #include "druid.h"
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
-#include "FFREnc.h"
-#include "FaultEnc.h"
-#include "DtpgStats.h"
-
 #include "ym/JsonValue.h"
-#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -55,10 +50,11 @@ public:
   /// fault1 を検出して fault2 を検出しないテストパタンが
   /// 存在「しない」場合に fault1 は fault2 を支配している．
   /// fault1, fault2_list は ffr に含まれると仮定している．
-  vector<const TpgFault*>
+  void
   check(
-    const TpgFault* fault1,                    ///< [in] 支配故障の候補
-    const vector<const TpgFault*>& fault2_list ///< [in] 被支配故障の候補リスト
+    const TpgFault* fault1,                     ///< [in] 支配故障の候補
+    const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
+    vector<bool>& del_mark                      ///< [inout] 削除された故障のマーク
   );
 
 

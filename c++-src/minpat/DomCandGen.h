@@ -49,13 +49,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 支配故障の候補リストを作る．
-  ///
-  /// 結果は故障番号をキーにして dom_cand_list に格納する．
   void
   run(
-    SizeType loop_limit,                           ///< [in] 変化がなくなった後に回す
-                                                   ///<      のループ回数の上限
-    vector<vector<const TpgFault*>>& dom_cand_list ///< [out] 支配する故障候補のリスト
+    SizeType loop_limit, ///< [in] 変化がなくなった後に回すループ回数の上限
+    vector<vector<const TpgFault*>>& dom_cand_list ///< [out] 結果を格納する配列
+                                                   ///<       キーは故障番号
   );
 
 

@@ -16,30 +16,13 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-SizeType
-get_max_fault_id(
-  const vector<const TpgFault*>& fault_list
-)
-{
-  SizeType max_id = 0;
-  for ( auto f: fault_list ) {
-    max_id = std::max(max_id, f->id());
-  }
-  return max_id;
-}
-
-END_NONAMESPACE
-
-
 // @brief コンストラクタ
 DomCandGen::DomCandGen(
   const TpgNetwork& network,
   const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list
 ) : mFaultList{fault_list},
-    mMaxFaultId{get_max_fault_id(fault_list)},
+    mMaxFaultId{network.max_fault_id()},
     mTvList{tv_list},
     mFsim{network, fault_list, false, false},
     mHasPrevState{network.fault_type() == FaultType::TransitionDelay},
@@ -126,6 +109,7 @@ DomCandGen::do_fsim(
 
   // パタンに基づいて dom_cand_list を更新する．
   for ( auto f1: det_fault_list ) {
+    auto f1_root = f1->ffr_root();
     auto& w1 = mWorkArray[f1->id()];
     auto pat1 = w1.mPat;
     auto& dst_list = dom_cand_list[f1->id()];
