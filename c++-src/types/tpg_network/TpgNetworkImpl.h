@@ -383,6 +383,13 @@ public:
     return mRepFaultList;
   }
 
+  /// @brief 故障番号の最大値を得る．
+  SizeType
+  max_fault_id() const
+  {
+    return mFaultArray.size();
+  }
+
   /// @brief ステムの故障を得る.
   ///
   /// 故障タイプが網羅故障の場合には不正な呼び出しとなる．

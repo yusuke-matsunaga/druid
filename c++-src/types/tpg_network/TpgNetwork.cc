@@ -368,6 +368,15 @@ TpgNetwork::rep_fault_list() const
   return mImpl->rep_fault_list();
 }
 
+// @brief 故障番号の最大値を返す．
+SizeType
+TpgNetwork::max_fault_id() const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->max_fault_id();
+}
+
 // @brief ステムの故障を得る．
 const TpgFault*
 TpgNetwork::find_fault(

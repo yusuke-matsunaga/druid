@@ -358,6 +358,10 @@ public:
   const vector<const TpgFault*>&
   rep_fault_list() const;
 
+  /// @brief 故障番号の最大値を返す．
+  SizeType
+  max_fault_id() const;
+
   /// @brief ステムの故障を得る.
   ///
   /// 故障タイプが網羅故障の場合には不正な呼び出しとなる．
