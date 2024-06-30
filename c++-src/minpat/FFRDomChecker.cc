@@ -47,7 +47,7 @@ FFRDomChecker::~FFRDomChecker()
 }
 
 // @brief チェックする．
-void
+SizeType
 FFRDomChecker::check(
   const TpgFault* fault1,
   const vector<const TpgFault*>& fault2_list,
@@ -56,6 +56,8 @@ FFRDomChecker::check(
 {
   // チェック結果を保持する辞書
   unordered_map<SatLiteral, bool> result_map;
+
+  SizeType count = 0;
 
   // fault1 の検出条件
   auto ffr_cond1 = fault1->ffr_propagate_condition();
@@ -73,6 +75,7 @@ FFRDomChecker::check(
     for ( auto nv: ffr_cond2 ) {
       auto lit1 = mBaseEnc.conv_to_literal(nv);
       bool res = true;
+#if 0
       if ( result_map.count(lit1) ) {
 	res = result_map.at(lit1);
       }
@@ -83,6 +86,12 @@ FFRDomChecker::check(
 	}
 	result_map.emplace(lit1, res);
       }
+#else
+      assumptions[assumptions.size() - 1] = ~lit1;
+      if ( mBaseEnc.solver().solve(assumptions) == SatBool3::True ) {
+	res = false;
+      }
+#endif
       if ( !res ) {
 	unsat = false;
 	break;
@@ -90,8 +99,10 @@ FFRDomChecker::check(
     }
     if ( unsat ) {
       del_mark[fault2->id()] = true;
+      ++ count;
     }
   }
+  return count;
 }
 
 END_NAMESPACE_DRUID

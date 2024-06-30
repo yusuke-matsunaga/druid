@@ -7,8 +7,6 @@
 /// All rights reserved.
 
 #include "FaultReducer.h"
-//#include "DcGraph.h"
-//#include "UndetChecker.h"
 #include "FFRDomChecker.h"
 #include "DomCandGen.h"
 #include "DomChecker.h"
@@ -89,13 +87,18 @@ FaultReducer::ffr_reduction(
 {
   Timer timer;
   if ( mDebug ) {
+    cout << "---------------------------------------" << endl;
     cout << "# of initial faults:                   "
 	 << fault_list.size() << endl;
     timer.start();
   }
 
+  SizeType check_num = 0;
+  SizeType dom_num = 0;
+  SizeType success_num = 0;
   // FFRの根のノード番号をキーにして故障のリストを保持する辞書
   unordered_map<SizeType, vector<const TpgFault*>> ffr_fault_map;
+#if 1
   for ( auto fault: fault_list ) {
     auto root = fault->ffr_root();
     if ( ffr_fault_map.count(root->id()) == 0 ) {
@@ -103,6 +106,23 @@ FaultReducer::ffr_reduction(
     }
     ffr_fault_map.at(root->id()).push_back(fault);
   }
+#else
+  vector<vector<const TpgFault*>> node_fault_list(mNetwork.node_num());
+  for ( auto fault: fault_list ) {
+    auto node = fault->origin_node();
+    node_fault_list[node->id()].push_back(fault);
+  }
+  for ( auto ffr: mNetwork.ffr_list() ) {
+    auto root = ffr->root();
+    ffr_fault_map.emplace(root->id(), vector<const TpgFault*>{});
+    auto& dst_list = ffr_fault_map.at(root->id());
+    for ( auto node: ffr->node_list() ) {
+      for ( auto fault: node_fault_list[node->id()] ) {
+	dst_list.push_back(fault);
+      }
+    }
+  }
+#endif
 
   for ( auto ffr: mNetwork.ffr_list() ) {
     // FFR 単位の故障リスト
@@ -113,6 +133,7 @@ FaultReducer::ffr_reduction(
     auto& ffr_fault_list = ffr_fault_map.at(ffr->root()->id());
 
     FFRDomChecker checker{mNetwork, ffr, mOption};
+    ++ dom_num;
 
     // 支配関係を調べ，代表故障のみを残す．
     for ( auto fault1: ffr_fault_list ) {
@@ -125,7 +146,8 @@ FaultReducer::ffr_reduction(
 	  fault2_list.push_back(fault2);
 	}
       }
-      checker.check(fault1, fault2_list, mDelMark);
+      ++ check_num;
+      success_num += checker.check(fault1, fault2_list, mDelMark);
     }
   }
 
@@ -140,7 +162,10 @@ FaultReducer::ffr_reduction(
     timer.stop();
     SizeType n = ans_list.size();
     cout << "after FFR dominance reduction:         " << n << endl;
-    cout << "CPU time:                              " << timer.get_time() << endl;
+    cout << "    # of total checkes:                " << check_num << endl
+	 << "    # of total successes:              " << success_num << endl
+	 << "    # of FFRDomCheckers:               " << dom_num << endl
+	 << "CPU time:                              " << timer.get_time() << endl;
   }
 
   return ans_list;
@@ -155,6 +180,8 @@ FaultReducer::gen_dom_cands(
 {
   Timer timer;
   if ( mDebug ) {
+    cout << "---------------------------------------" << endl;
+    cout << "Fault Simulation" << endl;
     timer.start();
   }
 
@@ -171,7 +198,6 @@ FaultReducer::gen_dom_cands(
     for ( auto f: fault_list ) {
       n += mDomCandListArray[f->id()].size();
     }
-    cout << "Fault Simulation" << endl;
     cout << "Total Candidates:                      " << n << endl;
     cout << "CPU time:                              " << timer.get_time() << endl;
   }
@@ -189,7 +215,7 @@ FaultReducer::global_reduction(
 {
   Timer timer;
   if ( mDebug ) {
-    timer.reset();
+    cout << "---------------------------------------" << endl;
     timer.start();
   }
 

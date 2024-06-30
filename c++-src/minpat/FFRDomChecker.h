@@ -50,7 +50,7 @@ public:
   /// fault1 を検出して fault2 を検出しないテストパタンが
   /// 存在「しない」場合に fault1 は fault2 を支配している．
   /// fault1, fault2_list は ffr に含まれると仮定している．
-  void
+  SizeType
   check(
     const TpgFault* fault1,                     ///< [in] 支配故障の候補
     const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
