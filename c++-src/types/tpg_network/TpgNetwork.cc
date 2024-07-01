@@ -11,6 +11,7 @@
 #include "TpgNode.h"
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
+#include "TpgFault.h"
 #include "ym/ClibCellLibrary.h"
 
 
@@ -256,6 +257,15 @@ TpgNetwork::mffc(
   return mImpl->mffc(node);
 }
 
+// @brief fault の属している FFR を返す．
+const TpgMFFC*
+TpgNetwork::mffc(
+  const TpgFault* fault
+) const
+{
+  return mffc(fault->ffr_root());
+}
+
 // @brief MFFC のリストを得る．
 const vector<const TpgMFFC*>&
 TpgNetwork::mffc_list() const
@@ -294,6 +304,15 @@ TpgNetwork::ffr(
   ASSERT_COND( mImpl != nullptr );
 
   return mImpl->ffr(node);
+}
+
+// @brief fault の属している FFR を返す．
+const TpgFFR*
+TpgNetwork::ffr(
+  const TpgFault* fault
+) const
+{
+  return ffr(fault->ffr_root());
 }
 
 // @brief FFR のリストを得る．

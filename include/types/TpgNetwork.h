@@ -282,6 +282,12 @@ public:
     const TpgNode* node ///< [in] 対象のノード
   ) const;
 
+  /// @brief fault の属している FFR を返す．
+  const TpgMFFC*
+  mffc(
+    const TpgFault* fault ///< [in] 対象の故障
+  ) const;
+
   /// @brief MFFC のリストを得る．
   const vector<const TpgMFFC*>&
   mffc_list() const;
@@ -300,6 +306,12 @@ public:
   const TpgFFR*
   ffr(
     const TpgNode* node ///< [in] 対象のノード
+  ) const;
+
+  /// @brief fault の属している FFR を返す．
+  const TpgFFR*
+  ffr(
+    const TpgFault* fault ///< [in] 対象の故障
   ) const;
 
   /// @brief FFR のリストを得る．
