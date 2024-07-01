@@ -10,6 +10,7 @@
 #include "FFRDomChecker.h"
 #include "DomCandGen.h"
 #include "DomChecker.h"
+#include "SimpleDomChecker.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "ym/Range.h"
@@ -187,10 +188,7 @@ FaultReducer::gen_dom_cands(
   }
 }
 
-BEGIN_NONAMESPACE
-
-END_NONAMESPACE
-
+#if 0
 // @brief 異なる FFR 間の支配故障のチェックを行う．
 vector<const TpgFault*>
 FaultReducer::global_reduction(
@@ -256,6 +254,7 @@ FaultReducer::global_reduction(
 	fault2_list_map.at(key).push_back(fault2);
       }
     }
+    vector<const TpgFault*> fault2_list;
     for ( auto ffr2: ffr2_list ) {
       ++ dom_num;
       DomChecker dom_checker{mNetwork, ffr1, ffr2, mOption};
@@ -293,6 +292,128 @@ FaultReducer::global_reduction(
 
   return ans_list;
 }
+
+#else
+
+// @brief 異なる FFR 間の支配故障のチェックを行う．
+vector<const TpgFault*>
+FaultReducer::global_reduction(
+  const vector<const TpgFault*>& fault_list
+)
+{
+  Timer timer;
+  if ( mDebug ) {
+    cout << "---------------------------------------" << endl;
+    timer.start();
+  }
+
+  // 根のノード番号をキーにしたFFRの辞書
+  unordered_map<SizeType, const TpgFFR*> ffr_map;
+  for ( auto ffr: mNetwork.ffr_list() ) {
+    auto root = ffr->root();
+    ffr_map.emplace(root->id(), ffr);
+  }
+
+  // チェックが必要な故障を持つFFRのリスト
+  vector<const TpgFFR*> ffr_list;
+  // FFR番号をキーにして関連する故障のリストを持つ辞書
+  unordered_map<SizeType, vector<const TpgFault*>> ffr_fault_list_map;
+  for ( auto fault: fault_list ) {
+    auto root = fault->ffr_root();
+    auto ffr = ffr_map.at(root->id());
+    if ( ffr_fault_list_map.count(ffr->id()) == 0 ) {
+      ffr_fault_list_map.emplace(ffr->id(), vector<const TpgFault*>{});
+      ffr_list.push_back(ffr);
+    }
+    ffr_fault_list_map.at(ffr->id()).push_back(fault);
+  }
+
+  SizeType check_num = 0;
+  SizeType dom_num = 0;
+  SizeType success_num = 0;
+  for ( auto ffr1: ffr_list ) {
+    // 候補の可能性のある故障のリスト
+    vector<const TpgFault*> fault2_list;
+    // fault2_list のマーク
+    vector<bool> fault2_mark(mNetwork.max_fault_id(), false);
+    // ffr1 に含まれる故障の被支配故障の候補が属するFFRを求める．
+    vector<const TpgFFR*> ffr2_list;
+    unordered_set<SizeType> ffr2_mark;
+    // 故障番号とFFR番号のペアをキーにして故障のリストを保持する辞書
+    unordered_map<Key, vector<const TpgFault*>> fault2_list_map;
+    for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
+      if ( mDelMark[fault1->id()] ) {
+	continue;
+      }
+      for ( auto fault2: mDomCandListArray[fault1->id()] ) {
+	if ( mDelMark[fault2->id()] ) {
+	  continue;
+	}
+	if ( !fault2_mark[fault2->id()] ) {
+	  fault2_mark[fault2->id()] = true;
+	  fault2_list.push_back(fault2);
+	}
+	auto ffr2 = ffr_map.at(fault2->ffr_root()->id());
+	if ( ffr2 == ffr1 ) {
+	  continue;
+	}
+	if ( ffr2_mark.count(ffr2->id()) == 0 ) {
+	  ffr2_mark.emplace(ffr2->id());
+	  ffr2_list.push_back(ffr2);
+	}
+	auto key = Key{fault1->id(), ffr2->id()};
+	if ( fault2_list_map.count(key) == 0 ) {
+	  fault2_list_map.emplace(key, vector<const TpgFault*>{});
+	}
+	fault2_list_map.at(key).push_back(fault2);
+      }
+    }
+    if ( fault2_list.empty() ) {
+      continue;
+    }
+    SimpleDomChecker checker1{mNetwork, ffr1, fault2_list, mOption};
+    for ( auto ffr2: ffr2_list ) {
+      ++ dom_num;
+      DomChecker checker2{mNetwork, ffr1, ffr2, mOption};
+      for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
+	if ( mDelMark[fault1->id()] ) {
+	  continue;
+	}
+	auto key = Key{fault1->id(), ffr2->id()};
+	if ( fault2_list_map.count(key) == 0 ) {
+	  continue;
+	}
+	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
+	if ( checker2.precheck(fault1) ) {
+	  // fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
+	  ++ check_num;
+	  auto& fault2_list = fault2_list_map.at(key);
+	  success_num += checker1.check(fault1, fault2_list, mDelMark);
+	}
+      }
+    }
+  }
+
+  vector<const TpgFault*> ans_list;
+  for ( auto fault: fault_list ) {
+    if ( !mDelMark[fault->id()] ) {
+      ans_list.push_back(fault);
+    }
+  }
+
+  if ( mDebug ) {
+    timer.stop();
+    SizeType n = ans_list.size();
+    cout << "after global dominance reduction:      " << n << endl;
+    cout << "    # of total checkes:                " << check_num << endl
+	 << "    # of total successes:              " << success_num << endl
+	 << "    # of DomCheckers:                  " << dom_num << endl
+	 << "CPU time:                              " << timer.get_time() << endl;
+  }
+
+  return ans_list;
+}
+#endif
 
 #if 0
 // @brief 故障の支配関係を調べて故障リストを縮約する．

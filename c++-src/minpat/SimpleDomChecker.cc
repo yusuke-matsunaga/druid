@@ -1,12 +1,12 @@
 ﻿
-/// @file DomChecker.cc
-/// @brief DomChecker の実装ファイル
+/// @file SimpleDomChecker.cc
+/// @brief SimpleDomChecker の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DomChecker.h"
+#include "SimpleDomChecker.h"
 
 #include "TpgNetwork.h"
 #include "TpgFFR.h"
@@ -29,41 +29,31 @@ END_NONAMESPACE
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-DomChecker::DomChecker(
+SimpleDomChecker::SimpleDomChecker(
   const TpgNetwork& network,
   const TpgFFR* ffr1,
-  const TpgFFR* ffr2,
+  const vector<const TpgFault*>& fault2_list,
   const JsonValue& option
 ) : mFFR1{ffr1},
-    mFFR2{ffr2},
     mBaseEnc{network, option}
 {
   mBdEnc1 = new BoolDiffEnc{mBaseEnc, ffr1->root(), option};
-  mBdEnc2 = new BoolDiffEnc{mBaseEnc, ffr2->root(), option};
-  mBaseEnc.make_cnf({}, {ffr1->root(), ffr2->root()});
+  vector<const TpgNode*> tmp_list;
+  tmp_list.push_back(ffr1->root());
+  for ( auto fault: fault2_list ) {
+    tmp_list.push_back(fault->ffr_root());
+  }
+  mBaseEnc.make_cnf(tmp_list, tmp_list);
 }
 
 // @brief デストラクタ
-DomChecker::~DomChecker()
+SimpleDomChecker::~SimpleDomChecker()
 {
-}
-
-// @brief 事前チェックをする．
-bool
-DomChecker::precheck(
-  const TpgFault* fault1
-)
-{
-  auto ffr_cond1 = fault1->ffr_propagate_condition();
-  auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond1);
-  assumptions.push_back(mBdEnc1->prop_var());
-  assumptions.push_back(~mBdEnc2->prop_var());
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
 }
 
 // @brief チェックする．
 SizeType
-DomChecker::check(
+SimpleDomChecker::check(
   const TpgFault* fault1,
   const vector<const TpgFault*>& fault2_list,
   vector<bool>& del_mark

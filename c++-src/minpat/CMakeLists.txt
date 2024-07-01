@@ -26,8 +26,8 @@ set ( minpat_SOURCES
   FaultReducer.cc
   FFRDomChecker.cc
   DomCandGen.cc
-  #UndetChecker.cc
   DomChecker.cc
+  SimpleDomChecker.cc
   TestCubeGen.cc
   NaiveDomChecker.cc
   NaiveDomChecker2.cc
