@@ -66,31 +66,11 @@ public:
     const TpgFault* fault2  ///< [in] 被支配故障の候補リスト
   );
 
-#if 0
-  /// @brief チェックする．
-  /// @return 結果を返す．
-  ///
-  /// fault1 を検出して fault2 を検出しないテストパタンが
-  /// 存在「しない」ことを確かめる．
-  /// その場合には支配故障であることがわかる．
-  /// fault1 は ffr1 に，fault2 は ffr2 に含まれると
-  /// 仮定している．
-  SizeType
-  check(
-    const TpgFault* fault1,                     ///< [in] 支配故障の候補
-    const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
-    vector<bool>& del_mark                      ///< [out] 削除マーク
-  );
-#endif
-
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 支配故障を含む FFR
-  const TpgFFR* mFFR1;
 
   // 基本のエンコーダ
   BaseEnc mBaseEnc;
@@ -98,6 +78,8 @@ private:
   // mFFR1 用の BoolDiffエンコーダ
   BoolDiffEnc* mBdEnc1;
 
+  // fault2 の故障番号をキーにして制御変数を保持する辞書
+  unordered_map<SizeType, SatLiteral> mCVarMap;
 };
 
 END_NAMESPACE_DRUID

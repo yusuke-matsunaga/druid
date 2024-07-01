@@ -316,9 +316,17 @@ FaultReducer::global_reduction(
 
   SizeType check1_num = 0;
   SizeType check2_num = 0;
-  SizeType dom_num = 0;
+  SizeType dom1_num = 0;
+  SizeType dom2_num = 0;
   SizeType success_num = 0;
+  SizeType nffr = ffr_list.size();
+  SizeType ffr_count = 0;
   for ( auto ffr1: ffr_list ) {
+    if ( 0 ) {
+      SizeType nfault = ffr_fault_list_map.at(ffr1->id()).size();
+      cout << ffr_count << " / " << nffr << endl;
+    }
+    ++ ffr_count;
     // 候補の可能性のある故障のリスト
     vector<const TpgFault*> fault2_list;
     // fault2_list のマーク
@@ -336,13 +344,13 @@ FaultReducer::global_reduction(
 	if ( mDelMark[fault2->id()] ) {
 	  continue;
 	}
-	if ( !fault2_mark[fault2->id()] ) {
-	  fault2_mark[fault2->id()] = true;
-	  fault2_list.push_back(fault2);
-	}
 	auto ffr2 = mNetwork.ffr(fault2);
 	if ( ffr2 == ffr1 ) {
 	  continue;
+	}
+	if ( !fault2_mark[fault2->id()] ) {
+	  fault2_mark[fault2->id()] = true;
+	  fault2_list.push_back(fault2);
 	}
 	auto ffr2_id = ffr2->id();
 	if ( ffr2_mark.count(ffr2_id) == 0 ) {
@@ -356,12 +364,20 @@ FaultReducer::global_reduction(
 	fault2_list_map.at(key).push_back(fault2);
       }
     }
+    if ( 0 ) {
+      SizeType nfault1 = ffr_fault_list_map.at(ffr1->id()).size();
+      SizeType nfault2 = fault2_list.size();
+      SizeType nffr2 = ffr2_list.size();
+      cout << "  " << nfault1 << " x " << nfault2
+	   << "(" << nffr2 << ")" << endl;
+    }
     if ( fault2_list.empty() ) {
       continue;
     }
+    ++ dom1_num;
     SimpleDomChecker checker1{mNetwork, ffr1, fault2_list, mOption};
     for ( auto ffr2: ffr2_list ) {
-      ++ dom_num;
+      ++ dom2_num;
       DomChecker checker2{mNetwork, ffr1, ffr2, mOption};
       for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
 	if ( mDelMark[fault1->id()] ) {
@@ -375,7 +391,11 @@ FaultReducer::global_reduction(
 	++ check2_num;
 	if ( checker2.precheck(fault1) ) {
 	  // fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
-	  for ( auto fault2: fault2_list_map.at(key) ) {
+	  auto& fault2_list = fault2_list_map.at(key);
+	  for ( auto fault2: fault2_list ) {
+	    if ( mDelMark[fault2->id()] ) {
+	      continue;
+	    }
 	    ++ check1_num;
 	    if ( checker1.check(fault1, fault2) ) {
 	      mDelMark[fault2->id()] = true;
@@ -401,7 +421,8 @@ FaultReducer::global_reduction(
     cout << "    # of total checkes(1):             " << check1_num << endl
 	 << "    # of total checkes(2):             " << check2_num << endl
 	 << "    # of total successes:              " << success_num << endl
-	 << "    # of DomCheckers:                  " << dom_num << endl
+	 << "    # of DomCheckers(1):               " << dom1_num << endl
+	 << "    # of DomCheckers(2):               " << dom2_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
   }
 

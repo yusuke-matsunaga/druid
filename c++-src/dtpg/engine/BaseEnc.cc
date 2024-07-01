@@ -205,6 +205,7 @@ BaseEnc::conv_to_literal(
   auto node = assign.node();
   bool inv = !assign.val(); // 0 の時が inv = true
   auto vid = (assign.time() == 0) ? hvar(node) : gvar(node);
+  ASSERT_COND( vid != SatLiteral::X );
   return vid * inv;
 }
 

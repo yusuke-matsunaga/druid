@@ -13,19 +13,6 @@
 #include "TpgFault.h"
 
 
-//#define DEBUG_DTPG
-
-#define DEBUG_OUT cout
-BEGIN_NONAMESPACE
-#ifdef DEBUG_DTPG
-int debug_dtpg = 1;
-#else
-const int debug_dtpg = 0;
-#endif
-
-END_NONAMESPACE
-
-
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
@@ -34,8 +21,7 @@ SimpleDomChecker::SimpleDomChecker(
   const TpgFFR* ffr1,
   const vector<const TpgFault*>& fault2_list,
   const JsonValue& option
-) : mFFR1{ffr1},
-    mBaseEnc{network, option}
+) : mBaseEnc{network, option}
 {
   mBdEnc1 = new BoolDiffEnc{mBaseEnc, ffr1->root(), option};
   vector<const TpgNode*> tmp_list;
@@ -58,45 +44,17 @@ SimpleDomChecker::check(
   const TpgFault* fault2
 )
 {
+  ASSERT_COND( fault1->ffr_root() == mBdEnc1->root_node() );
   auto ffr_cond1 = fault1->ffr_propagate_condition();
   auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond1);
   assumptions.push_back(mBdEnc1->prop_var());
   assumptions.push_back(SatLiteral::X); // プレースホルダ
-  auto ffr_cond2 = fault2->ffr_propagate_condition();
-  auto clit = mBaseEnc.solver().new_variable();
-  vector<SatLiteral> tmp_lits;
-  tmp_lits.reserve(ffr_cond2.size() + 1);
-  tmp_lits.push_back(~clit);
-  for ( auto nv: ffr_cond2 ) {
-    auto lit = mBaseEnc.conv_to_literal(nv);
-    tmp_lits.push_back(~lit);
-  }
-  mBaseEnc.solver().add_clause(tmp_lits);
-  assumptions[assumptions.size() - 1] = clit;
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
-}
 
-#if 0
-// @brief チェックする．
-SizeType
-SimpleDomChecker::check(
-  const TpgFault* fault1,
-  const vector<const TpgFault*>& fault2_list,
-  vector<bool>& del_mark
-)
-{
-  auto ffr_cond1 = fault1->ffr_propagate_condition();
-  auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond1);
-  assumptions.push_back(mBdEnc1->prop_var());
-  assumptions.push_back(SatLiteral::X); // プレースホルダ
-  SizeType count = 0;
-  unordered_map<SatLiteral, bool> result_dict;
-  for ( auto fault2: fault2_list ) {
-    if ( del_mark[fault2->id()] ) {
-      continue;
-    }
+  SatLiteral clit;
+  if ( mCVarMap.count(fault2->id()) == 0 ) {
     auto ffr_cond2 = fault2->ffr_propagate_condition();
-    auto clit = mBaseEnc.solver().new_variable();
+    clit = mBaseEnc.solver().new_variable(true);
+    mCVarMap.emplace(fault2->id(), clit);
     vector<SatLiteral> tmp_lits;
     tmp_lits.reserve(ffr_cond2.size() + 1);
     tmp_lits.push_back(~clit);
@@ -105,15 +63,12 @@ SimpleDomChecker::check(
       tmp_lits.push_back(~lit);
     }
     mBaseEnc.solver().add_clause(tmp_lits);
-    assumptions[assumptions.size() - 1] = clit;
-    bool unsat = mBaseEnc.solver().solve(assumptions) == SatBool3::False;
-    if ( unsat ) {
-      del_mark[fault2->id()] = true;
-      ++ count;
-    }
   }
-  return count;
+  else {
+    clit = mCVarMap.at(fault2->id());
+  }
+  assumptions[assumptions.size() - 1] = clit;
+  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
 }
-#endif
 
 END_NAMESPACE_DRUID
