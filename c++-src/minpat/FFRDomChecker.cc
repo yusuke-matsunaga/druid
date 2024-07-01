@@ -68,35 +68,24 @@ FFRDomChecker::check(
     // fault2 の検出条件から fault1 の検出条件を引く．
     auto ffr_cond2 = fault2->ffr_propagate_condition();
     ffr_cond2.diff(ffr_cond1);
-    // ffr_cond1 を満たしつつ ffr_cond2 を一つでも満たさない解があれば
+    // ffr_cond1 を満たしつつ ffr_cond2 を満たさない解があれば
     // fault1 が検出可能で fault2 が検出不可能な場合があるということ．
     // つまり fault1 は fault2 を「支配していない」．
-    bool unsat = true;
+    // ffr_cond2 の否定は普通の節になるが，これは以降のチェックにおいては
+    // 邪魔な節なので制御変数 clit を加えて，今回のチェック時のみ
+    // clit を 1 にしておく．
+    // 以降は clit が自由変数なのでこの節は常に充足される．
+    auto clit = mBaseEnc.solver().new_variable();
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(ffr_cond2.size() + 1);
+    tmp_lits.push_back(~clit);
     for ( auto nv: ffr_cond2 ) {
-      auto lit1 = mBaseEnc.conv_to_literal(nv);
-      bool res = true;
-#if 0
-      if ( result_map.count(lit1) ) {
-	res = result_map.at(lit1);
-      }
-      else {
-	assumptions[assumptions.size() - 1] = ~lit1;
-	if ( mBaseEnc.solver().solve(assumptions) == SatBool3::True ) {
-	  res = false;
-	}
-	result_map.emplace(lit1, res);
-      }
-#else
-      assumptions[assumptions.size() - 1] = ~lit1;
-      if ( mBaseEnc.solver().solve(assumptions) == SatBool3::True ) {
-	res = false;
-      }
-#endif
-      if ( !res ) {
-	unsat = false;
-	break;
-      }
+      auto lit = mBaseEnc.conv_to_literal(nv);
+      tmp_lits.push_back(~lit);
     }
+    mBaseEnc.solver().add_clause(tmp_lits);
+    assumptions[assumptions.size() - 1] = clit;
+    bool unsat = mBaseEnc.solver().solve(assumptions) == SatBool3::False;
     if ( unsat ) {
       del_mark[fault2->id()] = true;
       ++ count;
