@@ -74,8 +74,8 @@ FaultReducer::run(
   const vector<TestVector>& tv_list
 )
 {
+  gen_dom_cands(fault_list, tv_list);
   auto fault_list1 = ffr_reduction(fault_list);
-  gen_dom_cands(fault_list1, tv_list);
   return global_reduction(fault_list1);
 }
 
@@ -98,7 +98,6 @@ FaultReducer::ffr_reduction(
   SizeType success_num = 0;
   // FFRの根のノード番号をキーにして故障のリストを保持する辞書
   unordered_map<SizeType, vector<const TpgFault*>> ffr_fault_map;
-#if 1
   for ( auto fault: fault_list ) {
     auto root = fault->ffr_root();
     if ( ffr_fault_map.count(root->id()) == 0 ) {
@@ -106,23 +105,6 @@ FaultReducer::ffr_reduction(
     }
     ffr_fault_map.at(root->id()).push_back(fault);
   }
-#else
-  vector<vector<const TpgFault*>> node_fault_list(mNetwork.node_num());
-  for ( auto fault: fault_list ) {
-    auto node = fault->origin_node();
-    node_fault_list[node->id()].push_back(fault);
-  }
-  for ( auto ffr: mNetwork.ffr_list() ) {
-    auto root = ffr->root();
-    ffr_fault_map.emplace(root->id(), vector<const TpgFault*>{});
-    auto& dst_list = ffr_fault_map.at(root->id());
-    for ( auto node: ffr->node_list() ) {
-      for ( auto fault: node_fault_list[node->id()] ) {
-	dst_list.push_back(fault);
-      }
-    }
-  }
-#endif
 
   for ( auto ffr: mNetwork.ffr_list() ) {
     // FFR 単位の故障リスト
@@ -141,13 +123,15 @@ FaultReducer::ffr_reduction(
 	continue;
       }
       vector<const TpgFault*> fault2_list;
-      for ( auto fault2: ffr_fault_list ) {
-	if ( fault2 != fault1 && !mDelMark[fault2->id()] ) {
+      for ( auto fault2: mDomCandListArray[fault1->id()] ) {
+	if ( fault2->ffr_root() == fault1->ffr_root() && !mDelMark[fault2->id()] ) {
 	  fault2_list.push_back(fault2);
 	}
       }
-      ++ check_num;
-      success_num += checker.check(fault1, fault2_list, mDelMark);
+      if ( !fault2_list.empty() ) {
+	++ check_num;
+	success_num += checker.check(fault1, fault2_list, mDelMark);
+      }
     }
   }
 
