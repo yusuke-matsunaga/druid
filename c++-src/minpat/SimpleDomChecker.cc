@@ -76,6 +76,7 @@ SimpleDomChecker::check(
   return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
 }
 
+#if 0
 // @brief チェックする．
 SizeType
 SimpleDomChecker::check(
@@ -113,5 +114,6 @@ SimpleDomChecker::check(
   }
   return count;
 }
+#endif
 
 END_NAMESPACE_DRUID

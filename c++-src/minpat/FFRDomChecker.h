@@ -30,9 +30,9 @@ public:
 
   /// @brief コンストラクタ
   FFRDomChecker(
-    const TpgNetwork& network,                  ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,	                        ///< [in] 対象の FFR
-    const JsonValue& option = JsonValue{}       ///< [in] オプション
+    const TpgNetwork& network,            ///< [in] 対象のネットワーク
+    const TpgFFR* ffr,	                  ///< [in] 対象の FFR
+    const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -45,16 +45,15 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief チェックする．
-  /// @return 被支配故障のリストを返す．
+  /// @return fault2 が支配故障の時 true を返す．
   ///
   /// fault1 を検出して fault2 を検出しないテストパタンが
   /// 存在「しない」場合に fault1 は fault2 を支配している．
-  /// fault1, fault2_list は ffr に含まれると仮定している．
-  SizeType
+  /// fault1, fault2 は ffr に含まれると仮定している．
+  bool
   check(
-    const TpgFault* fault1,                     ///< [in] 支配故障の候補
-    const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
-    vector<bool>& del_mark                      ///< [inout] 削除された故障のマーク
+    const TpgFault* fault1, ///< [in] 支配故障の候補
+    const TpgFault* fault2  ///< [in] 被支配故障の候補
   );
 
 

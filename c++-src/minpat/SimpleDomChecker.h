@@ -66,6 +66,7 @@ public:
     const TpgFault* fault2  ///< [in] 被支配故障の候補リスト
   );
 
+#if 0
   /// @brief チェックする．
   /// @return 結果を返す．
   ///
@@ -80,6 +81,7 @@ public:
     const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
     vector<bool>& del_mark                      ///< [out] 削除マーク
   );
+#endif
 
 
 private:

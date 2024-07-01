@@ -48,6 +48,16 @@ DomChecker::~DomChecker()
 {
 }
 
+// @brief FFRのみの故障伝搬条件でチェックする．
+bool
+DomChecker::check0()
+{
+  auto lit1 = mBdEnc1->prop_var();
+  auto lit2 = mBdEnc2->prop_var();
+  vector<SatLiteral> assumptions{lit1, ~lit2};
+  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+}
+
 // @brief 事前チェックをする．
 bool
 DomChecker::precheck(
