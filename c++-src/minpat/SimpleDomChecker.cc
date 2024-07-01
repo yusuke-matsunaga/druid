@@ -52,6 +52,31 @@ SimpleDomChecker::~SimpleDomChecker()
 }
 
 // @brief チェックする．
+bool
+SimpleDomChecker::check(
+  const TpgFault* fault1,
+  const TpgFault* fault2
+)
+{
+  auto ffr_cond1 = fault1->ffr_propagate_condition();
+  auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond1);
+  assumptions.push_back(mBdEnc1->prop_var());
+  assumptions.push_back(SatLiteral::X); // プレースホルダ
+  auto ffr_cond2 = fault2->ffr_propagate_condition();
+  auto clit = mBaseEnc.solver().new_variable();
+  vector<SatLiteral> tmp_lits;
+  tmp_lits.reserve(ffr_cond2.size() + 1);
+  tmp_lits.push_back(~clit);
+  for ( auto nv: ffr_cond2 ) {
+    auto lit = mBaseEnc.conv_to_literal(nv);
+    tmp_lits.push_back(~lit);
+  }
+  mBaseEnc.solver().add_clause(tmp_lits);
+  assumptions[assumptions.size() - 1] = clit;
+  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+}
+
+// @brief チェックする．
 SizeType
 SimpleDomChecker::check(
   const TpgFault* fault1,
