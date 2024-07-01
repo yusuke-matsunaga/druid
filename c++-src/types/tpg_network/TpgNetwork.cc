@@ -245,6 +245,17 @@ TpgNetwork::mffc(
   return mImpl->mffc(pos);
 }
 
+// @brief node の属している MFFC を返す．
+const TpgMFFC*
+TpgNetwork::mffc(
+  const TpgNode* node
+) const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->mffc(node);
+}
+
 // @brief MFFC のリストを得る．
 const vector<const TpgMFFC*>&
 TpgNetwork::mffc_list() const
@@ -272,6 +283,17 @@ TpgNetwork::ffr(
   ASSERT_COND( mImpl != nullptr );
 
   return mImpl->ffr(pos);
+}
+
+// @brief node の属している FFR を返す．
+const TpgFFR*
+TpgNetwork::ffr(
+  const TpgNode* node
+) const
+{
+  ASSERT_COND( mImpl != nullptr );
+
+  return mImpl->ffr(node);
 }
 
 // @brief FFR のリストを得る．

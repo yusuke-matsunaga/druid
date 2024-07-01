@@ -276,6 +276,12 @@ public:
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < mffc_num() )
   ) const;
 
+  /// @brief node の属している MFFC を返す．
+  const TpgMFFC*
+  mffc(
+    const TpgNode* node ///< [in] 対象のノード
+  ) const;
+
   /// @brief MFFC のリストを得る．
   const vector<const TpgMFFC*>&
   mffc_list() const;
@@ -288,6 +294,12 @@ public:
   const TpgFFR*
   ffr(
     SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffr_num() )
+  ) const;
+
+  /// @brief node の属している FFR を返す．
+  const TpgFFR*
+  ffr(
+    const TpgNode* node ///< [in] 対象のノード
   ) const;
 
   /// @brief FFR のリストを得る．

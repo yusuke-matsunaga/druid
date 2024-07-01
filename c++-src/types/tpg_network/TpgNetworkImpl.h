@@ -274,6 +274,16 @@ public:
     return mMFFCList[pos];
   }
 
+  /// @brief node の属している MFFC を返す．
+  const TpgMFFC*
+  mffc(
+    const TpgNode* node ///< [in] 対象のノード
+  ) const
+  {
+    auto root = node->mffc_root();
+    return mMFFCMap.at(root->id());
+  }
+
   /// @brief MFFC のリストを返す．
   const vector<const TpgMFFC*>&
   mffc_list() const
@@ -297,6 +307,16 @@ public:
     ASSERT_COND( 0 <= pos && pos < ffr_num() );
 
     return mFFRList[pos];
+  }
+
+  /// @brief node の属している FFR を返す．
+  const TpgFFR*
+  ffr(
+    const TpgNode* node ///< [in] 対象のノード
+  ) const
+  {
+    auto root = node->ffr_root();
+    return mFFRMap.at(root->id());
   }
 
   /// @brief FFR のリストを返す．
@@ -688,8 +708,14 @@ private:
   // MFFC のリスト
   vector<const TpgMFFC*> mMFFCList;
 
+  // MFFC の根のノード番号をキーにして MFFC を格納する辞書
+  unordered_map<SizeType, const TpgMFFC*> mMFFCMap;
+
   // FFR のリスト
   vector<const TpgFFR*> mFFRList;
+
+  // FFR の根のノード番号をキーにして FFR を格納する辞書
+  unordered_map<SizeType, const TpgFFR*> mFFRMap;
 
   // 故障の種類
   FaultType mFaultType{FaultType::None};

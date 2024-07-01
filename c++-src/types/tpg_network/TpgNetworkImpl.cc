@@ -427,6 +427,7 @@ TpgNetworkImpl::new_ffr(
   SizeType id = mFFRList.size();
   auto ffr = new TpgFFR{id, root, input_list, node_list};
   mFFRList.push_back(ffr);
+  mFFRMap.emplace(root->id(), ffr);
   return ffr;
 }
 
@@ -466,6 +467,7 @@ TpgNetworkImpl::new_mffc(
   SizeType id = mMFFCList.size();
   auto mffc = new TpgMFFC{id, root, ffr_list};
   mMFFCList.push_back(mffc);
+  mMFFCMap.emplace(root->id(), mffc);
 }
 
 // @brief ゲートに関連した故障を作る．
