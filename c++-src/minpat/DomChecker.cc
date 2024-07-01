@@ -73,27 +73,17 @@ DomChecker::check(
       continue;
     }
     auto ffr_cond2 = fault2->ffr_propagate_condition();
-    auto lits = mBaseEnc.conv_to_literal_list(ffr_cond2);
-    bool unsat = true;
+    auto clit = mBaseEnc.solver().new_variable();
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(ffr_cond2.size() + 1);
+    tmp_lits.push_back(~clit);
     for ( auto nv: ffr_cond2 ) {
-      // lit の否定を加えたSAT問題がすべてUNSATなら被支配故障
       auto lit = mBaseEnc.conv_to_literal(nv);
-      bool res = true;
-      if ( result_dict.count(lit) ) {
-	res = result_dict.at(lit);
-      }
-      else {
-	assumptions[assumptions.size() - 1] = ~lit;
-	if ( mBaseEnc.solver().solve(assumptions) == SatBool3::True ) {
-	  res = false;
-	}
-	result_dict.emplace(lit, res);
-      }
-      if ( res == false ) {
-	unsat = false;
-	break;
-      }
+      tmp_lits.push_back(~lit);
     }
+    mBaseEnc.solver().add_clause(tmp_lits);
+    assumptions[assumptions.size() - 1] = clit;
+    bool unsat = mBaseEnc.solver().solve(assumptions) == SatBool3::False;
     if ( unsat ) {
       del_mark[fault2->id()] = true;
       ++ count;
