@@ -27,11 +27,12 @@ set ( minpat_SOURCES
   FFRDomChecker.cc
   DomCandGen.cc
   DomChecker.cc
+  DomChecker2.cc
   SimpleDomChecker.cc
   TestCubeGen.cc
   NaiveDomChecker.cc
   NaiveDomChecker2.cc
-  StructDomChecker.cc
+  #StructDomChecker.cc
   #DcGraph.cc
   )
 

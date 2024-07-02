@@ -64,6 +64,34 @@ TpgNodeSet::get_tfo_list(
   return node_list;
 }
 
+// @brief TFO のノードを求める．
+vector<const TpgNode*>
+TpgNodeSet::get_tfo_list(
+  SizeType max_size,
+  const vector<const TpgNode*>& root_list,
+  std::function<void(const TpgNode*)> op
+)
+{
+  vector<const TpgNode*> node_list;
+  node_list.reserve(max_size);
+  vector<bool> mark_array(max_size, false);
+  std::deque<const TpgNode*> queue;
+
+  for ( auto node: root_list ) {
+    set_mark(node, queue, mark_array);
+  }
+  while ( !queue.empty() ) {
+    auto node = queue.front();
+    queue.pop_front();
+    op(node);
+    node_list.push_back(node);
+    for ( auto onode: node->fanout_list() ) {
+      set_mark(onode, queue, mark_array);
+    }
+  }
+  return node_list;
+}
+
 // @brief TFI のノードを求める．
 vector<const TpgNode*>
 TpgNodeSet::get_tfi_list(

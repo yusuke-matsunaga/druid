@@ -10,6 +10,7 @@
 #include "FFRDomChecker.h"
 #include "DomCandGen.h"
 #include "DomChecker.h"
+#include "DomChecker2.h"
 #include "SimpleDomChecker.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
@@ -376,9 +377,11 @@ FaultReducer::global_reduction(
     }
     ++ dom1_num;
     SimpleDomChecker checker1{mNetwork, ffr1, fault2_list, mOption};
+#if 1
     for ( auto ffr2: ffr2_list ) {
       ++ dom2_num;
-      DomChecker checker2{mNetwork, ffr1, ffr2, mOption};
+      //DomChecker checker2{mNetwork, ffr1, ffr2, mOption};
+      DomChecker2 checker2{mNetwork, ffr1, {ffr2}, mOption};
       for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
 	if ( mDelMark[fault1->id()] ) {
 	  continue;
@@ -389,7 +392,7 @@ FaultReducer::global_reduction(
 	}
 	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
 	++ check2_num;
-	if ( checker2.check(fault1) ) {
+	if ( checker2.check(fault1, ffr2) ) {
 	  // fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
 	  auto& fault2_list = fault2_list_map.at(key);
 	  for ( auto fault2: fault2_list ) {
@@ -405,8 +408,38 @@ FaultReducer::global_reduction(
 	}
       }
     }
+#else
+    ++ dom2_num;
+    DomChecker2 checker2{mNetwork, ffr1, ffr2_list, mOption};
+    for ( auto ffr2: ffr2_list ) {
+      for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
+	if ( mDelMark[fault1->id()] ) {
+	  continue;
+	}
+	auto key = Key{fault1->id(), ffr2->id()};
+	if ( fault2_list_map.count(key) == 0 ) {
+	  continue;
+	}
+	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
+	++ check2_num;
+	if ( checker2.check(fault1, ffr2) ) {
+	  // fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
+	  auto& fault2_list = fault2_list_map.at(key);
+	  for ( auto fault2: fault2_list ) {
+	    if ( mDelMark[fault2->id()] ) {
+	      continue;
+	    }
+	    ++ check1_num;
+	    if ( checker1.check(fault1, fault2) ) {
+	      mDelMark[fault2->id()] = true;
+	      ++ success_num;
+	    }
+	  }
+	}
+      }
+    }
+#endif
   }
-
   vector<const TpgFault*> ans_list;
   for ( auto fault: fault_list ) {
     if ( !mDelMark[fault->id()] ) {

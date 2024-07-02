@@ -45,6 +45,15 @@ public:
     std::function<void(const TpgNode*)> op ///< [in] ノードに対するファンクタ
   );
 
+  /// @brief TFO のノードを求める．
+  static
+  vector<const TpgNode*>
+  get_tfo_list(
+    SizeType max_size,                       ///< [in] ノード番号の最大値 + 1
+    const vector<const TpgNode*>& root_list, ///< [in] 起点となるノードのリスト
+    std::function<void(const TpgNode*)> op   ///< [in] ノードに対するファンクタ
+  );
+
   /// @brief TFI のノードを求める．
   static
   vector<const TpgNode*>

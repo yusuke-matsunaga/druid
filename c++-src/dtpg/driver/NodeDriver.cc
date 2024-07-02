@@ -8,7 +8,6 @@
 
 #include "NodeDriver.h"
 #include "NodeEncDriver.h"
-#include "NodeEngineDriver.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -30,13 +29,10 @@ gen_impl(
       if ( value == "enc" ) {
 	return new NodeEncDriver{network, node, option};
       }
-      if ( value == "engine" ) {
-	return new NodeEngineDriver{network, node, option};
-      }
     }
   }
   // デフォルトフォールバック
-  return new NodeEngineDriver{network, node, option};
+  return new NodeEncDriver{network, node, option};
 }
 
 END_NONAMESPACE

@@ -7,10 +7,7 @@
 /// All rights reserved.
 
 #include "FFRDriver.h"
-#include "FFREngineDriver.h"
-#include "FFRStructEncDriver.h"
 #include "FFREncDriver.h"
-#include "FFREncDriver2.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -29,22 +26,13 @@ gen_impl(
     auto value_obj = option.at(keyword);
     if ( value_obj.is_string() ) {
       auto value = value_obj.get_string();
-      if ( value == "engine" ) {
-	return new FFREngineDriver{network, ffr, option};
-      }
-      if ( value == "struct_enc" ) {
-	return new FFRStructEncDriver{network, ffr, option};
-      }
       if ( value == "enc" ) {
 	return new FFREncDriver{network, ffr, option};
-      }
-      if ( value == "enc2" ) {
-	return new FFREncDriver2{network, ffr, option};
       }
     }
   }
   // デフォルトフォールバック
-  return new FFREngineDriver{network, ffr, option};
+  return new FFREncDriver{network, ffr, option};
 }
 
 END_NONAMESPACE

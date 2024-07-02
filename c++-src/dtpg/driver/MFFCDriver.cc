@@ -8,8 +8,6 @@
 
 #include "MFFCDriver.h"
 #include "MFFCEncDriver.h"
-#include "MFFCEngineDriver.h"
-#include "MFFCStructEncDriver.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -29,19 +27,13 @@ gen_impl(
     auto value_obj = option.at(keyword);
     if ( value_obj.is_string() ) {
       auto value = value_obj.get_string();
-      if ( value == "engine" ) {
-	return new MFFCEngineDriver{network, mffc, option};
-      }
-      if ( value == "struct_enc" ) {
-	return new MFFCStructEncDriver{network, mffc, option};
-      }
       if ( value == "enc" ) {
 	return new MFFCEncDriver{network, mffc, option};
       }
     }
   }
   // デフォルトフォールバック
-  return new MFFCEngineDriver{network, mffc, option};
+  return new MFFCEncDriver{network, mffc, option};
 }
 
 END_NONAMESPACE
