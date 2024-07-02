@@ -54,11 +54,7 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief FFRのみの故障伝搬条件でチェックする．
-  bool
-  check0();
-
-  /// @brief 事前チェックをする．
+  /// @brief チェックをする．
   /// @return 結果を返す．
   ///
   /// fault1 を検出して ffr2 の根の出力から故障伝搬を行わないケースが
@@ -66,23 +62,8 @@ public:
   /// 以降は fault1 の検出と ffr2 内のローカルな故障伝搬だけを考慮すれば
   /// よいことになる．
   bool
-  precheck(
-    const TpgFault* fault1 ///< [in] 対象の故障
-  );
-
-  /// @brief チェックする．
-  /// @return 結果を返す．
-  ///
-  /// fault1 を検出して fault2 を検出しないテストパタンが
-  /// 存在「しない」ことを確かめる．
-  /// その場合には支配故障であることがわかる．
-  /// fault1 は ffr1 に，fault2 は ffr2 に含まれると
-  /// 仮定している．
-  SizeType
   check(
-    const TpgFault* fault1,                     ///< [in] 支配故障の候補
-    const vector<const TpgFault*>& fault2_list, ///< [in] 被支配故障の候補リスト
-    vector<bool>& del_mark                      ///< [out] 削除マーク
+    const TpgFault* fault1 ///< [in] 対象の故障
   );
 
 
@@ -90,12 +71,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 支配故障を含む FFR
-  const TpgFFR* mFFR1;
-
-  // 被支配故障を含む FFR
-  const TpgFFR* mFFR2;
 
   // 基本のエンコーダ
   BaseEnc mBaseEnc;

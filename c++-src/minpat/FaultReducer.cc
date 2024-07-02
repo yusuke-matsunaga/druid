@@ -389,7 +389,7 @@ FaultReducer::global_reduction(
 	}
 	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
 	++ check2_num;
-	if ( checker2.precheck(fault1) ) {
+	if ( checker2.check(fault1) ) {
 	  // fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
 	  auto& fault2_list = fault2_list_map.at(key);
 	  for ( auto fault2: fault2_list ) {
