@@ -53,13 +53,6 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 同一FFR内の支配関係を用いて故障を削減する．
-  /// @return 削減した故障リストを返す．
-  vector<const TpgFault*>
-  ffr_reduction(
-    const vector<const TpgFault*>& fault_list
-  );
-
   /// @grep 故障シミュレーションを用いて被支配故障の候補を生成する．
   ///
   /// 結果は mDomCandListArray に格納される．
@@ -67,6 +60,21 @@ private:
   gen_dom_cands(
     const vector<const TpgFault*>& fault_list,
     const vector<TestVector>& tv_list
+  );
+
+  /// @brief 同一FFR内の支配関係を用いて故障を削減する．
+  /// @return 削減した故障リストを返す．
+  vector<const TpgFault*>
+  ffr_reduction(
+    const vector<const TpgFault*>& fault_list
+  );
+
+  /// @brief 故障の解析を行う．
+  ///
+  /// 結果は mSuffCondArray, mMandCondArray に格納される．
+  void
+  fault_analysis(
+    const vector<const TpgFault*>& fault_list
   );
 
   /// @brief 異なる FFR 間の支配故障のチェックを行う．
@@ -121,6 +129,14 @@ private:
   // 削除マークの配列
   // キーは故障番号
   vector<bool> mDelMark;
+
+  // 故障の十分割り当ての配列
+  // キーは故障番号
+  vector<NodeTimeValList> mSuffCondArray;
+
+  // 故障の必須割り当ての配列
+  // キーは故障番号
+  vector<NodeTimeValList> mMandCondArray;
 
   // デバッグフラグ
   bool mDebug{false};

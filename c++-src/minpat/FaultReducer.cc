@@ -12,6 +12,8 @@
 #include "DomChecker.h"
 #include "DomChecker2.h"
 #include "SimpleDomChecker.h"
+#include "BaseEnc.h"
+#include "BoolDiffEnc.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "ym/Range.h"
@@ -61,7 +63,9 @@ FaultReducer::FaultReducer(
 ) : mNetwork{network},
     mOption{option},
     mDomCandListArray(network.max_fault_id()),
-    mDelMark(network.max_fault_id())
+    mDelMark(network.max_fault_id()),
+    mSuffCondArray(network.max_fault_id()),
+    mMandCondArray(network.max_fault_id())
 {
   if ( option.is_object() &&
        option.has_key("debug") ) {
@@ -78,6 +82,7 @@ FaultReducer::run(
 {
   gen_dom_cands(fault_list, tv_list);
   auto fault_list1 = ffr_reduction(fault_list);
+  //fault_analysis(fault_list1);
   return global_reduction(fault_list1);
 }
 
@@ -186,6 +191,65 @@ FaultReducer::gen_dom_cands(
       n += mDomCandListArray[f->id()].size();
     }
     cout << "Total Candidates:                      " << n << endl;
+    cout << "CPU time:                              " << timer.get_time() << endl;
+  }
+}
+
+// @brief 故障の解析を行う．
+void
+FaultReducer::fault_analysis(
+  const vector<const TpgFault*>& fault_list
+)
+{
+  Timer timer;
+  if ( mDebug ) {
+    cout << "---------------------------------------" << endl;
+    timer.start();
+  }
+  // FFR 番号をキーにして関係する故障のリストを保持する辞書
+  unordered_map<SizeType, vector<const TpgFault*>> ffr_fault_list_map;
+  vector<const TpgFFR*> ffr_list;
+  for ( auto fault: fault_list ) {
+    auto ffr = mNetwork.ffr(fault);
+    auto ffr_id = ffr->id();
+    if ( ffr_fault_list_map.count(ffr_id) == 0 ) {
+      ffr_fault_list_map.emplace(ffr_id, vector<const TpgFault*>{fault});
+      ffr_list.push_back(ffr);
+    }
+    else {
+      ffr_fault_list_map.at(ffr_id).push_back(fault);
+    }
+  }
+  // FFR 単位で処理を行う．
+  for ( auto ffr: ffr_list ) {
+    BaseEnc base_enc{mNetwork, mOption};
+    auto bd_enc = new BoolDiffEnc{base_enc, ffr->root(), mOption};
+    base_enc.make_cnf({}, {ffr->root()});
+    for ( auto fault: ffr_fault_list_map.at(ffr->id()) ) {
+      auto ffr_cond = fault->ffr_propagate_condition();
+      auto assumptions = base_enc.conv_to_literal_list(ffr_cond);
+      assumptions.push_back(bd_enc->prop_var());
+      auto res = base_enc.solver().solve(assumptions);
+      ASSERT_COND( res == SatBool3::True );
+      auto suff_cond = bd_enc->extract_sufficient_condition();
+      mSuffCondArray[fault->id()] = suff_cond;
+      NodeTimeValList mand_cond;
+      auto assumptions1 = assumptions;
+      assumptions1.push_back(SatLiteral::X);
+      for ( auto nv: suff_cond ) {
+	auto lit = base_enc.conv_to_literal(nv);
+	assumptions1.back() = ~lit;
+	auto res = base_enc.solver().solve(assumptions1);
+	if ( res != SatBool3::True ) {
+	  mand_cond.add(nv);
+	}
+      }
+      mMandCondArray[fault->id()] = mand_cond;
+    }
+  }
+
+  if ( mDebug ) {
+    timer.stop();
     cout << "CPU time:                              " << timer.get_time() << endl;
   }
 }
