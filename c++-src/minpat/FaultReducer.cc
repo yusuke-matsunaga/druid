@@ -121,16 +121,16 @@ FaultReducer::ffr_reduction(
 
     // 支配関係を調べ，代表故障のみを残す．
     for ( auto fault1: ffr_fault_list ) {
-      if ( mDelMark[fault1->id()] ) {
+      if ( is_deleted(fault1) ) {
 	continue;
       }
       auto fault1_root = fault1->ffr_root();
       vector<const TpgFault*> fault2_list;
       for ( auto fault2: mDomCandListArray[fault1->id()] ) {
-	if ( fault2->ffr_root() == fault1_root && !mDelMark[fault2->id()] ) {
+	if ( fault2->ffr_root() == fault1_root && !is_deleted(fault2) ) {
 	  ++ check_num;
 	  if ( checker.check(fault1, fault2) ) {
-	    mDelMark[fault2->id()] = true;
+	    set_deleted(fault2);
 	    ++ success_num;
 	  }
 	}
@@ -140,7 +140,7 @@ FaultReducer::ffr_reduction(
 
   vector<const TpgFault*> ans_list;
   for ( auto fault: fault_list ) {
-    if ( !mDelMark[fault->id()] ) {
+    if ( !is_deleted(fault) ) {
       ans_list.push_back(fault);
     }
   }
@@ -189,105 +189,6 @@ FaultReducer::gen_dom_cands(
     cout << "CPU time:                              " << timer.get_time() << endl;
   }
 }
-
-#if 0
-// @brief 異なる FFR 間の支配故障のチェックを行う．
-vector<const TpgFault*>
-FaultReducer::global_reduction(
-  const vector<const TpgFault*>& fault_list
-)
-{
-  Timer timer;
-  if ( mDebug ) {
-    cout << "---------------------------------------" << endl;
-    timer.start();
-  }
-
-  // チェックが必要な故障を持つFFRのリスト
-  vector<const TpgFFR*> ffr_list;
-  // FFR番号をキーにして関連する故障のリストを持つ辞書
-  unordered_map<SizeType, vector<const TpgFault*>> ffr_fault_list_map;
-  for ( auto fault: fault_list ) {
-    auto ffr = mNetwork.ffr(fault);
-    if ( ffr_fault_list_map.count(ffr->id()) == 0 ) {
-      ffr_fault_list_map.emplace(ffr->id(), vector<const TpgFault*>{});
-      ffr_list.push_back(ffr);
-    }
-    ffr_fault_list_map.at(ffr->id()).push_back(fault);
-  }
-
-  SizeType check_num = 0;
-  SizeType dom_num = 0;
-  SizeType success_num = 0;
-  for ( auto ffr1: ffr_list ) {
-    // ffr1 に含まれる故障の被支配故障の候補が属するFFRを求める．
-    vector<const TpgFFR*> ffr2_list;
-    unordered_set<SizeType> ffr2_mark;
-    // 故障番号とFFR番号のペアをキーにして故障のリストを保持する辞書
-    unordered_map<Key, vector<const TpgFault*>> fault2_list_map;
-    for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
-      if ( mDelMark[fault1->id()] ) {
-	continue;
-      }
-      for ( auto fault2: mDomCandListArray[fault1->id()] ) {
-	if ( mDelMark[fault2->id()] ) {
-	  continue;
-	}
-	auto ffr2 = mNetwork.ffr(fault2);
-	if ( ffr2 == ffr1 ) {
-	  continue;
-	}
-	if ( ffr2_mark.count(ffr2->id()) == 0 ) {
-	  ffr2_mark.emplace(ffr2->id());
-	  ffr2_list.push_back(ffr2);
-	}
-	auto key = Key{fault1->id(), ffr2->id()};
-	if ( fault2_list_map.count(key) == 0 ) {
-	  fault2_list_map.emplace(key, vector<const TpgFault*>{});
-	}
-	fault2_list_map.at(key).push_back(fault2);
-      }
-    }
-    vector<const TpgFault*> fault2_list;
-    for ( auto ffr2: ffr2_list ) {
-      ++ dom_num;
-      DomChecker dom_checker{mNetwork, ffr1, ffr2, mOption};
-      for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
-	if ( mDelMark[fault1->id()] ) {
-	  continue;
-	}
-	// fault1 の被支配故障の候補のうち ffr2 に関係するものを集める．
-	auto key = Key{fault1->id(), ffr2->id()};
-	if ( fault2_list_map.count(key) > 0 ) {
-	  auto& fault2_list = fault2_list_map.at(key);
-	  ++ check_num;
-	  success_num += dom_checker.check(fault1, fault2_list, mDelMark);
-	}
-      }
-    }
-  }
-
-  vector<const TpgFault*> ans_list;
-  for ( auto fault: fault_list ) {
-    if ( !mDelMark[fault->id()] ) {
-      ans_list.push_back(fault);
-    }
-  }
-
-  if ( mDebug ) {
-    timer.stop();
-    SizeType n = ans_list.size();
-    cout << "after global dominance reduction:      " << n << endl;
-    cout << "    # of total checkes:                " << check_num << endl
-	 << "    # of total successes:              " << success_num << endl
-	 << "    # of DomCheckers:                  " << dom_num << endl
-	 << "CPU time:                              " << timer.get_time() << endl;
-  }
-
-  return ans_list;
-}
-
-#else
 
 // @brief 異なる FFR 間の支配故障のチェックを行う．
 vector<const TpgFault*>
@@ -338,11 +239,11 @@ FaultReducer::global_reduction(
     // 故障番号とFFR番号のペアをキーにして故障のリストを保持する辞書
     unordered_map<Key, vector<const TpgFault*>> fault2_list_map;
     for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
-      if ( mDelMark[fault1->id()] ) {
+      if ( is_deleted(fault1) ) {
 	continue;
       }
       for ( auto fault2: mDomCandListArray[fault1->id()] ) {
-	if ( mDelMark[fault2->id()] ) {
+	if ( is_deleted(fault2) ) {
 	  continue;
 	}
 	auto ffr2 = mNetwork.ffr(fault2);
@@ -377,13 +278,11 @@ FaultReducer::global_reduction(
     }
     ++ dom1_num;
     SimpleDomChecker checker1{mNetwork, ffr1, fault2_list, mOption};
-#if 1
     for ( auto ffr2: ffr2_list ) {
       ++ dom2_num;
-      //DomChecker checker2{mNetwork, ffr1, ffr2, mOption};
-      DomChecker2 checker2{mNetwork, ffr1, {ffr2}, mOption};
+      DomChecker checker2{mNetwork, ffr1, ffr2, mOption};
       for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
-	if ( mDelMark[fault1->id()] ) {
+	if ( is_deleted(fault1) ) {
 	  continue;
 	}
 	auto key = Key{fault1->id(), ffr2->id()};
@@ -392,57 +291,27 @@ FaultReducer::global_reduction(
 	}
 	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
 	++ check2_num;
-	if ( checker2.check(fault1, ffr2) ) {
-	  // fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
-	  auto& fault2_list = fault2_list_map.at(key);
-	  for ( auto fault2: fault2_list ) {
-	    if ( mDelMark[fault2->id()] ) {
-	      continue;
-	    }
-	    ++ check1_num;
-	    if ( checker1.check(fault1, fault2) ) {
-	      mDelMark[fault2->id()] = true;
-	      ++ success_num;
-	    }
+	if ( !checker2.check(fault1) ) {
+	  continue;
+	}
+	// fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
+	auto& fault2_list = fault2_list_map.at(key);
+	for ( auto fault2: fault2_list ) {
+	  if ( is_deleted(fault2) ) {
+	    continue;
+	  }
+	  ++ check1_num;
+	  if ( checker1.check(fault1, fault2) ) {
+	    set_deleted(fault2);
+	    ++ success_num;
 	  }
 	}
       }
     }
-#else
-    ++ dom2_num;
-    DomChecker2 checker2{mNetwork, ffr1, ffr2_list, mOption};
-    for ( auto ffr2: ffr2_list ) {
-      for ( auto fault1: ffr_fault_list_map.at(ffr1->id()) ) {
-	if ( mDelMark[fault1->id()] ) {
-	  continue;
-	}
-	auto key = Key{fault1->id(), ffr2->id()};
-	if ( fault2_list_map.count(key) == 0 ) {
-	  continue;
-	}
-	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
-	++ check2_num;
-	if ( checker2.check(fault1, ffr2) ) {
-	  // fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
-	  auto& fault2_list = fault2_list_map.at(key);
-	  for ( auto fault2: fault2_list ) {
-	    if ( mDelMark[fault2->id()] ) {
-	      continue;
-	    }
-	    ++ check1_num;
-	    if ( checker1.check(fault1, fault2) ) {
-	      mDelMark[fault2->id()] = true;
-	      ++ success_num;
-	    }
-	  }
-	}
-      }
-    }
-#endif
   }
   vector<const TpgFault*> ans_list;
   for ( auto fault: fault_list ) {
-    if ( !mDelMark[fault->id()] ) {
+    if ( !is_deleted(fault) ) {
       ans_list.push_back(fault);
     }
   }
@@ -461,7 +330,6 @@ FaultReducer::global_reduction(
 
   return ans_list;
 }
-#endif
 
 #if 0
 // @brief 故障の支配関係を調べて故障リストを縮約する．

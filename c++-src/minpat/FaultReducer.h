@@ -75,6 +75,33 @@ private:
     const vector<const TpgFault*>& fault_list
   );
 
+  /// @brief fault に支配されている故障の候補リストを返す．
+  const vector<const TpgFault*>&
+  dom_cand_list(
+    const TpgFault* fault
+  ) const
+  {
+    return mDomCandListArray[fault->id()];
+  }
+
+  /// @brief fault が削除されているか調べる．
+  bool
+  is_deleted(
+    const TpgFault* fault
+  ) const
+  {
+    return mDelMark[fault->id()];
+  }
+
+  /// @brief fault に削除された印をつける．
+  void
+  set_deleted(
+    const TpgFault* fault
+  )
+  {
+    mDelMark[fault->id()] = true;
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
