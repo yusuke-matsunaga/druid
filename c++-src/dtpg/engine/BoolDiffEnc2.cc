@@ -70,6 +70,7 @@ BoolDiffEnc2::make_cnf()
       mFvarMap.set_vid(inode, glit);
     }
   }
+  // 故障伝搬の可能性のあるノードに新しい変数を割り当てる．
   for ( auto node: mTfoList ) {
     auto flit = solver().new_variable(true);
     auto dlit = solver().new_variable(false);
@@ -88,11 +89,17 @@ BoolDiffEnc2::make_cnf()
   GateEnc fval_enc{solver(), mFvarMap};
   for ( auto node: mTfoList ) {
     if ( mRootMap.count(node->id()) > 0 ) {
+      // 故障挿入箇所のノード
       SatLiteral olit;
-      if ( fvar(node) == SatLiteral::X ) {
+      bool has_fvar = false;
+      for ( auto inode: node->fanin_list() ) {
+	if ( fvar(inode) != SatLiteral::X ) {
+	  has_fvar = true;
+	  break;
+	}
+      }
+      if ( !has_fvar ) {
 	// node は最も入力側のノード
-	auto flit = solver().new_variable(true);
-	mFvarMap.set_vid(node, flit);
 	olit = gvar(node);
       }
       else {
