@@ -63,9 +63,7 @@ FaultReducer::FaultReducer(
 ) : mNetwork{network},
     mOption{option},
     mDomCandListArray(network.max_fault_id()),
-    mDelMark(network.max_fault_id()),
-    mSuffCondArray(network.max_fault_id()),
-    mMandCondArray(network.max_fault_id())
+    mFaultInfoArray(network.max_fault_id())
 {
   if ( option.is_object() &&
        option.has_key("debug") ) {
@@ -82,8 +80,13 @@ FaultReducer::run(
 {
   gen_dom_cands(fault_list, tv_list);
   auto fault_list1 = ffr_reduction(fault_list);
-  //fault_analysis(fault_list1);
+#if 0
+  fault_analysis(fault_list1);
+  auto fault_list2 = simple_global_reduction(fault_list1);
+  return global_reduction(fault_list2);
+#else
   return global_reduction(fault_list1);
+#endif
 }
 
 // @brief 同一FFR内の支配関係を用いて故障を削減する．
@@ -131,7 +134,7 @@ FaultReducer::ffr_reduction(
       }
       auto fault1_root = fault1->ffr_root();
       vector<const TpgFault*> fault2_list;
-      for ( auto fault2: mDomCandListArray[fault1->id()] ) {
+      for ( auto fault2: dom_cand_list(fault1) ) {
 	if ( fault2->ffr_root() == fault1_root && !is_deleted(fault2) ) {
 	  ++ check_num;
 	  if ( checker.check(fault1, fault2) ) {
@@ -188,7 +191,7 @@ FaultReducer::gen_dom_cands(
     timer.stop();
     SizeType n = 0;
     for ( auto f: fault_list ) {
-      n += mDomCandListArray[f->id()].size();
+      n += dom_cand_list(f).size();
     }
     cout << "Total Candidates:                      " << n << endl;
     cout << "CPU time:                              " << timer.get_time() << endl;
@@ -220,38 +223,126 @@ FaultReducer::fault_analysis(
       ffr_fault_list_map.at(ffr_id).push_back(fault);
     }
   }
+  SizeType nt = 0;
   // FFR 単位で処理を行う．
   for ( auto ffr: ffr_list ) {
     BaseEnc base_enc{mNetwork, mOption};
     auto bd_enc = new BoolDiffEnc{base_enc, ffr->root(), mOption};
     base_enc.make_cnf({}, {ffr->root()});
     for ( auto fault: ffr_fault_list_map.at(ffr->id()) ) {
+      auto& finfo = mFaultInfoArray[fault->id()];
       auto ffr_cond = fault->ffr_propagate_condition();
       auto assumptions = base_enc.conv_to_literal_list(ffr_cond);
       assumptions.push_back(bd_enc->prop_var());
       auto res = base_enc.solver().solve(assumptions);
       ASSERT_COND( res == SatBool3::True );
-      auto suff_cond = bd_enc->extract_sufficient_condition();
-      mSuffCondArray[fault->id()] = suff_cond;
-      NodeTimeValList mand_cond;
+      finfo.mSuffCond = bd_enc->extract_sufficient_condition();
       auto assumptions1 = assumptions;
       assumptions1.push_back(SatLiteral::X);
-      for ( auto nv: suff_cond ) {
+      for ( auto nv: finfo.mSuffCond ) {
 	auto lit = base_enc.conv_to_literal(nv);
 	assumptions1.back() = ~lit;
 	auto res = base_enc.solver().solve(assumptions1);
 	if ( res != SatBool3::True ) {
-	  mand_cond.add(nv);
+	  finfo.mMandCond.add(nv);
 	}
       }
-      mMandCondArray[fault->id()] = mand_cond;
+      finfo.mTrivial = compare(finfo.mSuffCond, finfo.mMandCond) == 3;
+      finfo.mSuffCond.merge(ffr_cond);
+      finfo.mMandCond.merge(ffr_cond);
+      if ( finfo.mTrivial ) {
+	++ nt;
+      }
     }
   }
 
   if ( mDebug ) {
     timer.stop();
+    cout << "# of Trivial Condition Faults:         " << nt << endl;
     cout << "CPU time:                              " << timer.get_time() << endl;
   }
+}
+
+// @brief 異なる FFR 館の支配故障のチェックを行う(簡易版)．
+vector<const TpgFault*>
+FaultReducer::simple_global_reduction(
+  const vector<const TpgFault*>& fault_list
+)
+{
+  Timer timer;
+  if ( mDebug ) {
+    cout << "---------------------------------------" << endl;
+    timer.start();
+  }
+
+  BaseEnc base_enc{mNetwork, mOption};
+  base_enc.make_cnf(mNetwork.node_list(), mNetwork.node_list());
+
+  SizeType check_num = 0;
+  SizeType success_num = 0;
+  unordered_map<SizeType, SatLiteral> cvar_map;
+  for ( auto fault1: fault_list ) {
+    if ( is_deleted(fault1) ) {
+      continue;
+    }
+#if 0
+    if ( !mFaultInfoArray[fault1->id()].mTrivial ) {
+      continue;
+    }
+#endif
+    auto cond1 = mandatory_condition(fault1);
+    auto assumptions = base_enc.conv_to_literal_list(cond1);
+    assumptions.push_back(SatLiteral::X);
+    for ( auto fault2: dom_cand_list(fault1) ) {
+      if ( is_deleted(fault2) ) {
+	continue;
+      }
+      if ( !mFaultInfoArray[fault2->id()].mTrivial ) {
+	continue;
+      }
+      SatLiteral clit;
+      if ( cvar_map.count(fault2->id()) > 0 ) {
+	clit = cvar_map.at(fault2->id());
+      }
+      else {
+	clit = base_enc.solver().new_variable(true);
+	cvar_map.emplace(fault2->id(), clit);
+	auto& cond2 = sufficient_condition(fault2);
+	vector<SatLiteral> tmp_lits;
+	tmp_lits.reserve(cond2.size() + 1);
+	tmp_lits.push_back(~clit);
+	for ( auto nv: cond2 ) {
+	  auto lit = base_enc.conv_to_literal(nv);
+	  tmp_lits.push_back(~lit);
+	}
+	base_enc.solver().add_clause(tmp_lits);
+      }
+      ++ check_num;
+      assumptions.back() = clit;
+      if ( base_enc.solver().solve(assumptions) == SatBool3::False ) {
+	set_deleted(fault2);
+	++ success_num;
+      }
+    }
+  }
+
+  vector<const TpgFault*> ans_list;
+  for ( auto fault: fault_list ) {
+    if ( !is_deleted(fault) ) {
+      ans_list.push_back(fault);
+    }
+  }
+
+  if ( mDebug ) {
+    timer.stop();
+    SizeType n = ans_list.size();
+    cout << "after global dominance reduction:      " << n << endl;
+    cout << "    # of total checkes:                " << check_num << endl
+	 << "    # of total successes:              " << success_num << endl
+	 << "CPU time:                              " << timer.get_time() << endl;
+  }
+
+  return ans_list;
 }
 
 // @brief 異なる FFR 間の支配故障のチェックを行う．
@@ -306,7 +397,7 @@ FaultReducer::global_reduction(
       if ( is_deleted(fault1) ) {
 	continue;
       }
-      for ( auto fault2: mDomCandListArray[fault1->id()] ) {
+      for ( auto fault2: dom_cand_list(fault1) ) {
 	if ( is_deleted(fault2) ) {
 	  continue;
 	}
@@ -374,16 +465,20 @@ FaultReducer::global_reduction(
     }
   }
   vector<const TpgFault*> ans_list;
+  SizeType nt = 0;
   for ( auto fault: fault_list ) {
     if ( !is_deleted(fault) ) {
       ans_list.push_back(fault);
+      if ( mFaultInfoArray[fault->id()].mTrivial ) {
+	++ nt;
+      }
     }
   }
 
   if ( mDebug ) {
     timer.stop();
     SizeType n = ans_list.size();
-    cout << "after global dominance reduction:      " << n << endl;
+    cout << "after global dominance reduction:      " << n << "(" << nt << ")" << endl;
     cout << "    # of total checkes(1):             " << check1_num << endl
 	 << "    # of total checkes(2):             " << check2_num << endl
 	 << "    # of total successes:              " << success_num << endl
@@ -499,7 +594,7 @@ FaultReducer::dom_reduction1()
 	// fault1 が fault2 の起点に関係ない．
 	continue;
       }
-      // fault1 が fault2 の mDomCandList に含まれるか調べる．
+      // fault1 が fault2 の dom_cand_list に含まれるか調べる．
       bool found = false;
       for ( auto fault3: mDomCandList[fault2->id()] ) {
 	if ( fault3 == fault1 ) {

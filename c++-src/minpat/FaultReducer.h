@@ -77,6 +77,12 @@ private:
     const vector<const TpgFault*>& fault_list
   );
 
+  /// @brief 異なる FFR 館の支配故障のチェックを行う(簡易版)．
+  vector<const TpgFault*>
+  simple_global_reduction(
+    const vector<const TpgFault*>& fault_list
+  );
+
   /// @brief 異なる FFR 間の支配故障のチェックを行う．
   vector<const TpgFault*>
   global_reduction(
@@ -98,7 +104,7 @@ private:
     const TpgFault* fault
   ) const
   {
-    return mDelMark[fault->id()];
+    return mFaultInfoArray[fault->id()].mDelMark;
   }
 
   /// @brief fault に削除された印をつける．
@@ -107,7 +113,25 @@ private:
     const TpgFault* fault
   )
   {
-    mDelMark[fault->id()] = true;
+    mFaultInfoArray[fault->id()].mDelMark = true;
+  }
+
+  /// @brief fault の十分条件を得る．
+  const NodeTimeValList&
+  sufficient_condition(
+    const TpgFault* fault
+  ) const
+  {
+    return mFaultInfoArray[fault->id()].mSuffCond;
+  }
+
+  /// @brief fault の必要条件を得る．
+  const NodeTimeValList&
+  mandatory_condition(
+    const TpgFault* fault
+  ) const
+  {
+    return mFaultInfoArray[fault->id()].mMandCond;
   }
 
 
@@ -115,6 +139,18 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // 故障に関する追加情報
+  struct FaultInfo {
+    // 削除マーク
+    bool mDelMark{false};
+    // 十分条件
+    NodeTimeValList mSuffCond;
+    // 必要条件
+    NodeTimeValList mMandCond;
+    // 十分条件と必要条件が等しいとき true
+    bool mTrivial{false};
+  };
 
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
@@ -126,17 +162,9 @@ private:
   // キーは故障番号
   vector<vector<const TpgFault*>> mDomCandListArray;
 
-  // 削除マークの配列
+  // 故障情報の配列
   // キーは故障番号
-  vector<bool> mDelMark;
-
-  // 故障の十分割り当ての配列
-  // キーは故障番号
-  vector<NodeTimeValList> mSuffCondArray;
-
-  // 故障の必須割り当ての配列
-  // キーは故障番号
-  vector<NodeTimeValList> mMandCondArray;
+  vector<FaultInfo> mFaultInfoArray;
 
   // デバッグフラグ
   bool mDebug{false};

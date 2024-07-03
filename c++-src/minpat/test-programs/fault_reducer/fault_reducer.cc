@@ -278,6 +278,9 @@ fault_reducer(
     }
   }
 
+  cout << "Total faults: " << det_fault_list.size() << endl
+       << "CPU time:     " << time << endl;
+
   if ( naive ) {
     SizeType n = det_fault_list.size();
     vector<bool> deleted(n, false);
