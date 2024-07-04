@@ -296,7 +296,7 @@ FaultReducer::trivial_reduction1(
       }
       auto cond2 = mandatory_condition(fault2);
       ++ check_num;
-      if ( checker.check(cond1, fault2, cond2) ) {
+      if ( checker.check(cond1, cond2) ) {
 	if ( 0 ) {
 	  NaiveDomChecker checker2{mNetwork, fault1, fault2, mOption};
 	  if ( !checker2.check() ) {
@@ -414,32 +414,33 @@ FaultReducer::trivial_reduction3(
     timer.start();
   }
 
-  FFRFaultList ffr_fault_list{mNetwork, fault_list};
-
   SizeType check1_num = 0;
   SizeType check2_num = 0;
   SizeType dom1_num = 0;
   SizeType dom2_num = 0;
   SizeType success_num = 0;
-  SizeType nffr = ffr_fault_list.ffr_list().size();
-  SizeType ffr_count = 0;
-  for ( auto ffr1: ffr_fault_list.ffr_list() ) {
+
+  FFRFaultList ffr_fault_list{mNetwork, fault_list};
+
+  for ( auto rpos = fault_list.begin(); rpos != fault_list.end(); ) {
     // 支配故障の候補リスト
     vector<const TpgFault*> fault1_list;
     // 被支配故障の候補の可能性のある故障のリスト
     vector<const TpgFault*> fault2_list;
     // fault2_list のマーク
     vector<bool> fault2_mark(mNetwork.max_fault_id(), false);
-    // ffr1 に含まれる故障の被支配故障の候補が属するFFRを求める．
+    // 被支配故障の候補が属するFFRのリスト
     vector<const TpgFFR*> ffr2_list;
     unordered_set<SizeType> ffr2_mark;
     // 故障番号とFFR番号のペアをキーにして故障のリストを保持する辞書
     unordered_map<Key, vector<const TpgFault*>> fault2_list_map;
-    for ( auto fault1: ffr_fault_list.fault_list(ffr1) ) {
+    for ( ; fault1_list.size() < 50 && rpos != fault_list.end(); ++ rpos ) {
+      auto fault1 = *rpos;
       if ( is_deleted(fault1) || !is_trivial(fault1) ) {
 	continue;
       }
       fault1_list.push_back(fault1);
+      auto ffr1 = mNetwork.ffr(fault1);
       for ( auto fault2: dom_cand_list(fault1) ) {
 	if ( is_deleted(fault2) || is_trivial(fault2) ) {
 	  continue;
@@ -463,13 +464,13 @@ FaultReducer::trivial_reduction3(
 	}
 	fault2_list_map.at(key).push_back(fault2);
       }
+      if ( fault2_list.empty() ) {
+	continue;
+      }
     }
-    if ( fault2_list.empty() ) {
-      continue;
-    }
-    ++ dom1_num;
     auto tmp_list{fault2_list};
     tmp_list.insert(tmp_list.end(), fault1_list.begin(), fault1_list.end());
+    ++ dom1_num;
     TrivialChecker1 checker1{mNetwork, tmp_list, mOption};
     for ( auto ffr2: ffr2_list ) {
       ++ dom2_num;
@@ -493,7 +494,7 @@ FaultReducer::trivial_reduction3(
 	  }
 	  ++ check1_num;
 	  auto cond2 = fault2->ffr_propagate_condition();
-	  if ( checker1.check(cond1, fault2, cond2) ) {
+	  if ( checker1.check(cond1, cond2) ) {
 	    set_deleted(fault2);
 	    ++ success_num;
 	  }

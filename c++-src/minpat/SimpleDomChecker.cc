@@ -49,26 +49,15 @@ SimpleDomChecker::check(
   auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond1);
   assumptions.push_back(mBdEnc1->prop_var());
   assumptions.push_back(SatLiteral::X); // プレースホルダ
-
-  SatLiteral clit;
-  if ( mCVarMap.count(fault2->id()) == 0 ) {
-    auto ffr_cond2 = fault2->ffr_propagate_condition();
-    clit = mBaseEnc.solver().new_variable(true);
-    mCVarMap.emplace(fault2->id(), clit);
-    vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(ffr_cond2.size() + 1);
-    tmp_lits.push_back(~clit);
-    for ( auto nv: ffr_cond2 ) {
-      auto lit = mBaseEnc.conv_to_literal(nv);
-      tmp_lits.push_back(~lit);
+  auto ffr_cond2 = fault2->ffr_propagate_condition();
+  for ( auto nv: ffr_cond2 ) {
+    auto lit = mBaseEnc.conv_to_literal(nv);
+    assumptions.back() = ~lit;
+    if ( mBaseEnc.solver().solve(assumptions) != SatBool3::False ) {
+      return false;
     }
-    mBaseEnc.solver().add_clause(tmp_lits);
   }
-  else {
-    clit = mCVarMap.at(fault2->id());
-  }
-  assumptions[assumptions.size() - 1] = clit;
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+  return true;
 }
 
 END_NAMESPACE_DRUID

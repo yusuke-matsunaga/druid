@@ -52,7 +52,6 @@ public:
   bool
   check(
     const NodeTimeValList& cond1, ///< [in] 支配故障の検出条件
-    const TpgFault* fault2,       ///< [in] 被支配故障の候補
     const NodeTimeValList& cond2  ///< [in] 被支配故障の検出条件
   );
 
@@ -64,9 +63,6 @@ private:
 
   // 基本のエンコーダ
   BaseEnc mBaseEnc;
-
-  // 故障番号をキーとして制御変数を格納する辞書
-  unordered_map<SizeType, SatLiteral> mVarMap;
 
 };
 

@@ -46,29 +46,19 @@ TrivialChecker1::~TrivialChecker1()
 bool
 TrivialChecker1::check(
   const NodeTimeValList& cond1,
-  const TpgFault* fault2,
   const NodeTimeValList& cond2
 )
 {
   auto assumptions = mBaseEnc.conv_to_literal_list(cond1);
-  SatLiteral clit;
-  if ( mVarMap.count(fault2->id()) == 0 ) {
-    clit = mBaseEnc.solver().new_variable(true);
-    mVarMap.emplace(fault2->id(), clit);
-    vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(cond2.size() + 1);
-    tmp_lits.push_back(~clit);
-    for ( auto nv: cond2 ) {
-      auto lit = mBaseEnc.conv_to_literal(nv);
-      tmp_lits.push_back(~lit);
+  assumptions.push_back(SatLiteral::X);
+  for ( auto nv: cond2 ) {
+    auto lit = mBaseEnc.conv_to_literal(nv);
+    assumptions.back() = ~lit;
+    if ( mBaseEnc.solver().solve(assumptions) != SatBool3::False ) {
+      return false;
     }
-    mBaseEnc.solver().add_clause(tmp_lits);
   }
-  else {
-    clit = mVarMap.at(fault2->id());
-  }
-  assumptions.push_back(clit);
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+  return true;
 }
 
 END_NAMESPACE_DRUID

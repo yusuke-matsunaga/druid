@@ -78,8 +78,6 @@ private:
   // mFFR1 用の BoolDiffエンコーダ
   BoolDiffEnc* mBdEnc1;
 
-  // fault2 の故障番号をキーにして制御変数を保持する辞書
-  unordered_map<SizeType, SatLiteral> mCVarMap;
 };
 
 END_NAMESPACE_DRUID
