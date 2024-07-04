@@ -81,7 +81,7 @@ public:
   /// @brief 値割り当てのリストを対応するリテラルのリストに変換する．
   vector<SatLiteral>
   conv_to_literal_list(
-    NodeTimeValList& assign_list ///< [in] 値割り当てのリスト
+    const NodeTimeValList& assign_list ///< [in] 値割り当てのリスト
   );
 
   /// @brief 対象のネットワークを得る．

@@ -212,7 +212,7 @@ BaseEnc::conv_to_literal(
 // @brief 値割り当てのリストを対応するリテラルのリストに変換する．
 vector<SatLiteral>
 BaseEnc::conv_to_literal_list(
-  NodeTimeValList& assign_list
+  const NodeTimeValList& assign_list
 )
 {
   vector<SatLiteral> ans_list;
