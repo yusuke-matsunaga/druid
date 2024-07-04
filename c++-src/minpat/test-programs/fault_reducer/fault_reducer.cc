@@ -129,6 +129,7 @@ fault_reducer(
   bool naive2 = false;
   bool se = false;
   bool verbose = false;
+  bool analyze = true;
   string just_type;
   int loop = 1;
 
@@ -209,6 +210,12 @@ fault_reducer(
       }
       else if ( strcmp(argv[pos], "--naive2") == 0 ) {
 	naive2 = true;
+      }
+      else if ( strcmp(argv[pos], "--analyze") == 0 ) {
+	analyze = true;
+      }
+      else if ( strcmp(argv[pos], "--no-analyze") == 0 ) {
+	analyze = false;
       }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
@@ -351,6 +358,7 @@ fault_reducer(
     unordered_map<string, JsonValue> fr_option_dict;
     fr_option_dict.emplace("debug", JsonValue{true});
     fr_option_dict.emplace("loop_limit", JsonValue{loop});
+    fr_option_dict.emplace("analyze", JsonValue{analyze});
     JsonValue fr_option{fr_option_dict};
     FaultReducer fr{network, fr_option};
 

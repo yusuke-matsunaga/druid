@@ -77,16 +77,29 @@ private:
     const vector<const TpgFault*>& fault_list
   );
 
-  /// @brief 異なる FFR 館の支配故障のチェックを行う(簡易版)．
+  /// @brief trivial な故障間の支配関係のチェックを行う．
   vector<const TpgFault*>
-  simple_global_reduction(
+  trivial_reduction1(
+    const vector<const TpgFault*>& fault_list
+  );
+
+  /// @brief trivial な故障に支配されている場合のチェックを行う．
+  vector<const TpgFault*>
+  trivial_reduction2(
+    const vector<const TpgFault*>& fault_list
+  );
+
+  /// @brief trivial な故障が支配されている場合のチェックを行う．
+  vector<const TpgFault*>
+  trivial_reduction3(
     const vector<const TpgFault*>& fault_list
   );
 
   /// @brief 異なる FFR 間の支配故障のチェックを行う．
   vector<const TpgFault*>
   global_reduction(
-    const vector<const TpgFault*>& fault_list
+    const vector<const TpgFault*>& fault_list,
+    bool skip_trivial
   );
 
   /// @brief fault に支配されている故障の候補リストを返す．
@@ -96,6 +109,15 @@ private:
   ) const
   {
     return mDomCandListArray[fault->id()];
+  }
+
+  /// @brief fault を支配する故障の候補リストを返す．
+  const vector<const TpgFault*>&
+  rev_cand_list(
+    const TpgFault* fault
+  ) const
+  {
+    return mFaultInfoArray[fault->id()].mRevCandList;
   }
 
   /// @brief fault が削除されているか調べる．
@@ -114,6 +136,15 @@ private:
   )
   {
     mFaultInfoArray[fault->id()].mDelMark = true;
+  }
+
+  /// @brief trivial fault か調べる．
+  bool
+  is_trivial(
+    const TpgFault* fault
+  )
+  {
+    return mFaultInfoArray[fault->id()].mTrivial;
   }
 
   /// @brief fault の十分条件を得る．
@@ -144,12 +175,14 @@ private:
   struct FaultInfo {
     // 削除マーク
     bool mDelMark{false};
+    // 十分条件と必要条件が等しいとき true
+    bool mTrivial{false};
+    // 支配故障の候補リスト
+    vector<const TpgFault*> mRevCandList;
     // 十分条件
     NodeTimeValList mSuffCond;
     // 必要条件
     NodeTimeValList mMandCond;
-    // 十分条件と必要条件が等しいとき true
-    bool mTrivial{false};
   };
 
   // 対象のネットワーク
