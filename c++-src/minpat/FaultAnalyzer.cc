@@ -26,7 +26,7 @@ FaultAnalyzer::FaultAnalyzer(
 }
 
 // @brief 故障検出の十分条件と必要条件を求める．
-void
+bool
 FaultAnalyzer::extract_condition(
   const TpgFault* fault,
   NodeTimeValList& sufficient_condition,
@@ -47,6 +47,7 @@ FaultAnalyzer::extract_condition(
   tmp_cond.diff(ffr_mand_cond);
   auto assumptions1{assumptions};
   assumptions1.push_back(SatLiteral::X);
+  bool trivial = true;
   for ( auto nv: tmp_cond ) {
     auto lit = mBaseEnc.conv_to_literal(nv);
     assumptions1.back() = ~lit;
@@ -54,10 +55,14 @@ FaultAnalyzer::extract_condition(
     if ( res == SatBool3::False ) {
       mandatory_condition.add(nv);
     }
+    else {
+      trivial = false;
+    }
   }
   sufficient_condition.merge(ffr_cond);
   mandatory_condition.merge(ffr_cond);
   mandatory_condition.merge(ffr_mand_cond);
+  return trivial;
 }
 
 // @brief FFR の根の故障伝搬の必要条件を求める．

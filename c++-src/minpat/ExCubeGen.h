@@ -26,6 +26,8 @@ BEGIN_NAMESPACE_DRUID
 /// 故障検出できるキューブのこと
 ///
 /// パラメータ
+/// - "debug":          bool   デバッグフラグ
+/// - "cube_per_fault"  int    1故障あたりのキューブ数の上限
 /// - "dtpg":           object DTPG用の初期化パラメータ
 //////////////////////////////////////////////////////////////////////
 class ExCubeGen
@@ -36,7 +38,6 @@ public:
   ExCubeGen(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
     const TpgFFR* ffr,                    ///< [in] 対象の FFR
-    SizeType cube_per_fault,              ///< [in] 1故障あたりのキューブ数の上限
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
@@ -67,6 +68,9 @@ private:
   // FFR
   const TpgFFR* mFFR;
 
+  // DTPG 用のオプション
+  JsonValue mDtpgOption;
+
   // 基本エンコーダ
   BaseEnc mBaseEnc;
 
@@ -75,6 +79,9 @@ private:
 
   // 上限値
   SizeType mLimit;
+
+  // デバッグフラグ
+  bool mDebug{false};
 
 };
 

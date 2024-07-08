@@ -127,7 +127,9 @@ testcube_gen(
   bool verbose = false;
   string just_type;
   int loop = 1;
-  int cube_per_fault = 1;
+  int cube_per_fault = 300;
+  bool debug_fault_reduce = false;
+  bool debug_testcube_gen = false;
 
   argv0 = argv[0];
 
@@ -214,6 +216,16 @@ testcube_gen(
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
+      else if ( strcmp(argv[pos], "--debug-all") == 0 ) {
+	debug_fault_reduce = true;
+	debug_testcube_gen = true;
+      }
+      else if ( strcmp(argv[pos], "--debug-fault_reduce") == 0 ) {
+	debug_fault_reduce = true;
+      }
+      else if ( strcmp(argv[pos], "--debug-testcube_gen") == 0 ) {
+	debug_testcube_gen = true;
+      }
       else {
 	cerr << argv[pos] << ": illegal option" << endl;
 	usage();
@@ -283,7 +295,9 @@ testcube_gen(
   }
 
   unordered_map<string, JsonValue> fr_option_dict;
-  fr_option_dict.emplace("debug", JsonValue{true});
+  if ( debug_fault_reduce ) {
+    fr_option_dict.emplace("debug", JsonValue{true});
+  }
   fr_option_dict.emplace("loop_limit", JsonValue{loop});
   JsonValue fr_option{fr_option_dict};
   FaultReducer fr{network, fr_option};
@@ -300,6 +314,9 @@ testcube_gen(
   timer.start();
 
   unordered_map<string, JsonValue> tcg_option_dict;
+  if ( debug_testcube_gen ) {
+    tcg_option_dict.emplace("debug", JsonValue{true});
+  }
   if ( cube_per_fault > 1 ) {
     tcg_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
   }

@@ -27,7 +27,6 @@ vector<TestVector>
 testcube_gen1(
   const TpgNetwork& network,
   const vector<FaultInfo>& fault_list,
-  SizeType cube_per_fault,
   const JsonValue& option
 )
 {
@@ -43,6 +42,9 @@ testcube_gen1(
   SizeType nffr = network.ffr_num();
   vector<vector<FaultInfo>> ffr_fault_list(nffr);
   for ( auto& finfo: fault_list ) {
+    if ( finfo.is_trivial() ) {
+      continue;
+    }
     auto fault = finfo.fault();
     auto root = fault->ffr_root();
     auto id = ffr_map.at(root->id());
@@ -51,7 +53,7 @@ testcube_gen1(
 
   vector<TestVector> tv_list;
   for ( auto ffr: network.ffr_list() ) {
-    ExCubeGen gen{network, ffr, cube_per_fault, option};
+    ExCubeGen gen{network, ffr, option};
     for ( auto& finfo: ffr_fault_list[ffr->id()] ) {
       gen.run(finfo);
     }
@@ -118,19 +120,8 @@ TestCubeGen::run(
   const JsonValue& option
 )
 {
-  JsonValue dtpg_option;
-  SizeType cube_per_fault = 1;
-  if ( option.is_object() ) {
-    if ( option.has_key("cube_per_fault") ) {
-      auto val = option.get("cube_per_fault");
-      cube_per_fault = val.get_int();
-    }
-    if ( option.has_key("dtpg") ) {
-      dtpg_option = option.get("dtpg");
-    }
-  }
   vector<TestVector> tv_list;
-  tv_list = testcube_gen1(network, fault_list, cube_per_fault, dtpg_option);
+  tv_list = testcube_gen1(network, fault_list, option);
 
   // 同一のパタンを取り除く．
   SizeType n0 = tv_list.size();

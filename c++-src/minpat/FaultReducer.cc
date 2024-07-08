@@ -109,7 +109,8 @@ FaultReducer::run(
     auto& info = mFaultInfoArray[fault->id()];
     auto mand_cond = info.mMandCond;
     auto suff_cond = info.mSuffCond;
-    ans_list.push_back(FaultInfo{fault, mand_cond, suff_cond});
+    auto trivial = info.mTrivial;
+    ans_list.push_back(FaultInfo{fault, mand_cond, suff_cond, trivial});
   }
   return ans_list;
 }
@@ -242,8 +243,9 @@ FaultReducer::fault_analysis(
 	continue;
       }
       auto& finfo = mFaultInfoArray[fault->id()];
-      analyzer.extract_condition(fault, finfo.mSuffCond, finfo.mMandCond);
-      finfo.mTrivial = compare(finfo.mSuffCond, finfo.mMandCond) == 3;
+      finfo.mTrivial = analyzer.extract_condition(fault,
+						  finfo.mSuffCond,
+						  finfo.mMandCond);
       if ( finfo.mTrivial ) {
 	++ nt;
       }

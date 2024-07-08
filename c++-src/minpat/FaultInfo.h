@@ -27,12 +27,13 @@ public:
   FaultInfo(
     const TpgFault* fault,            ///< [in] 対象の故障
     const NodeTimeValList& mand_cond, ///< [in] 必要条件
-    const NodeTimeValList& suff_cond  ///< [in] 十分条件の一つ
+    const NodeTimeValList& suff_cond, ///< [in] 十分条件の一つ
+    bool trivial                      ///< [in] trivial フラグ
   ) : mFault{fault},
       mMandCond{mand_cond},
-      mSuffCondList{suff_cond}
+      mSuffCondList{suff_cond},
+      mTrivial{trivial}
   {
-    mTrivial = compare(mand_cond, suff_cond) == 3;
   }
 
   /// @brief デストラクタ

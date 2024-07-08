@@ -19,17 +19,40 @@
 
 BEGIN_NAMESPACE_DRUID
 
+BEGIN_NONAMESPACE
+
+JsonValue
+get_dtpg_option(
+  const JsonValue& option
+)
+{
+  if ( option.is_object() && option.has_key("dtpg") ) {
+    return option.get("dtpg");
+  }
+  return JsonValue{};
+}
+
+END_NONAMESPACE
+
 // @brief コンストラクタ
 ExCubeGen::ExCubeGen(
   const TpgNetwork& network,
   const TpgFFR* ffr,
-  SizeType cube_per_fault,
   const JsonValue& option
 ) : mFFR{ffr},
-    mBaseEnc{network, option},
-    mLimit{cube_per_fault}
+    mDtpgOption{get_dtpg_option(option)},
+    mBaseEnc{network, mDtpgOption}
 {
-  mBdEnc = new BoolDiffEnc{mBaseEnc, ffr->root(), option};
+  JsonValue dtpg_option;
+  if ( option.is_object() ) {
+    if ( option.has_key("cube_per_fault") ) {
+      mLimit = option.get("cube_per_fault").get_int();
+    }
+    if ( option.has_key("debug") ) {
+      mDebug = option.get("debug").get_bool();
+    }
+  }
+  mBdEnc = new BoolDiffEnc{mBaseEnc, ffr->root(), mDtpgOption};
   mBaseEnc.make_cnf({}, {ffr->root()});
 }
 
@@ -58,10 +81,9 @@ ExCubeGen::run(
   auto suff_cond = fault_info.sufficient_conditions().front();
   auto plit = mBdEnc->prop_var();
   auto clit = mBaseEnc.solver().new_variable(false);
-  cout << fault->str();
-  cout.flush();
   while ( fault_info.sufficient_conditions().size() < mLimit ) {
     suff_cond.diff(mand_cond);
+    ASSERT_COND( suff_cond.size() > 0 );
     // suff_cond を否定した節を加える．
     // ただし他の故障の処理のときには無効化したいので
     // 制御変数をつけておく．
@@ -78,17 +100,26 @@ ExCubeGen::run(
     assumptions.push_back(clit);
     auto res = mBaseEnc.solver().solve(assumptions);
     if ( res != SatBool3::True ) {
+      cout << fault->str() << endl;
+      if ( fault_info.sufficient_conditions().size() == 1 ) {
+	cout << "  original sufficient condition: "
+	     << fault_info.sufficient_conditions().front() << endl;
+	cout << "  diff: " << suff_cond << endl;
+      }
       break;
     }
     suff_cond = mBdEnc->extract_sufficient_condition();
     fault_info.add_sufficient_condition(suff_cond);
   }
-  auto n = fault_info.sufficient_conditions().size();
-  cout << " ";
-  if ( n == mLimit ) {
-    cout << ">";
+  if ( mDebug ) {
+    auto n = fault_info.sufficient_conditions().size();
+    cout << fault->str()
+	 << " ";
+    if ( n == mLimit ) {
+      cout << ">";
+    }
+    cout << n << " cubes" << endl;
   }
-  cout << n << " cubes" << endl;
 }
 
 END_NAMESPACE_DRUID

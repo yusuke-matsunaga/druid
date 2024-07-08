@@ -45,7 +45,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障検出の十分条件と必要条件を求める．
-  void
+  bool
   extract_condition(
     const TpgFault* fault,
     NodeTimeValList& sufficient_condition,
