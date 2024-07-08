@@ -72,6 +72,15 @@ public:
     return mTrivial;
   }
 
+  /// @brief 十分条件を追加する．
+  void
+  add_sufficient_condition(
+    const NodeTimeValList& cond
+  )
+  {
+    mSuffCondList.push_back(cond);
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////

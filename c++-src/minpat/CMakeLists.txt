@@ -37,8 +37,7 @@ set ( minpat_SOURCES
   NaiveDomChecker.cc
   NaiveDomChecker2.cc
   FFRFaultList.cc
-  #StructDomChecker.cc
-  #DcGraph.cc
+  ExCubeGen.cc
   )
 
 
