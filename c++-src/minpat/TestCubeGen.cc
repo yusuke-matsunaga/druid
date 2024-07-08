@@ -25,7 +25,7 @@ BEGIN_NONAMESPACE
 vector<TestVector>
 testcube_gen1(
   const TpgNetwork& network,
-  const vector<const TpgFault*>& fault_list,
+  const vector<FaultInfo>& fault_list,
   const JsonValue& option
 )
 {
@@ -40,10 +40,11 @@ testcube_gen1(
   // fault_list に含まれる故障を FFR ごとに分割する．
   SizeType nffr = network.ffr_num();
   vector<vector<const TpgFault*>> ffr_fault_list(nffr);
-  for ( auto f: fault_list ) {
-    auto root = f->ffr_root();
+  for ( auto& finfo: fault_list ) {
+    auto fault = finfo.fault();
+    auto root = fault->ffr_root();
     auto id = ffr_map.at(root->id());
-    ffr_fault_list[id].push_back(f);
+    ffr_fault_list[id].push_back(fault);
   }
 
   vector<TestVector> tv_list;
@@ -70,19 +71,20 @@ testcube_gen1(
 vector<TestVector>
 testcube_gen2(
   const TpgNetwork& network,
-  const vector<const TpgFault*>& fault_list,
+  const vector<FaultInfo>& fault_list,
   SizeType cube_per_fault,
   const JsonValue& option
 )
 {
   vector<TestVector> tv_list;
   // 故障ごとに使い捨てのSATソルバを作る．
-  for ( auto f: fault_list ) {
-    auto node = f->ffr_root();
+  for ( auto& finfo: fault_list ) {
+    auto fault = finfo.fault();
+    auto node = fault->ffr_root();
     BaseEnc base_enc{network, option};
     auto bd_enc = new BoolDiffEnc{base_enc, node, option};
     base_enc.make_cnf({}, {node});
-    auto ffr_cond = f->ffr_propagate_condition();
+    auto ffr_cond = fault->ffr_propagate_condition();
     auto assumptions = base_enc.conv_to_literal_list(ffr_cond);
     auto res = base_enc.solver().solve(assumptions);
     ASSERT_COND( res == SatBool3::True );
@@ -119,7 +121,7 @@ END_NONAMESPACE
 vector<TestVector>
 TestCubeGen::run(
   const TpgNetwork& network,
-  const vector<const TpgFault*>& fault_list,
+  const vector<FaultInfo>& fault_list,
   const JsonValue& option
 )
 {

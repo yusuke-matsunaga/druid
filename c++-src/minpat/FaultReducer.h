@@ -11,6 +11,7 @@
 #include "druid.h"
 #include "TpgFault.h"
 #include "TestVector.h"
+#include "FaultInfo.h"
 #include "ym/JsonValue.h"
 
 
@@ -40,8 +41,8 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 支配関係を用いて故障を削減する．
-  /// @return 削減した故障のリストを返す．
-  vector<const TpgFault*>
+  /// @return 削減した故障情報のリストを返す．
+  vector<FaultInfo>
   run(
     const vector<const TpgFault*>& fault_list, ///< [in] 対象の故障のリスト
     const vector<TestVector>& tv_list          ///< [in] テストパタンのリスト
@@ -172,7 +173,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 故障に関する追加情報
-  struct FaultInfo {
+  struct Info {
     // 削除マーク
     bool mDelMark{false};
     // 十分条件と必要条件が等しいとき true
@@ -197,7 +198,7 @@ private:
 
   // 故障情報の配列
   // キーは故障番号
-  vector<FaultInfo> mFaultInfoArray;
+  vector<Info> mFaultInfoArray;
 
   // デバッグフラグ
   bool mDebug{false};

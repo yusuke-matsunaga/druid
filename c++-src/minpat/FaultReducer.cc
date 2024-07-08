@@ -80,7 +80,7 @@ FaultReducer::FaultReducer(
 }
 
 // @brief 支配関係を用いて故障を削減する．
-vector<const TpgFault*>
+vector<FaultInfo>
 FaultReducer::run(
   const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list
@@ -98,11 +98,20 @@ FaultReducer::run(
     fault_list1 = trivial_reduction1(fault_list1);
     fault_list1 = trivial_reduction2(fault_list1);
     fault_list1 = trivial_reduction3(fault_list1);
-    return global_reduction(fault_list1, true);
+    fault_list1 = global_reduction(fault_list1, true);
   }
   else {
-    return global_reduction(fault_list1, false);
+    fault_list1 = global_reduction(fault_list1, false);
   }
+  vector<FaultInfo> ans_list;
+  ans_list.reserve(fault_list1.size());
+  for ( auto fault: fault_list1 ) {
+    auto& info = mFaultInfoArray[fault->id()];
+    auto mand_cond = info.mMandCond;
+    auto suff_cond = info.mSuffCond;
+    ans_list.push_back(FaultInfo{fault, mand_cond, suff_cond});
+  }
+  return ans_list;
 }
 
 // @brief 同一FFR内の支配関係を用いて故障を削減する．
@@ -633,11 +642,12 @@ FaultReducer::global_reduction(
   vector<const TpgFault*> ans_list;
   SizeType nt = 0;
   for ( auto fault: fault_list ) {
-    if ( !is_deleted(fault) ) {
-      ans_list.push_back(fault);
-      if ( mFaultInfoArray[fault->id()].mTrivial ) {
-	++ nt;
-      }
+    if ( is_deleted(fault) ) {
+      continue;
+    }
+    ans_list.push_back(fault);
+    if ( mFaultInfoArray[fault->id()].mTrivial ) {
+      ++ nt;
     }
   }
 

@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "FaultInfo.h"
 #include "ym/JsonValue.h"
 
 
@@ -37,9 +38,9 @@ public:
   static
   vector<TestVector>
   run(
-    const TpgNetwork& network,                 ///< [in] 対象のネットワーク
-    const vector<const TpgFault*>& fault_list, ///< [in] 対象の故障
-    const JsonValue& option = JsonValue{}      ///< [in] オプション
+    const TpgNetwork& network,            ///< [in] 対象のネットワーク
+    const vector<FaultInfo>& fault_list,  ///< [in] 対象の故障情報のリスト
+    const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
 };
