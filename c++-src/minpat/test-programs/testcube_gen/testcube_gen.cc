@@ -300,7 +300,9 @@ testcube_gen(
   timer.start();
 
   unordered_map<string, JsonValue> tcg_option_dict;
-  tcg_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
+  if ( cube_per_fault > 1 ) {
+    tcg_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
+  }
   JsonValue tcg_option{tcg_option_dict};
 
   auto tv_list = TestCubeGen::run(network, reduced_fault_list, tcg_option);

@@ -45,6 +45,7 @@ ExImpl::get_assignment(
   clear_queue();
 
   // 故障差の伝搬している経路を探す．
+  ASSERT_COND( !mData->sensitized_output_list().empty() );
   auto spo = select_output();
 
   // その経路の side input の値を記録する．

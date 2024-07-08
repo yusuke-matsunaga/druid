@@ -36,6 +36,7 @@ public:
   ExCubeGen(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
     const TpgFFR* ffr,                    ///< [in] 対象の FFR
+    SizeType cube_per_fault,              ///< [in] 1故障あたりのキューブ数の上限
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
@@ -72,6 +73,8 @@ private:
   // FFR用のブール微分器
   BoolDiffEnc* mBdEnc;
 
+  // 上限値
+  SizeType mLimit;
 
 };
 

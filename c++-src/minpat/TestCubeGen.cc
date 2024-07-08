@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "TestCubeGen.h"
+#include "ExCubeGen.h"
 #include "TpgNetwork.h"
 #include "TpgFFR.h"
 #include "TpgNode.h"
@@ -26,6 +27,7 @@ vector<TestVector>
 testcube_gen1(
   const TpgNetwork& network,
   const vector<FaultInfo>& fault_list,
+  SizeType cube_per_fault,
   const JsonValue& option
 )
 {
@@ -39,28 +41,19 @@ testcube_gen1(
   }
   // fault_list に含まれる故障を FFR ごとに分割する．
   SizeType nffr = network.ffr_num();
-  vector<vector<const TpgFault*>> ffr_fault_list(nffr);
+  vector<vector<FaultInfo>> ffr_fault_list(nffr);
   for ( auto& finfo: fault_list ) {
     auto fault = finfo.fault();
     auto root = fault->ffr_root();
     auto id = ffr_map.at(root->id());
-    ffr_fault_list[id].push_back(fault);
+    ffr_fault_list[id].push_back(finfo);
   }
 
   vector<TestVector> tv_list;
   for ( auto ffr: network.ffr_list() ) {
-    BaseEnc base_enc{network, option};
-    auto bd_enc = new BoolDiffEnc{base_enc, ffr->root(), option};
-    base_enc.make_cnf({}, {ffr->root()});
-    for ( auto f: ffr_fault_list[ffr->id()] ) {
-      auto ffr_cond = f->ffr_propagate_condition();
-      auto assumptions = base_enc.conv_to_literal_list(ffr_cond);
-      auto res = base_enc.solver().solve(assumptions);
-      ASSERT_COND( res == SatBool3::True );
-      auto suf_cond = bd_enc->extract_sufficient_condition();
-      auto pi_assign = base_enc.justify(suf_cond);
-      auto tv = TestVector{network, pi_assign};
-      tv_list.push_back(tv);
+    ExCubeGen gen{network, ffr, cube_per_fault, option};
+    for ( auto& finfo: ffr_fault_list[ffr->id()] ) {
+      gen.run(finfo);
     }
   }
 
@@ -137,12 +130,7 @@ TestCubeGen::run(
     }
   }
   vector<TestVector> tv_list;
-  if ( cube_per_fault == 1 ) {
-    tv_list = testcube_gen1(network, fault_list, dtpg_option);
-  }
-  else {
-    tv_list = testcube_gen2(network, fault_list, cube_per_fault, dtpg_option);
-  }
+  tv_list = testcube_gen1(network, fault_list, cube_per_fault, dtpg_option);
 
   // 同一のパタンを取り除く．
   SizeType n0 = tv_list.size();
