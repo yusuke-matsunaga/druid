@@ -14,17 +14,14 @@
 #include "TpgFault.h"
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
-#include "TestVector.h"
 #include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-// 故障に対するテストキューブを一つづつ作る．
+// @brief 与えられた故障を検出するテストキューブを生成する．
 void
-testcube_gen1(
+TestCubeGen::run(
   const TpgNetwork& network,
   const vector<FaultInfo>& fault_list,
   const JsonValue& option
@@ -57,21 +54,6 @@ testcube_gen1(
       gen.run(finfo);
     }
   }
-}
-
-END_NONAMESPACE
-
-// @brief 与えられた故障を検出するテストキューブを生成する．
-vector<TestVector>
-TestCubeGen::run(
-  const TpgNetwork& network,
-  const vector<FaultInfo>& fault_list,
-  const JsonValue& option
-)
-{
-  testcube_gen1(network, fault_list, option);
-
-  return vector<TestVector>{};
 }
 
 END_NAMESPACE_DRUID

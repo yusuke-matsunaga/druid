@@ -322,12 +322,11 @@ testcube_gen(
   }
   JsonValue tcg_option{tcg_option_dict};
 
-  auto tv_list = TestCubeGen::run(network, reduced_fault_list, tcg_option);
+  TestCubeGen::run(network, reduced_fault_list, tcg_option);
 
   timer.stop();
 
-  cout << "Generated Testcubes: " << tv_list.size() << endl
-       << "CPU time:            " << timer.get_time() << endl;
+  cout << "CPU time:            " << timer.get_time() << endl;
 
   return 0;
 }

@@ -38,6 +38,7 @@ set ( minpat_SOURCES
   NaiveDomChecker2.cc
   FFRFaultList.cc
   ExCubeGen.cc
+  FaultGroupGen.cc
   )
 
 

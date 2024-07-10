@@ -35,8 +35,10 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 与えられた故障を検出するテストキューブを生成する．
+  ///
+  /// 結果は fault_list に格納される．
   static
-  vector<TestVector>
+  void
   run(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
     const vector<FaultInfo>& fault_list,  ///< [in] 対象の故障情報のリスト
