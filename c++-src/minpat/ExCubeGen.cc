@@ -100,12 +100,6 @@ ExCubeGen::run(
     assumptions.push_back(clit);
     auto res = mBaseEnc.solver().solve(assumptions);
     if ( res != SatBool3::True ) {
-      cout << fault->str() << endl;
-      if ( fault_info.sufficient_conditions().size() == 1 ) {
-	cout << "  original sufficient condition: "
-	     << fault_info.sufficient_conditions().front() << endl;
-	cout << "  diff: " << suff_cond << endl;
-      }
       break;
     }
     suff_cond = mBdEnc->extract_sufficient_condition();
