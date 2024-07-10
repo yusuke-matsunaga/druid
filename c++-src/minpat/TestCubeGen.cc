@@ -51,63 +51,12 @@ testcube_gen1(
     ffr_fault_list[id].push_back(finfo);
   }
 
-  vector<TestVector> tv_list;
   for ( auto ffr: network.ffr_list() ) {
     ExCubeGen gen{network, ffr, option};
     for ( auto& finfo: ffr_fault_list[ffr->id()] ) {
       gen.run(finfo);
     }
   }
-
-  return tv_list;
-}
-
-// 故障に対するテストキューブを複数作る．
-vector<TestVector>
-testcube_gen2(
-  const TpgNetwork& network,
-  const vector<FaultInfo>& fault_list,
-  SizeType cube_per_fault,
-  const JsonValue& option
-)
-{
-  vector<TestVector> tv_list;
-  // 故障ごとに使い捨てのSATソルバを作る．
-  for ( auto& finfo: fault_list ) {
-    auto fault = finfo.fault();
-    auto node = fault->ffr_root();
-    BaseEnc base_enc{network, option};
-    auto bd_enc = new BoolDiffEnc{base_enc, node, option};
-    base_enc.make_cnf({}, {node});
-    auto ffr_cond = fault->ffr_propagate_condition();
-    auto assumptions = base_enc.conv_to_literal_list(ffr_cond);
-    auto res = base_enc.solver().solve(assumptions);
-    ASSERT_COND( res == SatBool3::True );
-    auto suf_cond = bd_enc->extract_sufficient_condition();
-    auto pi_assign = base_enc.justify(suf_cond);
-    auto tv = TestVector{network, pi_assign};
-    tv_list.push_back(tv);
-    for ( SizeType i = 1; i < cube_per_fault; ++ i ) {
-      // tv を否定した節を追加
-      vector<SatLiteral> tmp_lits;
-      tmp_lits.reserve(pi_assign.size());
-      for ( auto nv: pi_assign ) {
-	auto lit = base_enc.conv_to_literal(nv);
-	tmp_lits.push_back(~lit);
-      }
-      base_enc.solver().add_clause(tmp_lits);
-      auto res = base_enc.solver().solve(assumptions);
-      if ( res != SatBool3::True ) {
-	// UNSAT になったら終わり
-	break;
-      }
-      auto suf_cond = bd_enc->extract_sufficient_condition();
-      pi_assign = base_enc.justify(suf_cond);
-      auto tv = TestVector{network, pi_assign};
-      tv_list.push_back(tv);
-    }
-  }
-  return tv_list;
 }
 
 END_NONAMESPACE
