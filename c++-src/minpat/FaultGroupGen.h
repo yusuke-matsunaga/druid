@@ -47,9 +47,23 @@ public:
   /// @brief 両立故障グループを求める．
   vector<vector<FaultInfo>>
   generate(
-    const vector<FaultInfo>& fault_list, ///< [in] 故障情報のリスト
+    const vector<FaultInfo>& finfo_list, ///< [in] 故障情報のリスト
     SizeType limit                       ///< [in] 求める要素数の上限
   );
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられるデータ構造
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 拡張テストキューブを表すクラス
+  struct ExCube {
+    // 値の割り当てリスト
+    NodeTimeValList mAssignments;
+    // 対応する故障番号
+    SizeType mFaultId;
+  };
 
 
 private:
@@ -57,18 +71,47 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障集合を初期化する．
+  void
+  init();
+
   /// @brief 極大集合を求める．
   void
   greedy_mcset(
-    ExCube& signature,
+    FaultGroup& signature,
     SizeType count
   );
+
+  /// @brief 現在の故障集合を記録する．
+  void
+  record();
+
+  /// @brief 最も価値の高いキューブを選ぶ．
+  /// @return キューブ番号を返す．
+  ///
+  /// 追加できるキューブがない場合は mCubeList.size()
+  /// を返す．
+  SizeType
+  select_cube(
+    SizeType count
+  );
+
+  /// @brief 追加後の候補故障の数を数える．
+  SizeType
+  count_faults(
+    const NodeTimeValList& assignments
+  );
+
+  /// @brief 最も価値の低いキューブを選んで取り除く
+  /// @return 取り除いたキューブ番号を返す．
+  SizeType
+  remove_cube();
 
   /// @brief 両立性のチェック
   bool
   is_compatible(
-    const ExCube& assignments1, ///< [in] 割当1
-    const ExCube& assignments2  ///< [in] 割当2
+    const NodeTimeValList& assignments1, ///< [in] 割当1
+    const NodeTimeValList& assignments2  ///< [in] 割当2
   );
 
 
@@ -83,8 +126,24 @@ private:
   // 基本エンコーダ
   BaseEnc mBaseEnc;
 
+  // 拡張テストキューブのリスト
+  vector<ExCube> mCubeList;
+
+  // 現在選択されている故障番号の集合を表すビットマップ
+  vector<bool> mFaultSet;
+
+  // 現在選択されているキューブ番号の集合を表すビットマップ
+  vector<bool> mCubeSet;
+
+  // 現在選択されている故障集合用の値の割り当てリスト
+  NodeTimeValList mAssignments;
+
   // タブーリスト
-  std::unordered_map<NodeTimeVal, SizeType> mTabuList;
+  // キーはキューブ番号
+  vector<SizeType> mTabuList;
+
+  // 禁止期間
+  SizeType mTenure;
 
 };
 
