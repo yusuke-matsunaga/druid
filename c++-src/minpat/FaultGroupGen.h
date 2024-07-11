@@ -25,8 +25,6 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class FaultGroupGen
 {
-  using ExCube = NodeTimeValList;
-
 public:
 
   /// @brief コンストラクタ
@@ -45,7 +43,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 両立故障グループを求める．
-  vector<vector<FaultInfo>>
+  vector<vector<SizeType>>
   generate(
     const vector<FaultInfo>& finfo_list, ///< [in] 故障情報のリスト
     SizeType limit                       ///< [in] 求める要素数の上限
@@ -76,36 +74,22 @@ private:
   init();
 
   /// @brief 極大集合を求める．
+  bool
+  greedy_mcset();
+
+  /// @brief 最も価値の高いキューブを選ぶ
+  SizeType
+  select_cube();
+
+  /// @brief 追加後の故障候補の重みを計算する．
+  double
+  count_weight(
+    const NodeTimeValList& assignment ///< [in] 割当
+  );
+
+  /// @brief 更新する．
   void
-  greedy_mcset(
-    FaultGroup& signature,
-    SizeType count
-  );
-
-  /// @brief 現在の故障集合を記録する．
-  void
-  record();
-
-  /// @brief 最も価値の高いキューブを選ぶ．
-  /// @return キューブ番号を返す．
-  ///
-  /// 追加できるキューブがない場合は mCubeList.size()
-  /// を返す．
-  SizeType
-  select_cube(
-    SizeType count
-  );
-
-  /// @brief 追加後の候補故障の数を数える．
-  SizeType
-  count_faults(
-    const NodeTimeValList& assignments
-  );
-
-  /// @brief 最も価値の低いキューブを選んで取り除く
-  /// @return 取り除いたキューブ番号を返す．
-  SizeType
-  remove_cube();
+  update();
 
   /// @brief 両立性のチェック
   bool
@@ -129,21 +113,33 @@ private:
   // 拡張テストキューブのリスト
   vector<ExCube> mCubeList;
 
+  // 結果の故障グループのリスト
+  vector<vector<SizeType>> mFaultGroupList;
+
+  // 検出数ごとの拡張テストキューブ番号のリスト
+  vector<vector<SizeType>> mCubeListArray;
+
+  // 故障の検出回数の配列
+  // キーは故障番号
+  vector<SizeType> mCountArray;
+
+  // 現在選択されている故障番号の集合を表すリスト
+  vector<SizeType> mCurFaultList;
+
   // 現在選択されている故障番号の集合を表すビットマップ
-  vector<bool> mFaultSet;
+  vector<bool> mCurFaultSet;
+
+  // 現在選択されているキューブ番号の集合を表すリスト
+  vector<SizeType> mCurCubeList;
 
   // 現在選択されているキューブ番号の集合を表すビットマップ
-  vector<bool> mCubeSet;
+  vector<bool> mCurCubeSet;
 
   // 現在選択されている故障集合用の値の割り当てリスト
-  NodeTimeValList mAssignments;
+  NodeTimeValList mCurAssignments;
 
-  // タブーリスト
-  // キーはキューブ番号
-  vector<SizeType> mTabuList;
-
-  // 禁止期間
-  SizeType mTenure;
+  // デバッグフラグ
+  bool mDebug{false};
 
 };
 

@@ -11,6 +11,7 @@
 #include "TpgFault.h"
 #include "FaultReducer.h"
 #include "TestCubeGen.h"
+#include "FaultGroupGen.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
@@ -321,8 +322,10 @@ testcube_gen(
     tcg_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
   }
   JsonValue tcg_option{tcg_option_dict};
-
   TestCubeGen::run(network, reduced_fault_list, tcg_option);
+  FaultGroupGen fgg{network, tcg_option};
+  SizeType limit = reduced_fault_list.size() * 10;
+  auto fg_list = fgg.generate(reduced_fault_list, limit);
 
   timer.stop();
 

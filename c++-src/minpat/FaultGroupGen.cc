@@ -8,6 +8,7 @@
 
 #include "FaultGroupGen.h"
 #include "TpgNetwork.h"
+#include "TpgFault.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -19,6 +20,10 @@ FaultGroupGen::FaultGroupGen(
 ) : mNetwork{network},
     mBaseEnc{network, option}
 {
+  if ( option.is_object() &&
+       option.has_key("debug") ) {
+    mDebug = option.get("debug").get_bool();
+  }
   auto& node_list = network.node_list();
   mBaseEnc.make_cnf(node_list, node_list);
 }
@@ -29,7 +34,7 @@ FaultGroupGen::~FaultGroupGen()
 }
 
 // @brief 両立故障グループを求める．
-vector<vector<FaultInfo>>
+vector<vector<SizeType>>
 FaultGroupGen::generate(
   const vector<FaultInfo>& finfo_list,
   SizeType limit
@@ -38,8 +43,9 @@ FaultGroupGen::generate(
   // mCubeList を作る．
   mCubeList.clear();
   for ( auto& finfo: finfo_list ) {
-    auto& fault = finfo.fault();
+    auto fault = finfo.fault();
     auto fid = fault->id();
+    cout << " " << fault->str() << ": " << finfo.sufficient_conditions().size() << endl;
     for ( auto& assign: finfo.sufficient_conditions() ) {
       mCubeList.push_back({assign, fid});
     }
@@ -50,139 +56,187 @@ FaultGroupGen::generate(
   init();
 
   // limit 分の故障集合を求める．
-  for ( SizeType count; count < limit; ++ count ) {
+  for ( SizeType count = 0; count < limit; ++ count ) {
     // 極大集合を求める．
-    greedy_mcset(count);
+    if ( !greedy_mcset() ) {
+      break;
+    }
 
-    // 記録する．
+    // 更新する．
     // 場合によっては重複チェックを行う．
-    record();
-
-    // signature から価値の低いキューブ取り除く
-    auto cube_id = remove_cube();
-
-    // cube_id をタブーリストに入れる．
-    mTabuList[cube_id] = count + mTenure;
+    update();
   }
+
+  if ( mDebug ) {
+    cout << "Total " << mFaultGroupList.size() << " groups" << endl;
+  }
+
+  return mFaultGroupList;
 }
 
 // @brief 故障集合を初期化する．
 void
-FaultGroupGppppen::init()
+FaultGroupGen::init()
 {
-  mFaultSet.clear();
-  mFaultSet.resize(mNetwork.max_fault_id(), false);
-  mCubeSet.clear();
-  mCubeSet.resize(mCubeList.size(), false);
-  mAssignments.clear();
-  mTabuList.resize(mCubeList.size(), 0);
+  mCountArray.clear();
+  mCountArray.resize(mNetwork.max_fault_id(), 0);
+  mCurFaultList.clear();
+  mCurFaultSet.clear();
+  mCurFaultSet.resize(mNetwork.max_fault_id(), false);
+  mCurCubeList.clear();
+  mCurCubeSet.clear();
+  mCurCubeSet.resize(mCubeList.size(), false);
+  mCubeListArray.clear();
+  mCubeListArray.push_back({});
+  auto& dst_list = mCubeListArray[0];
+  dst_list.reserve(mCubeList.size());
+  for ( SizeType i = 0; i < mCubeList.size(); ++ i ) {
+    dst_list.push_back(i);
+  }
 }
 
 // @brief 極大集合を求める．
-void
-FaultGroupGen::greedy_mcset(
-  SizeType count
-)
+bool
+FaultGroupGen::greedy_mcset()
 {
+  cout << "greedy_mcset()" << endl;
+  // 各故障に対して現時点でカバーされている回数+1の逆数を重み
+  // として，重みが最大(極大)となるような故障集合を求める．
   for ( ; ; ) {
     // 未選択の故障の拡張テストキューブのうち，
-    // 新規に追加したときに候補の故障数が
-    // 最大となるものを求める．
-    auto cube_id = select_cube(count);
+    // (自身の重み, 候補の重みの和)が
+    // 辞書式順序で最大となるものを求める．
+    auto cube_id = select_cube();
 
     // 追加できる故障がなくなったら終わる．
     if ( cube_id == mCubeList.size() ) {
-      return;
+      return !mCurFaultList.empty();
     }
 
     // 故障集合を更新する．
     auto& cube = mCubeList[cube_id];
-    mFaultSet[cube.mFaultId] = true;
-    mCubeSet[cube_id] = true;
-    mAssignments.merge(cube.mAssignments);
+    mCurFaultList.push_back(cube.mFaultId);
+    mCurFaultSet[cube.mFaultId] = true;
+    mCurCubeList.push_back(cube_id);
+    mCurCubeSet[cube_id] = true;
+    mCurAssignments.merge(cube.mAssignments);
   }
 }
 
 // @brief 最も価値の高いキューブを選ぶ．
 SizeType
-FaultGroupGen::select_cube(
-  SizeType count
-)
+FaultGroupGen::select_cube()
 {
   SizeType max_cube_id = mCubeList.size();
-  SizeType max_num = 0;
-  for ( SizeType cube_id = 0; cube_id < mCubeList.size(); ++ cube_id ) {
-    if ( mTabuList[cube_id] >= count ) {
-      // 禁止されている．
-      continue;
-    }
-    auto& cube = mCubeList[cube_id];
-    if ( mFaultSet[cube.mFaultId] ) {
-      // 既に同じ故障のキューブが選ばれている．
-      continue;
-    }
-    if ( !is_compatible(cube.mAssignments, mAssignments) ) {
-      // 衝突していた．
-      continue;
-    }
-    SizeType num = count_faults(cube.mAssignments);
-    if ( max_num < num ) {
-      max_num = num;
-      max_cube_id = cube_id;
+  double max_weight = 0.0;
+  for ( auto& cube_list: mCubeListArray ) {
+    for ( auto cube_id: cube_list ) {
+      auto& cube = mCubeList[cube_id];
+      if ( mCurFaultSet[cube.mFaultId] ) {
+	// 既に同じ故障のキューブが選ばれている．
+	continue;
+      }
+      if ( !is_compatible(cube.mAssignments, mCurAssignments) ) {
+	// 衝突していた．
+	continue;
+      }
+      double weight = count_weight(cube.mAssignments);
+      if ( max_weight < weight ) {
+	max_weight = weight;
+	max_cube_id = cube_id;
+      }
     }
   }
   return max_cube_id;
 }
 
-// @brief 追加後の候補故障の数を数える．
-SizeType
-FaultGroupGen::count_faults(
+// @brief 追加後の候補故障の重みを計算する．
+double
+FaultGroupGen::count_weight(
   const NodeTimeValList& assignments
 )
 {
-  auto tmp_assign{mAssignments};
+  auto tmp_assign{mCurAssignments};
   tmp_assign.merge(assignments);
-  SizeType num = 0;
+  double weight = 0.0;
   vector<bool> fault_set(mNetwork.max_fault_id(), false);
   for ( auto& cube: mCubeList ) {
-    if ( mFaultSet[cube.mFaultId] ) {
+    auto fid = cube.mFaultId;
+    if ( mCurFaultSet[fid] ) {
       continue;
     }
-    if ( fault_set[cube.mFaultId] ) {
+    if ( fault_set[fid] ) {
       continue;
     }
     if ( is_compatible(cube.mAssignments, tmp_assign) ) {
-      ++ num;
+      weight += (1 / (mCountArray[fid] + 1));
       fault_set[cube.mFaultId] = true;
     }
   }
-  return num;
+  return weight;
 }
 
-// @brief 現在の故障集合を記録する．
+// @brief 更新する．
 void
-FaultGroupGen::record()
+FaultGroupGen::update()
 {
-  SizeType nf = 0;
-  for ( SizeType fid = 0; fid < mNetwork.max_fault_id(); ++ fid ) {
-    if ( mFaultSet[fid] ) {
-      ++ nf;
+  if ( mDebug ) {
+    for ( auto fid: mCurFaultList ) {
+      auto fault = mNetwork.fault(fid);
+      cout << " " << fault->str()
+	   << " [" << mCountArray[fault->id()] << "]";
+    }
+    cout << endl;
+  }
+
+  mFaultGroupList.push_back({});
+  for ( auto fid: mCurFaultList ) {
+    ++ mCountArray[fid];
+    mCurFaultSet[fid] = false;
+    mFaultGroupList.back().push_back(fid);
+  }
+  mCurFaultList.clear();
+  for ( auto cube_id: mCurCubeList ) {
+    mCurCubeSet[cube_id] = false;
+  }
+  mCurCubeList.clear();
+
+  mCurAssignments.clear();
+
+  // とりあえずナイーブなやり方で実装する．
+  SizeType nc = mCubeListArray.size();
+  for ( SizeType c = 0; c < nc; ++ c ) {
+    auto& cube_list = mCubeListArray[c];
+    auto rpos = cube_list.begin();
+    auto wpos = rpos;
+    auto epos = cube_list.end();
+    for ( ; rpos != epos; ++ rpos ) {
+      auto cube_id = *rpos;
+      auto& cube = mCubeList[cube_id];
+      auto fid = cube.mFaultId;
+      auto new_c = mCountArray[fid];
+      if ( new_c > c ) {
+	if ( new_c == nc ) {
+	  mCubeListArray.push_back({});
+	}
+	mCubeListArray[new_c].push_back(cube_id);
+      }
+      else {
+	if ( wpos != rpos ) {
+	  *wpos = cube_id;
+	}
+	++ wpos;
+      }
     }
   }
-  cout << nf << " faults" << endl;
-}
 
-// @brief 最も価値の低いキューブを選んで取り除く
-SizeType
-FaultGroupGen::remove_cube()
-{
 }
 
 // @brief 両立性のチェック
 bool
 FaultGroupGen::is_compatible(
-  const ExCube& assignments1,
-  const ExCube& assignments2
+  const NodeTimeValList& assignments1,
+  const NodeTimeValList& assignments2
 )
 {
   auto lits1 = mBaseEnc.conv_to_literal_list(assignments1);

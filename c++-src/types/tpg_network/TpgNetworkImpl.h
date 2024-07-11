@@ -396,6 +396,16 @@ public:
     return mFaultType;
   }
 
+  /// @brief 故障を得る．
+  const TpgFault*
+  fault(
+    SizeType fault_id ///< [in] 故障番号
+  ) const
+  {
+    ASSERT_COND( 0 <= fault_id && fault_id < mFaultArray.size() );
+    return mFaultArray[fault_id];
+  }
+
   /// @brief 代表故障のリストを得る．
   const vector<const TpgFault*>&
   rep_fault_list() const

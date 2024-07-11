@@ -41,7 +41,7 @@ public:
   void
   run(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const vector<FaultInfo>& fault_list,  ///< [in] 対象の故障情報のリスト
+    vector<FaultInfo>& fault_list,        ///< [inout] 対象の故障情報のリスト
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 

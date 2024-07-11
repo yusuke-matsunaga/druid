@@ -386,6 +386,12 @@ public:
   SizeType
   max_fault_id() const;
 
+  /// @brief 故障を得る．
+  const TpgFault*
+  fault(
+    SizeType fault_id ///< [in] 故障番号 ( 0 <= fault_id < max_fault_id() )
+  ) const;
+
   /// @brief ステムの故障を得る.
   ///
   /// 故障タイプが網羅故障の場合には不正な呼び出しとなる．

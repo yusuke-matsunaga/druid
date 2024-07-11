@@ -23,7 +23,7 @@ BEGIN_NAMESPACE_DRUID
 void
 TestCubeGen::run(
   const TpgNetwork& network,
-  const vector<FaultInfo>& fault_list,
+  vector<FaultInfo>& fault_list,
   const JsonValue& option
 )
 {
@@ -37,7 +37,7 @@ TestCubeGen::run(
   }
   // fault_list に含まれる故障を FFR ごとに分割する．
   SizeType nffr = network.ffr_num();
-  vector<vector<FaultInfo>> ffr_fault_list(nffr);
+  vector<vector<FaultInfo*>> ffr_fault_list(nffr);
   for ( auto& finfo: fault_list ) {
     if ( finfo.is_trivial() ) {
       continue;
@@ -45,13 +45,13 @@ TestCubeGen::run(
     auto fault = finfo.fault();
     auto root = fault->ffr_root();
     auto id = ffr_map.at(root->id());
-    ffr_fault_list[id].push_back(finfo);
+    ffr_fault_list[id].push_back(&finfo);
   }
 
   for ( auto ffr: network.ffr_list() ) {
     ExCubeGen gen{network, ffr, option};
-    for ( auto& finfo: ffr_fault_list[ffr->id()] ) {
-      gen.run(finfo);
+    for ( auto finfo: ffr_fault_list[ffr->id()] ) {
+      gen.run(*finfo);
     }
   }
 }
