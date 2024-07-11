@@ -45,7 +45,6 @@ FaultGroupGen::generate(
   for ( auto& finfo: finfo_list ) {
     auto fault = finfo.fault();
     auto fid = fault->id();
-    cout << " " << fault->str() << ": " << finfo.sufficient_conditions().size() << endl;
     for ( auto& assign: finfo.sufficient_conditions() ) {
       mCubeList.push_back({assign, fid});
     }
@@ -128,23 +127,30 @@ SizeType
 FaultGroupGen::select_cube()
 {
   SizeType max_cube_id = mCubeList.size();
-  double max_weight = 0.0;
   for ( auto& cube_list: mCubeListArray ) {
+    double max_weight = 0.0;
     for ( auto cube_id: cube_list ) {
+      cout << "cube_id = " << cube_id << endl;
       auto& cube = mCubeList[cube_id];
       if ( mCurFaultSet[cube.mFaultId] ) {
 	// 既に同じ故障のキューブが選ばれている．
+	cout << "Fault#" << cube.mFaultId << " is already covered" << endl;
 	continue;
       }
       if ( !is_compatible(cube.mAssignments, mCurAssignments) ) {
 	// 衝突していた．
+	cout << " is not compatible" << endl;
 	continue;
       }
       double weight = count_weight(cube.mAssignments);
+      cout << "  weight = " << weight << endl;
       if ( max_weight < weight ) {
 	max_weight = weight;
 	max_cube_id = cube_id;
       }
+    }
+    if ( max_weight > 0 ) {
+      break;
     }
   }
   return max_cube_id;
@@ -207,6 +213,7 @@ FaultGroupGen::update()
   SizeType nc = mCubeListArray.size();
   for ( SizeType c = 0; c < nc; ++ c ) {
     auto& cube_list = mCubeListArray[c];
+#if 0
     auto rpos = cube_list.begin();
     auto wpos = rpos;
     auto epos = cube_list.end();
@@ -228,8 +235,47 @@ FaultGroupGen::update()
 	++ wpos;
       }
     }
+    if ( wpos != epos ) {
+      cube_list.erase(wpos);
+    }
+#else
+    vector<SizeType> dst_list;
+    for ( auto cube_id: mCubeListArray[c] ) {
+      auto& cube = mCubeList[cube_id];
+      auto fid = cube.mFaultId;
+      auto new_c = mCountArray[fid];
+      if ( new_c > c ) {
+	if ( new_c == nc ) {
+	  mCubeListArray.push_back({});
+	}
+	mCubeListArray[new_c].push_back(cube_id);
+      }
+      else {
+	dst_list.push_back(cube_id);
+      }
+    }
+    mCubeListArray[c] = dst_list;
+#endif
   }
 
+  {
+    SizeType nc = 0;
+    for ( SizeType i = 0; i < mCubeListArray.size(); ++ i ) {
+      for ( auto cube_id: mCubeListArray[i] ) {
+	++ nc;
+	auto& cube = mCubeList[cube_id];
+	auto fid = cube.mFaultId;
+	if ( mCountArray[fid] != i ) {
+	  cout << mNetwork.fault(mCubeList[cube_id].mFaultId)->str() << endl;
+	  abort();
+	}
+      }
+    }
+    if ( nc != mCubeList.size() ) {
+      cout << "nc = " << nc
+	   << ", mCubeList.size() = " << mCubeList.size() << endl;
+    }
+  }
 }
 
 // @brief 両立性のチェック
