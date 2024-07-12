@@ -94,6 +94,17 @@ public:
     return static_cast<SizeType>(mPackVal);
   }
 
+  /// @brief 等価関係の比較関数
+  friend
+  bool
+  operator==(
+    const NodeTimeVal& left,
+    const NodeTimeVal& right
+  )
+  {
+    return left.mPackVal == right.mPackVal;
+  }
+
   /// @brief 大小関係の比較関数
   friend
   bool
@@ -120,7 +131,6 @@ operator<<(
   ostream& s,    ///< [in] 出力先のストリーム
   NodeTimeVal nv ///< [in] 値の割り当て
 );
-
 
 // @brief 大小関係の比較関数
 inline
