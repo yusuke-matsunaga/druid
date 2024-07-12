@@ -19,29 +19,13 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-JsonValue
-get_dtpg_option(
-  const JsonValue& option
-)
-{
-  if ( option.is_object() && option.has_key("dtpg") ) {
-    return option.get("dtpg");
-  }
-  return JsonValue{};
-}
-
-END_NONAMESPACE
-
 // @brief コンストラクタ
 ExCubeGen::ExCubeGen(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
 ) : mFFR{ffr},
-    mDtpgOption{get_dtpg_option(option)},
-    mBaseEnc{network, mDtpgOption}
+    mBaseEnc{network, option}
 {
   JsonValue dtpg_option;
   if ( option.is_object() ) {
@@ -52,7 +36,7 @@ ExCubeGen::ExCubeGen(
       mDebug = option.get("debug").get_bool();
     }
   }
-  mBdEnc = new BoolDiffEnc{mBaseEnc, ffr->root(), mDtpgOption};
+  mBdEnc = new BoolDiffEnc{mBaseEnc, ffr->root(), option};
   mBaseEnc.make_cnf({}, {ffr->root()});
 }
 

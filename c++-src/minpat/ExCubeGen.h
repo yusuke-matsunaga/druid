@@ -68,9 +68,6 @@ private:
   // FFR
   const TpgFFR* mFFR;
 
-  // DTPG 用のオプション
-  JsonValue mDtpgOption;
-
   // 基本エンコーダ
   BaseEnc mBaseEnc;
 
