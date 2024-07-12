@@ -71,15 +71,24 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障集合を初期化する．
+  void
+  init(
+    const vector<FaultInfo>& finfo_list
+  );
+
   /// @brief 拡張テストキューブに対する含意を行う．
   NodeTimeValList
   imply(
     const NodeTimeValList& assignments ///< [in] 元の割当
   );
 
-  /// @brief 故障集合を初期化する．
+  /// @brief 含意結果のチェックを行う．
   void
-  init();
+  check_imp(
+    const NodeTimeValList& assignments0, ///< [in] 元の割当
+    const NodeTimeValList& assignments1  ///< [in] 含意された割当
+  );
 
   /// @brief 極大集合を求める．
   bool

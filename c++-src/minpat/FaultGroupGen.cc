@@ -8,7 +8,9 @@
 
 #include "FaultGroupGen.h"
 #include "TpgNetwork.h"
+#include "TpgFFR.h"
 #include "TpgFault.h"
+#include "LocalImp.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -40,22 +42,8 @@ FaultGroupGen::generate(
   SizeType limit
 )
 {
-  // mCubeList を作る．
-  // その際に implication learning を行う．
-  mCubeList.clear();
-  for ( auto& finfo: finfo_list ) {
-    auto fault = finfo.fault();
-    auto fid = fault->id();
-    for ( auto& assign: finfo.sufficient_conditions() ) {
-      auto new_assign = imply(assign);
-      SizeType id = mCubeList.size();
-      mCubeList.push_back({id, new_assign, fid});
-    }
-  }
-
-  // 故障集合を初期化する．
-  // 初期値は空
-  init();
+  // 初期化する．
+  init(finfo_list);
 
   // limit 分の故障集合を求める．
   for ( SizeType count = 0; count < limit; ++ count ) {
@@ -82,6 +70,73 @@ FaultGroupGen::generate(
   return mFaultGroupList;
 }
 
+// @brief 故障集合を初期化する．
+void
+FaultGroupGen::init(
+  const vector<FaultInfo>& finfo_list
+)
+{
+  Timer timer;
+  timer.start();
+
+  LocalImp imp{mNetwork};
+
+  // mCubeList を作る．
+  // その際に implication learning を行う．
+  mCubeList.clear();
+  SizeType c0 = 0;
+  SizeType c1 = 0;
+  SizeType c2 = 0;
+  for ( auto& finfo: finfo_list ) {
+    auto fault = finfo.fault();
+    auto fid = fault->id();
+    if ( mDebug ) {
+      cout << fault->str();
+      cout.flush();
+      cout << endl;
+    }
+    for ( auto& assign: finfo.sufficient_conditions() ) {
+      auto new_assign = imp.run(assign);
+      auto new_assign2 = imply(new_assign);
+      cout << assign.size() << " -> " << new_assign.size()
+	   << " -> " << new_assign2.size() << endl;
+      c0 += assign.size();
+      c1 += new_assign.size();
+      c2 += new_assign2.size();
+      SizeType id = mCubeList.size();
+      mCubeList.push_back({id, new_assign2, fid});
+    }
+    if ( mDebug ) {
+      cout << "... done" << endl;
+    }
+  }
+  cout << "Total assign size:  " << c0 << endl
+       << "Total assign1 size: " << c1 << endl
+       << "Total assign2 size: " << c2 << endl;
+
+  mCountArray.clear();
+  mCountArray.resize(mNetwork.max_fault_id(), 0);
+  mCurFaultList.clear();
+  mCurFaultSet.clear();
+  mCurFaultSet.resize(mNetwork.max_fault_id(), false);
+  mCurCubeList.clear();
+  mCurCubeSet.clear();
+  mCurCubeSet.resize(mCubeList.size(), false);
+  mCubeListArray.clear();
+  mCubeListArray.push_back({});
+  auto& dst_list = mCubeListArray[0];
+  dst_list.reserve(mCubeList.size());
+  for ( SizeType i = 0; i < mCubeList.size(); ++ i ) {
+    dst_list.push_back(i);
+  }
+
+  timer.stop();
+  if ( mDebug ) {
+    cout << "Total # of cubes: " << mCubeList.size() << endl
+	 << "CPU time:         " << timer.get_time() << endl;
+  }
+}
+
 // @brief 拡張テストキューブに対する含意を行う．
 NodeTimeValList
 FaultGroupGen::imply(
@@ -90,10 +145,19 @@ FaultGroupGen::imply(
 {
   auto assumptions = mBaseEnc.conv_to_literal_list(assignments);
   assumptions.push_back(SatLiteral::X);
+  std::unordered_set<NodeTimeVal> mark;
+  for ( auto nv: assignments ) {
+    mark.emplace(nv);
+  }
   NodeTimeValList new_assign{assignments};
-  for ( auto node: mNetwork.node_list() ) {
-    auto nv = NodeTimeVal{node, 1, true};
-    auto lit = mBaseEnc.conv_to_literal(nv);
+  for ( auto ffr: mNetwork.ffr_list() ) {
+    auto node = ffr->root();
+    auto nv0 = NodeTimeVal{node, 1, false};
+    auto nv1 = NodeTimeVal{node, 1, true};
+    if ( mark.count(nv0) > 0 || mark.count(nv1) > 0 ) {
+      continue;
+    }
+    auto lit = mBaseEnc.conv_to_literal(nv1);
     assumptions.back() = lit;
     if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
       // 肯定のリテラルを足したら UNSAT だった
@@ -108,8 +172,12 @@ FaultGroupGen::imply(
     }
     if ( mNetwork.has_prev_state() ) {
       // 1時刻前の割当も試す．
-      auto nv0 = NodeTimeVal{node, 0, true};
-      auto lit = mBaseEnc.conv_to_literal(nv0);
+      auto nv0 = NodeTimeVal{node, 0, false};
+      auto nv1 = NodeTimeVal{node, 0, true};
+      if ( mark.count(nv0) > 0 || mark.count(nv1) > 0 ) {
+	continue;
+      }
+      auto lit = mBaseEnc.conv_to_literal(nv1);
       assumptions.back() = lit;
       if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
 	// 肯定のリテラルを足したら UNSAT だった
@@ -127,24 +195,23 @@ FaultGroupGen::imply(
   return new_assign;
 }
 
-// @brief 故障集合を初期化する．
+// @brief 拡張テストキューブに対する含意を行う．
 void
-FaultGroupGen::init()
+FaultGroupGen::check_imp(
+  const NodeTimeValList& assignments0,
+  const NodeTimeValList& assignments1
+)
 {
-  mCountArray.clear();
-  mCountArray.resize(mNetwork.max_fault_id(), 0);
-  mCurFaultList.clear();
-  mCurFaultSet.clear();
-  mCurFaultSet.resize(mNetwork.max_fault_id(), false);
-  mCurCubeList.clear();
-  mCurCubeSet.clear();
-  mCurCubeSet.resize(mCubeList.size(), false);
-  mCubeListArray.clear();
-  mCubeListArray.push_back({});
-  auto& dst_list = mCubeListArray[0];
-  dst_list.reserve(mCubeList.size());
-  for ( SizeType i = 0; i < mCubeList.size(); ++ i ) {
-    dst_list.push_back(i);
+  auto tmp = assignments1 - assignments0;
+  auto assumptions = mBaseEnc.conv_to_literal_list(assignments0);
+  assumptions.push_back(SatLiteral::X);
+  for ( auto nv: tmp ) {
+    auto lit = mBaseEnc.conv_to_literal(nv);
+    assumptions.back() = ~lit;
+    if ( mBaseEnc.solver().solve(assumptions) != SatBool3::False ) {
+      cout << "Error: assignments = " << assignments0 << endl
+	   << "       nv = " << nv << endl;
+    }
   }
 }
 
