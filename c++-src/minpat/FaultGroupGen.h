@@ -71,6 +71,12 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 拡張テストキューブに対する含意を行う．
+  NodeTimeValList
+  imply(
+    const NodeTimeValList& assignments ///< [in] 元の割当
+  );
+
   /// @brief 故障集合を初期化する．
   void
   init();

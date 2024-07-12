@@ -41,13 +41,15 @@ FaultGroupGen::generate(
 )
 {
   // mCubeList を作る．
+  // その際に implication learning を行う．
   mCubeList.clear();
   for ( auto& finfo: finfo_list ) {
     auto fault = finfo.fault();
     auto fid = fault->id();
     for ( auto& assign: finfo.sufficient_conditions() ) {
+      auto new_assign = imply(assign);
       SizeType id = mCubeList.size();
-      mCubeList.push_back({id, assign, fid});
+      mCubeList.push_back({id, new_assign, fid});
     }
   }
 
@@ -78,6 +80,51 @@ FaultGroupGen::generate(
   }
 
   return mFaultGroupList;
+}
+
+// @brief 拡張テストキューブに対する含意を行う．
+NodeTimeValList
+FaultGroupGen::imply(
+  const NodeTimeValList& assignments
+)
+{
+  auto assumptions = mBaseEnc.conv_to_literal_list(assignments);
+  assumptions.push_back(SatLiteral::X);
+  NodeTimeValList new_assign{assignments};
+  for ( auto node: mNetwork.node_list() ) {
+    auto nv = NodeTimeVal{node, 1, true};
+    auto lit = mBaseEnc.conv_to_literal(nv);
+    assumptions.back() = lit;
+    if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
+      // 肯定のリテラルを足したら UNSAT だった
+      // -> 否定のリテラルが含意される．
+      new_assign.add({node, 1, false});
+    }
+    assumptions.back() = ~lit;
+    if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
+      // 否定のリテラルを足したら UNSAT だった
+      // -> 肯定のリテラルが含意される．
+      new_assign.add({node, 1, true});
+    }
+    if ( mNetwork.has_prev_state() ) {
+      // 1時刻前の割当も試す．
+      auto nv0 = NodeTimeVal{node, 0, true};
+      auto lit = mBaseEnc.conv_to_literal(nv0);
+      assumptions.back() = lit;
+      if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
+	// 肯定のリテラルを足したら UNSAT だった
+	// -> 否定のリテラルが含意される．
+	new_assign.add({node, 0, false});
+      }
+      assumptions.back() = ~lit;
+      if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
+	// 否定のリテラルを足したら UNSAT だった
+	// -> 肯定のリテラルが含意される．
+	new_assign.add({node, 0, true});
+      }
+    }
+  }
+  return new_assign;
 }
 
 // @brief 故障集合を初期化する．
