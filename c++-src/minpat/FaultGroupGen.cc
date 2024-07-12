@@ -46,7 +46,8 @@ FaultGroupGen::generate(
     auto fault = finfo.fault();
     auto fid = fault->id();
     for ( auto& assign: finfo.sufficient_conditions() ) {
-      mCubeList.push_back({assign, fid});
+      SizeType id = mCubeList.size();
+      mCubeList.push_back({id, assign, fid});
     }
   }
 
@@ -68,6 +69,12 @@ FaultGroupGen::generate(
 
   if ( mDebug ) {
     cout << "Total " << mFaultGroupList.size() << " groups" << endl;
+    for ( auto& finfo: finfo_list ) {
+      auto fault = finfo.fault();
+      if ( mCountArray[fault->id()] == 0 ) {
+	cout << fault->str() << " is not covered" << endl;
+      }
+    }
   }
 
   return mFaultGroupList;
@@ -98,35 +105,45 @@ FaultGroupGen::init()
 bool
 FaultGroupGen::greedy_mcset()
 {
-  cout << "greedy_mcset()" << endl;
+  mCurCandList.clear();
+  for ( auto& cube: mCubeList ) {
+    mCurCandList.push_back(&cube);
+  }
+
   // 各故障に対して現時点でカバーされている回数+1の逆数を重み
   // として，重みが最大(極大)となるような故障集合を求める．
   for ( ; ; ) {
     // 未選択の故障の拡張テストキューブのうち，
-    // (自身の重み, 候補の重みの和)が
-    // 辞書式順序で最大となるものを求める．
-    auto cube_id = select_cube();
+    // 候補の重みの和)が最大となるものを求める．
+    auto cube = select_cube();
 
     // 追加できる故障がなくなったら終わる．
-    if ( cube_id == mCubeList.size() ) {
+    if ( cube == nullptr ) {
       return !mCurFaultList.empty();
     }
 
     // 故障集合を更新する．
-    auto& cube = mCubeList[cube_id];
-    mCurFaultList.push_back(cube.mFaultId);
-    mCurFaultSet[cube.mFaultId] = true;
-    mCurCubeList.push_back(cube_id);
-    mCurCubeSet[cube_id] = true;
-    mCurAssignments.merge(cube.mAssignments);
+    mCurFaultList.push_back(cube->mFaultId);
+    mCurFaultSet[cube->mFaultId] = true;
+    mCurCubeList.push_back(cube->mId);
+    mCurCubeSet[cube->mId] = true;
+    mCurAssignments.merge(cube->mAssignments);
+    vector<ExCube*> new_list;
+    for ( auto cube: mCurCandList ) {
+      if ( is_compatible(mCurAssignments, cube->mAssignments) ) {
+	new_list.push_back(cube);
+      }
+    }
+    std::swap(mCurCandList, new_list);
   }
 }
 
 // @brief 最も価値の高いキューブを選ぶ．
-SizeType
+FaultGroupGen::ExCube*
 FaultGroupGen::select_cube()
 {
-  SizeType max_cube_id = mCubeList.size();
+  ExCube* max_cube = nullptr;
+#if 0
   for ( auto& cube_list: mCubeListArray ) {
     double max_weight = 0.0;
     for ( auto cube_id: cube_list ) {
@@ -143,7 +160,6 @@ FaultGroupGen::select_cube()
 	continue;
       }
       double weight = count_weight(cube.mAssignments);
-      cout << "  weight = " << weight << endl;
       if ( max_weight < weight ) {
 	max_weight = weight;
 	max_cube_id = cube_id;
@@ -153,30 +169,44 @@ FaultGroupGen::select_cube()
       break;
     }
   }
-  return max_cube_id;
+#else
+  double max_weight = 0.0;
+  for ( auto cube: mCurCandList ) {
+    if ( mCurFaultSet[cube->mFaultId] ) {
+      continue;
+    }
+    double weight = count_weight(cube);
+    if ( max_weight < weight ) {
+      max_weight = weight;
+      max_cube = cube;
+    }
+  }
+#endif
+  return max_cube;
 }
 
 // @brief 追加後の候補故障の重みを計算する．
 double
 FaultGroupGen::count_weight(
-  const NodeTimeValList& assignments
+  const ExCube* cube
 )
 {
   auto tmp_assign{mCurAssignments};
-  tmp_assign.merge(assignments);
-  double weight = 0.0;
+  tmp_assign.merge(cube->mAssignments);
+  double weight = (1 / (mCountArray[cube->mFaultId] + 1));
   vector<bool> fault_set(mNetwork.max_fault_id(), false);
-  for ( auto& cube: mCubeList ) {
-    auto fid = cube.mFaultId;
+  fault_set[cube->mFaultId] = true;
+  for ( auto cube: mCurCandList ) {
+    auto fid = cube->mFaultId;
     if ( mCurFaultSet[fid] ) {
       continue;
     }
     if ( fault_set[fid] ) {
       continue;
     }
-    if ( is_compatible(cube.mAssignments, tmp_assign) ) {
+    if ( is_compatible(cube->mAssignments, tmp_assign) ) {
       weight += (1 / (mCountArray[fid] + 1));
-      fault_set[cube.mFaultId] = true;
+      fault_set[cube->mFaultId] = true;
     }
   }
   return weight;
@@ -256,25 +286,6 @@ FaultGroupGen::update()
     }
     mCubeListArray[c] = dst_list;
 #endif
-  }
-
-  {
-    SizeType nc = 0;
-    for ( SizeType i = 0; i < mCubeListArray.size(); ++ i ) {
-      for ( auto cube_id: mCubeListArray[i] ) {
-	++ nc;
-	auto& cube = mCubeList[cube_id];
-	auto fid = cube.mFaultId;
-	if ( mCountArray[fid] != i ) {
-	  cout << mNetwork.fault(mCubeList[cube_id].mFaultId)->str() << endl;
-	  abort();
-	}
-      }
-    }
-    if ( nc != mCubeList.size() ) {
-      cout << "nc = " << nc
-	   << ", mCubeList.size() = " << mCubeList.size() << endl;
-    }
   }
 }
 

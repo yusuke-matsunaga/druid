@@ -57,6 +57,8 @@ private:
 
   /// @brief 拡張テストキューブを表すクラス
   struct ExCube {
+    // ID番号
+    SizeType mId;
     // 値の割り当てリスト
     NodeTimeValList mAssignments;
     // 対応する故障番号
@@ -78,13 +80,13 @@ private:
   greedy_mcset();
 
   /// @brief 最も価値の高いキューブを選ぶ
-  SizeType
+  ExCube*
   select_cube();
 
   /// @brief 追加後の故障候補の重みを計算する．
   double
   count_weight(
-    const NodeTimeValList& assignment ///< [in] 割当
+    const ExCube* cube
   );
 
   /// @brief 更新する．
@@ -137,6 +139,9 @@ private:
 
   // 現在選択されている故障集合用の値の割り当てリスト
   NodeTimeValList mCurAssignments;
+
+  // mCurAssignments と両立するキューブ番号のリスト
+  vector<ExCube*> mCurCandList;
 
   // デバッグフラグ
   bool mDebug{false};

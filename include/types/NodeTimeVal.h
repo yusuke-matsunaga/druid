@@ -87,6 +87,13 @@ public:
     return static_cast<bool>(mPackVal & 1UL);
   }
 
+  /// @brief ハッシュ値を返す．
+  SizeType
+  hash() const
+  {
+    return static_cast<SizeType>(mPackVal);
+  }
+
   /// @brief 大小関係の比較関数
   friend
   bool
@@ -149,5 +156,22 @@ operator>=(
 }
 
 END_NAMESPACE_DRUID
+
+BEGIN_NAMESPACE_STD
+
+// NodeTimeVal をキーにしたハッシュ関数クラスの定義
+template <>
+struct hash<DRUID_NAMESPACE::NodeTimeVal>
+{
+  SizeType
+  operator()(
+    const DRUID_NAMESPACE::NodeTimeVal& nv
+  ) const
+  {
+    return nv.hash();
+  }
+};
+
+END_NAMESPACE_STD
 
 #endif // NODETIMEVAL_H
