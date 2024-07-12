@@ -18,6 +18,8 @@ NodeValList::merge(
   const NodeValList& src_list
 )
 {
+  _sort();
+  src_list._sort();
   vector<NodeVal> tmp_list;
   SizeType n1 = mAsList.size();
   SizeType n2 = src_list.mAsList.size();
@@ -60,6 +62,8 @@ NodeValList::diff(
   const NodeValList& src_list
 )
 {
+  _sort();
+  src_list._sort();
   vector<NodeVal> tmp_list;
   SizeType n1 = mAsList.size();
   SizeType n2 = src_list.mAsList.size();
@@ -85,7 +89,6 @@ NodeValList::diff(
     auto v1 = mAsList[i1];
     tmp_list.push_back(v1);
   }
-
   mAsList = tmp_list;
   mDirty = false;
 }

@@ -18,6 +18,8 @@ NodeTimeValList::merge(
   const NodeTimeValList& src_list
 )
 {
+  _sort();
+  src_list._sort();
   vector<NodeTimeVal> tmp_list;
   SizeType n1 = mAsList.size();
   SizeType n2 = src_list.mAsList.size();
@@ -60,6 +62,8 @@ NodeTimeValList::diff(
   const NodeTimeValList& src_list
 )
 {
+  _sort();
+  src_list._sort();
   vector<NodeTimeVal> tmp_list;
   SizeType n1 = mAsList.size();
   SizeType n2 = src_list.mAsList.size();
