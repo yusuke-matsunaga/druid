@@ -315,6 +315,10 @@ testcube_gen(
   timer.start();
 
   unordered_map<string, JsonValue> tcg_option_dict;
+  if ( sat_type != string{} ) {
+    auto sat_obj = JsonValue{sat_type};
+    tcg_option_dict.emplace("sat_param", sat_obj);
+  }
   if ( debug_testcube_gen ) {
     tcg_option_dict.emplace("debug", JsonValue{true});
   }
