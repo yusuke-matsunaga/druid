@@ -43,7 +43,7 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 両立故障グループを求める．
-  vector<vector<SizeType>>
+  vector<NodeTimeValList>
   generate(
     const vector<FaultInfo>& finfo_list, ///< [in] 故障情報のリスト
     SizeType limit                       ///< [in] 求める要素数の上限
@@ -63,6 +63,10 @@ private:
     NodeTimeValList mAssignments;
     // 対応する故障番号
     SizeType mFaultId;
+    // ブロックリスト
+    vector<SizeType> mBlockList;
+    // 現在のブロックリスト
+    vector<SizeType> mCurBlockList;
   };
 
 
@@ -76,6 +80,10 @@ private:
   init(
     const vector<FaultInfo>& finfo_list
   );
+
+  /// @brief 各キューブごとのブロックリストを作る．
+  void
+  gen_blocklist();
 
   /// @brief 拡張テストキューブに対する含意を行う．
   NodeTimeValList
@@ -91,22 +99,18 @@ private:
   );
 
   /// @brief 極大集合を求める．
-  bool
+  NodeTimeValList
   greedy_mcset();
 
-  /// @brief 最も価値の高いキューブを選ぶ
-  ExCube*
-  select_cube();
-
-  /// @brief 追加後の故障候補の重みを計算する．
-  double
-  count_weight(
-    const ExCube* cube
-  );
-
-  /// @brief 更新する．
+  /// @brief 記録する．
   void
-  update();
+  record();
+
+  /// @brief シグネチャから最も価値の低いインデックスを選ぶ．
+  SizeType
+  select_index(
+    const vector<int>& signature
+  );
 
   /// @brief 両立性のチェック
   bool
@@ -130,33 +134,12 @@ private:
   // 拡張テストキューブのリスト
   vector<ExCube> mCubeList;
 
-  // 結果の故障グループのリスト
-  vector<vector<SizeType>> mFaultGroupList;
+  // 値割り当ての結果ブロックされるキューブ番号のリスト
+  vector<vector<SizeType>> mBlockListArray;
 
-  // 検出数ごとの拡張テストキューブ番号のリスト
-  vector<vector<SizeType>> mCubeListArray;
-
-  // 故障の検出回数の配列
+  // 各故障のカバー数
   // キーは故障番号
   vector<SizeType> mCountArray;
-
-  // 現在選択されている故障番号の集合を表すリスト
-  vector<SizeType> mCurFaultList;
-
-  // 現在選択されている故障番号の集合を表すビットマップ
-  vector<bool> mCurFaultSet;
-
-  // 現在選択されているキューブ番号の集合を表すリスト
-  vector<SizeType> mCurCubeList;
-
-  // 現在選択されているキューブ番号の集合を表すビットマップ
-  vector<bool> mCurCubeSet;
-
-  // 現在選択されている故障集合用の値の割り当てリスト
-  NodeTimeValList mCurAssignments;
-
-  // mCurAssignments と両立するキューブ番号のリスト
-  vector<ExCube*> mCurCandList;
 
   // デバッグフラグ
   bool mDebug{false};

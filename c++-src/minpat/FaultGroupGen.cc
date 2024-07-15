@@ -11,16 +11,165 @@
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "LocalImp.h"
+#include "ym/Range.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+BEGIN_NONAMESPACE
+
+// リストのユニオンの要素数を数える．
+SizeType
+count_union(
+  const vector<SizeType>& list1,
+  const vector<SizeType>& list2
+)
+{
+  auto rpos1 = list1.begin();
+  auto rpos2 = list2.begin();
+  auto epos1 = list1.end();
+  auto epos2 = list2.end();
+  SizeType count = 0;
+  while ( rpos1 != epos1 && rpos2 != epos2 ) {
+    SizeType v1 = *rpos1;
+    SizeType v2 = *rpos2;
+    if ( v1 < v2 ) {
+      ++ count;
+      ++ rpos1;
+    }
+    else if ( v1 > v2 ) {
+      ++ count;
+      ++ rpos2;
+    }
+    else { // v1 == v2
+      ++ count;
+      ++ rpos1;
+      ++ rpos2;
+    }
+  }
+  count += (epos1 - rpos1);
+  count += (epos2 - rpos2);
+
+  return count;
+}
+
+// リストの差分を求める．
+vector<SizeType>
+diff(
+  const vector<SizeType>& list1,
+  const vector<SizeType>& list2
+)
+{
+  auto rpos1 = list1.begin();
+  auto rpos2 = list2.begin();
+  auto epos1 = list1.end();
+  auto epos2 = list2.end();
+  vector<SizeType> ans_list;
+  ans_list.reserve(list1.size());
+  while ( rpos1 != epos1 && rpos2 != epos2 ) {
+    SizeType v1 = *rpos1;
+    SizeType v2 = *rpos2;
+    if ( v1 < v2 ) {
+      ans_list.push_back(v1);
+      ++ rpos1;
+    }
+    else if ( v1 > v2 ) {
+      ++ rpos2;
+    }
+    else { // v1 == v2
+      ++ rpos1;
+      ++ rpos2;
+    }
+  }
+  for ( ; rpos1 != epos1; ++ rpos1 ) {
+    SizeType v1 = *rpos1;
+    ans_list.push_back(v1);
+  }
+
+  return ans_list;
+}
+
+// リストの差分の要素数を数える．
+SizeType
+count_diff(
+  const vector<SizeType>& list1,
+  const vector<SizeType>& list2
+)
+{
+  auto rpos1 = list1.begin();
+  auto rpos2 = list2.begin();
+  auto epos1 = list1.end();
+  auto epos2 = list2.end();
+  SizeType count = 0;
+  while ( rpos1 != epos1 && rpos2 != epos2 ) {
+    SizeType v1 = *rpos1;
+    SizeType v2 = *rpos2;
+    if ( v1 < v2 ) {
+      ++ count;
+      ++ rpos1;
+    }
+    else if ( v1 > v2 ) {
+      ++ rpos2;
+    }
+    else { // v1 == v2
+      ++ rpos1;
+      ++ rpos2;
+    }
+  }
+  count += (epos1 - rpos1);
+
+  return count;
+}
+
+// リストをマージする．
+void
+merge_list(
+  vector<SizeType>& list1,
+  const vector<SizeType>& list2
+)
+{
+  vector<SizeType> new_list;
+  auto rpos1 = list1.begin();
+  auto rpos2 = list2.begin();
+  auto epos1 = list1.end();
+  auto epos2 = list2.end();
+  new_list.reserve(list1.size() + list2.size());
+  while ( rpos1 != epos1 && rpos2 != epos2 ) {
+    SizeType v1 = *rpos1;
+    SizeType v2 = *rpos2;
+    if ( v1 <= v2 ) {
+      new_list.push_back(v1);
+      ++ rpos1;
+      if ( v1 == v2 ) {
+	++ rpos2;
+      }
+    }
+    else { // v1 > v2
+      new_list.push_back(v2);
+      ++ rpos2;
+    }
+  }
+  for ( ; rpos1 != epos1; ++ rpos1 ) {
+    SizeType v1 = *rpos1;
+    new_list.push_back(v1);
+  }
+  for ( ; rpos2 != epos2; ++ rpos2 ) {
+    SizeType v2 = *rpos2;
+    new_list.push_back(v2);
+  }
+  std::swap(new_list, list1);
+}
+
+END_NONAMESPACE
 
 // @brief コンストラクタ
 FaultGroupGen::FaultGroupGen(
   const TpgNetwork& network,
   const JsonValue& option
 ) : mNetwork{network},
-    mBaseEnc{network, option}
+    mBaseEnc{network, option},
+    mBlockListArray(network.node_num() * 4),
+    mCountArray(network.max_fault_id(), 0)
 {
   if ( option.is_object() &&
        option.has_key("debug") ) {
@@ -36,7 +185,7 @@ FaultGroupGen::~FaultGroupGen()
 }
 
 // @brief 両立故障グループを求める．
-vector<vector<SizeType>>
+vector<NodeTimeValList>
 FaultGroupGen::generate(
   const vector<FaultInfo>& finfo_list,
   SizeType limit
@@ -45,29 +194,37 @@ FaultGroupGen::generate(
   // 初期化する．
   init(finfo_list);
 
+  // ブロックリストを作る．
+  gen_blocklist();
+
   // limit 分の故障集合を求める．
+  vector<NodeTimeValList> ans_list;
   for ( SizeType count = 0; count < limit; ++ count ) {
     // 極大集合を求める．
-    if ( !greedy_mcset() ) {
+    auto assignments = greedy_mcset();
+    if ( assignments.size() == 0 ) {
       break;
     }
 
-    // 更新する．
-    // 場合によっては重複チェックを行う．
-    update();
+    if ( mDebug ) {
+      cout << "#" << ans_list.size() << endl;
+    }
+
+    ans_list.push_back(assignments);
   }
 
-  if ( mDebug ) {
-    cout << "Total " << mFaultGroupList.size() << " groups" << endl;
-    for ( auto& finfo: finfo_list ) {
-      auto fault = finfo.fault();
-      if ( mCountArray[fault->id()] == 0 ) {
-	cout << fault->str() << " is not covered" << endl;
-      }
+  for ( auto& finfo: finfo_list ) {
+    auto fault = finfo.fault();
+    if ( mCountArray[fault->id()] == 0 ) {
+      cout << fault->str() << " is not covered" << endl;
     }
   }
 
-  return mFaultGroupList;
+  if ( mDebug ) {
+    cout << "Total " << ans_list.size() << " groups" << endl;
+  }
+
+  return ans_list;
 }
 
 // @brief 故障集合を初期化する．
@@ -90,49 +247,82 @@ FaultGroupGen::init(
   for ( auto& finfo: finfo_list ) {
     auto fault = finfo.fault();
     auto fid = fault->id();
-    if ( mDebug ) {
-      cout << fault->str();
-      cout.flush();
-      cout << endl;
-    }
+    mCountArray[fid] = 0;
     for ( auto& assign: finfo.sufficient_conditions() ) {
       auto new_assign = imp.run(assign);
+#if 0
       auto new_assign2 = imply(new_assign);
       cout << assign.size() << " -> " << new_assign.size()
 	   << " -> " << new_assign2.size() << endl;
       c0 += assign.size();
       c1 += new_assign.size();
       c2 += new_assign2.size();
+#endif
       SizeType id = mCubeList.size();
-      mCubeList.push_back({id, new_assign2, fid});
-    }
-    if ( mDebug ) {
-      cout << "... done" << endl;
+      mCubeList.push_back({id, new_assign, fid});
     }
   }
+#if 0
   cout << "Total assign size:  " << c0 << endl
        << "Total assign1 size: " << c1 << endl
        << "Total assign2 size: " << c2 << endl;
-
-  mCountArray.clear();
-  mCountArray.resize(mNetwork.max_fault_id(), 0);
-  mCurFaultList.clear();
-  mCurFaultSet.clear();
-  mCurFaultSet.resize(mNetwork.max_fault_id(), false);
-  mCurCubeList.clear();
-  mCurCubeSet.clear();
-  mCurCubeSet.resize(mCubeList.size(), false);
-  mCubeListArray.clear();
-  mCubeListArray.push_back({});
-  auto& dst_list = mCubeListArray[0];
-  dst_list.reserve(mCubeList.size());
-  for ( SizeType i = 0; i < mCubeList.size(); ++ i ) {
-    dst_list.push_back(i);
-  }
+#endif
 
   timer.stop();
   if ( mDebug ) {
     cout << "Total # of cubes: " << mCubeList.size() << endl
+	 << "CPU time:         " << timer.get_time() << endl;
+  }
+}
+
+// @brief 各キューブごとのブロックリストを作る．
+void
+FaultGroupGen::gen_blocklist()
+{
+  Timer timer;
+  timer.start();
+
+  // 各インデックスごとのブロックリストを作る．
+  vector<vector<SizeType>> block_list_array(mNetwork.node_num() * 4);
+  for ( SizeType cube_id = 0; cube_id < mCubeList.size(); ++ cube_id ) {
+    auto& cube = mCubeList[cube_id];
+    for ( auto nv: cube.mAssignments ) {
+      auto node = nv.node();
+      auto time = nv.time();
+      auto val = nv.val();
+      SizeType index = node->id() * 2 + time;
+      SizeType offset = val ? 0 : 1;
+      block_list_array[index * 2 + offset].push_back(cube_id);
+    }
+  }
+
+  timer.stop();
+  if ( mDebug ) {
+    cout << "BlockList cnstruction(1)" << endl
+	 << "CPU time:         " << timer.get_time() << endl;
+  }
+
+  timer.reset();
+  timer.start();
+
+  // 各キューブごとのブロックリストを作る．
+  for ( SizeType cube_id = 0; cube_id < mCubeList.size(); ++ cube_id ) {
+    auto& cube = mCubeList[cube_id];
+    auto& dst_list = cube.mBlockList;
+    for ( auto nv: cube.mAssignments ) {
+      auto node = nv.node();
+      auto time = nv.time();
+      auto val = nv.val();
+      SizeType index = node->id() * 2 + time;
+      SizeType offset = val ? 1 : 0;
+      merge_list(dst_list, block_list_array[index * 2 + offset]);
+    }
+    cout << "Cube#" << cube_id << ": " << dst_list.size() << endl;
+  }
+
+  timer.stop();
+  if ( mDebug ) {
+    cout << "BlockList construction(2)" << endl
 	 << "CPU time:         " << timer.get_time() << endl;
   }
 }
@@ -216,191 +406,121 @@ FaultGroupGen::check_imp(
 }
 
 // @brief 極大集合を求める．
-bool
+NodeTimeValList
 FaultGroupGen::greedy_mcset()
 {
-  mCurCandList.clear();
+  // 現在選択されているキューブ番号を表すリスト
+  vector<SizeType> selected_list;
+  // 現在選択されている故障集合を表すビットマップ
+  vector<bool> selected_map(mNetwork.max_fault_id(), false);
+  // 現在選択されているキューブの割り当て
+  NodeTimeValList cur_assignments;
+
+  // 現在選択されているキューブ集合でブロックされている
+  // キューブ番号のリスト
+  vector<SizeType> cur_block_list;
+  // 現在選択されているキューブ集合でブロックされている
+  // キューブ集合を表すビットマップ
+  vector<bool> blocked_map(mCubeList.size(), false);
+
   for ( auto& cube: mCubeList ) {
-    mCurCandList.push_back(&cube);
+    if ( mCountArray[cube.mId] > 0 ) {
+      cube.mCurBlockList.clear();
+    }
+    else {
+      cube.mCurBlockList = cube.mBlockList;
+    }
   }
 
-  // 各故障に対して現時点でカバーされている回数+1の逆数を重み
-  // として，重みが最大(極大)となるような故障集合を求める．
+  // 未選択のキューブのうち，新規に追加した時にブロックリストの増加が
+  // 最小となるものを求める．
   for ( ; ; ) {
-    // 未選択の故障の拡張テストキューブのうち，
-    // 候補の重みの和)が最大となるものを求める．
-    auto cube = select_cube();
-
-    // 追加できる故障がなくなったら終わる．
-    if ( cube == nullptr ) {
-      return !mCurFaultList.empty();
-    }
-
-    // 故障集合を更新する．
-    mCurFaultList.push_back(cube->mFaultId);
-    mCurFaultSet[cube->mFaultId] = true;
-    mCurCubeList.push_back(cube->mId);
-    mCurCubeSet[cube->mId] = true;
-    mCurAssignments.merge(cube->mAssignments);
-    vector<ExCube*> new_list;
-    for ( auto cube: mCurCandList ) {
-      if ( is_compatible(mCurAssignments, cube->mAssignments) ) {
-	new_list.push_back(cube);
+    vector<pair<SizeType, double>> cube_weight_list;
+    for ( auto& cube: mCubeList ) {
+      if ( mCountArray[cube.mFaultId] > 0 ) {
+	continue;
       }
-    }
-    std::swap(mCurCandList, new_list);
-  }
-}
+      if ( selected_map[cube.mFaultId] ) {
+	// すでに選択済み
+	continue;
+      }
+      if ( blocked_map[cube.mId] ) {
+	// ブロックされているキューブ
+	continue;
+      }
 
-// @brief 最も価値の高いキューブを選ぶ．
-FaultGroupGen::ExCube*
-FaultGroupGen::select_cube()
-{
-  ExCube* max_cube = nullptr;
+      // このキューブを選択すると新たにブロックされるキューブ
 #if 0
-  for ( auto& cube_list: mCubeListArray ) {
-    double max_weight = 0.0;
-    for ( auto cube_id: cube_list ) {
-      cout << "cube_id = " << cube_id << endl;
+      double weight = - (1.0 / (mCountArray[cube.mFaultId] + 1));
+      for ( auto id: cube.mCurBlockList ) {
+	auto& cube1 = mCubeList[id];
+	auto fid = cube1.mFaultId;
+	weight += 1.0 / (mCountArray[fid] + 1);
+      }
+#else
+      double weight = -1.0;
+      for ( auto id: cube.mCurBlockList ) {
+	auto& cube1 = mCubeList[id];
+	auto fid = cube1.mFaultId;
+	if ( mCountArray[fid] == 0 ) {
+	  weight += 1.0;
+	}
+      }
+#endif
+      cube_weight_list.push_back({cube.mId, weight});
+    }
+    if ( cube_weight_list.empty() ) {
+      break;
+    }
+    sort(cube_weight_list.begin(), cube_weight_list.end(),
+	 [](const pair<SizeType, double>& a,
+	    const pair<SizeType, double>& b)
+	 {
+	   return a.second < b.second;
+	 });
+    bool found = false;
+    for ( auto& p: cube_weight_list ) {
+      auto cube_id = p.first;
       auto& cube = mCubeList[cube_id];
-      if ( mCurFaultSet[cube.mFaultId] ) {
-	// 既に同じ故障のキューブが選ばれている．
-	cout << "Fault#" << cube.mFaultId << " is already covered" << endl;
-	continue;
-      }
-      if ( !is_compatible(cube.mAssignments, mCurAssignments) ) {
-	// 衝突していた．
-	cout << " is not compatible" << endl;
-	continue;
-      }
-      double weight = count_weight(cube.mAssignments);
-      if ( max_weight < weight ) {
-	max_weight = weight;
-	max_cube_id = cube_id;
+      if ( is_compatible(cur_assignments, cube.mAssignments) ) {
+	// このキューブを選択する．
+	selected_list.push_back(cube_id);
+	selected_map[cube.mFaultId] = true;
+	cur_assignments.merge(cube.mAssignments);
+	++ mCountArray[cube.mFaultId];
+	auto& blist = cube.mBlockList;
+	for ( auto& cube1: mCubeList ) {
+	  if ( mCountArray[cube1.mId] > 0 ) {
+	    continue;
+	  }
+	  diff(cube1.mCurBlockList, blist);
+	}
+	for ( auto i: cube.mBlockList ) {
+	  blocked_map[i] = true;
+	}
+	found = true;
+	break;
       }
     }
-    if ( max_weight > 0 ) {
+    if ( !found ) {
       break;
     }
   }
-#else
-  double max_weight = 0.0;
-  for ( auto cube: mCurCandList ) {
-    if ( mCurFaultSet[cube->mFaultId] ) {
-      continue;
-    }
-    double weight = count_weight(cube);
-    if ( max_weight < weight ) {
-      max_weight = weight;
-      max_cube = cube;
-    }
-  }
-#endif
-  return max_cube;
-}
-
-// @brief 追加後の候補故障の重みを計算する．
-double
-FaultGroupGen::count_weight(
-  const ExCube* cube
-)
-{
-  auto tmp_assign{mCurAssignments};
-  tmp_assign.merge(cube->mAssignments);
-  double weight = (1 / (mCountArray[cube->mFaultId] + 1));
-  vector<bool> fault_set(mNetwork.max_fault_id(), false);
-  fault_set[cube->mFaultId] = true;
-  for ( auto cube: mCurCandList ) {
-    auto fid = cube->mFaultId;
-    if ( mCurFaultSet[fid] ) {
-      continue;
-    }
-    if ( fault_set[fid] ) {
-      continue;
-    }
-    if ( is_compatible(cube->mAssignments, tmp_assign) ) {
-      weight += (1 / (mCountArray[fid] + 1));
-      fault_set[cube->mFaultId] = true;
+  { // verify
+    for ( auto cube_id: selected_list ) {
+      auto& cube = mCubeList[cube_id];
+      auto tmp{cube.mAssignments};
+      tmp.diff(cur_assignments);
+      if ( tmp.size() > 0 ) {
+	cout << "Error" << endl;
+	abort();
+      }
     }
   }
-  return weight;
-}
-
-// @brief 更新する．
-void
-FaultGroupGen::update()
-{
   if ( mDebug ) {
-    for ( auto fid: mCurFaultList ) {
-      auto fault = mNetwork.fault(fid);
-      cout << " " << fault->str()
-	   << " [" << mCountArray[fault->id()] << "]";
-    }
-    cout << endl;
+    cout << " # of faults = " << selected_list.size() << endl;
   }
-
-  mFaultGroupList.push_back({});
-  for ( auto fid: mCurFaultList ) {
-    ++ mCountArray[fid];
-    mCurFaultSet[fid] = false;
-    mFaultGroupList.back().push_back(fid);
-  }
-  mCurFaultList.clear();
-  for ( auto cube_id: mCurCubeList ) {
-    mCurCubeSet[cube_id] = false;
-  }
-  mCurCubeList.clear();
-
-  mCurAssignments.clear();
-
-  // とりあえずナイーブなやり方で実装する．
-  SizeType nc = mCubeListArray.size();
-  for ( SizeType c = 0; c < nc; ++ c ) {
-    auto& cube_list = mCubeListArray[c];
-#if 0
-    auto rpos = cube_list.begin();
-    auto wpos = rpos;
-    auto epos = cube_list.end();
-    for ( ; rpos != epos; ++ rpos ) {
-      auto cube_id = *rpos;
-      auto& cube = mCubeList[cube_id];
-      auto fid = cube.mFaultId;
-      auto new_c = mCountArray[fid];
-      if ( new_c > c ) {
-	if ( new_c == nc ) {
-	  mCubeListArray.push_back({});
-	}
-	mCubeListArray[new_c].push_back(cube_id);
-      }
-      else {
-	if ( wpos != rpos ) {
-	  *wpos = cube_id;
-	}
-	++ wpos;
-      }
-    }
-    if ( wpos != epos ) {
-      cube_list.erase(wpos);
-    }
-#else
-    vector<SizeType> dst_list;
-    for ( auto cube_id: mCubeListArray[c] ) {
-      auto& cube = mCubeList[cube_id];
-      auto fid = cube.mFaultId;
-      auto new_c = mCountArray[fid];
-      if ( new_c > c ) {
-	if ( new_c == nc ) {
-	  mCubeListArray.push_back({});
-	}
-	mCubeListArray[new_c].push_back(cube_id);
-      }
-      else {
-	dst_list.push_back(cube_id);
-      }
-    }
-    mCubeListArray[c] = dst_list;
-#endif
-  }
+  return cur_assignments;
 }
 
 // @brief 両立性のチェック
