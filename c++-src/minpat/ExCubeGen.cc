@@ -89,7 +89,7 @@ ExCubeGen::run(
     suff_cond = mBdEnc->extract_sufficient_condition();
     fault_info.add_sufficient_condition(suff_cond);
   }
-  if ( mDebug ) {
+  if ( false && mDebug ) {
     auto n = fault_info.sufficient_conditions().size();
     cout << fault->str()
 	 << " ";

@@ -33,7 +33,6 @@ set ( minpat_SOURCES
   TrivialChecker1.cc
   TrivialChecker2.cc
   TrivialChecker3.cc
-  TestCubeGen.cc
   NaiveDomChecker.cc
   NaiveDomChecker2.cc
   FFRFaultList.cc

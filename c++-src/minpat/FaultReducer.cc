@@ -17,6 +17,7 @@
 #include "TrivialChecker1.h"
 #include "TrivialChecker2.h"
 #include "TrivialChecker3.h"
+#include "ExCubeGen.h"
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
 #include "TpgNodeSet.h"
@@ -70,7 +71,6 @@ FaultReducer::FaultReducer(
   const JsonValue& option
 ) : mNetwork{network},
     mOption{option},
-    mFFRMap(network.max_fault_id()),
     mInputListArray(network.ffr_num()),
     mDomCandListArray(network.max_fault_id()),
     mFaultInfoArray(network.max_fault_id())
@@ -102,44 +102,41 @@ FaultReducer::run(
   const vector<TestVector>& tv_list
 )
 {
+  // 故障シミュレーションを用いて支配関係の候補リストを作る．
   gen_dom_cands(fault_list, tv_list);
 
   // FFR番号をキーにして故障のリストを保持する辞書
   FFRFaultList ffr_fault_list{mNetwork, fault_list};
   mFaultNum = fault_list.size();
-  for ( auto& ffr: mNetwork.ffr_list() ) {
-    for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
-      mFFRMap[fault->id()] = ffr->id();
-    }
-  }
 
+  // FFR内の支配関係を調べる．
   ffr_reduction(ffr_fault_list);
-  bool analyze = true;
-  if ( mOption.is_object() &&
-       mOption.has_key("analyze") ) {
-    analyze = mOption.get("analyze").get_bool();
-  }
-  if ( analyze ) {
-    fault_analysis(ffr_fault_list);
-    trivial_reduction1(ffr_fault_list);
-    trivial_reduction2(ffr_fault_list);
-    trivial_reduction3(ffr_fault_list);
-    global_reduction(ffr_fault_list, true);
-  }
-  else {
-    global_reduction(ffr_fault_list, false);
-  }
+  // 故障の検出条件を調べる．
+  fault_analysis(ffr_fault_list);
+  // 簡単なチェックを行う．
+  trivial_reduction1(ffr_fault_list);
+  trivial_reduction2(ffr_fault_list);
+  trivial_reduction3(ffr_fault_list);
+  // 最終チェックを行う．
+  global_reduction(ffr_fault_list, true);
+
+  // 拡張テストキューブを作る．
   vector<FaultInfo> ans_list;
   ans_list.reserve(mFaultNum);
-  for ( auto fault: fault_list ) {
-    if ( is_deleted(fault) ) {
-      continue;
+  for ( auto ffr: ffr_fault_list.ffr_list() ) {
+    ExCubeGen gen{mNetwork, ffr, mOption};
+    for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
+      if ( is_deleted(fault) ) {
+	continue;
+      }
+      auto& info = mFaultInfoArray[fault->id()];
+      auto mand_cond = info.mMandCond;
+      auto suff_cond = info.mSuffCond;
+      auto trivial = info.mTrivial;
+      FaultInfo finfo{fault, mand_cond, suff_cond, trivial};
+      gen.run(finfo);
+      ans_list.push_back(finfo);
     }
-    auto& info = mFaultInfoArray[fault->id()];
-    auto mand_cond = info.mMandCond;
-    auto suff_cond = info.mSuffCond;
-    auto trivial = info.mTrivial;
-    ans_list.push_back(FaultInfo{fault, mand_cond, suff_cond, trivial});
   }
   return ans_list;
 }
@@ -591,11 +588,9 @@ FaultReducer::global_reduction(
 	if ( ffr2 == ffr1 ) {
 	  continue;
 	}
-#if 1
 	if ( !check_intersect(ffr1, ffr2) ) {
 	  continue;
 	}
-#endif
 	if ( !fault2_mark[fault2->id()] ) {
 	  fault2_mark[fault2->id()] = true;
 	  fault2_list.push_back(fault2);
@@ -671,38 +666,8 @@ FaultReducer::check_intersect(
   const TpgFFR* ffr2
 )
 {
-  return _check_intersect(ffr1->id(), ffr2->id());
-}
-
-// @brief 2つの故障が共通部分を持つか調べる．
-bool
-FaultReducer::check_intersect(
-  const TpgFault* fault1,
-  const TpgFault* fault2
-)
-{
-  return _check_intersect(mFFRMap[fault1->id()], mFFRMap[fault2->id()]);
-}
-
-// @brief 2つの故障が共通部分を持つか調べる．
-bool
-FaultReducer::check_intersect(
-  const TpgFault* fault1,
-  const TpgFFR* ffr2
-)
-{
-  return _check_intersect(mFFRMap[fault1->id()], ffr2->id());
-}
-
-// @brief 2つの FFR が共通部分を持つか調べる．
-bool
-FaultReducer::_check_intersect(
-  SizeType id1,
-  SizeType id2
-)
-{
-  auto& list_a = mInputListArray[id1];
-  auto& list_b = mInputListArray[id2];
+  auto& list_a = mInputListArray[ffr1->id()];
+  auto& list_b = mInputListArray[ffr2->id()];
   auto rpos_a = list_a.begin();
   auto rpos_b = list_b.begin();
   auto epos_a = list_a.end();
@@ -721,6 +686,26 @@ FaultReducer::_check_intersect(
     }
   }
   return false;
+}
+
+// @brief 2つの故障が共通部分を持つか調べる．
+bool
+FaultReducer::check_intersect(
+  const TpgFault* fault1,
+  const TpgFault* fault2
+)
+{
+  return check_intersect(mNetwork.ffr(fault1), mNetwork.ffr(fault2));
+}
+
+// @brief 2つの故障が共通部分を持つか調べる．
+bool
+FaultReducer::check_intersect(
+  const TpgFault* fault1,
+  const TpgFFR* ffr2
+)
+{
+  return check_intersect(mNetwork.ffr(fault1), ffr2);
 }
 
 END_NAMESPACE_DRUID

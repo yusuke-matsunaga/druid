@@ -189,13 +189,6 @@ private:
     const TpgFFR* ffr2
   );
 
-  /// @brief check_intersect() の下請け関数
-  bool
-  _check_intersect(
-    SizeType id1,
-    SizeType id2
-  );
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -221,9 +214,6 @@ private:
 
   // オプション
   JsonValue mOption;
-
-  // 故障番号をキーとして所属する FFR 番号を格納する配列
-  vector<SizeType> mFFRMap;
 
   // FFR の TFO の TFI に含まれる入力ノード番号のリスト
   vector<vector<SizeType>> mInputListArray;

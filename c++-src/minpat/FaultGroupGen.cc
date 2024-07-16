@@ -322,7 +322,6 @@ FaultGroupGen::gen_blocklist()
       SizeType offset = val ? 1 : 0;
       merge_list(dst_list, block_list_array[index * 2 + offset]);
     }
-    cout << "Cube#" << cube_id << ": " << dst_list.size() << endl;
   }
 
   timer.stop();

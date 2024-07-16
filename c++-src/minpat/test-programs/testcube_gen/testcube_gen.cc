@@ -299,6 +299,13 @@ testcube_gen(
   if ( debug_fault_reduce ) {
     fr_option_dict.emplace("debug", JsonValue{true});
   }
+  if ( sat_type != string{} ) {
+    auto sat_obj = JsonValue{sat_type};
+    fr_option_dict.emplace("sat_param", sat_obj);
+  }
+  if ( cube_per_fault > 1 ) {
+    fr_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
+  }
   fr_option_dict.emplace("loop_limit", JsonValue{loop});
   JsonValue fr_option{fr_option_dict};
   FaultReducer fr{network, fr_option};
@@ -307,27 +314,20 @@ testcube_gen(
 
   timer.stop();
 
-  cout << "Detected Faults: " << det_fault_list.size() << endl
-       << "Reduced Faults:  " << reduced_fault_list.size() << endl
-       << "CPU time:        " << timer.get_time() << endl;
+  SizeType nc = 0;
+  for ( auto& finfo: reduced_fault_list ) {
+    nc += finfo.sufficient_conditions().size();
+  }
+
+  cout << "Detected Faults:  " << det_fault_list.size() << endl
+       << "Reduced Faults:   " << reduced_fault_list.size() << endl
+       << "Total # of cubes: " << nc << endl
+       << "CPU time:         " << timer.get_time() << endl;
 
   timer.reset();
   timer.start();
 
-  unordered_map<string, JsonValue> tcg_option_dict;
-  if ( sat_type != string{} ) {
-    auto sat_obj = JsonValue{sat_type};
-    tcg_option_dict.emplace("sat_param", sat_obj);
-  }
-  if ( debug_testcube_gen ) {
-    tcg_option_dict.emplace("debug", JsonValue{true});
-  }
-  if ( cube_per_fault > 1 ) {
-    tcg_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
-  }
-  JsonValue tcg_option{tcg_option_dict};
-  TestCubeGen::run(network, reduced_fault_list, tcg_option);
-  FaultGroupGen fgg{network, tcg_option};
+  FaultGroupGen fgg{network, fr_option};
   SizeType limit = reduced_fault_list.size() * 10;
   auto fg_list = fgg.generate(reduced_fault_list, limit);
 
