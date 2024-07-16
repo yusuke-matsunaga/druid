@@ -201,13 +201,17 @@ FaultGroupGen::generate(
   vector<NodeTimeValList> ans_list;
   for ( SizeType count = 0; count < limit; ++ count ) {
     // 極大集合を求める．
+    SizeType old_num = mFaultNum;
     auto assignments = greedy_mcset();
     if ( assignments.size() == 0 ) {
       break;
     }
 
     if ( mDebug ) {
-      cout << "#" << ans_list.size() << endl;
+      auto n = old_num - mFaultNum;
+      cout << "#" << ans_list.size()
+	   << ": " << n << " | " << mFaultNum
+	   << endl;
     }
 
     ans_list.push_back(assignments);
@@ -262,6 +266,7 @@ FaultGroupGen::init(
       mCubeList.push_back({id, new_assign, fid});
     }
   }
+  mFaultNum = finfo_list.size();
 #if 0
   cout << "Total assign size:  " << c0 << endl
        << "Total assign1 size: " << c1 << endl
@@ -488,6 +493,7 @@ FaultGroupGen::greedy_mcset()
 	selected_map[cube.mFaultId] = true;
 	cur_assignments.merge(cube.mAssignments);
 	++ mCountArray[cube.mFaultId];
+	-- mFaultNum;
 	auto& blist = cube.mBlockList;
 	for ( auto& cube1: mCubeList ) {
 	  if ( mCountArray[cube1.mId] > 0 ) {
@@ -506,6 +512,7 @@ FaultGroupGen::greedy_mcset()
       break;
     }
   }
+#if 0
   { // verify
     for ( auto cube_id: selected_list ) {
       auto& cube = mCubeList[cube_id];
@@ -517,9 +524,7 @@ FaultGroupGen::greedy_mcset()
       }
     }
   }
-  if ( mDebug ) {
-    cout << " # of faults = " << selected_list.size() << endl;
-  }
+#endif
   return cur_assignments;
 }
 

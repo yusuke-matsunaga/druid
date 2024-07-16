@@ -17,6 +17,8 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class FFRFaultList;
+
 //////////////////////////////////////////////////////////////////////
 /// @class FaultReducer FaultReducer.h "FaultReducer.h"
 /// @brief 支配故障を求めて対象の故障を削減するクラス
@@ -64,42 +66,41 @@ private:
   );
 
   /// @brief 同一FFR内の支配関係を用いて故障を削減する．
-  /// @return 削減した故障リストを返す．
-  vector<const TpgFault*>
+  void
   ffr_reduction(
-    const vector<const TpgFault*>& fault_list
+    const FFRFaultList& ffr_fault_list
   );
 
   /// @brief 故障の解析を行う．
   ///
-  /// 結果は mSuffCondArray, mMandCondArray に格納される．
+  /// 結果は FaultInfo.mSuffCond, mMandCond に格納される．
   void
   fault_analysis(
-    const vector<const TpgFault*>& fault_list
+    const FFRFaultList& ffr_fault_list
   );
 
   /// @brief trivial な故障間の支配関係のチェックを行う．
-  vector<const TpgFault*>
+  void
   trivial_reduction1(
-    const vector<const TpgFault*>& fault_list
+    const FFRFaultList& ffr_fault_list
   );
 
   /// @brief trivial な故障に支配されている場合のチェックを行う．
-  vector<const TpgFault*>
+  void
   trivial_reduction2(
-    const vector<const TpgFault*>& fault_list
+    const FFRFaultList& ffr_fault_list
   );
 
   /// @brief trivial な故障が支配されている場合のチェックを行う．
-  vector<const TpgFault*>
+  void
   trivial_reduction3(
-    const vector<const TpgFault*>& fault_list
+    const FFRFaultList& ffr_fault_list
   );
 
   /// @brief 異なる FFR 間の支配故障のチェックを行う．
-  vector<const TpgFault*>
+  void
   global_reduction(
-    const vector<const TpgFault*>& fault_list,
+    const FFRFaultList& ffr_fault_list,
     bool skip_trivial
   );
 
@@ -137,6 +138,7 @@ private:
   )
   {
     mFaultInfoArray[fault->id()].mDelMark = true;
+    -- mFaultNum;
   }
 
   /// @brief trivial fault か調べる．
@@ -166,6 +168,34 @@ private:
     return mFaultInfoArray[fault->id()].mMandCond;
   }
 
+  /// @brief 2つの FFR が共通部分を持つか調べる．
+  bool
+  check_intersect(
+    const TpgFFR* ffr1,
+    const TpgFFR* ffr2
+  );
+
+  /// @brief 2つの故障が共通部分を持つか調べる．
+  bool
+  check_intersect(
+    const TpgFault* fault1,
+    const TpgFault* fault2
+  );
+
+  /// @brief 2つの故障が共通部分を持つか調べる．
+  bool
+  check_intersect(
+    const TpgFault* fault1,
+    const TpgFFR* ffr2
+  );
+
+  /// @brief check_intersect() の下請け関数
+  bool
+  _check_intersect(
+    SizeType id1,
+    SizeType id2
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -192,6 +222,12 @@ private:
   // オプション
   JsonValue mOption;
 
+  // 故障番号をキーとして所属する FFR 番号を格納する配列
+  vector<SizeType> mFFRMap;
+
+  // FFR の TFO の TFI に含まれる入力ノード番号のリスト
+  vector<vector<SizeType>> mInputListArray;
+
   // 支配故障の候補リストの配列
   // キーは故障番号
   vector<vector<const TpgFault*>> mDomCandListArray;
@@ -199,6 +235,9 @@ private:
   // 故障情報の配列
   // キーは故障番号
   vector<Info> mFaultInfoArray;
+
+  // 残っている故障数
+  SizeType mFaultNum;
 
   // デバッグフラグ
   bool mDebug{false};

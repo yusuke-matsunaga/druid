@@ -70,12 +70,28 @@ FaultReducer::FaultReducer(
   const JsonValue& option
 ) : mNetwork{network},
     mOption{option},
+    mFFRMap(network.max_fault_id()),
+    mInputListArray(network.ffr_num()),
     mDomCandListArray(network.max_fault_id()),
     mFaultInfoArray(network.max_fault_id())
 {
   if ( option.is_object() &&
        option.has_key("debug") ) {
     mDebug = option.get("debug").get_bool();
+  }
+
+  // FFR の構造を解析して関係ある入力ノードを求める．
+  SizeType nn = network.node_num();
+  for ( auto& ffr: network.ffr_list() ) {
+    auto tmp_list = TpgNodeSet::get_tfo_list(nn, ffr->root());
+    auto& input_list = mInputListArray[ffr->id()];
+    TpgNodeSet::get_tfi_list(nn, tmp_list,
+			     [&](const TpgNode* node) {
+			       if ( node->is_ppi() ) {
+				 input_list.push_back(node->id());
+			       }
+			     });
+    sort(input_list.begin(), input_list.end());
   }
 }
 
@@ -87,25 +103,38 @@ FaultReducer::run(
 )
 {
   gen_dom_cands(fault_list, tv_list);
-  auto fault_list1 = ffr_reduction(fault_list);
+
+  // FFR番号をキーにして故障のリストを保持する辞書
+  FFRFaultList ffr_fault_list{mNetwork, fault_list};
+  mFaultNum = fault_list.size();
+  for ( auto& ffr: mNetwork.ffr_list() ) {
+    for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
+      mFFRMap[fault->id()] = ffr->id();
+    }
+  }
+
+  ffr_reduction(ffr_fault_list);
   bool analyze = true;
   if ( mOption.is_object() &&
        mOption.has_key("analyze") ) {
     analyze = mOption.get("analyze").get_bool();
   }
   if ( analyze ) {
-    fault_analysis(fault_list1);
-    fault_list1 = trivial_reduction1(fault_list1);
-    fault_list1 = trivial_reduction2(fault_list1);
-    fault_list1 = trivial_reduction3(fault_list1);
-    fault_list1 = global_reduction(fault_list1, true);
+    fault_analysis(ffr_fault_list);
+    trivial_reduction1(ffr_fault_list);
+    trivial_reduction2(ffr_fault_list);
+    trivial_reduction3(ffr_fault_list);
+    global_reduction(ffr_fault_list, true);
   }
   else {
-    fault_list1 = global_reduction(fault_list1, false);
+    global_reduction(ffr_fault_list, false);
   }
   vector<FaultInfo> ans_list;
-  ans_list.reserve(fault_list1.size());
-  for ( auto fault: fault_list1 ) {
+  ans_list.reserve(mFaultNum);
+  for ( auto fault: fault_list ) {
+    if ( is_deleted(fault) ) {
+      continue;
+    }
     auto& info = mFaultInfoArray[fault->id()];
     auto mand_cond = info.mMandCond;
     auto suff_cond = info.mSuffCond;
@@ -116,24 +145,22 @@ FaultReducer::run(
 }
 
 // @brief 同一FFR内の支配関係を用いて故障を削減する．
-vector<const TpgFault*>
+void
 FaultReducer::ffr_reduction(
-  const vector<const TpgFault*>& fault_list
+  const FFRFaultList& ffr_fault_list
 )
 {
   Timer timer;
   if ( mDebug ) {
     cout << "---------------------------------------" << endl;
     cout << "# of initial faults:                   "
-	 << fault_list.size() << endl;
+	 << mFaultNum << endl;
     timer.start();
   }
 
   SizeType check_num = 0;
   SizeType dom_num = 0;
   SizeType success_num = 0;
-  // FFR番号をキーにして故障のリストを保持する辞書
-  FFRFaultList ffr_fault_list{mNetwork, fault_list};
 
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
     // FFR 単位の故障リスト
@@ -161,24 +188,14 @@ FaultReducer::ffr_reduction(
     }
   }
 
-  vector<const TpgFault*> ans_list;
-  for ( auto fault: fault_list ) {
-    if ( !is_deleted(fault) ) {
-      ans_list.push_back(fault);
-    }
-  }
-
   if ( mDebug ) {
     timer.stop();
-    SizeType n = ans_list.size();
-    cout << "after FFR dominance reduction:         " << n << endl;
+    cout << "after FFR dominance reduction:         " << mFaultNum << endl;
     cout << "    # of total checkes:                " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "    # of FFRDomCheckers:               " << dom_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
   }
-
-  return ans_list;
 }
 
 // @grep 故障シミュレーションを用いて被支配故障の候補を生成する．
@@ -223,7 +240,7 @@ FaultReducer::gen_dom_cands(
 // @brief 故障の解析を行う．
 void
 FaultReducer::fault_analysis(
-  const vector<const TpgFault*>& fault_list
+  const FFRFaultList& ffr_fault_list
 )
 {
   Timer timer;
@@ -234,7 +251,6 @@ FaultReducer::fault_analysis(
 
   SizeType nt = 0;
 
-  FFRFaultList ffr_fault_list{mNetwork, fault_list};
   // FFR 単位で処理を行う．
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
     FaultAnalyzer analyzer{mNetwork, ffr, mOption};
@@ -260,9 +276,9 @@ FaultReducer::fault_analysis(
 }
 
 // @brief trivial な故障間の支配関係のチェックを行う．
-vector<const TpgFault*>
+void
 FaultReducer::trivial_reduction1(
-  const vector<const TpgFault*>& fault_list
+  const FFRFaultList& ffr_fault_list
 )
 {
   Timer timer;
@@ -273,7 +289,10 @@ FaultReducer::trivial_reduction1(
 
   vector<const TpgFault*> tmp_fault_list;
   vector<bool> mark(mNetwork.max_fault_id(), false);
-  for ( auto fault1: fault_list ) {
+  for ( auto fault1: ffr_fault_list.fault_list() ) {
+    if ( is_deleted(fault1) ) {
+      continue;
+    }
     if ( !is_trivial(fault1) ) {
       continue;
     }
@@ -296,13 +315,16 @@ FaultReducer::trivial_reduction1(
 
   SizeType check_num = 0;
   SizeType success_num = 0;
-  for ( auto fault1: fault_list ) {
+  for ( auto fault1: ffr_fault_list.fault_list() ) {
     if ( is_deleted(fault1) || !is_trivial(fault1) ) {
       continue;
     }
     auto cond1 = mandatory_condition(fault1);
     for ( auto fault2: dom_cand_list(fault1) ) {
       if ( is_deleted(fault2) || !is_trivial(fault2) ) {
+	continue;
+      }
+      if ( !check_intersect(fault1, fault2) ) {
 	continue;
       }
       auto cond2 = mandatory_condition(fault2);
@@ -320,29 +342,19 @@ FaultReducer::trivial_reduction1(
     }
   }
 
-  vector<const TpgFault*> ans_list;
-  for ( auto fault: fault_list ) {
-    if ( !is_deleted(fault) ) {
-      ans_list.push_back(fault);
-    }
-  }
-
   if ( mDebug ) {
     timer.stop();
-    SizeType n = ans_list.size();
-    cout << "after trivial_reduction1:              " << n << endl;
+    cout << "after trivial_reduction1:              " << mFaultNum << endl;
     cout << "    # of total checkes:                " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
   }
-
-  return ans_list;
 }
 
 // @brief trivial な故障が支配されている場合のチェックを行う．
-vector<const TpgFault*>
+void
 FaultReducer::trivial_reduction2(
-  const vector<const TpgFault*>& fault_list
+  const FFRFaultList& ffr_fault_list
 )
 {
   Timer timer;
@@ -351,23 +363,34 @@ FaultReducer::trivial_reduction2(
     timer.start();
   }
 
-  FFRFaultList ffr_fault_list{mNetwork, fault_list};
-
   SizeType check_num = 0;
   SizeType success_num = 0;
   for ( auto ffr1: ffr_fault_list.ffr_list() ) {
+    // ffr1 の TFI of TFO にマークをつける．
+    vector<bool> tfi_mark(mNetwork.node_num(), false);
+    auto tmp_list = TpgNodeSet::get_tfo_list(mNetwork.node_num(),
+					     ffr1->root());
+    TpgNodeSet::get_tfi_list(mNetwork.node_num(),
+			     tmp_list,
+			     [&](const TpgNode* node){
+			       tfi_mark[node->id()] = true;
+			     });
+
     vector<const TpgFault*> fault2_list;
-    vector<bool> mark(mNetwork.max_fault_id(), false);
+    vector<bool> f2_mark(mNetwork.max_fault_id(), false);
     for ( auto fault1: ffr_fault_list.fault_list(ffr1) ) {
-      if ( is_trivial(fault1) ) {
+      if ( is_deleted(fault1) || is_trivial(fault1) ) {
 	continue;
       }
       for ( auto fault2: dom_cand_list(fault1) ) {
-	if ( !is_trivial(fault2) ) {
+	if ( is_deleted(fault2) || !is_trivial(fault2) ) {
 	  continue;
 	}
-	if ( !mark[fault2->id()] ) {
-	  mark[fault2->id()] = true;
+	if ( !check_intersect(fault1, fault2) ) {
+	  continue;
+	}
+	if ( !f2_mark[fault2->id()] ) {
+	  f2_mark[fault2->id()] = true;
 	  fault2_list.push_back(fault2);
 	}
       }
@@ -384,6 +407,9 @@ FaultReducer::trivial_reduction2(
 	if ( is_deleted(fault2) || !is_trivial(fault2) ) {
 	  continue;
 	}
+	if ( !check_intersect(fault1, fault2) ) {
+	  continue;
+	}
 	auto cond2 = mandatory_condition(fault2);
 	++ check_num;
 	if ( checker.check(fault1, fault2, cond2) ) {
@@ -394,29 +420,19 @@ FaultReducer::trivial_reduction2(
     }
   }
 
-  vector<const TpgFault*> ans_list;
-  for ( auto fault: fault_list ) {
-    if ( !is_deleted(fault) ) {
-      ans_list.push_back(fault);
-    }
-  }
-
   if ( mDebug ) {
     timer.stop();
-    SizeType n = ans_list.size();
-    cout << "after trivial_reduction2:              " << n << endl;
+    cout << "after trivial_reduction2:              " << mFaultNum << endl;
     cout << "    # of total checkes:                " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
   }
-
-  return ans_list;
 }
 
 // @brief fault1 が trivial な場合の処理
-vector<const TpgFault*>
+void
 FaultReducer::trivial_reduction3(
-  const vector<const TpgFault*>& fault_list
+  const FFRFaultList& ffr_fault_list
 )
 {
   Timer timer;
@@ -431,8 +447,7 @@ FaultReducer::trivial_reduction3(
   SizeType dom2_num = 0;
   SizeType success_num = 0;
 
-  FFRFaultList ffr_fault_list{mNetwork, fault_list};
-
+  auto& fault_list = ffr_fault_list.fault_list();
   for ( auto rpos = fault_list.begin(); rpos != fault_list.end(); ) {
     // 支配故障の候補リスト
     vector<const TpgFault*> fault1_list;
@@ -458,6 +473,9 @@ FaultReducer::trivial_reduction3(
 	}
 	auto ffr2 = mNetwork.ffr(fault2);
 	if ( ffr2 == ffr1 ) {
+	  continue;
+	}
+	if ( !check_intersect(ffr1, ffr2) ) {
 	  continue;
 	}
 	if ( !fault2_mark[fault2->id()] ) {
@@ -491,6 +509,9 @@ FaultReducer::trivial_reduction3(
 	if ( fault2_list_map.count(key) == 0 ) {
 	  continue;
 	}
+	if ( !check_intersect(fault1, ffr2) ) {
+	  continue;
+	}
 	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
 	++ check2_num;
 	auto cond1 = mandatory_condition(fault1);
@@ -514,21 +535,9 @@ FaultReducer::trivial_reduction3(
     }
   }
 
-  vector<const TpgFault*> ans_list;
-  SizeType nt = 0;
-  for ( auto fault: fault_list ) {
-    if ( !is_deleted(fault) ) {
-      ans_list.push_back(fault);
-      if ( mFaultInfoArray[fault->id()].mTrivial ) {
-	++ nt;
-      }
-    }
-  }
-
   if ( mDebug ) {
     timer.stop();
-    SizeType n = ans_list.size();
-    cout << "after trivial_reduction3:              " << n << "(" << nt << ")" << endl;
+    cout << "after trivial_reduction3:              " << mFaultNum << endl;
     cout << "    # of total checkes(1):             " << check1_num << endl
 	 << "    # of total checkes(2):             " << check2_num << endl
 	 << "    # of total successes:              " << success_num << endl
@@ -536,14 +545,12 @@ FaultReducer::trivial_reduction3(
 	 << "    # of DomCheckers(2):               " << dom2_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
   }
-
-  return ans_list;
 }
 
 // @brief 異なる FFR 間の支配故障のチェックを行う．
-vector<const TpgFault*>
+void
 FaultReducer::global_reduction(
-  const vector<const TpgFault*>& fault_list,
+  const FFRFaultList& ffr_fault_list,
   bool skip_trivial
 )
 {
@@ -553,10 +560,8 @@ FaultReducer::global_reduction(
     timer.start();
   }
 
-  // trivial な支配故障のチェックは simple_global_reduction()
-  // で行っている．
-
-  FFRFaultList ffr_fault_list{mNetwork, fault_list};
+  // skip_trivial == true の時は trivial な支配故障のチェックは
+  // 済んでいる．
 
   SizeType check1_num = 0;
   SizeType check2_num = 0;
@@ -564,9 +569,7 @@ FaultReducer::global_reduction(
   SizeType dom2_num = 0;
   SizeType success_num = 0;
   SizeType nffr = ffr_fault_list.ffr_list().size();
-  SizeType ffr_count = 0;
   for ( auto ffr1: ffr_fault_list.ffr_list() ) {
-    ++ ffr_count;
     // 候補の可能性のある故障のリスト
     vector<const TpgFault*> fault2_list;
     // fault2_list のマーク
@@ -588,6 +591,11 @@ FaultReducer::global_reduction(
 	if ( ffr2 == ffr1 ) {
 	  continue;
 	}
+#if 1
+	if ( !check_intersect(ffr1, ffr2) ) {
+	  continue;
+	}
+#endif
 	if ( !fault2_mark[fault2->id()] ) {
 	  fault2_mark[fault2->id()] = true;
 	  fault2_list.push_back(fault2);
@@ -620,6 +628,9 @@ FaultReducer::global_reduction(
 	if ( fault2_list_map.count(key) == 0 ) {
 	  continue;
 	}
+	if ( !check_intersect(ffr1, ffr2) ) {
+	  continue;
+	}
 	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
 	++ check2_num;
 	if ( !checker2.check(fault1) ) {
@@ -641,22 +652,9 @@ FaultReducer::global_reduction(
     }
   }
 
-  vector<const TpgFault*> ans_list;
-  SizeType nt = 0;
-  for ( auto fault: fault_list ) {
-    if ( is_deleted(fault) ) {
-      continue;
-    }
-    ans_list.push_back(fault);
-    if ( mFaultInfoArray[fault->id()].mTrivial ) {
-      ++ nt;
-    }
-  }
-
   if ( mDebug ) {
     timer.stop();
-    SizeType n = ans_list.size();
-    cout << "after global dominance reduction:      " << n << "(" << nt << ")" << endl;
+    cout << "after global dominance reduction:      " << mFaultNum << endl;
     cout << "    # of total checkes(1):             " << check1_num << endl
 	 << "    # of total checkes(2):             " << check2_num << endl
 	 << "    # of total successes:              " << success_num << endl
@@ -664,8 +662,65 @@ FaultReducer::global_reduction(
 	 << "    # of DomCheckers(2):               " << dom2_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
   }
+}
 
-  return ans_list;
+// @brief 2つの FFR が共通部分を持つか調べる．
+bool
+FaultReducer::check_intersect(
+  const TpgFFR* ffr1,
+  const TpgFFR* ffr2
+)
+{
+  return _check_intersect(ffr1->id(), ffr2->id());
+}
+
+// @brief 2つの故障が共通部分を持つか調べる．
+bool
+FaultReducer::check_intersect(
+  const TpgFault* fault1,
+  const TpgFault* fault2
+)
+{
+  return _check_intersect(mFFRMap[fault1->id()], mFFRMap[fault2->id()]);
+}
+
+// @brief 2つの故障が共通部分を持つか調べる．
+bool
+FaultReducer::check_intersect(
+  const TpgFault* fault1,
+  const TpgFFR* ffr2
+)
+{
+  return _check_intersect(mFFRMap[fault1->id()], ffr2->id());
+}
+
+// @brief 2つの FFR が共通部分を持つか調べる．
+bool
+FaultReducer::_check_intersect(
+  SizeType id1,
+  SizeType id2
+)
+{
+  auto& list_a = mInputListArray[id1];
+  auto& list_b = mInputListArray[id2];
+  auto rpos_a = list_a.begin();
+  auto rpos_b = list_b.begin();
+  auto epos_a = list_a.end();
+  auto epos_b = list_b.end();
+  while ( rpos_a != epos_a && rpos_b != epos_b ) {
+    auto a = *rpos_a;
+    auto b = *rpos_b;
+    if ( a < b ) {
+      ++ rpos_a;
+    }
+    else if ( a > b ) {
+      ++ rpos_b;
+    }
+    else { // a == b
+      return true;
+    }
+  }
+  return false;
 }
 
 END_NAMESPACE_DRUID

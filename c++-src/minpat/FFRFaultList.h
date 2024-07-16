@@ -38,6 +38,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief もとの故障リスト
+  const vector<const TpgFault*>&
+  fault_list() const
+  {
+    return mFaultList;
+  }
+
   /// @brief 故障を持つ FFR のリスト
   const vector<const TpgFFR*>&
   ffr_list() const
@@ -56,6 +63,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // 元の故障リスト
+  vector<const TpgFault*> mFaultList;
 
   // FFR のリスト
   vector<const TpgFFR*> mFFRList;

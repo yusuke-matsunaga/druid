@@ -16,7 +16,7 @@ BEGIN_NAMESPACE_DRUID
 FFRFaultList::FFRFaultList(
   const TpgNetwork& network,
   const vector<const TpgFault*>& fault_list
-)
+) : mFaultList{fault_list}
 {
   for ( auto fault: fault_list ) {
     auto ffr = network.ffr(fault);

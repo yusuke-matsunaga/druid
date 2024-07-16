@@ -137,6 +137,9 @@ private:
   // 値割り当ての結果ブロックされるキューブ番号のリスト
   vector<vector<SizeType>> mBlockListArray;
 
+  // 残り故障数
+  SizeType mFaultNum;
+
   // 各故障のカバー数
   // キーは故障番号
   vector<SizeType> mCountArray;
