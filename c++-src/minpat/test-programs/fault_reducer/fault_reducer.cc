@@ -9,7 +9,7 @@
 #include "TpgNetwork.h"
 #include "DtpgMgr.h"
 #include "TpgFault.h"
-#include "FaultReducer.h"
+#include "TestCubeGen.h"
 #include "NaiveDomChecker.h"
 #include "NaiveDomChecker2.h"
 #include "ym/SatInitParam.h"
@@ -360,9 +360,11 @@ fault_reducer(
     fr_option_dict.emplace("loop_limit", JsonValue{loop});
     fr_option_dict.emplace("analyze", JsonValue{analyze});
     JsonValue fr_option{fr_option_dict};
-    FaultReducer fr{network, fr_option};
+    TestCubeGen fr{network, fr_option};
 
-    auto reduced_fault_list = fr.run(det_fault_list, mgr.testvector_list());
+    vector<TestCube> cube_list;
+    auto reduced_fault_list = fr.run(det_fault_list, mgr.testvector_list(),
+				     cube_list);
 
     cout << "Detected Faults: " << det_fault_list.size() << endl
 	 << "Reduced Faults:  " << reduced_fault_list.size() << endl;

@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "FaultInfo.h"
+#include "TestCube.h"
 #include "BaseEnc.h"
 
 
@@ -45,8 +45,8 @@ public:
   /// @brief 両立故障グループを求める．
   vector<NodeTimeValList>
   generate(
-    const vector<FaultInfo>& finfo_list, ///< [in] 故障情報のリスト
-    SizeType limit                       ///< [in] 求める要素数の上限
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
+    const vector<TestCube>& cube_list          ///< [in] テストキューブのリスト
   );
 
 
@@ -78,7 +78,8 @@ private:
   /// @brief 故障集合を初期化する．
   void
   init(
-    const vector<FaultInfo>& finfo_list
+    const vector<const TpgFault*>& fault_list,
+    const vector<TestCube>& cube_list
   );
 
   /// @brief 各キューブごとのブロックリストを作る．

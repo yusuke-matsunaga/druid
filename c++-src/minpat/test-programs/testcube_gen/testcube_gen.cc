@@ -1,6 +1,6 @@
 
 /// @file testcube_gen.cc
-/// @brief FaultReducer を使ったサンプルプログラム
+/// @brief TestCubeGen を使ったサンプルプログラム
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2017, 2022 Yusuke Matsunaga
@@ -9,7 +9,6 @@
 #include "TpgNetwork.h"
 #include "DtpgMgr.h"
 #include "TpgFault.h"
-#include "FaultReducer.h"
 #include "TestCubeGen.h"
 #include "FaultGroupGen.h"
 #include "ym/SatInitParam.h"
@@ -308,28 +307,24 @@ testcube_gen(
   }
   fr_option_dict.emplace("loop_limit", JsonValue{loop});
   JsonValue fr_option{fr_option_dict};
-  FaultReducer fr{network, fr_option};
+  TestCubeGen fr{network, fr_option};
 
-  auto reduced_fault_list = fr.run(det_fault_list, mgr.testvector_list());
+  vector<TestCube> cube_list;
+  auto reduced_fault_list = fr.run(det_fault_list, mgr.testvector_list(),
+				   cube_list);
 
   timer.stop();
 
-  SizeType nc = 0;
-  for ( auto& finfo: reduced_fault_list ) {
-    nc += finfo.sufficient_conditions().size();
-  }
-
   cout << "Detected Faults:  " << det_fault_list.size() << endl
        << "Reduced Faults:   " << reduced_fault_list.size() << endl
-       << "Total # of cubes: " << nc << endl
+       << "Total # of cubes: " << cube_list.size() << endl
        << "CPU time:         " << timer.get_time() << endl;
 
   timer.reset();
   timer.start();
 
   FaultGroupGen fgg{network, fr_option};
-  SizeType limit = reduced_fault_list.size() * 10;
-  auto fg_list = fgg.generate(reduced_fault_list, limit);
+  auto fg_list = fgg.generate(reduced_fault_list, cube_list);
 
   timer.stop();
 

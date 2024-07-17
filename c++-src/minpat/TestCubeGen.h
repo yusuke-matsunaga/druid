@@ -1,8 +1,8 @@
-#ifndef FAULTREDUCER_H
-#define FAULTREDUCER_H
+#ifndef TESTCUBEGEN_H
+#define TESTCUBEGEN_H
 
-/// @file FaultReducer.h
-/// @brief FaultReducer のヘッダファイル
+/// @file TestCubeGen.h
+/// @brief TestCubeGen のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "TpgFault.h"
 #include "TestVector.h"
-#include "FaultInfo.h"
+#include "TestCube.h"
 #include "ym/JsonValue.h"
 
 
@@ -20,21 +20,21 @@ BEGIN_NAMESPACE_DRUID
 class FFRFaultList;
 
 //////////////////////////////////////////////////////////////////////
-/// @class FaultReducer FaultReducer.h "FaultReducer.h"
+/// @class TestCubeGen TestCubeGen.h "TestCubeGen.h"
 /// @brief 支配故障を求めて対象の故障を削減するクラス
 //////////////////////////////////////////////////////////////////////
-class FaultReducer
+class TestCubeGen
 {
 public:
 
   /// @brief コンストラクタ
-  FaultReducer(
+  TestCubeGen(
     const TpgNetwork& network,   ///< [in] 対象のネットワーク
     const JsonValue& option = {} ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~FaultReducer() = default;
+  ~TestCubeGen() = default;
 
 
 public:
@@ -42,12 +42,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 支配関係を用いて故障を削減する．
-  /// @return 削減した故障情報のリストを返す．
-  vector<FaultInfo>
+  /// @brief 支配故障を求め，テストキューブを生成する．
+  /// @return 支配故障のリストを返す．
+  vector<const TpgFault*>
   run(
     const vector<const TpgFault*>& fault_list, ///< [in] 対象の故障のリスト
-    const vector<TestVector>& tv_list          ///< [in] テストパタンのリスト
+    const vector<TestVector>& tv_list,         ///< [in] テストパタンのリスト
+    vector<TestCube>& cube_list                ///< [out] 生成したテストキューブ
   );
 
 
@@ -236,4 +237,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // FAULTREDUCER_H
+#endif // TESTCUBEGEN_H

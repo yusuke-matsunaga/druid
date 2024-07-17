@@ -187,19 +187,19 @@ FaultGroupGen::~FaultGroupGen()
 // @brief 両立故障グループを求める．
 vector<NodeTimeValList>
 FaultGroupGen::generate(
-  const vector<FaultInfo>& finfo_list,
-  SizeType limit
+  const vector<const TpgFault*>& fault_list,
+  const vector<TestCube>& cube_list
 )
 {
   // 初期化する．
-  init(finfo_list);
+  init(fault_list, cube_list);
 
   // ブロックリストを作る．
   gen_blocklist();
 
   // limit 分の故障集合を求める．
   vector<NodeTimeValList> ans_list;
-  for ( SizeType count = 0; count < limit; ++ count ) {
+  for ( ; ; ) {
     // 極大集合を求める．
     SizeType old_num = mFaultNum;
     auto assignments = greedy_mcset();
@@ -217,10 +217,11 @@ FaultGroupGen::generate(
     ans_list.push_back(assignments);
   }
 
-  for ( auto& finfo: finfo_list ) {
-    auto fault = finfo.fault();
-    if ( mCountArray[fault->id()] == 0 ) {
-      cout << fault->str() << " is not covered" << endl;
+  { // verify
+    for ( auto fault: fault_list ) {
+      if ( mCountArray[fault->id()] == 0 ) {
+	cout << fault->str() << " is not covered" << endl;
+      }
     }
   }
 
@@ -234,7 +235,8 @@ FaultGroupGen::generate(
 // @brief 故障集合を初期化する．
 void
 FaultGroupGen::init(
-  const vector<FaultInfo>& finfo_list
+  const vector<const TpgFault*>& fault_list,
+  const vector<TestCube>& cube_list
 )
 {
   Timer timer;
@@ -248,30 +250,19 @@ FaultGroupGen::init(
   SizeType c0 = 0;
   SizeType c1 = 0;
   SizeType c2 = 0;
-  for ( auto& finfo: finfo_list ) {
-    auto fault = finfo.fault();
+  for ( auto& cube: cube_list ) {
+    auto fault = cube.fault();
     auto fid = fault->id();
     mCountArray[fid] = 0;
-    for ( auto& assign: finfo.sufficient_conditions() ) {
-      auto new_assign = imp.run(assign);
+    auto& assign = cube.assignments();
+    auto new_assign = imp.run(assign);
 #if 0
-      auto new_assign2 = imply(new_assign);
-      cout << assign.size() << " -> " << new_assign.size()
-	   << " -> " << new_assign2.size() << endl;
-      c0 += assign.size();
-      c1 += new_assign.size();
-      c2 += new_assign2.size();
+    auto new_assign2 = imply(new_assign);
 #endif
-      SizeType id = mCubeList.size();
-      mCubeList.push_back({id, new_assign, fid});
-    }
+    SizeType id = mCubeList.size();
+    mCubeList.push_back({id, new_assign, fid});
   }
-  mFaultNum = finfo_list.size();
-#if 0
-  cout << "Total assign size:  " << c0 << endl
-       << "Total assign1 size: " << c1 << endl
-       << "Total assign2 size: " << c2 << endl;
-#endif
+  mFaultNum = fault_list.size();
 
   timer.stop();
   if ( mDebug ) {

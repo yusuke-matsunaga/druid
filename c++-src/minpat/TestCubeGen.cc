@@ -1,12 +1,13 @@
 
-/// @file FaultReducer.cc
-/// @brief FaultReducer の実装ファイル
+/// @file TestCubeGen.cc
+/// @brief TestCubeGen の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "FaultReducer.h"
+#include "TestCubeGen.h"
+#include "TestCube.h"
 #include "FaultAnalyzer.h"
 #include "FFRFaultList.h"
 #include "FFRDomChecker.h"
@@ -66,7 +67,7 @@ END_NAMESPACE_STD
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-FaultReducer::FaultReducer(
+TestCubeGen::TestCubeGen(
   const TpgNetwork& network,
   const JsonValue& option
 ) : mNetwork{network},
@@ -95,11 +96,12 @@ FaultReducer::FaultReducer(
   }
 }
 
-// @brief 支配関係を用いて故障を削減する．
-vector<FaultInfo>
-FaultReducer::run(
+// @brief 支配故障を求め，テストキューブを生成する．
+vector<const TpgFault*>
+TestCubeGen::run(
   const vector<const TpgFault*>& fault_list,
-  const vector<TestVector>& tv_list
+  const vector<TestVector>& tv_list,
+  vector<TestCube>& cube_list
 )
 {
   // 故障シミュレーションを用いて支配関係の候補リストを作る．
@@ -121,21 +123,23 @@ FaultReducer::run(
   global_reduction(ffr_fault_list, true);
 
   // 拡張テストキューブを作る．
-  vector<FaultInfo> ans_list;
+  vector<const TpgFault*> ans_list;
   ans_list.reserve(mFaultNum);
+  cube_list.clear();
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
     ExCubeGen gen{mNetwork, ffr, mOption};
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
       if ( is_deleted(fault) ) {
 	continue;
       }
+      ans_list.push_back(fault);
       auto& info = mFaultInfoArray[fault->id()];
       auto mand_cond = info.mMandCond;
       auto suff_cond = info.mSuffCond;
-      auto trivial = info.mTrivial;
-      FaultInfo finfo{fault, mand_cond, suff_cond, trivial};
-      gen.run(finfo);
-      ans_list.push_back(finfo);
+      cube_list.push_back(TestCube{suff_cond, fault});
+      if ( !info.mTrivial ) {
+	gen.run(fault, mand_cond, cube_list);
+      }
     }
   }
   return ans_list;
@@ -143,7 +147,7 @@ FaultReducer::run(
 
 // @brief 同一FFR内の支配関係を用いて故障を削減する．
 void
-FaultReducer::ffr_reduction(
+TestCubeGen::ffr_reduction(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -197,7 +201,7 @@ FaultReducer::ffr_reduction(
 
 // @grep 故障シミュレーションを用いて被支配故障の候補を生成する．
 void
-FaultReducer::gen_dom_cands(
+TestCubeGen::gen_dom_cands(
   const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list
 )
@@ -236,7 +240,7 @@ FaultReducer::gen_dom_cands(
 
 // @brief 故障の解析を行う．
 void
-FaultReducer::fault_analysis(
+TestCubeGen::fault_analysis(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -274,7 +278,7 @@ FaultReducer::fault_analysis(
 
 // @brief trivial な故障間の支配関係のチェックを行う．
 void
-FaultReducer::trivial_reduction1(
+TestCubeGen::trivial_reduction1(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -350,7 +354,7 @@ FaultReducer::trivial_reduction1(
 
 // @brief trivial な故障が支配されている場合のチェックを行う．
 void
-FaultReducer::trivial_reduction2(
+TestCubeGen::trivial_reduction2(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -428,7 +432,7 @@ FaultReducer::trivial_reduction2(
 
 // @brief fault1 が trivial な場合の処理
 void
-FaultReducer::trivial_reduction3(
+TestCubeGen::trivial_reduction3(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -546,7 +550,7 @@ FaultReducer::trivial_reduction3(
 
 // @brief 異なる FFR 間の支配故障のチェックを行う．
 void
-FaultReducer::global_reduction(
+TestCubeGen::global_reduction(
   const FFRFaultList& ffr_fault_list,
   bool skip_trivial
 )
@@ -661,7 +665,7 @@ FaultReducer::global_reduction(
 
 // @brief 2つの FFR が共通部分を持つか調べる．
 bool
-FaultReducer::check_intersect(
+TestCubeGen::check_intersect(
   const TpgFFR* ffr1,
   const TpgFFR* ffr2
 )
@@ -690,7 +694,7 @@ FaultReducer::check_intersect(
 
 // @brief 2つの故障が共通部分を持つか調べる．
 bool
-FaultReducer::check_intersect(
+TestCubeGen::check_intersect(
   const TpgFault* fault1,
   const TpgFault* fault2
 )
@@ -700,7 +704,7 @@ FaultReducer::check_intersect(
 
 // @brief 2つの故障が共通部分を持つか調べる．
 bool
-FaultReducer::check_intersect(
+TestCubeGen::check_intersect(
   const TpgFault* fault1,
   const TpgFFR* ffr2
 )

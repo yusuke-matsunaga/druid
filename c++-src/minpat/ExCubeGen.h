@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
-#include "FaultInfo.h"
+#include "TestCube.h"
 #include "ym/JsonValue.h"
 
 
@@ -52,11 +52,14 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 与えられた故障を検出するテストキューブを生成する．
+  /// @return 生成したキューブ数を返す．
   ///
-  /// 結果は fault_info に格納される．
-  void
+  /// 実は最初のキューブはすでに cube_list に追加されているとする．
+  SizeType
   run(
-    FaultInfo& fault_info ///< [inout] 対象の故障情報
+    const TpgFault* fault,            ///< [in] 対象の故障
+    const NodeTimeValList& mand_cond, ///< [in] 必要条件
+    vector<TestCube>& cube_list       ///< [out] 生成したテストキューブを格納するリスト
   );
 
 
