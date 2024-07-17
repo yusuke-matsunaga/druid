@@ -38,6 +38,7 @@ set ( minpat_SOURCES
   ExCubeGen.cc
   FaultGroupGen.cc
   LocalImp.cc
+  TestVectorGen.cc
   )
 
 

@@ -224,6 +224,17 @@ BaseEnc::conv_to_literal_list(
   return ans_list;
 }
 
+// @brief 値を返す．
+bool
+BaseEnc::val(
+  const TpgNode* node,
+  int time
+) const
+{
+  auto lit = (time == 0) ? hvar(node) : gvar(node);
+  return mSolver.model()[lit] == SatBool3::True;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス SubEnc

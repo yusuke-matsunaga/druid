@@ -85,6 +85,7 @@ ExCubeGen::run(
       break;
     }
     auto new_cond = mBdEnc->extract_sufficient_condition();
+    new_cond.merge(mand_cond);
     cube_list.push_back(TestCube{new_cond, fault});
   }
   return nc;

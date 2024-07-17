@@ -144,6 +144,15 @@ public:
     return mHvarMap(node);
   }
 
+  /// @brief 値を返す．
+  ///
+  /// 直前に solver().solve() を呼んでいる必要がある．
+  bool
+  val(
+    const TpgNode* node, ///< [in] 対象のノード
+    int time             ///< [in] 時刻(0 or 1)
+  ) const;
+
   /// @brief CNF の生成時間を返す．
   double
   cnf_time() const

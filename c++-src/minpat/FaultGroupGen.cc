@@ -11,6 +11,9 @@
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "LocalImp.h"
+#include "TestVectorGen.h"
+#include "TestVector.h"
+#include "Fsim.h"
 #include "ym/Range.h"
 
 
@@ -410,6 +413,8 @@ FaultGroupGen::greedy_mcset()
   vector<bool> selected_map(mNetwork.max_fault_id(), false);
   // 現在選択されているキューブの割り当て
   NodeTimeValList cur_assignments;
+  // 現在選択されている故障のリスト(デバッグ，検証用)
+  vector<const TpgFault*> cur_fault_list;
 
   // 現在選択されているキューブ集合でブロックされている
   // キューブ番号のリスト
@@ -484,6 +489,7 @@ FaultGroupGen::greedy_mcset()
 	cur_assignments.merge(cube.mAssignments);
 	++ mCountArray[cube.mFaultId];
 	-- mFaultNum;
+	cur_fault_list.push_back(mNetwork.fault(cube.mFaultId));
 	auto& blist = cube.mBlockList;
 	for ( auto& cube1: mCubeList ) {
 	  if ( mCountArray[cube1.mId] > 0 ) {
@@ -502,19 +508,6 @@ FaultGroupGen::greedy_mcset()
       break;
     }
   }
-#if 0
-  { // verify
-    for ( auto cube_id: selected_list ) {
-      auto& cube = mCubeList[cube_id];
-      auto tmp{cube.mAssignments};
-      tmp.diff(cur_assignments);
-      if ( tmp.size() > 0 ) {
-	cout << "Error" << endl;
-	abort();
-      }
-    }
-  }
-#endif
   return cur_assignments;
 }
 

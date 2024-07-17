@@ -11,7 +11,7 @@
 #include "TpgFault.h"
 #include "TestCubeGen.h"
 #include "FaultGroupGen.h"
-#include "ym/SatInitParam.h"
+#include "TestVectorGen.h"
 #include "ym/Timer.h"
 
 
@@ -330,6 +330,13 @@ testcube_gen(
   FaultGroupGen fgg{network, fr_option};
   auto fg_list = fgg.generate(reduced_fault_list, cube_list);
 
+  TestVectorGen tvg{network, fr_option};
+  vector<TestVector> tv_list;
+  for ( auto& assign: fg_list ) {
+    auto tv = tvg.generate(assign);
+    tv_list.push_back(tv);
+  }
+
   timer.stop();
   total_timer.stop();
 
@@ -339,6 +346,44 @@ testcube_gen(
        << "=========================================" << endl
        << "Total CPU time:      " << total_timer.get_time() << endl;
 
+  { // verify
+    Fsim fsim{network, det_fault_list, false, false};
+    vector<TestVector> tv_buff;
+    tv_buff.reserve(PV_BITLEN);
+    SizeType n = 0;
+    vector<bool> mark(network.max_fault_id(), false);
+    for ( auto& tv: tv_list ) {
+      tv_buff.push_back(tv);
+      if ( tv_buff.size() == PV_BITLEN ) {
+	fsim.ppsfp(tv_buff,
+		   [&](const TpgFault* f,
+		       const DiffBitsArray& _) {
+		     fsim.set_skip(f);
+		     mark[f->id()] = true;
+		     ++ n;
+		   });
+	tv_buff.clear();
+      }
+    }
+    if ( !tv_buff.empty() ) {
+      fsim.ppsfp(tv_buff,
+		 [&](const TpgFault* f,
+		     const DiffBitsArray& _) {
+		   fsim.set_skip(f);
+		   mark[f->id()] = true;
+		   ++ n;
+		 });
+    }
+    if ( n != det_fault_list.size() ) {
+      cout << "Error!" << endl
+	   << "# of detected faults: " << n << endl;
+      for ( auto& fault: reduced_fault_list ) {
+	if ( !mark[fault->id()] ) {
+	  cout << fault->str() << " is not covered" << endl;
+	}
+      }
+    }
+  }
 
   return 0;
 }
