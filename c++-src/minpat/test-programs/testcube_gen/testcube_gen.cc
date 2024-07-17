@@ -261,6 +261,9 @@ testcube_gen(
 
   auto fault_list = network.rep_fault_list();
 
+  Timer total_timer;
+  total_timer.start();
+
   Timer timer;
   timer.start();
 
@@ -315,10 +318,11 @@ testcube_gen(
 
   timer.stop();
 
-  cout << "Detected Faults:  " << det_fault_list.size() << endl
-       << "Reduced Faults:   " << reduced_fault_list.size() << endl
-       << "Total # of cubes: " << cube_list.size() << endl
-       << "CPU time:         " << timer.get_time() << endl;
+  cout << "=========================================" << endl
+       << "Detected Faults:     " << det_fault_list.size() << endl
+       << "Reduced Faults:      " << reduced_fault_list.size() << endl
+       << "Total # of cubes:    " << cube_list.size() << endl
+       << "CPU time:            " << timer.get_time() << endl;
 
   timer.reset();
   timer.start();
@@ -327,8 +331,14 @@ testcube_gen(
   auto fg_list = fgg.generate(reduced_fault_list, cube_list);
 
   timer.stop();
+  total_timer.stop();
 
-  cout << "CPU time:            " << timer.get_time() << endl;
+  cout << "=========================================" << endl
+       << "# of patterns        " << fg_list.size() << endl
+       << "CPU time:            " << timer.get_time() << endl
+       << "=========================================" << endl
+       << "Total CPU time:      " << total_timer.get_time() << endl;
+
 
   return 0;
 }
