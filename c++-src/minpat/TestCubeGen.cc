@@ -13,7 +13,6 @@
 #include "FFRDomChecker.h"
 #include "DomCandGen.h"
 #include "DomChecker.h"
-#include "DomChecker2.h"
 #include "SimpleDomChecker.h"
 #include "TrivialChecker1.h"
 #include "TrivialChecker2.h"

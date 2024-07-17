@@ -28,7 +28,6 @@ set ( minpat_SOURCES
   FFRDomChecker.cc
   DomCandGen.cc
   DomChecker.cc
-  DomChecker2.cc
   SimpleDomChecker.cc
   TrivialChecker1.cc
   TrivialChecker2.cc
