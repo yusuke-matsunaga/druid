@@ -57,9 +57,9 @@ count_union(
 }
 
 // リストの差分を求める．
-vector<SizeType>
+void
 diff(
-  const vector<SizeType>& list1,
+  vector<SizeType>& list1,
   const vector<SizeType>& list2
 )
 {
@@ -88,8 +88,7 @@ diff(
     SizeType v1 = *rpos1;
     ans_list.push_back(v1);
   }
-
-  return ans_list;
+  std::swap(ans_list, list1);
 }
 
 // リストの差分の要素数を数える．
@@ -185,6 +184,9 @@ FaultGroupGen::FaultGroupGen(
 // @brief デストラクタ
 FaultGroupGen::~FaultGroupGen()
 {
+  for ( auto cube: mCubeList ) {
+    delete cube;
+  }
 }
 
 // @brief 両立故障グループを求める．
@@ -263,8 +265,13 @@ FaultGroupGen::init(
     auto new_assign2 = imply(new_assign);
 #endif
     SizeType id = mCubeList.size();
-    mCubeList.push_back({id, new_assign, fid});
+    auto excube = new ExCube{id, new_assign, fid};
+    mCubeList.push_back(excube);
   }
+  mBlockListArray.clear();
+  mCurBlockListArray.clear();
+  mBlockListArray.resize(mCubeList.size());
+  mCurBlockListArray.resize(mCubeList.size());
   mFaultNum = fault_list.size();
 
   timer.stop();
@@ -284,8 +291,8 @@ FaultGroupGen::gen_blocklist()
   // 各インデックスごとのブロックリストを作る．
   vector<vector<SizeType>> block_list_array(mNetwork.node_num() * 4);
   for ( SizeType cube_id = 0; cube_id < mCubeList.size(); ++ cube_id ) {
-    auto& cube = mCubeList[cube_id];
-    for ( auto nv: cube.mAssignments ) {
+    auto cube = mCubeList[cube_id];
+    for ( auto nv: cube->mAssignments ) {
       auto node = nv.node();
       auto time = nv.time();
       auto val = nv.val();
@@ -306,9 +313,9 @@ FaultGroupGen::gen_blocklist()
 
   // 各キューブごとのブロックリストを作る．
   for ( SizeType cube_id = 0; cube_id < mCubeList.size(); ++ cube_id ) {
-    auto& cube = mCubeList[cube_id];
-    auto& dst_list = cube.mBlockList;
-    for ( auto nv: cube.mAssignments ) {
+    auto cube = mCubeList[cube_id];
+    auto& dst_list = mBlockListArray[cube->mId];
+    for ( auto nv: cube->mAssignments ) {
       auto node = nv.node();
       auto time = nv.time();
       auto val = nv.val();
@@ -407,6 +414,18 @@ FaultGroupGen::check_imp(
 NodeTimeValList
 FaultGroupGen::greedy_mcset()
 {
+  {
+    for ( auto cube: mCubeList ) {
+      auto& assign = cube->mAssignments;
+      SizeType dummy = 0;
+      for ( auto nv: assign ) {
+	auto node = nv.node();
+	auto id = node->id();
+	dummy += id;
+      }
+    }
+  }
+
   // 現在選択されているキューブ番号を表すリスト
   vector<SizeType> selected_list;
   // 現在選択されている故障集合を表すビットマップ
@@ -423,81 +442,80 @@ FaultGroupGen::greedy_mcset()
   // キューブ集合を表すビットマップ
   vector<bool> blocked_map(mCubeList.size(), false);
 
-  for ( auto& cube: mCubeList ) {
-    if ( mCountArray[cube.mId] > 0 ) {
-      cube.mCurBlockList.clear();
+  for ( auto cube: mCubeList ) {
+    if ( mCountArray[cube->mId] > 0 ) {
+      mCurBlockListArray[cube->mId].clear();
     }
     else {
-      cube.mCurBlockList = cube.mBlockList;
+      mCurBlockListArray[cube->mId] = mBlockListArray[cube->mId];
     }
   }
 
   // 未選択のキューブのうち，新規に追加した時にブロックリストの増加が
   // 最小となるものを求める．
   for ( ; ; ) {
-    vector<pair<SizeType, double>> cube_weight_list;
-    for ( auto& cube: mCubeList ) {
-      if ( mCountArray[cube.mFaultId] > 0 ) {
+    vector<pair<const ExCube*, double>> cube_weight_list;
+    for ( auto cube: mCubeList ) {
+      if ( mCountArray[cube->mFaultId] > 0 ) {
 	continue;
       }
-      if ( selected_map[cube.mFaultId] ) {
+      if ( selected_map[cube->mFaultId] ) {
 	// すでに選択済み
 	continue;
       }
-      if ( blocked_map[cube.mId] ) {
+      if ( blocked_map[cube->mId] ) {
 	// ブロックされているキューブ
 	continue;
       }
 
       // このキューブを選択すると新たにブロックされるキューブ
 #if 0
-      double weight = - (1.0 / (mCountArray[cube.mFaultId] + 1));
-      for ( auto id: cube.mCurBlockList ) {
-	auto& cube1 = mCubeList[id];
-	auto fid = cube1.mFaultId;
+      double weight = - (1.0 / (mCountArray[cube->mFaultId] + 1));
+      for ( auto id: mCurBlockListArray[cube->mId] ) {
+	auto cube1 = mCubeList[id];
+	auto fid = cube1->mFaultId;
 	weight += 1.0 / (mCountArray[fid] + 1);
       }
 #else
       double weight = -1.0;
-      for ( auto id: cube.mCurBlockList ) {
-	auto& cube1 = mCubeList[id];
-	auto fid = cube1.mFaultId;
+      for ( auto id: mCurBlockListArray[cube->mId] ) {
+	auto cube1 = mCubeList[id];
+	auto fid = cube1->mFaultId;
 	if ( mCountArray[fid] == 0 ) {
 	  weight += 1.0;
 	}
       }
 #endif
-      cube_weight_list.push_back({cube.mId, weight});
+      cube_weight_list.push_back({cube, weight});
     }
     if ( cube_weight_list.empty() ) {
       break;
     }
     sort(cube_weight_list.begin(), cube_weight_list.end(),
-	 [](const pair<SizeType, double>& a,
-	    const pair<SizeType, double>& b)
+	 [](const pair<const ExCube*, double>& a,
+	    const pair<const ExCube*, double>& b)
 	 {
 	   return a.second < b.second;
 	 });
     bool found = false;
     for ( auto& p: cube_weight_list ) {
-      auto cube_id = p.first;
-      auto& cube = mCubeList[cube_id];
-      if ( is_compatible(cur_assignments, cube.mAssignments) ) {
+      auto cube = p.first;
+      if ( is_compatible(cur_assignments, cube->mAssignments) ) {
 	// このキューブを選択する．
-	selected_list.push_back(cube_id);
-	selected_map[cube.mFaultId] = true;
-	cur_assignments.merge(cube.mAssignments);
-	++ mCountArray[cube.mFaultId];
+	selected_list.push_back(cube->mId);
+	selected_map[cube->mFaultId] = true;
+	cur_assignments.merge(cube->mAssignments);
+	++ mCountArray[cube->mFaultId];
 	-- mFaultNum;
-	cur_fault_list.push_back(mNetwork.fault(cube.mFaultId));
-	auto& blist = cube.mBlockList;
-	for ( auto& cube1: mCubeList ) {
-	  if ( mCountArray[cube1.mId] > 0 ) {
+	cur_fault_list.push_back(mNetwork.fault(cube->mFaultId));
+	auto& blist = mBlockListArray[cube->mId];
+	for ( auto cube1: mCubeList ) {
+	  if ( mCountArray[cube1->mId] > 0 ) {
 	    continue;
 	  }
-	  diff(cube1.mCurBlockList, blist);
+	  diff(mCurBlockListArray[cube1->mId], blist);
 	}
-	for ( auto i: cube.mBlockList ) {
+	for ( auto i: mBlockListArray[cube->mId] ) {
 	  blocked_map[i] = true;
 	}
 	found = true;

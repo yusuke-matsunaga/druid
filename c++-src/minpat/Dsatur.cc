@@ -3,10 +3,13 @@
 /// @brief Dsatur の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2013, 2015, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "Dsatur.h"
+#include "TpgNetwork.h"
+#include "TpgFault.h"
+#include "TestCube.h"
 #include "ym/Range.h"
 
 
@@ -18,72 +21,24 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 Dsatur::Dsatur(
-  MpColGraph& graph
+  ColGraph& graph
 ) : mGraph{graph}
-{
-  init();
-}
-
-// @brief 初期化する．
-void
-Dsatur::init()
 {
   SizeType n = mGraph.node_num();
   mCandList.reserve(n);
-  if ( n > 0 ) {
-    mSatDegree = new int[n];
-    mAdjDegree = new int[n];
-    mCovDegree = new int[n];
-    for ( auto node_id: Range(n) ) {
-      int c = mGraph.color(node_id);
-      if ( c != 0 ) {
-	continue;
-      }
-      int row_num = 0;
-      for ( auto row_id: mGraph.cover_list(node_id) ) {
-	if ( !mGraph.is_covered(row_id) ) {
-	  ++ row_num;
-	}
-      }
-      if ( row_num == 0 ) {
-	continue;
-      }
-      mCandList.push_back(node_id);
-      vector<bool> used_color(mGraph.color_num() + 1, false);
-      int adj_num = 0;
-      HashSet<int> node_set;
-      for ( auto node1_id: mGraph.adj_list(node_id) ) {
-	if ( !node_set.check(node1_id) ) {
-	  node_set.add(node1_id);
-	  ++ adj_num;
-	  int c1 = mGraph.color(node1_id);
-	  used_color[c1] = true;
-	}
-      }
-      int sat = 0;
-      for ( auto c1: Range(1, mGraph.color_num()) ) {
-	if ( used_color[c1] ) {
-	  ++ sat;
-	}
-      }
-      mSatDegree[node_id] = sat;
-      mAdjDegree[node_id] = adj_num;
-      mCovDegree[node_id] = row_num;
+  for ( auto node_id: Range(n) ) {
+    SizeType c = mGraph.color(node_id);
+    if ( c != 0 ) {
+      // 既に彩色済みの場合はスキップする．
+      continue;
     }
-  }
-  else {
-    mSatDegree = nullptr;
-    mAdjDegree = nullptr;
-    mCovDegree = nullptr;
+    mCandList.push_back(node_id);
   }
 }
 
 // @brief デストラクタ
 Dsatur::~Dsatur()
 {
-  delete [] mSatDegree;
-  delete [] mAdjDegree;
-  delete [] mCovDegree;
 }
 
 // @brief 彩色する．
@@ -91,131 +46,98 @@ void
 Dsatur::coloring()
 {
   // dsatur アルゴリズムを用いる．
+  SizeType nf = mGraph.fault_num();
 
   // 1: 隣接するノード数が最大のノードを選び彩色する．
-  int max_node = get_max_node();
+  SizeType max_node = get_max_node();
   update(max_node, mGraph.new_color());
 
   // 2: saturation degree が最大の未彩色ノードを選び最小の色番号で彩色する．
-  for ( ; ; ) {
-    cout << "Dsatur: mUncolNum = " << mCandList.size()
-	 << ", color_num() = " << mGraph.color_num() << endl;
-    int max_node = get_max_node();
-    if ( max_node == -1 ) {
-      break;
-    }
+  while ( !mCandList.empty() ) {
+    auto max_node = get_max_node();
     // max_node に隣接している未彩色の色のリストを作る．
-    vector<int> free_list;
-    free_list.reserve(mGraph.adj_list(max_node).num());
-    vector<bool> used_color(mGraph.color_num() + 1, false);
-    for ( auto node1_id: mGraph.adj_list(max_node) ) {
-      int c = mGraph.color(node1_id);
-      if ( c == 0 ) {
-	free_list.push_back(node1_id);
-      }
-      else {
-	used_color[c] = true;
+    auto& col_list = mGraph.conflict_color_list(max_node);
+    vector<bool> color_set(mGraph.color_num() + 1, false);
+    vector<SizeType> free_col_list;
+    free_col_list.reserve(mGraph.color_num());
+    for ( auto col: col_list ) {
+      color_set[col] = true;
+    }
+    for ( auto col: Range(1, mGraph.color_num() + 1) ) {
+      if ( !color_set[col] ) {
+	free_col_list.push_back(col);
       }
     }
-    vector<int> color_list;
-    color_list.reserve(mGraph.color_num());
-    for ( auto c: Range(1, mGraph.color_num() + 1) ) {
-      if ( !used_color[c] ) {
-	color_list.push_back(c);
-      }
-    }
-    int sel_col = 0;
-    if ( color_list.empty() ) {
+    if ( free_col_list.empty() ) {
       // 可能な色がなかったので新しい色を割り当てる．
-      sel_col = mGraph.new_color();
+      auto col = mGraph.new_color();
+      update(max_node, col);
     }
     else {
       // color_list に含まれる色のなかで隣接するノードの sat_degree の増加が
       // 最小となるものを選ぶ．
-      vector<int> color_count(mGraph.color_num() + 1, 0);
-      for ( auto node1_id: free_list ) {
-	vector<bool> used_color(mGraph.color_num() + 1, false);
-	for ( auto node2_id: mGraph.adj_list(node1_id) ) {
-	  int c = mGraph.color(node2_id);
-	  used_color[c] = true;
+      vector<SizeType> color_count(mGraph.color_num() + 1, 0);
+      auto& adj_list = mGraph.conflict_list(max_node);
+      for ( auto node1_id: adj_list ) {
+	if ( mGraph.color(node1_id) > 0 ) {
+	  continue;
 	}
-	for ( auto col: color_list ) {
-	  if ( used_color[col] ) {
+	auto adj_list1 = mGraph.conflict_list(node1_id);
+	vector<bool> color_set(mGraph.color_num() + 1, false);
+	for ( auto node2_id: adj_list1 ) {
+	  SizeType col = mGraph.color(node2_id);
+	  if ( !color_set[col] ) {
+	    color_set[col] = true;
 	    ++ color_count[col];
 	  }
 	}
       }
-      int min_count = free_list.size() + 1;
-      for ( auto col: color_list ) {
-	int n = color_count[col];
-	if ( min_count > n ) {
-	  min_count = n;
-	  sel_col = col;
-	}
+      vector<pair<SizeType, SizeType>> color_count_list;
+      color_count_list.reserve(free_col_list.size());
+      for ( auto col: free_col_list ) {
+	SizeType n = color_count[col];
+	color_count_list.push_back({n, col});
       }
+      sort(color_count_list.begin(), color_count_list.end(),
+	   [](const pair<SizeType, SizeType>& a,
+	      const pair<SizeType, SizeType>& b){
+	     return a.first < b.first;
+	   });
+      auto col = color_count_list.front().second;
+      update(max_node, col);
     }
-    update(max_node, sel_col);
-  }
-
-  // 検証
-  // もちろん最小色数の保証はないが，同じ色が隣接していないことを確認する．
-  // また，未彩色のノードがないことも確認する．
-  // 違反が見つかったら例外を送出する．
-  if ( true ) {
-    ASSERT_COND( mGraph.is_covered() );
-    ASSERT_COND( mGraph.verify() );
-  }
-  if ( !mGraph.is_covered() || !mGraph.verify() ) {
-    cout << "Error" << endl;
   }
 }
 
 // @brief (sat_degree, adj_degree) の辞書順で最大のノードを取ってくる．
-int
+SizeType
 Dsatur::get_max_node()
 {
-  int max_row = -1;
-  int max_sat = -1;
-  int max_adj = -1;
-  int max_node = -1;
-  int rpos = 0;
-  int wpos = 0;
+  SizeType max_sat = 0;
+  SizeType max_adj = 0;
+  SizeType max_node;
+  SizeType rpos = 0;
+  SizeType wpos = 0;
   for ( ; rpos < mCandList.size(); ++ rpos ) {
-    int node_id = mCandList[rpos];
+    SizeType node_id = mCandList[rpos];
     if ( mGraph.color(node_id) != 0 ) {
       continue;
     }
 
-    int num_rows = 0;
-    for ( auto row_id: mGraph.cover_list(node_id) ) {
-      if ( !mGraph.is_covered(row_id) ) {
-	++ num_rows;
-      }
-    }
-    if ( num_rows > 0 ) {
-      mCandList[wpos] = node_id;
-      ++ wpos;
+    mCandList[wpos] = node_id;
+    ++ wpos;
 
-      int sat = mSatDegree[node_id];
-      int adj = mAdjDegree[node_id];
-      if ( max_row < num_rows ) {
-	max_row = num_rows;
+    SizeType sat = mGraph.saturation_degree(node_id);
+    SizeType adj = mGraph.adjacent_degree(node_id);
+    if ( max_sat <= sat ) {
+      if ( max_sat < sat ) {
 	max_sat = sat;
 	max_adj = adj;
 	max_node = node_id;
       }
-      else if ( max_row == num_rows ) {
-	if ( max_sat < sat ) {
-	  max_sat = sat;
-	  max_adj = adj;
-	  max_node = node_id;
-	}
-	else if ( max_sat == sat ) {
-	  if ( max_adj < adj ) {
-	    max_adj = adj;
-	    max_node = node_id;
-	  }
-	}
+      else if ( max_adj < adj ) {
+	max_adj = adj;
+	max_node = node_id;
       }
     }
   }
@@ -228,25 +150,22 @@ Dsatur::get_max_node()
 // @brief node_id に color の色を割り当て情報を更新する．
 void
 Dsatur::update(
-  int node_id,
-  int color
+  SizeType node_id,
+  SizeType color
 )
 {
-  for ( auto node1_id: mGraph.adj_list(node_id) ) {
-    bool already_colored = false;
-    for ( auto node2_id: mGraph.adj_list(node1_id) ) {
-      if ( mGraph.color(node2_id) == color ) {
-	already_colored = true;
-	break;
-      }
-    }
-    if ( !already_colored ) {
-      ++ mSatDegree[node1_id];
+  mGraph.set_color(node_id, color);
+  SizeType rpos = 0;
+  SizeType wpos = 0;
+  for ( ; rpos < mCandList.size(); ++ rpos ) {
+    SizeType node_id = mCandList[rpos];
+    if ( mGraph.color(node_id) == 0 ) {
+      mCandList[wpos] = node_id;
+      ++ wpos;
     }
   }
-  mGraph.set_color(node_id, color);
-  for ( auto row_id: mGraph.cover_list(node_id) ) {
-    mGraph.set_covered(row_id);
+  if ( wpos < rpos ) {
+    mCandList.erase(mCandList.begin() + wpos, mCandList.end());
   }
 }
 

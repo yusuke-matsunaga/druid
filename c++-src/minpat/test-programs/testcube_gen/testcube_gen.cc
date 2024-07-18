@@ -11,6 +11,8 @@
 #include "TpgFault.h"
 #include "TestCubeGen.h"
 #include "FaultGroupGen.h"
+#include "ColGraph.h"
+#include "Dsatur.h"
 #include "TestVectorGen.h"
 #include "ym/Timer.h"
 
@@ -128,6 +130,7 @@ testcube_gen(
   string just_type;
   int loop = 1;
   int cube_per_fault = 300;
+  bool dsatur = false;
   bool debug_fault_reduce = false;
   bool debug_testcube_gen = false;
 
@@ -212,6 +215,9 @@ testcube_gen(
 	  cerr << "--cube-per-fault requires <int> argument" << endl;
 	  return -1;
 	}
+      }
+      else if ( strcmp(argv[pos], "--dsatur") == 0 ) {
+	dsatur = true;
       }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
@@ -327,21 +333,38 @@ testcube_gen(
   timer.reset();
   timer.start();
 
-  FaultGroupGen fgg{network, fr_option};
-  auto fg_list = fgg.generate(reduced_fault_list, cube_list);
-
-  TestVectorGen tvg{network, fr_option};
   vector<TestVector> tv_list;
-  for ( auto& assign: fg_list ) {
-    auto tv = tvg.generate(assign);
-    tv_list.push_back(tv);
+  TestVectorGen tvg{network, fr_option};
+  if ( !dsatur ) {
+    FaultGroupGen fgg{network, fr_option};
+    auto fg_list = fgg.generate(reduced_fault_list, cube_list);
+    for ( auto& assign: fg_list ) {
+      auto tv = tvg.generate(assign);
+      tv_list.push_back(tv);
+    }
+  }
+  else {
+    ColGraph cg{network, cube_list, fr_option};
+    Dsatur ds{cg};
+    ds.coloring();
+    SizeType nc = cg.color_num();
+    for ( SizeType col = 1; col <= nc; ++ col ) {
+      auto& node_list = cg.node_list(col);
+      NodeTimeValList assign;
+      for ( auto id: node_list ) {
+	auto& cube = cube_list[id];
+	assign.merge(cube.assignments());
+      }
+      auto tv = tvg.generate(assign);
+      tv_list.push_back(tv);
+    }
   }
 
   timer.stop();
   total_timer.stop();
 
   cout << "=========================================" << endl
-       << "# of patterns        " << fg_list.size() << endl
+       << "# of patterns        " << tv_list.size() << endl
        << "CPU time:            " << timer.get_time() << endl
        << "=========================================" << endl
        << "Total CPU time:      " << total_timer.get_time() << endl;

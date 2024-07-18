@@ -5,11 +5,11 @@
 /// @brief Dsatur のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2013, 2015, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "MpColGraph.h"
+#include "ColGraph.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,7 +24,7 @@ public:
 
   /// @brief コンストラクタ
   Dsatur(
-    MpColGraph& graph ///< [in] 対象のグラフ
+    ColGraph& graph ///< [in] 対象のグラフ
   );
 
   /// @brief デストラクタ
@@ -51,14 +51,14 @@ private:
   init();
 
   /// @brief (sat_degree, adj_degree) の辞書順で最大のノードを取ってくる．
-  int
+  SizeType
   get_max_node();
 
   /// @brief node_id に color の色を割り当て情報を更新する．
   void
   update(
-    int node_id, ///< [in] ノード番号
-    int color	 ///< [in] 色
+    SizeType node_id, ///< [in] ノード番号
+    SizeType color    ///< [in] 色
   );
 
 
@@ -68,22 +68,10 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 対象のグラフ
-  MpColGraph& mGraph;
+  ColGraph& mGraph;
 
   // 彩色の候補のノードリスト
-  vector<int> mCandList;
-
-  // ノードの saturation degree の配列
-  // サイズは mGraph.node_num();
-  int* mSatDegree;
-
-  // ノードの隣接次数の配列
-  // サイズは mGraph.node_num();
-  int* mAdjDegree;
-
-  // ノードの被覆数の配列
-  // サイズは mGraph.node_num();
-  int* mCovDegree;
+  vector<SizeType> mCandList;
 
 };
 

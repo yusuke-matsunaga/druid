@@ -39,6 +39,8 @@ set ( minpat_SOURCES
   FaultGroupGen.cc
   LocalImp.cc
   TestVectorGen.cc
+  ColGraph.cc
+  Dsatur.cc
   )
 
 

@@ -65,8 +65,6 @@ private:
     SizeType mFaultId;
     // ブロックリスト
     vector<SizeType> mBlockList;
-    // 現在のブロックリスト
-    vector<SizeType> mCurBlockList;
   };
 
 
@@ -133,10 +131,13 @@ private:
   BaseEnc mBaseEnc;
 
   // 拡張テストキューブのリスト
-  vector<ExCube> mCubeList;
+  vector<const ExCube*> mCubeList;
 
-  // 値割り当ての結果ブロックされるキューブ番号のリスト
+  // 拡張テストキューブのブロックリスト
   vector<vector<SizeType>> mBlockListArray;
+
+  // 拡張テストキューブの現在のブロックリスト
+  vector<vector<SizeType>> mCurBlockListArray;
 
   // 残り故障数
   SizeType mFaultNum;
