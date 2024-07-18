@@ -113,22 +113,12 @@ Dsatur::coloring()
 SizeType
 Dsatur::get_max_node()
 {
-  SizeType max_sat = 0;
-  SizeType max_adj = 0;
+  int max_sat = -1;
+  int max_adj = -1;
   SizeType max_node;
-  SizeType rpos = 0;
-  SizeType wpos = 0;
-  for ( ; rpos < mCandList.size(); ++ rpos ) {
-    SizeType node_id = mCandList[rpos];
-    if ( mGraph.color(node_id) != 0 ) {
-      continue;
-    }
-
-    mCandList[wpos] = node_id;
-    ++ wpos;
-
-    SizeType sat = mGraph.saturation_degree(node_id);
-    SizeType adj = mGraph.adjacent_degree(node_id);
+  for ( auto node_id: mCandList ) {
+    int sat = mGraph.saturation_degree(node_id);
+    int adj = mGraph.adjacent_degree(node_id);
     if ( max_sat <= sat ) {
       if ( max_sat < sat ) {
 	max_sat = sat;
@@ -141,9 +131,7 @@ Dsatur::get_max_node()
       }
     }
   }
-  if ( wpos < rpos ) {
-    mCandList.erase(mCandList.begin() + wpos, mCandList.end());
-  }
+  ASSERT_COND( max_sat >= 0 );
   return max_node;
 }
 
