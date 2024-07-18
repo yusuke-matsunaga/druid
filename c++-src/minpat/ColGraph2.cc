@@ -1,12 +1,12 @@
 
-/// @file ColGraph.cc
-/// @brief ColGraph の実装ファイル
+/// @file ColGraph2.cc
+/// @brief ColGraph2 の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "ColGraph.h"
+#include "ColGraph2.h"
 #include "TpgNetwork.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
@@ -18,49 +18,64 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-ColGraph::ColGraph(
+ColGraph2::ColGraph2(
   const TpgNetwork& network,
   const vector<TestCube>& cube_list,
   const JsonValue& option
 ) : mNetwork{network},
-    mBaseEnc{network, option},
-    mCubeListArray(network.max_fault_id())
+    mBaseEnc{network, option}
 {
   {
     auto& node_list = network.node_list();
     mBaseEnc.make_cnf(node_list, node_list);
   }
-  SizeType node_num = cube_list.size();
-  mNodeList.reserve(node_num);
-  mFaultNum = 0;
-  vector<bool> fault_set(mNetwork.max_fault_id(), false);
-  for ( auto& cube: cube_list ) {
-    auto id = mNodeList.size();
-    mNodeList.push_back({cube, 0});
+
+  vector<vector<SizeType>> cube_list_array(mNetwork.max_fault_id());
+  vector<SizeType> fault_list;
+  SizeType cube_num = cube_list.size();
+  for ( SizeType id = 0; id < cube_num; ++ id ) {
+    auto& cube = cube_list[id];
     auto fault = cube.fault();
     auto fid = fault->id();
-    mCubeListArray[fid].push_back(id);
-    if ( !fault_set[fid] ) {
-      fault_set[fid] = true;
-      ++ mFaultNum;
+    if ( cube_list_array[fid].empty() ) {
+      fault_list.push_back(fid);
+    }
+    cube_list_array[fid].push_back(id);
+  }
+  mNodeList.reserve(fault_list.size());
+  for ( auto fid: fault_list ) {
+    auto fault = mNetwork.fault(fid);
+    auto cvar = mBaseEnc.solver().new_variable(true);
+    mNodeList.push_back({fault, 0, {}, {}, cvar});
+    auto& id_list = cube_list_array[fid];
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(id_list.size() + 1);
+    tmp_lits.push_back(~cvar);
+    for ( auto id: id_list ) {
+      auto& cube = cube_list[id];
+      auto assign = cube.assignments();
+      auto lit_list = mBaseEnc.conv_to_literal_list(assign);
+      auto var = mBaseEnc.solver().new_variable(false);
+      lit_list.push_back(~var);
+      mBaseEnc.solver().add_clause(lit_list);
+      tmp_lits.push_back(var);
     }
   }
 
   Timer timer;
   timer.start();
   cout << "building blocking matrix" << endl;
+  SizeType node_num = mNodeList.size();
   for ( SizeType id1 = 0; id1 < node_num - 1; ++ id1 ) {
-    auto& cube1 = cube(id1);
     for ( SizeType id2 = id1 + 1; id2 < node_num; ++ id2 ) {
-      auto& cube2 = cube(id2);
-      if ( is_conflict(cube1, cube2) ) {
+      if ( is_conflict(id1, id2) ) {
 	mNodeList[id1].mConflictList.push_back(id2);
 	mNodeList[id2].mConflictList.push_back(id1);
       }
     }
   }
-  for ( SizeType id1 = 0; id1 < node_num; ++ id1 ) {
-    auto& list = mNodeList[id1].mConflictList;
+  for ( SizeType id = 0; id < node_num; ++ id ) {
+    auto& list = mNodeList[id].mConflictList;
     sort(list.begin(), list.end());
   }
   timer.stop();
@@ -69,13 +84,13 @@ ColGraph::ColGraph(
 }
 
 // @brief デストラクタ
-ColGraph::~ColGraph()
+ColGraph2::~ColGraph2()
 {
 }
 
 // @brief ノードの saturation degree を返す．
 SizeType
-ColGraph::saturation_degree(
+ColGraph2::saturation_degree(
   SizeType id
 )
 {
@@ -93,13 +108,15 @@ ColGraph::saturation_degree(
       // 既に考慮済み
       continue;
     }
-    auto& cube1 = cube(id);
-    auto assumptions = mBaseEnc.conv_to_literal_list(cube1.assignments());
-    auto assign1 = mGroupList[col - 1].mAssignments;
-    auto assumptions1 = mBaseEnc.conv_to_literal_list(assign1);
-    assumptions.insert(assumptions.end(),
-		       assumptions1.begin(),
-		       assumptions1.end());
+    vector<SatLiteral> assumptions;
+    auto& group = mGroupList[col - 1];
+    assumptions.reserve(group.mNodeList.size() + 1);
+    auto& node1 = mNodeList[id];
+    assumptions.push_back(node1.mControlVar);
+    for ( auto id: group.mNodeList ) {
+      auto& node = mNodeList[id];
+      assumptions.push_back(node.mControlVar);
+    }
     if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
       mNodeList[id].mConflictColList.push_back(col);
       ++ sat;
@@ -110,7 +127,7 @@ ColGraph::saturation_degree(
 
 // @brief ノードの adjacent degree を返す．
 SizeType
-ColGraph::adjacent_degree(
+ColGraph2::adjacent_degree(
   SizeType id
 )
 {
@@ -121,18 +138,14 @@ ColGraph::adjacent_degree(
       // 彩色済みのノードはスキップ
       continue;
     }
-    auto fid = fault(id1)->id();
-    if ( !fault_set[fid] ) {
-      fault_set[fid] = true;
-      ++ adj;
-    }
+    ++ adj;
   }
   return adj;
 }
 
 // @brief ノードを色をつける．
 void
-ColGraph::set_color(
+ColGraph2::set_color(
   SizeType id,
   SizeType color
 )
@@ -140,19 +153,14 @@ ColGraph::set_color(
   ASSERT_COND( 0 <= id && id < node_num() );
   ASSERT_COND( 1 <= color && color <= color_num() );
 
+  mNodeList[id].mColor = color;
   auto& group = mGroupList[color - 1];
   group.mNodeList.push_back(id);
-  group.mAssignments.merge(cube(id).assignments());
-
-  auto fid = fault(id)->id();
-  for ( auto id: mCubeListArray[fid] ) {
-    mNodeList[id].mColor = color;
-  }
 }
 
 // @brief color_map を作る．
 SizeType
-ColGraph::get_color_map(
+ColGraph2::get_color_map(
   vector<SizeType>& color_map
 ) const
 {
@@ -168,22 +176,14 @@ ColGraph::get_color_map(
 
 // @brief cube1 と cube2 が衝突する時 true を返す．
 bool
-ColGraph::is_conflict(
-  const TestCube& cube1,
-  const TestCube& cube2
+ColGraph2::is_conflict(
+  SizeType id1,
+  SizeType id2
 )
 {
-  auto& assign1 = cube1.assignments();
-  auto& assign2 = cube2.assignments();
-  if ( compare(assign1, assign2) == -1 ) {
-    // 割り当てが矛盾している．
-    return true;
-  }
-  auto assumptions = mBaseEnc.conv_to_literal_list(assign1);
-  auto assumptions2 = mBaseEnc.conv_to_literal_list(assign2);
-  assumptions.insert(assumptions.end(),
-		     assumptions2.begin(),
-		     assumptions2.end());
+  auto clit1 = mNodeList[id1].mControlVar;
+  auto clit2 = mNodeList[id2].mControlVar;
+  vector<SatLiteral> assumptions = {clit1, clit2};
   return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
 }
 

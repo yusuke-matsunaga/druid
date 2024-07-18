@@ -41,6 +41,8 @@ set ( minpat_SOURCES
   TestVectorGen.cc
   ColGraph.cc
   Dsatur.cc
+  ColGraph2.cc
+  Dsatur2.cc
   )
 
 
