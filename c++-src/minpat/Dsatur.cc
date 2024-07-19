@@ -33,7 +33,7 @@ Dsatur::Dsatur(
     }
     mCandList.push_back(node_id);
   }
-  mFaultNum = mGraph.fault_num();
+  mFaultNum = mGraph.node_num();
 }
 
 // @brief デストラクタ

@@ -1,12 +1,12 @@
 ﻿
-/// @file Dsatur2.cc
-/// @brief Dsatur2 の実装ファイル
+/// @file Dsatur_cube.cc
+/// @brief Dsatur_cube の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "Dsatur2.h"
+#include "Dsatur_cube.h"
 #include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "ym/Range.h"
@@ -15,12 +15,12 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス Dsatur2
+// クラス Dsatur_cube
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-Dsatur2::Dsatur2(
-  ColGraph2& graph
+Dsatur_cube::Dsatur_cube(
+  ColGraph_cube& graph
 ) : mGraph{graph}
 {
   SizeType n = mGraph.node_num();
@@ -33,17 +33,17 @@ Dsatur2::Dsatur2(
     }
     mCandList.push_back(node_id);
   }
-  mFaultNum = mGraph.node_num();
+  mFaultNum = mGraph.fault_num();
 }
 
 // @brief デストラクタ
-Dsatur2::~Dsatur2()
+Dsatur_cube::~Dsatur_cube()
 {
 }
 
 // @brief 彩色する．
 void
-Dsatur2::coloring()
+Dsatur_cube::coloring()
 {
   // dsatur アルゴリズムを用いる．
 
@@ -110,7 +110,7 @@ Dsatur2::coloring()
 
 // @brief (sat_degree, adj_degree) の辞書順で最大のノードを取ってくる．
 SizeType
-Dsatur2::get_max_node()
+Dsatur_cube::get_max_node()
 {
   int max_sat = -1;
   int max_adj = -1;
@@ -139,7 +139,7 @@ Dsatur2::get_max_node()
 
 // @brief node_id に color の色を割り当て情報を更新する．
 void
-Dsatur2::update(
+Dsatur_cube::update(
   SizeType node_id,
   SizeType color
 )

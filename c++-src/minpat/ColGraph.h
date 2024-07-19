@@ -20,13 +20,10 @@ BEGIN_NAMESPACE_DRUID
 /// @class ColGraph ColGraph.h "ColGraph.h"
 /// @brief パタン圧縮用の彩色問題用のグラフを表すクラス
 ///
-/// * 拡張テストキューブをグラフのノードに対応させる．
+/// * 故障をグラフのノードに対応させる．
 /// * 相反する割り当てを持つノード同士は衝突している．
-/// * ただし，割り当てが衝突していなくても両立しないノードもあるので
-///   最終的には全ての割り当てを行った上でSAT問題を解く必要がある．
 /// * 最小彩色問題は互いに衝突しているノードに同じ色を割り当てない条件
 ///   で使う色の数を最小化する問題．
-/// * ただし，同じ故障に関連するテストキューブは一つだけ彩色すればよい．
 //////////////////////////////////////////////////////////////////////
 class ColGraph
 {
@@ -56,29 +53,11 @@ public:
     return mNetwork;
   }
 
-  /// @brief ノード(キューブ)数を返す．
+  /// @brief ノード(故障)数を返す．
   SizeType
   node_num() const
   {
     return mNodeList.size();
-  }
-
-  /// @brief 故障数を返す．
-  SizeType
-  fault_num() const
-  {
-    return mFaultNum;
-  }
-
-  /// @brief 対応する値割当を返す．
-  const NodeTimeValList&
-  cube(
-    SizeType id ///< [in] ノード番号( 0 <= id < node_num() )
-  ) const
-  {
-    ASSERT_COND( 0 <= id && id < node_num() );
-
-    return mNodeList[id].mCube;
   }
 
   /// @brief 対応する故障を返す．
@@ -87,6 +66,8 @@ public:
     SizeType id ///< [in] ノード番号( 0 <= id < node_num() )
   ) const
   {
+    ASSERT_COND( 0 <= id && id < node_num() );
+
     return mNodeList[id].mFault;
   }
 
@@ -206,11 +187,11 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief assign1 と assign2 が衝突する時 true を返す．
+  /// @brief node1 と node2 が衝突する時 true を返す．
   bool
   is_conflict(
-    const NodeTimeValList& assign1,
-    const NodeTimeValList& assign2
+    SizeType node1,
+    SizeType node2
   );
 
 
@@ -223,14 +204,14 @@ private:
   struct Node {
     // 故障
     const TpgFault* mFault;
-    // テストキューブ
-    NodeTimeValList mCube;
     // 色
-    SizeType mColor;
+    SizeType mColor{0};
     // 衝突しているノード番号のリスト
     vector<SizeType> mConflictList;
     // 衝突している色のリスト
     vector<SizeType> mConflictColList;
+    // 対応する制御変数
+    SatLiteral mControlVar;
   };
 
   // 色(ノードグループ)を表す構造体
@@ -239,8 +220,6 @@ private:
     SizeType mColor;
     // ノード番号のリスト
     vector<SizeType> mNodeList;
-    // 値割り当てのリスト
-    NodeTimeValList mAssignments;
   };
 
   // ネットワーク
@@ -251,12 +230,6 @@ private:
 
   // ノードのリスト
   vector<Node> mNodeList;
-
-  // 故障数
-  SizeType mFaultNum;
-
-  // 故障番号をキーにして関連するノード番号を格納する配列
-  vector<vector<SizeType>> mCubeListArray;
 
   // 色(ノードグループ)のリスト
   // 0 は未彩色を表すのでキーは一つずれている．

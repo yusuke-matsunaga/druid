@@ -23,44 +23,47 @@ ColGraph::ColGraph(
   const vector<TestCover>& cover_list,
   const JsonValue& option
 ) : mNetwork{network},
-    mBaseEnc{network, option},
-    mCubeListArray(network.max_fault_id())
+    mBaseEnc{network, option}
 {
   {
     auto& node_list = network.node_list();
     mBaseEnc.make_cnf(node_list, node_list);
   }
-  SizeType node_num = 0;
-  for ( auto& cover: cover_list ) {
-    node_num += cover.cube_list().size();
-  }
-  mNodeList.reserve(node_num);
-  mFaultNum = cover_list.size();
+  mNodeList.reserve(cover_list.size());
   for ( auto& cover: cover_list ) {
     auto fault = cover.fault();
     auto fid = fault->id();
+    auto cvar = mBaseEnc.solver().new_variable(true);
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(cover.cube_list().size());
+    tmp_lits.push_back(~cvar);
     for ( auto& cube: cover.cube_list() ) {
-      auto id = mNodeList.size();
-      mNodeList.push_back({fault, cube, 0});
-      mCubeListArray[fid].push_back(id);
+      auto var = mBaseEnc.solver().new_variable(false);
+      for ( auto nv: cube ) {
+	auto lit = mBaseEnc.conv_to_literal(nv);
+	mBaseEnc.solver().add_clause(~var, lit);
+      }
+      tmp_lits.push_back(var);
     }
+    mBaseEnc.solver().add_clause(tmp_lits);
+    mNodeList.push_back({fault, 0, {}, {}, cvar});
   }
 
   Timer timer;
   timer.start();
   cout << "building blocking matrix" << endl;
+  SizeType node_num = mNodeList.size();
   for ( SizeType id1 = 0; id1 < node_num - 1; ++ id1 ) {
-    auto& cube1 = cube(id1);
     for ( SizeType id2 = id1 + 1; id2 < node_num; ++ id2 ) {
-      auto& cube2 = cube(id2);
-      if ( is_conflict(cube1, cube2) ) {
+      if ( is_conflict(id1, id2) ) {
 	mNodeList[id1].mConflictList.push_back(id2);
 	mNodeList[id2].mConflictList.push_back(id1);
       }
     }
+    cout << "Node#" << id1 << ": " << mNodeList[id1].mConflictList.size() << endl;
   }
-  for ( SizeType id1 = 0; id1 < node_num; ++ id1 ) {
-    auto& list = mNodeList[id1].mConflictList;
+  for ( SizeType id = 0; id < node_num; ++ id ) {
+    auto& list = mNodeList[id].mConflictList;
     sort(list.begin(), list.end());
   }
   timer.stop();
@@ -93,13 +96,15 @@ ColGraph::saturation_degree(
       // 既に考慮済み
       continue;
     }
-    auto& cube1 = cube(id);
-    auto assumptions = mBaseEnc.conv_to_literal_list(cube1);
-    auto assign1 = mGroupList[col - 1].mAssignments;
-    auto assumptions1 = mBaseEnc.conv_to_literal_list(assign1);
-    assumptions.insert(assumptions.end(),
-		       assumptions1.begin(),
-		       assumptions1.end());
+    vector<SatLiteral> assumptions;
+    auto& group = mGroupList[col - 1];
+    assumptions.reserve(group.mNodeList.size() + 1);
+    auto& node1 = mNodeList[id];
+    assumptions.push_back(node1.mControlVar);
+    for ( auto id: group.mNodeList ) {
+      auto& node = mNodeList[id];
+      assumptions.push_back(node.mControlVar);
+    }
     if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
       mNodeList[id].mConflictColList.push_back(col);
       ++ sat;
@@ -115,17 +120,12 @@ ColGraph::adjacent_degree(
 )
 {
   SizeType adj = 0;
-  vector<bool> fault_set(mNetwork.max_fault_id(), false);
   for ( auto id1: mNodeList[id].mConflictList ) {
     if ( color(id1) > 0 ) {
       // 彩色済みのノードはスキップ
       continue;
     }
-    auto fid = fault(id1)->id();
-    if ( !fault_set[fid] ) {
-      fault_set[fid] = true;
-      ++ adj;
-    }
+    ++ adj;
   }
   return adj;
 }
@@ -136,17 +136,18 @@ ColGraph::testvector(
   SizeType color
 )
 {
-  NodeTimeValList assign;
   auto& group = mGroupList[color - 1];
+  vector<SatLiteral> assumptions;
+  assumptions.reserve(group.mNodeList.size());
   for ( auto id: group.mNodeList ) {
-    auto& cube = mNodeList[id].mCube;
-    assign.merge(cube);
+    auto& node = mNodeList[id];
+    assumptions.push_back(node.mControlVar);
   }
-  auto assumptions = mBaseEnc.conv_to_literal_list(assign);
   auto res = mBaseEnc.solver().solve(assumptions);
   if ( res != SatBool3::True ) {
-    throw std::invalid_argument("wrong assign");
+    throw std::invalid_argument{"wrong assignments"};
   }
+
   auto pi_assign = mBaseEnc.get_pi_assign();
   return TestVector{mNetwork, pi_assign};
 }
@@ -161,14 +162,9 @@ ColGraph::set_color(
   ASSERT_COND( 0 <= id && id < node_num() );
   ASSERT_COND( 1 <= color && color <= color_num() );
 
+  mNodeList[id].mColor = color;
   auto& group = mGroupList[color - 1];
   group.mNodeList.push_back(id);
-  group.mAssignments.merge(cube(id));
-
-  auto fid = fault(id)->id();
-  for ( auto id: mCubeListArray[fid] ) {
-    mNodeList[id].mColor = color;
-  }
 }
 
 // @brief color_map を作る．
@@ -190,19 +186,13 @@ ColGraph::get_color_map(
 // @brief cube1 と cube2 が衝突する時 true を返す．
 bool
 ColGraph::is_conflict(
-  const NodeTimeValList& assign1,
-  const NodeTimeValList& assign2
+  SizeType id1,
+  SizeType id2
 )
 {
-  if ( compare(assign1, assign2) == -1 ) {
-    // 割り当てが矛盾している．
-    return true;
-  }
-  auto assumptions = mBaseEnc.conv_to_literal_list(assign1);
-  auto assumptions2 = mBaseEnc.conv_to_literal_list(assign2);
-  assumptions.insert(assumptions.end(),
-		     assumptions2.begin(),
-		     assumptions2.end());
+  auto clit1 = mNodeList[id1].mControlVar;
+  auto clit2 = mNodeList[id2].mControlVar;
+  vector<SatLiteral> assumptions = {clit1, clit2};
   return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
 }
 

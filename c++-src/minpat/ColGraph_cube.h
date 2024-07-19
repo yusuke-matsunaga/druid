@@ -1,8 +1,8 @@
-#ifndef COLGRAPH2_H
-#define COLGRAPH2_H
+#ifndef COLGRAPH_CUBE_H
+#define COLGRAPH_CUBE_H
 
-/// @file ColGraph2.h
-/// @brief ColGraph2 のヘッダファイル
+/// @file ColGraph_cube.h
+/// @brief ColGraph_cube のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -17,20 +17,23 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class ColGraph2 ColGraph2.h "ColGraph2.h"
+/// @class ColGraph_cube ColGraph_cube.h "ColGraph_cube.h"
 /// @brief パタン圧縮用の彩色問題用のグラフを表すクラス
 ///
-/// * 故障をグラフのノードに対応させる．
+/// * 拡張テストキューブをグラフのノードに対応させる．
 /// * 相反する割り当てを持つノード同士は衝突している．
+/// * ただし，割り当てが衝突していなくても両立しないノードもあるので
+///   最終的には全ての割り当てを行った上でSAT問題を解く必要がある．
 /// * 最小彩色問題は互いに衝突しているノードに同じ色を割り当てない条件
 ///   で使う色の数を最小化する問題．
+/// * ただし，同じ故障に関連するテストキューブは一つだけ彩色すればよい．
 //////////////////////////////////////////////////////////////////////
-class ColGraph2
+class ColGraph_cube
 {
 public:
 
   /// @brief コンストラクタ
-  ColGraph2(
+  ColGraph_cube(
     const TpgNetwork& network,           ///< [in] 対象のネットワーク
     const vector<TestCover>& cover_list, ///< [in] カバーのリスト
     const JsonValue& option              ///< [in] オプション
@@ -38,7 +41,7 @@ public:
   );
 
   /// @brief デストラクタ
-  ~ColGraph2();
+  ~ColGraph_cube();
 
 
 public:
@@ -53,11 +56,29 @@ public:
     return mNetwork;
   }
 
-  /// @brief ノード(故障)数を返す．
+  /// @brief ノード(キューブ)数を返す．
   SizeType
   node_num() const
   {
     return mNodeList.size();
+  }
+
+  /// @brief 故障数を返す．
+  SizeType
+  fault_num() const
+  {
+    return mFaultNum;
+  }
+
+  /// @brief 対応する値割当を返す．
+  const NodeTimeValList&
+  cube(
+    SizeType id ///< [in] ノード番号( 0 <= id < node_num() )
+  ) const
+  {
+    ASSERT_COND( 0 <= id && id < node_num() );
+
+    return mNodeList[id].mCube;
   }
 
   /// @brief 対応する故障を返す．
@@ -66,8 +87,6 @@ public:
     SizeType id ///< [in] ノード番号( 0 <= id < node_num() )
   ) const
   {
-    ASSERT_COND( 0 <= id && id < node_num() );
-
     return mNodeList[id].mFault;
   }
 
@@ -187,11 +206,11 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief node1 と node2 が衝突する時 true を返す．
+  /// @brief assign1 と assign2 が衝突する時 true を返す．
   bool
   is_conflict(
-    SizeType node1,
-    SizeType node2
+    const NodeTimeValList& assign1,
+    const NodeTimeValList& assign2
   );
 
 
@@ -204,14 +223,14 @@ private:
   struct Node {
     // 故障
     const TpgFault* mFault;
+    // テストキューブ
+    NodeTimeValList mCube;
     // 色
-    SizeType mColor{0};
+    SizeType mColor;
     // 衝突しているノード番号のリスト
     vector<SizeType> mConflictList;
     // 衝突している色のリスト
     vector<SizeType> mConflictColList;
-    // 対応する制御変数
-    SatLiteral mControlVar;
   };
 
   // 色(ノードグループ)を表す構造体
@@ -220,6 +239,8 @@ private:
     SizeType mColor;
     // ノード番号のリスト
     vector<SizeType> mNodeList;
+    // 値割り当てのリスト
+    NodeTimeValList mAssignments;
   };
 
   // ネットワーク
@@ -231,6 +252,12 @@ private:
   // ノードのリスト
   vector<Node> mNodeList;
 
+  // 故障数
+  SizeType mFaultNum;
+
+  // 故障番号をキーにして関連するノード番号を格納する配列
+  vector<vector<SizeType>> mCubeListArray;
+
   // 色(ノードグループ)のリスト
   // 0 は未彩色を表すのでキーは一つずれている．
   vector<Group> mGroupList;
@@ -239,4 +266,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // COLGRAPH2_H
+#endif // COLGRAPH_CUBE_H

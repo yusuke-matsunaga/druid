@@ -13,8 +13,8 @@
 #include "FaultGroupGen.h"
 #include "ColGraph.h"
 #include "Dsatur.h"
-#include "ColGraph2.h"
-#include "Dsatur2.h"
+#include "ColGraph_cube.h"
+#include "Dsatur_cube.h"
 #include "ym/Timer.h"
 
 
@@ -353,8 +353,8 @@ testcube_gen(
     }
   }
   else if ( dsatur2 ) {
-    ColGraph2 cg{network, cover_list, fr_option};
-    Dsatur2 ds{cg};
+    ColGraph_cube cg{network, cover_list, fr_option};
+    Dsatur_cube ds{cg};
     ds.coloring();
     SizeType nc = cg.color_num();
     for ( SizeType col = 1; col <= nc; ++ col ) {

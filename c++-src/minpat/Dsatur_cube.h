@@ -1,34 +1,34 @@
-﻿#ifndef DSATUR2_H
-#define DSATUR2_H
+﻿#ifndef DSATUR_CUBE_H
+#define DSATUR_CUBE_H
 
-/// @file Dsatur2.h
-/// @brief Dsatur2 のヘッダファイル
+/// @file Dsatur_cube.h
+/// @brief Dsatur_cube のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "ColGraph2.h"
+#include "ColGraph_cube.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class Dsatur2 Dsatur2.h "Dsatur2.h"
+/// @class Dsatur_cube Dsatur_cube.h "Dsatur_cube.h"
 /// @brief 彩色問題を dsatur アルゴリズムで解くためのクラス
 //////////////////////////////////////////////////////////////////////
-class Dsatur2
+class Dsatur_cube
 {
 public:
 
   /// @brief コンストラクタ
-  Dsatur2(
-    ColGraph2& graph ///< [in] 対象のグラフ
+  Dsatur_cube(
+    ColGraph_cube& graph ///< [in] 対象のグラフ
   );
 
   /// @brief デストラクタ
-  ~Dsatur2();
+  ~Dsatur_cube();
 
 
 public:
@@ -68,7 +68,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 対象のグラフ
-  ColGraph2& mGraph;
+  ColGraph_cube& mGraph;
 
   // 彩色の候補のノードリスト
   vector<SizeType> mCandList;
@@ -80,4 +80,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // DSATUR2_H
+#endif // DSATUR_CUBE_H
