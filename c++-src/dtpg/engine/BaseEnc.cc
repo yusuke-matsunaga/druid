@@ -196,6 +196,30 @@ BaseEnc::justify(
   return mJustifier(assign_list, mHvarMap, mGvarMap, model);
 }
 
+// @brief 現在の外部入力の割当を得る．
+NodeTimeValList
+BaseEnc::get_pi_assign()
+{
+  NodeTimeValList pi_assign;
+  if ( mNetwork.has_prev_state() ) {
+    for ( auto node: mNetwork.ppi_list() ) {
+      auto v = val(node, 0);
+      pi_assign.add(node, 0, v);
+    }
+    for ( auto node: mNetwork.input_list() ) {
+      auto v = val(node, 1);
+      pi_assign.add(node, 1, v);
+    }
+  }
+  else {
+    for ( auto node: mNetwork.ppi_list() ) {
+      auto v = val(node, 1);
+      pi_assign.add(node, 1, v);
+    }
+  }
+  return pi_assign;
+}
+
 // @brief 値割り当てを対応するリテラルに変換する．
 SatLiteral
 BaseEnc::conv_to_literal(

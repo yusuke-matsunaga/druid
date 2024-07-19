@@ -38,7 +38,6 @@ set ( minpat_SOURCES
   ExCubeGen.cc
   FaultGroupGen.cc
   LocalImp.cc
-  TestVectorGen.cc
   ColGraph.cc
   Dsatur.cc
   ColGraph2.cc

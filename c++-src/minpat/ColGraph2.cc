@@ -120,7 +120,6 @@ ColGraph2::adjacent_degree(
 )
 {
   SizeType adj = 0;
-  vector<bool> fault_set(mNetwork.max_fault_id(), false);
   for ( auto id1: mNodeList[id].mConflictList ) {
     if ( color(id1) > 0 ) {
       // 彩色済みのノードはスキップ
@@ -149,25 +148,8 @@ ColGraph2::testvector(
     throw std::invalid_argument{"wrong assignments"};
   }
 
-  NodeTimeValList pi_assign;
-  if ( mNetwork.has_prev_state() ) {
-    for ( auto node: mNetwork.ppi_list() ) {
-      auto v = mBaseEnc.val(node, 0);
-      pi_assign.add(node, 0, v);
-    }
-    for ( auto node: mNetwork.input_list() ) {
-      auto v = mBaseEnc.val(node, 1);
-      pi_assign.add(node, 1, v);
-    }
-  }
-  else {
-    for ( auto node: mNetwork.ppi_list() ) {
-      auto v = mBaseEnc.val(node, 1);
-      pi_assign.add(node, 1, v);
-    }
-  }
+  auto pi_assign = mBaseEnc.get_pi_assign();
   return TestVector{mNetwork, pi_assign};
-
 }
 
 // @brief ノードを色をつける．

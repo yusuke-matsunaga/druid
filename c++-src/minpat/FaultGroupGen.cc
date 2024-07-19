@@ -11,7 +11,6 @@
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "LocalImp.h"
-#include "TestVectorGen.h"
 #include "TestVector.h"
 #include "Fsim.h"
 #include "ym/Range.h"
@@ -189,8 +188,8 @@ FaultGroupGen::~FaultGroupGen()
   }
 }
 
-// @brief 両立故障グループを求める．
-vector<NodeTimeValList>
+// @brief テストベクタを求める．
+vector<TestVector>
 FaultGroupGen::generate(
   const vector<TestCover>& cover_list
 )
@@ -202,7 +201,7 @@ FaultGroupGen::generate(
   gen_blocklist();
 
   // limit 分の故障集合を求める．
-  vector<NodeTimeValList> ans_list;
+  vector<NodeTimeValList> assign_list;
   for ( ; ; ) {
     // 極大集合を求める．
     SizeType old_num = mFaultNum;
@@ -213,12 +212,12 @@ FaultGroupGen::generate(
 
     if ( mDebug ) {
       auto n = old_num - mFaultNum;
-      cout << "#" << ans_list.size()
+      cout << "#" << assign_list.size()
 	   << ": " << n << " | " << mFaultNum
 	   << endl;
     }
 
-    ans_list.push_back(assignments);
+    assign_list.push_back(assignments);
   }
 
   { // verify
@@ -231,10 +230,22 @@ FaultGroupGen::generate(
   }
 
   if ( mDebug ) {
-    cout << "Total " << ans_list.size() << " groups" << endl;
+    cout << "Total " << assign_list.size() << " groups" << endl;
   }
 
-  return ans_list;
+  vector<TestVector> tv_list;
+  tv_list.reserve(assign_list.size());
+  for ( auto& assign: assign_list ) {
+    auto assumptions = mBaseEnc.conv_to_literal_list(assign);
+    auto res = mBaseEnc.solver().solve(assumptions);
+    if ( res != SatBool3::True ) {
+      throw std::invalid_argument("wrong assign");
+    }
+    auto pi_assign = mBaseEnc.get_pi_assign();
+    auto tv = TestVector{mNetwork, pi_assign};
+    tv_list.push_back(tv);
+  }
+  return tv_list;
 }
 
 // @brief 故障集合を初期化する．

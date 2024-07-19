@@ -66,11 +66,20 @@ public:
   /// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
   /// @return 外部入力の割り当てリストを返す．
   ///
-  /// 事前にSAT問題の充足解が求められている必要がある．
+  /// * 事前にSAT問題の充足解が求められている必要がある．
+  /// * 必要な値割り当てのみが記録される．
   NodeTimeValList
   justify(
     const NodeTimeValList& assign_list ///< [in] 値割り当てのリスト
   );
+
+  /// @brief 現在の外部入力の割当を得る．
+  /// @return 外部入力の割り当てリストを返す．
+  ///
+  /// * 事前にSAT問題の充足解が求められている必要がある．
+  /// * すべての外部入力になんらかの値が入る
+  NodeTimeValList
+  get_pi_assign();
 
   /// @brief 値割り当てを対応するリテラルに変換する．
   SatLiteral

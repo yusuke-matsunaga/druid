@@ -15,7 +15,6 @@
 #include "Dsatur.h"
 #include "ColGraph2.h"
 #include "Dsatur2.h"
-#include "TestVectorGen.h"
 #include "ym/Timer.h"
 
 
@@ -347,16 +346,9 @@ testcube_gen(
     ColGraph cg{network, cover_list, fr_option};
     Dsatur ds{cg};
     ds.coloring();
-    TestVectorGen tvg{network, fr_option};
     SizeType nc = cg.color_num();
     for ( SizeType col = 1; col <= nc; ++ col ) {
-      auto& node_list = cg.node_list(col);
-      NodeTimeValList assign;
-      for ( auto id: node_list ) {
-	auto& cube = cg.cube(id);
-	assign.merge(cube);
-      }
-      auto tv = tvg.generate(assign);
+      auto tv = cg.testvector(col);
       tv_list.push_back(tv);
     }
   }
@@ -372,12 +364,7 @@ testcube_gen(
   }
   else {
     FaultGroupGen fgg{network, fr_option};
-    auto fg_list = fgg.generate(cover_list);
-    TestVectorGen tvg{network, fr_option};
-    for ( auto& assign: fg_list ) {
-      auto tv = tvg.generate(assign);
-      tv_list.push_back(tv);
-    }
+    tv_list = fgg.generate(cover_list);
   }
 
   timer.stop();

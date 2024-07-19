@@ -42,8 +42,8 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 両立故障グループを求める．
-  vector<NodeTimeValList>
+  /// @brief テストベクタ集合を求める．
+  vector<TestVector>
   generate(
     const vector<TestCover>& cover_list ///< [in] テストカバーのリスト
   );

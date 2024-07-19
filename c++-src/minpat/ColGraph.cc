@@ -130,6 +130,27 @@ ColGraph::adjacent_degree(
   return adj;
 }
 
+// @brief 指定された色のテストベクタを返す．
+TestVector
+ColGraph::testvector(
+  SizeType color
+)
+{
+  NodeTimeValList assign;
+  auto& group = mGroupList[color - 1];
+  for ( auto id: group.mNodeList ) {
+    auto& cube = mNodeList[id].mCube;
+    assign.merge(cube);
+  }
+  auto assumptions = mBaseEnc.conv_to_literal_list(assign);
+  auto res = mBaseEnc.solver().solve(assumptions);
+  if ( res != SatBool3::True ) {
+    throw std::invalid_argument("wrong assign");
+  }
+  auto pi_assign = mBaseEnc.get_pi_assign();
+  return TestVector{mNetwork, pi_assign};
+}
+
 // @brief ノードを色をつける．
 void
 ColGraph::set_color(
