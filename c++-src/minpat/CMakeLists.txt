@@ -23,7 +23,7 @@ add_subdirectory( test-programs )
 # ===================================================================
 
 set ( minpat_SOURCES
-  TestCubeGen.cc
+  TestCoverGen.cc
   FaultAnalyzer.cc
   FFRDomChecker.cc
   DomCandGen.cc

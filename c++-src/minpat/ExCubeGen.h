@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
-#include "TestCube.h"
+#include "TestCover.h"
 #include "ym/JsonValue.h"
 
 
@@ -51,15 +51,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 与えられた故障を検出するテストキューブを生成する．
-  /// @return 生成したキューブ数を返す．
-  ///
-  /// 実は最初のキューブはすでに cube_list に追加されているとする．
-  SizeType
+  /// @brief 与えられた故障を検出するテストカバーを生成する．
+  /// @return 生成したテストカバーを返す．
+  TestCover
   run(
     const TpgFault* fault,            ///< [in] 対象の故障
     const NodeTimeValList& mand_cond, ///< [in] 必要条件
-    vector<TestCube>& cube_list       ///< [out] 生成したテストキューブを格納するリスト
+    const NodeTimeValList& suff_cond  ///< [in] 十分条件の一つ
   );
 
 

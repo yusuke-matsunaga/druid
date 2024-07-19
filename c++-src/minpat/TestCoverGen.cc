@@ -1,13 +1,13 @@
 
-/// @file TestCubeGen.cc
-/// @brief TestCubeGen の実装ファイル
+/// @file TestCoverGen.cc
+/// @brief TestCoverGen の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "TestCubeGen.h"
-#include "TestCube.h"
+#include "TestCoverGen.h"
+#include "TestCover.h"
 #include "FaultAnalyzer.h"
 #include "FFRFaultList.h"
 #include "FFRDomChecker.h"
@@ -66,7 +66,7 @@ END_NAMESPACE_STD
 BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
-TestCubeGen::TestCubeGen(
+TestCoverGen::TestCoverGen(
   const TpgNetwork& network,
   const JsonValue& option
 ) : mNetwork{network},
@@ -95,12 +95,11 @@ TestCubeGen::TestCubeGen(
   }
 }
 
-// @brief 支配故障を求め，テストキューブを生成する．
-vector<const TpgFault*>
-TestCubeGen::run(
+// @brief 支配故障を求め，テストカバーを生成する．
+vector<TestCover>
+TestCoverGen::run(
   const vector<const TpgFault*>& fault_list,
-  const vector<TestVector>& tv_list,
-  vector<TestCube>& cube_list
+  const vector<TestVector>& tv_list
 )
 {
   // 故障シミュレーションを用いて支配関係の候補リストを作る．
@@ -122,31 +121,27 @@ TestCubeGen::run(
   global_reduction(ffr_fault_list, true);
 
   // 拡張テストキューブを作る．
-  vector<const TpgFault*> ans_list;
-  ans_list.reserve(mFaultNum);
-  cube_list.clear();
+  vector<TestCover> cube_list;
+  cube_list.reserve(mFaultNum);
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
     ExCubeGen gen{mNetwork, ffr, mOption};
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
       if ( is_deleted(fault) ) {
 	continue;
       }
-      ans_list.push_back(fault);
       auto& info = mFaultInfoArray[fault->id()];
       auto mand_cond = info.mMandCond;
       auto suff_cond = info.mSuffCond;
-      cube_list.push_back(TestCube{suff_cond, fault});
-      if ( !info.mTrivial ) {
-	gen.run(fault, mand_cond, cube_list);
-      }
+      auto testcover = gen.run(fault, mand_cond, suff_cond);
+      cube_list.push_back(testcover);
     }
   }
-  return ans_list;
+  return cube_list;
 }
 
 // @brief 同一FFR内の支配関係を用いて故障を削減する．
 void
-TestCubeGen::ffr_reduction(
+TestCoverGen::ffr_reduction(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -200,7 +195,7 @@ TestCubeGen::ffr_reduction(
 
 // @grep 故障シミュレーションを用いて被支配故障の候補を生成する．
 void
-TestCubeGen::gen_dom_cands(
+TestCoverGen::gen_dom_cands(
   const vector<const TpgFault*>& fault_list,
   const vector<TestVector>& tv_list
 )
@@ -239,7 +234,7 @@ TestCubeGen::gen_dom_cands(
 
 // @brief 故障の解析を行う．
 void
-TestCubeGen::fault_analysis(
+TestCoverGen::fault_analysis(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -277,7 +272,7 @@ TestCubeGen::fault_analysis(
 
 // @brief trivial な故障間の支配関係のチェックを行う．
 void
-TestCubeGen::trivial_reduction1(
+TestCoverGen::trivial_reduction1(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -353,7 +348,7 @@ TestCubeGen::trivial_reduction1(
 
 // @brief trivial な故障が支配されている場合のチェックを行う．
 void
-TestCubeGen::trivial_reduction2(
+TestCoverGen::trivial_reduction2(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -431,7 +426,7 @@ TestCubeGen::trivial_reduction2(
 
 // @brief fault1 が trivial な場合の処理
 void
-TestCubeGen::trivial_reduction3(
+TestCoverGen::trivial_reduction3(
   const FFRFaultList& ffr_fault_list
 )
 {
@@ -549,7 +544,7 @@ TestCubeGen::trivial_reduction3(
 
 // @brief 異なる FFR 間の支配故障のチェックを行う．
 void
-TestCubeGen::global_reduction(
+TestCoverGen::global_reduction(
   const FFRFaultList& ffr_fault_list,
   bool skip_trivial
 )
@@ -664,7 +659,7 @@ TestCubeGen::global_reduction(
 
 // @brief 2つの FFR が共通部分を持つか調べる．
 bool
-TestCubeGen::check_intersect(
+TestCoverGen::check_intersect(
   const TpgFFR* ffr1,
   const TpgFFR* ffr2
 )
@@ -693,7 +688,7 @@ TestCubeGen::check_intersect(
 
 // @brief 2つの故障が共通部分を持つか調べる．
 bool
-TestCubeGen::check_intersect(
+TestCoverGen::check_intersect(
   const TpgFault* fault1,
   const TpgFault* fault2
 )
@@ -703,7 +698,7 @@ TestCubeGen::check_intersect(
 
 // @brief 2つの故障が共通部分を持つか調べる．
 bool
-TestCubeGen::check_intersect(
+TestCoverGen::check_intersect(
   const TpgFault* fault1,
   const TpgFFR* ffr2
 )

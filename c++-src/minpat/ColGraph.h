@@ -10,7 +10,8 @@
 
 #include "druid.h"
 #include "BaseEnc.h"
-#include "TestCube.h"
+#include "TestCover.h"
+#include "TestVector.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -33,9 +34,9 @@ public:
 
   /// @brief コンストラクタ
   ColGraph(
-    const TpgNetwork& network,         ///< [in] 対象のネットワーク
-    const vector<TestCube>& cube_list, ///< [in] キューブのリスト
-    const JsonValue& option            ///< [in] オプション
+    const TpgNetwork& network,           ///< [in] 対象のネットワーク
+    const vector<TestCover>& cover_list, ///< [in] カバーのリスト
+    const JsonValue& option              ///< [in] オプション
     = JsonValue{}
   );
 
@@ -69,8 +70,8 @@ public:
     return mFaultNum;
   }
 
-  /// @brief 対応するキューブを返す．
-  const TestCube&
+  /// @brief 対応する値割当を返す．
+  const NodeTimeValList&
   cube(
     SizeType id ///< [in] ノード番号( 0 <= id < node_num() )
   ) const
@@ -86,7 +87,7 @@ public:
     SizeType id ///< [in] ノード番号( 0 <= id < node_num() )
   ) const
   {
-    return cube(id).fault();
+    return mNodeList[id].mFault;
   }
 
   /// @brief ノードの衝突リストを返す．
@@ -140,6 +141,12 @@ public:
 
     return mNodeList[id].mColor;
   }
+
+  /// @brief 指定された色のテストベクタを返す．
+  TestVector
+  testvector(
+    SizeType color
+  );
 
   /// @brief 指定された色のノード番号のリストを返す．
   const vector<SizeType>&
@@ -199,11 +206,11 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief cube1 と cube2 が衝突する時 true を返す．
+  /// @brief assign1 と assign2 が衝突する時 true を返す．
   bool
   is_conflict(
-    const TestCube& cube1,
-    const TestCube& cube2
+    const NodeTimeValList& assign1,
+    const NodeTimeValList& assign2
   );
 
 
@@ -214,8 +221,10 @@ private:
 
   // ノードの情報を表す構造体
   struct Node {
+    // 故障
+    const TpgFault* mFault;
     // テストキューブ
-    TestCube mCube;
+    NodeTimeValList mCube;
     // 色
     SizeType mColor;
     // 衝突しているノード番号のリスト

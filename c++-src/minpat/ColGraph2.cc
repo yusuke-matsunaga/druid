@@ -10,7 +10,7 @@
 #include "TpgNetwork.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "TestCube.h"
+#include "TestCover.h"
 #include "ym/Range.h"
 #include "ym/Timer.h"
 
@@ -20,7 +20,7 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 ColGraph2::ColGraph2(
   const TpgNetwork& network,
-  const vector<TestCube>& cube_list,
+  const vector<TestCover>& cover_list,
   const JsonValue& option
 ) : mNetwork{network},
     mBaseEnc{network, option}
@@ -29,37 +29,24 @@ ColGraph2::ColGraph2(
     auto& node_list = network.node_list();
     mBaseEnc.make_cnf(node_list, node_list);
   }
-
-  vector<vector<SizeType>> cube_list_array(mNetwork.max_fault_id());
-  vector<SizeType> fault_list;
-  SizeType cube_num = cube_list.size();
-  for ( SizeType id = 0; id < cube_num; ++ id ) {
-    auto& cube = cube_list[id];
-    auto fault = cube.fault();
+  mNodeList.reserve(cover_list.size());
+  for ( auto& cover: cover_list ) {
+    auto fault = cover.fault();
     auto fid = fault->id();
-    if ( cube_list_array[fid].empty() ) {
-      fault_list.push_back(fid);
-    }
-    cube_list_array[fid].push_back(id);
-  }
-  mNodeList.reserve(fault_list.size());
-  for ( auto fid: fault_list ) {
-    auto fault = mNetwork.fault(fid);
     auto cvar = mBaseEnc.solver().new_variable(true);
-    mNodeList.push_back({fault, 0, {}, {}, cvar});
-    auto& id_list = cube_list_array[fid];
     vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(id_list.size() + 1);
+    tmp_lits.reserve(cover.cube_list().size());
     tmp_lits.push_back(~cvar);
-    for ( auto id: id_list ) {
-      auto& cube = cube_list[id];
-      auto assign = cube.assignments();
-      auto lit_list = mBaseEnc.conv_to_literal_list(assign);
+    for ( auto& cube: cover.cube_list() ) {
       auto var = mBaseEnc.solver().new_variable(false);
-      lit_list.push_back(~var);
-      mBaseEnc.solver().add_clause(lit_list);
+      for ( auto nv: cube ) {
+	auto lit = mBaseEnc.conv_to_literal(nv);
+	mBaseEnc.solver().add_clause(~var, lit);
+      }
       tmp_lits.push_back(var);
     }
+    mBaseEnc.solver().add_clause(tmp_lits);
+    mNodeList.push_back({fault, 0, {}, {}, cvar});
   }
 
   Timer timer;
@@ -73,6 +60,7 @@ ColGraph2::ColGraph2(
 	mNodeList[id2].mConflictList.push_back(id1);
       }
     }
+    cout << "Node#" << id1 << ": " << mNodeList[id1].mConflictList.size() << endl;
   }
   for ( SizeType id = 0; id < node_num; ++ id ) {
     auto& list = mNodeList[id].mConflictList;
@@ -141,6 +129,45 @@ ColGraph2::adjacent_degree(
     ++ adj;
   }
   return adj;
+}
+
+// @brief 指定された色のテストベクタを返す．
+TestVector
+ColGraph2::testvector(
+  SizeType color
+)
+{
+  auto& group = mGroupList[color - 1];
+  vector<SatLiteral> assumptions;
+  assumptions.reserve(group.mNodeList.size());
+  for ( auto id: group.mNodeList ) {
+    auto& node = mNodeList[id];
+    assumptions.push_back(node.mControlVar);
+  }
+  auto res = mBaseEnc.solver().solve(assumptions);
+  if ( res != SatBool3::True ) {
+    throw std::invalid_argument{"wrong assignments"};
+  }
+
+  NodeTimeValList pi_assign;
+  if ( mNetwork.has_prev_state() ) {
+    for ( auto node: mNetwork.ppi_list() ) {
+      auto v = mBaseEnc.val(node, 0);
+      pi_assign.add(node, 0, v);
+    }
+    for ( auto node: mNetwork.input_list() ) {
+      auto v = mBaseEnc.val(node, 1);
+      pi_assign.add(node, 1, v);
+    }
+  }
+  else {
+    for ( auto node: mNetwork.ppi_list() ) {
+      auto v = mBaseEnc.val(node, 1);
+      pi_assign.add(node, 1, v);
+    }
+  }
+  return TestVector{mNetwork, pi_assign};
+
 }
 
 // @brief ノードを色をつける．

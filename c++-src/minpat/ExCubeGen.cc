@@ -46,11 +46,11 @@ ExCubeGen::~ExCubeGen()
 }
 
 // @brief 与えられた故障を検出するテストキューブを生成する．
-SizeType
+TestCover
 ExCubeGen::run(
   const TpgFault* fault,
   const NodeTimeValList& mand_cond,
-  vector<TestCube>& cube_list
+  const NodeTimeValList& suff_cond
 )
 {
   if ( fault->ffr_root() != mFFR->root() ) {
@@ -60,35 +60,38 @@ ExCubeGen::run(
   }
   auto plit = mBdEnc->prop_var();
   auto clit = mBaseEnc.solver().new_variable(false);
-  SizeType nc = 1;
-  for ( ; nc < mLimit; ++ nc ) {
-    auto last_cond = cube_list.back().assignments();
-    last_cond.diff(mand_cond);
-    ASSERT_COND( last_cond.size() > 0 );
-    // last_cond を否定した節を加える．
-    // ただし他の故障の処理のときには無効化したいので
-    // 制御変数をつけておく．
-    vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(last_cond.size() + 1);
-    tmp_lits.push_back(~clit);
-    for ( auto nv: last_cond ) {
-      auto lit = mBaseEnc.conv_to_literal(nv);
-      tmp_lits.push_back(~lit);
+  vector<NodeTimeValList> cube_list;
+  cube_list.push_back(suff_cond);
+  if ( compare(mand_cond, suff_cond) != 3 ) {
+    while ( cube_list.size() < mLimit ) {
+      auto last_cond = cube_list.back();
+      last_cond.diff(mand_cond);
+      ASSERT_COND( last_cond.size() > 0 );
+      // last_cond を否定した節を加える．
+      // ただし他の故障の処理のときには無効化したいので
+      // 制御変数をつけておく．
+      vector<SatLiteral> tmp_lits;
+      tmp_lits.reserve(last_cond.size() + 1);
+      tmp_lits.push_back(~clit);
+      for ( auto nv: last_cond ) {
+	auto lit = mBaseEnc.conv_to_literal(nv);
+	tmp_lits.push_back(~lit);
+      }
+      mBaseEnc.solver().add_clause(tmp_lits);
+      auto assumptions = mBaseEnc.conv_to_literal_list(mand_cond);
+      assumptions.push_back(plit);
+      assumptions.push_back(clit);
+      auto res = mBaseEnc.solver().solve(assumptions);
+      if ( res != SatBool3::True ) {
+	// すべてのキューブを生成した．
+	break;
+      }
+      auto new_cond = mBdEnc->extract_sufficient_condition();
+      new_cond.merge(mand_cond);
+      cube_list.push_back(new_cond);
     }
-    mBaseEnc.solver().add_clause(tmp_lits);
-    auto assumptions = mBaseEnc.conv_to_literal_list(mand_cond);
-    assumptions.push_back(plit);
-    assumptions.push_back(clit);
-    auto res = mBaseEnc.solver().solve(assumptions);
-    if ( res != SatBool3::True ) {
-      // すべてのキューブを生成した．
-      break;
-    }
-    auto new_cond = mBdEnc->extract_sufficient_condition();
-    new_cond.merge(mand_cond);
-    cube_list.push_back(TestCube{new_cond, fault});
   }
-  return nc;
+  return TestCover{fault, cube_list};
 }
 
 END_NAMESPACE_DRUID

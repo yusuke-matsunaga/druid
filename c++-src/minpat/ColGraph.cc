@@ -10,7 +10,7 @@
 #include "TpgNetwork.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "TestCube.h"
+#include "TestCover.h"
 #include "ym/Range.h"
 #include "ym/Timer.h"
 
@@ -20,7 +20,7 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 ColGraph::ColGraph(
   const TpgNetwork& network,
-  const vector<TestCube>& cube_list,
+  const vector<TestCover>& cover_list,
   const JsonValue& option
 ) : mNetwork{network},
     mBaseEnc{network, option},
@@ -30,19 +30,19 @@ ColGraph::ColGraph(
     auto& node_list = network.node_list();
     mBaseEnc.make_cnf(node_list, node_list);
   }
-  SizeType node_num = cube_list.size();
+  SizeType node_num = 0;
+  for ( auto& cover: cover_list ) {
+    node_num += cover.cube_list().size();
+  }
   mNodeList.reserve(node_num);
-  mFaultNum = 0;
-  vector<bool> fault_set(mNetwork.max_fault_id(), false);
-  for ( auto& cube: cube_list ) {
-    auto id = mNodeList.size();
-    mNodeList.push_back({cube, 0});
-    auto fault = cube.fault();
+  mFaultNum = cover_list.size();
+  for ( auto& cover: cover_list ) {
+    auto fault = cover.fault();
     auto fid = fault->id();
-    mCubeListArray[fid].push_back(id);
-    if ( !fault_set[fid] ) {
-      fault_set[fid] = true;
-      ++ mFaultNum;
+    for ( auto& cube: cover.cube_list() ) {
+      auto id = mNodeList.size();
+      mNodeList.push_back({fault, cube, 0});
+      mCubeListArray[fid].push_back(id);
     }
   }
 
@@ -94,7 +94,7 @@ ColGraph::saturation_degree(
       continue;
     }
     auto& cube1 = cube(id);
-    auto assumptions = mBaseEnc.conv_to_literal_list(cube1.assignments());
+    auto assumptions = mBaseEnc.conv_to_literal_list(cube1);
     auto assign1 = mGroupList[col - 1].mAssignments;
     auto assumptions1 = mBaseEnc.conv_to_literal_list(assign1);
     assumptions.insert(assumptions.end(),
@@ -142,7 +142,7 @@ ColGraph::set_color(
 
   auto& group = mGroupList[color - 1];
   group.mNodeList.push_back(id);
-  group.mAssignments.merge(cube(id).assignments());
+  group.mAssignments.merge(cube(id));
 
   auto fid = fault(id)->id();
   for ( auto id: mCubeListArray[fid] ) {
@@ -169,12 +169,10 @@ ColGraph::get_color_map(
 // @brief cube1 と cube2 が衝突する時 true を返す．
 bool
 ColGraph::is_conflict(
-  const TestCube& cube1,
-  const TestCube& cube2
+  const NodeTimeValList& assign1,
+  const NodeTimeValList& assign2
 )
 {
-  auto& assign1 = cube1.assignments();
-  auto& assign2 = cube2.assignments();
   if ( compare(assign1, assign2) == -1 ) {
     // 割り当てが矛盾している．
     return true;

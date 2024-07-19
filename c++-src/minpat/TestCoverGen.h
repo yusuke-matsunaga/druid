@@ -1,8 +1,8 @@
-#ifndef TESTCUBEGEN_H
-#define TESTCUBEGEN_H
+#ifndef TESTCOVERGEN_H
+#define TESTCOVERGEN_H
 
-/// @file TestCubeGen.h
-/// @brief TestCubeGen のヘッダファイル
+/// @file TestCoverGen.h
+/// @brief TestCoverGen のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "TpgFault.h"
 #include "TestVector.h"
-#include "TestCube.h"
+#include "TestCover.h"
 #include "ym/JsonValue.h"
 
 
@@ -20,21 +20,21 @@ BEGIN_NAMESPACE_DRUID
 class FFRFaultList;
 
 //////////////////////////////////////////////////////////////////////
-/// @class TestCubeGen TestCubeGen.h "TestCubeGen.h"
+/// @class TestCoverGen TestCoverGen.h "TestCoverGen.h"
 /// @brief 支配故障を求めて対象の故障を削減するクラス
 //////////////////////////////////////////////////////////////////////
-class TestCubeGen
+class TestCoverGen
 {
 public:
 
   /// @brief コンストラクタ
-  TestCubeGen(
+  TestCoverGen(
     const TpgNetwork& network,   ///< [in] 対象のネットワーク
     const JsonValue& option = {} ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~TestCubeGen() = default;
+  ~TestCoverGen() = default;
 
 
 public:
@@ -42,13 +42,12 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 支配故障を求め，テストキューブを生成する．
-  /// @return 支配故障のリストを返す．
-  vector<const TpgFault*>
+  /// @brief 支配故障を求め，テストカバーを生成する．
+  /// @return テストカバーのリストを返す．
+  vector<TestCover>
   run(
     const vector<const TpgFault*>& fault_list, ///< [in] 対象の故障のリスト
-    const vector<TestVector>& tv_list,         ///< [in] テストパタンのリスト
-    vector<TestCube>& cube_list                ///< [out] 生成したテストキューブ
+    const vector<TestVector>& tv_list          ///< [in] テストパタンのリスト
   );
 
 
@@ -237,4 +236,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // TESTCUBEGEN_H
+#endif // TESTCOVERGEN_H

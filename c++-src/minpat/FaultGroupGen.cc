@@ -192,12 +192,11 @@ FaultGroupGen::~FaultGroupGen()
 // @brief 両立故障グループを求める．
 vector<NodeTimeValList>
 FaultGroupGen::generate(
-  const vector<const TpgFault*>& fault_list,
-  const vector<TestCube>& cube_list
+  const vector<TestCover>& cover_list
 )
 {
   // 初期化する．
-  init(fault_list, cube_list);
+  init(cover_list);
 
   // ブロックリストを作る．
   gen_blocklist();
@@ -223,7 +222,8 @@ FaultGroupGen::generate(
   }
 
   { // verify
-    for ( auto fault: fault_list ) {
+    for ( auto& cover: cover_list ) {
+      auto fault = cover.fault();
       if ( mCountArray[fault->id()] == 0 ) {
 	cout << fault->str() << " is not covered" << endl;
       }
@@ -240,8 +240,7 @@ FaultGroupGen::generate(
 // @brief 故障集合を初期化する．
 void
 FaultGroupGen::init(
-  const vector<const TpgFault*>& fault_list,
-  const vector<TestCube>& cube_list
+  const vector<TestCover>& cover_list
 )
 {
   Timer timer;
@@ -255,24 +254,25 @@ FaultGroupGen::init(
   SizeType c0 = 0;
   SizeType c1 = 0;
   SizeType c2 = 0;
-  for ( auto& cube: cube_list ) {
-    auto fault = cube.fault();
+  for ( auto& cover: cover_list ) {
+    auto fault = cover.fault();
     auto fid = fault->id();
     mCountArray[fid] = 0;
-    auto& assign = cube.assignments();
-    auto new_assign = imp.run(assign);
+    for ( auto& cube: cover.cube_list() ) {
+      auto new_assign = imp.run(cube);
 #if 0
-    auto new_assign2 = imply(new_assign);
+      auto new_assign2 = imply(new_assign);
 #endif
-    SizeType id = mCubeList.size();
-    auto excube = new ExCube{id, new_assign, fid};
-    mCubeList.push_back(excube);
+      SizeType id = mCubeList.size();
+      auto excube = new ExCube{id, new_assign, fid};
+      mCubeList.push_back(excube);
+    }
   }
   mBlockListArray.clear();
   mCurBlockListArray.clear();
   mBlockListArray.resize(mCubeList.size());
   mCurBlockListArray.resize(mCubeList.size());
-  mFaultNum = fault_list.size();
+  mFaultNum = cover_list.size();
 
   timer.stop();
   if ( mDebug ) {

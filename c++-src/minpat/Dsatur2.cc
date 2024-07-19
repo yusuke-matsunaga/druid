@@ -9,7 +9,6 @@
 #include "Dsatur2.h"
 #include "TpgNetwork.h"
 #include "TpgFault.h"
-#include "TestCube.h"
 #include "ym/Range.h"
 
 

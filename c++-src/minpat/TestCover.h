@@ -1,8 +1,8 @@
-#ifndef TESTCUBE_H
-#define TESTCUBE_H
+#ifndef TESTCOVER_H
+#define TESTCOVER_H
 
-/// @file TestCube.h
-/// @brief TestCube のヘッダファイル
+/// @file TestCover.h
+/// @brief TestCover のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -15,40 +15,33 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class TestCube TestCube.h "TestCube.h"
+/// @class TestCover TestCover.h "TestCover.h"
 /// @brief (拡張)テストキューブを表すクラス
 //////////////////////////////////////////////////////////////////////
-class TestCube
+class TestCover
 {
 public:
 
-  /// @brief コンストラクタ
-  TestCube() = default;
+  /// @brief 空のコンストラクタ
+  TestCover() = default;
 
-  /// @brief 内容を指定したコンストラクタ
-  TestCube(
-    const NodeTimeValList& assignments, ///< [in] 値割り当てのリスト
-    const TpgFault* fault               ///< [in] 対象の故障
-  ) : mAssignments{assignments},
-      mFault{fault}
+  /// @brief コンストラクタ
+  TestCover(
+    const TpgFault* fault,                   ///< [in] 対象の故障
+    const vector<NodeTimeValList>& cube_list ///< [in] 値割当のリスト
+  ) : mFault{fault},
+      mCubeList{cube_list}
   {
   }
 
   /// @brief デストラクタ
-  ~TestCube() = default;
+  ~TestCover() = default;
 
 
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 値割り当てのリストを返す．
-  const NodeTimeValList&
-  assignments() const
-  {
-    return mAssignments;
-  }
 
   /// @brief 対象の故障を返す．
   const TpgFault*
@@ -57,20 +50,28 @@ public:
     return mFault;
   }
 
+  /// @brief 値割り当てのリストのリストを返す．
+  const vector<NodeTimeValList>&
+  cube_list() const
+  {
+    return mCubeList;
+  }
+
+
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 値割り当てのリスト
-  NodeTimeValList mAssignments;
-
   // 対象の故障
-  const TpgFault* mFault;
+  const TpgFault* mFault{nullptr};
+
+  // 値割り当てのリスト
+  vector<NodeTimeValList> mCubeList;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // TESTCUBE_H
+#endif // TESTCOVER_H

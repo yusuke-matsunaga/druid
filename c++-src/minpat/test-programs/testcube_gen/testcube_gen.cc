@@ -1,6 +1,6 @@
 
 /// @file testcube_gen.cc
-/// @brief TestCubeGen を使ったサンプルプログラム
+/// @brief TestCoverGen を使ったサンプルプログラム
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2017, 2022 Yusuke Matsunaga
@@ -9,7 +9,7 @@
 #include "TpgNetwork.h"
 #include "DtpgMgr.h"
 #include "TpgFault.h"
-#include "TestCubeGen.h"
+#include "TestCoverGen.h"
 #include "FaultGroupGen.h"
 #include "ColGraph.h"
 #include "Dsatur.h"
@@ -322,60 +322,58 @@ testcube_gen(
   }
   fr_option_dict.emplace("loop_limit", JsonValue{loop});
   JsonValue fr_option{fr_option_dict};
-  TestCubeGen fr{network, fr_option};
+  TestCoverGen fr{network, fr_option};
 
-  vector<TestCube> cube_list;
-  auto reduced_fault_list = fr.run(det_fault_list, mgr.testvector_list(),
-				   cube_list);
+  auto cover_list = fr.run(det_fault_list, mgr.testvector_list());
 
   timer.stop();
 
+  SizeType cube_num = 0;
+  for ( auto& cover: cover_list ) {
+    cube_num += cover.cube_list().size();
+  }
+
   cout << "=========================================" << endl
        << "Detected Faults:     " << det_fault_list.size() << endl
-       << "Reduced Faults:      " << reduced_fault_list.size() << endl
-       << "Total # of cubes:    " << cube_list.size() << endl
+       << "Reduced Faults:      " << cover_list.size() << endl
+       << "Total # of cubes:    " << cube_num << endl
        << "CPU time:            " << timer.get_time() << endl;
 
   timer.reset();
   timer.start();
 
   vector<TestVector> tv_list;
-  TestVectorGen tvg{network, fr_option};
   if ( dsatur ) {
-    ColGraph cg{network, cube_list, fr_option};
+    ColGraph cg{network, cover_list, fr_option};
     Dsatur ds{cg};
     ds.coloring();
+    TestVectorGen tvg{network, fr_option};
     SizeType nc = cg.color_num();
     for ( SizeType col = 1; col <= nc; ++ col ) {
       auto& node_list = cg.node_list(col);
       NodeTimeValList assign;
       for ( auto id: node_list ) {
-	auto& cube = cube_list[id];
-	assign.merge(cube.assignments());
+	auto& cube = cg.cube(id);
+	assign.merge(cube);
       }
       auto tv = tvg.generate(assign);
       tv_list.push_back(tv);
     }
   }
   else if ( dsatur2 ) {
-    ColGraph2 cg{network, cube_list, fr_option};
+    ColGraph2 cg{network, cover_list, fr_option};
     Dsatur2 ds{cg};
     ds.coloring();
     SizeType nc = cg.color_num();
     for ( SizeType col = 1; col <= nc; ++ col ) {
-      auto& node_list = cg.node_list(col);
-      NodeTimeValList assign;
-      for ( auto id: node_list ) {
-	auto& cube = cube_list[id];
-	assign.merge(cube.assignments());
-      }
-      auto tv = tvg.generate(assign);
+      auto tv = cg.testvector(col);
       tv_list.push_back(tv);
     }
   }
   else {
     FaultGroupGen fgg{network, fr_option};
-    auto fg_list = fgg.generate(reduced_fault_list, cube_list);
+    auto fg_list = fgg.generate(cover_list);
+    TestVectorGen tvg{network, fr_option};
     for ( auto& assign: fg_list ) {
       auto tv = tvg.generate(assign);
       tv_list.push_back(tv);
@@ -422,7 +420,8 @@ testcube_gen(
     if ( n != det_fault_list.size() ) {
       cout << "Error!" << endl
 	   << "# of detected faults: " << n << endl;
-      for ( auto& fault: reduced_fault_list ) {
+      for ( auto& cover: cover_list ) {
+	auto fault = cover.fault();
 	if ( !mark[fault->id()] ) {
 	  cout << fault->str() << " is not covered" << endl;
 	}

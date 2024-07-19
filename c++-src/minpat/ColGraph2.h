@@ -10,7 +10,8 @@
 
 #include "druid.h"
 #include "BaseEnc.h"
-#include "TestCube.h"
+#include "TestCover.h"
+#include "TestVector.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -30,9 +31,9 @@ public:
 
   /// @brief コンストラクタ
   ColGraph2(
-    const TpgNetwork& network,         ///< [in] 対象のネットワーク
-    const vector<TestCube>& cube_list, ///< [in] キューブのリスト
-    const JsonValue& option            ///< [in] オプション
+    const TpgNetwork& network,           ///< [in] 対象のネットワーク
+    const vector<TestCover>& cover_list, ///< [in] カバーのリスト
+    const JsonValue& option              ///< [in] オプション
     = JsonValue{}
   );
 
@@ -121,6 +122,12 @@ public:
 
     return mNodeList[id].mColor;
   }
+
+  /// @brief 指定された色のテストベクタを返す．
+  TestVector
+  testvector(
+    SizeType color
+  );
 
   /// @brief 指定された色のノード番号のリストを返す．
   const vector<SizeType>&
