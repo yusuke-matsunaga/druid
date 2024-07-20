@@ -11,6 +11,7 @@
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "TestCover.h"
+#include "Sim.h"
 #include "ym/Range.h"
 #include "ym/Timer.h"
 
@@ -46,29 +47,14 @@ ColGraph::ColGraph(
       tmp_lits.push_back(var);
     }
     mBaseEnc.solver().add_clause(tmp_lits);
-    mNodeList.push_back({fault, 0, {}, {}, cvar});
+    mNodeList.push_back({fault, cover.cube_list(), 0, {}, {}, cvar});
   }
 
-  Timer timer;
-  timer.start();
-  cout << "building blocking matrix" << endl;
-  SizeType node_num = mNodeList.size();
-  for ( SizeType id1 = 0; id1 < node_num - 1; ++ id1 ) {
-    for ( SizeType id2 = id1 + 1; id2 < node_num; ++ id2 ) {
-      if ( is_conflict(id1, id2) ) {
-	mNodeList[id1].mConflictList.push_back(id2);
-	mNodeList[id2].mConflictList.push_back(id1);
-      }
-    }
-    cout << "Node#" << id1 << ": " << mNodeList[id1].mConflictList.size() << endl;
+  SizeType limit = 10;
+  if ( option.is_object() && option.has_key("colgraph_looplimit") ) {
+    limit = option.get("colgraph_looplimit").get_int();
   }
-  for ( SizeType id = 0; id < node_num; ++ id ) {
-    auto& list = mNodeList[id].mConflictList;
-    sort(list.begin(), list.end());
-  }
-  timer.stop();
-  cout << "end" << endl
-       << "CPU Time: " << timer.get_time() << endl;
+  make_conflict_list(limit);
 }
 
 // @brief デストラクタ
@@ -181,6 +167,95 @@ ColGraph::get_color_map(
     color_map[i] = node.mColor;
   }
   return color_num();
+}
+
+// @brief 衝突リストを作る．
+void
+ColGraph::make_conflict_list(
+  SizeType limit
+)
+{
+  Timer timer;
+  timer.start();
+  make_compat_mark(limit);
+  cout << "simulation end" << endl
+       << "Total compat pairs: " << mCompatMark.size() << endl;
+  cout << "building conflict list" << endl;
+  SizeType node_num = mNodeList.size();
+  for ( SizeType id1 = 0; id1 < node_num - 1; ++ id1 ) {
+    for ( SizeType id2 = id1 + 1; id2 < node_num; ++ id2 ) {
+      SizeType key = id1 * node_num + id2;
+      if ( mCompatMark.count(key) > 0 ) {
+	// このペアは両立している．
+	continue;
+      }
+      if ( is_conflict(id1, id2) ) {
+	mNodeList[id1].mConflictList.push_back(id2);
+	mNodeList[id2].mConflictList.push_back(id1);
+      }
+    }
+    cout << "Node#" << id1 << ": " << mNodeList[id1].mConflictList.size() << endl;
+  }
+  SizeType n = 0;
+  for ( SizeType id = 0; id < node_num; ++ id ) {
+    auto& list = mNodeList[id].mConflictList;
+    sort(list.begin(), list.end());
+    n += list.size();
+  }
+  timer.stop();
+  cout << "end" << endl
+       << "Total conflict pairs: " << n << endl
+       << "CPU Time: " << timer.get_time() << endl;
+}
+
+// @brief 故障シミュレーションを用いて衝突ペアの候補を作る．
+void
+ColGraph::make_compat_mark(
+  SizeType limit
+)
+{
+  Sim sim{mNetwork};
+  for ( SizeType no_change = 0; no_change < limit; ) {
+    // 乱数を用いたシミュレーションを行う．
+    sim.sim_random();
+    // 各故障の検出条件を調べる．
+    SizeType nn = mNodeList.size();
+    vector<PackedVal> dbits_array(nn, PV_ALL0);
+    for ( SizeType id = 0; id < nn; ++ id ) {
+      auto& node = mNodeList[id];
+      PackedVal dbits = PV_ALL0;
+      for ( auto& cube: node.mCubeList ) {
+	auto dbits1 = sim.check(cube);
+	dbits |= dbits1;
+	if ( dbits == PV_ALL1 ) {
+	  break;
+	}
+      }
+      dbits_array[id] = dbits;
+    }
+    // 同時に検出している故障ペアを求める．
+    bool changed = false;
+    for ( SizeType id1 = 0; id1 < nn - 1; ++ id1 ) {
+      auto dbits1 = dbits_array[id1];
+      for ( SizeType id2 = id1 + 1; id2 < nn; ++ id2 ) {
+	auto dbits2 = dbits_array[id2];
+	auto dbits3 = dbits1 & dbits2;
+	if ( dbits3 != PV_ALL0 ) {
+	  SizeType key = id1 * nn + id2;
+	  if ( mCompatMark.count(key) == 0 ) {
+	    mCompatMark.emplace(key);
+	    changed = true;
+	  }
+	}
+      }
+    }
+    if ( changed ) {
+      no_change = 0;
+    }
+    else {
+      ++ no_change;
+    }
+  }
 }
 
 // @brief cube1 と cube2 が衝突する時 true を返す．

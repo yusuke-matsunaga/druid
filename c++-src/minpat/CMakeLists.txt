@@ -42,6 +42,7 @@ set ( minpat_SOURCES
   Dsatur.cc
   ColGraph_cube.cc
   Dsatur_cube.cc
+  Sim.cc
   )
 
 

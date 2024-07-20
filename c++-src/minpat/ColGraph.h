@@ -187,6 +187,20 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 衝突リストを作る．
+  void
+  make_conflict_list(
+    SizeType limit
+  );
+
+  /// @brief 故障シミュレーションを用いて両立ペアの集合を作る(組み合わせ回路用)．
+  ///
+  /// 結果は mCompatMark に格納される．
+  void
+  make_compat_mark(
+    SizeType limit
+  );
+
   /// @brief node1 と node2 が衝突する時 true を返す．
   bool
   is_conflict(
@@ -204,6 +218,8 @@ private:
   struct Node {
     // 故障
     const TpgFault* mFault;
+    // 検出条件のリスト
+    vector<NodeTimeValList> mCubeList;
     // 色
     SizeType mColor{0};
     // 衝突しているノード番号のリスト
@@ -230,6 +246,9 @@ private:
 
   // ノードのリスト
   vector<Node> mNodeList;
+
+  // 両立ペアの集合
+  std::unordered_set<SizeType> mCompatMark;
 
   // 色(ノードグループ)のリスト
   // 0 は未彩色を表すのでキーは一つずれている．
