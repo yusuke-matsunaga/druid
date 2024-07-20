@@ -143,12 +143,7 @@ public:
   /// @brief 新しい色を割り当てる．
   /// @return 新しい色番号を返す．
   SizeType
-  new_color()
-  {
-    SizeType color = color_num() + 1;
-    mGroupList.push_back({color});
-    return color;
-  }
+  new_color();
 
   /// @brief ノードを色をつける．
   void
@@ -201,11 +196,25 @@ private:
     SizeType limit
   );
 
-  /// @brief node1 と node2 が衝突する時 true を返す．
+  /// @brief 2つのノードが衝突する時 true を返す(簡易版)．
+  bool
+  is_trivial_conflict(
+    SizeType id1, ///< [in] ノード番号1
+    SizeType id2  ///< [in] ノード番号2
+  );
+
+  /// @brief 2つのノードが衝突する時 true を返す．
   bool
   is_conflict(
-    SizeType node1,
-    SizeType node2
+    SizeType id1, ///< [in] ノード番号1
+    SizeType id2  ///< [in] ノード番号2
+  );
+
+  /// @brief ノードとノード集合が衝突するとき true を返す．
+  bool
+  is_conflict(
+    SizeType id1,                   ///< [in] ノード番号1
+    const vector<SizeType>& id_list ///< [in] ノード番号のリスト
   );
 
 
@@ -228,14 +237,18 @@ private:
     vector<SizeType> mConflictColList;
     // 対応する制御変数
     SatLiteral mControlVar;
+    // adjacent degree
+    SizeType mAdjDegree;
   };
 
   // 色(ノードグループ)を表す構造体
   struct Group {
     // 色
     SizeType mColor;
-    // ノード番号のリスト
+    // 含まれるノード番号のリスト
     vector<SizeType> mNodeList;
+    // 両立しているノード番号のリスト
+    vector<SizeType> mCompatList;
   };
 
   // ネットワーク
@@ -247,12 +260,18 @@ private:
   // ノードのリスト
   vector<Node> mNodeList;
 
+  // 衝突ペアの集合
+  std::unordered_set<SizeType> mConflictMark;
+
   // 両立ペアの集合
   std::unordered_set<SizeType> mCompatMark;
 
   // 色(ノードグループ)のリスト
   // 0 は未彩色を表すのでキーは一つずれている．
   vector<Group> mGroupList;
+
+  // デバッグフラグ
+  bool mDebug{false};
 
 };
 

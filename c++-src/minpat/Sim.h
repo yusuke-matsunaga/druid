@@ -73,7 +73,7 @@ private:
   );
 
   /// @brief ノードの値を読み出す．
-  bool
+  PackedVal
   node_val(
     const TpgNode* node, ///< [in] ノード
     int time             ///< [in] 時刻(0 or 1)
@@ -87,7 +87,7 @@ private:
   set_node_val(
     const TpgNode* node, ///< [in] ノード
     int time,            ///< [in] 時刻(0 or 1)
-    bool val             ///< [in] 値
+    PackedVal val        ///< [in] 値
   )
   {
     mValArray[node->id() * 2 + time] = val;

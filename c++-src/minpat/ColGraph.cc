@@ -51,10 +51,19 @@ ColGraph::ColGraph(
   }
 
   SizeType limit = 10;
-  if ( option.is_object() && option.has_key("colgraph_looplimit") ) {
-    limit = option.get("colgraph_looplimit").get_int();
+  if ( option.is_object() ) {
+    if ( option.has_key("debug") ) {
+      mDebug = option.get("debug").get_bool();
+    }
+    if ( option.has_key("colgraph_looplimit") ) {
+      limit = option.get("colgraph_looplimit").get_int();
+    }
   }
   make_conflict_list(limit);
+
+  for ( auto& node: mNodeList ) {
+    node.mAdjDegree = node.mConflictList.size();
+  }
 }
 
 // @brief デストラクタ
@@ -68,35 +77,7 @@ ColGraph::saturation_degree(
   SizeType id
 )
 {
-  SizeType sat = 0;
-  vector<bool> color_set(color_num() + 1, false);
-  for ( auto col1: mNodeList[id].mConflictColList ) {
-    if ( !color_set[col1] ) {
-      color_set[col1] = true;
-      ++ sat;
-    }
-  }
-  // 残りの色も衝突している可能性がある．
-  for ( SizeType col = 1; col <= color_num(); ++ col ) {
-    if ( color_set[col] ) {
-      // 既に考慮済み
-      continue;
-    }
-    vector<SatLiteral> assumptions;
-    auto& group = mGroupList[col - 1];
-    assumptions.reserve(group.mNodeList.size() + 1);
-    auto& node1 = mNodeList[id];
-    assumptions.push_back(node1.mControlVar);
-    for ( auto id: group.mNodeList ) {
-      auto& node = mNodeList[id];
-      assumptions.push_back(node.mControlVar);
-    }
-    if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
-      mNodeList[id].mConflictColList.push_back(col);
-      ++ sat;
-    }
-  }
-  return sat;
+  return mNodeList[id].mConflictColList.size();
 }
 
 // @brief ノードの adjacent degree を返す．
@@ -105,15 +86,7 @@ ColGraph::adjacent_degree(
   SizeType id
 )
 {
-  SizeType adj = 0;
-  for ( auto id1: mNodeList[id].mConflictList ) {
-    if ( color(id1) > 0 ) {
-      // 彩色済みのノードはスキップ
-      continue;
-    }
-    ++ adj;
-  }
-  return adj;
+  return mNodeList[id].mAdjDegree;
 }
 
 // @brief 指定された色のテストベクタを返す．
@@ -138,6 +111,27 @@ ColGraph::testvector(
   return TestVector{mNetwork, pi_assign};
 }
 
+// @brief 新しい色を割り当てる．
+SizeType
+ColGraph::new_color()
+{
+  SizeType color = color_num() + 1;
+  // 最初は空なので全てのノードと両立している．
+  // ただし既に彩色済みのノードは除く
+  SizeType nn = mNodeList.size();
+  vector<SizeType> tmp_list;
+  tmp_list.reserve(nn);
+  for ( SizeType id = 0; id < nn; ++ id ) {
+    auto& node = mNodeList[id];
+    if ( node.mColor > 0 ) {
+      continue;
+    }
+    tmp_list.push_back(id);
+  }
+  mGroupList.push_back({color, {}, tmp_list});
+  return color;
+}
+
 // @brief ノードを色をつける．
 void
 ColGraph::set_color(
@@ -148,9 +142,65 @@ ColGraph::set_color(
   ASSERT_COND( 0 <= id && id < node_num() );
   ASSERT_COND( 1 <= color && color <= color_num() );
 
-  mNodeList[id].mColor = color;
+  auto& node = mNodeList[id];
+  node.mColor = color;
   auto& group = mGroupList[color - 1];
   group.mNodeList.push_back(id);
+
+  // node に隣接しているノードの指標を更新する．
+  std::unordered_set<SizeType> mark;
+  for ( auto id1: node.mConflictList ) {
+    auto& node1 = mNodeList[id1];
+    // 無条件に mAdjDegree は減らす
+    -- node1.mAdjDegree;
+    // node1 に隣接しているノードに既に color のノードが
+    // あれば mCoflictColList は変わらない．
+    // node1 と衝突している色に color がある場合も
+    // mConflictColList は変わらない．
+    bool has_same_color = false;
+    for ( auto id2: node1.mConflictList ) {
+      if ( id2 == id ) {
+	continue;
+      }
+      auto& node2 = mNodeList[id2];
+      if ( node2.mColor == color ) {
+	has_same_color = true;
+	break;
+      }
+    }
+    if ( !has_same_color ) {
+      for ( auto col1: node1.mConflictColList ) {
+	if ( col1 == color ) {
+	  has_same_color = true;
+	  break;
+	}
+      }
+    }
+    if ( !has_same_color ) {
+      node1.mConflictColList.push_back(color);
+      mark.emplace(id1);
+    }
+  }
+
+  // color の条件が変わったので今まで無関係だったノードが衝突している
+  // 可能性がある．
+  vector<SizeType> new_list;
+  for ( auto id1: group.mCompatList ) {
+    if ( mark.count(id1) > 0 ) {
+      // 上で処理済み
+      continue;
+    }
+    auto& node1 = mNodeList[id1];
+    if ( node1.mColor > 0 ) {
+      continue;
+    }
+    if ( is_conflict(id1, group.mNodeList) ) {
+      node1.mConflictColList.push_back(color);
+      continue;
+    }
+    new_list.push_back(id1);
+  }
+  std::swap(group.mCompatList, new_list);
 }
 
 // @brief color_map を作る．
@@ -175,26 +225,53 @@ ColGraph::make_conflict_list(
   SizeType limit
 )
 {
+  if ( mDebug ) {
+    cout << "building conflict list" << endl;
+  }
+
   Timer timer;
   timer.start();
-  make_compat_mark(limit);
-  cout << "simulation end" << endl
-       << "Total compat pairs: " << mCompatMark.size() << endl;
-  cout << "building conflict list" << endl;
+
   SizeType node_num = mNodeList.size();
+
+  // 割り当てが衝突しているペアに印をつける．
+  for ( SizeType id1 = 0; id1 < node_num - 1; ++ id1 ) {
+    for ( SizeType id2 = id1 + 1; id2 < node_num; ++ id2 ) {
+      if ( is_trivial_conflict(id1, id2) ) {
+	auto key = id1 * node_num + id2;
+	mConflictMark.emplace(key);
+      }
+    }
+  }
+  if ( mDebug ) {
+    cout << "Total trivial conflict pairs: " << mConflictMark.size() << endl;
+  }
+
+  // シミュレーションを用いて両立ペアに印をつける．
+  make_compat_mark(limit);
+  if ( mDebug ) {
+    cout << "simulation end" << endl
+	 << "Total compat pairs: " << mCompatMark.size() << endl;
+  }
+
+  // SATソルバを用いて衝突ペアを求める．
   for ( SizeType id1 = 0; id1 < node_num - 1; ++ id1 ) {
     for ( SizeType id2 = id1 + 1; id2 < node_num; ++ id2 ) {
       SizeType key = id1 * node_num + id2;
-      if ( mCompatMark.count(key) > 0 ) {
-	// このペアは両立している．
-	continue;
+      if ( mConflictMark.count(key) == 0 ) {
+	if ( mCompatMark.count(key) > 0 ) {
+	  // このペアは両立している．
+	  continue;
+	}
+	if ( !is_conflict(id1, id2) ) {
+	  continue;
+	}
       }
-      if ( is_conflict(id1, id2) ) {
-	mNodeList[id1].mConflictList.push_back(id2);
-	mNodeList[id2].mConflictList.push_back(id1);
-      }
+      mNodeList[id1].mConflictList.push_back(id2);
+      mNodeList[id2].mConflictList.push_back(id1);
     }
-    cout << "Node#" << id1 << ": " << mNodeList[id1].mConflictList.size() << endl;
+    //cout << "Node#" << id1 << ": "
+    //<< mNodeList[id1].mConflictList.size() << endl;
   }
   SizeType n = 0;
   for ( SizeType id = 0; id < node_num; ++ id ) {
@@ -203,9 +280,11 @@ ColGraph::make_conflict_list(
     n += list.size();
   }
   timer.stop();
-  cout << "end" << endl
-       << "Total conflict pairs: " << n << endl
-       << "CPU Time: " << timer.get_time() << endl;
+  if ( mDebug ) {
+    cout << "end" << endl
+	 << "Total conflict pairs: " << n << endl
+	 << "CPU Time: " << timer.get_time() << endl;
+  }
 }
 
 // @brief 故障シミュレーションを用いて衝突ペアの候補を作る．
@@ -258,6 +337,26 @@ ColGraph::make_compat_mark(
   }
 }
 
+// @brief node1 と node2 が衝突する時 true を返す(簡易版)．
+bool
+ColGraph::is_trivial_conflict(
+  SizeType id1,
+  SizeType id2
+)
+{
+  auto& node1 = mNodeList[id1];
+  auto& node2 = mNodeList[id2];
+  for ( auto& assign1: node1.mCubeList ) {
+    for ( auto& assign2: node2.mCubeList ) {
+      auto res = compare(assign1, assign2);
+      if ( res != -1 ) {
+	return false;
+      }
+    }
+  }
+  return true;
+}
+
 // @brief cube1 と cube2 が衝突する時 true を返す．
 bool
 ColGraph::is_conflict(
@@ -265,9 +364,31 @@ ColGraph::is_conflict(
   SizeType id2
 )
 {
-  auto clit1 = mNodeList[id1].mControlVar;
-  auto clit2 = mNodeList[id2].mControlVar;
+  auto& node1 = mNodeList[id1];
+  auto& node2 = mNodeList[id2];
+  auto clit1 = node1.mControlVar;
+  auto clit2 = node2.mControlVar;
   vector<SatLiteral> assumptions = {clit1, clit2};
+  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+}
+
+// @brief ノードとノード集合が衝突するとき true を返す．
+bool
+ColGraph::is_conflict(
+  SizeType id1,
+  const vector<SizeType>& id_list
+)
+{
+  auto& node1 = mNodeList[id1];
+  auto clit1 = node1.mControlVar;
+  vector<SatLiteral> assumptions;
+  assumptions.reserve(id_list.size() + 1);
+  assumptions.push_back(clit1);
+  for ( auto id2: id_list ) {
+    auto& node2 = mNodeList[id2];
+    auto clit2 = node2.mControlVar;
+    assumptions.push_back(clit2);
+  }
   return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
 }
 

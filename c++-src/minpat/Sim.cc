@@ -114,12 +114,12 @@ Sim::check(
   const NodeTimeValList& assign
 ) const
 {
-  PackedVal dbits = PV_ALL0;
+  PackedVal dbits = PV_ALL1;
   for ( auto nv: assign ) {
     auto node = nv.node();
     auto time = nv.time();
-    auto val = node_val(node, time);
     auto v = nv.val();
+    auto val = node_val(node, time);
     if ( v ) {
       dbits &= val;
     }
@@ -142,10 +142,10 @@ Sim::calc_node(
   }
   else if ( node->is_logic() ) {
     SizeType ni = node->fanin_num();
-    vector<PackedVal> ival_array(ni);
-    for ( SizeType i = 0; i < ni; ++ i ) {
-      auto inode = node->fanin(i);
-      ival_array[i] = node_val(inode, 1);
+    vector<PackedVal> ival_array;
+    ival_array.reserve(ni);
+    for ( auto inode: node->fanin_list() ) {
+      ival_array.push_back(node_val(inode, 1));
     }
     val = calc_val(node->gate_type(), ival_array);
   }
@@ -168,10 +168,10 @@ Sim::calc_node_0(
   }
   else if ( node->is_logic() ) {
     SizeType ni = node->fanin_num();
-    vector<PackedVal> ival_array(ni);
-    for ( SizeType i = 0; i < ni; ++ i ) {
-      auto inode = node->fanin(i);
-      ival_array[i] = node_val(inode, 0);
+    vector<PackedVal> ival_array;
+    ival_array.reserve(ni);
+    for ( auto inode: node->fanin_list() ) {
+      ival_array.push_back(node_val(inode, 0));
     }
     val = calc_val(node->gate_type(), ival_array);
   }
@@ -200,10 +200,10 @@ Sim::calc_node_1(
   }
   else if ( node->is_logic() ) {
     SizeType ni = node->fanin_num();
-    vector<PackedVal> ival_array(ni);
-    for ( SizeType i = 0; i < ni; ++ i ) {
-      auto inode = node->fanin(i);
-      ival_array[i] = node_val(inode, 1);
+    vector<PackedVal> ival_array;
+    ival_array.reserve(ni);
+    for ( auto inode: node->fanin_list() ) {
+      ival_array.push_back(node_val(inode, 1));
     }
     val = calc_val(node->gate_type(), ival_array);
   }
