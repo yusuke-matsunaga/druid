@@ -66,7 +66,13 @@ ExCubeGen::run(
     while ( cube_list.size() < mLimit ) {
       auto last_cond = cube_list.back();
       last_cond.diff(mand_cond);
-      ASSERT_COND( last_cond.size() > 0 );
+      if ( last_cond.size() == 0 ) {
+	// 最初に生成された suff_cond が冗長だった．
+	// 結局 mand_cond が唯一の条件となる．
+	cube_list.clear();
+	cube_list.push_back(mand_cond);
+	break;
+      }
       // last_cond を否定した節を加える．
       // ただし他の故障の処理のときには無効化したいので
       // 制御変数をつけておく．

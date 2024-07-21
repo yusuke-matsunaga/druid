@@ -24,7 +24,8 @@ ColGraph::ColGraph(
   const vector<TestCover>& cover_list,
   const JsonValue& option
 ) : mNetwork{network},
-    mBaseEnc{network, option}
+    mBaseEnc{network, option},
+    mSim{network}
 {
   {
     auto& node_list = network.node_list();
@@ -55,8 +56,8 @@ ColGraph::ColGraph(
     if ( option.has_key("debug") ) {
       mDebug = option.get("debug").get_bool();
     }
-    if ( option.has_key("colgraph_looplimit") ) {
-      limit = option.get("colgraph_looplimit").get_int();
+    if ( option.has_key("looplimit") ) {
+      limit = option.get("looplimit").get_int();
     }
   }
   make_conflict_list(limit);
@@ -71,22 +72,13 @@ ColGraph::~ColGraph()
 {
 }
 
-// @brief ノードの saturation degree を返す．
-SizeType
-ColGraph::saturation_degree(
-  SizeType id
+// @brief 割り当てを充足させる外部入力の割り当てを求める．
+NodeTimeValList
+ColGraph::justify(
+  const NodeTimeValList& assign_list
 )
 {
-  return mNodeList[id].mConflictColList.size();
-}
-
-// @brief ノードの adjacent degree を返す．
-SizeType
-ColGraph::adjacent_degree(
-  SizeType id
-)
-{
-  return mNodeList[id].mAdjDegree;
+  return mBaseEnc.justify(assign_list);
 }
 
 // @brief 指定された色のテストベクタを返す．
@@ -134,7 +126,7 @@ ColGraph::new_color()
 
 // @brief ノードを色をつける．
 void
-ColGraph::set_color(
+ColGraph::_set_color(
   SizeType id,
   SizeType color
 )
@@ -148,7 +140,6 @@ ColGraph::set_color(
   group.mNodeList.push_back(id);
 
   // node に隣接しているノードの指標を更新する．
-  std::unordered_set<SizeType> mark;
   for ( auto id1: node.mConflictList ) {
     auto& node1 = mNodeList[id1];
     // 無条件に mAdjDegree は減らす
@@ -178,29 +169,74 @@ ColGraph::set_color(
     }
     if ( !has_same_color ) {
       node1.mConflictColList.push_back(color);
-      mark.emplace(id1);
     }
+  }
+}
+
+// @brief set_color() の後の更新処理
+void
+ColGraph::update_color(
+  SizeType color
+)
+{
+  if ( mDebug ) {
+    cout << "update_color(Color#" << color << ")" << endl;
+  }
+
+  auto& group = mGroupList[color - 1];
+
+  // group.mNodeList の条件を満たすテストパタンを求める．
+  group.mPattern = testvector(color);
+
+  make_compat_mark2(color, 20);
+
+  if ( mDebug ) {
+    cout << "phase2: (" << mCompatMark2.size()
+	 << " / " << group.mCompatList.size()
+	 << ")" << endl;
   }
 
   // color の条件が変わったので今まで無関係だったノードが衝突している
   // 可能性がある．
   vector<SizeType> new_list;
+  SizeType ncand = 0;
+  SizeType nsuccess = 0;
+  Timer timer1;
+  timer1.start();
   for ( auto id1: group.mCompatList ) {
-    if ( mark.count(id1) > 0 ) {
-      // 上で処理済み
-      continue;
-    }
     auto& node1 = mNodeList[id1];
     if ( node1.mColor > 0 ) {
       continue;
     }
-    if ( is_conflict(id1, group.mNodeList) ) {
-      node1.mConflictColList.push_back(color);
+    bool found = false;
+    for ( auto col1: node1.mConflictColList ) {
+      if ( col1 == color ) {
+	found = true;
+	break;
+      }
+    }
+    if ( found ) {
+      // 既にリストに含まれている．
       continue;
+    }
+
+    if ( mCompatMark2.count(id1) == 0 ) {
+      ++ ncand;
+      if ( is_conflict(id1, group.mNodeList) ) {
+	node1.mConflictColList.push_back(color);
+	++ nsuccess;
+	continue;
+      }
     }
     new_list.push_back(id1);
   }
   std::swap(group.mCompatList, new_list);
+  timer1.stop();
+
+  if ( mDebug ) {
+    cout << "  " << nsuccess << " / " << ncand << ": " << timer1.get_time() << endl;
+    cout << "end" << endl;
+  }
 }
 
 // @brief color_map を作る．
@@ -249,6 +285,7 @@ ColGraph::make_conflict_list(
 
   // シミュレーションを用いて両立ペアに印をつける．
   make_compat_mark(limit);
+
   if ( mDebug ) {
     cout << "simulation end" << endl
 	 << "Total compat pairs: " << mCompatMark.size() << endl;
@@ -293,10 +330,10 @@ ColGraph::make_compat_mark(
   SizeType limit
 )
 {
-  Sim sim{mNetwork};
+  mCompatMark.clear();
   for ( SizeType no_change = 0; no_change < limit; ) {
     // 乱数を用いたシミュレーションを行う．
-    sim.sim_random();
+    mSim.sim_random();
     // 各故障の検出条件を調べる．
     SizeType nn = mNodeList.size();
     vector<PackedVal> dbits_array(nn, PV_ALL0);
@@ -304,7 +341,7 @@ ColGraph::make_compat_mark(
       auto& node = mNodeList[id];
       PackedVal dbits = PV_ALL0;
       for ( auto& cube: node.mCubeList ) {
-	auto dbits1 = sim.check(cube);
+	auto dbits1 = mSim.check(cube);
 	dbits |= dbits1;
 	if ( dbits == PV_ALL1 ) {
 	  break;
@@ -325,6 +362,67 @@ ColGraph::make_compat_mark(
 	    mCompatMark.emplace(key);
 	    changed = true;
 	  }
+	}
+      }
+    }
+    if ( changed ) {
+      no_change = 0;
+    }
+    else {
+      ++ no_change;
+    }
+  }
+}
+
+// @brief 故障シミュレーションを用いて衝突ペアの候補を作る．
+void
+ColGraph::make_compat_mark2(
+  SizeType color,
+  SizeType limit
+)
+{
+  mCompatMark2.clear();
+  auto& group = mGroupList[color - 1];
+  for ( SizeType no_change = 0; no_change < limit; ) {
+    // パタン＋乱数を用いたシミュレーションを行う．
+    mSim.sim_pattern(group.mPattern);
+
+    // color の検出条件を調べる．
+    PackedVal dbits2 = PV_ALL1;
+    for ( auto id: group.mNodeList ) {
+      auto& node = mNodeList[id];
+      PackedVal dbits = PV_ALL0;
+      for ( auto& cube: node.mCubeList ) {
+	auto dbits1 = mSim.check(cube);
+	dbits |= dbits1;
+      }
+      dbits2 &= dbits;
+    }
+    if ( dbits2 == PV_ALL0 ) {
+      ++ no_change;
+      continue;
+    }
+
+    // 各故障の検出条件を調べる．
+    bool changed = false;
+    for ( auto id: group.mCompatList ) {
+      auto& node = mNodeList[id];
+      if ( node.mColor > 0 ) {
+	continue;
+      }
+      PackedVal dbits = PV_ALL0;
+      for ( auto& cube: node.mCubeList ) {
+	auto dbits1 = mSim.check(cube);
+	dbits |= dbits1;
+	if ( dbits == PV_ALL1 ) {
+	  break;
+	}
+      }
+      auto dbits3 = dbits & dbits2;
+      if ( dbits3 != PV_ALL0 ) {
+	if ( mCompatMark2.count(id) == 0 ) {
+	  mCompatMark2.emplace(id);
+	  changed = true;
 	}
       }
     }

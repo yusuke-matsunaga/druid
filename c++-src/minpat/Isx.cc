@@ -3,15 +3,11 @@
 /// @brief Isx の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
-
 
 #include "Isx.h"
 #include "Dsatur.h"
-#include "MpColGraph.h"
-#include "ym/UdGraph.h"
-#include "ym/HashSet.h"
 #include "ym/Range.h"
 
 
@@ -22,238 +18,152 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-// @param[in] graph 対象のグラフ
-Isx::Isx(MpColGraph& graph) :
-  mGraph(graph),
-  mCandMark(mGraph.node_num(), false),
-  mAdjCount(mGraph.node_num(), 0),
-  mValue(mGraph.node_num(), 0)
+Isx::Isx(
+  ColGraph& graph,
+  const JsonValue& option
+) : mGraph(graph),
+    mAdjCount(mGraph.node_num(), 0),
+    mValue(mGraph.node_num(), 0)
 {
   mCandList.reserve(mGraph.node_num());
-}
-
-// @brief デストラクタ
-Isx::~Isx()
-{
+  if ( option.is_object() ) {
+    if ( option.has_key("skip") ) {
+      mSkip = option.get("skip").get_bool();
+    }
+    if ( option.has_key("debug") ) {
+      mDebug = option.get("debug").get_bool();
+    }
+  }
 }
 
 // @brief independent set extraction を用いた coloring を行う．
-// @param[in] limit 残りのノード数がこの値を下回ったら処理をやめる．
-// @return 彩色数を返す．
-//
-// ここでは部分的な彩色を行う．
-int
-Isx::coloring(int limit)
+void
+Isx::coloring(
+  SizeType limit
+)
 {
-  int remain_col = mGraph.node_num();
-  int remain_row = mGraph.fault_num();
-  while ( remain_row > limit && remain_row > 0 ) {
-    // 未彩色のノードを cand_list に入れる．
-    init_cand_list();
+  Timer timer;
+  SizeType remain_num = mGraph.node_num();
+  while ( remain_num > limit ) {
+    timer.reset();
+    timer.start();
 
-    vector<int> indep_set;
-    indep_set.reserve(remain_col);
-    get_indep_set(indep_set);
+    // 独立集合を求める．
+    auto indep_set = get_indep_set();
 
     // indep_set の各ノードに新しい色を割り当てる．
     mGraph.set_color(indep_set, mGraph.new_color());
 
-    remain_col -= indep_set.size();
-    remain_row = 0;
-    for ( auto row_id: Range(mGraph.fault_num()) ) {
-      if ( !mGraph.is_covered(row_id) ) {
-	++ remain_row;
-      }
+    remain_num -= indep_set.size();
+
+    timer.stop();
+    if ( mDebug ) {
+      cout << "  " << indep_set.size() << " / " << remain_num << endl
+	   << "  CPU time: " << timer.get_time() << endl;
     }
   }
-
-  // 残りは DSATUR で彩色する．
-  if ( remain_row > 0 ) {
-    Dsatur dsat(mGraph);
-    dsat.coloring();
-  }
-
-  return mGraph.color_num();
 }
 
 // @brief maximal independent set を選ぶ．
-//
-// - 結果は indep_set に格納される．
-// - mRandGen を用いてランダムに選ぶ．
-void
-Isx::get_indep_set(vector<int>& indep_set)
+vector<SizeType>
+Isx::get_indep_set()
 {
-  vector<int> tmp_list(mCandList);
-
-  indep_set.clear();
-  for ( ; ; ) {
-    int node_id = select_node0();
-    if ( node_id == -1 ) {
+  // 結果の独立集合
+  vector<SizeType> indep_set;
+  // indep_set と独立なノードのリスト
+  vector<SizeType> cand_list;
+  cand_list.reserve(mGraph.node_num());
+  for ( auto node_id: Range(mGraph.node_num()) ) {
+    if ( mGraph.color(node_id) > 0 ) {
+      // 彩色済み
+      continue;
+    }
+    cand_list.push_back(node_id);
+  }
+  while ( !cand_list.empty() ) {
+    // indep_set に加えた時に隣接数の増加が最小
+    // になるノードを選ぶ．
+    auto node_id = select_node(cand_list, indep_set);
+    if ( node_id == std::numeric_limits<SizeType>::max() ) {
       break;
     }
     indep_set.push_back(node_id);
-    for ( auto row_id: mGraph.cover_list(node_id) ) {
-      mGraph.set_covered(row_id);
-    }
-    update_cand_list(node_id);
-  }
-  //sort(indep_set.begin(), indep_set.end());
-}
 
-// @brief mCandList, mCandMark を初期化する．
-void
-Isx::init_cand_list()
-{
-  mCandList.clear();
-  for ( auto node_id: Range(mGraph.node_num()) ) {
-    if ( mGraph.color(node_id) == 0 ) {
-      int row_num = 0;
-      for ( auto row_id: mGraph.cover_list(node_id) ) {
-	if ( !mGraph.is_covered(row_id) ) {
-	  ++ row_num;
-	}
-      }
-      mValue[node_id] = row_num;
-      if ( row_num > 0 ) {
-	mCandList.push_back(node_id);
-	mCandMark[node_id] = true;
-	mAdjCount[node_id] = 0;
-      }
+    // 情報を更新する．
+    vector<bool> mark(mGraph.network().node_num(), false);
+    for ( auto id: mGraph.conflict_list(node_id) ) {
+      mark[id] = true;
     }
-  }
-
-#if 0
-  for ( auto node_id: mCandList ) {
-    HashSet<int> node_set;
-    for ( auto node1_id: mGraph.adj_list(node_id) ) {
-      if ( !node_set.check(node1_id) ) {
-	node_set.add(node1_id);
-	++ mAdjCount[node1_id];
-      }
-    }
-  }
-#endif
-}
-
-// @brief 候補集合に加えるノードを選ぶ．
-//
-// - 現在の候補集合に隣接していないノードの内，隣接ノード数の少ないものを選ぶ．
-// - 追加できるノードがない場合は -1 を返す．
-int
-Isx::select_node()
-{
-  ASSERT_COND( mCandList.size() > 0 );
-
-  vector<int> tmp_list;
-  tmp_list.reserve(mCandList.size());
-  int min_num = mGraph.node_num();
-  int max_num = 0;
-  for ( auto node_id: mCandList ) {
-    int c = mAdjCount[node_id];
-    if ( c > min_num ) {
-      continue;
-    }
-    if ( min_num > c ) {
-      min_num = c;
-      tmp_list.clear();
-      int row_num = 0;
-      for ( auto row_id: mGraph.cover_list(node_id) ) {
-	if ( !mGraph.is_covered(row_id) ) {
-	  ++ row_num;
-	}
-      }
-      max_num = row_num;
-    }
-    else { // min_num == c
-      int row_num = 0;
-      for ( auto row_id: mGraph.cover_list(node_id) ) {
-	if ( !mGraph.is_covered(row_id) ) {
-	  ++ row_num;
-	}
-      }
-      if ( row_num < max_num ) {
+    vector<SizeType> new_list;
+    for ( auto id1: cand_list ) {
+      if ( id1 == node_id ) {
 	continue;
       }
-      if ( max_num < row_num ) {
-	max_num = row_num;
-	tmp_list.clear();
+      if ( mark[id1] ) {
+	continue;
       }
+      if ( !mSkip && mGraph.is_conflict(id1, indep_set) ) {
+	continue;
+      }
+      new_list.push_back(id1);
     }
-    tmp_list.push_back(node_id);
+    std::swap(cand_list, new_list);
   }
-
-  return random_select(tmp_list);
+  return indep_set;
 }
 
 // @brief 候補集合に加えるノードを選ぶ．
-//
-// - 現在の候補集合に隣接していないノードの内，隣接ノード数の少ないものを選ぶ．
-// - 追加できるノードがない場合は -1 を返す．
-int
-Isx::select_node0()
+SizeType
+Isx::select_node(
+  const vector<SizeType>& cand_list,
+  const vector<SizeType>& indep_set
+)
 {
-  vector<int> tmp_list;
-  tmp_list.reserve(mCandList.size());
-  int max_num = 0;
-  for ( auto node_id: mCandList ) {
-    int v = mValue[node_id];
-    if ( max_num <= v ) {
-      if ( max_num < v ) {
-	max_num = v;
-	tmp_list.clear();
-      }
-      tmp_list.push_back(node_id);
+  // indep_set に加えた時に新たに衝突するノード数が
+  // 最小となるノードを選ぶ．
+  // indep_set と衝突しているノード
+  vector<bool> mark(mGraph.network().node_num(), false);
+  for ( auto id: indep_set ) {
+    for ( auto id1: mGraph.conflict_list(id) ) {
+      mark[id1] = true;
     }
   }
-
-  return random_select(tmp_list);
+  SizeType min_num = mGraph.node_num() + 1;
+  vector<pair<SizeType, SizeType>> tmp_list;
+  tmp_list.reserve(cand_list.size());
+  for ( auto id: cand_list ) {
+    SizeType num = 0;
+    for ( auto id1: mGraph.conflict_list(id) ) {
+      if ( !mark[id1] ) {
+	++ num;
+      }
+    }
+    tmp_list.push_back({num, id});
+  }
+  sort(tmp_list.begin(), tmp_list.end(),
+       [](const pair<SizeType, SizeType>& a,
+	  const pair<SizeType, SizeType>& b) {
+	 return a.first < b.first;
+       });
+  for ( auto& p: tmp_list ) {
+    auto id = p.second;
+    if ( !mSkip || !mGraph.is_conflict(id, indep_set) ) {
+      return id;
+    }
+  }
+  return std::numeric_limits<SizeType>::max();
 }
 
-// @brief 候補リストを更新する．
-// @param[in] node_id 新たに加わったノード
-void
-Isx::update_cand_list(int node_id)
+// @brief ランダムに選択する．
+SizeType
+Isx::random_select(
+  const vector<SizeType>& cand_list
+)
 {
-  // node_id と隣接するノードの cand_mark をはずす．
-  mCandMark[node_id] = false;
-  for ( auto node1_id: mGraph.adj_list(node_id) ) {
-    if ( mCandMark[node1_id] ) {
-      mCandMark[node1_id] = false;
-#if 0
-      HashSet<int> node_set;
-      for ( auto node2_id: mGraph.adj_list(node1_id) ) {
-	if ( !node_set.check(node2_id) ) {
-	  node_set.add(node2_id);
-	  -- mAdjCount[node2_id];
-	}
-      }
-#endif
-    }
-  }
-
-  // cand_mark に従って mCandList を更新する．
-  int n = mCandList.size();
-  int rpos = 0;
-  int wpos = 0;
-  for ( rpos = 0; rpos < n; ++ rpos ) {
-    auto node1_id = mCandList[rpos];
-    if ( mCandMark[node1_id] ) {
-      int row_num = 0;
-      for ( auto row_id: mGraph.cover_list(node1_id) ) {
-	if ( !mGraph.is_covered(row_id) ) {
-	  ++ row_num;
-	}
-      }
-      mValue[node1_id] = row_num;
-      if ( row_num > 0 ) {
-	mCandList[wpos] = node1_id;
-	++ wpos;
-      }
-    }
-  }
-  if ( wpos < n ) {
-    mCandList.erase(mCandList.begin() + wpos, mCandList.end());
-  }
+  SizeType n = cand_list.size();
+  std::uniform_int_distribution<SizeType> rd(0, n - 1);
+  auto pos = rd(mRandGen);
+  return cand_list[pos];
 }
 
 END_NAMESPACE_DRUID

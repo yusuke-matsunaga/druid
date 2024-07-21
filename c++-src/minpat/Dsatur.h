@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "ColGraph.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,11 +25,13 @@ public:
 
   /// @brief コンストラクタ
   Dsatur(
-    ColGraph& graph ///< [in] 対象のグラフ
+    ColGraph& graph,        ///< [in] 対象のグラフ
+    const JsonValue& option ///< [in] オプション
+    = JsonValue{}
   );
 
   /// @brief デストラクタ
-  ~Dsatur();
+  ~Dsatur() = default;
 
 
 public:
@@ -75,6 +78,9 @@ private:
 
   // 残り故障数
   SizeType mFaultNum;
+
+  // デバッグフラグ
+  bool mDebug{false};
 
 };
 

@@ -5,32 +5,33 @@
 /// @brief Isx のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-
 #include "druid.h"
-#include "MpColGraph.h"
-#include "ym/McMatrix.h"
-#include "ym/RandGen.h"
+#include "ColGraph.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class Isx Isx.h "Isx.h"
-/// @brief independent set extraction を行うクラス
+/// @brief Independent Set eXtraction を行うクラス
 //////////////////////////////////////////////////////////////////////
 class Isx
 {
 public:
 
   /// @brief コンストラクタ
-  /// @param[in] graph 対象のグラフ
-  Isx(MpColGraph& graph);
+  Isx(
+    ColGraph& graph,        ///< [in] 対象のグラフ
+    const JsonValue& option ///< [in] オプション
+    = JsonValue{}
+  );
 
   /// @brief デストラクタ
-  ~Isx();
+  ~Isx() = default;
 
 
 public:
@@ -39,12 +40,12 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief independent set extraction を用いた coloring を行う．
-  /// @param[in] limit 残りのノード数がこの値を下回ったら処理をやめる．
-  /// @return 彩色数を返す．
   ///
-  /// ここでは部分的な彩色を行う．
-  int
-  coloring(int limit);
+  /// 残りのノード数が limit を下回ったら処理をやめる．
+  void
+  coloring(
+    SizeType limit ///< [in] しきい値
+  );
 
 
 private:
@@ -53,38 +54,27 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief maximal independent set を選ぶ．
+  /// @return 求めた independent set を返す．
   ///
-  /// - 結果は indep_set に格納される．
-  /// - mRandGen を用いてランダムに選ぶ．
-  void
-  get_indep_set(vector<int>& indep_set);
+  /// 選択時に複数の候補があるときはランダムに選ぶ．
+  vector<SizeType>
+  get_indep_set();
 
-  /// @brief mCandList, mCandMark を初期化する．
-  void
-  init_cand_list();
-
-  /// @brief 集合に加えるノ選ぶ．
+  /// @brief 独立集合に加えるノードを選ぶ．
+  /// @return ノード番号を返す．
   ///
   /// - 独立集合に隣接していないノードの内，隣接ノード数の少ないものを選ぶ．
-  /// - 追加できるノードがない場合は -1 を返す．
-  int
-  select_node();
-
-  /// @brief 集合に加えるノ選ぶ．
-  ///
-  /// - 独立集合に隣接していないノードの内，隣接ノード数の少ないものを選ぶ．
-  /// - 追加できるノードがない場合は -1 を返す．
-  int
-  select_node0();
-
-  /// @brief 候補リストを更新する．
-  /// @param[in] node 新たに加わったノード
-  void
-  update_cand_list(int node_id);
+  SizeType
+  select_node(
+    const vector<SizeType>& cand_list, ///< [in] 候補ノードのリスト
+    const vector<SizeType>& indep_set  ///< [in] 現在の独立集合
+  );
 
   /// @brief ランダムに選択する．
-  int
-  random_select(const vector<int>& cand_list);
+  SizeType
+  random_select(
+    const vector<SizeType>& cand_list ///< [in] 候補のリスト
+  );
 
 
 private:
@@ -93,10 +83,10 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 対象のグラフ
-  MpColGraph& mGraph;
+  ColGraph& mGraph;
 
   // 候補ノードのリスト
-  vector<int> mCandList;
+  vector<SizeType> mCandList;
 
   // 候補ノードの印
   // サイズは node_num()
@@ -104,34 +94,22 @@ private:
 
   // 候補ノードの隣接数
   // サイズは node_num()
-  vector<int> mAdjCount;
+  vector<SizeType> mAdjCount;
 
   // 候補ノードの価値
   // サイズは node_num()
-  vector<int> mValue;
+  vector<SizeType> mValue;
 
   // 乱数生成器
-  RandGen mRandGen;
+  std::mt19937 mRandGen;
+
+  // スキップフラグ
+  bool mSkip{false};
+
+  // デバッグフラグ
+  bool mDebug{false};
 
 };
-
-
-//////////////////////////////////////////////////////////////////////
-// インライン関数の定義
-//////////////////////////////////////////////////////////////////////
-
-// @brief ランダムに選択する．
-inline
-int
-Isx::random_select(const vector<int>& cand_list)
-{
-  int n = cand_list.size();
-  if ( n == 0 ) {
-    return -1;
-  }
-  int r = mRandGen.int32() % n;
-  return cand_list[r];
-}
 
 END_NAMESPACE_DRUID
 

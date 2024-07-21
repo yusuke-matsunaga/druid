@@ -13,6 +13,7 @@
 #include "FaultGroupGen.h"
 #include "ColGraph.h"
 #include "Dsatur.h"
+#include "Isx.h"
 #include "ColGraph_cube.h"
 #include "Dsatur_cube.h"
 #include "ym/Timer.h"
@@ -133,8 +134,14 @@ testcube_gen(
   int cube_per_fault = 300;
   bool dsatur = false;
   bool dsatur2 = false;
+  bool isx = false;
+  int isx_limit = 0;
+  bool isx_skip = false;
   bool debug_fault_reduce = false;
   bool debug_testcube_gen = false;
+  bool debug_colgraph = false;
+  bool debug_dsatur = false;
+  bool debug_isx = false;
 
   argv0 = argv[0];
 
@@ -224,18 +231,53 @@ testcube_gen(
       else if ( strcmp(argv[pos], "--dsatur2") == 0 ) {
 	dsatur2 = true;
       }
+      else if ( strcmp(argv[pos], "--isx") == 0 ) {
+	isx = true;
+	++ pos;
+	if ( pos < argc ) {
+	  isx_limit = atoi(argv[pos]);
+	}
+	else {
+	  cerr << "--isx requires <int> argument" << endl;
+	  return -1;
+	}
+      }
+      else if ( strcmp(argv[pos], "--isx2") == 0 ) {
+	isx = true;
+	isx_skip = true;
+	++ pos;
+	if ( pos < argc ) {
+	  isx_limit = atoi(argv[pos]);
+	}
+	else {
+	  cerr << "--isx requires <int> argument" << endl;
+	  return -1;
+	}
+      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
       else if ( strcmp(argv[pos], "--debug-all") == 0 ) {
 	debug_fault_reduce = true;
 	debug_testcube_gen = true;
+	debug_colgraph = true;
+	debug_dsatur = true;
+	debug_isx = true;
       }
       else if ( strcmp(argv[pos], "--debug-fault_reduce") == 0 ) {
 	debug_fault_reduce = true;
       }
       else if ( strcmp(argv[pos], "--debug-testcube_gen") == 0 ) {
 	debug_testcube_gen = true;
+      }
+      else if ( strcmp(argv[pos], "--debug-colgraph") == 0 ) {
+	debug_colgraph = true;
+      }
+      else if ( strcmp(argv[pos], "--debug-dsatur") == 0 ) {
+	debug_dsatur = true;
+      }
+      else if ( strcmp(argv[pos], "--debug-isx") == 0 ) {
+	debug_isx = true;
       }
       else {
 	cerr << argv[pos] << ": illegal option" << endl;
@@ -341,10 +383,31 @@ testcube_gen(
   timer.reset();
   timer.start();
 
+  unordered_map<string, JsonValue> cg_option_dict;
+  if ( debug_colgraph ) {
+    cg_option_dict.emplace("debug", JsonValue{true});
+  }
+  JsonValue cg_option{cg_option_dict};
+
+  unordered_map<string, JsonValue> ds_option_dict;
+  if ( debug_dsatur ) {
+    ds_option_dict.emplace("debug", JsonValue{true});
+  }
+  JsonValue ds_option{ds_option_dict};
+
+  unordered_map<string, JsonValue> isx_option_dict;
+  if ( debug_isx ) {
+    isx_option_dict.emplace("debug", JsonValue{true});
+  }
+  if ( isx_skip ) {
+    isx_option_dict.emplace("skip", JsonValue{true});
+  }
+  JsonValue isx_option{isx_option_dict};
+
   vector<TestVector> tv_list;
   if ( dsatur ) {
-    ColGraph cg{network, cover_list, fr_option};
-    Dsatur ds{cg};
+    ColGraph cg{network, cover_list, cg_option};
+    Dsatur ds{cg, ds_option};
     ds.coloring();
     SizeType nc = cg.color_num();
     for ( SizeType col = 1; col <= nc; ++ col ) {
@@ -353,8 +416,20 @@ testcube_gen(
     }
   }
   else if ( dsatur2 ) {
-    ColGraph_cube cg{network, cover_list, fr_option};
+    ColGraph_cube cg{network, cover_list, cg_option};
     Dsatur_cube ds{cg};
+    ds.coloring();
+    SizeType nc = cg.color_num();
+    for ( SizeType col = 1; col <= nc; ++ col ) {
+      auto tv = cg.testvector(col);
+      tv_list.push_back(tv);
+    }
+  }
+  else if ( isx ) {
+    ColGraph cg{network, cover_list, cg_option};
+    Isx isx{cg, isx_option};
+    isx.coloring(isx_limit);
+    Dsatur ds{cg, ds_option};
     ds.coloring();
     SizeType nc = cg.color_num();
     for ( SizeType col = 1; col <= nc; ++ col ) {

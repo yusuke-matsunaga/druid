@@ -60,6 +60,7 @@ FaultAnalyzer::extract_condition(
     }
   }
   sufficient_condition.merge(ffr_cond);
+  sufficient_condition.merge(ffr_mand_cond);
   mandatory_condition.merge(ffr_cond);
   mandatory_condition.merge(ffr_mand_cond);
   return trivial;

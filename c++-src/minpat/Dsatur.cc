@@ -20,7 +20,8 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 Dsatur::Dsatur(
-  ColGraph& graph
+  ColGraph& graph,
+  const JsonValue& option
 ) : mGraph{graph}
 {
   SizeType n = mGraph.node_num();
@@ -34,11 +35,12 @@ Dsatur::Dsatur(
     mCandList.push_back(node_id);
   }
   mFaultNum = mGraph.node_num();
-}
 
-// @brief デストラクタ
-Dsatur::~Dsatur()
-{
+  if ( option.is_object() ) {
+    if ( option.has_key("debug") ) {
+      mDebug = option.get("debug").get_bool();
+    }
+  }
 }
 
 // @brief 彩色する．
@@ -46,7 +48,9 @@ void
 Dsatur::coloring()
 {
   // dsatur アルゴリズムを用いる．
-
+  if ( mCandList.empty() ) {
+    return;
+  }
   // 1: 隣接するノード数が最大のノードを選び彩色する．
   SizeType max_node = get_max_node();
   update(max_node, mGraph.new_color());
@@ -131,9 +135,14 @@ Dsatur::get_max_node()
     }
   }
   ASSERT_COND( max_sat >= 0 );
-  cout << mFaultNum << ": Choose Node#" << max_node << " (" << max_sat << ", " << max_adj << ")"
-       << " / " << mGraph.color_num()
-       << endl;
+
+  if ( mDebug ) {
+    cout << mFaultNum << ": Choose Node#" << max_node
+	 << " (" << max_sat << ", " << max_adj << ")"
+	 << " / " << mGraph.color_num()
+	 << endl;
+  }
+
   return max_node;
 }
 

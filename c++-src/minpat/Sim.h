@@ -11,6 +11,7 @@
 #include "druid.h"
 #include "PackedVal.h"
 #include "TpgNode.h"
+#include "TestVector.h"
 #include <random>
 
 
@@ -41,6 +42,12 @@ public:
   /// @brief 乱数を用いたシミュレーションを行う．
   void
   sim_random();
+
+  /// @brief パタンを用いたシミュレーションを行う．
+  void
+  sim_pattern(
+    const TestVector& pattern ///< [in] パタン
+  );
 
   /// @brief 割り当て条件を満たしているか調べる．
   PackedVal
@@ -101,6 +108,9 @@ private:
 
   // 対象のネットワーク
   const TpgNetwork& mNetwork;
+
+  // シミュレーションで用いるパタン
+  TestVector mPattern;
 
   // 値の配列
   // キーは ノード番号 * 2 + time(0 or 1)

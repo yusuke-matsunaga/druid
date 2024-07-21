@@ -93,6 +93,29 @@ Sim::Sim(
 void
 Sim::sim_random()
 {
+  mPattern = TestVector{mNetwork};
+  if ( mNetwork.has_prev_state() ) {
+    for ( auto node: mNetwork.node_list() ) {
+      calc_node_0(node);
+    }
+    for ( auto node: mNetwork.node_list() ) {
+      calc_node_1(node);
+    }
+  }
+  else {
+    for ( auto node: mNetwork.node_list() ) {
+      calc_node(node);
+    }
+  }
+}
+
+// @brief パタンを用いたシミュレーションを行う．
+void
+Sim::sim_pattern(
+  const TestVector& pattern
+)
+{
+  mPattern = pattern;
   if ( mNetwork.has_prev_state() ) {
     for ( auto node: mNetwork.node_list() ) {
       calc_node_0(node);
@@ -138,7 +161,14 @@ Sim::calc_node(
 {
   PackedVal val;
   if ( node->is_ppi() ) {
+    auto b = mPattern.ppi_val(node->input_id());
     val = mRandDist(mRandGen);
+    if ( b == Val3::_0 ) {
+      val &= ~1UL;
+    }
+    else if ( b == Val3::_1 ) {
+      val |= 1UL;
+    }
   }
   else if ( node->is_logic() ) {
     SizeType ni = node->fanin_num();
@@ -164,7 +194,14 @@ Sim::calc_node_0(
 {
   PackedVal val;
   if ( node->is_ppi() ) {
+    auto b = mPattern.input_val(node->input_id());
     val = mRandDist(mRandGen);
+    if ( b == Val3::_0 ) {
+      val &= ~1UL;
+    }
+    else if ( b == Val3::_1 ) {
+      val |= 1UL;
+    }
   }
   else if ( node->is_logic() ) {
     SizeType ni = node->fanin_num();
@@ -191,7 +228,14 @@ Sim::calc_node_1(
   PackedVal val;
   if ( node->is_ppi() ) {
     if ( node->is_primary_input() ) {
+      auto b = mPattern.aux_input_val(node->input_id());
       val = mRandDist(mRandGen);
+      if ( b == Val3::_0 ) {
+	val &= ~1UL;
+      }
+      else if ( b == Val3::_1 ) {
+	val |= 1UL;
+      }
     }
     else { // node->is_dff_output()
       auto alt_node = node->alt_node();

@@ -12,6 +12,8 @@
 #include "BaseEnc.h"
 #include "TestCover.h"
 #include "TestVector.h"
+#include "Sim.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -97,13 +99,21 @@ public:
   SizeType
   saturation_degree(
     SizeType id ///< [in] ノード番号 ( 0 <= id < node_num() )
-  );
+  )
+  {
+    return conflict_color_list(id).size();
+  }
 
   /// @brief ノードの adjacent degree を返す．
   SizeType
   adjacent_degree(
     SizeType id ///< [in] ノード番号 ( 0 <= id < node_num() )
-  );
+  )
+  {
+    ASSERT_COND( 0 <= id && id < node_num() );
+
+    return mNodeList[id].mAdjDegree;
+  }
 
   /// @brief 色数を返す．
   SizeType
@@ -129,6 +139,12 @@ public:
     SizeType color
   );
 
+  /// @brief 割り当てを充足させる外部入力の割り当てを求める．
+  NodeTimeValList
+  justify(
+    const NodeTimeValList& assign_list ///< [in] 値割り当てのリスト
+  );
+
   /// @brief 指定された色のノード番号のリストを返す．
   const vector<SizeType>&
   node_list(
@@ -150,7 +166,11 @@ public:
   set_color(
     SizeType id,   ///< [in] ノード番号 ( 0 <= id < node_num() )
     SizeType color ///< [in] 色番号 ( 1 <= color <= color_num() )
-  );
+  )
+  {
+    _set_color(id, color);
+    update_color(color);
+  }
 
   /// @brief ノードの集合を色をつける．
   void
@@ -160,8 +180,9 @@ public:
   )
   {
     for ( auto id: node_list ) {
-      set_color(id, color);
+      _set_color(id, color);
     }
+    update_color(color);
   }
 
   /// @brief color_map を作る．
@@ -175,26 +196,6 @@ public:
   /// @brief 隣接しているノード対に同じ色が割り当てられていないか確認する．
   bool
   verify() const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 衝突リストを作る．
-  void
-  make_conflict_list(
-    SizeType limit
-  );
-
-  /// @brief 故障シミュレーションを用いて両立ペアの集合を作る(組み合わせ回路用)．
-  ///
-  /// 結果は mCompatMark に格納される．
-  void
-  make_compat_mark(
-    SizeType limit
-  );
 
   /// @brief 2つのノードが衝突する時 true を返す(簡易版)．
   bool
@@ -215,6 +216,48 @@ private:
   is_conflict(
     SizeType id1,                   ///< [in] ノード番号1
     const vector<SizeType>& id_list ///< [in] ノード番号のリスト
+  );
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief set_color() の下請け関数
+  void
+  _set_color(
+    SizeType id,   ///< [in] ノード番号
+    SizeType color ///< [in] 色
+  );
+
+  /// @brief set_color() の後の更新処理
+  void
+  update_color(
+    SizeType color ///< [in] 変更のあった色
+  );
+
+  /// @brief 衝突リストを作る．
+  void
+  make_conflict_list(
+    SizeType limit
+  );
+
+  /// @brief 故障シミュレーションを用いて両立ペアの集合を作る(組み合わせ回路用)．
+  ///
+  /// 結果は mCompatMark に格納される．
+  void
+  make_compat_mark(
+    SizeType limit
+  );
+
+  /// @brief 故障シミュレーションを用いて両立ペアの集合を作る(組み合わせ回路用)．
+  ///
+  /// 結果は mCompatMark2 に格納される．
+  void
+  make_compat_mark2(
+    SizeType color,
+    SizeType limit
   );
 
 
@@ -249,6 +292,8 @@ private:
     vector<SizeType> mNodeList;
     // 両立しているノード番号のリスト
     vector<SizeType> mCompatList;
+    // 検出パタン
+    TestVector mPattern;
   };
 
   // ネットワーク
@@ -265,6 +310,12 @@ private:
 
   // 両立ペアの集合
   std::unordered_set<SizeType> mCompatMark;
+
+  // 両立ペアの集合
+  std::unordered_set<SizeType> mCompatMark2;
+
+  // シミュレータ
+  Sim mSim;
 
   // 色(ノードグループ)のリスト
   // 0 は未彩色を表すのでキーは一つずれている．

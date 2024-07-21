@@ -40,6 +40,7 @@ set ( minpat_SOURCES
   LocalImp.cc
   ColGraph.cc
   Dsatur.cc
+  Isx.cc
   ColGraph_cube.cc
   Dsatur_cube.cc
   Sim.cc
