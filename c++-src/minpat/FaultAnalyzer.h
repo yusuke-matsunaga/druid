@@ -45,22 +45,10 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障検出の十分条件と必要条件を求める．
-  bool
+  NodeTimeValList
   extract_condition(
-    const TpgFault* fault,
-    NodeTimeValList& sufficient_condition,
-    NodeTimeValList& mandatory_condition
+    const TpgFault* fault
   );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief FFR の根の故障伝搬の必要条件を求める．
-  const NodeTimeValList&
-  root_mandatory_condition();
 
 
 private:

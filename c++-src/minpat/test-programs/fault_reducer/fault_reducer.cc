@@ -7,12 +7,12 @@
 /// All rights reserved.
 
 #include "TpgNetwork.h"
-#include "DtpgMgr.h"
 #include "TpgFault.h"
-#include "TestCoverGen.h"
+#include "FaultType.h"
+#include "FaultInfo.h"
+#include "FaultInfoMgr.h"
 #include "NaiveDomChecker.h"
 #include "NaiveDomChecker2.h"
-#include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 
 
@@ -24,90 +24,6 @@ void
 usage()
 {
   cerr << "USAGE: " << argv0 << " --blif|--iscas89 <file>" << endl;
-}
-
-// @brief 統計情報を出力する．
-void
-print_stats(
-  const DtpgMgr& mgr,
-  const DtpgStats& stats,
-  const vector<TestVector>& tv_list,
-  double time
-)
-{
-  auto& network = mgr.network();
-  SizeType fault_num = mgr.total_count();
-  SizeType detect_num = mgr.detected_count();
-  SizeType untest_num = mgr.untestable_count();
-  SizeType tv_num = tv_list.size();
-  cout << "# of inputs             = " << network.input_num() << endl
-       << "# of outputs            = " << network.output_num() << endl
-       << "# of DFFs               = " << network.dff_num() << endl
-       << "# of logic gates        = " << network.node_num() - network.ppi_num() << endl
-       << "# of MFFCs              = " << network.mffc_num() << endl
-       << "# of FFRs               = " << network.ffr_num() << endl
-       << "# of total faults       = " << fault_num << endl
-       << "# of detected faults    = " << detect_num << endl
-       << "# of untestable faults  = " << untest_num << endl
-       << "# of test vectors       = " << tv_num << endl
-       << "Total CPU time(s)       = " << (time / 1000.0) << endl;
-
-  ios::fmtflags save = cout.flags();
-  cout.setf(ios::fixed, ios::floatfield);
-  if ( stats.detect_count() > 0 ) {
-    cout << endl
-	 << "*** SAT instances (" << stats.detect_count() << ") ***" << endl
-	 << "Total CPU time  (s)            = "
-	 << setw(10) << (stats.detect_time() / 1000.0) << endl
-	 << "Average CPU time (ms)          = "
-	 << setw(10) << (stats.detect_time() / stats.detect_count()) << endl;
-  }
-  if ( stats.untest_count() > 0 ) {
-    cout << endl
-	 << "*** UNSAT instances (" << stats.untest_count() << ") ***" << endl
-	 << "Total CPU time  (s)            = "
-	 << setw(10) << (stats.untest_time() / 1000.0) << endl
-	 << "Average CPU time (ms)          = "
-	 << setw(10) << stats.untest_time() / stats.untest_count() << endl;
-  }
-  if ( stats.abort_count() > 0 ) {
-    cout << endl
-	 << "*** ABORT instances ***" << endl
-	 << "  " << setw(10) << stats.abort_count()
-	 << "  " << stats.abort_time()
-	 << "  " << setw(8) << stats.abort_time() / stats.abort_count() << endl;
-  }
-
-  cout << endl
-       << "SAT statistics" << endl
-       << endl
-       << "CNF generation" << endl
-       << "  " << setw(10) << stats.cnfgen_count()
-       << "  " << (stats.cnfgen_time() / 1000.0)
-       << "  " << setw(8) << stats.cnfgen_time() / stats.cnfgen_count()
-       << endl
-       << endl
-       << "# of restarts (Ave./Max)       = "
-       << setw(10) << (double) stats.sat_stats().mRestart / stats.total_count()
-       << " / " << setw(8) << stats.sat_stats_max().mRestart << endl
-
-       << "# of conflicts (Ave./Max)      = "
-       << setw(10) << (double) stats.sat_stats().mConflictNum / stats.total_count()
-       << " / " << setw(8) << stats.sat_stats_max().mConflictNum << endl
-
-       << "# of decisions (Ave./Max)      = "
-       << setw(10) << (double) stats.sat_stats().mDecisionNum / stats.total_count()
-       << " / " << setw(8) << stats.sat_stats_max().mDecisionNum << endl
-
-       << "# of implications (Ave./Max)   = "
-       << setw(10) << (double) stats.sat_stats().mPropagationNum / stats.total_count()
-       << " / " << setw(8) << stats.sat_stats_max().mPropagationNum << endl;
-
-  cout << endl
-       << "*** backtrace time ***" << endl
-       << "  " << (stats.backtrace_time() / 1000.0)
-       << "  " << setw(8) << stats.backtrace_time() / stats.detect_count() << endl;
-  cout.flags(save);
 }
 
 int
@@ -255,38 +171,18 @@ fault_reducer(
 
   auto fault_list = network.rep_fault_list();
 
-  Timer timer;
-  timer.start();
+  FaultInfoMgr finfo_mgr{network, fault_list};
 
-  DtpgMgr mgr{network, fault_list};
-
-  vector<pair<const TpgFault*, TestVector>> ErrorList;
-  auto stats = mgr.run(
-    // detected callback
-    [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) { },
-    // untestable callback
-    [&](DtpgMgr&, const TpgFault* f) { },
-    // abort callback
-    [&](DtpgMgr&, const TpgFault* f) { },
-    option);
-
-  timer.stop();
-  auto time = timer.get_time();
-
-  if ( verbose ) {
-    print_stats(mgr, stats, mgr.testvector_list(), time);
-  }
+  finfo_mgr.generate(option);
 
   vector<const TpgFault*> det_fault_list;
-  det_fault_list.reserve(mgr.detected_count());
-  for ( auto f: fault_list ) {
-    if ( mgr.dtpg_result(f).status() == FaultStatus::Detected ) {
-      det_fault_list.push_back(f);
+  det_fault_list.reserve(fault_list.size());
+  for ( auto fault: fault_list ) {
+    auto& finfo = finfo_mgr.fault_info(fault);
+    if ( finfo.status() == FaultStatus::Detected ) {
+      det_fault_list.push_back(fault);
     }
   }
-
-  cout << "Total faults: " << det_fault_list.size() << endl
-       << "CPU time:     " << time << endl;
 
   if ( naive ) {
     SizeType n = det_fault_list.size();
@@ -358,17 +254,28 @@ fault_reducer(
     unordered_map<string, JsonValue> fr_option_dict;
     fr_option_dict.emplace("debug", JsonValue{true});
     fr_option_dict.emplace("loop_limit", JsonValue{loop});
-    fr_option_dict.emplace("cube_per_fault", JsonValue(1));
     if ( !analyze ) {
-      fr_option_dict.emplace("no_analysis", JsonValue{true});
+      fr_option_dict.emplace("no_analyze", JsonValue{true});
     }
     JsonValue fr_option{fr_option_dict};
-    TestCoverGen fr{network, fr_option};
 
-    auto cover_list = fr.run(det_fault_list, mgr.testvector_list());
+    Timer timer;
+    timer.start();
 
+    finfo_mgr.reduce(fr_option);
+
+    timer.stop();
+
+    SizeType nr = 0;
+    for ( auto fault: det_fault_list ) {
+      auto& finfo = finfo_mgr.fault_info(fault);
+      if ( !finfo.is_deleted() ) {
+	++ nr;
+      }
+    }
     cout << "Detected Faults: " << det_fault_list.size() << endl
-	 << "Reduced Faults:  " << cover_list.size() << endl;
+	 << "Reduced Faults:  " << nr << endl
+	 << "CPU time:        " << timer.get_time() << endl;
   }
 
   return 0;
@@ -378,8 +285,10 @@ END_NAMESPACE_DRUID
 
 
 int
-main(int argc,
-     char** argv)
+main(
+  int argc,
+  char** argv
+)
 {
   return DRUID_NAMESPACE::fault_reducer(argc, argv);
 }

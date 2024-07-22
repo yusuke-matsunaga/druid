@@ -1,15 +1,22 @@
 
-/// @file TestCoverGen.cc
-/// @brief TestCoverGen の実装ファイル
-/// @author Yusuke Matsunaga (松永 裕介)
+/// @file FaultInfoMgr.cc
+/// @brief FaultInfoMgr の実装ファイル
+/// @author Yusuke Mnatsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "TestCoverGen.h"
+#include "FaultInfoMgr.h"
+#include "FaultInfo.h"
+#include "TpgNetwork.h"
+#include "TpgNodeSet.h"
+#include "TpgFFR.h"
+#include "TpgFault.h"
+#include "TestVector.h"
 #include "TestCover.h"
+#include "BaseEnc.h"
+#include "BoolDiffEnc.h"
 #include "FaultAnalyzer.h"
-#include "FFRFaultList.h"
 #include "FFRDomChecker.h"
 #include "DomCandGen.h"
 #include "DomChecker.h"
@@ -18,37 +25,35 @@
 #include "TrivialChecker2.h"
 #include "TrivialChecker3.h"
 #include "ExCubeGen.h"
-#include "BaseEnc.h"
-#include "BoolDiffEnc.h"
-#include "TpgNodeSet.h"
-#include "TpgFFR.h"
-#include "TpgFault.h"
 #include "ym/Range.h"
 #include <random>
-#include "NaiveDomChecker.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
+inline
+bool
+operator==(
+  const FaultInfoMgr::Key& left,
+  const FaultInfoMgr::Key& right
+)
+{
+  return left.fault_id == right.fault_id &&
+    left.ffr_id == right.ffr_id;
+}
+
 // @brief コンストラクタ
-TestCoverGen::TestCoverGen(
+FaultInfoMgr::FaultInfoMgr(
   const TpgNetwork& network,
-  const JsonValue& option
+  const vector<const TpgFault*>& fault_list
 ) : mNetwork{network},
-    mOption{option},
+    mFaultList{fault_list},
+    mFFRFaultList{network, fault_list},
+    mFaultInfoArray(network.max_fault_id()),
     mInputListArray(network.ffr_num()),
     mDomCandListArray(network.max_fault_id()),
-    mFaultInfoArray(network.max_fault_id())
+    mRevCandListArray(network.max_fault_id())
 {
-  if ( option.is_object() ) {
-    if ( option.has_key("no_analysis") ) {
-      mNoAnalysis = option.get("no_analysis").get_bool();
-    }
-    if ( option.has_key("debug") ) {
-      mDebug = option.get("debug").get_bool();
-    }
-  }
-
   // FFR の構造を解析して関係ある入力ノードを求める．
   SizeType nn = network.node_num();
   for ( auto& ffr: network.ffr_list() ) {
@@ -64,99 +69,245 @@ TestCoverGen::TestCoverGen(
   }
 }
 
-// @brief 支配故障を求め，テストカバーを生成する．
-vector<TestCover>
-TestCoverGen::run(
-  const vector<const TpgFault*>& fault_list,
-  const vector<TestVector>& tv_list
+// @brief 故障情報を求める．
+void
+FaultInfoMgr::generate(
+  const JsonValue& option
 )
 {
-  // 故障シミュレーションを用いて支配関係の候補リストを作る．
-  gen_dom_cands(fault_list, tv_list);
-
-  // FFR番号をキーにして故障のリストを保持する辞書
-  FFRFaultList ffr_fault_list{mNetwork, fault_list};
-  mFaultNum = fault_list.size();
-
   Timer timer;
   timer.start();
+
+  bool debug = get_debug(option);
+
+  for ( auto fault: mFaultList ) {
+    fault_info(fault).set_fault(fault);
+  }
+
+  // FFR ごとに故障検出を行う．
+  mActiveFaultList.clear();
+  for ( auto ffr: ffr_list() ) {
+    BaseEnc base_enc{mNetwork, option};
+    auto bd_enc = new BoolDiffEnc{base_enc, ffr->root(), option};
+    base_enc.make_cnf({}, {ffr->root()});
+    // まず FFR の出力のブール微分を行う．
+    auto prop_lit = bd_enc->prop_var();
+    auto res = base_enc.solver().solve({prop_lit});
+    if ( res == SatBool3::False ) {
+      // この FFR 内の故障はすべてテスト不能
+      for ( auto fault: fault_list(ffr) ) {
+	fault_info(fault).set_untestable();
+      }
+    }
+    else if ( res == SatBool3::X ) {
+      // アボート
+      // これ以上処理を続けても意味がない．
+      continue;
+    }
+    // res == SatBool3::True
+    // 個々の故障について処理を行う．
+    for ( auto fault: fault_list(ffr) ) {
+      auto ffr_cond = fault->ffr_propagate_condition();
+      auto assumptions = base_enc.conv_to_literal_list(ffr_cond);
+      assumptions.push_back(prop_lit);
+      auto res = base_enc.solver().solve(assumptions);
+      if ( res == SatBool3::False ) {
+	fault_info(fault).set_untestable();
+      }
+      else if ( res == SatBool3::True ) {
+	// 十分条件を求める．
+	auto suff_cond = bd_enc->extract_sufficient_condition();
+	suff_cond.merge(ffr_cond);
+	auto pi_assign = base_enc.justify(suff_cond);
+	fault_info(fault).set_sufficient_condition(suff_cond, pi_assign);
+	mActiveFaultList.push_back(fault);
+	++ mFaultNum;
+      }
+    }
+  }
+
+  timer.stop();
+  if ( debug ) {
+    cout << "Total faults: " << mFaultNum << endl
+	 << "CPU time:     " << timer.get_time() << endl;
+  }
+}
+
+// @brief 支配関係を用いて削除マークをつける．
+void
+FaultInfoMgr::reduce(
+  const JsonValue& option ///< [in] オプション
+)
+{
+  Timer timer;
+  timer.start();
+
+  bool debug = get_debug(option);
+
+  // 故障シミュレーションを用いて支配関係の候補リストを作る．
+  SizeType limit = 1;
+  if ( option.is_object() && option.has_key("loop_limit") ) {
+    limit = option.get("loop_limit").get_int();
+  }
+  gen_dom_cands(limit, debug);
+
   // FFR内の支配関係を調べる．
-  ffr_reduction(ffr_fault_list);
-  if ( mNoAnalysis ) {
-    global_reduction(ffr_fault_list, false);
-    fault_analysis(ffr_fault_list);
+  ffr_reduction(option);
+
+  bool no_analyze = false;
+  if ( option.is_object() && option.has_key("no_anlyze") ) {
+    no_analyze = option.get("no_analyze").get_bool();
+  }
+  if ( no_analyze ) {
+    global_reduction(option, false);
+    fault_analysis(option);
   }
   else {
     // 故障の検出条件を調べる．
-    fault_analysis(ffr_fault_list);
+    fault_analysis(option);
     // 簡単なチェックを行う．
-    trivial_reduction1(ffr_fault_list);
-    trivial_reduction2(ffr_fault_list);
-    trivial_reduction3(ffr_fault_list);
+    trivial_reduction1(option);
+    trivial_reduction2(option);
+    trivial_reduction3(option);
     // 最終チェックを行う．
-    global_reduction(ffr_fault_list, true);
-  }
-  timer.stop();
-  if ( mDebug ) {
-    cout << "Total CPU time: " << timer.get_time() << endl;
+    global_reduction(option, true);
   }
 
-  // 拡張テストカバーを作る．
+  timer.stop();
+  if ( debug ) {
+    cout << "Total CPU time: " << timer.get_time() << endl;
+  }
+}
+
+// @brief 残った故障に対してテストカバーを作る．
+vector<TestCover>
+FaultInfoMgr::gen_cover(
+  const JsonValue& option
+)
+{
+  Timer timer;
+  timer.start();
+
+  bool debug = get_debug(option);
+
   vector<TestCover> cover_list;
   cover_list.reserve(mFaultNum);
-  for ( auto ffr: ffr_fault_list.ffr_list() ) {
-    ExCubeGen gen{mNetwork, ffr, mOption};
-    for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
+  SizeType nc = 0;
+  for ( auto ffr: ffr_list() ) {
+    ExCubeGen gen{mNetwork, ffr, option};
+    for ( auto fault: fault_list(ffr) ) {
       if ( is_deleted(fault) ) {
 	continue;
       }
-      auto& info = mFaultInfoArray[fault->id()];
-      auto mand_cond = info.mMandCond;
-      auto suff_cond = info.mSuffCond;
+      auto& finfo = fault_info(fault);
+      auto& mand_cond = finfo.mandatory_condition();
+      auto& suff_cond = finfo.sufficient_condition();
       auto testcover = gen.run(fault, mand_cond, suff_cond);
       cover_list.push_back(testcover);
+      nc += testcover.cube_list().size();
     }
   }
+
+  timer.stop();
+  if ( debug ) {
+    cout << "Total # of cubes: " << nc << endl
+	 << "CPU time:         " << timer.get_time() << endl;
+  }
+
   return cover_list;
+}
+
+// @grep 故障シミュレーションを用いて被支配故障の候補を生成する．
+void
+FaultInfoMgr::gen_dom_cands(
+  SizeType limit,
+  bool debug
+)
+{
+  Timer timer;
+  timer.start();
+
+  if ( debug ) {
+    cout << "---------------------------------------" << endl;
+    cout << "Fault Simulation" << endl;
+  }
+
+  std::mt19937 randgen;
+  vector<TestVector> tv_list;
+  tv_list.reserve(mFaultNum * Fsim::PP_BITLEN);
+  for ( auto fault: mActiveFaultList ) {
+    auto& finfo = fault_info(fault);
+    if ( finfo.status() != FaultStatus::Detected ) {
+      continue;
+    }
+    for ( SizeType i = 0; i < Fsim::PP_BITLEN; ++ i ) {
+      TestVector tv{mNetwork, finfo.pi_assign()};
+      tv.fix_x_from_random(randgen);
+      tv_list.push_back(tv);
+    }
+  }
+
+  DomCandGen dc_gen{mNetwork, mActiveFaultList, tv_list};
+  dc_gen.run(limit, mDomCandListArray);
+
+  // mDomCandListArray の逆向きのリストを作る．
+  for ( auto fault1: mActiveFaultList ) {
+    for ( auto fault2: dom_cand_list(fault1) ) {
+      mRevCandListArray[fault2->id()].push_back(fault1);
+    }
+  }
+
+  if ( debug ) {
+    timer.stop();
+    SizeType n = 0;
+    for ( auto fault: mActiveFaultList ) {
+      n += dom_cand_list(fault).size();
+    }
+    cout << "Total Candidates:                      " << n << endl;
+    cout << "CPU time:                              " << timer.get_time() << endl;
+  }
 }
 
 // @brief 同一FFR内の支配関係を用いて故障を削減する．
 void
-TestCoverGen::ffr_reduction(
-  const FFRFaultList& ffr_fault_list
+FaultInfoMgr::ffr_reduction(
+  const JsonValue& option
 )
 {
   Timer timer;
-  if ( mDebug ) {
+  timer.start();
+
+  bool debug = get_debug(option);
+  if ( debug ) {
     cout << "---------------------------------------" << endl;
     cout << "# of initial faults:                   "
-	 << mFaultNum << endl;
-    timer.start();
+	 << mFaultList.size() << endl;
   }
 
   SizeType check_num = 0;
   SizeType dom_num = 0;
   SizeType success_num = 0;
 
-  for ( auto ffr: ffr_fault_list.ffr_list() ) {
+  for ( auto ffr: ffr_list() ) {
     // FFR 単位の故障リスト
-    auto& fault1_list = ffr_fault_list.fault_list(ffr);
+    auto& fault1_list = fault_list(ffr);
 
-    FFRDomChecker checker{mNetwork, ffr, mOption};
+    FFRDomChecker checker{mNetwork, ffr, option};
     ++ dom_num;
 
     // 支配関係を調べ，代表故障のみを残す．
     for ( auto fault1: fault1_list ) {
-      if ( is_deleted(fault1) ) {
+      if ( fault_info(fault1).is_deleted() ) {
 	continue;
       }
       auto fault1_root = fault1->ffr_root();
       vector<const TpgFault*> fault2_list;
       for ( auto fault2: dom_cand_list(fault1) ) {
-	if ( fault2->ffr_root() == fault1_root && !is_deleted(fault2) ) {
+	if ( fault2->ffr_root() == fault1_root &&
+	     !fault_info(fault2).is_deleted() ) {
 	  ++ check_num;
 	  if ( checker.check(fault1, fault2) ) {
-	    set_deleted(fault2);
+	    fault_info(fault2).set_deleted();
 	    ++ success_num;
 	  }
 	}
@@ -164,7 +315,7 @@ TestCoverGen::ffr_reduction(
     }
   }
 
-  if ( mDebug ) {
+  if ( debug ) {
     timer.stop();
     cout << "after FFR dominance reduction:         " << mFaultNum << endl;
     cout << "    # of total checkes:                " << check_num << endl
@@ -174,77 +325,38 @@ TestCoverGen::ffr_reduction(
   }
 }
 
-// @grep 故障シミュレーションを用いて被支配故障の候補を生成する．
-void
-TestCoverGen::gen_dom_cands(
-  const vector<const TpgFault*>& fault_list,
-  const vector<TestVector>& tv_list
-)
-{
-  Timer timer;
-  if ( mDebug ) {
-    cout << "---------------------------------------" << endl;
-    cout << "Fault Simulation" << endl;
-    timer.start();
-  }
-
-  DomCandGen dc_gen{mNetwork, fault_list, tv_list};
-  int loop_limit = 1;
-  if ( mOption.is_object() && mOption.has_key("loop_limit") ) {
-    loop_limit = mOption.get("loop_limit").get_int();
-  }
-  dc_gen.run(loop_limit, mDomCandListArray);
-
-  // mDomCandListArray の逆向きのリストを作る．
-  for ( auto fault1: fault_list ) {
-    for ( auto fault2: dom_cand_list(fault1) ) {
-      mFaultInfoArray[fault2->id()].mRevCandList.push_back(fault1);
-    }
-  }
-
-  if ( mDebug ) {
-    timer.stop();
-    SizeType n = 0;
-    for ( auto f: fault_list ) {
-      n += dom_cand_list(f).size();
-    }
-    cout << "Total Candidates:                      " << n << endl;
-    cout << "CPU time:                              " << timer.get_time() << endl;
-  }
-}
-
 // @brief 故障の解析を行う．
 void
-TestCoverGen::fault_analysis(
-  const FFRFaultList& ffr_fault_list
+FaultInfoMgr::fault_analysis(
+  const JsonValue& option
 )
 {
   Timer timer;
-  if ( mDebug ) {
+  timer.start();
+
+  bool debug = get_debug(option);
+  if ( debug ) {
     cout << "---------------------------------------" << endl;
-    timer.start();
   }
 
   SizeType nt = 0;
 
   // FFR 単位で処理を行う．
-  for ( auto ffr: ffr_fault_list.ffr_list() ) {
-    FaultAnalyzer analyzer{mNetwork, ffr, mOption};
-    for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
+  for ( auto ffr: ffr_list() ) {
+    FaultAnalyzer analyzer{mNetwork, ffr, option};
+    for ( auto fault: fault_list(ffr) ) {
       if ( is_deleted(fault) ) {
 	continue;
       }
-      auto& finfo = mFaultInfoArray[fault->id()];
-      finfo.mTrivial = analyzer.extract_condition(fault,
-						  finfo.mSuffCond,
-						  finfo.mMandCond);
-      if ( finfo.mTrivial ) {
+      auto mand_cond = analyzer.extract_condition(fault);
+      fault_info(fault).set_mandatory_condition(mand_cond);
+      if ( fault_info(fault).is_trivial() ) {
 	++ nt;
       }
     }
   }
 
-  if ( mDebug ) {
+  if ( debug ) {
     timer.stop();
     cout << "# of Trivial Condition Faults:         " << nt << endl;
     cout << "CPU time:                              " << timer.get_time() << endl;
@@ -253,19 +365,21 @@ TestCoverGen::fault_analysis(
 
 // @brief trivial な故障間の支配関係のチェックを行う．
 void
-TestCoverGen::trivial_reduction1(
-  const FFRFaultList& ffr_fault_list
+FaultInfoMgr::trivial_reduction1(
+  const JsonValue& option
 )
 {
   Timer timer;
-  if ( mDebug ) {
+  timer.start();
+
+  bool debug = get_debug(option);
+  if ( debug ) {
     cout << "---------------------------------------" << endl;
-    timer.start();
   }
 
   vector<const TpgFault*> tmp_fault_list;
   vector<bool> mark(mNetwork.max_fault_id(), false);
-  for ( auto fault1: ffr_fault_list.fault_list() ) {
+  for ( auto fault1: mActiveFaultList ) {
     if ( is_deleted(fault1) ) {
       continue;
     }
@@ -287,15 +401,15 @@ TestCoverGen::trivial_reduction1(
     }
   }
 
-  TrivialChecker1 checker{mNetwork, tmp_fault_list, mOption};
+  TrivialChecker1 checker{mNetwork, tmp_fault_list, option};
 
   SizeType check_num = 0;
   SizeType success_num = 0;
-  for ( auto fault1: ffr_fault_list.fault_list() ) {
+  for ( auto fault1: mActiveFaultList ) {
     if ( is_deleted(fault1) || !is_trivial(fault1) ) {
       continue;
     }
-    auto cond1 = mandatory_condition(fault1);
+    auto cond1 = fault_info(fault1).mandatory_condition();
     for ( auto fault2: dom_cand_list(fault1) ) {
       if ( is_deleted(fault2) || !is_trivial(fault2) ) {
 	continue;
@@ -303,22 +417,16 @@ TestCoverGen::trivial_reduction1(
       if ( !check_intersect(fault1, fault2) ) {
 	continue;
       }
-      auto cond2 = mandatory_condition(fault2);
+      auto cond2 = fault_info(fault2).mandatory_condition();
       ++ check_num;
       if ( checker.check(cond1, cond2) ) {
-	if ( 0 ) {
-	  NaiveDomChecker checker2{mNetwork, fault1, fault2, mOption};
-	  if ( !checker2.check() ) {
-	    cout << fault1->str() << " " << fault2->str() << endl;
-	  }
-	}
 	set_deleted(fault2);
 	++ success_num;
       }
     }
   }
 
-  if ( mDebug ) {
+  if ( debug ) {
     timer.stop();
     cout << "after trivial_reduction1:              " << mFaultNum << endl;
     cout << "    # of total checkes:                " << check_num << endl
@@ -329,32 +437,24 @@ TestCoverGen::trivial_reduction1(
 
 // @brief trivial な故障が支配されている場合のチェックを行う．
 void
-TestCoverGen::trivial_reduction2(
-  const FFRFaultList& ffr_fault_list
+FaultInfoMgr::trivial_reduction2(
+  const JsonValue& option
 )
 {
   Timer timer;
-  if ( mDebug ) {
+  timer.start();
+
+  bool debug = get_debug(option);
+  if ( debug ) {
     cout << "---------------------------------------" << endl;
-    timer.start();
   }
 
   SizeType check_num = 0;
   SizeType success_num = 0;
-  for ( auto ffr1: ffr_fault_list.ffr_list() ) {
-    // ffr1 の TFI of TFO にマークをつける．
-    vector<bool> tfi_mark(mNetwork.node_num(), false);
-    auto tmp_list = TpgNodeSet::get_tfo_list(mNetwork.node_num(),
-					     ffr1->root());
-    TpgNodeSet::get_tfi_list(mNetwork.node_num(),
-			     tmp_list,
-			     [&](const TpgNode* node){
-			       tfi_mark[node->id()] = true;
-			     });
-
+  for ( auto ffr1: ffr_list() ) {
     vector<const TpgFault*> fault2_list;
     vector<bool> f2_mark(mNetwork.max_fault_id(), false);
-    for ( auto fault1: ffr_fault_list.fault_list(ffr1) ) {
+    for ( auto fault1: fault_list(ffr1) ) {
       if ( is_deleted(fault1) || is_trivial(fault1) ) {
 	continue;
       }
@@ -374,8 +474,8 @@ TestCoverGen::trivial_reduction2(
     if ( fault2_list.empty() ) {
       continue;
     }
-    TrivialChecker2 checker{mNetwork, ffr1, fault2_list, mOption};
-    for ( auto fault1: ffr_fault_list.fault_list(ffr1) ) {
+    TrivialChecker2 checker{mNetwork, ffr1, fault2_list, option};
+    for ( auto fault1: fault_list(ffr1) ) {
       if ( is_deleted(fault1) || is_trivial(fault1) ) {
 	continue;
       }
@@ -386,7 +486,7 @@ TestCoverGen::trivial_reduction2(
 	if ( !check_intersect(fault1, fault2) ) {
 	  continue;
 	}
-	auto cond2 = mandatory_condition(fault2);
+	auto cond2 = fault_info(fault2).mandatory_condition();
 	++ check_num;
 	if ( checker.check(fault1, fault2, cond2) ) {
 	  set_deleted(fault2);
@@ -396,7 +496,7 @@ TestCoverGen::trivial_reduction2(
     }
   }
 
-  if ( mDebug ) {
+  if ( debug ) {
     timer.stop();
     cout << "after trivial_reduction2:              " << mFaultNum << endl;
     cout << "    # of total checkes:                " << check_num << endl
@@ -407,14 +507,16 @@ TestCoverGen::trivial_reduction2(
 
 // @brief fault1 が trivial な場合の処理
 void
-TestCoverGen::trivial_reduction3(
-  const FFRFaultList& ffr_fault_list
+FaultInfoMgr::trivial_reduction3(
+  const JsonValue& option
 )
 {
   Timer timer;
-  if ( mDebug ) {
+  timer.start();
+
+  bool debug = get_debug(option);
+  if ( debug ) {
     cout << "---------------------------------------" << endl;
-    timer.start();
   }
 
   SizeType check1_num = 0;
@@ -423,8 +525,10 @@ TestCoverGen::trivial_reduction3(
   SizeType dom2_num = 0;
   SizeType success_num = 0;
 
-  auto& fault_list = ffr_fault_list.fault_list();
-  for ( auto rpos = fault_list.begin(); rpos != fault_list.end(); ) {
+  SizeType nf = mActiveFaultList.size();
+  SizeType N = 50;
+  for ( SizeType start_pos = 0; start_pos < nf; start_pos += N ) {
+    SizeType end_pos = std::min(start_pos + N, nf);
     // 支配故障の候補リスト
     vector<const TpgFault*> fault1_list;
     // 被支配故障の候補の可能性のある故障のリスト
@@ -436,8 +540,8 @@ TestCoverGen::trivial_reduction3(
     unordered_set<SizeType> ffr2_mark;
     // 故障番号とFFR番号のペアをキーにして故障のリストを保持する辞書
     unordered_map<Key, vector<const TpgFault*>> fault2_list_map;
-    for ( ; fault1_list.size() < 50 && rpos != fault_list.end(); ++ rpos ) {
-      auto fault1 = *rpos;
+    for ( SizeType i = start_pos; i < end_pos; ++ i ) {
+      auto fault1 = mActiveFaultList[i];
       if ( is_deleted(fault1) || !is_trivial(fault1) ) {
 	continue;
       }
@@ -476,10 +580,10 @@ TestCoverGen::trivial_reduction3(
     auto tmp_list{fault2_list};
     tmp_list.insert(tmp_list.end(), fault1_list.begin(), fault1_list.end());
     ++ dom1_num;
-    TrivialChecker1 checker1{mNetwork, tmp_list, mOption};
+    TrivialChecker1 checker1{mNetwork, tmp_list, option};
     for ( auto ffr2: ffr2_list ) {
       ++ dom2_num;
-      TrivialChecker3 checker2{mNetwork, fault1_list, ffr2, mOption};
+      TrivialChecker3 checker2{mNetwork, fault1_list, ffr2, option};
       for ( auto fault1: fault1_list ) {
 	auto key = Key{fault1->id(), ffr2->id()};
 	if ( fault2_list_map.count(key) == 0 ) {
@@ -490,7 +594,7 @@ TestCoverGen::trivial_reduction3(
 	}
 	// fault1 の検出条件と ffr2 の根の出力の故障伝搬条件を調べる．
 	++ check2_num;
-	auto cond1 = mandatory_condition(fault1);
+	auto cond1 = fault_info(fault1).mandatory_condition();
 	if ( !checker2.check(cond1) ) {
 	  continue;
 	}
@@ -511,7 +615,7 @@ TestCoverGen::trivial_reduction3(
     }
   }
 
-  if ( mDebug ) {
+  if ( debug ) {
     timer.stop();
     cout << "after trivial_reduction3:              " << mFaultNum << endl;
     cout << "    # of total checkes(1):             " << check1_num << endl
@@ -525,15 +629,17 @@ TestCoverGen::trivial_reduction3(
 
 // @brief 異なる FFR 間の支配故障のチェックを行う．
 void
-TestCoverGen::global_reduction(
-  const FFRFaultList& ffr_fault_list,
+FaultInfoMgr::global_reduction(
+  const JsonValue& option,
   bool skip_trivial
 )
 {
   Timer timer;
-  if ( mDebug ) {
+  timer.start();
+
+  bool debug = get_debug(option);
+  if ( debug ) {
     cout << "---------------------------------------" << endl;
-    timer.start();
   }
 
   // skip_trivial == true の時は trivial な支配故障のチェックは
@@ -544,8 +650,7 @@ TestCoverGen::global_reduction(
   SizeType dom1_num = 0;
   SizeType dom2_num = 0;
   SizeType success_num = 0;
-  SizeType nffr = ffr_fault_list.ffr_list().size();
-  for ( auto ffr1: ffr_fault_list.ffr_list() ) {
+  for ( auto ffr1: ffr_list() ) {
     // 候補の可能性のある故障のリスト
     vector<const TpgFault*> fault2_list;
     // fault2_list のマーク
@@ -555,7 +660,7 @@ TestCoverGen::global_reduction(
     unordered_set<SizeType> ffr2_mark;
     // 故障番号とFFR番号のペアをキーにして故障のリストを保持する辞書
     unordered_map<Key, vector<const TpgFault*>> fault2_list_map;
-    for ( auto fault1: ffr_fault_list.fault_list(ffr1) ) {
+    for ( auto fault1: fault_list(ffr1) ) {
       if ( is_deleted(fault1) || (skip_trivial && is_trivial(fault1)) ) {
 	continue;
       }
@@ -590,11 +695,11 @@ TestCoverGen::global_reduction(
       continue;
     }
     ++ dom1_num;
-    SimpleDomChecker checker1{mNetwork, ffr1, fault2_list, mOption};
+    SimpleDomChecker checker1{mNetwork, ffr1, fault2_list, option};
     for ( auto ffr2: ffr2_list ) {
       ++ dom2_num;
-      DomChecker checker2{mNetwork, ffr1, ffr2, mOption};
-      for ( auto fault1: ffr_fault_list.fault_list(ffr1) ) {
+      DomChecker checker2{mNetwork, ffr1, ffr2, option};
+      for ( auto fault1: fault_list(ffr1) ) {
 	if ( is_deleted(fault1) || (skip_trivial && is_trivial(fault1)) ) {
 	  continue;
 	}
@@ -626,7 +731,7 @@ TestCoverGen::global_reduction(
     }
   }
 
-  if ( mDebug ) {
+  if ( debug ) {
     timer.stop();
     cout << "after global dominance reduction:      " << mFaultNum << endl;
     cout << "    # of total checkes(1):             " << check1_num << endl
@@ -640,7 +745,7 @@ TestCoverGen::global_reduction(
 
 // @brief 2つの FFR が共通部分を持つか調べる．
 bool
-TestCoverGen::check_intersect(
+FaultInfoMgr::check_intersect(
   const TpgFFR* ffr1,
   const TpgFFR* ffr2
 )
@@ -669,7 +774,7 @@ TestCoverGen::check_intersect(
 
 // @brief 2つの故障が共通部分を持つか調べる．
 bool
-TestCoverGen::check_intersect(
+FaultInfoMgr::check_intersect(
   const TpgFault* fault1,
   const TpgFault* fault2
 )
@@ -679,7 +784,7 @@ TestCoverGen::check_intersect(
 
 // @brief 2つの故障が共通部分を持つか調べる．
 bool
-TestCoverGen::check_intersect(
+FaultInfoMgr::check_intersect(
   const TpgFault* fault1,
   const TpgFFR* ffr2
 )

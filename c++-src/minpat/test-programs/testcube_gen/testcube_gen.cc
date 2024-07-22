@@ -7,9 +7,10 @@
 /// All rights reserved.
 
 #include "TpgNetwork.h"
-#include "DtpgMgr.h"
 #include "TpgFault.h"
-#include "TestCoverGen.h"
+#include "FaultType.h"
+#include "Fsim.h"
+#include "FaultInfoMgr.h"
 #include "FaultGroupGen.h"
 #include "ColGraph.h"
 #include "Dsatur.h"
@@ -27,90 +28,6 @@ void
 usage()
 {
   cerr << "USAGE: " << argv0 << " --blif|--iscas89 <file>" << endl;
-}
-
-// @brief 統計情報を出力する．
-void
-print_stats(
-  const DtpgMgr& mgr,
-  const DtpgStats& stats,
-  const vector<TestVector>& tv_list,
-  double time
-)
-{
-  auto& network = mgr.network();
-  SizeType fault_num = mgr.total_count();
-  SizeType detect_num = mgr.detected_count();
-  SizeType untest_num = mgr.untestable_count();
-  SizeType tv_num = tv_list.size();
-  cout << "# of inputs             = " << network.input_num() << endl
-       << "# of outputs            = " << network.output_num() << endl
-       << "# of DFFs               = " << network.dff_num() << endl
-       << "# of logic gates        = " << network.node_num() - network.ppi_num() << endl
-       << "# of MFFCs              = " << network.mffc_num() << endl
-       << "# of FFRs               = " << network.ffr_num() << endl
-       << "# of total faults       = " << fault_num << endl
-       << "# of detected faults    = " << detect_num << endl
-       << "# of untestable faults  = " << untest_num << endl
-       << "# of test vectors       = " << tv_num << endl
-       << "Total CPU time(s)       = " << (time / 1000.0) << endl;
-
-  ios::fmtflags save = cout.flags();
-  cout.setf(ios::fixed, ios::floatfield);
-  if ( stats.detect_count() > 0 ) {
-    cout << endl
-	 << "*** SAT instances (" << stats.detect_count() << ") ***" << endl
-	 << "Total CPU time  (s)            = "
-	 << setw(10) << (stats.detect_time() / 1000.0) << endl
-	 << "Average CPU time (ms)          = "
-	 << setw(10) << (stats.detect_time() / stats.detect_count()) << endl;
-  }
-  if ( stats.untest_count() > 0 ) {
-    cout << endl
-	 << "*** UNSAT instances (" << stats.untest_count() << ") ***" << endl
-	 << "Total CPU time  (s)            = "
-	 << setw(10) << (stats.untest_time() / 1000.0) << endl
-	 << "Average CPU time (ms)          = "
-	 << setw(10) << stats.untest_time() / stats.untest_count() << endl;
-  }
-  if ( stats.abort_count() > 0 ) {
-    cout << endl
-	 << "*** ABORT instances ***" << endl
-	 << "  " << setw(10) << stats.abort_count()
-	 << "  " << stats.abort_time()
-	 << "  " << setw(8) << stats.abort_time() / stats.abort_count() << endl;
-  }
-
-  cout << endl
-       << "SAT statistics" << endl
-       << endl
-       << "CNF generation" << endl
-       << "  " << setw(10) << stats.cnfgen_count()
-       << "  " << (stats.cnfgen_time() / 1000.0)
-       << "  " << setw(8) << stats.cnfgen_time() / stats.cnfgen_count()
-       << endl
-       << endl
-       << "# of restarts (Ave./Max)       = "
-       << setw(10) << (double) stats.sat_stats().mRestart / stats.total_count()
-       << " / " << setw(8) << stats.sat_stats_max().mRestart << endl
-
-       << "# of conflicts (Ave./Max)      = "
-       << setw(10) << (double) stats.sat_stats().mConflictNum / stats.total_count()
-       << " / " << setw(8) << stats.sat_stats_max().mConflictNum << endl
-
-       << "# of decisions (Ave./Max)      = "
-       << setw(10) << (double) stats.sat_stats().mDecisionNum / stats.total_count()
-       << " / " << setw(8) << stats.sat_stats_max().mDecisionNum << endl
-
-       << "# of implications (Ave./Max)   = "
-       << setw(10) << (double) stats.sat_stats().mPropagationNum / stats.total_count()
-       << " / " << setw(8) << stats.sat_stats_max().mPropagationNum << endl;
-
-  cout << endl
-       << "*** backtrace time ***" << endl
-       << "  " << (stats.backtrace_time() / 1000.0)
-       << "  " << setw(8) << stats.backtrace_time() / stats.detect_count() << endl;
-  cout.flags(save);
 }
 
 int
@@ -320,32 +237,15 @@ testcube_gen(
   Timer timer;
   timer.start();
 
-  DtpgMgr mgr{network, fault_list};
+  FaultInfoMgr finfo_mgr{network, fault_list};
 
-  vector<pair<const TpgFault*, TestVector>> ErrorList;
-  auto stats = mgr.run(
-    // detected callback
-    [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) { },
-    // untestable callback
-    [&](DtpgMgr&, const TpgFault* f) { },
-    // abort callback
-    [&](DtpgMgr&, const TpgFault* f) { },
-    option);
-
-  timer.stop();
-  auto time = timer.get_time();
-
-  if ( verbose ) {
-    print_stats(mgr, stats, mgr.testvector_list(), time);
-  }
-
-  timer.reset();
-  timer.start();
+  finfo_mgr.generate(option);
 
   vector<const TpgFault*> det_fault_list;
-  det_fault_list.reserve(mgr.detected_count());
+  det_fault_list.reserve(fault_list.size());
   for ( auto f: fault_list ) {
-    if ( mgr.dtpg_result(f).status() == FaultStatus::Detected ) {
+    auto& finfo = finfo_mgr.fault_info(f);
+    if ( finfo.status() == FaultStatus::Detected ) {
       det_fault_list.push_back(f);
     }
   }
@@ -363,9 +263,10 @@ testcube_gen(
   }
   fr_option_dict.emplace("loop_limit", JsonValue{loop});
   JsonValue fr_option{fr_option_dict};
-  TestCoverGen fr{network, fr_option};
 
-  auto cover_list = fr.run(det_fault_list, mgr.testvector_list());
+  finfo_mgr.reduce(fr_option);
+
+  auto cover_list = finfo_mgr.gen_cover(fr_option);
 
   timer.stop();
 

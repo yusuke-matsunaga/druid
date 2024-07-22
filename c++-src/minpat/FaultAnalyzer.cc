@@ -23,29 +23,38 @@ FaultAnalyzer::FaultAnalyzer(
   auto root = ffr->root();
   mBdEnc = new BoolDiffEnc{mBaseEnc, root, option};
   mBaseEnc.make_cnf({}, {root});
+
+  auto pvar = mBdEnc->prop_var();
+  auto res = mBaseEnc.solver().solve({pvar});
+  if ( res == SatBool3::True ) {
+    auto suff_cond = mBdEnc->extract_sufficient_condition();
+    for ( auto nv: suff_cond ) {
+      auto lit = mBaseEnc.conv_to_literal(nv);
+      if ( mBaseEnc.solver().solve({pvar, ~lit}) == SatBool3::False ) {
+	mRootMandCond.add(nv);
+      }
+    }
+  }
 }
 
 // @brief 故障検出の十分条件と必要条件を求める．
-bool
+NodeTimeValList
 FaultAnalyzer::extract_condition(
-  const TpgFault* fault,
-  NodeTimeValList& sufficient_condition,
-  NodeTimeValList& mandatory_condition
+  const TpgFault* fault
 )
 {
   auto ffr_cond = fault->ffr_propagate_condition();
-  auto root_cond = root_mandatory_condition();
+  auto root_cond = mRootMandCond;
   ffr_cond.merge(root_cond);
   auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond);
   assumptions.push_back(mBdEnc->prop_var());
   auto res = mBaseEnc.solver().solve(assumptions);
   ASSERT_COND( res == SatBool3::True );
-  sufficient_condition = mBdEnc->extract_sufficient_condition();
-  auto tmp_cond{sufficient_condition};
+  auto tmp_cond = mBdEnc->extract_sufficient_condition();
   tmp_cond.diff(root_cond);
   auto assumptions1{assumptions};
   assumptions1.push_back(SatLiteral::X);
-  bool trivial = true;
+  NodeTimeValList mandatory_condition;
   for ( auto nv: tmp_cond ) {
     auto lit = mBaseEnc.conv_to_literal(nv);
     assumptions1.back() = ~lit;
@@ -53,34 +62,9 @@ FaultAnalyzer::extract_condition(
     if ( res == SatBool3::False ) {
       mandatory_condition.add(nv);
     }
-    else {
-      trivial = false;
-    }
   }
-  sufficient_condition.merge(ffr_cond);
   mandatory_condition.merge(ffr_cond);
-  return trivial;
-}
-
-// @brief FFR の根の故障伝搬の必要条件を求める．
-const NodeTimeValList&
-FaultAnalyzer::root_mandatory_condition()
-{
-  if ( !mDone ) {
-    auto pvar = mBdEnc->prop_var();
-    auto res = mBaseEnc.solver().solve({pvar});
-    if ( res == SatBool3::True ) {
-      auto suff_cond = mBdEnc->extract_sufficient_condition();
-      for ( auto nv: suff_cond ) {
-	auto lit = mBaseEnc.conv_to_literal(nv);
-	if ( mBaseEnc.solver().solve({pvar, ~lit}) == SatBool3::False ) {
-	  mRootMandCond.add(nv);
-	}
-      }
-    }
-    mDone = true;
-  }
-  return mRootMandCond;
+  return mandatory_condition;
 }
 
 END_NAMESPACE_DRUID

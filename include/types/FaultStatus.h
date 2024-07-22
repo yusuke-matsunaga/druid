@@ -5,7 +5,7 @@
 /// @brief FaultStatus のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2005-2007, 2012-2014, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -16,7 +16,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @brief 故障の状態
 //////////////////////////////////////////////////////////////////////
-enum class FaultStatus {
+enum class FaultStatus : std::uint8_t {
   Undetected, ///< 未検出
   Detected,   ///< 検出
   Untestable  ///< テスト不能 (冗長)
