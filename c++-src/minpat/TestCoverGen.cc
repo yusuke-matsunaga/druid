@@ -30,41 +30,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-struct Key {
-  SizeType fault_id;
-  SizeType ffr_id;
-};
-
-bool
-operator==(
-  const Key& left,
-  const Key& right
-)
-{
-  return left.fault_id == right.fault_id &&
-    left.ffr_id == right.ffr_id;
-}
-
-END_NAMESPACE_DRUID
-
-BEGIN_NAMESPACE_STD
-
-template<>
-struct hash<DRUID_NAMESPACE::Key>
-{
-  SizeType
-  operator()(
-    const DRUID_NAMESPACE::Key& x
-  ) const
-  {
-    return x.fault_id * 1023 + x.ffr_id;
-  }
-};
-
-END_NAMESPACE_STD
-
-BEGIN_NAMESPACE_DRUID
-
 // @brief コンストラクタ
 TestCoverGen::TestCoverGen(
   const TpgNetwork& network,
@@ -75,9 +40,13 @@ TestCoverGen::TestCoverGen(
     mDomCandListArray(network.max_fault_id()),
     mFaultInfoArray(network.max_fault_id())
 {
-  if ( option.is_object() &&
-       option.has_key("debug") ) {
-    mDebug = option.get("debug").get_bool();
+  if ( option.is_object() ) {
+    if ( option.has_key("no_analysis") ) {
+      mNoAnalysis = option.get("no_analysis").get_bool();
+    }
+    if ( option.has_key("debug") ) {
+      mDebug = option.get("debug").get_bool();
+    }
   }
 
   // FFR の構造を解析して関係ある入力ノードを求める．
@@ -109,20 +78,32 @@ TestCoverGen::run(
   FFRFaultList ffr_fault_list{mNetwork, fault_list};
   mFaultNum = fault_list.size();
 
+  Timer timer;
+  timer.start();
   // FFR内の支配関係を調べる．
   ffr_reduction(ffr_fault_list);
-  // 故障の検出条件を調べる．
-  fault_analysis(ffr_fault_list);
-  // 簡単なチェックを行う．
-  trivial_reduction1(ffr_fault_list);
-  trivial_reduction2(ffr_fault_list);
-  trivial_reduction3(ffr_fault_list);
-  // 最終チェックを行う．
-  global_reduction(ffr_fault_list, true);
+  if ( mNoAnalysis ) {
+    global_reduction(ffr_fault_list, false);
+    fault_analysis(ffr_fault_list);
+  }
+  else {
+    // 故障の検出条件を調べる．
+    fault_analysis(ffr_fault_list);
+    // 簡単なチェックを行う．
+    trivial_reduction1(ffr_fault_list);
+    trivial_reduction2(ffr_fault_list);
+    trivial_reduction3(ffr_fault_list);
+    // 最終チェックを行う．
+    global_reduction(ffr_fault_list, true);
+  }
+  timer.stop();
+  if ( mDebug ) {
+    cout << "Total CPU time: " << timer.get_time() << endl;
+  }
 
-  // 拡張テストキューブを作る．
-  vector<TestCover> cube_list;
-  cube_list.reserve(mFaultNum);
+  // 拡張テストカバーを作る．
+  vector<TestCover> cover_list;
+  cover_list.reserve(mFaultNum);
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
     ExCubeGen gen{mNetwork, ffr, mOption};
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
@@ -133,10 +114,10 @@ TestCoverGen::run(
       auto mand_cond = info.mMandCond;
       auto suff_cond = info.mSuffCond;
       auto testcover = gen.run(fault, mand_cond, suff_cond);
-      cube_list.push_back(testcover);
+      cover_list.push_back(testcover);
     }
   }
-  return cube_list;
+  return cover_list;
 }
 
 // @brief 同一FFR内の支配関係を用いて故障を削減する．

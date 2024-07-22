@@ -358,7 +358,10 @@ fault_reducer(
     unordered_map<string, JsonValue> fr_option_dict;
     fr_option_dict.emplace("debug", JsonValue{true});
     fr_option_dict.emplace("loop_limit", JsonValue{loop});
-    fr_option_dict.emplace("analyze", JsonValue{analyze});
+    fr_option_dict.emplace("cube_per_fault", JsonValue(1));
+    if ( !analyze ) {
+      fr_option_dict.emplace("no_analysis", JsonValue{true});
+    }
     JsonValue fr_option{fr_option_dict};
     TestCoverGen fr{network, fr_option};
 

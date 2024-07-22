@@ -19,6 +19,23 @@ BEGIN_NAMESPACE_DRUID
 
 class FFRFaultList;
 
+struct Key {
+  SizeType fault_id;
+  SizeType ffr_id;
+};
+
+inline
+bool
+operator==(
+  const Key& left,
+  const Key& right
+)
+{
+  return left.fault_id == right.fault_id &&
+    left.ffr_id == right.ffr_id;
+}
+
+
 //////////////////////////////////////////////////////////////////////
 /// @class TestCoverGen TestCoverGen.h "TestCoverGen.h"
 /// @brief 支配故障を求めて対象の故障を削減するクラス
@@ -215,6 +232,9 @@ private:
   // オプション
   JsonValue mOption;
 
+  // no-analysis フラグ
+  bool mNoAnalysis{false};
+
   // FFR の TFO の TFI に含まれる入力ノード番号のリスト
   vector<vector<SizeType>> mInputListArray;
 
@@ -235,5 +255,21 @@ private:
 };
 
 END_NAMESPACE_DRUID
+
+BEGIN_NAMESPACE_STD
+
+template<>
+struct hash<DRUID_NAMESPACE::Key>
+{
+  SizeType
+  operator()(
+    const DRUID_NAMESPACE::Key& x
+  ) const
+  {
+    return x.fault_id * 1023 + x.ffr_id;
+  }
+};
+
+END_NAMESPACE_STD
 
 #endif // TESTCOVERGEN_H
