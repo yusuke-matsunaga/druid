@@ -45,7 +45,7 @@ fault_reducer(
   bool naive2 = false;
   bool se = false;
   bool verbose = false;
-  bool analyze = true;
+  bool do_trivial_check = true;
   string just_type;
   int loop = 1;
 
@@ -127,11 +127,8 @@ fault_reducer(
       else if ( strcmp(argv[pos], "--naive2") == 0 ) {
 	naive2 = true;
       }
-      else if ( strcmp(argv[pos], "--analyze") == 0 ) {
-	analyze = true;
-      }
-      else if ( strcmp(argv[pos], "--no-analyze") == 0 ) {
-	analyze = false;
+      else if ( strcmp(argv[pos], "--no-trivial-check") == 0 ) {
+	do_trivial_check = false;
       }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
@@ -167,6 +164,7 @@ fault_reducer(
     auto sat_obj = JsonValue{sat_type};
     option_dict.emplace("sat_param", sat_obj);
   }
+  option_dict.emplace("debug", JsonValue{true});
   JsonValue option{option_dict};
 
   auto fault_list = network.rep_fault_list();
@@ -254,9 +252,7 @@ fault_reducer(
     unordered_map<string, JsonValue> fr_option_dict;
     fr_option_dict.emplace("debug", JsonValue{true});
     fr_option_dict.emplace("loop_limit", JsonValue{loop});
-    if ( !analyze ) {
-      fr_option_dict.emplace("no_analyze", JsonValue{true});
-    }
+    fr_option_dict.emplace("do_trivial_check", JsonValue{do_trivial_check});
     JsonValue fr_option{fr_option_dict};
 
     Timer timer;

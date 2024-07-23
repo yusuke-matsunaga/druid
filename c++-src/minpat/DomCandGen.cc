@@ -53,13 +53,13 @@ DomCandGen::run(
 {
   std::mt19937 rg;
   vector<TestVector> tv_buff;
-  tv_buff.reserve(PV_BITLEN);
+  tv_buff.reserve(Fsim::PP_BITLEN);
   // 与えられたテストベクタを用いる．
   // これで各故障が最低1回は検出されるはず．
   for ( auto tv: mTvList ) {
     tv.fix_x_from_random(rg);
     tv_buff.push_back(tv);
-    if ( tv_buff.size() == PV_BITLEN ) {
+    if ( tv_buff.size() == Fsim::PP_BITLEN ) {
       do_fsim(tv_buff, dom_cand_list);
       tv_buff.clear();
     }
@@ -73,7 +73,7 @@ DomCandGen::run(
   for ( SizeType nc_count = 0; nc_count < loop_limit; ) {
     // 変化がなくなってから loop_limit 回過ぎたら終わる．
     tv_buff.clear();
-    for ( auto _: Range(PV_BITLEN) ) {
+    for ( auto _: Range(Fsim::PP_BITLEN) ) {
       tv.set_from_random(rg);
       tv_buff.push_back(tv);
     }

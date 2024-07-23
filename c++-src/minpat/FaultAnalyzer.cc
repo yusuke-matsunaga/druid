@@ -9,6 +9,7 @@
 #include "FaultAnalyzer.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
+#include "FaultInfo.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,9 +25,11 @@ FaultAnalyzer::FaultAnalyzer(
   mBdEnc = new BoolDiffEnc{mBaseEnc, root, option};
   mBaseEnc.make_cnf({}, {root});
 
+  // FFR の出力の伝搬可能性を調べる．
   auto pvar = mBdEnc->prop_var();
-  auto res = mBaseEnc.solver().solve({pvar});
-  if ( res == SatBool3::True ) {
+  mRootStatus = mBaseEnc.solver().solve({pvar});
+  if ( mRootStatus == SatBool3::True ) {
+    // 必要条件を求める．
     auto suff_cond = mBdEnc->extract_sufficient_condition();
     for ( auto nv: suff_cond ) {
       auto lit = mBaseEnc.conv_to_literal(nv);
@@ -38,33 +41,51 @@ FaultAnalyzer::FaultAnalyzer(
 }
 
 // @brief 故障検出の十分条件と必要条件を求める．
-NodeTimeValList
-FaultAnalyzer::extract_condition(
-  const TpgFault* fault
+bool
+FaultAnalyzer::run(
+  FaultInfo& finfo
 )
 {
-  auto ffr_cond = fault->ffr_propagate_condition();
-  auto root_cond = mRootMandCond;
-  ffr_cond.merge(root_cond);
-  auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond);
-  assumptions.push_back(mBdEnc->prop_var());
-  auto res = mBaseEnc.solver().solve(assumptions);
-  ASSERT_COND( res == SatBool3::True );
-  auto tmp_cond = mBdEnc->extract_sufficient_condition();
-  tmp_cond.diff(root_cond);
-  auto assumptions1{assumptions};
-  assumptions1.push_back(SatLiteral::X);
-  NodeTimeValList mandatory_condition;
-  for ( auto nv: tmp_cond ) {
-    auto lit = mBaseEnc.conv_to_literal(nv);
-    assumptions1.back() = ~lit;
-    auto res = mBaseEnc.solver().solve(assumptions1);
+  auto fault = finfo.fault();
+  if ( mRootStatus == SatBool3::True ) {
+    auto ffr_cond = fault->ffr_propagate_condition();
+    auto root_cond = mRootMandCond;
+    ffr_cond.merge(root_cond);
+    auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond);
+    assumptions.push_back(mBdEnc->prop_var());
+    auto res = mBaseEnc.solver().solve(assumptions);
+    if ( res == SatBool3::True ) {
+      auto suff_cond = mBdEnc->extract_sufficient_condition();
+      // あとで必要条件を求めるためにコピーしておく．
+      auto tmp_cond{suff_cond};
+      suff_cond.merge(ffr_cond);
+      auto pi_assign = mBaseEnc.justify(suff_cond);
+      finfo.set_sufficient_condition(suff_cond, pi_assign);
+      tmp_cond.diff(root_cond);
+      auto assumptions1{assumptions};
+      assumptions1.push_back(SatLiteral::X);
+      NodeTimeValList mand_cond;
+      for ( auto nv: tmp_cond ) {
+	auto lit = mBaseEnc.conv_to_literal(nv);
+	assumptions1.back() = ~lit;
+	auto res = mBaseEnc.solver().solve(assumptions1);
+	if ( res == SatBool3::False ) {
+	  mand_cond.add(nv);
+	}
+      }
+      mand_cond.merge(ffr_cond);
+      finfo.set_mandatory_condition(mand_cond);
+      return true;
+    }
     if ( res == SatBool3::False ) {
-      mandatory_condition.add(nv);
+      finfo.set_untestable();
     }
   }
-  mandatory_condition.merge(ffr_cond);
-  return mandatory_condition;
+  if ( mRootStatus == SatBool3::False ) {
+    finfo.set_untestable();
+  }
+  // mRootStatus == SatBool3::X の時はなにもしない．
+  return false;
 }
 
 END_NAMESPACE_DRUID

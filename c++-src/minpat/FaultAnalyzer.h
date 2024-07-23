@@ -11,11 +11,13 @@
 #include "druid.h"
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
-#include "ym/JsonValue.h"
 #include "NodeTimeValList.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+class FaultInfo;
 
 //////////////////////////////////////////////////////////////////////
 /// @class FaultAnalyzer FaultAnalyzer.h "FaultAnalyzer.h"
@@ -45,9 +47,10 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障検出の十分条件と必要条件を求める．
-  NodeTimeValList
-  extract_condition(
-    const TpgFault* fault
+  /// @return 検出可能の時 true を返す．
+  bool
+  run(
+    FaultInfo& finfo ///< [inout] 対象の故障情報を格納するオブジェクト
   );
 
 
@@ -65,8 +68,8 @@ private:
   // FFR の出力の故障伝搬の必要条件
   NodeTimeValList mRootMandCond;
 
-  // mRootMandCond が計算済みのとき true にするフラグ
-  bool mDone{false};
+  // FFR の出力の故障伝搬可能性
+  SatBool3 mRootStatus;
 
 };
 

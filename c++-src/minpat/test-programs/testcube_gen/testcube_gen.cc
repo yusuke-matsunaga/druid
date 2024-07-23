@@ -54,6 +54,7 @@ testcube_gen(
   bool isx = false;
   int isx_limit = 0;
   bool isx_skip = false;
+  bool debug_dtpg = false;
   bool debug_fault_reduce = false;
   bool debug_testcube_gen = false;
   bool debug_colgraph = false;
@@ -175,11 +176,15 @@ testcube_gen(
 	verbose = true;
       }
       else if ( strcmp(argv[pos], "--debug-all") == 0 ) {
+	debug_dtpg = true;
 	debug_fault_reduce = true;
 	debug_testcube_gen = true;
 	debug_colgraph = true;
 	debug_dsatur = true;
 	debug_isx = true;
+      }
+      else if ( strcmp(argv[pos], "--debug-dtpg") == 0 ) {
+	debug_dtpg = true;
       }
       else if ( strcmp(argv[pos], "--debug-fault_reduce") == 0 ) {
 	debug_fault_reduce = true;
@@ -222,11 +227,14 @@ testcube_gen(
   auto network = TpgNetwork::read_network(filename, format, fault_type);
 
   unordered_map<string, JsonValue> option_dict;
-  option_dict.emplace("just_type", just_type);
+  if ( just_type != "" ) {
+    option_dict.emplace("justifier", just_type);
+  }
   if ( sat_type != string{} ) {
     auto sat_obj = JsonValue{sat_type};
     option_dict.emplace("sat_param", sat_obj);
   }
+  option_dict.emplace("debug", JsonValue{debug_dtpg});
   JsonValue option{option_dict};
 
   auto fault_list = network.rep_fault_list();

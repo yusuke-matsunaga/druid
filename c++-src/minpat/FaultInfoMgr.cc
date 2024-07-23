@@ -86,49 +86,25 @@ FaultInfoMgr::generate(
 
   // FFR ごとに故障検出を行う．
   mActiveFaultList.clear();
+  SizeType nt = 0;
   for ( auto ffr: ffr_list() ) {
-    BaseEnc base_enc{mNetwork, option};
-    auto bd_enc = new BoolDiffEnc{base_enc, ffr->root(), option};
-    base_enc.make_cnf({}, {ffr->root()});
-    // まず FFR の出力のブール微分を行う．
-    auto prop_lit = bd_enc->prop_var();
-    auto res = base_enc.solver().solve({prop_lit});
-    if ( res == SatBool3::False ) {
-      // この FFR 内の故障はすべてテスト不能
-      for ( auto fault: fault_list(ffr) ) {
-	fault_info(fault).set_untestable();
-      }
-    }
-    else if ( res == SatBool3::X ) {
-      // アボート
-      // これ以上処理を続けても意味がない．
-      continue;
-    }
-    // res == SatBool3::True
+    FaultAnalyzer analyzer{mNetwork, ffr, option};
     // 個々の故障について処理を行う．
     for ( auto fault: fault_list(ffr) ) {
-      auto ffr_cond = fault->ffr_propagate_condition();
-      auto assumptions = base_enc.conv_to_literal_list(ffr_cond);
-      assumptions.push_back(prop_lit);
-      auto res = base_enc.solver().solve(assumptions);
-      if ( res == SatBool3::False ) {
-	fault_info(fault).set_untestable();
-      }
-      else if ( res == SatBool3::True ) {
-	// 十分条件を求める．
-	auto suff_cond = bd_enc->extract_sufficient_condition();
-	suff_cond.merge(ffr_cond);
-	auto pi_assign = base_enc.justify(suff_cond);
-	fault_info(fault).set_sufficient_condition(suff_cond, pi_assign);
+      if ( analyzer.run(fault_info(fault)) ) {
 	mActiveFaultList.push_back(fault);
 	++ mFaultNum;
+	if ( is_trivial(fault) ) {
+	  ++ nt;
+	}
       }
     }
   }
 
   timer.stop();
   if ( debug ) {
-    cout << "Total faults: " << mFaultNum << endl
+    cout << "Total faults: " << mFaultNum
+	 << " (" << nt << ")" << endl
 	 << "CPU time:     " << timer.get_time() << endl;
   }
 }
@@ -154,24 +130,19 @@ FaultInfoMgr::reduce(
   // FFR内の支配関係を調べる．
   ffr_reduction(option);
 
-  bool no_analyze = false;
-  if ( option.is_object() && option.has_key("no_anlyze") ) {
-    no_analyze = option.get("no_analyze").get_bool();
+  bool do_trivial_check = false;
+  if ( option.is_object() && option.has_key("do_trivial_check") ) {
+    do_trivial_check = option.get("do_trivial_check").get_bool();
   }
-  if ( no_analyze ) {
-    global_reduction(option, false);
-    fault_analysis(option);
-  }
-  else {
-    // 故障の検出条件を調べる．
-    fault_analysis(option);
+
+  if ( do_trivial_check ) {
     // 簡単なチェックを行う．
     trivial_reduction1(option);
     trivial_reduction2(option);
     trivial_reduction3(option);
-    // 最終チェックを行う．
-    global_reduction(option, true);
   }
+  // 最終チェックを行う．
+  global_reduction(option, do_trivial_check);
 
   timer.stop();
   if ( debug ) {
@@ -234,17 +205,15 @@ FaultInfoMgr::gen_dom_cands(
 
   std::mt19937 randgen;
   vector<TestVector> tv_list;
-  tv_list.reserve(mFaultNum * Fsim::PP_BITLEN);
+  tv_list.reserve(mFaultNum);
   for ( auto fault: mActiveFaultList ) {
     auto& finfo = fault_info(fault);
     if ( finfo.status() != FaultStatus::Detected ) {
       continue;
     }
-    for ( SizeType i = 0; i < Fsim::PP_BITLEN; ++ i ) {
-      TestVector tv{mNetwork, finfo.pi_assign()};
-      tv.fix_x_from_random(randgen);
-      tv_list.push_back(tv);
-    }
+    TestVector tv{mNetwork, finfo.pi_assign()};
+    tv.fix_x_from_random(randgen);
+    tv_list.push_back(tv);
   }
 
   DomCandGen dc_gen{mNetwork, mActiveFaultList, tv_list};
@@ -281,7 +250,7 @@ FaultInfoMgr::ffr_reduction(
   if ( debug ) {
     cout << "---------------------------------------" << endl;
     cout << "# of initial faults:                   "
-	 << mFaultList.size() << endl;
+	 << mFaultNum << endl;
   }
 
   SizeType check_num = 0;
@@ -304,10 +273,10 @@ FaultInfoMgr::ffr_reduction(
       vector<const TpgFault*> fault2_list;
       for ( auto fault2: dom_cand_list(fault1) ) {
 	if ( fault2->ffr_root() == fault1_root &&
-	     !fault_info(fault2).is_deleted() ) {
+	     !is_deleted(fault2) ) {
 	  ++ check_num;
 	  if ( checker.check(fault1, fault2) ) {
-	    fault_info(fault2).set_deleted();
+	    set_deleted(fault2);
 	    ++ success_num;
 	  }
 	}
@@ -325,6 +294,7 @@ FaultInfoMgr::ffr_reduction(
   }
 }
 
+#if 0
 // @brief 故障の解析を行う．
 void
 FaultInfoMgr::fault_analysis(
@@ -362,6 +332,7 @@ FaultInfoMgr::fault_analysis(
     cout << "CPU time:                              " << timer.get_time() << endl;
   }
 }
+#endif
 
 // @brief trivial な故障間の支配関係のチェックを行う．
 void
@@ -406,18 +377,24 @@ FaultInfoMgr::trivial_reduction1(
   SizeType check_num = 0;
   SizeType success_num = 0;
   for ( auto fault1: mActiveFaultList ) {
-    if ( is_deleted(fault1) || !is_trivial(fault1) ) {
+    if ( is_deleted(fault1) ) {
+      continue;
+    }
+    if ( !is_trivial(fault1) ) {
       continue;
     }
     auto cond1 = fault_info(fault1).mandatory_condition();
     for ( auto fault2: dom_cand_list(fault1) ) {
-      if ( is_deleted(fault2) || !is_trivial(fault2) ) {
+      if ( is_deleted(fault2) ) {
+	continue;
+      }
+      if ( !is_trivial(fault2) ) {
 	continue;
       }
       if ( !check_intersect(fault1, fault2) ) {
 	continue;
       }
-      auto cond2 = fault_info(fault2).mandatory_condition();
+      auto cond2 = fault_info(fault2).sufficient_condition();
       ++ check_num;
       if ( checker.check(cond1, cond2) ) {
 	set_deleted(fault2);
@@ -455,11 +432,17 @@ FaultInfoMgr::trivial_reduction2(
     vector<const TpgFault*> fault2_list;
     vector<bool> f2_mark(mNetwork.max_fault_id(), false);
     for ( auto fault1: fault_list(ffr1) ) {
-      if ( is_deleted(fault1) || is_trivial(fault1) ) {
+      if ( is_deleted(fault1) ) {
+	continue;
+      }
+      if ( is_trivial(fault1) ) {
 	continue;
       }
       for ( auto fault2: dom_cand_list(fault1) ) {
-	if ( is_deleted(fault2) || !is_trivial(fault2) ) {
+	if ( is_deleted(fault2) ) {
+	  continue;
+	}
+	if ( !is_trivial(fault2) ) {
 	  continue;
 	}
 	if ( !check_intersect(fault1, fault2) ) {
@@ -476,17 +459,23 @@ FaultInfoMgr::trivial_reduction2(
     }
     TrivialChecker2 checker{mNetwork, ffr1, fault2_list, option};
     for ( auto fault1: fault_list(ffr1) ) {
-      if ( is_deleted(fault1) || is_trivial(fault1) ) {
+      if ( is_deleted(fault1) ) {
+	continue;
+      }
+      if ( is_trivial(fault1) ) {
 	continue;
       }
       for ( auto fault2: dom_cand_list(fault1) ) {
-	if ( is_deleted(fault2) || !is_trivial(fault2) ) {
+	if ( is_deleted(fault2) ) {
+	  continue;
+	}
+	if ( !is_trivial(fault2) ) {
 	  continue;
 	}
 	if ( !check_intersect(fault1, fault2) ) {
 	  continue;
 	}
-	auto cond2 = fault_info(fault2).mandatory_condition();
+	auto cond2 = fault_info(fault2).sufficient_condition();
 	++ check_num;
 	if ( checker.check(fault1, fault2, cond2) ) {
 	  set_deleted(fault2);
@@ -542,13 +531,19 @@ FaultInfoMgr::trivial_reduction3(
     unordered_map<Key, vector<const TpgFault*>> fault2_list_map;
     for ( SizeType i = start_pos; i < end_pos; ++ i ) {
       auto fault1 = mActiveFaultList[i];
-      if ( is_deleted(fault1) || !is_trivial(fault1) ) {
+      if ( is_deleted(fault1) ) {
+	continue;
+      }
+      if ( !is_trivial(fault1) ) {
 	continue;
       }
       fault1_list.push_back(fault1);
       auto ffr1 = mNetwork.ffr(fault1);
       for ( auto fault2: dom_cand_list(fault1) ) {
-	if ( is_deleted(fault2) || is_trivial(fault2) ) {
+	if ( is_deleted(fault2) ) {
+	  continue;
+	}
+	if ( is_trivial(fault2) ) {
 	  continue;
 	}
 	auto ffr2 = mNetwork.ffr(fault2);
@@ -601,7 +596,10 @@ FaultInfoMgr::trivial_reduction3(
 	// fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
 	auto& fault2_list = fault2_list_map.at(key);
 	for ( auto fault2: fault2_list ) {
-	  if ( is_deleted(fault2) || is_trivial(fault2) ) {
+	  if ( is_deleted(fault2) ) {
+	    continue;
+	  }
+	  if ( is_trivial(fault2) ) {
 	    continue;
 	  }
 	  ++ check1_num;
@@ -661,11 +659,17 @@ FaultInfoMgr::global_reduction(
     // 故障番号とFFR番号のペアをキーにして故障のリストを保持する辞書
     unordered_map<Key, vector<const TpgFault*>> fault2_list_map;
     for ( auto fault1: fault_list(ffr1) ) {
-      if ( is_deleted(fault1) || (skip_trivial && is_trivial(fault1)) ) {
+      if ( is_deleted(fault1) ) {
+	continue;
+      }
+      if ( skip_trivial && is_trivial(fault1) ) {
 	continue;
       }
       for ( auto fault2: dom_cand_list(fault1) ) {
-	if ( is_deleted(fault2) || (skip_trivial && is_trivial(fault2)) ) {
+	if ( is_deleted(fault2) ) {
+	  continue;
+	}
+	if ( skip_trivial && is_trivial(fault2) ) {
 	  continue;
 	}
 	auto ffr2 = mNetwork.ffr(fault2);
@@ -700,7 +704,10 @@ FaultInfoMgr::global_reduction(
       ++ dom2_num;
       DomChecker checker2{mNetwork, ffr1, ffr2, option};
       for ( auto fault1: fault_list(ffr1) ) {
-	if ( is_deleted(fault1) || (skip_trivial && is_trivial(fault1)) ) {
+	if ( is_deleted(fault1) ) {
+	  continue;
+	}
+	if ( skip_trivial && is_trivial(fault1) ) {
 	  continue;
 	}
 	auto key = Key{fault1->id(), ffr2->id()};
@@ -718,7 +725,10 @@ FaultInfoMgr::global_reduction(
 	// fault1 の検出条件と fault2 の FFR 内の検出条件を調べる．
 	auto& fault2_list = fault2_list_map.at(key);
 	for ( auto fault2: fault2_list ) {
-	  if ( is_deleted(fault2) || (skip_trivial && is_trivial(fault2)) ) {
+	  if ( is_deleted(fault2) ) {
+	    continue;
+	  }
+	  if ( skip_trivial && is_trivial(fault2) ) {
 	    continue;
 	  }
 	  ++ check1_num;
