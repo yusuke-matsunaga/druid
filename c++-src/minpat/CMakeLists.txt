@@ -38,6 +38,7 @@ set ( minpat_SOURCES
   NaiveDomChecker2.cc
   TestCoverGen.cc
   ExCubeGen.cc
+  ConflictChecker.cc
   FaultGroupGen.cc
   LocalImp.cc
   ColGraph.cc

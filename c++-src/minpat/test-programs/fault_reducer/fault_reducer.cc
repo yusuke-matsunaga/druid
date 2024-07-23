@@ -14,6 +14,7 @@
 #include "Reducer.h"
 #include "NaiveDomChecker.h"
 #include "NaiveDomChecker2.h"
+#include "ConflictChecker.h"
 #include "ym/Timer.h"
 
 
@@ -47,6 +48,8 @@ fault_reducer(
   bool se = false;
   bool verbose = false;
   bool do_trivial_check = true;
+  bool conflict_check = false;
+  bool localimp = false;
   string just_type;
   int loop = 1;
 
@@ -130,6 +133,13 @@ fault_reducer(
       }
       else if ( strcmp(argv[pos], "--no-trivial-check") == 0 ) {
 	do_trivial_check = false;
+      }
+      else if ( strcmp(argv[pos], "--conflict-check") == 0 ) {
+	conflict_check = true;
+      }
+      else if ( strcmp(argv[pos], "--conflict-check2") == 0 ) {
+	conflict_check = true;
+	localimp = true;
       }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
@@ -267,6 +277,17 @@ fault_reducer(
     cout << "Detected Faults: " << det_fault_list.size() << endl
 	 << "Reduced Faults:  " << nr << endl
 	 << "CPU time:        " << timer.get_time() << endl;
+
+    if ( conflict_check ) {
+      unordered_map<string, JsonValue> cc_option_dict;
+      cc_option_dict.emplace("debug", JsonValue{true});
+      cc_option_dict.emplace("localimp", JsonValue{localimp});
+      JsonValue cc_option{cc_option_dict};
+
+      ConflictChecker checker{finfo_mgr};
+
+      checker.run(cc_option);
+    }
   }
 
   return 0;
