@@ -11,6 +11,7 @@
 #include "FaultType.h"
 #include "FaultInfo.h"
 #include "FaultInfoMgr.h"
+#include "Reducer.h"
 #include "NaiveDomChecker.h"
 #include "NaiveDomChecker2.h"
 #include "ym/Timer.h"
@@ -258,17 +259,11 @@ fault_reducer(
     Timer timer;
     timer.start();
 
-    finfo_mgr.reduce(fr_option);
+    auto fault_list = Reducer::reduce(finfo_mgr, fr_option);
 
     timer.stop();
 
-    SizeType nr = 0;
-    for ( auto fault: det_fault_list ) {
-      auto& finfo = finfo_mgr.fault_info(fault);
-      if ( !finfo.is_deleted() ) {
-	++ nr;
-      }
-    }
+    SizeType nr = fault_list.size();
     cout << "Detected Faults: " << det_fault_list.size() << endl
 	 << "Reduced Faults:  " << nr << endl
 	 << "CPU time:        " << timer.get_time() << endl;

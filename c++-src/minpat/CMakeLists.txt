@@ -24,7 +24,9 @@ add_subdirectory( test-programs )
 
 set ( minpat_SOURCES
   FaultInfoMgr.cc
+  FFRFaultList.cc
   FaultAnalyzer.cc
+  Reducer.cc
   FFRDomChecker.cc
   DomCandGen.cc
   DomChecker.cc
@@ -34,7 +36,7 @@ set ( minpat_SOURCES
   TrivialChecker3.cc
   NaiveDomChecker.cc
   NaiveDomChecker2.cc
-  FFRFaultList.cc
+  TestCoverGen.cc
   ExCubeGen.cc
   FaultGroupGen.cc
   LocalImp.cc

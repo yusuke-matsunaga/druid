@@ -27,7 +27,7 @@ ExCubeGen::ExCubeGen(
 ) : mFFR{ffr},
     mBaseEnc{network, option}
 {
-  JsonValue dtpg_option;
+  mLimit = 1;
   if ( option.is_object() ) {
     if ( option.has_key("cube_per_fault") ) {
       mLimit = option.get("cube_per_fault").get_int();

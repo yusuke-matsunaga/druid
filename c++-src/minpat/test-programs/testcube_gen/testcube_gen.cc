@@ -11,6 +11,8 @@
 #include "FaultType.h"
 #include "Fsim.h"
 #include "FaultInfoMgr.h"
+#include "Reducer.h"
+#include "TestCoverGen.h"
 #include "FaultGroupGen.h"
 #include "ColGraph.h"
 #include "Dsatur.h"
@@ -48,7 +50,7 @@ testcube_gen(
   bool verbose = false;
   string just_type;
   int loop = 1;
-  int cube_per_fault = 300;
+  int cube_per_fault = 0;
   bool dsatur = false;
   bool dsatur2 = false;
   bool isx = false;
@@ -266,15 +268,14 @@ testcube_gen(
     auto sat_obj = JsonValue{sat_type};
     fr_option_dict.emplace("sat_param", sat_obj);
   }
-  if ( cube_per_fault > 1 ) {
+  if ( cube_per_fault > 0 ) {
     fr_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
   }
   fr_option_dict.emplace("loop_limit", JsonValue{loop});
   JsonValue fr_option{fr_option_dict};
 
-  finfo_mgr.reduce(fr_option);
-
-  auto cover_list = finfo_mgr.gen_cover(fr_option);
+  Reducer::reduce(finfo_mgr, fr_option);
+  auto cover_list = TestCoverGen::run(finfo_mgr, fr_option);
 
   timer.stop();
 
