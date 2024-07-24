@@ -105,7 +105,7 @@ Reducer::run(
 
   timer.stop();
   if ( debug ) {
-    cout << "Total CPU time: " << timer.get_time() << endl;
+    cerr << "Total CPU time: " << timer.get_time() << endl;
   }
 }
 
@@ -120,8 +120,8 @@ Reducer::gen_dom_cands(
   timer.start();
 
   if ( debug ) {
-    cout << "---------------------------------------" << endl;
-    cout << "Fault Simulation" << endl;
+    cerr << "---------------------------------------" << endl;
+    cerr << "Fault Simulation" << endl;
   }
 
   std::mt19937 randgen;
@@ -153,8 +153,8 @@ Reducer::gen_dom_cands(
     for ( auto fault: mFFRFaultList.fault_list() ) {
       n += dom_cand_list(fault).size();
     }
-    cout << "Total Candidates:                      " << n << endl;
-    cout << "CPU time:                              " << timer.get_time() << endl;
+    cerr << "Total Candidates:                      " << n << endl;
+    cerr << "CPU time:                              " << timer.get_time() << endl;
   }
 }
 
@@ -169,8 +169,8 @@ Reducer::ffr_reduction(
 
   bool debug = get_debug(option);
   if ( debug ) {
-    cout << "---------------------------------------" << endl;
-    cout << "# of initial faults:                   "
+    cerr << "---------------------------------------" << endl;
+    cerr << "# of initial faults:                   "
 	 << mFaultNum << endl;
   }
 
@@ -206,8 +206,8 @@ Reducer::ffr_reduction(
 
   if ( debug ) {
     timer.stop();
-    cout << "after FFR dominance reduction:         " << mFaultNum << endl;
-    cout << "    # of total checkes:                " << check_num << endl
+    cerr << "after FFR dominance reduction:         " << mFaultNum << endl;
+    cerr << "    # of total checkes:                " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "    # of FFRDomCheckers:               " << dom_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
@@ -225,7 +225,7 @@ Reducer::trivial_reduction1(
 
   bool debug = get_debug(option);
   if ( debug ) {
-    cout << "---------------------------------------" << endl;
+    cerr << "---------------------------------------" << endl;
   }
 
   vector<const TpgFault*> tmp_fault_list;
@@ -290,8 +290,8 @@ Reducer::trivial_reduction1(
 
   if ( debug ) {
     timer.stop();
-    cout << "after trivial_reduction1:              " << mFaultNum << endl;
-    cout << "    # of total checkes:                " << check_num << endl
+    cerr << "after trivial_reduction1:              " << mFaultNum << endl;
+    cerr << "    # of total checkes:                " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
   }
@@ -308,7 +308,7 @@ Reducer::trivial_reduction2(
 
   bool debug = get_debug(option);
   if ( debug ) {
-    cout << "---------------------------------------" << endl;
+    cerr << "---------------------------------------" << endl;
   }
 
   SizeType check_num = 0;
@@ -377,8 +377,8 @@ Reducer::trivial_reduction2(
 
   if ( debug ) {
     timer.stop();
-    cout << "after trivial_reduction2:              " << mFaultNum << endl;
-    cout << "    # of total checkes:                " << check_num << endl
+    cerr << "after trivial_reduction2:              " << mFaultNum << endl;
+    cerr << "    # of total checkes:                " << check_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "CPU time:                              " << timer.get_time() << endl;
   }
@@ -395,7 +395,7 @@ Reducer::trivial_reduction3(
 
   bool debug = get_debug(option);
   if ( debug ) {
-    cout << "---------------------------------------" << endl;
+    cerr << "---------------------------------------" << endl;
   }
 
   SizeType check1_num = 0;
@@ -509,8 +509,8 @@ Reducer::trivial_reduction3(
 
   if ( debug ) {
     timer.stop();
-    cout << "after trivial_reduction3:              " << mFaultNum << endl;
-    cout << "    # of total checkes(1):             " << check1_num << endl
+    cerr << "after trivial_reduction3:              " << mFaultNum << endl;
+    cerr << "    # of total checkes(1):             " << check1_num << endl
 	 << "    # of total checkes(2):             " << check2_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "    # of DomCheckers(1):               " << dom1_num << endl
@@ -531,7 +531,7 @@ Reducer::global_reduction(
 
   bool debug = get_debug(option);
   if ( debug ) {
-    cout << "---------------------------------------" << endl;
+    cerr << "---------------------------------------" << endl;
   }
 
   // skip_trivial == true の時は trivial な支配故障のチェックは
@@ -642,8 +642,8 @@ Reducer::global_reduction(
 
   if ( debug ) {
     timer.stop();
-    cout << "after global dominance reduction:      " << mFaultNum << endl;
-    cout << "    # of total checkes(1):             " << check1_num << endl
+    cerr << "after global dominance reduction:      " << mFaultNum << endl;
+    cerr << "    # of total checkes(1):             " << check1_num << endl
 	 << "    # of total checkes(2):             " << check2_num << endl
 	 << "    # of total successes:              " << success_num << endl
 	 << "    # of DomCheckers(1):               " << dom1_num << endl

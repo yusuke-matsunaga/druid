@@ -68,7 +68,7 @@ TestCoverGen::run(
 
   timer.stop();
   if ( debug ) {
-    cout << "Total # of cubes: " << nc << endl
+    cerr << "Total # of cubes: " << nc << endl
 	 << "CPU time:         " << timer.get_time() << endl;
   }
 

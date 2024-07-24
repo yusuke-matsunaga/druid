@@ -96,7 +96,7 @@ FaultInfoMgr::generate(
 
   timer.stop();
   if ( debug ) {
-    cout << "Total faults: " << mFaultNum
+    cerr << "Total faults: " << mFaultNum
 	 << " (" << nt << ")" << endl
 	 << "CPU time:     " << timer.get_time() << endl;
   }

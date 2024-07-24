@@ -251,12 +251,11 @@ testcube_gen(
 
   finfo_mgr.generate(option);
 
-  vector<const TpgFault*> det_fault_list;
-  det_fault_list.reserve(fault_list.size());
+  SizeType ndet = 0;
   for ( auto f: fault_list ) {
     auto& finfo = finfo_mgr.fault_info(f);
     if ( finfo.status() == FaultStatus::Detected ) {
-      det_fault_list.push_back(f);
+      ++ ndet;
     }
   }
 
@@ -275,131 +274,29 @@ testcube_gen(
   JsonValue fr_option{fr_option_dict};
 
   Reducer::reduce(finfo_mgr, fr_option);
+
+  Timer ctimer;
+  ctimer.start();
+
   auto cover_list = TestCoverGen::run(finfo_mgr, fr_option);
 
+  ctimer.stop();
+
   timer.stop();
 
-  SizeType cube_num = 0;
+  SizeType total_cube_num = 0;
   for ( auto& cover: cover_list ) {
-    cube_num += cover.cube_list().size();
+    auto cube_num = cover.cube_list().size();
+    total_cube_num += cube_num;
+    cout << cube_num << endl;
   }
+  cout << "# CPU TIME: " << ctimer.get_time() << endl;
 
-  cout << "=========================================" << endl
-       << "Detected Faults:     " << det_fault_list.size() << endl
+  cerr << "=========================================" << endl
+       << "Detected Faults:     " << ndet << endl
        << "Reduced Faults:      " << cover_list.size() << endl
-       << "Total # of cubes:    " << cube_num << endl
+       << "Total # of cubes:    " << total_cube_num << endl
        << "CPU time:            " << timer.get_time() << endl;
-
-  timer.reset();
-  timer.start();
-
-  unordered_map<string, JsonValue> cg_option_dict;
-  if ( debug_colgraph ) {
-    cg_option_dict.emplace("debug", JsonValue{true});
-  }
-  JsonValue cg_option{cg_option_dict};
-
-  unordered_map<string, JsonValue> ds_option_dict;
-  if ( debug_dsatur ) {
-    ds_option_dict.emplace("debug", JsonValue{true});
-  }
-  JsonValue ds_option{ds_option_dict};
-
-  unordered_map<string, JsonValue> isx_option_dict;
-  if ( debug_isx ) {
-    isx_option_dict.emplace("debug", JsonValue{true});
-  }
-  if ( isx_skip ) {
-    isx_option_dict.emplace("skip", JsonValue{true});
-  }
-  JsonValue isx_option{isx_option_dict};
-
-  vector<TestVector> tv_list;
-  if ( dsatur ) {
-    ColGraph cg{network, cover_list, cg_option};
-    Dsatur ds{cg, ds_option};
-    ds.coloring();
-    SizeType nc = cg.color_num();
-    for ( SizeType col = 1; col <= nc; ++ col ) {
-      auto tv = cg.testvector(col);
-      tv_list.push_back(tv);
-    }
-  }
-  else if ( dsatur2 ) {
-    ColGraph_cube cg{network, cover_list, cg_option};
-    Dsatur_cube ds{cg};
-    ds.coloring();
-    SizeType nc = cg.color_num();
-    for ( SizeType col = 1; col <= nc; ++ col ) {
-      auto tv = cg.testvector(col);
-      tv_list.push_back(tv);
-    }
-  }
-  else if ( isx ) {
-    ColGraph cg{network, cover_list, cg_option};
-    Isx isx{cg, isx_option};
-    isx.coloring(isx_limit);
-    Dsatur ds{cg, ds_option};
-    ds.coloring();
-    SizeType nc = cg.color_num();
-    for ( SizeType col = 1; col <= nc; ++ col ) {
-      auto tv = cg.testvector(col);
-      tv_list.push_back(tv);
-    }
-  }
-  else {
-    FaultGroupGen fgg{network, fr_option};
-    tv_list = fgg.generate(cover_list);
-  }
-
-  timer.stop();
-  total_timer.stop();
-
-  cout << "=========================================" << endl
-       << "# of patterns        " << tv_list.size() << endl
-       << "CPU time:            " << timer.get_time() << endl
-       << "=========================================" << endl
-       << "Total CPU time:      " << total_timer.get_time() << endl;
-
-  { // verify
-    Fsim fsim{network, det_fault_list, false, false};
-    vector<TestVector> tv_buff;
-    tv_buff.reserve(PV_BITLEN);
-    SizeType n = 0;
-    vector<bool> mark(network.max_fault_id(), false);
-    for ( auto& tv: tv_list ) {
-      tv_buff.push_back(tv);
-      if ( tv_buff.size() == PV_BITLEN ) {
-	fsim.ppsfp(tv_buff,
-		   [&](const TpgFault* f,
-		       const DiffBitsArray& _) {
-		     fsim.set_skip(f);
-		     mark[f->id()] = true;
-		     ++ n;
-		   });
-	tv_buff.clear();
-      }
-    }
-    if ( !tv_buff.empty() ) {
-      fsim.ppsfp(tv_buff,
-		 [&](const TpgFault* f,
-		     const DiffBitsArray& _) {
-		   fsim.set_skip(f);
-		   mark[f->id()] = true;
-		   ++ n;
-		 });
-    }
-    if ( n != det_fault_list.size() ) {
-      cout << "Error!" << endl
-	   << "# of detected faults: " << n << endl;
-      for ( auto& cover: cover_list ) {
-	auto fault = cover.fault();
-	if ( !mark[fault->id()] ) {
-	  cout << fault->str() << " is not covered" << endl;
-	}
-      }
-    }
-  }
 
   return 0;
 }
