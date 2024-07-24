@@ -33,26 +33,8 @@ ColGraph::ColGraph(
   }
   mNodeList.reserve(cover_list.size());
   for ( auto& cover: cover_list ) {
-    auto fault = cover.fault();
-    auto fid = fault->id();
-    auto cvar = mBaseEnc.solver().new_variable(true);
-    vector<SatLiteral> tmp_lits;
-    for ( auto nv: cover.common_cube() ) {
-      auto lit = mBaseEnc.conv_to_literal(nv);
-      mBaseEnc.solver().add_clause(~cvar, lit);
-    }
-    tmp_lits.reserve(cover.cube_list().size());
-    tmp_lits.push_back(~cvar);
-    for ( auto& cube: cover.cube_list() ) {
-      auto var = mBaseEnc.solver().new_variable(false);
-      for ( auto nv: cube ) {
-	auto lit = mBaseEnc.conv_to_literal(nv);
-	mBaseEnc.solver().add_clause(~var, lit);
-      }
-      tmp_lits.push_back(var);
-    }
-    mBaseEnc.solver().add_clause(tmp_lits);
-    mNodeList.push_back({fault, cover.cube_list(), 0, {}, {}, cvar});
+    auto cvar = make_cover_condition(cover);
+    mNodeList.push_back(Node{cover, cvar});
   }
 
   SizeType limit = 10;
@@ -126,6 +108,35 @@ ColGraph::new_color()
   }
   mGroupList.push_back({color, {}, tmp_list});
   return color;
+}
+
+// @brief 故障検出条件を作る．
+SatLiteral
+ColGraph::make_cover_condition(
+  const TestCover& cover
+)
+{
+  auto fault = cover.fault();
+  auto fid = fault->id();
+  // この故障を検出するときアクティブにする変数
+  auto cvar = mBaseEnc.solver().new_variable(true);
+  for ( auto nv: cover.common_cube() ) {
+    auto lit = mBaseEnc.conv_to_literal(nv);
+    mBaseEnc.solver().add_clause(~cvar, lit);
+  }
+  vector<SatLiteral> tmp_lits;
+  tmp_lits.reserve(cover.cube_list().size());
+  tmp_lits.push_back(~cvar);
+  for ( auto& cube: cover.cube_list() ) {
+    auto var = mBaseEnc.solver().new_variable(false);
+    for ( auto nv: cube ) {
+      auto lit = mBaseEnc.conv_to_literal(nv);
+      mBaseEnc.solver().add_clause(~var, lit);
+    }
+    tmp_lits.push_back(var);
+  }
+  mBaseEnc.solver().add_clause(tmp_lits);
+  return cvar;
 }
 
 // @brief ノードを色をつける．
@@ -492,6 +503,22 @@ ColGraph::is_conflict(
     assumptions.push_back(clit2);
   }
   return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+}
+
+// コンストラクタ
+ColGraph::Node::Node(
+  const TestCover& cover,
+  SatLiteral cvar
+) : mFault{cover.fault()},
+    mControlVar{cvar}
+{
+  auto& common_cube = cover.common_cube();
+  auto& cube_list = cover.cube_list();
+  mCubeList.reserve(cube_list.size());
+  for ( auto cube: cube_list ) {
+    cube.merge(common_cube);
+    mCubeList.push_back(cube);
+  }
 }
 
 END_NAMESPACE_DRUID

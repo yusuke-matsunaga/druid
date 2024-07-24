@@ -224,6 +224,12 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 故障検出条件を作る．
+  SatLiteral
+  make_cover_condition(
+    const TestCover& cover
+  );
+
   /// @brief set_color() の下請け関数
   void
   _set_color(
@@ -268,6 +274,12 @@ private:
 
   // ノードの情報を表す構造体
   struct Node {
+    // コンストラクタ
+    Node(
+      const TestCover& cover,
+      SatLiteral cvar
+    );
+
     // 故障
     const TpgFault* mFault;
     // 検出条件のリスト
