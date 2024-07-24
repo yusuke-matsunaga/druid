@@ -57,19 +57,23 @@ private:
   const TpgNetwork&
   network() const;
 
+  /// @brief シミュレーションを行い両立故障を求める．
+  void
+  check_compatible();
+
   /// @brief 割り当てが衝突しているペアを求める．
   void
   check_trivial(
     bool localimp
   );
 
-  /// @brief シミュレーションを行い両立故障を求める．
-  void
-  check_compatible();
-
   /// @brief FFR 内の衝突チェックを行う．
   void
   check_ffr();
+
+  /// @brief mandatory condition を使ったチェックを行う．
+  void
+  check_mandatory_condition();
 
   /// @brief 最終チェックを行う．
   void

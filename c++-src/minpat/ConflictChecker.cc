@@ -43,11 +43,22 @@ ConflictChecker::run(
   if ( option.is_object() && option.has_key("localimp") ) {
     localimp = option.get("localimp").get_bool();
   }
-  check_trivial(localimp);
+  bool globalimp = false;
+  if ( option.is_object() && option.has_key("globalimp") ) {
+    globalimp = option.get("globalimp").get_bool();
+  }
 
   check_compatible();
 
+  if ( !globalimp ) {
+    check_trivial(localimp);
+  }
+
   check_ffr();
+
+  if ( globalimp ) {
+    check_mandatory_condition();
+  }
 
   check_final();
 
@@ -63,82 +74,6 @@ const TpgNetwork&
 ConflictChecker::network() const
 {
   return mMgr.network();
-}
-
-// @brief 割り当てが衝突しているペアを求める．
-void
-ConflictChecker::check_trivial(
-  bool localimp
-)
-{
-  Timer timer;
-  timer.start();
-
-  // mFaultList 内で mandatory_condition が衝突している
-  // ペアを求める．
-  mConflictPair.clear();
-  LocalImp imp{network()};
-  vector<NodeTimeValList> cond_array(mFaultNum);
-  for ( SizeType i = 0; i < mFaultNum; ++ i ) {
-    auto fault = mFaultList[i];
-    auto& cond = mMgr.fault_info(fault).mandatory_condition();
-    if ( localimp ) {
-      cond_array[i] = imp.run(cond);
-    }
-    else {
-      cond_array[i] = cond;
-    }
-  }
-#if 1
-  for ( SizeType i1 = 0; i1 < mFaultNum - 1; ++ i1 ) {
-    auto fault1 = mFaultList[i1];
-    auto& cond1 = cond_array[i1];
-    for ( SizeType i2 = i1 + 1; i2 < mFaultNum; ++ i2 ) {
-      auto fault2 = mFaultList[i2];
-      auto& cond2 = cond_array[i2];
-      if ( compare(cond1, cond2) == -1 ) {
-	SizeType key = gen_key(fault1, fault2);
-	mConflictPair.emplace(key);
-      }
-    }
-  }
-#else
-  vector<vector<const TpgFault*>> f_list_array(network().node_num() * 4);
-  for ( SizeType id = 0; id < mFaultNum; ++ id ) {
-    auto fault = mFaultList[id];
-    auto& assign = cond_array[id];
-    for ( auto nv: assign ) {
-      auto node = nv.node();
-      auto time = nv.time();
-      auto v = nv.val();
-      SizeType offset = v ? 1 : 0;
-      SizeType index = node->id() * 4 + time * 2 + offset;
-      f_list_array[index].push_back(fault);
-    }
-  }
-  for ( SizeType node_id = 0; node_id < network().node_num(); ++ node_id ) {
-    for ( int time = 0; time < 2; ++ time ) {
-      SizeType index0 = node_id * 4 + time * 2 + 0;
-      SizeType index1 = node_id * 4 + time * 2 + 1;
-      auto& f0_list = f_list_array[index0];
-      auto& f1_list = f_list_array[index1];
-      if ( f0_list.empty() || f1_list.empty() ) {
-	continue;
-      }
-      for ( auto fault1: f0_list ) {
-	for ( auto fault2: f1_list ) {
-	  SizeType key = gen_key(fault1, fault2);
-	  if ( mConflictPair.count(key) == 0 ) {
-	    mConflictPair.emplace(key);
-	  }
-	}
-      }
-    }
-  }
-#endif
-  timer.stop();
-  cout << "trivial conflict pairs: " << mConflictPair.size() << endl;
-  cout << "CPU time:               " << timer.get_time() << endl;
 }
 
 // @brief シミュレーションを行い両立故障を求める．
@@ -205,6 +140,85 @@ ConflictChecker::check_compatible()
   cout << "CPU time:         " << timer.get_time() << endl;
 }
 
+// @brief 割り当てが衝突しているペアを求める．
+void
+ConflictChecker::check_trivial(
+  bool localimp
+)
+{
+  Timer timer;
+  timer.start();
+
+  // mFaultList 内で mandatory_condition が衝突している
+  // ペアを求める．
+  mConflictPair.clear();
+  LocalImp imp{network()};
+  vector<NodeTimeValList> cond_array(mFaultNum);
+  for ( SizeType i = 0; i < mFaultNum; ++ i ) {
+    auto fault = mFaultList[i];
+    auto& cond = mMgr.fault_info(fault).mandatory_condition();
+    if ( localimp ) {
+      cond_array[i] = imp.run(cond);
+    }
+    else {
+      cond_array[i] = cond;
+    }
+  }
+#if 1
+  for ( SizeType i1 = 0; i1 < mFaultNum - 1; ++ i1 ) {
+    auto fault1 = mFaultList[i1];
+    auto& cond1 = cond_array[i1];
+    for ( SizeType i2 = i1 + 1; i2 < mFaultNum; ++ i2 ) {
+      auto fault2 = mFaultList[i2];
+      auto& cond2 = cond_array[i2];
+      SizeType key = gen_key(fault1, fault2);
+      if ( mCompatPair.count(key) > 0 ) {
+	continue;
+      }
+      if ( compare(cond1, cond2) == -1 ) {
+	mConflictPair.emplace(key);
+      }
+    }
+  }
+#else
+  vector<vector<const TpgFault*>> f_list_array(network().node_num() * 4);
+  for ( SizeType id = 0; id < mFaultNum; ++ id ) {
+    auto fault = mFaultList[id];
+    auto& assign = cond_array[id];
+    for ( auto nv: assign ) {
+      auto node = nv.node();
+      auto time = nv.time();
+      auto v = nv.val();
+      SizeType offset = v ? 1 : 0;
+      SizeType index = node->id() * 4 + time * 2 + offset;
+      f_list_array[index].push_back(fault);
+    }
+  }
+  for ( SizeType node_id = 0; node_id < network().node_num(); ++ node_id ) {
+    for ( int time = 0; time < 2; ++ time ) {
+      SizeType index0 = node_id * 4 + time * 2 + 0;
+      SizeType index1 = node_id * 4 + time * 2 + 1;
+      auto& f0_list = f_list_array[index0];
+      auto& f1_list = f_list_array[index1];
+      if ( f0_list.empty() || f1_list.empty() ) {
+	continue;
+      }
+      for ( auto fault1: f0_list ) {
+	for ( auto fault2: f1_list ) {
+	  SizeType key = gen_key(fault1, fault2);
+	  if ( mConflictPair.count(key) == 0 ) {
+	    mConflictPair.emplace(key);
+	  }
+	}
+      }
+    }
+  }
+#endif
+  timer.stop();
+  cout << "trivial conflict pairs: " << mConflictPair.size() << endl;
+  cout << "CPU time:               " << timer.get_time() << endl;
+}
+
 // @brief FFR 内の衝突チェックを行う．
 void
 ConflictChecker::check_ffr()
@@ -246,6 +260,51 @@ ConflictChecker::check_ffr()
 
   timer.stop();
   cout << "after check_ffr()" << endl;
+  cout << "conflict pairs:   " << mConflictPair.size() << endl;
+  cout << "CPU time:         " << timer.get_time() << endl;
+}
+
+// @brief mandatory condition を使ったチェックを行う．
+void
+ConflictChecker::check_mandatory_condition()
+{
+  Timer timer;
+  timer.start();
+
+  SizeType check_num = 0;
+  BaseEnc base_enc{network()};
+  auto& node_list = network().node_list();
+  base_enc.make_cnf(node_list, node_list);
+  for ( SizeType i1 = 0; i1 < mFaultNum - 1; ++ i1 ) {
+    auto fault1 = mFaultList[i1];
+    auto cond1 = mMgr.fault_info(fault1).mandatory_condition();
+    auto assumptions1 = base_enc.conv_to_literal_list(cond1);
+    for ( SizeType i2 = i1 + 1; i2 < mFaultNum; ++ i2 ) {
+      auto fault2 = mFaultList[i2];
+      if ( fault1->ffr_root() == fault2->ffr_root() ) {
+	// 同じ FFR 内の故障はチェック済み
+	continue;
+      }
+      auto key = gen_key(fault1, fault2);
+      if ( mConflictPair.count(key) > 0 ||
+	   mCompatPair.count(key) > 0 ) {
+	continue;
+      }
+      auto cond2 = mMgr.fault_info(fault2).mandatory_condition();
+      auto assumptions2 = base_enc.conv_to_literal_list(cond2);
+      assumptions2.insert(assumptions2.end(),
+			  assumptions1.begin(),
+			  assumptions1.end());
+      ++ check_num;
+      if ( base_enc.solver().solve(assumptions2) == SatBool3::False ) {
+	// 同時には検出できない．
+	mConflictPair.emplace(key);
+      }
+    }
+  }
+
+  timer.stop();
+  cout << "after check_mandatory_condition()" << endl;
   cout << "conflict pairs:   " << mConflictPair.size() << endl;
   cout << "CPU time:         " << timer.get_time() << endl;
 }
