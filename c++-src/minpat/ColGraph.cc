@@ -285,6 +285,14 @@ ColGraph::make_conflict_list(
 
   SizeType node_num = mNodeList.size();
 
+  // シミュレーションを用いて両立ペアに印をつける．
+  make_compat_mark(limit);
+
+  if ( mDebug ) {
+    cout << "simulation end" << endl
+	 << "Total compat pairs: " << mCompatMark.size() << endl;
+  }
+
   // 割り当てが衝突しているペアに印をつける．
   for ( SizeType id1 = 0; id1 < node_num - 1; ++ id1 ) {
     for ( SizeType id2 = id1 + 1; id2 < node_num; ++ id2 ) {
@@ -296,14 +304,6 @@ ColGraph::make_conflict_list(
   }
   if ( mDebug ) {
     cout << "Total trivial conflict pairs: " << mConflictMark.size() << endl;
-  }
-
-  // シミュレーションを用いて両立ペアに印をつける．
-  make_compat_mark(limit);
-
-  if ( mDebug ) {
-    cout << "simulation end" << endl
-	 << "Total compat pairs: " << mCompatMark.size() << endl;
   }
 
   // SATソルバを用いて衝突ペアを求める．
