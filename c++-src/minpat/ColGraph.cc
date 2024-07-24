@@ -37,6 +37,10 @@ ColGraph::ColGraph(
     auto fid = fault->id();
     auto cvar = mBaseEnc.solver().new_variable(true);
     vector<SatLiteral> tmp_lits;
+    for ( auto nv: cover.common_cube() ) {
+      auto lit = mBaseEnc.conv_to_literal(nv);
+      mBaseEnc.solver().add_clause(~cvar, lit);
+    }
     tmp_lits.reserve(cover.cube_list().size());
     tmp_lits.push_back(~cvar);
     for ( auto& cube: cover.cube_list() ) {

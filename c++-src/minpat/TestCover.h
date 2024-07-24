@@ -16,7 +16,9 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class TestCover TestCover.h "TestCover.h"
-/// @brief (拡張)テストキューブを表すクラス
+/// @brief (拡張)テストカバーを表すクラス
+///
+/// 各々のキューブに共通なキューブをくくりだしている．
 //////////////////////////////////////////////////////////////////////
 class TestCover
 {
@@ -28,8 +30,10 @@ public:
   /// @brief コンストラクタ
   TestCover(
     const TpgFault* fault,                   ///< [in] 対象の故障
-    const vector<NodeTimeValList>& cube_list ///< [in] 値割当のリスト
+    const NodeTimeValList& common_cube,      ///< [in] 共通の割り当て
+    const vector<NodeTimeValList>& cube_list ///< [in] 値割り当てのリスト
   ) : mFault{fault},
+      mCommonCube{common_cube},
       mCubeList{cube_list}
   {
   }
@@ -50,6 +54,13 @@ public:
     return mFault;
   }
 
+  /// @brief 共通な割り当てを返す．
+  const NodeTimeValList&
+  common_cube() const
+  {
+    return mCommonCube;
+  }
+
   /// @brief 値割り当てのリストのリストを返す．
   const vector<NodeTimeValList>&
   cube_list() const
@@ -66,6 +77,9 @@ private:
 
   // 対象の故障
   const TpgFault* mFault{nullptr};
+
+  // 共通な割り当て
+  NodeTimeValList mCommonCube;
 
   // 値割り当てのリスト
   vector<NodeTimeValList> mCubeList;
