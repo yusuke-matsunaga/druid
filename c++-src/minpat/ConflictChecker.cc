@@ -103,7 +103,6 @@ ConflictChecker::check_trivial(
     }
   }
 #else
-  int time_max = network().has_prev_state() ? 2 : 1;
   vector<vector<const TpgFault*>> f_list_array(network().node_num() * 4);
   for ( SizeType id = 0; id < mFaultNum; ++ id ) {
     auto fault = mFaultList[id];
@@ -255,6 +254,12 @@ ConflictChecker::check_ffr()
 void
 ConflictChecker::check_final()
 {
+  enum State {
+    Init,
+    Succeed,
+    Failed
+  };
+
   Timer timer;
   timer.start();
 
@@ -281,52 +286,7 @@ ConflictChecker::check_final()
       base_enc.make_cnf({}, {ffr1->root(), ffr2->root()});
       auto pvar1 = bd_enc1->prop_var();
       auto pvar2 = bd_enc2->prop_var();
-#if 0
-      vector<SatLiteral> assumptions{pvar1, pvar2};
-      ++ check_num;
-      auto res = base_enc.solver().solve(assumptions);
-      if ( res == SatBool3::False ) {
-	// ffr1 の故障と ffr2 の交渉は両立しない．
-	for ( auto fault1: ffr_fault_list.fault_list(ffr1) ) {
-	  for ( auto fault2: ffr_fault_list.fault_list(ffr2) ) {
-	    SizeType key = gen_key(fault1, fault2);
-	    if ( mConflictPair.count(key) == 0 ) {
-	      mConflictPair.emplace(key);
-	    }
-	  }
-	}
-      }
-      else if ( res == SatBool3::True ) {
-	// 個々に調べる必要がある．
-	for ( auto f1: ffr_fault_list.fault_list(ffr1) ) {
-	  auto cond1 = f1->ffr_propagate_condition();
-	  auto assumptions1 = base_enc.conv_to_literal_list(cond1);
-	  assumptions1.push_back(pvar1);
-	  SizeType fid1 = f1->id();
-	  for ( auto f2: ffr_fault_list.fault_list(ffr2) ) {
-	    SizeType key = gen_key(f1, f2);
-	    if ( mConflictPair.count(key) > 0 ||
-		 mCompatPair.count(key) ) {
-	      continue;
-	    }
-	    auto cond2 = f2->ffr_propagate_condition();
-	    auto assumptions2 = base_enc.conv_to_literal_list(cond2);
-	    assumptions2.push_back(pvar2);
-	    SizeType fid2 = f2->id();
-	    assumptions2.insert(assumptions2.end(),
-				assumptions1.begin(),
-				assumptions1.end());
-	    ++ check_num;
-	    if ( base_enc.solver().solve(assumptions2) == SatBool3::False ) {
-	      // 同時には検出できない．
-	      if ( mConflictPair.count(key) == 0 ) {
-		mConflictPair.emplace(key);
-	      }
-	    }
-	  }
-	}
-      }
-#else
+      auto state = Init;
       for ( auto f1: ffr_fault_list.fault_list(ffr1) ) {
 	auto cond1 = f1->ffr_propagate_condition();
 	auto assumptions1 = base_enc.conv_to_literal_list(cond1);
@@ -336,6 +296,13 @@ ConflictChecker::check_final()
 	  SizeType key = gen_key(f1, f2);
 	  if ( mConflictPair.count(key) > 0 ||
 	       mCompatPair.count(key) ) {
+	    continue;
+	  }
+	  if ( state == Failed ) {
+	    // 検出できない
+	    if ( mConflictPair.count(key) == 0 ) {
+	      mConflictPair.emplace(key);
+	    }
 	    continue;
 	  }
 	  auto cond2 = f2->ffr_propagate_condition();
@@ -350,10 +317,22 @@ ConflictChecker::check_final()
 	    if ( mConflictPair.count(key) == 0 ) {
 	      mConflictPair.emplace(key);
 	    }
+	    if ( state == Init ) {
+	      // FFRの出力のみの条件を調べる．
+	      auto res = base_enc.solver().solve({pvar1, pvar2});
+	      if ( res == SatBool3::True ) {
+		state = Succeed;
+	      }
+	      else {
+		state = Failed;
+	      }
+	    }
+	  }
+	  else if ( res == SatBool3::True ) {
+	    state = Succeed;
 	  }
 	}
       }
-#endif
     }
   }
 
