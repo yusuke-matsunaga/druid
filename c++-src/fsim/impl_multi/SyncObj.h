@@ -9,6 +9,8 @@
 /// All rights reserved.
 
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include "fsim_nsdef.h"
 #include "FsimX.h"
 
