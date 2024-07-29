@@ -25,12 +25,12 @@ MFFCEncDriver::MFFCEncDriver(
   const TpgNetwork& network,
   const TpgMFFC* mffc,
   const JsonValue& option
-) : mBaseEnc{network, option}
+) : mEngine{network, option}
 {
   auto node = mffc->root();
-  mBdEnc = new BoolDiffEnc{mBaseEnc, node, option};
-  mMFFCEnc = new MFFCEnc{mBaseEnc, mffc};
-  mBaseEnc.make_cnf({}, {node});
+  mBdEnc = new BoolDiffEnc{mEngine, node, option};
+  mMFFCEnc = new MFFCEnc{mEngine, mffc};
+  mEngine.make_cnf({}, {node});
 }
 
 // @brief 故障を検出する条件を求める．
@@ -40,12 +40,12 @@ MFFCEncDriver::solve(
 )
 {
   auto assign_list = fault->ffr_propagate_condition();
-  auto assumptions = mBaseEnc.conv_to_literal_list(assign_list);
+  auto assumptions = mEngine.conv_to_literal_list(assign_list);
   assumptions.push_back(mBdEnc->prop_var());
   assumptions.push_back(mMFFCEnc->prop_var());
   auto assumptions1 = mMFFCEnc->cvar_assumptions(fault);
   assumptions.insert(assumptions.end(), assumptions1.begin(), assumptions1.end());
-  return mBaseEnc.solver().solve(assumptions);
+  return mEngine.solver().solve(assumptions);
 }
 
 // @brief テストパタン生成を行う．
@@ -59,22 +59,22 @@ MFFCEncDriver::gen_pattern(
   assign_list.merge(mffc_cond);
   auto prop_cond = fault->ffr_propagate_condition();
   assign_list.merge(prop_cond);
-  auto pi_assign_list = mBaseEnc.justify(assign_list);
-  return TestVector{mBaseEnc.network(), pi_assign_list};
+  auto pi_assign_list = mEngine.justify(assign_list);
+  return TestVector{mEngine.network(), pi_assign_list};
 }
 
 // @brief CNF の生成時間を返す．
 double
 MFFCEncDriver::cnf_time() const
 {
-  return mBaseEnc.cnf_time();
+  return mEngine.cnf_time();
 }
 
 // @brief SATの統計情報を返す．
 SatStats
 MFFCEncDriver::sat_stats() const
 {
-  return mBaseEnc.solver().get_stats();
+  return mEngine.solver().get_stats();
 }
 
 END_NAMESPACE_DRUID

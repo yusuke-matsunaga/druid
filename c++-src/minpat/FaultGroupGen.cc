@@ -168,7 +168,7 @@ FaultGroupGen::FaultGroupGen(
   const TpgNetwork& network,
   const JsonValue& option
 ) : mNetwork{network},
-    mBaseEnc{network, option},
+    mEngine{network, option},
     mBlockListArray(network.node_num() * 4),
     mCountArray(network.max_fault_id(), 0)
 {
@@ -177,7 +177,7 @@ FaultGroupGen::FaultGroupGen(
     mDebug = option.get("debug").get_bool();
   }
   auto& node_list = network.node_list();
-  mBaseEnc.make_cnf(node_list, node_list);
+  mEngine.make_cnf(node_list, node_list);
 }
 
 // @brief デストラクタ
@@ -236,12 +236,12 @@ FaultGroupGen::generate(
   vector<TestVector> tv_list;
   tv_list.reserve(assign_list.size());
   for ( auto& assign: assign_list ) {
-    auto assumptions = mBaseEnc.conv_to_literal_list(assign);
-    auto res = mBaseEnc.solver().solve(assumptions);
+    auto assumptions = mEngine.conv_to_literal_list(assign);
+    auto res = mEngine.solver().solve(assumptions);
     if ( res != SatBool3::True ) {
       throw std::invalid_argument("wrong assign");
     }
-    auto pi_assign = mBaseEnc.get_pi_assign();
+    auto pi_assign = mEngine.get_pi_assign();
     auto tv = TestVector{mNetwork, pi_assign};
     tv_list.push_back(tv);
   }
@@ -353,7 +353,7 @@ FaultGroupGen::imply(
   const AssignList& assignments
 )
 {
-  auto assumptions = mBaseEnc.conv_to_literal_list(assignments);
+  auto assumptions = mEngine.conv_to_literal_list(assignments);
   assumptions.push_back(SatLiteral::X);
   std::unordered_set<Assign> mark;
   for ( auto nv: assignments ) {
@@ -367,15 +367,15 @@ FaultGroupGen::imply(
     if ( mark.count(nv0) > 0 || mark.count(nv1) > 0 ) {
       continue;
     }
-    auto lit = mBaseEnc.conv_to_literal(nv1);
+    auto lit = mEngine.conv_to_literal(nv1);
     assumptions.back() = lit;
-    if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
+    if ( mEngine.solver().solve(assumptions) == SatBool3::False ) {
       // 肯定のリテラルを足したら UNSAT だった
       // -> 否定のリテラルが含意される．
       new_assign.add({node, 1, false});
     }
     assumptions.back() = ~lit;
-    if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
+    if ( mEngine.solver().solve(assumptions) == SatBool3::False ) {
       // 否定のリテラルを足したら UNSAT だった
       // -> 肯定のリテラルが含意される．
       new_assign.add({node, 1, true});
@@ -387,15 +387,15 @@ FaultGroupGen::imply(
       if ( mark.count(nv0) > 0 || mark.count(nv1) > 0 ) {
 	continue;
       }
-      auto lit = mBaseEnc.conv_to_literal(nv1);
+      auto lit = mEngine.conv_to_literal(nv1);
       assumptions.back() = lit;
-      if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
+      if ( mEngine.solver().solve(assumptions) == SatBool3::False ) {
 	// 肯定のリテラルを足したら UNSAT だった
 	// -> 否定のリテラルが含意される．
 	new_assign.add({node, 0, false});
       }
       assumptions.back() = ~lit;
-      if ( mBaseEnc.solver().solve(assumptions) == SatBool3::False ) {
+      if ( mEngine.solver().solve(assumptions) == SatBool3::False ) {
 	// 否定のリテラルを足したら UNSAT だった
 	// -> 肯定のリテラルが含意される．
 	new_assign.add({node, 0, true});
@@ -413,12 +413,12 @@ FaultGroupGen::check_imp(
 )
 {
   auto tmp = assignments1 - assignments0;
-  auto assumptions = mBaseEnc.conv_to_literal_list(assignments0);
+  auto assumptions = mEngine.conv_to_literal_list(assignments0);
   assumptions.push_back(SatLiteral::X);
   for ( auto nv: tmp ) {
-    auto lit = mBaseEnc.conv_to_literal(nv);
+    auto lit = mEngine.conv_to_literal(nv);
     assumptions.back() = ~lit;
-    if ( mBaseEnc.solver().solve(assumptions) != SatBool3::False ) {
+    if ( mEngine.solver().solve(assumptions) != SatBool3::False ) {
       cout << "Error: assignments = " << assignments0 << endl
 	   << "       nv = " << nv << endl;
     }
@@ -551,10 +551,10 @@ FaultGroupGen::is_compatible(
   const AssignList& assignments2
 )
 {
-  auto lits1 = mBaseEnc.conv_to_literal_list(assignments1);
-  auto lits2 = mBaseEnc.conv_to_literal_list(assignments2);
+  auto lits1 = mEngine.conv_to_literal_list(assignments1);
+  auto lits2 = mEngine.conv_to_literal_list(assignments2);
   lits1.insert(lits1.end(), lits2.begin(), lits2.end());
-  return mBaseEnc.solver().solve(lits1) == SatBool3::True;
+  return mEngine.solver().solve(lits1) == SatBool3::True;
 }
 
 END_NAMESPACE_DRUID

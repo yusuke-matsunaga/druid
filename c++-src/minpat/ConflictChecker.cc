@@ -13,7 +13,7 @@
 #include "TpgNode.h"
 #include "FFRFaultList.h"
 #include "LocalImp.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "BoolDiffEnc.h"
 #include "ym/Timer.h"
 #include <random>
@@ -228,15 +228,15 @@ ConflictChecker::check_ffr()
 
   FFRFaultList ffr_fault_list{network(), mFaultList};
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
-    BaseEnc base_enc{network()};
-    auto bd_enc = new BoolDiffEnc{base_enc, ffr->root()};
-    base_enc.make_cnf({}, {ffr->root()});
+    StructEngine engine{network()};
+    auto bd_enc = new BoolDiffEnc{engine, ffr->root()};
+    engine.make_cnf({}, {ffr->root()});
     auto& fault_list = ffr_fault_list.fault_list(ffr);
     SizeType n = fault_list.size();
     for ( SizeType i1 = 0; i1 < n - 1; ++ i1 ) {
       auto fault1 = fault_list[i1];
       auto f1_cond = fault1->ffr_propagate_condition();
-      auto assumptions1 = base_enc.conv_to_literal_list(f1_cond);
+      auto assumptions1 = engine.conv_to_literal_list(f1_cond);
       assumptions1.push_back(bd_enc->prop_var());
       for ( SizeType i2 = i1 + 1; i2 < n; ++ i2 ) {
 	auto fault2 = fault_list[i2];
@@ -246,11 +246,11 @@ ConflictChecker::check_ffr()
 	  continue;
 	}
 	auto f2_cond = fault2->ffr_propagate_condition();
-	auto assumptions2 = base_enc.conv_to_literal_list(f2_cond);
+	auto assumptions2 = engine.conv_to_literal_list(f2_cond);
 	assumptions2.insert(assumptions2.end(),
 			    assumptions1.begin(),
 			    assumptions1.end());
-	if ( base_enc.solver().solve(assumptions2) == SatBool3::False ) {
+	if ( engine.solver().solve(assumptions2) == SatBool3::False ) {
 	  // 同時には検出できない．
 	  mConflictPair.emplace(key);
 	}
@@ -272,13 +272,13 @@ ConflictChecker::check_mandatory_condition()
   timer.start();
 
   SizeType check_num = 0;
-  BaseEnc base_enc{network()};
+  StructEngine engine{network()};
   auto& node_list = network().node_list();
-  base_enc.make_cnf(node_list, node_list);
+  engine.make_cnf(node_list, node_list);
   for ( SizeType i1 = 0; i1 < mFaultNum - 1; ++ i1 ) {
     auto fault1 = mFaultList[i1];
     auto cond1 = mMgr.fault_info(fault1).mandatory_condition();
-    auto assumptions1 = base_enc.conv_to_literal_list(cond1);
+    auto assumptions1 = engine.conv_to_literal_list(cond1);
     for ( SizeType i2 = i1 + 1; i2 < mFaultNum; ++ i2 ) {
       auto fault2 = mFaultList[i2];
       if ( fault1->ffr_root() == fault2->ffr_root() ) {
@@ -291,12 +291,12 @@ ConflictChecker::check_mandatory_condition()
 	continue;
       }
       auto cond2 = mMgr.fault_info(fault2).mandatory_condition();
-      auto assumptions2 = base_enc.conv_to_literal_list(cond2);
+      auto assumptions2 = engine.conv_to_literal_list(cond2);
       assumptions2.insert(assumptions2.end(),
 			  assumptions1.begin(),
 			  assumptions1.end());
       ++ check_num;
-      if ( base_enc.solver().solve(assumptions2) == SatBool3::False ) {
+      if ( engine.solver().solve(assumptions2) == SatBool3::False ) {
 	// 同時には検出できない．
 	mConflictPair.emplace(key);
       }
@@ -339,16 +339,16 @@ ConflictChecker::check_final()
       if ( ffr_fault_list.fault_list(ffr2).empty() ) {
 	continue;
       }
-      BaseEnc base_enc{network()};
-      auto bd_enc1 = new BoolDiffEnc{base_enc, ffr1->root()};
-      auto bd_enc2 = new BoolDiffEnc{base_enc, ffr2->root()};
-      base_enc.make_cnf({}, {ffr1->root(), ffr2->root()});
+      StructEngine engine{network()};
+      auto bd_enc1 = new BoolDiffEnc{engine, ffr1->root()};
+      auto bd_enc2 = new BoolDiffEnc{engine, ffr2->root()};
+      engine.make_cnf({}, {ffr1->root(), ffr2->root()});
       auto pvar1 = bd_enc1->prop_var();
       auto pvar2 = bd_enc2->prop_var();
       auto state = Init;
       for ( auto f1: ffr_fault_list.fault_list(ffr1) ) {
 	auto cond1 = f1->ffr_propagate_condition();
-	auto assumptions1 = base_enc.conv_to_literal_list(cond1);
+	auto assumptions1 = engine.conv_to_literal_list(cond1);
 	assumptions1.push_back(pvar1);
 	assumptions1.push_back(pvar2);
 	for ( auto f2: ffr_fault_list.fault_list(ffr2) ) {
@@ -365,12 +365,12 @@ ConflictChecker::check_final()
 	    continue;
 	  }
 	  auto cond2 = f2->ffr_propagate_condition();
-	  auto assumptions2 = base_enc.conv_to_literal_list(cond2);
+	  auto assumptions2 = engine.conv_to_literal_list(cond2);
 	  assumptions2.insert(assumptions2.end(),
 			      assumptions1.begin(),
 			      assumptions1.end());
 	  ++ check_num;
-	  auto res = base_enc.solver().solve(assumptions2);
+	  auto res = engine.solver().solve(assumptions2);
 	  if ( res == SatBool3::False ) {
 	    // 同時には検出できない．
 	    if ( mConflictPair.count(key) == 0 ) {
@@ -378,7 +378,7 @@ ConflictChecker::check_final()
 	    }
 	    if ( state == Init ) {
 	      // FFRの出力のみの条件を調べる．
-	      auto res = base_enc.solver().solve({pvar1, pvar2});
+	      auto res = engine.solver().solve({pvar1, pvar2});
 	      if ( res == SatBool3::True ) {
 		state = Succeed;
 	      }

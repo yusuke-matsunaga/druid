@@ -21,15 +21,15 @@ SimpleDomChecker::SimpleDomChecker(
   const TpgFFR* ffr1,
   const vector<const TpgFault*>& fault2_list,
   const JsonValue& option
-) : mBaseEnc{network, option}
+) : mEngine{network, option}
 {
-  mBdEnc1 = new BoolDiffEnc{mBaseEnc, ffr1->root(), option};
+  mBdEnc1 = new BoolDiffEnc{mEngine, ffr1->root(), option};
   vector<const TpgNode*> tmp_list;
   tmp_list.push_back(ffr1->root());
   for ( auto fault: fault2_list ) {
     tmp_list.push_back(fault->ffr_root());
   }
-  mBaseEnc.make_cnf(tmp_list, tmp_list);
+  mEngine.make_cnf(tmp_list, tmp_list);
 }
 
 // @brief デストラクタ
@@ -46,14 +46,14 @@ SimpleDomChecker::check(
 {
   ASSERT_COND( fault1->ffr_root() == mBdEnc1->root_node() );
   auto ffr_cond1 = fault1->ffr_propagate_condition();
-  auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond1);
+  auto assumptions = mEngine.conv_to_literal_list(ffr_cond1);
   assumptions.push_back(mBdEnc1->prop_var());
   assumptions.push_back(SatLiteral::X); // プレースホルダ
   auto ffr_cond2 = fault2->ffr_propagate_condition();
   for ( auto nv: ffr_cond2 ) {
-    auto lit = mBaseEnc.conv_to_literal(nv);
+    auto lit = mEngine.conv_to_literal(nv);
     assumptions.back() = ~lit;
-    if ( mBaseEnc.solver().solve(assumptions) != SatBool3::False ) {
+    if ( mEngine.solver().solve(assumptions) != SatBool3::False ) {
       return false;
     }
   }

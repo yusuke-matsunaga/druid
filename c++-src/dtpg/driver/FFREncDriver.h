@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "DtpgDriverImpl.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "BoolDiffEnc.h"
 #include "ym/JsonValue.h"
 
@@ -70,7 +70,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 基本のエンコーダ
-  BaseEnc mBaseEnc;
+  StructEngine mEngine;
 
   // BoolDiff
   BoolDiffEnc* mBdEnc;

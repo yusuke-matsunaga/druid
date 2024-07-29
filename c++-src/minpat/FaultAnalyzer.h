@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "BoolDiffEnc.h"
 #include "AssignList.h"
 #include "ym/JsonValue.h"
@@ -67,7 +67,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 基本エンコーダ
-  BaseEnc mBaseEnc;
+  StructEngine mEngine;
 
   // FFR の出力のブール微分
   BoolDiffEnc* mBdEnc;

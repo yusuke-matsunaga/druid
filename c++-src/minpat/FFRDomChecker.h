@@ -10,7 +10,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "BoolDiffEnc.h"
 #include "ym/JsonValue.h"
 
@@ -66,7 +66,7 @@ private:
   const TpgFFR* mFFR;
 
   // 基本のエンコーダ
-  BaseEnc mBaseEnc;
+  StructEngine mEngine;
 
   // mFFR 用の BoolDiffエンコーダ
   BoolDiffEnc* mBdEnc;

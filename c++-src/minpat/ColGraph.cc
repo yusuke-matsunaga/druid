@@ -24,12 +24,12 @@ ColGraph::ColGraph(
   const vector<TestCover>& cover_list,
   const JsonValue& option
 ) : mNetwork{network},
-    mBaseEnc{network, option},
+    mEngine{network, option},
     mSim{network}
 {
   {
     auto& node_list = network.node_list();
-    mBaseEnc.make_cnf(node_list, node_list);
+    mEngine.make_cnf(node_list, node_list);
   }
   mNodeList.reserve(cover_list.size());
   for ( auto& cover: cover_list ) {
@@ -64,7 +64,7 @@ ColGraph::justify(
   const AssignList& assign_list
 )
 {
-  return mBaseEnc.justify(assign_list);
+  return mEngine.justify(assign_list);
 }
 
 // @brief 指定された色のテストベクタを返す．
@@ -80,12 +80,12 @@ ColGraph::testvector(
     auto& node = mNodeList[id];
     assumptions.push_back(node.mControlVar);
   }
-  auto res = mBaseEnc.solver().solve(assumptions);
+  auto res = mEngine.solver().solve(assumptions);
   if ( res != SatBool3::True ) {
     throw std::invalid_argument{"wrong assignments"};
   }
 
-  auto pi_assign = mBaseEnc.get_pi_assign();
+  auto pi_assign = mEngine.get_pi_assign();
   return TestVector{mNetwork, pi_assign};
 }
 
@@ -119,24 +119,24 @@ ColGraph::make_cover_condition(
   auto fault = cover.fault();
   auto fid = fault->id();
   // この故障を検出するときアクティブにする変数
-  auto cvar = mBaseEnc.solver().new_variable(true);
+  auto cvar = mEngine.solver().new_variable(true);
 #if 0
   for ( auto nv: cover.common_cube() ) {
-    auto lit = mBaseEnc.conv_to_literal(nv);
-    mBaseEnc.solver().add_clause(~cvar, lit);
+    auto lit = mEngine.conv_to_literal(nv);
+    mEngine.solver().add_clause(~cvar, lit);
   }
   vector<SatLiteral> tmp_lits;
   tmp_lits.reserve(cover.cube_list().size());
   tmp_lits.push_back(~cvar);
   for ( auto& cube: cover.cube_list() ) {
-    auto var = mBaseEnc.solver().new_variable(false);
+    auto var = mEngine.solver().new_variable(false);
     for ( auto nv: cube ) {
-      auto lit = mBaseEnc.conv_to_literal(nv);
-      mBaseEnc.solver().add_clause(~var, lit);
+      auto lit = mEngine.conv_to_literal(nv);
+      mEngine.solver().add_clause(~var, lit);
     }
     tmp_lits.push_back(var);
   }
-  mBaseEnc.solver().add_clause(tmp_lits);
+  mEngine.solver().add_clause(tmp_lits);
 #else
   #warning "TODO: cover の内容を表すCNFを作る．"
 #endif
@@ -486,7 +486,7 @@ ColGraph::is_conflict(
   auto clit1 = node1.mControlVar;
   auto clit2 = node2.mControlVar;
   vector<SatLiteral> assumptions = {clit1, clit2};
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+  return mEngine.solver().solve(assumptions) == SatBool3::False;
 }
 
 // @brief ノードとノード集合が衝突するとき true を返す．
@@ -506,7 +506,7 @@ ColGraph::is_conflict(
     auto clit2 = node2.mControlVar;
     assumptions.push_back(clit2);
   }
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+  return mEngine.solver().solve(assumptions) == SatBool3::False;
 }
 
 // コンストラクタ

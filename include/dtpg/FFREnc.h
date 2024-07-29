@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "ym/JsonValue.h"
 
 
@@ -35,9 +35,9 @@ public:
 
   /// @brief コンストラクタ
   ///
-  /// bd_enc が nullptr の場合には FFR 内の伝搬条件のみを考慮する．
+  /// engine が nullptr の場合には FFR 内の伝搬条件のみを考慮する．
   FFREnc(
-    BaseEnc& base_enc,                        ///< [in] 親の BaseEnc
+    StructEngine& engine,                     ///< [in] 親の StructEngine
     BoolDiffEnc* bd_enc,                      ///< [in] FFR の出力の先のエンコーダ
     const TpgFFR* ffr,                        ///< [in] 対象の FFR
     const vector<const TpgFault*>& fault_list ///< [in] 対象の故障リスト

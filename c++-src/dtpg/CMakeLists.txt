@@ -38,7 +38,7 @@ set ( driver_SOURCES
 
 set ( engine_SOURCES
   engine/GateEnc.cc
-  engine/BaseEnc.cc
+  engine/StructEngine.cc
   engine/BoolDiffEnc.cc
   engine/BoolDiffEnc2.cc
   engine/FFREnc.cc

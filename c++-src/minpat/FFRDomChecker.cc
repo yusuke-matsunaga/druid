@@ -21,11 +21,11 @@ FFRDomChecker::FFRDomChecker(
   const TpgFFR* ffr,
   const JsonValue& option
 ) : mFFR{ffr},
-    mBaseEnc{network, option}
+    mEngine{network, option}
 {
-  mBdEnc = new BoolDiffEnc{mBaseEnc, ffr->root(), option};
-  mBaseEnc.make_cnf({}, {ffr->root()});
-  mBaseEnc.solver().add_clause(mBdEnc->prop_var());
+  mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
+  mEngine.make_cnf({}, {ffr->root()});
+  mEngine.solver().add_clause(mBdEnc->prop_var());
 }
 
 // @brief デストラクタ
@@ -42,7 +42,7 @@ FFRDomChecker::check(
 {
   // fault1 の検出条件
   auto ffr_cond1 = fault1->ffr_propagate_condition();
-  auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond1);
+  auto assumptions = mEngine.conv_to_literal_list(ffr_cond1);
   // プレースホルダ
   assumptions.push_back(SatLiteral::X);
   // fault2 の検出条件から fault1 の検出条件を引く．
@@ -55,17 +55,17 @@ FFRDomChecker::check(
   // 邪魔な節なので制御変数 clit を加えて，今回のチェック時のみ
   // clit を 1 にしておく．
   // 以降は clit が自由変数なのでこの節は常に充足される．
-  auto clit = mBaseEnc.solver().new_variable();
+  auto clit = mEngine.solver().new_variable();
   vector<SatLiteral> tmp_lits;
   tmp_lits.reserve(ffr_cond2.size() + 1);
   tmp_lits.push_back(~clit);
   for ( auto nv: ffr_cond2 ) {
-    auto lit = mBaseEnc.conv_to_literal(nv);
+    auto lit = mEngine.conv_to_literal(nv);
     tmp_lits.push_back(~lit);
   }
-  mBaseEnc.solver().add_clause(tmp_lits);
+  mEngine.solver().add_clause(tmp_lits);
   assumptions[assumptions.size() - 1] = clit;
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+  return mEngine.solver().solve(assumptions) == SatBool3::False;
 }
 
 END_NAMESPACE_DRUID

@@ -49,12 +49,12 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 MFFCEnc::MFFCEnc(
-  BaseEnc& base_enc,
+  StructEngine& engine,
   const TpgMFFC* mffc
-) : SubEnc{base_enc},
+) : SubEnc{engine},
     mMFFC{mffc},
     mFFRInfoArray(mMFFC->ffr_num()),
-    mFvarMap{base_enc.network().node_num()}
+    mFvarMap{engine.network().node_num()}
 {
   // MFFC 内の FFR に対してローカルな番号を割り当てる．
   SizeType ffr_id = 0;
@@ -210,7 +210,7 @@ MFFCEnc::make_cnf()
   // まず，各ノードのファンインの変数を gvar で初期化しておく．
   for ( auto node: mNodeList ) {
     for ( auto inode: node->fanin_list() ) {
-      auto glit = base_enc().gvar(inode);
+      auto glit = engine().gvar(inode);
       mFvarMap.set_vid(inode, glit);
     }
   }

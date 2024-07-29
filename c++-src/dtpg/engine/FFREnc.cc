@@ -17,11 +17,11 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 FFREnc::FFREnc(
-  BaseEnc& base_enc,
+  StructEngine& engine,
   BoolDiffEnc* bd_enc,
   const TpgFFR* ffr,
   const vector<const TpgFault*>& fault_list
-) : SubEnc{base_enc},
+) : SubEnc{engine},
     mBdEnc{bd_enc},
     mFFR{ffr},
     mFaultList{fault_list}

@@ -22,7 +22,7 @@ NaiveDomChecker2::NaiveDomChecker2(
   const JsonValue& option
 ) : mFault1{fault1},
     mFault2{fault2},
-    mBaseEnc{network, option}
+    mEngine{network, option}
 {
   unordered_map<SizeType, const TpgFFR*> ffr_map;
   for ( auto ffr: network.ffr_list() ) {
@@ -32,26 +32,26 @@ NaiveDomChecker2::NaiveDomChecker2(
 
   auto node1 = fault1->ffr_root();
   {
-    mBdEnc1 = new BoolDiffEnc{mBaseEnc, node1, option};
+    mBdEnc1 = new BoolDiffEnc{mEngine, node1, option};
   }
   auto node2 = fault2->ffr_root();
   {
-    mBdEnc2 = new BoolDiffEnc{mBaseEnc, node2, option};
+    mBdEnc2 = new BoolDiffEnc{mEngine, node2, option};
     auto ffr2 = ffr_map.at(node2->id());
-    mFFREnc2 = new FFREnc{mBaseEnc, mBdEnc2, ffr2, {fault2}};
+    mFFREnc2 = new FFREnc{mEngine, mBdEnc2, ffr2, {fault2}};
   }
-  mBaseEnc.make_cnf({}, {node1, node2});
+  mEngine.make_cnf({}, {node1, node2});
 
   // fault1 の検出条件を追加する．
   {
     auto pvar1 = mBdEnc1->prop_var();
-    mBaseEnc.solver().add_clause(pvar1);
+    mEngine.solver().add_clause(pvar1);
   }
   // fault2 は検出しないので mBdEnc2->prop_var() か
   // mFFREnc2->prop_var() のいずれかは false
   {
     auto pvar2 = mFFREnc2->prop_var(fault2);
-    mBaseEnc.solver().add_clause(~pvar2);
+    mEngine.solver().add_clause(~pvar2);
   }
 }
 
@@ -65,8 +65,8 @@ bool
 NaiveDomChecker2::check()
 {
   auto prop_cond = mFault1->ffr_propagate_condition();
-  auto assumptions = mBaseEnc.conv_to_literal_list(prop_cond);
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+  auto assumptions = mEngine.conv_to_literal_list(prop_cond);
+  return mEngine.solver().solve(assumptions) == SatBool3::False;
 }
 
 END_NAMESPACE_DRUID

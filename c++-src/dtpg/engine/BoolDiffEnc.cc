@@ -34,18 +34,18 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 BoolDiffEnc::BoolDiffEnc(
-  BaseEnc& base_enc,
+  StructEngine& engine,
   const TpgNode* root,
   const JsonValue& option
-) : SubEnc{base_enc},
+) : SubEnc{engine},
     mRoot{root},
-    mFvarMap{base_enc.network().node_num()},
-    mDvarMap{base_enc.network().node_num()},
+    mFvarMap{engine.network().node_num()},
+    mDvarMap{engine.network().node_num()},
     mExtractor{Extractor::new_impl(get_option(option, "extractor"))},
     mMultiExtractor{MultiExtractor::new_impl(get_option(option, "multi_extractor"))}
 {
   mTfoList = TpgNodeSet::get_tfo_list(
-    base_enc.network().node_num(), mRoot,
+    engine.network().node_num(), mRoot,
     [&](const TpgNode* node) {
       if ( node->is_ppo() ) {
 	mOutputList.push_back(node);
@@ -170,7 +170,7 @@ AssignList
 BoolDiffEnc::extract_sufficient_condition()
 {
   return (*mExtractor)(root_node(),
-		       base_enc().gvar_map(),
+		       engine().gvar_map(),
 		       mFvarMap,
 		       solver().model());
 }
@@ -180,7 +180,7 @@ AssignExpr
 BoolDiffEnc::extract_sufficient_conditions()
 {
   return (*mMultiExtractor)(root_node(),
-			    base_enc().gvar_map(),
+			    engine().gvar_map(),
 			    mFvarMap,
 			    solver().model());
 }

@@ -11,7 +11,7 @@
 #include "TpgFFR.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "BoolDiffEnc.h"
 #include "TestVector.h"
 #include "OpBase.h"
@@ -28,7 +28,7 @@ ExCubeGen::ExCubeGen(
   const TpgFFR* ffr,
   const JsonValue& option
 ) : mFFR{ffr},
-    mBaseEnc{network, option},
+    mEngine{network, option},
     mDebug{OpBase::get_debug(option)}
 {
   mLimit = 1;
@@ -37,20 +37,20 @@ ExCubeGen::ExCubeGen(
       mLimit = option.get("cube_per_fault").get_int();
     }
   }
-  mBdEnc = new BoolDiffEnc{mBaseEnc, ffr->root(), option};
-  mBaseEnc.make_cnf({}, {ffr->root()});
+  mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
+  mEngine.make_cnf({}, {ffr->root()});
 
   // FFR の出力の伝搬可能性を調べる．
   Timer timer;
   timer.start();
   auto pvar = mBdEnc->prop_var();
-  mRootStatus = mBaseEnc.solver().solve({pvar});
+  mRootStatus = mEngine.solver().solve({pvar});
   if ( mRootStatus == SatBool3::True ) {
     // 必要条件を求める．
     auto suff_cond = mBdEnc->extract_sufficient_condition();
     for ( auto nv: suff_cond ) {
-      auto lit = mBaseEnc.conv_to_literal(nv);
-      if ( mBaseEnc.solver().solve({pvar, ~lit}) == SatBool3::False ) {
+      auto lit = mEngine.conv_to_literal(nv);
+      if ( mEngine.solver().solve({pvar, ~lit}) == SatBool3::False ) {
 	mRootMandCond.add(nv);
       }
     }
@@ -71,7 +71,7 @@ ExCubeGen::ExCubeGen(
   const AssignList& root_cond,
   const JsonValue& option
 ) : mFFR{ffr},
-    mBaseEnc{network, option},
+    mEngine{network, option},
     mRootMandCond{root_cond},
     mDebug{OpBase::get_debug(option)}
 {
@@ -81,8 +81,8 @@ ExCubeGen::ExCubeGen(
       mLimit = option.get("cube_per_fault").get_int();
     }
   }
-  mBdEnc = new BoolDiffEnc{mBaseEnc, ffr->root(), option};
-  mBaseEnc.make_cnf({}, {ffr->root()});
+  mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
+  mEngine.make_cnf({}, {ffr->root()});
 
   if ( mDebug > 1 ) {
     DBG_OUT << "FFR#" << ffr->id()
@@ -110,9 +110,9 @@ ExCubeGen::run(
   timer.start();
   auto plit = mBdEnc->prop_var();
   auto ffr_cond = fault->ffr_propagate_condition();
-  auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond);
+  auto assumptions = mEngine.conv_to_literal_list(ffr_cond);
   assumptions.push_back(plit);
-  auto res = mBaseEnc.solver().solve(assumptions);
+  auto res = mEngine.solver().solve(assumptions);
   timer.stop();
   if ( mDebug > 1 ) {
     DBG_OUT << "DTPG: " << (timer.get_time() / 1000.0) << endl;
@@ -134,9 +134,9 @@ ExCubeGen::run(
   auto assumptions1 = assumptions;
   assumptions1.push_back(SatLiteral::X);
   for ( auto nv: tmp_cond ) {
-    auto lit = mBaseEnc.conv_to_literal(nv);
+    auto lit = mEngine.conv_to_literal(nv);
     assumptions1.back() = ~lit;
-    if ( mBaseEnc.solver().solve(assumptions1) == SatBool3::False ) {
+    if ( mEngine.solver().solve(assumptions1) == SatBool3::False ) {
       mand_cond.add(nv);
     }
   }
@@ -159,7 +159,7 @@ ExCubeGen::run(
   }
 
   // 制御用の変数を用意する．
-  auto clit = mBaseEnc.solver().new_variable(false);
+  auto clit = mEngine.solver().new_variable(false);
   while ( cube_list.size() < mLimit ) {
     Timer timer;
     timer.start();
@@ -170,14 +170,14 @@ ExCubeGen::run(
     tmp_lits.reserve(suff_cond.size() + 1);
     tmp_lits.push_back(~clit);
     for ( auto nv: suff_cond ) {
-      auto lit = mBaseEnc.conv_to_literal(nv);
+      auto lit = mEngine.conv_to_literal(nv);
       tmp_lits.push_back(~lit);
     }
-    mBaseEnc.solver().add_clause(tmp_lits);
-    auto assumptions = mBaseEnc.conv_to_literal_list(mand_cond);
+    mEngine.solver().add_clause(tmp_lits);
+    auto assumptions = mEngine.conv_to_literal_list(mand_cond);
     assumptions.push_back(plit);
     assumptions.push_back(clit);
-    auto res = mBaseEnc.solver().solve(assumptions);
+    auto res = mEngine.solver().solve(assumptions);
     timer.stop();
     if ( mDebug > 2 ) {
       DBG_OUT << "  " << (timer.get_time() / 1000.0) << endl;

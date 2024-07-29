@@ -33,14 +33,14 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 BoolDiffEnc2::BoolDiffEnc2(
-  BaseEnc& base_enc,
+  StructEngine& engine,
   const vector<const TpgNode*>& root_list,
   const JsonValue& option
-) : SubEnc{base_enc},
+) : SubEnc{engine},
     mRootArray{root_list},
     mCVarArray(mRootArray.size()),
-    mFvarMap{base_enc.network().node_num()},
-    mDvarMap{base_enc.network().node_num()},
+    mFvarMap{engine.network().node_num()},
+    mDvarMap{engine.network().node_num()},
     mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
 {
   SizeType n = mRootArray.size();
@@ -49,7 +49,7 @@ BoolDiffEnc2::BoolDiffEnc2(
     mRootMap.emplace(root->id(), i);
   }
   mTfoList = TpgNodeSet::get_tfo_list(
-    base_enc.network().node_num(), mRootArray,
+    engine.network().node_num(), mRootArray,
     [&](const TpgNode* node) {
       if ( node->is_ppo() ) {
 	mOutputList.push_back(node);
@@ -218,7 +218,7 @@ BoolDiffEnc2::extract_sufficient_condition(
 {
   return (*mExtractor)(
     root,
-    base_enc().gvar_map(),
+    engine().gvar_map(),
     mFvarMap,
     solver().model()
   );

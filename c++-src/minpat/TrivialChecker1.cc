@@ -21,7 +21,7 @@ TrivialChecker1::TrivialChecker1(
   const TpgNetwork& network,
   const vector<const TpgFault*>& fault_list,
   const JsonValue& option
-) : mBaseEnc{network, option}
+) : mEngine{network, option}
 {
   vector<bool> mark(network.node_num(), false);
   vector<const TpgNode*> node_list;
@@ -34,7 +34,7 @@ TrivialChecker1::TrivialChecker1(
   }
   auto tfo_list = TpgNodeSet::get_tfo_list(network.node_num(), node_list,
 					   [&](const TpgNode*){});
-  mBaseEnc.make_cnf(tfo_list, tfo_list);
+  mEngine.make_cnf(tfo_list, tfo_list);
 }
 
 // @brief デストラクタ
@@ -49,12 +49,12 @@ TrivialChecker1::check(
   const AssignList& cond2
 )
 {
-  auto assumptions = mBaseEnc.conv_to_literal_list(cond1);
+  auto assumptions = mEngine.conv_to_literal_list(cond1);
   assumptions.push_back(SatLiteral::X);
   for ( auto nv: cond2 ) {
-    auto lit = mBaseEnc.conv_to_literal(nv);
+    auto lit = mEngine.conv_to_literal(nv);
     assumptions.back() = ~lit;
-    if ( mBaseEnc.solver().solve(assumptions) != SatBool3::False ) {
+    if ( mEngine.solver().solve(assumptions) != SatBool3::False ) {
       return false;
     }
   }

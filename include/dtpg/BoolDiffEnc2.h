@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,7 +20,7 @@ class Extractor;
 /// @class BoolDiffEnc2 BoolDiffEnc2.h "BoolDiffEnc2.h"
 /// @brief ブール微分を表すCNFを生成するクラス
 ///
-/// BaseEnc に部品として組み込んで用いる SubEnc の継承クラス
+/// StructEngine に部品として組み込んで用いる SubEnc の継承クラス
 ///
 /// 起点となるノードを複数指定する．
 /// ただし，実際に反転させるのは同時に1つのみ．
@@ -38,7 +38,7 @@ public:
 
   /// @brief コンストラクタ
   BoolDiffEnc2(
-    BaseEnc& base_enc,                       ///< [in] 親の BaseEnc
+    StructEngine& engine,                    ///< [in] 親の StructEngine
     const vector<const TpgNode*>& root_list, ///< [in] 起点のノードのリスト
     const JsonValue& option = JsonValue{}    ///< [in] オプション
   );
@@ -117,7 +117,7 @@ private:
     const TpgNode* node ///< [in] 対象のノード
   )
   {
-    return base_enc().gvar(node);
+    return engine().gvar(node);
   }
 
   /// @brief 故障値を表す変数を返す．

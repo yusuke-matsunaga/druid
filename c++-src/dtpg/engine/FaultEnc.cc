@@ -14,9 +14,9 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 FaultEnc::FaultEnc(
-  BaseEnc& base_enc,
+  StructEngine& engine,
   const TpgFault* fault
-) : SubEnc{base_enc},
+) : SubEnc{engine},
     mFault{fault}
 {
   auto ex_cond = mFault->excitation_condition();

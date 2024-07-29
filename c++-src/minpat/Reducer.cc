@@ -14,7 +14,7 @@
 #include "TpgFault.h"
 #include "TestVector.h"
 #include "TestCover.h"
-#include "BaseEnc.h"
+//#include "StructEngine.h"
 #include "BoolDiffEnc.h"
 #include "FaultAnalyzer.h"
 #include "FFRDomChecker.h"

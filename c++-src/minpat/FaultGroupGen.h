@@ -10,7 +10,7 @@
 
 #include "druid.h"
 #include "TestCover.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -126,7 +126,7 @@ private:
   const TpgNetwork& mNetwork;
 
   // 基本エンコーダ
-  BaseEnc mBaseEnc;
+  StructEngine mEngine;
 
   // 拡張テストキューブのリスト
   vector<const ExCube*> mCubeList;

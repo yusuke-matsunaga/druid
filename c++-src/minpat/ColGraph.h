@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "TestCover.h"
 #include "TestVector.h"
 #include "Sim.h"
@@ -312,7 +312,7 @@ private:
   const TpgNetwork& mNetwork;
 
   // 基本エンコーダ
-  BaseEnc mBaseEnc;
+  StructEngine mEngine;
 
   // ノードのリスト
   vector<Node> mNodeList;

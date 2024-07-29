@@ -1,8 +1,8 @@
-#ifndef BASEENC_H
-#define BASEENC_H
+#ifndef STRUCTENGINE_H
+#define STRUCTENGINE_H
 
-/// @file BaseEnc.h
-/// @brief BaseEnc のヘッダファイル
+/// @file StructEngine.h
+/// @brief StructEngine のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -21,7 +21,7 @@ class SubEnc;
 class Justifier;
 
 //////////////////////////////////////////////////////////////////////
-/// @class BaseEnc BaseEnc.h "BaseEnc.h"
+/// @class StructEngine StructEngine.h "StructEngine.h"
 /// @brief DTPG 用の基本的なエンコードを行うクラス
 ///
 /// SATソルバとノード用の変数マップを持つ．
@@ -29,14 +29,14 @@ class Justifier;
 ///
 /// make_cnf() などの関数
 //////////////////////////////////////////////////////////////////////
-class BaseEnc
+class StructEngine
 {
   friend class SubEnc;
 
 public:
 
   /// @brief コンストラクタ
-  BaseEnc(
+  StructEngine(
     const TpgNetwork& network, ///< [in] 対象のネットワーク
     const JsonValue& option    ///< [in] 初期化オプション
     = JsonValue{}              ///<      "sat_param": JsonValue
@@ -48,7 +48,7 @@ public:
   /// @brief デストラクタ
   ///
   /// 保持している SubEnc はここで開放される．
-  ~BaseEnc();
+  ~StructEngine();
 
 
 public:
@@ -177,7 +177,7 @@ private:
 
   /// @brief 部品を登録する．
   ///
-  /// subenc の所有権は BaseEnc に委譲される．
+  /// subenc の所有権は StructEngine に委譲される．
   void
   reg_subenc(
     SubEnc* subenc ///< [in] 部品のエンコーダ
@@ -230,22 +230,22 @@ private:
 
 //////////////////////////////////////////////////////////////////////
 /// @class SubEnc SubEnc.h "SubEnc.h"
-/// @brief BaseEnc の部品クラス
+/// @brief StructEngine の部品クラス
 ///
 /// このクラスは実際の継承クラスの純粋仮想基底クラス
 //////////////////////////////////////////////////////////////////////
 class SubEnc
 {
-  friend class BaseEnc;
+  friend class StructEngine;
 
 public:
 
   /// @brief コンストラクタ
   SubEnc(
-    BaseEnc& base_enc ///< [in] 親の BaseEnc
-  ) : mBaseEnc{base_enc}
+    StructEngine& engine ///< [in] 親の StructEngine
+  ) : mEngine{engine}
   {
-    base_enc.reg_subenc(this);
+    mEngine.reg_subenc(this);
   }
 
   /// @brief デストラクタ
@@ -258,25 +258,25 @@ protected:
   // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 親の BaseEnc を返す．
-  BaseEnc&
-  base_enc() const
+  /// @brief 親の StructEngine を返す．
+  StructEngine&
+  engine() const
   {
-    return mBaseEnc;
+    return mEngine;
   }
 
   /// @brief 対象のネットワークを返す．
   const TpgNetwork&
   network() const
   {
-    return base_enc().network();
+    return engine().network();
   }
 
   /// @brief SATソルバーを返す．
   SatSolver&
   solver()
   {
-    return base_enc().solver();
+    return engine().solver();
   }
 
   /// @brief 値割り当てを対応するリテラルに変換する．
@@ -285,7 +285,7 @@ protected:
     Assign assign ///< [in] 値割り当て
   )
   {
-    return base_enc().conv_to_literal(assign);
+    return engine().conv_to_literal(assign);
   }
 
   /// @brief 値割り当てのリストを対応するリテラルのリストに変換する．
@@ -294,13 +294,13 @@ protected:
     AssignList& assign_list ///< [in] 値割り当てのリスト
   )
   {
-    return base_enc().conv_to_literal_list(assign_list);
+    return engine().conv_to_literal_list(assign_list);
   }
 
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // BaseEnc から利用される仮想関数
+  // StructEngine から利用される仮想関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 変数を割り当てCNFを生成する．
@@ -324,11 +324,11 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 親の BaseEnc
-  BaseEnc& mBaseEnc;
+  // 親の StructEngine
+  StructEngine& mEngine;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // BASEENC_H
+#endif // STRUCTENGINE_H

@@ -25,11 +25,11 @@ FFREncDriver::FFREncDriver(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
-) : mBaseEnc{network, option}
+) : mEngine{network, option}
 {
   auto node = ffr->root();
-  mBdEnc = new BoolDiffEnc{mBaseEnc, node, option};
-  mBaseEnc.make_cnf({}, {node});
+  mBdEnc = new BoolDiffEnc{mEngine, node, option};
+  mEngine.make_cnf({}, {node});
 }
 
 // @brief デストラクタ
@@ -44,9 +44,9 @@ FFREncDriver::solve(
 )
 {
   auto prop_cond = fault->ffr_propagate_condition();
-  auto assumptions = mBaseEnc.conv_to_literal_list(prop_cond);
+  auto assumptions = mEngine.conv_to_literal_list(prop_cond);
   assumptions.push_back(mBdEnc->prop_var());
-  return mBaseEnc.solver().solve(assumptions);
+  return mEngine.solver().solve(assumptions);
 }
 
 // @brief テストパタン生成を行う．
@@ -58,22 +58,22 @@ FFREncDriver::gen_pattern(
   auto assign_list = mBdEnc->extract_sufficient_condition();
   auto prop_cond = fault->ffr_propagate_condition();
   assign_list.merge(prop_cond);
-  auto pi_assign_list = mBaseEnc.justify(assign_list);
-  return TestVector{mBaseEnc.network(), pi_assign_list};
+  auto pi_assign_list = mEngine.justify(assign_list);
+  return TestVector{mEngine.network(), pi_assign_list};
 }
 
 // @brief CNF の生成時間を返す．
 double
 FFREncDriver::cnf_time() const
 {
-  return mBaseEnc.cnf_time();
+  return mEngine.cnf_time();
 }
 
 // @brief SATの統計情報を返す．
 SatStats
 FFREncDriver::sat_stats() const
 {
-  return mBaseEnc.solver().get_stats();
+  return mEngine.solver().get_stats();
 }
 
 END_NAMESPACE_DRUID

@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -27,7 +27,7 @@ public:
 
   /// @brief コンストラクタ
   FaultEnc(
-    BaseEnc& base_enc,    ///< [in] 回路全体のCNF式を作るエンコーダー
+    StructEngine& engine, ///< [in] 回路全体のCNF式を作るエンコーダー
     const TpgFault* fault ///< [in] 対象の故障
   );
 

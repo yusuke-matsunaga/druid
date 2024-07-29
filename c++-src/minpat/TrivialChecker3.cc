@@ -22,9 +22,9 @@ TrivialChecker3::TrivialChecker3(
   const vector<const TpgFault*>& fault1_list,
   const TpgFFR* ffr2,
   const JsonValue& option
-) : mBaseEnc{network, option}
+) : mEngine{network, option}
 {
-  mBdEnc2 = new BoolDiffEnc{mBaseEnc, ffr2->root(), option};
+  mBdEnc2 = new BoolDiffEnc{mEngine, ffr2->root(), option};
   vector<bool> mark(network.node_num(), false);
   vector<const TpgNode*> node_list;
   node_list.push_back(ffr2->root());
@@ -38,7 +38,7 @@ TrivialChecker3::TrivialChecker3(
   }
   auto tfo_list = TpgNodeSet::get_tfo_list(network.node_num(), node_list,
 					   [&](const TpgNode*){});
-  mBaseEnc.make_cnf(tfo_list, tfo_list);
+  mEngine.make_cnf(tfo_list, tfo_list);
 }
 
 // @brief デストラクタ
@@ -52,10 +52,10 @@ TrivialChecker3::check(
   const AssignList& assignments
 )
 {
-  auto assumptions = mBaseEnc.conv_to_literal_list(assignments);
+  auto assumptions = mEngine.conv_to_literal_list(assignments);
   auto pvar = mBdEnc2->prop_var();
   assumptions.push_back(~pvar);
-  return mBaseEnc.solver().solve(assumptions) == SatBool3::False;
+  return mEngine.solver().solve(assumptions) == SatBool3::False;
 }
 
 END_NAMESPACE_DRUID

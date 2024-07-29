@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -25,8 +25,8 @@ public:
 
   /// @brief コンストラクタ
   MFFCEnc(
-    BaseEnc& base_enc,  ///< [in] 親の BaseEnc
-    const TpgMFFC* mffc ///< [in] 対象の MFFC
+    StructEngine& engine, ///< [in] 親の StructEngine
+    const TpgMFFC* mffc   ///< [in] 対象の MFFC
   );
 
   /// @brief デストラクタ
@@ -99,7 +99,7 @@ private:
     const TpgNode* node ///< [in] 対象のノード
   ) const
   {
-    return base_enc().gvar(node);
+    return engine().gvar(node);
   }
 
   /// @brief 故障値を表す変数を返す．

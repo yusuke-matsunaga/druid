@@ -1,12 +1,12 @@
 
-/// @file BaseEnc.cc
-/// @brief BaseEnc の実装ファイル
+/// @file StructEngine.cc
+/// @brief StructEngine の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "TpgNetwork.h"
 #include "TpgNodeSet.h"
 #include "GateEnc.h"
@@ -44,7 +44,7 @@ get_option(
 END_NONAMESPACE
 
 // @brief コンストラクタ
-BaseEnc::BaseEnc(
+StructEngine::StructEngine(
   const TpgNetwork& network,
   const JsonValue& option
 ) : mNetwork{network},
@@ -56,7 +56,7 @@ BaseEnc::BaseEnc(
 }
 
 // @brief デストラクタ
-BaseEnc::~BaseEnc()
+StructEngine::~StructEngine()
 {
   for ( auto sub: mSubEncList ) {
     delete sub;
@@ -65,7 +65,7 @@ BaseEnc::~BaseEnc()
 
 // @brief 回路の構造を表すCNFを生成する．
 void
-BaseEnc::make_cnf(
+StructEngine::make_cnf(
   const vector<const TpgNode*>& cur_node_list,
   const vector<const TpgNode*>& prev_node_list
 )
@@ -189,7 +189,7 @@ BaseEnc::make_cnf(
 
 // @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
 AssignList
-BaseEnc::justify(
+StructEngine::justify(
   const AssignList& assign_list
 )
 {
@@ -204,7 +204,7 @@ BaseEnc::justify(
 
 // @brief 現在の外部入力の割当を得る．
 AssignList
-BaseEnc::get_pi_assign()
+StructEngine::get_pi_assign()
 {
   AssignList pi_assign;
   if ( mNetwork.has_prev_state() ) {
@@ -228,7 +228,7 @@ BaseEnc::get_pi_assign()
 
 // @brief 値割り当てを対応するリテラルに変換する．
 SatLiteral
-BaseEnc::conv_to_literal(
+StructEngine::conv_to_literal(
   Assign assign
 )
 {
@@ -241,7 +241,7 @@ BaseEnc::conv_to_literal(
 
 // @brief 値割り当てのリストを対応するリテラルのリストに変換する．
 vector<SatLiteral>
-BaseEnc::conv_to_literal_list(
+StructEngine::conv_to_literal_list(
   const AssignList& assign_list
 )
 {
@@ -256,7 +256,7 @@ BaseEnc::conv_to_literal_list(
 
 // @brief 値を返す．
 bool
-BaseEnc::val(
+StructEngine::val(
   const TpgNode* node,
   int time
 ) const

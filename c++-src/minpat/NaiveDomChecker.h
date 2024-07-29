@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "BoolDiffEnc.h"
 #include "FaultEnc.h"
 
@@ -63,7 +63,7 @@ private:
   const TpgFault* mFault2;
 
   // base engine
-  BaseEnc mBaseEnc;
+  StructEngine mEngine;
 
   // 故障1用の BoolDiff
   BoolDiffEnc* mBdEnc1;
