@@ -79,7 +79,7 @@ sppfp_test(
   int det_num = 0;
   int nepat = 0;
   int i = 0;
-  std::mutex mtx;
+  
   vector<bool> det_array(max_fid, false);
   for ( auto tv: tv_list ) {
     bool detected = false;
@@ -119,7 +119,7 @@ ppsfp_test(
 {
   SizeType nepat = 0;
   SizeType det_num = 0;
-  std::mutex mtx;
+
   unordered_set<SizeType> pat_dict;
   vector<bool> det_array(max_fid, false);
   vector<TestVector> tv_buff;
