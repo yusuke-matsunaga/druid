@@ -10,7 +10,8 @@
 
 #include "druid.h"
 #include "FaultStatus.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
+#include "AssignExpr.h"
 #include "ym/JsonValue.h"
 
 
@@ -82,14 +83,21 @@ public:
   }
 
   /// @brief 十分割り当てを返す．
-  const NodeTimeValList&
+  const AssignList&
   sufficient_condition() const
   {
     return mSuffCond;
   }
 
+  /// @brief 十分割り当てを返す．
+  const AssignExpr&
+  sufficient_condition_expr() const
+  {
+    return mSuffCondExpr;
+  }
+
   /// @brief 外部入力の割り当てを返す．
-  const NodeTimeValList&
+  const AssignList&
   pi_assign() const
   {
     return mPiAssign;
@@ -105,7 +113,7 @@ public:
   /// @brief 必要割り当てを返す．
   ///
   /// has_mandatory_condition() == true の時のみ意味を持つ．
-  const NodeTimeValList&
+  const AssignList&
   mandatory_condition() const
   {
     return mMandCond;
@@ -123,11 +131,13 @@ public:
   /// 自動的に status が detected になる．
   void
   set_sufficient_condition(
-    const NodeTimeValList& suff_cond,
-    const NodeTimeValList& pi_assign
+    const AssignList& suff_cond,
+    const AssignExpr& suff_cond_expr,
+    const AssignList& pi_assign
   )
   {
     mSuffCond = suff_cond;
+    mSuffCondExpr = suff_cond_expr;
     mPiAssign = pi_assign;
     mFlags[0] = true;
     mFlags[1] = false; // 念のため
@@ -137,12 +147,12 @@ public:
   /// @brief 必要割り当てをセットする．
   void
   set_mandatory_condition(
-    const NodeTimeValList& mand_cond
+    const AssignList& mand_cond
   )
   {
     mMandCond = mand_cond;
     mFlags[2] = true;
-    if ( compare(mSuffCond, mMandCond) == 3 ) {
+    if ( compare(mSuffCond, mand_cond) == 3 ) {
       mFlags[3] = true;
     }
   }
@@ -187,13 +197,16 @@ private:
   bitset<5> mFlags{16U};
 
   // 十分割り当て
-  NodeTimeValList mSuffCond;
+  AssignList mSuffCond;
+
+  // 十分割り当て
+  AssignExpr mSuffCondExpr;
 
   // テストパタン用の割り当て
-  NodeTimeValList mPiAssign;
+  AssignList mPiAssign;
 
   // 必要割り当て
-  NodeTimeValList mMandCond;
+  AssignList mMandCond;
 
 };
 

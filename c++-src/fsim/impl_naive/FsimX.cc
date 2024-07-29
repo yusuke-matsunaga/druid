@@ -15,7 +15,7 @@
 #include "TestVector.h"
 #include "InputVector.h"
 #include "DffVector.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 
 #include "SimNode.h"
 #include "SimFFR.h"
@@ -315,7 +315,7 @@ FSIM_CLASSNAME::spsfp(
 // @brief SPSFP故障シミュレーションを行う．
 bool
 FSIM_CLASSNAME::spsfp(
-  const NodeTimeValList& assign_list,
+  const AssignList& assign_list,
   const TpgFault* f,
   DiffBits& dbits
 )
@@ -378,7 +378,7 @@ FSIM_CLASSNAME::sppfp(
 // @brief ひとつのパタンで故障シミュレーションを行う．
 void
 FSIM_CLASSNAME::sppfp(
-  const NodeTimeValList& assign_list,
+  const AssignList& assign_list,
   cbtype1 callback
 )
 {

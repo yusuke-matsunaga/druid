@@ -10,7 +10,7 @@
 #include "JustNaive.h"
 #include "Just1.h"
 #include "Just2.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "TpgNetwork.h"
 
 
@@ -77,9 +77,9 @@ Justifier::~Justifier()
 }
 
 // @brief 正当化に必要な割当を求める
-NodeTimeValList
+AssignList
 Justifier::operator()(
-  const NodeTimeValList& assign_list,
+  const AssignList& assign_list,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model

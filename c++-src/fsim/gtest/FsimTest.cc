@@ -12,7 +12,6 @@
 #include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "TestVector.h"
-#include "NodeValList.h"
 
 
 BEGIN_NAMESPACE_DRUID

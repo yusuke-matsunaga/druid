@@ -153,7 +153,7 @@ ConflictChecker::check_trivial(
   // ペアを求める．
   mConflictPair.clear();
   LocalImp imp{network()};
-  vector<NodeTimeValList> cond_array(mFaultNum);
+  vector<AssignList> cond_array(mFaultNum);
   for ( SizeType i = 0; i < mFaultNum; ++ i ) {
     auto fault = mFaultList[i];
     auto& cond = mMgr.fault_info(fault).mandatory_condition();

@@ -16,7 +16,7 @@
 #include "DtpgStats.h"
 #include "Val3.h"
 #include "VidMap.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "Extractor.h"
 #include "Justifier.h"
 
@@ -131,13 +131,13 @@ public:
   /// @brief 値割り当てをリテラルに変換する．
   SatLiteral
   conv_to_literal(
-    NodeTimeVal node_val ///< [in] 値割当リスト
+    Assign node_val ///< [in] 値割当リスト
   );
 
   /// @brief 値割り当てをリテラルのリストに変換する．
   vector<SatLiteral>
   conv_to_literal_list(
-    const NodeTimeValList& assign_list ///< [in] 値の割り当てリスト
+    const AssignList& assign_list ///< [in] 値の割り当てリスト
   )
   {
     vector<SatLiteral> ans_list;
@@ -148,7 +148,7 @@ public:
   /// @brief 値割り当てをリテラルのリストに追加する．
   void
   add_to_literal_list(
-    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
+    const AssignList& assign_list, ///< [in] 値の割り当てリスト
     vector<SatLiteral>& lit_list    ///< [out] 変換したリテラルを追加するリスト
   );
 
@@ -182,7 +182,7 @@ public:
   /// @brief 直前の check() が成功したときの十分条件を求める．
   ///
   /// root はコンストラクタの root_node とは異なる可能性がある．
-  NodeTimeValList
+  AssignList
   extract_sufficient_condition(
     const TpgNode* root ///< [in] 故障伝搬の起点となるノード
   );
@@ -193,9 +193,9 @@ public:
   /// この関数内では SAt ソルバを起動しない．
   /// assign_list の割当は直前の check() の結果に沿ったものになっている
   /// 必要がある．
-  NodeTimeValList
+  AssignList
   justify(
-    const NodeTimeValList& assign_list ///< [in] もととなる値割り当て
+    const AssignList& assign_list ///< [in] もととなる値割り当て
   );
 
   /// @brief 1時刻前の正常値の変数を返す．

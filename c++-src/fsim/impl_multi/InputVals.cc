@@ -9,7 +9,7 @@
 #include "FsimX.h"
 #include "InputVals.h"
 #include "TestVector.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "TpgNode.h"
 
 
@@ -260,7 +260,7 @@ Tv2InputVals::bitmask() const
 
 // @brief コンストラクタ
 NvlInputVals::NvlInputVals(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 ) : mAssignList{assign_list}
 {
 }

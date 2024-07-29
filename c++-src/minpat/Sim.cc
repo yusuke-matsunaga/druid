@@ -8,7 +8,7 @@
 
 #include "Sim.h"
 #include "TpgNetwork.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -134,7 +134,7 @@ Sim::sim_pattern(
 // @brief 割り当て条件を満たしているか調べる．
 PackedVal
 Sim::check(
-  const NodeTimeValList& assign
+  const AssignList& assign
 ) const
 {
   PackedVal dbits = PV_ALL1;

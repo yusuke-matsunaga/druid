@@ -59,9 +59,9 @@ ColGraph::~ColGraph()
 }
 
 // @brief 割り当てを充足させる外部入力の割り当てを求める．
-NodeTimeValList
+AssignList
 ColGraph::justify(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   return mBaseEnc.justify(assign_list);
@@ -120,6 +120,7 @@ ColGraph::make_cover_condition(
   auto fid = fault->id();
   // この故障を検出するときアクティブにする変数
   auto cvar = mBaseEnc.solver().new_variable(true);
+#if 0
   for ( auto nv: cover.common_cube() ) {
     auto lit = mBaseEnc.conv_to_literal(nv);
     mBaseEnc.solver().add_clause(~cvar, lit);
@@ -136,6 +137,9 @@ ColGraph::make_cover_condition(
     tmp_lits.push_back(var);
   }
   mBaseEnc.solver().add_clause(tmp_lits);
+#else
+  #warning "TODO: cover の内容を表すCNFを作る．"
+#endif
   return cvar;
 }
 
@@ -512,6 +516,7 @@ ColGraph::Node::Node(
 ) : mFault{cover.fault()},
     mControlVar{cvar}
 {
+#if 0
   auto& common_cube = cover.common_cube();
   auto& cube_list = cover.cube_list();
   mCubeList.reserve(cube_list.size());
@@ -519,6 +524,9 @@ ColGraph::Node::Node(
     cube.merge(common_cube);
     mCubeList.push_back(cube);
   }
+#else
+#warning "TODO: cover の内容をセットする．"
+#endif
 }
 
 END_NAMESPACE_DRUID

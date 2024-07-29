@@ -71,7 +71,7 @@ public:
   }
 
   /// @brief 対応する値割当を返す．
-  const NodeTimeValList&
+  const AssignList&
   cube(
     SizeType id ///< [in] ノード番号( 0 <= id < node_num() )
   ) const
@@ -209,8 +209,8 @@ private:
   /// @brief assign1 と assign2 が衝突する時 true を返す．
   bool
   is_conflict(
-    const NodeTimeValList& assign1,
-    const NodeTimeValList& assign2
+    const AssignList& assign1,
+    const AssignList& assign2
   );
 
 
@@ -224,7 +224,7 @@ private:
     // 故障
     const TpgFault* mFault;
     // テストキューブ
-    NodeTimeValList mCube;
+    AssignList mCube;
     // 色
     SizeType mColor;
     // 衝突しているノード番号のリスト
@@ -240,7 +240,7 @@ private:
     // ノード番号のリスト
     vector<SizeType> mNodeList;
     // 値割り当てのリスト
-    NodeTimeValList mAssignments;
+    AssignList mAssignments;
   };
 
   // ネットワーク

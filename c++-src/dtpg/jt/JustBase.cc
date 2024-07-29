@@ -37,9 +37,9 @@ JustBase::~JustBase()
 }
 
 // @brief justify の実際の処理
-NodeTimeValList
+AssignList
 JustBase::_justify(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   // マークをクリアする．
@@ -56,7 +56,7 @@ JustBase::_justify(
     put_queue(node, time);
   }
 
-  NodeTimeValList pi_assign_list;
+  AssignList pi_assign_list;
   for ( SizeType rpos = 0; rpos < mQueue.size(); ++ rpos ) {
     auto& nv = mQueue[rpos];
     auto node = nv.node();
@@ -74,7 +74,7 @@ void
 JustBase::just_main(
   const TpgNode* node,
   int time,
-  NodeTimeValList& pi_assign_list
+  AssignList& pi_assign_list
 )
 {
   if ( debug_jt ) {

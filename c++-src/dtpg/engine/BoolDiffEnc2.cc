@@ -10,6 +10,7 @@
 #include "TpgNetwork.h"
 #include "TpgNodeSet.h"
 #include "GateEnc.h"
+#include "Extractor.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -40,7 +41,7 @@ BoolDiffEnc2::BoolDiffEnc2(
     mCVarArray(mRootArray.size()),
     mFvarMap{base_enc.network().node_num()},
     mDvarMap{base_enc.network().node_num()},
-    mExtractor{get_option(option, "extractor")}
+    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
 {
   SizeType n = mRootArray.size();
   for ( SizeType i = 0; i < n; ++ i ) {
@@ -210,12 +211,12 @@ BoolDiffEnc2::make_dchain_cnf(
 }
 
 // @brief 直前の check() が成功したときの十分条件を求める．
-NodeTimeValList
+AssignList
 BoolDiffEnc2::extract_sufficient_condition(
   const TpgNode* root
 )
 {
-  return mExtractor(
+  return (*mExtractor)(
     root,
     base_enc().gvar_map(),
     mFvarMap,

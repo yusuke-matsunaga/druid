@@ -50,6 +50,7 @@ fault_reducer(
   bool do_trivial_check = true;
   bool conflict_check = false;
   bool localimp = false;
+  int debug_level = 0;
   string just_type;
   int loop = 1;
 
@@ -144,6 +145,16 @@ fault_reducer(
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
+      else if ( strcmp(argv[pos], "--debug-level") == 0 ) {
+	++ pos;
+	if ( pos < argc ) {
+	  debug_level = atoi(argv[pos]);
+	}
+	else {
+	  cerr << "--debug_level requires <int> argument" << endl;
+	  return -1;
+	}
+      }
       else {
 	cerr << argv[pos] << ": illegal option" << endl;
 	usage();
@@ -175,7 +186,7 @@ fault_reducer(
     auto sat_obj = JsonValue{sat_type};
     option_dict.emplace("sat_param", sat_obj);
   }
-  option_dict.emplace("debug", JsonValue{true});
+  option_dict.emplace("debug", JsonValue{debug_level});
   JsonValue option{option_dict};
 
   auto fault_list = network.rep_fault_list();
@@ -261,7 +272,7 @@ fault_reducer(
   }
   else {
     unordered_map<string, JsonValue> fr_option_dict;
-    fr_option_dict.emplace("debug", JsonValue{true});
+    fr_option_dict.emplace("debug", JsonValue{debug_level});
     fr_option_dict.emplace("loop_limit", JsonValue{loop});
     fr_option_dict.emplace("do_trivial_check", JsonValue{do_trivial_check});
     JsonValue fr_option{fr_option_dict};
@@ -276,11 +287,11 @@ fault_reducer(
     SizeType nr = fault_list.size();
     cout << "Detected Faults: " << det_fault_list.size() << endl
 	 << "Reduced Faults:  " << nr << endl
-	 << "CPU time:        " << timer.get_time() << endl;
+	 << "CPU time:        " << (timer.get_time() / 1000.0) << endl;
 
     if ( conflict_check ) {
       unordered_map<string, JsonValue> cc_option_dict;
-      cc_option_dict.emplace("debug", JsonValue{true});
+      cc_option_dict.emplace("debug", JsonValue{debug_level});
       cc_option_dict.emplace("localimp", JsonValue{localimp});
       JsonValue cc_option{cc_option_dict};
 

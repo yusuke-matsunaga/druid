@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "JustImpl.h"
 #include "TpgNode.h"
-#include "NodeTimeVal.h"
+#include "Assign.h"
 #include "ym/SatModel.h"
 
 
@@ -46,9 +46,9 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief justify の実際の処理
-  NodeTimeValList
+  AssignList
   _justify(
-    const NodeTimeValList& assign_list ///< [in] 割当リスト
+    const AssignList& assign_list ///< [in] 割当リスト
   ) override;
 
 
@@ -61,7 +61,7 @@ private:
   virtual
   void
   just_init(
-    const NodeTimeValList& assign_list ///< [in] 割当リスト
+    const AssignList& assign_list ///< [in] 割当リスト
   ) = 0;
 
   /// @brief 正当化処理
@@ -69,7 +69,7 @@ private:
   just_main(
     const TpgNode* node,	    ///< [in] 対象のノード
     int time,			    ///< [in] 時刻 ( 0 or 1 )
-    NodeTimeValList& pi_assign_list ///< [in] 結果の割当を保持するリスト
+    AssignList& pi_assign_list ///< [in] 結果の割当を保持するリスト
   );
 
   /// @brief 制御値を持つファンインを一つ選ぶ．
@@ -101,7 +101,7 @@ private:
   {
     if ( !mark(node, time) ) {
       set_mark(node, time);
-      mQueue.push_back(NodeTimeVal{node, time, false});
+      mQueue.push_back(Assign{node, time, false});
     }
   }
 
@@ -139,7 +139,7 @@ private:
   vector<bitset<2>> mMarkArray;
 
   // 対象のノードを入れるキュー
-  vector<NodeTimeVal> mQueue;
+  vector<Assign> mQueue;
 
 };
 

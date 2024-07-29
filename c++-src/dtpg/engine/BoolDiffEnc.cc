@@ -10,6 +10,8 @@
 #include "TpgNetwork.h"
 #include "TpgNodeSet.h"
 #include "GateEnc.h"
+#include "Extractor.h"
+#include "MultiExtractor.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -39,7 +41,8 @@ BoolDiffEnc::BoolDiffEnc(
     mRoot{root},
     mFvarMap{base_enc.network().node_num()},
     mDvarMap{base_enc.network().node_num()},
-    mExtractor{get_option(option, "extractor")}
+    mExtractor{Extractor::new_impl(get_option(option, "extractor"))},
+    mMultiExtractor{MultiExtractor::new_impl(get_option(option, "multi_extractor"))}
 {
   mTfoList = TpgNodeSet::get_tfo_list(
     base_enc.network().node_num(), mRoot,
@@ -49,6 +52,11 @@ BoolDiffEnc::BoolDiffEnc(
       }
     }
   );
+}
+
+// @brief デストラクタ
+BoolDiffEnc::~BoolDiffEnc()
+{
 }
 
 // @brief 必要な変数を割り当て CNF 式を作る．
@@ -158,15 +166,23 @@ BoolDiffEnc::make_dchain_cnf(
 }
 
 // @brief 直前の check() が成功したときの十分条件を求める．
-NodeTimeValList
+AssignList
 BoolDiffEnc::extract_sufficient_condition()
 {
-  return mExtractor(
-    root_node(),
-    base_enc().gvar_map(),
-    mFvarMap,
-    solver().model()
-  );
+  return (*mExtractor)(root_node(),
+		       base_enc().gvar_map(),
+		       mFvarMap,
+		       solver().model());
+}
+
+// @brief 直前の check() が成功したときの十分条件を求める．
+AssignExpr
+BoolDiffEnc::extract_sufficient_conditions()
+{
+  return (*mMultiExtractor)(root_node(),
+			    base_enc().gvar_map(),
+			    mFvarMap,
+			    solver().model());
 }
 
 END_NAMESPACE_DRUID

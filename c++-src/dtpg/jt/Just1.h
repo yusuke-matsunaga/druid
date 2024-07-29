@@ -41,7 +41,7 @@ private:
   /// @brief 初期化処理
   void
   just_init(
-    const NodeTimeValList& assign_list ///< [in] 割当リスト
+    const AssignList& assign_list ///< [in] 割当リスト
   ) override;
 
   /// @brief 制御値を持つファンインを一つ選ぶ．

@@ -201,7 +201,7 @@ FaultGroupGen::generate(
   gen_blocklist();
 
   // limit 分の故障集合を求める．
-  vector<NodeTimeValList> assign_list;
+  vector<AssignList> assign_list;
   for ( ; ; ) {
     // 極大集合を求める．
     SizeType old_num = mFaultNum;
@@ -269,6 +269,7 @@ FaultGroupGen::init(
     auto fault = cover.fault();
     auto fid = fault->id();
     mCountArray[fid] = 0;
+#if 0
     for ( auto& cube: cover.cube_list() ) {
       auto new_assign = imp.run(cube);
 #if 0
@@ -278,6 +279,9 @@ FaultGroupGen::init(
       auto excube = new ExCube{id, new_assign, fid};
       mCubeList.push_back(excube);
     }
+#else
+    #warning "TODO: 一時的にコメントアウトしている"
+#endif
   }
   mBlockListArray.clear();
   mCurBlockListArray.clear();
@@ -344,22 +348,22 @@ FaultGroupGen::gen_blocklist()
 }
 
 // @brief 拡張テストキューブに対する含意を行う．
-NodeTimeValList
+AssignList
 FaultGroupGen::imply(
-  const NodeTimeValList& assignments
+  const AssignList& assignments
 )
 {
   auto assumptions = mBaseEnc.conv_to_literal_list(assignments);
   assumptions.push_back(SatLiteral::X);
-  std::unordered_set<NodeTimeVal> mark;
+  std::unordered_set<Assign> mark;
   for ( auto nv: assignments ) {
     mark.emplace(nv);
   }
-  NodeTimeValList new_assign{assignments};
+  AssignList new_assign{assignments};
   for ( auto ffr: mNetwork.ffr_list() ) {
     auto node = ffr->root();
-    auto nv0 = NodeTimeVal{node, 1, false};
-    auto nv1 = NodeTimeVal{node, 1, true};
+    auto nv0 = Assign{node, 1, false};
+    auto nv1 = Assign{node, 1, true};
     if ( mark.count(nv0) > 0 || mark.count(nv1) > 0 ) {
       continue;
     }
@@ -378,8 +382,8 @@ FaultGroupGen::imply(
     }
     if ( mNetwork.has_prev_state() ) {
       // 1時刻前の割当も試す．
-      auto nv0 = NodeTimeVal{node, 0, false};
-      auto nv1 = NodeTimeVal{node, 0, true};
+      auto nv0 = Assign{node, 0, false};
+      auto nv1 = Assign{node, 0, true};
       if ( mark.count(nv0) > 0 || mark.count(nv1) > 0 ) {
 	continue;
       }
@@ -404,8 +408,8 @@ FaultGroupGen::imply(
 // @brief 拡張テストキューブに対する含意を行う．
 void
 FaultGroupGen::check_imp(
-  const NodeTimeValList& assignments0,
-  const NodeTimeValList& assignments1
+  const AssignList& assignments0,
+  const AssignList& assignments1
 )
 {
   auto tmp = assignments1 - assignments0;
@@ -422,7 +426,7 @@ FaultGroupGen::check_imp(
 }
 
 // @brief 極大集合を求める．
-NodeTimeValList
+AssignList
 FaultGroupGen::greedy_mcset()
 {
   {
@@ -442,7 +446,7 @@ FaultGroupGen::greedy_mcset()
   // 現在選択されている故障集合を表すビットマップ
   vector<bool> selected_map(mNetwork.max_fault_id(), false);
   // 現在選択されているキューブの割り当て
-  NodeTimeValList cur_assignments;
+  AssignList cur_assignments;
   // 現在選択されている故障のリスト(デバッグ，検証用)
   vector<const TpgFault*> cur_fault_list;
 
@@ -543,8 +547,8 @@ FaultGroupGen::greedy_mcset()
 // @brief 両立性のチェック
 bool
 FaultGroupGen::is_compatible(
-  const NodeTimeValList& assignments1,
-  const NodeTimeValList& assignments2
+  const AssignList& assignments1,
+  const AssignList& assignments2
 )
 {
   auto lits1 = mBaseEnc.conv_to_literal_list(assignments1);

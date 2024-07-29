@@ -17,8 +17,6 @@
 #include "ColGraph.h"
 #include "Dsatur.h"
 #include "Isx.h"
-#include "ColGraph_cube.h"
-#include "Dsatur_cube.h"
 #include "ym/Timer.h"
 
 
@@ -280,9 +278,13 @@ minpat(
   timer.stop();
 
   SizeType cube_num = 0;
+#if 0
   for ( auto& cover: cover_list ) {
     cube_num += cover.cube_list().size();
   }
+#else
+#warning "TODO: cover のサイズ計算"
+#endif
 
   cout << "=========================================" << endl
        << "Detected Faults:     " << det_fault_list.size() << endl
@@ -318,16 +320,6 @@ minpat(
   if ( dsatur ) {
     ColGraph cg{network, cover_list, cg_option};
     Dsatur ds{cg, ds_option};
-    ds.coloring();
-    SizeType nc = cg.color_num();
-    for ( SizeType col = 1; col <= nc; ++ col ) {
-      auto tv = cg.testvector(col);
-      tv_list.push_back(tv);
-    }
-  }
-  else if ( dsatur2 ) {
-    ColGraph_cube cg{network, cover_list, cg_option};
-    Dsatur_cube ds{cg};
     ds.coloring();
     SizeType nc = cg.color_num();
     for ( SizeType col = 1; col <= nc; ++ col ) {

@@ -13,9 +13,9 @@
 BEGIN_NAMESPACE_DRUID
 
 // @brief 含意操作を行う．
-NodeTimeValList
+AssignList
 LocalImp::run(
-  const NodeTimeValList& assignments
+  const AssignList& assignments
 )
 {
   mAssignList.clear();
@@ -397,7 +397,7 @@ LocalImp::assign(
   if ( get_val(node, time) == Val3::_X ) {
     auto val3 = val ? Val3::_1 : Val3::_0;
     mValArray[time][node->id()] = val3;
-    NodeTimeVal nv{node, time, val};
+    Assign nv{node, time, val};
     mQueue.push_back(nv);
     mAssignList.add(nv);
   }

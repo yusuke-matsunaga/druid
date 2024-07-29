@@ -10,10 +10,35 @@
 
 #include "druid.h"
 #include "FaultInfoMgr.h"
+#include "DomCandMgr.h"
 #include "FFRFaultList.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+class XChecker;
+
+/// @brief 同一FFR内の支配故障のチェックを行う．
+vector<const TpgFault*>
+ffr_reduction(
+  const TpgNetwork& network,                     ///< [in] 対象のネットワーク
+  const vector<const TpgFault*>& src_fault_list, ///< [in] 元の故障リスト
+  const DomCandMgr& mgr,                         ///< [in] 支配故障の候補リスト
+  const JsonValue& option                        ///< [in] オプション
+  = JsonValue{}
+);
+
+/// @brief 異なる FFR 間の支配故障のチェックを行う．
+vector<const TpgFault*>
+global_reduction(
+  const TpgNetwork& network,                     ///< [in] 対象のネットワーク
+  const vector<const TpgFault*>& src_fault_list, ///< [in] 元の故障リスト
+  const DomCandMgr& mgr,			 ///< [in] 支配故障の候補リスト
+  const XChecker& xc,                            ///< [in] FFR の交差チェッカ
+  const JsonValue& option                        ///< [in] オプション
+);
+
 
 //////////////////////////////////////////////////////////////////////
 /// @class Reducer Reducer.h "Reducer.h"
@@ -35,7 +60,7 @@ public:
     = JsonValue{}            ///<      - 'sat_param': object SATソルバ用のパラメータ
                              ///<      - 'loop_limit': int   シミュレーション回数
                              ///<      - 'no_analyze': bool  制御フラグ
-                             ///<      - 'debug': bool       デバッグフラグ
+                             ///<      - 'debug': int        デバッグフラグ
   );
 
 
@@ -75,7 +100,7 @@ private:
   void
   gen_dom_cands(
     SizeType limit, ///< [in] シミュレーション回数を制御するパラメータ
-    bool debug      ///< [in] デバッグフラグ
+    int debug      ///< [in] デバッグフラグ
   );
 
   /// @brief 同一FFR内の支配関係を用いて故障を削減する．
@@ -179,19 +204,6 @@ private:
     const TpgFault* fault1,
     const TpgFFR* ffr2
   );
-
-  /// @brief オプションからデバッグフラグを取り出す．
-  static
-  bool
-  get_debug(
-    const JsonValue& option
-  )
-  {
-    if ( option.is_object() && option.has_key("debug") ) {
-      return option.get("debug").get_bool();
-    }
-    return false;
-  }
 
 
 public:

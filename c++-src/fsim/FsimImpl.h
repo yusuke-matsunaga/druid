@@ -95,7 +95,7 @@ public:
   virtual
   bool
   spsfp(
-    const NodeTimeValList& assign_list, ///< [in] 値の割当リスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
     const TpgFault* f,                  ///< [in] 対象の故障
     DiffBits& dbits                     ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) = 0;
@@ -114,7 +114,7 @@ public:
   virtual
   void
   sppfp(
-    const NodeTimeValList& assign_list, ///< [in] 値の割当リスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
     cbtype1 callback                    ///< [in] コールバック関数
                                         ///<      1番目の引数は検出された故障
                                         ///<      2番目の引数は出力の伝搬状況

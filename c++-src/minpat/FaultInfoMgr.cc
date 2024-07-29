@@ -12,25 +12,12 @@
 #include "TpgFault.h"
 #include "FaultAnalyzer.h"
 #include "FFRFaultList.h"
+#include "OpBase.h"
 
+
+#define DBG_OUT cerr
 
 BEGIN_NAMESPACE_DRUID
-
-BEGIN_NONAMESPACE
-
-// @brief オプションからデバッグフラグを取り出す．
-bool
-get_debug(
-  const JsonValue& option
-)
-{
-  if ( option.is_object() && option.has_key("debug") ) {
-    return option.get("debug").get_bool();
-  }
-  return false;
-}
-
-END_NONAMESPACE
 
 // @brief コンストラクタ
 FaultInfoMgr::FaultInfoMgr(
@@ -38,7 +25,8 @@ FaultInfoMgr::FaultInfoMgr(
   const vector<const TpgFault*>& fault_list
 ) : mNetwork{network},
     mFaultList{fault_list},
-    mFaultInfoArray(network.max_fault_id())
+    mFaultInfoArray(network.max_fault_id()),
+    mRootMandCondArray(network.ffr_num())
 {
 }
 
@@ -69,7 +57,7 @@ FaultInfoMgr::generate(
   Timer timer;
   timer.start();
 
-  bool debug = get_debug(option);
+  int debug = OpBase::get_debug(option);
 
   for ( auto fault: mFaultList ) {
     mFaultInfoArray[fault->id()].set_fault(fault);
@@ -81,6 +69,8 @@ FaultInfoMgr::generate(
   SizeType nt = 0;
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
     FaultAnalyzer analyzer{mNetwork, ffr, option};
+    mRootMandCondArray[ffr->id()] = analyzer.root_mandatory_condition();
+
     // 個々の故障について処理を行う．
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
       auto& finfo = mFaultInfoArray[fault->id()];
@@ -95,10 +85,11 @@ FaultInfoMgr::generate(
   }
 
   timer.stop();
-  if ( debug ) {
-    cerr << "Total faults: " << mFaultNum
-	 << " (" << nt << ")" << endl
-	 << "CPU time:     " << timer.get_time() << endl;
+  if ( debug > 0 ) {
+    DBG_OUT << "Total faults: " << mFaultNum
+	    << " (" << nt << ")" << endl
+	    << "CPU time:     "
+	    << (timer.get_time() / 1000.0) << endl;
   }
 }
 

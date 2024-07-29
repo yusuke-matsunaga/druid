@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "FaultType.h"
 #include "VidMap.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "ym/SatSolver.h"
 
 
@@ -139,7 +139,7 @@ public:
   /// 必要に応じて使われているリテラルに関するCNFを追加する．
   void
   add_assignments(
-    const NodeTimeValList& assignments ///< [in] 割当リスト
+    const AssignList& assignments ///< [in] 割当リスト
   );
 
   /// @brief 割当リストの否定の節を加える．
@@ -148,14 +148,14 @@ public:
   /// 必要に応じて使われているリテラルに関するCNFを追加する．
   void
   add_negation(
-    const NodeTimeValList& assignments ///< [in] 割当リスト
+    const AssignList& assignments ///< [in] 割当リスト
   );
 
   /// @brief 割当リストを仮定のリテラルに変換する．
   ///
   vector<SatLiteral>
   conv_to_literal_list(
-    const NodeTimeValList& assign_list ///< [in]  割当リスト
+    const AssignList& assign_list ///< [in]  割当リスト
   );
 
   /// @brief 関係あるノードの入出力の関係を表すCNFを作る．
@@ -175,27 +175,27 @@ public:
   /// @brief 割当リストのもとでチェックを行う．
   SatBool3
   check_sat(
-    const NodeTimeValList& assign_list  ///< [in] 割当リスト
+    const AssignList& assign_list  ///< [in] 割当リスト
   );
 
   /// @brief 割当リストのもとでチェックを行う．
   SatBool3
   check_sat(
-    const NodeTimeValList& assign_list1, ///< [in] 割当リスト1
-    const NodeTimeValList& assign_list2  ///< [in] 割当リスト2
+    const AssignList& assign_list1, ///< [in] 割当リスト1
+    const AssignList& assign_list2  ///< [in] 割当リスト2
   );
 
   /// @brief 割当リストのもとでチェックを行う．
   SatBool3
   check_sat(
     const vector<SatLiteral>& assumptions, ///< [in] 割当リスト1
-    const NodeTimeValList& assign_list         ///< [in] 割当リスト2
+    const AssignList& assign_list         ///< [in] 割当リスト2
   );
 
   /// @brief 伝搬条件を求める．
   ///
   /// check_sat() の実行結果が SatBool3::True の時のみ意味がある．
-  NodeTimeValList
+  AssignList
   extract_prop_condition(
     const TpgNode* ffr_root ///< [in] FFR の根のノード
   );
@@ -244,7 +244,7 @@ private:
   /// @brief ノードの値割り当てに対応するリテラルを返す．
   SatLiteral
   nv_to_lit(
-    NodeTimeVal nv  ///< [in] ノードの値割り当て
+    Assign nv  ///< [in] ノードの値割り当て
   )
   {
     const TpgNode* node = nv.node();

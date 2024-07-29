@@ -10,10 +10,11 @@
 
 #include "druid.h"
 #include "BaseEnc.h"
-#include "Extractor.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+class Extractor;
 
 //////////////////////////////////////////////////////////////////////
 /// @class BoolDiffEnc2 BoolDiffEnc2.h "BoolDiffEnc2.h"
@@ -79,7 +80,7 @@ public:
   ) const;
 
   /// @brief 直前の check() が成功したときの十分条件を求める．
-  NodeTimeValList
+  AssignList
   extract_sufficient_condition(
     const TpgNode* node ///< [in] 起点のノード
   );
@@ -168,7 +169,7 @@ private:
   VidMap mDvarMap;
 
   // 十分条件を取り出すオブジェクト
-  Extractor mExtractor;
+  std::unique_ptr<Extractor> mExtractor;
 
 };
 

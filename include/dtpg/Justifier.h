@@ -47,9 +47,9 @@ public:
   /// @return 入力の値割り当て
   ///
   /// 縮退故障の場合は var1_map は無視される．
-  NodeTimeValList
+  AssignList
   operator()(
-    const NodeTimeValList& assign_list, ///< [in] 値の割り当てリスト
+    const AssignList& assign_list, ///< [in] 値の割り当てリスト
     const VidMap& var1_map,	        ///< [in] 1時刻目の変数番号のマップ
     const VidMap& var2_map,	        ///< [in] 2時刻目の変数番号のマップ
     const SatModel& model               ///< [in] SAT問題の解

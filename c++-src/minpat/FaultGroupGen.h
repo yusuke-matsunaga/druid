@@ -59,7 +59,7 @@ private:
     // ID番号
     SizeType mId;
     // 値の割り当てリスト
-    NodeTimeValList mAssignments;
+    AssignList mAssignments;
     // 対応する故障番号
     SizeType mFaultId;
     // ブロックリスト
@@ -83,20 +83,20 @@ private:
   gen_blocklist();
 
   /// @brief 拡張テストキューブに対する含意を行う．
-  NodeTimeValList
+  AssignList
   imply(
-    const NodeTimeValList& assignments ///< [in] 元の割当
+    const AssignList& assignments ///< [in] 元の割当
   );
 
   /// @brief 含意結果のチェックを行う．
   void
   check_imp(
-    const NodeTimeValList& assignments0, ///< [in] 元の割当
-    const NodeTimeValList& assignments1  ///< [in] 含意された割当
+    const AssignList& assignments0, ///< [in] 元の割当
+    const AssignList& assignments1  ///< [in] 含意された割当
   );
 
   /// @brief 極大集合を求める．
-  NodeTimeValList
+  AssignList
   greedy_mcset();
 
   /// @brief 記録する．
@@ -112,8 +112,8 @@ private:
   /// @brief 両立性のチェック
   bool
   is_compatible(
-    const NodeTimeValList& assignments1, ///< [in] 割当1
-    const NodeTimeValList& assignments2  ///< [in] 割当2
+    const AssignList& assignments1, ///< [in] 割当1
+    const AssignList& assignments2  ///< [in] 割当2
   );
 
 

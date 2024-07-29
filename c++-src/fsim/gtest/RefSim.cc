@@ -12,7 +12,7 @@
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "TestVector.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 
 
 BEGIN_NAMESPACE_DRUID

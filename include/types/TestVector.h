@@ -108,7 +108,7 @@ public:
   explicit
   TestVector(
     const TpgNetwork& network,
-    const NodeTimeValList& pi_assign_list
+    const AssignList& pi_assign_list
   ) : TestVector{network}
   {
     set_from_assign_list(pi_assign_list);
@@ -301,7 +301,7 @@ public:
   /// assign_list に外部入力とDFF以外の割当が含まれている場合無視する．
   void
   set_from_assign_list(
-    const NodeTimeValList& assign_list ///< [in] 割当リスト
+    const AssignList& assign_list ///< [in] 割当リスト
   );
 
   /// @brief PPIの値を設定する．

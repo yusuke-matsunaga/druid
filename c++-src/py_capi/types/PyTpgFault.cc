@@ -9,7 +9,7 @@
 #include "PyTpgFault.h"
 #include "PyTpgNode.h"
 #include "TpgNode.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "pym/PyModule.h"
 
 
@@ -104,7 +104,7 @@ BEGIN_NONAMESPACE
 
 PyObject*
 assign_list_to_pyobj(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   SizeType n = assign_list.size();

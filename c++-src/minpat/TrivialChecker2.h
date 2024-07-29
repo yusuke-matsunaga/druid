@@ -54,7 +54,7 @@ public:
   check(
     const TpgFault* fault1,      ///< [in] 支配故障
     const TpgFault* fault2,      ///< [in] 被支配故障の候補
-    const NodeTimeValList& cond2 ///< [in] 被支配故障の検出条件
+    const AssignList& cond2 ///< [in] 被支配故障の検出条件
   );
 
 

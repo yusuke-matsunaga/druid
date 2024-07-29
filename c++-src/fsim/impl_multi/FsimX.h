@@ -101,7 +101,7 @@ public:
   /// @retval false 故障の検出が行えなかった．
   bool
   spsfp(
-    const NodeTimeValList& assign_list, ///< [in] 値の割当リスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
     const TpgFault* f,                  ///< [in] 対象の故障
     DiffBits& dbits                     ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) override;
@@ -117,7 +117,7 @@ public:
   /// @return 検出された故障のリストを返す．
   void
   sppfp(
-    const NodeTimeValList& assign_list, ///< [in] 値の割当リスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
     cbtype1 callback                    ///< [in] コールバック関数
   ) override;
 

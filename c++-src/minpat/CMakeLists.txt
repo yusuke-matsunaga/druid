@@ -27,7 +27,11 @@ set ( minpat_SOURCES
   FFRFaultList.cc
   FaultAnalyzer.cc
   Reducer.cc
+  XChecker.cc
+  ffr_reduction.cc
+  global_reduction.cc
   FFRDomChecker.cc
+  DomCandMgr.cc
   DomCandGen.cc
   DomChecker.cc
   SimpleDomChecker.cc
@@ -44,8 +48,6 @@ set ( minpat_SOURCES
   ColGraph.cc
   Dsatur.cc
   Isx.cc
-  ColGraph_cube.cc
-  Dsatur_cube.cc
   Sim.cc
   )
 

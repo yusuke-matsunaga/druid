@@ -10,16 +10,14 @@
 #include "TpgFault.h"
 #include "FaultType.h"
 #include "Fsim.h"
-#include "FaultInfoMgr.h"
+#include "DtpgMgr.h"
+#include "DomCandMgr.h"
 #include "Reducer.h"
+#include "XChecker.h"
 #include "TestCoverGen.h"
-#include "FaultGroupGen.h"
-#include "ColGraph.h"
-#include "Dsatur.h"
-#include "Isx.h"
-#include "ColGraph_cube.h"
-#include "Dsatur_cube.h"
+#include "TestCover.h"
 #include "ym/Timer.h"
+#include <random>
 
 
 BEGIN_NAMESPACE_DRUID
@@ -51,17 +49,11 @@ testcube_gen(
   string just_type;
   int loop = 1;
   int cube_per_fault = 0;
-  bool dsatur = false;
-  bool dsatur2 = false;
-  bool isx = false;
-  int isx_limit = 0;
-  bool isx_skip = false;
-  bool debug_dtpg = false;
-  bool debug_fault_reduce = false;
-  bool debug_testcube_gen = false;
-  bool debug_colgraph = false;
-  bool debug_dsatur = false;
-  bool debug_isx = false;
+  bool do_finfo_mgr = false;
+  bool do_reduction = true;
+  bool do_ffr_reduction = false;
+  bool do_global_reduction = false;
+  int debug_level = 0;
 
   argv0 = argv[0];
 
@@ -135,6 +127,18 @@ testcube_gen(
 	  return -1;
 	}
       }
+      else if ( strcmp(argv[pos], "--fault-info-mgr") == 0 ) {
+	do_finfo_mgr = true;
+      }
+      else if ( strcmp(argv[pos], "--no-reduction") == 0 ) {
+	do_reduction = false;
+      }
+      else if ( strcmp(argv[pos], "--ffr_reduction") == 0 ) {
+	do_ffr_reduction = true;
+      }
+      else if ( strcmp(argv[pos], "--global_reduction") == 0 ) {
+	do_global_reduction = true;
+      }
       else if ( strcmp(argv[pos], "--cube-per-fault") == 0 ) {
 	++ pos;
 	if ( pos < argc ) {
@@ -145,63 +149,18 @@ testcube_gen(
 	  return -1;
 	}
       }
-      else if ( strcmp(argv[pos], "--dsatur") == 0 ) {
-	dsatur = true;
-      }
-      else if ( strcmp(argv[pos], "--dsatur2") == 0 ) {
-	dsatur2 = true;
-      }
-      else if ( strcmp(argv[pos], "--isx") == 0 ) {
-	isx = true;
-	++ pos;
-	if ( pos < argc ) {
-	  isx_limit = atoi(argv[pos]);
-	}
-	else {
-	  cerr << "--isx requires <int> argument" << endl;
-	  return -1;
-	}
-      }
-      else if ( strcmp(argv[pos], "--isx2") == 0 ) {
-	isx = true;
-	isx_skip = true;
-	++ pos;
-	if ( pos < argc ) {
-	  isx_limit = atoi(argv[pos]);
-	}
-	else {
-	  cerr << "--isx requires <int> argument" << endl;
-	  return -1;
-	}
-      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
-      else if ( strcmp(argv[pos], "--debug-all") == 0 ) {
-	debug_dtpg = true;
-	debug_fault_reduce = true;
-	debug_testcube_gen = true;
-	debug_colgraph = true;
-	debug_dsatur = true;
-	debug_isx = true;
-      }
-      else if ( strcmp(argv[pos], "--debug-dtpg") == 0 ) {
-	debug_dtpg = true;
-      }
-      else if ( strcmp(argv[pos], "--debug-fault_reduce") == 0 ) {
-	debug_fault_reduce = true;
-      }
-      else if ( strcmp(argv[pos], "--debug-testcube_gen") == 0 ) {
-	debug_testcube_gen = true;
-      }
-      else if ( strcmp(argv[pos], "--debug-colgraph") == 0 ) {
-	debug_colgraph = true;
-      }
-      else if ( strcmp(argv[pos], "--debug-dsatur") == 0 ) {
-	debug_dsatur = true;
-      }
-      else if ( strcmp(argv[pos], "--debug-isx") == 0 ) {
-	debug_isx = true;
+      else if ( strcmp(argv[pos], "--debug") == 0 ) {
+	++ pos;
+	if ( pos < argc ) {
+	  debug_level = atoi(argv[pos]);
+	}
+	else {
+	  cerr << "--debug requires <int> argument" << endl;
+	  return -1;
+	}
       }
       else {
 	cerr << argv[pos] << ": illegal option" << endl;
@@ -236,67 +195,149 @@ testcube_gen(
     auto sat_obj = JsonValue{sat_type};
     option_dict.emplace("sat_param", sat_obj);
   }
-  option_dict.emplace("debug", JsonValue{debug_dtpg});
   JsonValue option{option_dict};
 
-  auto fault_list = network.rep_fault_list();
+  unordered_map<string, JsonValue> tcg_option_dict;
+  if ( sat_type != string{} ) {
+    auto sat_obj = JsonValue{sat_type};
+    tcg_option_dict.emplace("sat_param", sat_obj);
+  }
+  tcg_option_dict.emplace("debug", JsonValue{debug_level});
+  if ( cube_per_fault > 0 ) {
+    tcg_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
+  }
+  JsonValue tcg_option{tcg_option_dict};
+
+  auto src_fault_list = network.rep_fault_list();
 
   Timer total_timer;
   total_timer.start();
 
-  Timer timer;
-  timer.start();
-
-  FaultInfoMgr finfo_mgr{network, fault_list};
-
-  finfo_mgr.generate(option);
-
-  SizeType ndet = 0;
-  for ( auto f: fault_list ) {
-    auto& finfo = finfo_mgr.fault_info(f);
-    if ( finfo.status() == FaultStatus::Detected ) {
-      ++ ndet;
-    }
-  }
-
-  unordered_map<string, JsonValue> fr_option_dict;
-  if ( debug_fault_reduce ) {
-    fr_option_dict.emplace("debug", JsonValue{true});
-  }
-  if ( sat_type != string{} ) {
-    auto sat_obj = JsonValue{sat_type};
-    fr_option_dict.emplace("sat_param", sat_obj);
-  }
-  if ( cube_per_fault > 0 ) {
-    fr_option_dict.emplace("cube_per_fault", JsonValue{cube_per_fault});
-  }
-  fr_option_dict.emplace("loop_limit", JsonValue{loop});
-  JsonValue fr_option{fr_option_dict};
-
-  Reducer::reduce(finfo_mgr, fr_option);
-
+  Timer dtimer;
+  Timer rtimer;
   Timer ctimer;
-  ctimer.start();
 
-  auto cover_list = TestCoverGen::run(finfo_mgr, fr_option);
 
-  ctimer.stop();
+  vector<const TpgFault*> det_fault_list;
+  vector<const TpgFault*> fault_list;
+  vector<TestCover> cover_list;
 
-  timer.stop();
+  if ( do_finfo_mgr ) {
+    dtimer.start();
+
+    FaultInfoMgr finfo_mgr{network, src_fault_list};
+
+    finfo_mgr.generate(option);
+
+    det_fault_list.reserve(fault_list.size());
+    for ( auto fault: src_fault_list ) {
+      auto& finfo = finfo_mgr.fault_info(fault);
+      if ( finfo.status() == FaultStatus::Detected ) {
+	det_fault_list.push_back(fault);
+      }
+    }
+    dtimer.stop();
+
+    unordered_map<string, JsonValue> fr_option_dict;
+    fr_option_dict.emplace("debug", JsonValue{debug_level});
+    fr_option_dict.emplace("loop_limit", JsonValue{loop});
+    JsonValue fr_option{fr_option_dict};
+
+    rtimer.start();
+
+    if ( do_reduction ) {
+      fault_list = Reducer::reduce(finfo_mgr, fr_option);
+    }
+    else {
+      fault_list = det_fault_list;
+    }
+
+    rtimer.stop();
+
+    ctimer.start();
+
+    cover_list = TestCoverGen::run(finfo_mgr, tcg_option);
+
+    ctimer.stop();
+  }
+  else {
+    dtimer.start();
+
+    DtpgMgr mgr{network, fault_list};
+
+    vector<TestVector> tv_list;
+    std::mt19937 rg;
+
+    mgr.run(
+      // detected callback
+      [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) {
+	det_fault_list.push_back(f);
+	tv.fix_x_from_random(rg);
+	tv_list.push_back(tv);
+      }
+    );
+
+    dtimer.stop();
+
+    rtimer.start();
+
+    DomCandMgr domcand_mgr{network};
+
+    if ( do_ffr_reduction || do_global_reduction ) {
+      domcand_mgr.generate(det_fault_list, tv_list, loop);
+    }
+
+    fault_list = det_fault_list;
+
+    if ( do_ffr_reduction ) {
+      unordered_map<string, JsonValue> option_dict;
+      option_dict.emplace("debug", JsonValue{debug_level});
+      JsonValue option{option_dict};
+
+      fault_list = ffr_reduction(network, fault_list,
+				 domcand_mgr, option);
+    }
+
+    if ( do_global_reduction ) {
+      unordered_map<string, JsonValue> option_dict;
+      option_dict.emplace("debug", JsonValue{debug_level});
+      JsonValue option{option_dict};
+
+      XChecker xc{network};
+
+      fault_list = global_reduction(network, fault_list,
+				    domcand_mgr, xc, option);
+    }
+    rtimer.stop();
+
+    ctimer.start();
+
+    cover_list = TestCoverGen::run(network, fault_list, tcg_option);
+
+    ctimer.stop();
+  }
 
   SizeType total_cube_num = 0;
+  SizeType total_literal_num = 0;
   for ( auto& cover: cover_list ) {
-    auto cube_num = cover.cube_list().size();
-    total_cube_num += cube_num;
-    cout << cube_num << endl;
+    total_cube_num += cover.cube_num();
+    total_literal_num += cover.literal_num();
   }
-  cout << "# CPU TIME: " << ctimer.get_time() << endl;
+  cout << "# DTPG TIME  :  "
+       << (dtimer.get_time() / 1000.0) << endl;
+  cout << "# REDUCE TIME:  "
+       << (rtimer.get_time() / 1000.0) << endl;
+  cout << "# CUBEGen TIME: "
+       << (ctimer.get_time() / 1000.0) << endl;
 
+  total_timer.stop();
   cerr << "=========================================" << endl
-       << "Detected Faults:     " << ndet << endl
-       << "Reduced Faults:      " << cover_list.size() << endl
+       << "Detected Faults:     " << det_fault_list.size() << endl
+       << "Reduced Faults:      " << fault_list.size() << endl
        << "Total # of cubes:    " << total_cube_num << endl
-       << "CPU time:            " << timer.get_time() << endl;
+       << "Total # of literal:  " << total_literal_num << endl
+       << "Total CPU time:      "
+       << (total_timer.get_time() / 1000.0) << endl;
 
   return 0;
 }

@@ -51,7 +51,7 @@ bool
 TrivialChecker2::check(
   const TpgFault* fault1,
   const TpgFault* fault2,
-  const NodeTimeValList& cond2
+  const AssignList& cond2
 )
 {
   auto cond1 = fault1->ffr_propagate_condition();

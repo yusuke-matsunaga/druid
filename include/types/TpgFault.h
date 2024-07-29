@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -169,7 +169,7 @@ public:
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
   virtual
-  NodeTimeValList
+  AssignList
   excitation_condition() const = 0;
 
   /// @brief origin_node を含む FFR の根のノードを返す．
@@ -177,7 +177,7 @@ public:
   ffr_root() const;
 
   /// @brief 故障が励起してFFRの根まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   ffr_propagate_condition() const;
 
 

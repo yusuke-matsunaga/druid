@@ -24,9 +24,12 @@
 #include "TrivialChecker1.h"
 #include "TrivialChecker2.h"
 #include "TrivialChecker3.h"
+#include "OpBase.h"
 #include "ym/Timer.h"
 #include <random>
 
+
+#define DBG_OUT cerr
 
 BEGIN_NAMESPACE_DRUID
 
@@ -77,7 +80,7 @@ Reducer::run(
   Timer timer;
   timer.start();
 
-  bool debug = get_debug(option);
+  int debug = OpBase::get_debug(option);
 
   // 故障シミュレーションを用いて支配関係の候補リストを作る．
   SizeType limit = 1;
@@ -104,8 +107,8 @@ Reducer::run(
   global_reduction(option, do_trivial_check);
 
   timer.stop();
-  if ( debug ) {
-    cerr << "Total CPU time: " << timer.get_time() << endl;
+  if ( debug > 0 ) {
+    DBG_OUT << "Total CPU time: " << (timer.get_time() / 1000.0) << endl;
   }
 }
 
@@ -113,15 +116,15 @@ Reducer::run(
 void
 Reducer::gen_dom_cands(
   SizeType limit,
-  bool debug
+  int debug
 )
 {
   Timer timer;
   timer.start();
 
-  if ( debug ) {
-    cerr << "---------------------------------------" << endl;
-    cerr << "Fault Simulation" << endl;
+  if ( debug > 0 ) {
+    DBG_OUT << "---------------------------------------" << endl
+	    << "Fault Simulation" << endl;
   }
 
   std::mt19937 randgen;
@@ -146,15 +149,16 @@ Reducer::gen_dom_cands(
       mRevCandListArray[fault2->id()].push_back(fault1);
     }
   }
+  timer.stop();
 
-  if ( debug ) {
-    timer.stop();
+  if ( debug > 0 ) {
     SizeType n = 0;
     for ( auto fault: mFFRFaultList.fault_list() ) {
       n += dom_cand_list(fault).size();
     }
-    cerr << "Total Candidates:                      " << n << endl;
-    cerr << "CPU time:                              " << timer.get_time() << endl;
+    DBG_OUT << "Total Candidates:                      " << n << endl
+	    << "CPU time:                              "
+	    << (timer.get_time() / 1000.0) << endl;
   }
 }
 
@@ -167,11 +171,11 @@ Reducer::ffr_reduction(
   Timer timer;
   timer.start();
 
-  bool debug = get_debug(option);
-  if ( debug ) {
-    cerr << "---------------------------------------" << endl;
-    cerr << "# of initial faults:                   "
-	 << mFaultNum << endl;
+  int debug = OpBase::get_debug(option);
+  if ( debug > 0 ) {
+    DBG_OUT << "---------------------------------------" << endl
+	    << "# of initial faults:                   "
+	    << mFaultNum << endl;
   }
 
   SizeType check_num = 0;
@@ -203,14 +207,15 @@ Reducer::ffr_reduction(
       }
     }
   }
+  timer.stop();
 
-  if ( debug ) {
-    timer.stop();
-    cerr << "after FFR dominance reduction:         " << mFaultNum << endl;
-    cerr << "    # of total checkes:                " << check_num << endl
-	 << "    # of total successes:              " << success_num << endl
-	 << "    # of FFRDomCheckers:               " << dom_num << endl
-	 << "CPU time:                              " << timer.get_time() << endl;
+  if ( debug > 0 ) {
+    DBG_OUT << "after FFR dominance reduction:         " << mFaultNum << endl
+	    << "    # of total checkes:                " << check_num << endl
+	    << "    # of total successes:              " << success_num << endl
+	    << "    # of FFRDomCheckers:               " << dom_num << endl
+	    << "CPU time:                              "
+	    << (timer.get_time() / 1000.0) << endl;
   }
 }
 
@@ -223,9 +228,9 @@ Reducer::trivial_reduction1(
   Timer timer;
   timer.start();
 
-  bool debug = get_debug(option);
-  if ( debug ) {
-    cerr << "---------------------------------------" << endl;
+  int debug = OpBase::get_debug(option);
+  if ( debug > 0 ) {
+    DBG_OUT << "---------------------------------------" << endl;
   }
 
   vector<const TpgFault*> tmp_fault_list;
@@ -287,13 +292,14 @@ Reducer::trivial_reduction1(
       }
     }
   }
+  timer.stop();
 
-  if ( debug ) {
-    timer.stop();
-    cerr << "after trivial_reduction1:              " << mFaultNum << endl;
-    cerr << "    # of total checkes:                " << check_num << endl
-	 << "    # of total successes:              " << success_num << endl
-	 << "CPU time:                              " << timer.get_time() << endl;
+  if ( debug > 0 ) {
+    DBG_OUT << "after trivial_reduction1:              " << mFaultNum << endl
+	    << "    # of total checkes:                " << check_num << endl
+	    << "    # of total successes:              " << success_num << endl
+	    << "CPU time:                              "
+	    << (timer.get_time() / 1000.0) << endl;
   }
 }
 
@@ -306,9 +312,9 @@ Reducer::trivial_reduction2(
   Timer timer;
   timer.start();
 
-  bool debug = get_debug(option);
-  if ( debug ) {
-    cerr << "---------------------------------------" << endl;
+  int debug = OpBase::get_debug(option);
+  if ( debug > 0 ) {
+    DBG_OUT << "---------------------------------------" << endl;
   }
 
   SizeType check_num = 0;
@@ -374,13 +380,14 @@ Reducer::trivial_reduction2(
       }
     }
   }
+  timer.stop();
 
-  if ( debug ) {
-    timer.stop();
-    cerr << "after trivial_reduction2:              " << mFaultNum << endl;
-    cerr << "    # of total checkes:                " << check_num << endl
-	 << "    # of total successes:              " << success_num << endl
-	 << "CPU time:                              " << timer.get_time() << endl;
+  if ( debug > 0 ) {
+    DBG_OUT << "after trivial_reduction2:              " << mFaultNum << endl
+	    << "    # of total checkes:                " << check_num << endl
+	    << "    # of total successes:              " << success_num << endl
+	    << "CPU time:                              "
+	    << (timer.get_time() / 1000.0) << endl;
   }
 }
 
@@ -393,9 +400,9 @@ Reducer::trivial_reduction3(
   Timer timer;
   timer.start();
 
-  bool debug = get_debug(option);
-  if ( debug ) {
-    cerr << "---------------------------------------" << endl;
+  int debug = OpBase::get_debug(option);
+  if ( debug > 0 ) {
+    DBG_OUT << "---------------------------------------" << endl;
   }
 
   SizeType check1_num = 0;
@@ -506,16 +513,17 @@ Reducer::trivial_reduction3(
       }
     }
   }
+  timer.stop();
 
-  if ( debug ) {
-    timer.stop();
-    cerr << "after trivial_reduction3:              " << mFaultNum << endl;
-    cerr << "    # of total checkes(1):             " << check1_num << endl
-	 << "    # of total checkes(2):             " << check2_num << endl
-	 << "    # of total successes:              " << success_num << endl
-	 << "    # of DomCheckers(1):               " << dom1_num << endl
-	 << "    # of DomCheckers(2):               " << dom2_num << endl
-	 << "CPU time:                              " << timer.get_time() << endl;
+  if ( debug > 0 ) {
+    DBG_OUT << "after trivial_reduction3:              " << mFaultNum << endl
+	    << "    # of total checkes(1):             " << check1_num << endl
+	    << "    # of total checkes(2):             " << check2_num << endl
+	    << "    # of total successes:              " << success_num << endl
+	    << "    # of DomCheckers(1):               " << dom1_num << endl
+	    << "    # of DomCheckers(2):               " << dom2_num << endl
+	    << "CPU time:                              "
+	    << (timer.get_time() / 1000.0) << endl;
   }
 }
 
@@ -529,9 +537,9 @@ Reducer::global_reduction(
   Timer timer;
   timer.start();
 
-  bool debug = get_debug(option);
-  if ( debug ) {
-    cerr << "---------------------------------------" << endl;
+  int debug = OpBase::get_debug(option);
+  if ( debug > 0 ) {
+    DBG_OUT << "---------------------------------------" << endl;
   }
 
   // skip_trivial == true の時は trivial な支配故障のチェックは
@@ -639,16 +647,17 @@ Reducer::global_reduction(
       }
     }
   }
+  timer.stop();
 
-  if ( debug ) {
-    timer.stop();
-    cerr << "after global dominance reduction:      " << mFaultNum << endl;
-    cerr << "    # of total checkes(1):             " << check1_num << endl
-	 << "    # of total checkes(2):             " << check2_num << endl
-	 << "    # of total successes:              " << success_num << endl
-	 << "    # of DomCheckers(1):               " << dom1_num << endl
-	 << "    # of DomCheckers(2):               " << dom2_num << endl
-	 << "CPU time:                              " << timer.get_time() << endl;
+  if ( debug > 0 ) {
+    DBG_OUT << "after global dominance reduction:      " << mFaultNum << endl
+	    << "    # of total checkes(1):             " << check1_num << endl
+	    << "    # of total checkes(2):             " << check2_num << endl
+	    << "    # of total successes:              " << success_num << endl
+	    << "    # of DomCheckers(1):               " << dom1_num << endl
+	    << "    # of DomCheckers(2):               " << dom2_num << endl
+	    << "CPU time:                              "
+	    << (timer.get_time() / 1000.0) << endl;
   }
 }
 

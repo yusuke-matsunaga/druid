@@ -14,8 +14,8 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class TestCover;
 class FaultInfoMgr;
+class TestCover;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TestCoverGen TestCoverGen.h "TestCoverGen.h"
@@ -34,7 +34,19 @@ public:
   static
   vector<TestCover>
   run(
-    const FaultInfoMgr& mgr, ///< [in] 故障の情報を持つオブジェクト
+    const TpgNetwork& network,                 ///< [in] ネットワーク
+    const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
+    const JsonValue& option  ///< [in] オプション
+    = JsonValue{}            ///<      - 'sat_param': object   SATソルバ用のパラメータ
+                             ///<      - 'cube_per_fault': int 1故障あたりのキューブ数
+                             ///<      - 'debug': bool         デバッグフラグ
+  );
+
+  /// @brief 各故障のテストカバーを生成する．
+  static
+  vector<TestCover>
+  run(
+    const FaultInfoMgr& finfo_mgr, ///< [in] 故障情報を持つオブジェクト
     const JsonValue& option  ///< [in] オプション
     = JsonValue{}            ///<      - 'sat_param': object   SATソルバ用のパラメータ
                              ///<      - 'cube_per_fault': int 1故障あたりのキューブ数

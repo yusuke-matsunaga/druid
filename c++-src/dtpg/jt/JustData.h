@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "TpgNode.h"
 #include "VidMap.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "Val3.h"
 #include "ym/SatModel.h"
 
@@ -72,7 +72,7 @@ public:
   record_value(
     const TpgNode* node,         ///< [in] 対象の外部入力ノード
     int time,	  	         ///< [in] 時刻 ( 0 or 1 )
-    NodeTimeValList& assign_list ///< [out] 値の割当リスト
+    AssignList& assign_list ///< [out] 値の割当リスト
   ) const
   {
     auto v = val(node, time);

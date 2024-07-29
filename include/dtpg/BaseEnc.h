@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "VidMap.h"
 #include "Justifier.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "ym/SatSolver.h"
 #include "ym/Timer.h"
 
@@ -68,9 +68,9 @@ public:
   ///
   /// * 事前にSAT問題の充足解が求められている必要がある．
   /// * 必要な値割り当てのみが記録される．
-  NodeTimeValList
+  AssignList
   justify(
-    const NodeTimeValList& assign_list ///< [in] 値割り当てのリスト
+    const AssignList& assign_list ///< [in] 値割り当てのリスト
   );
 
   /// @brief 現在の外部入力の割当を得る．
@@ -78,19 +78,19 @@ public:
   ///
   /// * 事前にSAT問題の充足解が求められている必要がある．
   /// * すべての外部入力になんらかの値が入る
-  NodeTimeValList
+  AssignList
   get_pi_assign();
 
   /// @brief 値割り当てを対応するリテラルに変換する．
   SatLiteral
   conv_to_literal(
-    NodeTimeVal assign ///< [in] 値割り当て
+    Assign assign ///< [in] 値割り当て
   );
 
   /// @brief 値割り当てのリストを対応するリテラルのリストに変換する．
   vector<SatLiteral>
   conv_to_literal_list(
-    const NodeTimeValList& assign_list ///< [in] 値割り当てのリスト
+    const AssignList& assign_list ///< [in] 値割り当てのリスト
   );
 
   /// @brief 対象のネットワークを得る．
@@ -282,7 +282,7 @@ protected:
   /// @brief 値割り当てを対応するリテラルに変換する．
   SatLiteral
   conv_to_literal(
-    NodeTimeVal assign ///< [in] 値割り当て
+    Assign assign ///< [in] 値割り当て
   )
   {
     return base_enc().conv_to_literal(assign);
@@ -291,7 +291,7 @@ protected:
   /// @brief 値割り当てのリストを対応するリテラルのリストに変換する．
   vector<SatLiteral>
   conv_to_literal_list(
-    NodeTimeValList& assign_list ///< [in] 値割り当てのリスト
+    AssignList& assign_list ///< [in] 値割り当てのリスト
   )
   {
     return base_enc().conv_to_literal_list(assign_list);

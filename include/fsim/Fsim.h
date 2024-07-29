@@ -146,7 +146,7 @@ public:
   /// @retval false 故障の検出が行えなかった．
   bool
   spsfp(
-    const NodeTimeValList& assign_list, ///< [in] 値の割当リスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
     const TpgFault* f,           	///< [in] 対象の故障
     DiffBits& dbits                     ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
@@ -163,7 +163,7 @@ public:
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   void
   sppfp(
-    const NodeTimeValList& assign_list, ///< [in] 値の割当リスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
     cbtype1 callback                    ///< [in] コールバック関数
                                         ///<      1番目の引数は検出された故障
                                         ///<      2番目の引数は出力の伝搬状況

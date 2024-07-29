@@ -11,7 +11,7 @@
 #include <deque>
 #include "druid.h"
 #include "TpgNetwork.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "Val3.h"
 
 
@@ -44,9 +44,9 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 含意操作を行う．
-  NodeTimeValList
+  AssignList
   run(
-    const NodeTimeValList& assignments ///< [in] 割り当て
+    const AssignList& assignments ///< [in] 割り当て
   );
 
 
@@ -97,10 +97,10 @@ private:
   std::vector<Val3> mValArray[2];
 
   // キュー
-  std::deque<NodeTimeVal> mQueue;
+  std::deque<Assign> mQueue;
 
   // 結果の割り当てリスト
-  NodeTimeValList mAssignList;
+  AssignList mAssignList;
 
 };
 

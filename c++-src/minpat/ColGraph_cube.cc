@@ -136,7 +136,7 @@ ColGraph_cube::testvector(
   SizeType color
 )
 {
-  NodeTimeValList assign;
+  AssignList assign;
   auto& group = mGroupList[color - 1];
   for ( auto id: group.mNodeList ) {
     auto& cube = mNodeList[id].mCube;
@@ -190,8 +190,8 @@ ColGraph_cube::get_color_map(
 // @brief cube1 と cube2 が衝突する時 true を返す．
 bool
 ColGraph_cube::is_conflict(
-  const NodeTimeValList& assign1,
-  const NodeTimeValList& assign2
+  const AssignList& assign1,
+  const AssignList& assign2
 )
 {
   if ( compare(assign1, assign2) == -1 ) {

@@ -39,9 +39,9 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief justify の実際の処理
-  NodeTimeValList
+  AssignList
   _justify(
-    const NodeTimeValList& assign_list ///< [in] 割当リスト
+    const AssignList& assign_list ///< [in] 割当リスト
   ) override;
 
 

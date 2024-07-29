@@ -9,12 +9,13 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "NodeTimeValList.h"
+#include "ExData.h"
+#include "AssignList.h"
+#include "AssignExpr.h"
 #include "VidMap.h"
 #include "Val3.h"
-#include "ym/Expr.h"
-#include "ym/SatBool3.h"
 #include "ym/SatModel.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -37,15 +38,20 @@ class MultiExtractor
 {
 public:
 
-  /// @brief コンストラクタ
-  MultiExtractor(
-    const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
-    const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
-    const SatModel& model   ///< [in] SATソルバの作ったモデル
+  /// @brief インスタンスを生成するクラスメソッド
+  static
+  MultiExtractor*
+  new_impl(
+    const JsonValue& option ///< [in] オプション
+    = JsonValue{}
   );
 
+  /// @brief コンストラクタ
+  MultiExtractor() = default;
+
   /// @brief デストラクタ
-  ~MultiExtractor();
+  virtual
+  ~MultiExtractor() = default;
 
 
 public:
@@ -54,10 +60,13 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 各出力へ故障伝搬する値割り当てを求める．
-  /// @return 複数の値割り当てを表す論理式を返す．
-  Expr
-  get_assignments(
-    const TpgNode* root  ///< [in] 起点となるノード
+  /// @return 複数の値割り当てを返す．
+  AssignExpr
+  operator()(
+    const TpgNode* root,    ///< [in] 起点となるノード
+    const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
+    const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
+    const SatModel& model   ///< [in] SATソルバの作ったモデル
   );
 
 
@@ -66,62 +75,111 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
-  void
-  mark_tfo(
-    const TpgNode* node
-  );
-
-  /// @brief 故障の影響を伝搬する値割当を求める．
-  /// @return 値割り当てを表す論理式
-  ///
-  /// node は TFO 内のノードでかつ故障差が伝搬している．
-  Expr
-  record_sensitized_node(
-    const TpgNode* node  ///< [in] 対象のノード
-  );
-
-  /// @brief 故障の影響の伝搬を阻害する値割当を求める．
-  /// @return 値割り当てを表す論理式
-  ///
-  /// node は TFO 内のノードかつ故障差が伝搬していない．
-  Expr
-  record_masking_node(
-    const TpgNode* node  ///< [in] 対象のノード
-  );
-
-  /// @brief side input の値を記録する．
-  ///
-  /// node は TFO 外のノード
-  Expr
-  record_side_input(
-    const TpgNode* node  ///< [in] 対象のノード
-  )
+  /// @brief データを得る．
+  const ExData&
+  data() const
   {
-    ASSERT_COND( mFconeMark.count(node->id()) == 0 );
+    return *mData;
+  }
 
-    auto var = node->id();
-    bool inv = (gval(node) == Val3::_0); // 0 の時に inv = true
+  /// @brief 起点のノードを返す．
+  const TpgNode*
+  root() const
+  {
+    return data().root();
+  }
 
-    return Expr::make_literal(var, inv);
+  /// @brief 故障差の伝搬している出力のリストを返す．
+  const vector<const TpgNode*>&
+  sensitized_output_list() const
+  {
+    return data().sensitized_output_list();
+  }
+
+  /// @brief root() から到達可能なノードの時に true を返す．
+  bool
+  is_in_fcone(
+    const TpgNode* node ///< [in] 対象のノード
+  ) const
+  {
+    return data().is_in_fcone(node);
   }
 
   /// @brief 正常回路の値を返す．
   Val3
   gval(
     const TpgNode* node ///< [in] 対象のノード
-  )
+  ) const
   {
-    return bool3_to_val3(mSatModel[mGvarMap(node)]);
+    return data().gval(node);
   }
 
   /// @brief 故障回路の値を返す．
   Val3
   fval(
     const TpgNode* node ///< [in] 対象のノード
+  ) const
+  {
+    return data().fval(node);
+  }
+
+  /// @brief ノードの種類を求める．
+  /// @retval 1 故障差が伝搬している．
+  /// @retval 2 故障差が伝搬していない．
+  /// @retval 3 fcone の外側
+  int
+  type(
+    const TpgNode* node ///< [in] 対象のノード
+  ) const
+  {
+    return data().type(node);
+  }
+
+  /// @brief 故障の影響の伝搬する値割当を記録する．
+  ///
+  /// node は TFO 内のノードでかつ故障差が伝搬している．
+  void
+  record_sensitized_node(
+    const TpgNode* node ///< [in] 対象のノード
+  );
+
+  /// @brief 故障の影響の伝搬を阻害する値割当を記録する．
+  ///
+  /// node は TFO 内のノードかつ故障差が伝搬していない．
+  void
+  record_masking_node(
+    const TpgNode* node,                 ///< [in] 対象のノード
+    vector<AssignExpr>& choice_list ///< [out] 選択リスト
+  );
+
+  /// @brief キューに積む．
+  void
+  put_queue(
+    const TpgNode* node, ///< [in] 対象のノード
+    int mark             ///< [in] マーク
   )
   {
-    return bool3_to_val3(mSatModel[mFvarMap(node)]);
+    if ( mMarks.count(node->id()) == 0 ) {
+      mMarks.emplace(node->id(), mark);
+      mQueue.push_back(node);
+    }
+  }
+
+  /// @brief キューから取り出す．
+  const TpgNode*
+  get_queue()
+  {
+    auto node = mQueue.front();
+    mQueue.pop_front();
+    return node;
+  }
+
+  /// @brief キューをクリアする．
+  void
+  clear_queue()
+  {
+    mQueue.clear();
+    mMarks.clear();
   }
 
 
@@ -130,23 +188,14 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 正常値を表す変数のマップ
-  const VidMap& mGvarMap;
+  // データ
+  ExData* mData{nullptr};
 
-  // 故障値を表す変数のマップ
-  const VidMap& mFvarMap;
+  // 処理対象のノードをためておくキュー
+  std::deque<const TpgNode*> mQueue;
 
-  // SAT ソルバの解
-  const SatModel& mSatModel;
-
-  // 故障の fanout cone のマーク
-  unordered_set<SizeType> mFconeMark;
-
-  // 記録したノードの結果を格納するハッシュ表
-  unordered_map<SizeType, Expr> mExprMap;
-
-  // 故障差の伝搬している外部出力のリスト
-  vector<const TpgNode*> mSpoList;
+  // キューに積んだノードの印
+  unordered_map<SizeType, SizeType> mMarks;
 
 };
 

@@ -8,7 +8,7 @@
 
 #include "TestVector.h"
 #include "TpgNode.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "ym/Range.h"
 
 
@@ -45,7 +45,7 @@ TestVector::from_hex(
 // @brief 割当リストから値を設定する．
 void
 TestVector::set_from_assign_list(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   for ( auto nv: assign_list ) {

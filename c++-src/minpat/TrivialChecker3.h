@@ -53,7 +53,7 @@ public:
   /// その場合には支配故障であることがわかる．
   bool
   check(
-    const NodeTimeValList& assignments ///< [in] 支配故障の検出条件
+    const AssignList& assignments ///< [in] 支配故障の検出条件
   );
 
 

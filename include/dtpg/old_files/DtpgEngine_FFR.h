@@ -50,7 +50,7 @@ private:
   ) override;
 
   /// @brief 故障の活性化条件
-  NodeTimeValList
+  AssignList
   fault_condition(
     const TpgFault* fault ///< [in] 対象の故障
   ) override;

@@ -3,222 +3,174 @@
 /// @brief MultiExtractor の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2015, 2017, 2018, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "MultiExtractor.h"
-#include "TpgFault.h"
-#include "TpgNode.h"
-#include "NodeValList.h"
+#include "AssignExpr.h"
 
+
+#define DBG_OUT cerr
 
 BEGIN_NAMESPACE_DRUID
 
-Expr
-extract_all(
-  const TpgNode* root,
-  const VidMap& gvar_map,
-  const VidMap& fvar_map,
-  const SatModel& model
-)
-{
-  MultiExtractor extractor{gvar_map, fvar_map, model};
-  return extractor.get_assignments(root);
-}
-
 BEGIN_NONAMESPACE
-
 int debug = false;
-
 END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // クラス MultiExtractor
 //////////////////////////////////////////////////////////////////////
 
-MultiExtractor::MultiExtractor(
-  const VidMap& gvar_map,
-  const VidMap& fvar_map,
-  const SatModel& model
-) : mGvarMap{gvar_map},
-    mFvarMap{fvar_map},
-    mSatModel{model}
+// @brief インスタンスを生成するクラスメソッド
+MultiExtractor*
+MultiExtractor::new_impl(
+  const JsonValue& option
+)
 {
-}
-
-// @brief デストラクタ
-MultiExtractor::~MultiExtractor()
-{
+  return new MultiExtractor;
 }
 
 // @brief 各出力へ故障伝搬する値割り当てを求める．
-Expr
-MultiExtractor::get_assignments(
-  const TpgNode* root
+AssignExpr
+MultiExtractor::operator()(
+  const TpgNode* root,
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const SatModel& model
 )
 {
-  // root の TFO (fault cone) に印をつける．
-  // 同時に故障差の伝搬している外部出力のリストを作る．
-  mFconeMark.clear();
-  mark_tfo(root);
-  ASSERT_COND( mSpoList.size() > 0 );
+  ExData data{root, gvar_map, fvar_map, model};
 
-  mExprMap.clear();
+  mData = &data;
+  clear_queue();
 
-  // 故障差の伝搬している経路を探す．
-  Expr expr = Expr::make_zero();
-  for ( auto spo: mSpoList ) {
-    // spo に到達する故障伝搬経路の
-    // side input の値を記録する．
-    expr |= record_sensitized_node(spo);
-  }
-
-#if 0
-  if ( debug ) {
-    ostream& dbg_out = cout;
-    dbg_out << "Extract at Node#" << root->id() << endl;
-    for ( auto& assign_list: assignment_list ) {
-      const char* comma = "";
-      for ( auto nv: assign_list ) {
-	const TpgNode* node = nv.node();
-	dbg_out << comma << "Node#" << node->id()
-		<< ":";
-	if ( nv.val() ) {
-	  dbg_out << "1";
-	}
-	else {
-	  dbg_out << "0";
-	}
-	comma = ", ";
+  // 故障が伝搬している出力を取り出す．
+  vector<AssignExpr> ans_list;
+  for ( auto spo: mData->sensitized_output_list() ) {
+    // 故障箇所から spo までの故障伝搬を行う条件を記録する．
+    AssignExpr assign_list;
+    vector<AssignExpr> choice_list;
+    put_queue(spo, 1);
+    while ( !mQueue.empty() ) {
+      auto node = get_queue();
+      if ( node == root ) {
+	continue;
       }
-      dbg_out << endl;
+      int mark = mMarks.at(node->id());
+      if ( debug ) {
+	DBG_OUT << "visit at Node#" << node->id()
+		<< ": " << mark << endl;
+      }
+      switch ( mark ) {
+      case 1:
+	// 故障の影響が伝搬しているノード
+	record_sensitized_node(node);
+	break;
+      case 2:
+	// 故障の影響が伝搬していないノード
+	record_masking_node(node, choice_list);
+	break;
+      case 3:
+	{ // 境界ノード
+	  // 無条件に現在の値を記録する．
+	  bool val = (gval(node) == Val3::_1);
+	  assign_list &= AssignExpr::make_literal({node, 1, val});
+	}
+	break;
+      }
     }
+    // AssignExpr を作る．
+    auto ans1 = AssignExpr::make_and(choice_list);
+    ans1 &= assign_list;
+    ans_list.push_back(ans1);
   }
-#endif
-
-  return expr;
-}
-
-// @brief node の TFO に印をつけ，故障差の伝搬している外部出力を求める．
-void
-MultiExtractor::mark_tfo(
-  const TpgNode* node
-)
-{
-  if ( mFconeMark.count(node->id()) > 0 ) {
-    return;
-  }
-  mFconeMark.emplace(node->id());
-
-  if ( node->is_ppo() ) {
-    if ( gval(node) != fval(node) ) {
-      mSpoList.push_back(node);
-    }
-  }
-
-  for ( auto onode: node->fanout_list() ) {
-    mark_tfo(onode);
-  }
+  return AssignExpr::make_or(ans_list);
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
-Expr
+void
 MultiExtractor::record_sensitized_node(
   const TpgNode* node
 )
 {
+  if ( debug ) {
+    DBG_OUT << "record_sinsitized_node" << endl
+	    << gval(node) << " / " << fval(node) << endl;
+  }
   ASSERT_COND( gval(node) != fval(node) );
 
-  if ( mExprMap.count(node->id()) == 0 ) {
-    // * 故障差の伝搬しているファンインには record_sensitized_node() を呼ぶ．
-    // * そうでない fault-cone 内のファンインには record_masking_node() を呼ぶ．
-    // * それ以外のファンインには record_side_input() を呼ぶ．
-    auto expr = Expr::make_one();
-    for ( auto inode: node->fanin_list() ) {
-      Expr expr1;
-      if ( mFconeMark.count(inode->id()) > 0 ) {
-	// fault-cone 内部のノード
-	if ( gval(inode) != fval(inode) ) {
-	  expr1 = record_sensitized_node(inode);
-	}
-	else {
-	  expr1 = record_masking_node(inode);
-	}
-      }
-      else {
-	// fault-cone 外部のノード
-	expr1 = record_side_input(inode);
-      }
-      expr &= expr1;
+  for ( auto inode: node->fanin_list() ) {
+    // 値に応じてタイプ分けを行う．
+    // 実は XOR の side-input は X でよいが
+    // なにも考えずに現在の値を要求している．
+    int t = type(inode);
+    put_queue(inode, t);
+    // 正確には
+    // 1. 故障差の伝搬している入力を一つ選ぶ．
+    // 2. その他の入力で伝搬に必要な値を固定する．
+    if ( debug ) {
+      DBG_OUT << "  Node#" << inode->id()
+	      << " type = " << t
+	      << " " << gval(inode) << " / " << fval(inode) << endl;
     }
-    mExprMap.emplace(node->id(), expr);
   }
-
-  return mExprMap.at(node->id());
 }
 
 // @brief 故障の影響の伝搬を阻害する値割当を記録する．
-Expr
+void
 MultiExtractor::record_masking_node(
-  const TpgNode* node
+  const TpgNode* node,
+  vector<AssignExpr>& choice_list
 )
 {
+  if ( debug ) {
+    DBG_OUT << "record_masking_node" << endl
+	    << gval(node) << " / " << fval(node) << endl;
+  }
   ASSERT_COND ( gval(node) == fval(node) );
 
-  // 以下の3通りの場合がある．
-  // * [case1] fault-cone 内で制御値をもったファンインがある．
-  // * [case2] fault-cone 以外で制御値を持ったファンインがある．
-  // * [case3] 故障差の伝搬しているファンインが複数あって打ち消し合っている．
-  if ( mExprMap.count(node->id()) == 0 ) {
-    bool has_cnode = false;
-    vector<const TpgNode*> c1node_list;
-    vector<const TpgNode*> c2node_list;
-    for ( auto inode: node->fanin_list() ) {
-      if ( mFconeMark.count(inode->id()) > 0 ) {
-	if ( gval(inode) == fval(inode) && gval(inode) == node->cval() ) {
-	  has_cnode = true;
-	  c1node_list.push_back(inode);
-	}
-      }
-      else if ( gval(inode) == node->cval() ) {
-	has_cnode = true;
-	c2node_list.push_back(inode);
+  bool has_snode = false;
+  vector<const TpgNode*> cnode_list;
+  for ( auto inode: node->fanin_list() ) {
+    int t = type(inode);
+    if ( t == 1 ) {
+      // このノードには故障差が伝搬している．
+      has_snode = true;
+    }
+    else if ( t == 3 ) {
+      if ( node->cval() == gval(inode) ) {
+	// このノードは制御値を持っている．
+	cnode_list.push_back(inode);
       }
     }
-    Expr expr;
-    if ( has_cnode ) {
-      // 制御値を持つノードの値を確定させる．
-      expr = Expr::make_zero();
-      for ( auto cnode: c1node_list ) {
-	expr |= record_masking_node(cnode);
-      }
-      for ( auto cnode: c2node_list ) {
-	expr |= record_side_input(cnode);
-      }
+  }
+  if ( has_snode && cnode_list.size() > 0 ) {
+    // node のファンインに故障差が伝搬しており，
+    // 他のファンインの制御値でブロックされている場合，
+    // その制御値を持つノードの値を確定させる．
+    // 制御値を持つファンインが2つ以上ある場合には
+    // 異なる結果になる可能性がある．
+    if ( cnode_list.size() == 1 ) {
+      auto cnode = cnode_list.front();
+      put_queue(cnode, 3);
     }
     else {
-      // ここに来たということは全てのファンインに故障差が伝搬していないか
-      // 複数のファンインの故障差が打ち消し合っているのですべてのファンイン
-      // に再帰する．
-      expr = Expr::make_one();
-      for ( auto inode: node->fanin_list() ) {
-	if ( mFconeMark.count(inode->id()) > 0 ) {
-	  if ( gval(inode) != fval(inode) ) {
-	    expr &= record_sensitized_node(inode);
-	  }
-	  else {
-	    expr &= record_masking_node(inode);
-	  }
-	}
-	else {
-	  expr &= record_side_input(inode);
-	}
+      vector<AssignExpr> tmp_list;
+      for ( auto node: cnode_list ) {
+	bool val = (gval(node) == Val3::_1);
+	tmp_list.push_back(AssignExpr::make_literal({node, 1, val}));
       }
+      auto tmp = AssignExpr::make_or(tmp_list);
+      choice_list.push_back(tmp);
     }
-    mExprMap.emplace(node->id(), expr);
   }
-
-  return mExprMap.at(node->id());
+  else {
+    // ここに来たということは全てのファンインに故障差が伝搬していないか
+    // 複数のファンインの故障差が打ち消し合っているのですべてのファンイン
+    // に再帰する．
+    record_sensitized_node(node);
+  }
 }
 
 END_NAMESPACE_DRUID

@@ -76,7 +76,7 @@ DtpgEngine::gen_pattern(
 }
 
 // @brief 十分条件を取り出す．
-NodeTimeValList
+AssignList
 DtpgEngine::get_sufficient_condition(
   const TpgFault* fault
 )

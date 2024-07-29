@@ -162,13 +162,13 @@ DtpgMgr::run(
   string group_mode = "ffr";
   bool multi = false;
   // option の解析
-  if ( !option.is_object() ) {
-    // エラー
-    throw std::invalid_argument{"option should be a JsonObject"};
-  }
-  else {
+  if ( option.is_object() ) {
     get_string(option, "group_mode", group_mode);
     get_bool(option, "multi_thread", multi);
+  }
+  else if ( !option.is_null() ) {
+    // エラー
+    throw std::invalid_argument{"option should be a JsonObject"};
   }
 
   // ノード番号をキーにして関係する故障のリストを格納する配列

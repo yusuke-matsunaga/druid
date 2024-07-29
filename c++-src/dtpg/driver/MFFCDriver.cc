@@ -23,7 +23,7 @@ gen_impl(
 {
   auto has_prev_state = network.fault_type() == FaultType::TransitionDelay;
   const char* keyword = "driver_type";
-  if ( option.has_key(keyword) ) {
+  if ( option.is_object() && option.has_key(keyword) ) {
     auto value_obj = option.at(keyword);
     if ( value_obj.is_string() ) {
       auto value = value_obj.get_string();

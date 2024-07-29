@@ -12,7 +12,7 @@
 #include "TpgMFFC.h"
 #include "TpgFFR.h"
 #include "GateEnc.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "TestVector.h"
 #include "ym/Range.h"
 
@@ -144,7 +144,7 @@ DtpgEngine_MFFC::fault_origin(
 }
 
 // @brief 故障の活性化条件
-NodeTimeValList
+AssignList
 DtpgEngine_MFFC::fault_condition(
   const TpgFault* fault
 )

@@ -75,7 +75,7 @@ public:
 
   /// @brief 故障検出に必要な割り当てを求める．
   virtual
-  NodeTimeValList
+  AssignList
   extract_condition(
     const SatModel& model, ///< [in] SAT のモデル
     const TpgNode* root	   ///< [in] 起点のノード

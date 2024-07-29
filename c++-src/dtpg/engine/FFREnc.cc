@@ -92,7 +92,7 @@ FFREnc::make_cnf_sub(
     vector<SatLiteral> lit_array(ni);
     for ( SizeType i = 0; i < ni; ++ i ) {
       auto inode = node->fanin(i);
-      auto nv = NodeTimeVal{inode, 1, bval};
+      auto nv = Assign{inode, 1, bval};
       auto lit = conv_to_literal(nv);
       lit_array[i] = lit;
     }

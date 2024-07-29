@@ -52,7 +52,7 @@ public:
   );
 
   /// @brief 直前の check() が成功したときの十分条件を求める．
-  NodeTimeValList
+  AssignList
   extract_sufficient_condition(
     const TpgFault* fault ///< [in] 対象の故障
   );
@@ -117,7 +117,7 @@ private:
     const TpgNode* node,          ///< [in] 対象のノード
     const TpgNode* end_node,      ///< [in] 終点のノード
     const unordered_set<SizeType>& fmark,
-    NodeTimeValList& assign_list, ///< [out] 割り当て結果を格納するオブジェクト
+    AssignList& assign_list, ///< [out] 割り当て結果を格納するオブジェクト
     unordered_set<SizeType>& mark ///< [inout] 処理済みの印
   );
 

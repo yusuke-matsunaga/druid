@@ -12,7 +12,7 @@
 #include "TpgFault.h"
 #include "FaultType.h"
 #include "GateEnc.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "TpgNodeSet.h"
 
 #include "ym/SatSolver.h"
@@ -340,7 +340,7 @@ BoolDiffEngine::make_dchain_cnf(
 // @brief 値割り当てをリテラルに変換する．
 SatLiteral
 BoolDiffEngine::conv_to_literal(
-  NodeTimeVal node_val
+  Assign node_val
 )
 {
   auto node = node_val.node();
@@ -352,7 +352,7 @@ BoolDiffEngine::conv_to_literal(
 // @brief 値割り当てをリテラルのリストに変換する．
 void
 BoolDiffEngine::add_to_literal_list(
-  const NodeTimeValList& assign_list,
+  const AssignList& assign_list,
   vector<SatLiteral>& lit_list
 )
 {
@@ -366,7 +366,7 @@ BoolDiffEngine::add_to_literal_list(
 }
 
 // @brief 直前の check() が成功したときの十分条件を求める．
-NodeTimeValList
+AssignList
 BoolDiffEngine::extract_sufficient_condition(
   const TpgNode* root
 )
@@ -380,9 +380,9 @@ BoolDiffEngine::extract_sufficient_condition(
 }
 
 // @brief 与えられた割当の正当化を行う．
-NodeTimeValList
+AssignList
 BoolDiffEngine::justify(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   return mJustifier(assign_list, mHvarMap, mGvarMap, mSolver.model());

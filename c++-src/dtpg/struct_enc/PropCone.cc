@@ -10,7 +10,7 @@
 #include "StructEnc.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "GateEnc.h"
 #include "TpgNodeSet.h"
 
@@ -112,7 +112,7 @@ PropCone::make_cnf()
 }
 
 // @brief 故障検出に必要な割り当てを求める．
-NodeTimeValList
+AssignList
 PropCone::extract_condition(
   const SatModel& model,
   const TpgNode* root

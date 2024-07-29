@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -29,9 +29,9 @@ public:
 
   /// @brief コンストラクタ
   TestCover(
-    const TpgFault* fault,                   ///< [in] 対象の故障
-    const NodeTimeValList& common_cube,      ///< [in] 共通の割り当て
-    const vector<NodeTimeValList>& cube_list ///< [in] 値割り当てのリスト
+    const TpgFault* fault,              ///< [in] 対象の故障
+    const AssignList& common_cube,      ///< [in] 共通の割り当て
+    const vector<AssignList>& cube_list ///< [in] 値割り当てのリスト
   ) : mFault{fault},
       mCommonCube{common_cube},
       mCubeList{cube_list}
@@ -55,19 +55,36 @@ public:
   }
 
   /// @brief 共通な割り当てを返す．
-  const NodeTimeValList&
+  const AssignList&
   common_cube() const
   {
     return mCommonCube;
   }
 
   /// @brief 値割り当てのリストのリストを返す．
-  const vector<NodeTimeValList>&
+  const vector<AssignList>&
   cube_list() const
   {
     return mCubeList;
   }
 
+  /// @brief キューブ数を返す．
+  SizeType
+  cube_num() const
+  {
+    return mCubeList.size();
+  }
+
+  /// @brief リテラル数を返す．
+  SizeType
+  literal_num() const
+  {
+    SizeType nl = mCommonCube.size();
+    for ( auto& cube: mCubeList ) {
+      nl += cube.size();
+    }
+    return nl;
+  }
 
 
 private:
@@ -79,10 +96,10 @@ private:
   const TpgFault* mFault{nullptr};
 
   // 共通な割り当て
-  NodeTimeValList mCommonCube;
+  AssignList mCommonCube;
 
   // 値割り当てのリスト
-  vector<NodeTimeValList> mCubeList;
+  vector<AssignList> mCubeList;
 
 };
 

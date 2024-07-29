@@ -131,7 +131,7 @@ dfs(
 END_NONAMESPACE
 
 // @brief 直前の check() が成功したときの十分条件を求める．
-NodeTimeValList
+AssignList
 MFFCEnc::extract_sufficient_condition(
   const TpgFault* fault
 )
@@ -144,7 +144,7 @@ MFFCEnc::extract_sufficient_condition(
   // これだと無駄な値割り当てを含む可能性がある．
   unordered_set<SizeType> fmark;
   dfs(end, start, fmark);
-  NodeTimeValList assign_list;
+  AssignList assign_list;
   unordered_set<SizeType> mark;
   ex_sub(start, end, fmark, assign_list, mark);
   return assign_list;
@@ -156,7 +156,7 @@ MFFCEnc::ex_sub(
   const TpgNode* node,
   const TpgNode* end_node,
   const unordered_set<SizeType>& fmark,
-  NodeTimeValList& assign_list,
+  AssignList& assign_list,
   unordered_set<SizeType>& mark
 )
 {

@@ -187,9 +187,9 @@ BaseEnc::make_cnf(
 }
 
 // @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
-NodeTimeValList
+AssignList
 BaseEnc::justify(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   auto& model = mSolver.model();
@@ -197,10 +197,10 @@ BaseEnc::justify(
 }
 
 // @brief 現在の外部入力の割当を得る．
-NodeTimeValList
+AssignList
 BaseEnc::get_pi_assign()
 {
-  NodeTimeValList pi_assign;
+  AssignList pi_assign;
   if ( mNetwork.has_prev_state() ) {
     for ( auto node: mNetwork.ppi_list() ) {
       auto v = val(node, 0);
@@ -223,7 +223,7 @@ BaseEnc::get_pi_assign()
 // @brief 値割り当てを対応するリテラルに変換する．
 SatLiteral
 BaseEnc::conv_to_literal(
-  NodeTimeVal assign
+  Assign assign
 )
 {
   auto node = assign.node();
@@ -236,7 +236,7 @@ BaseEnc::conv_to_literal(
 // @brief 値割り当てのリストを対応するリテラルのリストに変換する．
 vector<SatLiteral>
 BaseEnc::conv_to_literal_list(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   vector<SatLiteral> ans_list;

@@ -51,8 +51,8 @@ public:
   /// その場合には支配故障であることがわかる．
   bool
   check(
-    const NodeTimeValList& cond1, ///< [in] 支配故障の検出条件
-    const NodeTimeValList& cond2  ///< [in] 被支配故障の検出条件
+    const AssignList& cond1, ///< [in] 支配故障の検出条件
+    const AssignList& cond2  ///< [in] 被支配故障の検出条件
   );
 
 

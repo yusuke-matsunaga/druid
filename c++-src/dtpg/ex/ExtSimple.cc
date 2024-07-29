@@ -15,22 +15,50 @@ BEGIN_NAMESPACE_DRUID
 // クラス ExtSimple
 //////////////////////////////////////////////////////////////////////
 
-// @brief 対象の出力を選ぶ．
-const TpgNode*
-ExtSimple::select_output()
-{
-  // 最初の要素を返す．
-  return data().sensitized_output_list()[0];
-}
-
 // @brief 制御値を持つ side input を選ぶ．
-const TpgNode*
+vector<const TpgNode*>
 ExtSimple::select_cnode(
-  const vector<const TpgNode*>& node_list
+  const vector<vector<const TpgNode*>>& choice_list
 )
 {
-  // 最初の要素を返す．
-  return node_list[0];
+  // 出現回数を数える．
+  std::unordered_map<SizeType, SizeType> node_count;
+  for ( auto& cnode_list: choice_list ) {
+    for ( auto cnode: cnode_list ) {
+      if ( node_count.count(cnode->id()) == 0 ) {
+	node_count.emplace(cnode->id(), 1);
+      }
+      else {
+	++ node_count.at(cnode->id());
+      }
+    }
+  }
+
+  // 出現回数の多い順に選択する．
+  vector<const TpgNode*> ans_list;
+  std::unordered_set<SizeType> selected;
+  for ( auto& cnode_list: choice_list ) {
+    SizeType max_count = 0;
+    const TpgNode* max_node = nullptr;
+    bool done = false;
+    for ( auto cnode: cnode_list ) {
+      if ( selected.count(cnode->id()) > 0 ) {
+	done = true;
+	break;
+      }
+      SizeType count = node_count.at(cnode->id());
+      if ( max_count < count ) {
+	max_count = count;
+	max_node = cnode;
+      }
+    }
+    if ( !done ) {
+      ans_list.push_back(max_node);
+      selected.emplace(max_node->id());
+    }
+  }
+
+  return ans_list;
 }
 
 END_NAMESPACE_DRUID

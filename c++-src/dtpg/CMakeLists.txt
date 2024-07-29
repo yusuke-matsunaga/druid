@@ -69,7 +69,6 @@ set ( struct_enc_SOURCES
 
 set ( ex_SOURCES
   ex/Extractor.cc
-  ex/ExImpl.cc
   ex/ExtSimple.cc
   ex/MultiExtractor.cc
   ex/ExData.cc

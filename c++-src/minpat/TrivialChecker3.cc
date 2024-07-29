@@ -49,7 +49,7 @@ TrivialChecker3::~TrivialChecker3()
 // @brief チェックする．
 bool
 TrivialChecker3::check(
-  const NodeTimeValList& assignments
+  const AssignList& assignments
 )
 {
   auto assumptions = mBaseEnc.conv_to_literal_list(assignments);

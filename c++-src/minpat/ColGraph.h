@@ -140,9 +140,9 @@ public:
   );
 
   /// @brief 割り当てを充足させる外部入力の割り当てを求める．
-  NodeTimeValList
+  AssignList
   justify(
-    const NodeTimeValList& assign_list ///< [in] 値割り当てのリスト
+    const AssignList& assign_list ///< [in] 値割り当てのリスト
   );
 
   /// @brief 指定された色のノード番号のリストを返す．
@@ -283,7 +283,7 @@ private:
     // 故障
     const TpgFault* mFault;
     // 検出条件のリスト
-    vector<NodeTimeValList> mCubeList;
+    vector<AssignList> mCubeList;
     // 色
     SizeType mColor{0};
     // 衝突しているノード番号のリスト

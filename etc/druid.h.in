@@ -73,8 +73,9 @@ class TpgFaultStatusMgr;
 
 class NodeVal;
 class NodeValList;
-class NodeTimeVal;
-class NodeTimeValList;
+class Assign;
+class AssignList;
+class AssignExpr;
 class InputVector;
 class DffVector;
 class TestVector;

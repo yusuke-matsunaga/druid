@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "FaultInfo.h"
+#include "TpgFFR.h"
 #include "TpgFault.h"
 #include "ym/JsonValue.h"
 
@@ -77,6 +78,15 @@ public:
     return mFaultInfoArray[fault->id()];
   }
 
+  /// @brief FFR の出力の故障伝搬の必要条件を返す．
+  const AssignList&
+  root_mandatory_condition(
+    const TpgFFR* ffr
+  ) const
+  {
+    return mRootMandCondArray[ffr->id()];
+  }
+
   /// @brief 故障を削除する．
   void
   delete_fault(
@@ -106,6 +116,10 @@ private:
   // FaultInfo の配列
   // キーは故障番号
   vector<FaultInfo> mFaultInfoArray;
+
+  // FFR の出力の故障伝搬の必要条件の配列
+  // キーは FFR 番号
+  vector<AssignList> mRootMandCondArray;
 
 };
 

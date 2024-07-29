@@ -120,7 +120,7 @@ public:
   fval() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -161,7 +161,7 @@ public:
   fval() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -220,7 +220,7 @@ protected:
   /// @brief 故障の伝搬条件を追加する．
   void
   add_gate_propagation_condition(
-    NodeTimeValList& assign_list ///< [out] 条件を追加するオブジェクト
+    AssignList& assign_list ///< [out] 条件を追加するオブジェクト
   ) const;
 
   /// @brief 入力位置を得る．
@@ -312,7 +312,7 @@ public:
   fval() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -354,7 +354,7 @@ public:
   fval() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -428,7 +428,7 @@ public:
   fval() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -469,7 +469,7 @@ public:
   fval() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -545,7 +545,7 @@ public:
   fval() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -587,7 +587,7 @@ public:
   fval() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．
@@ -640,7 +640,7 @@ public:
   origin_node() const override;
 
   /// @brief 故障が励起して origin_node の出力まで伝搬する条件を求める．
-  NodeTimeValList
+  AssignList
   excitation_condition() const override;
 
   /// @brief 故障の内容を表す文字列を返す．

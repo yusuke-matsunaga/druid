@@ -14,7 +14,7 @@ include_directories(
 add_subdirectory ( fault_reducer )
 add_subdirectory ( conflict_checker )
 add_subdirectory ( testcube_gen )
-add_subdirectory ( minpat )
+#add_subdirectory ( minpat )
 
 
 # ===================================================================

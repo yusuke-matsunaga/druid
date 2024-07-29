@@ -1,8 +1,8 @@
-#ifndef NODETIMEVAL_H
-#define NODETIMEVAL_H
+#ifndef ASSIGN_H
+#define ASSIGN_H
 
-/// @file NodeTimeVal.h
-/// @brief NodeTimeVal のヘッダファイル
+/// @file Assign.h
+/// @brief Assign のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -14,7 +14,7 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class NodeTimeVal NodeTimeVal.h "td/NodeTimeVal.h"
+/// @class Assign Assign.h "td/Assign.h"
 /// @brief ノードに対する値の割当を表すクラス
 ///
 /// 昔の C でよく使われていたポインタの下位ビットが0であることを
@@ -23,20 +23,20 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// なお，縮退故障モードのときは時刻は 1 となる．
 //////////////////////////////////////////////////////////////////////
-class NodeTimeVal
+class Assign
 {
 public:
 
   /// @brief 空のコンストラクタ
   ///
   /// 内容は不定
-  NodeTimeVal(
+  Assign(
   ) : mPackVal{0UL}
   {
   }
 
   /// @brief 値を指定したコンストラクタ
-  NodeTimeVal(
+  Assign(
     const TpgNode* node, ///< [in] ノード
     int time,		 ///< [in] 時刻 ( 0 or 1 )
     bool val		 ///< [in] 値
@@ -45,11 +45,11 @@ public:
   }
 
   /// @brief コピーコンストラクタ
-  NodeTimeVal(const NodeTimeVal& src) = default;
+  Assign(const Assign& src) = default;
 
   /// @brief コピー代入演算子
-  NodeTimeVal&
-  operator=(const NodeTimeVal& src) = default;
+  Assign&
+  operator=(const Assign& src) = default;
 
 
 public:
@@ -98,8 +98,8 @@ public:
   friend
   bool
   operator==(
-    const NodeTimeVal& left,
-    const NodeTimeVal& right
+    const Assign& left,
+    const Assign& right
   )
   {
     return left.mPackVal == right.mPackVal;
@@ -109,8 +109,8 @@ public:
   friend
   bool
   operator<(
-    const NodeTimeVal& left,
-    const NodeTimeVal& right
+    const Assign& left,
+    const Assign& right
   );
 
 
@@ -129,15 +129,15 @@ private:
 ostream&
 operator<<(
   ostream& s,    ///< [in] 出力先のストリーム
-  NodeTimeVal nv ///< [in] 値の割り当て
+  Assign nv ///< [in] 値の割り当て
 );
 
 // @brief 大小関係の比較関数
 inline
 bool
 operator>(
-  const NodeTimeVal& left,
-  const NodeTimeVal& right
+  const Assign& left,
+  const Assign& right
 )
 {
   return operator<(right, left);
@@ -147,8 +147,8 @@ operator>(
 inline
 bool
 operator<=(
-  const NodeTimeVal& left,
-  const NodeTimeVal& right
+  const Assign& left,
+  const Assign& right
 )
 {
   return !operator<(right, left);
@@ -158,8 +158,8 @@ operator<=(
 inline
 bool
 operator>=(
-  const NodeTimeVal& left,
-  const NodeTimeVal& right
+  const Assign& left,
+  const Assign& right
 )
 {
   return !operator<(left, right);
@@ -169,13 +169,13 @@ END_NAMESPACE_DRUID
 
 BEGIN_NAMESPACE_STD
 
-// NodeTimeVal をキーにしたハッシュ関数クラスの定義
+// Assign をキーにしたハッシュ関数クラスの定義
 template <>
-struct hash<DRUID_NAMESPACE::NodeTimeVal>
+struct hash<DRUID_NAMESPACE::Assign>
 {
   SizeType
   operator()(
-    const DRUID_NAMESPACE::NodeTimeVal& nv
+    const DRUID_NAMESPACE::Assign& nv
   ) const
   {
     return nv.hash();
@@ -184,4 +184,4 @@ struct hash<DRUID_NAMESPACE::NodeTimeVal>
 
 END_NAMESPACE_STD
 
-#endif // NODETIMEVAL_H
+#endif // ASSIGN_H

@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "ym/JsonValue.h"
 
 
@@ -53,6 +53,13 @@ public:
     FaultInfo& finfo ///< [inout] 対象の故障情報を格納するオブジェクト
   );
 
+  /// @brief 出力の故障伝搬の必要条件を返す．
+  const AssignList&
+  root_mandatory_condition() const
+  {
+    return mRootMandCond;
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -66,10 +73,13 @@ private:
   BoolDiffEnc* mBdEnc;
 
   // FFR の出力の故障伝搬の必要条件
-  NodeTimeValList mRootMandCond;
+  AssignList mRootMandCond;
 
   // FFR の出力の故障伝搬可能性
   SatBool3 mRootStatus;
+
+  // デバッグフラグ
+  int mDebug{0};
 
 };
 

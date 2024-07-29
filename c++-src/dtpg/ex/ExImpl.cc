@@ -31,7 +31,7 @@ ExImpl::ExImpl()
 }
 
 // @brief 値割り当てを１つ求める．
-NodeTimeValList
+AssignList
 ExImpl::get_assignment(
   const TpgNode* root,
   const VidMap& gvar_map,
@@ -49,7 +49,7 @@ ExImpl::get_assignment(
   auto spo = select_output();
 
   // その経路の side input の値を記録する．
-  NodeTimeValList assign_list;
+  AssignList assign_list;
   put_queue(spo, 1);
   while ( !mQueue.empty() ) {
     auto node = get_queue();
@@ -67,7 +67,7 @@ ExImpl::get_assignment(
       record_sensitized_node(node);
       break;
     case 2:
-      // 故障の影響が円パンしていないノードの場合
+      // 故障の影響が伝搬していないノードの場合
       record_masking_node(node);
       break;
     case 3:
@@ -120,7 +120,7 @@ ExImpl::record_sensitized_node(
     int t = type(inode);
     put_queue(inode, t);
     // 正確には
-    // 1. 故障差の伝搬している入力を一つ選ぶ．
+    // 1. 故障差の伝搬している入力はすべてその値を確定させる．
     // 2. その他の入力で伝搬に必要な値を固定する．
     if ( debug ) {
       DBG_OUT << "  Node#" << inode->id()

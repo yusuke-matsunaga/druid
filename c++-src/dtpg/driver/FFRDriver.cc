@@ -22,7 +22,7 @@ gen_impl(
 )
 {
   const char* keyword = "driver_type";
-  if ( option.has_key(keyword) ) {
+  if ( option.is_object() && option.has_key(keyword) ) {
     auto value_obj = option.at(keyword);
     if ( value_obj.is_string() ) {
       auto value = value_obj.get_string();

@@ -10,7 +10,7 @@
 
 #include "druid.h"
 #include "ExData.h"
-#include "NodeTimeValList.h"
+#include "AssignList.h"
 #include "VidMap.h"
 #include "Val3.h"
 #include "ym/SatModel.h"
@@ -47,7 +47,7 @@ public:
 
   /// @brief 値割り当てを１つ求める．
   /// @return 値の割当リスト
-  NodeTimeValList
+  AssignList
   get_assignment(
     const TpgNode* root,    ///< [in] 起点となるノード
     const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ

@@ -36,7 +36,7 @@ DtpgEngine_Node::fault_origin(
 }
 
 // @brief gen_pattern() で用いる検出条件を作る．
-NodeTimeValList
+AssignList
 DtpgEngine_Node::fault_condition(
   const TpgFault* fault
 )

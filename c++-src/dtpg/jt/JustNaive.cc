@@ -37,9 +37,9 @@ JustNaive::~JustNaive()
 }
 
 // @brief justify の実際の処理
-NodeTimeValList
+AssignList
 JustNaive::_justify(
-  const NodeTimeValList& assign_list ///< [in] 割当リスト
+  const AssignList& assign_list ///< [in] 割当リスト
 )
 {
   // 時刻1の割り当てを持つノードのリスト
@@ -56,7 +56,7 @@ JustNaive::_justify(
     }
   }
 
-  NodeTimeValList pi_assign_list;
+  AssignList pi_assign_list;
 
   TpgNodeSet::get_tfi_list(
     network().node_num(), cur_list,

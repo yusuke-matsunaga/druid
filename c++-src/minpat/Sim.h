@@ -52,7 +52,7 @@ public:
   /// @brief 割り当て条件を満たしているか調べる．
   PackedVal
   check(
-    const NodeTimeValList& assign
+    const AssignList& assign
   ) const;
 
 

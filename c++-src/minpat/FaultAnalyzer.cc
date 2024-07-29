@@ -10,7 +10,10 @@
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "FaultInfo.h"
+#include "OpBase.h"
 
+
+#define DBG_OUT cerr
 
 BEGIN_NAMESPACE_DRUID
 
@@ -19,13 +22,20 @@ FaultAnalyzer::FaultAnalyzer(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
-) : mBaseEnc{network, option}
+) : mBaseEnc{network, option},
+    mDebug{OpBase::get_debug(option)}
 {
   auto root = ffr->root();
   mBdEnc = new BoolDiffEnc{mBaseEnc, root, option};
   mBaseEnc.make_cnf({}, {root});
 
   // FFR の出力の伝搬可能性を調べる．
+  if ( mDebug > 1 ) {
+    DBG_OUT << "FFR#" << ffr->id() << ": ";
+    DBG_OUT.flush();
+  }
+  Timer timer;
+  timer.start();
   auto pvar = mBdEnc->prop_var();
   mRootStatus = mBaseEnc.solver().solve({pvar});
   if ( mRootStatus == SatBool3::True ) {
@@ -38,6 +48,11 @@ FaultAnalyzer::FaultAnalyzer(
       }
     }
   }
+  timer.stop();
+  if ( mDebug > 1 ) {
+    DBG_OUT << mRootMandCond.size() << ": "
+	    << (timer.get_time() / 1000.0) << endl;
+  }
 }
 
 // @brief 故障検出の十分条件と必要条件を求める．
@@ -48,23 +63,33 @@ FaultAnalyzer::run(
 {
   auto fault = finfo.fault();
   if ( mRootStatus == SatBool3::True ) {
+    Timer timer;
+    timer.start();
     auto ffr_cond = fault->ffr_propagate_condition();
     auto root_cond = mRootMandCond;
     ffr_cond.merge(root_cond);
     auto assumptions = mBaseEnc.conv_to_literal_list(ffr_cond);
     assumptions.push_back(mBdEnc->prop_var());
     auto res = mBaseEnc.solver().solve(assumptions);
+    timer.stop();
+    if ( mDebug > 1 ) {
+      DBG_OUT << "  DTPG: " << fault->str() << ": "
+	      << (timer.get_time() / 1000.0) << endl;
+    }
     if ( res == SatBool3::True ) {
+      timer.reset();
+      timer.start();
       auto suff_cond = mBdEnc->extract_sufficient_condition();
       // あとで必要条件を求めるためにコピーしておく．
       auto tmp_cond{suff_cond};
       suff_cond.merge(ffr_cond);
+      auto suff_cond_expr = AssignExpr::make_and(suff_cond);
       auto pi_assign = mBaseEnc.justify(suff_cond);
-      finfo.set_sufficient_condition(suff_cond, pi_assign);
+      finfo.set_sufficient_condition(suff_cond, suff_cond_expr, pi_assign);
       tmp_cond.diff(root_cond);
       auto assumptions1{assumptions};
       assumptions1.push_back(SatLiteral::X);
-      NodeTimeValList mand_cond;
+      AssignList mand_cond;
       for ( auto nv: tmp_cond ) {
 	auto lit = mBaseEnc.conv_to_literal(nv);
 	assumptions1.back() = ~lit;
@@ -75,6 +100,12 @@ FaultAnalyzer::run(
       }
       mand_cond.merge(ffr_cond);
       finfo.set_mandatory_condition(mand_cond);
+      timer.stop();
+      if ( mDebug > 1 ) {
+	DBG_OUT << "  PHASE1: " << suff_cond.size() << " | "
+		<< mand_cond.size() << ": "
+		<< (timer.get_time() / 1000.0) << endl;
+      }
       return true;
     }
     if ( res == SatBool3::False ) {

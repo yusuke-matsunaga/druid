@@ -64,9 +64,12 @@ public:
   DtpgStats
   run(
     Callback_Det det_func,      ///< [in] 検出時に呼ばれる関数
-    Callback_Undet untest_func, ///< [in] 検出不能の判定時に呼ばれる関数
-    Callback_Undet abort_func,  ///< [in] アボート時に呼ばれる関数
+    Callback_Undet untest_func  ///< [in] 検出不能の判定時に呼ばれる関数
+    = [](DtpgMgr&, const TpgFault*){},
+    Callback_Undet abort_func   ///< [in] アボート時に呼ばれる関数
+    = [](DtpgMgr&, const TpgFault*){},
     const JsonValue& option     ///< [in] オプションを表す JSON オブジェクト
+    = JsonValue{}
   );
 
   /// @brief 対象のネットワークを得る．

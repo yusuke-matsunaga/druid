@@ -41,6 +41,13 @@ public:
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
+  /// @brief コンストラクタ
+  ExCubeGen(
+    const TpgNetwork& network,            ///< [in] 対象のネットワーク
+    const TpgFFR* ffr,                    ///< [in] 対象の FFR
+    const AssignList& root_cond,          ///< [in] 出力の故障伝搬の必要条件
+    const JsonValue& option = JsonValue{} ///< [in] オプション
+  );
 
   /// @brief デストラクタ
   ~ExCubeGen();
@@ -55,9 +62,7 @@ public:
   /// @return 生成したテストカバーを返す．
   TestCover
   run(
-    const TpgFault* fault,            ///< [in] 対象の故障
-    const NodeTimeValList& mand_cond, ///< [in] 必要条件
-    const NodeTimeValList& suff_cond  ///< [in] 十分条件の一つ
+    const TpgFault* fault ///< [in] 対象の故障
   );
 
 
@@ -75,11 +80,17 @@ private:
   // FFR用のブール微分器
   BoolDiffEnc* mBdEnc;
 
+  // FFR の出力の故障伝搬の必要条件
+  AssignList mRootMandCond;
+
+  // FFR の出力の故障伝搬可能性
+  SatBool3 mRootStatus;
+
   // 上限値
   SizeType mLimit;
 
   // デバッグフラグ
-  bool mDebug{false};
+  int mDebug{0};
 
 };
 

@@ -17,9 +17,9 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief 正当化に必要な割当を求める(縮退故障用)．
-NodeTimeValList
+AssignList
 JustImpl::justify(
-  const NodeTimeValList& assign_list,
+  const AssignList& assign_list,
   const VidMap& var_map,
   const SatModel& model
 )
@@ -30,9 +30,9 @@ JustImpl::justify(
 }
 
 // @brief 正当化に必要な割当を求める(遷移故障用)．
-NodeTimeValList
+AssignList
 JustImpl::justify(
-  const NodeTimeValList& assign_list,
+  const AssignList& assign_list,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model

@@ -10,10 +10,12 @@
 
 #include "druid.h"
 #include "BaseEnc.h"
-#include "Extractor.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+class Extractor;
+class MultiExtractor;
 
 //////////////////////////////////////////////////////////////////////
 /// @class BoolDiffEnc BoolDiffEnc.h "BoolDiffEnc.h"
@@ -42,7 +44,7 @@ public:
   );
 
   /// @brief デストラクタ
-  ~BoolDiffEnc() = default;
+  ~BoolDiffEnc();
 
 
 public:
@@ -79,8 +81,12 @@ public:
   }
 
   /// @brief 直前の check() が成功したときの十分条件を求める．
-  NodeTimeValList
+  AssignList
   extract_sufficient_condition();
+
+  /// @brief 直前の check() が成功したときの十分条件を求める．
+  AssignExpr
+  extract_sufficient_conditions();
 
 
 private:
@@ -160,7 +166,10 @@ private:
   VidMap mDvarMap;
 
   // 十分条件を取り出すオブジェクト
-  Extractor mExtractor;
+  std::unique_ptr<Extractor> mExtractor;
+
+  // 複数の十分条件を取り出すオブジェクト
+  std::unique_ptr<MultiExtractor> mMultiExtractor;
 
 };
 

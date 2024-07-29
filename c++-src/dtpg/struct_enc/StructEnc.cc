@@ -115,7 +115,7 @@ StructEnc::make_prop_condition(
 // @brief 割当リストに従って値を固定する．
 void
 StructEnc::add_assignments(
-  const NodeTimeValList& assignments
+  const AssignList& assignments
 )
 {
   for ( auto nv: assignments ) {
@@ -127,7 +127,7 @@ StructEnc::add_assignments(
 // @brief 割当リストの否定の節を加える．
 void
 StructEnc::add_negation(
-  const NodeTimeValList& assignments
+  const AssignList& assignments
 )
 {
   vector<SatLiteral> tmp_lits;
@@ -143,7 +143,7 @@ StructEnc::add_negation(
 //
 vector<SatLiteral>
 StructEnc::conv_to_literal_list(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   vector<SatLiteral> ans_list;
@@ -262,7 +262,7 @@ StructEnc::check_sat()
 // こちらは結果のみを返す．
 SatBool3
 StructEnc::check_sat(
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   auto assumptions = conv_to_literal_list(assign_list);
@@ -272,8 +272,8 @@ StructEnc::check_sat(
 // @brief 割当リストのもとでチェックを行う．
 SatBool3
 StructEnc::check_sat(
-  const NodeTimeValList& assign_list1,
-  const NodeTimeValList& assign_list2
+  const AssignList& assign_list1,
+  const AssignList& assign_list2
 )
 {
   auto assumptions = conv_to_literal_list(assign_list1);
@@ -286,7 +286,7 @@ StructEnc::check_sat(
 SatBool3
 StructEnc::check_sat(
   const vector<SatLiteral>& assumptions,
-  const NodeTimeValList& assign_list
+  const AssignList& assign_list
 )
 {
   auto tmp_list1 = conv_to_literal_list(assign_list);
@@ -296,7 +296,7 @@ StructEnc::check_sat(
 }
 
 // @brief 伝搬条件を求める．
-NodeTimeValList
+AssignList
 StructEnc::extract_prop_condition(
   const TpgNode* ffr_root
 )
