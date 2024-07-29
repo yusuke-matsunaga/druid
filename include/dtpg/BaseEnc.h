@@ -10,7 +10,6 @@
 
 #include "druid.h"
 #include "VidMap.h"
-#include "Justifier.h"
 #include "AssignList.h"
 #include "ym/SatSolver.h"
 #include "ym/Timer.h"
@@ -19,6 +18,7 @@
 BEGIN_NAMESPACE_DRUID
 
 class SubEnc;
+class Justifier;
 
 //////////////////////////////////////////////////////////////////////
 /// @class BaseEnc BaseEnc.h "BaseEnc.h"
@@ -217,7 +217,7 @@ private:
   VidMap mHvarMap;
 
   // justifier
-  Justifier mJustifier;
+  std::unique_ptr<Justifier> mJustifier;
 
   // 時間計測用のタイマ
   Timer mTimer;

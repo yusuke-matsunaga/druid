@@ -1,8 +1,8 @@
-#ifndef JUSTIMPL_H
-#define JUSTIMPL_H
+﻿#ifndef JUSTIFIER_H
+#define JUSTIFIER_H
 
-/// @file JustImpl.h
-/// @brief JustImpl のヘッダファイル
+/// @file Justifier.h
+/// @brief Justifier のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -10,8 +10,8 @@
 
 #include "druid.h"
 #include "TpgNetwork.h"
-#include "Assign.h"
-#include "ym/SatModel.h"
+#include "ym/sat.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -19,23 +19,35 @@ BEGIN_NAMESPACE_DRUID
 class JustData;
 
 //////////////////////////////////////////////////////////////////////
-/// @class JustImpl JustImpl.h "JustImpl.h"
-/// @brief Justifier の実装クラス
+/// @class Justifier Justifier.h "Justifier.h"
+/// @brief 正当化に必要な割当を求めるファンクター
+///
+/// SAT ソルバで解を求めた後で，必要最小限の PI の割当を求める．
+/// 正当化が必要な値の割当は assign_list に入っている．
 //////////////////////////////////////////////////////////////////////
-class JustImpl
+class Justifier
 {
 public:
 
+  /// @brief 新しいオブジェクトを生成する．
+  static
+  Justifier*
+  new_obj(
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const JsonValue& option    ///< [in] オプション
+  );
+
+
+public:
+
   /// @brief コンストラクタ
-  JustImpl(
+  Justifier(
     const TpgNetwork& network ///< [in] 対象のネットワーク
-  ) : mNetwork{network}
-  {
-  }
+  );
 
   /// @brief デストラクタ
   virtual
-  ~JustImpl() = default;
+  ~Justifier() = default;
 
 
 public:
@@ -118,4 +130,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // JUSTIMPL_H
+#endif // JUSTIFIER_H

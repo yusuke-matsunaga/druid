@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "JustImpl.h"
+#include "Justifier.h"
 #include "TpgNode.h"
 #include "Assign.h"
 #include "ym/SatModel.h"
@@ -26,7 +26,7 @@ class JustData;
 /// いくつかの仮想関数が未定義なので継承クラスで実装する必要がある．
 //////////////////////////////////////////////////////////////////////
 class JustBase :
-  public JustImpl
+  public Justifier
 {
 public:
 

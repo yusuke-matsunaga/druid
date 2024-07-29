@@ -12,7 +12,6 @@
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
 #include "FFREnc.h"
-#include "FaultEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID

@@ -8,7 +8,7 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "JustImpl.h"
+#include "Justifier.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,7 +20,7 @@ class JustData;
 /// @brief 関係するすべて値割り当てを記録する JustImpl
 //////////////////////////////////////////////////////////////////////
 class JustNaive :
-  public JustImpl
+  public Justifier
 {
 public:
 

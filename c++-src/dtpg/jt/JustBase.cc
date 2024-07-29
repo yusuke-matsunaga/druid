@@ -26,7 +26,7 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 JustBase::JustBase(
   const TpgNetwork& network
-) : JustImpl{network},
+) : Justifier{network},
     mMarkArray(network.node_num(), 0U)
 {
 }

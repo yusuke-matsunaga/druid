@@ -13,7 +13,6 @@
 #include "BaseEnc.h"
 #include "BoolDiffEnc.h"
 #include "FFREnc.h"
-#include "FaultEnc.h"
 #include "DtpgStats.h"
 
 #include "ym/JsonValue.h"

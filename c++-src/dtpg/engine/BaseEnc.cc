@@ -10,6 +10,7 @@
 #include "TpgNetwork.h"
 #include "TpgNodeSet.h"
 #include "GateEnc.h"
+#include "Justifier.h"
 
 
 //#define DEBUG_DTPG
@@ -50,7 +51,7 @@ BaseEnc::BaseEnc(
     mSolver{SatInitParam{get_option(option, "sat_param")}},
     mGvarMap{network.node_num()},
     mHvarMap{network.node_num()},
-    mJustifier{network, get_option(option, "justifier")}
+    mJustifier{Justifier::new_obj(network, get_option(option, "justifier"))}
 {
 }
 
@@ -193,7 +194,12 @@ BaseEnc::justify(
 )
 {
   auto& model = mSolver.model();
-  return mJustifier(assign_list, mHvarMap, mGvarMap, model);
+  if ( mNetwork.has_prev_state() ) {
+    return mJustifier->justify(assign_list, mHvarMap, mGvarMap, model);
+  }
+  else {
+    return mJustifier->justify(assign_list, mGvarMap, model);
+  }
 }
 
 // @brief 現在の外部入力の割当を得る．

@@ -27,7 +27,7 @@ END_NONAMESPACE
 // @brief コンストラクタ
 JustNaive::JustNaive(
   const TpgNetwork& network
-) : JustImpl{network}
+) : Justifier{network}
 {
 }
 

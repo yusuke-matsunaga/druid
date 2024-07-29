@@ -3,10 +3,11 @@
 /// @brief Justifier の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2018, 2022, 2023 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "Justifier.h"
+#include "JustData.h"
 #include "JustNaive.h"
 #include "Just1.h"
 #include "Just2.h"
@@ -16,10 +17,12 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
+//////////////////////////////////////////////////////////////////////
+// クラス Justifier
+//////////////////////////////////////////////////////////////////////
 
-JustImpl*
-new_just(
+Justifier*
+Justifier::new_obj(
   const TpgNetwork& network,
   const JsonValue& option
 )
@@ -53,44 +56,38 @@ new_just(
   return nullptr;
 }
 
-END_NONAMESPACE
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス Justifier
-//////////////////////////////////////////////////////////////////////
-
 // @brief コンストラクタ
 Justifier::Justifier(
-  const TpgNetwork& network,
-  const JsonValue& option
-) : mHasPrevState{network.has_prev_state()},
-    mImpl{new_just(network, option)}
+  const TpgNetwork& network
+) : mNetwork{network}
 {
 }
 
-// @brief デストラクタ
-Justifier::~Justifier()
-{
-  // JustImpl のサイズが必要なので
-  // ヘッダファイルでは定義できない．
-}
-
-// @brief 正当化に必要な割当を求める
+// @brief 正当化に必要な割当を求める(縮退故障用)．
 AssignList
-Justifier::operator()(
+Justifier::justify(
+  const AssignList& assign_list,
+  const VidMap& var_map,
+  const SatModel& model
+)
+{
+  JustData jd{var_map, model};
+  mJustDataPtr = &jd;
+  return _justify(assign_list);
+}
+
+// @brief 正当化に必要な割当を求める(遷移故障用)．
+AssignList
+Justifier::justify(
   const AssignList& assign_list,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model
 )
 {
-  if ( mHasPrevState ) {
-    return mImpl->justify(assign_list, var1_map, var2_map, model);
-  }
-  else {
-    return mImpl->justify(assign_list, var2_map, model);
-  }
+  JustData jd{var1_map, var2_map, model};
+  mJustDataPtr = &jd;
+  return _justify(assign_list);
 }
 
 END_NAMESPACE_DRUID
