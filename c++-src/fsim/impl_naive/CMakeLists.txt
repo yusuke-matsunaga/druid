@@ -17,7 +17,6 @@ include_directories (
 set (fsim_SOURCES
   EventQ.cc
   FsimX.cc
-  InputVals.cc
   SimNode.cc
   SnAnd.cc
   SnBuff.cc

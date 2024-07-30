@@ -25,7 +25,6 @@
 BEGIN_NAMESPACE_DRUID_FSIM
 
 class SimNode;
-class InputVals;
 
 //////////////////////////////////////////////////////////////////////
 /// @class FSIM_CLASSNAME FsimX.h "FsimX.h"
@@ -211,7 +210,6 @@ public:
 public:
   //////////////////////////////////////////////////////////////////////
   // 内部のデータ構造にアクセスする関数
-  // InputVals が用いる．
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 外部入力数を返す．
@@ -322,7 +320,19 @@ private:
   /// @brief 正常値の計算を行う．
   void
   _calc_gval(
-    const InputVals& input_vals ///< [in] 入力値
+    const TestVector& tv ///< [in] テストベクタ
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval(
+    const vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval(
+    const AssignList& assign_list ///< [in] 外部入力の値割り当てのリスト
   );
 
   /// @brief 正常値の計算を行う．
