@@ -102,8 +102,21 @@ public:
   bool
   spsfp(
     const AssignList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault* f,                  ///< [in] 対象の故障
-    DiffBits& dbits                     ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+    const TpgFault* f,             ///< [in] 対象の故障
+    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+  ) override;
+
+  /// @brief SPSFP故障シミュレーションを行う．
+  /// @retval true 故障の検出が行えた．
+  /// @retval false 故障の検出が行えなかった．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  bool
+  xspsfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault* f,             ///< [in] 対象の故障
+    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -118,7 +131,19 @@ public:
   void
   sppfp(
     const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback                    ///< [in] コールバック関数
+    cbtype1 callback               ///< [in] コールバック関数
+  ) override;
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  void
+  xsppfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    cbtype1 callback               ///< [in] コールバック関数
+                                   ///<      1番目の引数は検出された故障
+                                   ///<      2番目の引数は出力の伝搬状況
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．

@@ -374,6 +374,18 @@ FSIM_CLASSNAME::spsfp(
   return _spsfp(iv, f, dbits);
 }
 
+// @brief SPSFP故障シミュレーションを行う．
+bool
+FSIM_CLASSNAME::xspsfp(
+  const AssignList& assign_list, ///< [in] 値の割当リスト
+  const TpgFault* f,             ///< [in] 対象の故障
+  DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+)
+{
+#warning "TODO: 未完"
+  return false;
+}
+
 // @brief SPSFP故障シミュレーションの本体
 bool
 FSIM_CLASSNAME::_spsfp(
@@ -411,6 +423,16 @@ FSIM_CLASSNAME::sppfp(
 
   // 故障伝搬を行う．
   return _sppfp(iv, callback);
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+void
+FSIM_CLASSNAME::xsppfp(
+  const AssignList& assign_list,
+  cbtype1 callback
+)
+{
+  #warning "TODO: 未完"
 }
 
 // @brief SPPFP故障シミュレーションの本体

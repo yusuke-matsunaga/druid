@@ -308,8 +308,11 @@ FSIM_CLASSNAME::spsfp(
 {
   TvInputVals iv{tv};
 
+  // 正常値の計算を行う．
+  _calc_gval(iv);
+
   // 故障伝搬を行う．
-  return _spsfp(iv, f, dbits);
+  return _spsfp(f, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -322,14 +325,17 @@ FSIM_CLASSNAME::spsfp(
 {
   NvlInputVals iv{assign_list};
 
+  // 正常値の計算を行う．
+  _calc_gval(iv);
+
   // 故障伝搬を行う．
-  return _spsfp(iv, f, dbits);
+  return _spsfp(f, dbits);
 }
 
-// @brief SPSFP故障シミュレーションの本体
+// @brief SPSFP故障シミュレーションを行う．
 bool
-FSIM_CLASSNAME::_spsfp(
-  const InputVals& iv,
+FSIM_CLASSNAME::xspsfp(
+  const AssignList& assign_list,
   const TpgFault* f,
   DiffBits& dbits
 )
@@ -338,7 +344,21 @@ FSIM_CLASSNAME::_spsfp(
   dbits.clear();
 
   // 正常値の計算を行う．
-  _calc_gval(iv);
+  _calc_gval2(assign_list);
+
+  // 故障伝搬を行う．
+  return _spsfp(f, dbits);
+}
+
+// @brief SPSFP故障シミュレーションの本体
+bool
+FSIM_CLASSNAME::_spsfp(
+  const TpgFault* f,
+  DiffBits& dbits
+)
+{
+  // dbits を初期化しておく．
+  dbits.clear();
 
   auto ff = mFaultMap[f->id()];
 
@@ -371,8 +391,11 @@ FSIM_CLASSNAME::sppfp(
 {
   TvInputVals iv{tv};
 
+  // 正常値の計算を行う．
+  _calc_gval(iv);
+
   // 故障伝搬を行う．
-  _sppfp(iv, callback);
+  _sppfp(callback);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -384,20 +407,33 @@ FSIM_CLASSNAME::sppfp(
 {
   NvlInputVals iv{assign_list};
 
+  // 正常値の計算を行う．
+  _calc_gval(iv);
+
   // 故障伝搬を行う．
-  _sppfp(iv, callback);
+  _sppfp(callback);
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+void
+FSIM_CLASSNAME::xsppfp(
+  const AssignList& assign_list,
+  cbtype1 callback
+)
+{
+  // 正常値の計算を行う．
+  _calc_gval2(assign_list);
+
+  // 故障伝搬を行う．
+  _sppfp(callback);
 }
 
 // @brief SPPFP故障シミュレーションの本体
 void
 FSIM_CLASSNAME::_sppfp(
-  const InputVals& iv,
   cbtype1 callback
 )
 {
-  // 正常値の計算を行う．
-  _calc_gval(iv);
-
   const SimFFR* ffr_buff[PV_BITLEN];
   auto bitpos = 0;
   // FFR ごとに処理を行う．
@@ -684,6 +720,33 @@ FSIM_CLASSNAME::_calc_gval(
   // 正常値の計算を行う．
   _calc_val();
 }
+
+// @brief 正常値の計算を行う．
+void
+FSIM_CLASSNAME::_calc_gval2(
+  const AssignList& assign_list
+)
+{
+#if FSIM_VAL3
+  // 値をクリアする．
+  auto x_val = PackedVal3{PV_ALL0, PV_ALL0};
+  for ( auto node: mLogicArray ) {
+    node->set_val(x_val);
+  }
+
+  // 値をセットする．
+  for ( auto nv: assign_list ) {
+    ASSERT_COND( nv.time() == 1 );
+    auto node = nv.node();
+    auto val = nv.val() ? PackedVal3{PV_ALL1} : PackedVal3{PV_ALL0};
+    auto simnode = mSimNodeMap[node->id()];
+    simnode->set_val(val);
+  }
+
+  // 正常値の計算を行う．
+  _calc_val();
+#endif
+}
 #endif
 
 #if FSIM_BSIDE
@@ -716,6 +779,64 @@ FSIM_CLASSNAME::_calc_gval(
 
   // 2時刻目の正常値の計算を行う．
   _calc_val();
+}
+
+// @brief 正常値の計算を行う．
+void
+FSIM_CLASSNAME::_calc_gval2(
+  const AssignList& assign_list
+)
+{
+#if FSIM_VAL3
+  // 値をクリアする．
+  auto x_val = PackedVal3{PV_ALL0, PV_ALL0};
+  for ( auto node: mLogicArray ) {
+    node->set_val(x_val);
+  }
+
+  // 1時刻目の値をセットする．
+  for ( auto nv: assign_list ) {
+    if ( nv.time() == 0 ) {
+      auto node = nv.node();
+      auto val = nv.val() ? PackedVal3{PV_ALL1} : PackedVal3{PV_ALL0};
+      auto simnode = mSimNodeMap[node->id()];
+      simnode->set_val(val);
+    }
+  }
+
+  // 1時刻目の正常値の計算を行う．
+  _calc_val();
+
+  // 1時刻シフトする．
+  for ( auto& node: mNodeArray ) {
+    node->shift_val();
+  }
+
+  // DFF の出力の値を入力にコピーする．
+  for ( auto i: Range(mDffNum) ) {
+    auto onode = mPPOList[i + mOutputNum];
+    auto inode = mPPIList[i + mInputNum];
+    inode->set_val(onode->val());
+  }
+
+  // 値をクリアする．
+  for ( auto node: mLogicArray ) {
+    node->set_val(x_val);
+  }
+
+  // 2時刻目の値をセットする．
+  for ( auto nv: assign_list ) {
+    if ( nv.time() == 1 ) {
+      auto node = nv.node();
+      auto val = nv.val() ? PackedVal3{PV_ALL1} : PackedVal3{PV_ALL0};
+      auto simnode = mSimNodeMap[node->id()];
+      simnode->set_val(val);
+    }
+  }
+
+  // 2時刻目の正常値の計算を行う．
+  _calc_val();
+#endif
 }
 #endif
 

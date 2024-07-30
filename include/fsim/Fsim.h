@@ -44,8 +44,8 @@ public:
   Fsim(
     const TpgNetwork& network,                 ///< [in] ネットワーク
     const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
-    bool has_x,                                ///< [in] 3値のシミュレーションを行う時 true にする．
-    bool multi                                 ///< [in] マルチスレッド実行を行う時に true にするフラグ
+    bool has_x,   ///< [in] 3値のシミュレーションを行う時 true にする．
+    bool multi    ///< [in] マルチスレッド実行を行う時に true にするフラグ
   );
 
   /// @brief コピーコンストラクタは禁止
@@ -144,11 +144,26 @@ public:
   /// @brief SPSFP故障シミュレーションを行う．
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
+  ///
+  /// assign_list は外部入力の割り当てでなければならない．
   bool
   spsfp(
     const AssignList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault* f,           	///< [in] 対象の故障
-    DiffBits& dbits                     ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+    const TpgFault* f,             ///< [in] 対象の故障
+    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+  );
+
+  /// @brief SPSFP故障シミュレーションを行う．
+  /// @retval true 故障の検出が行えた．
+  /// @retval false 故障の検出が行えなかった．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  bool
+  xspsfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault* f,             ///< [in] 対象の故障
+    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -161,12 +176,26 @@ public:
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
+  ///
+  /// assign_list は外部入力の割り当てでなければならない．
   void
   sppfp(
     const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback                    ///< [in] コールバック関数
-                                        ///<      1番目の引数は検出された故障
-                                        ///<      2番目の引数は出力の伝搬状況
+    cbtype1 callback               ///< [in] コールバック関数
+                                   ///<      1番目の引数は検出された故障
+                                   ///<      2番目の引数は出力の伝搬状況
+  );
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  void
+  xsppfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    cbtype1 callback               ///< [in] コールバック関数
+                                   ///<      1番目の引数は検出された故障
+                                   ///<      2番目の引数は出力の伝搬状況
   );
 
   /// @brief 複数のパタンで故障シミュレーションを行う．

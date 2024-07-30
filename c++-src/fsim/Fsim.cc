@@ -127,6 +127,17 @@ Fsim::spsfp(
   return mImpl->spsfp(assign_list, f, dbits);
 }
 
+// @brief SPSFP故障シミュレーションを行う．
+bool
+Fsim::xspsfp(
+  const AssignList& assign_list,
+  const TpgFault* f,
+  DiffBits& dbits
+)
+{
+  return mImpl->xspsfp(assign_list, f, dbits);
+}
+
 // @brief ひとつのパタンで故障シミュレーションを行う．
 void
 Fsim::sppfp(
@@ -145,6 +156,16 @@ Fsim::sppfp(
 )
 {
   return mImpl->sppfp(assign_list, callback);
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+void
+Fsim::xsppfp(
+  const AssignList& assign_list,
+  cbtype1 callback
+)
+{
+  return mImpl->xsppfp(assign_list, callback);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．

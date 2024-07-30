@@ -105,6 +105,19 @@ public:
     DiffBits& dbits                     ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) override;
 
+  /// @brief SPSFP故障シミュレーションを行う．
+  /// @retval true 故障の検出が行えた．
+  /// @retval false 故障の検出が行えなかった．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  bool
+  xspsfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault* f,             ///< [in] 対象の故障
+    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+  ) override;
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   void
   sppfp(
@@ -121,6 +134,18 @@ public:
     cbtype1 callback                    ///< [in] コールバック関数
                                         ///<      1番目の引数は検出された故障
                                         ///<      2番目の引数は出力の伝搬状況
+  ) override;
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  void
+  xsppfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    cbtype1 callback               ///< [in] コールバック関数
+                                   ///<      1番目の引数は検出された故障
+                                   ///<      2番目の引数は出力の伝搬状況
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
@@ -267,7 +292,6 @@ private:
   /// @retval false 故障の検出が行えなかった．
   bool
   _spsfp(
-    const InputVals& iv, ///< [in] 入力値
     const TpgFault* f,   ///< [in] 対象の故障
     DiffBits& dbits      ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
@@ -275,7 +299,6 @@ private:
   /// @brief SPPFP故障シミュレーションの本体
   void
   _sppfp(
-    const InputVals& iv, ///< [in] 入力値
     cbtype1 callback     ///< [in] コールバック関数
   );
 
@@ -300,6 +323,12 @@ private:
   void
   _calc_gval(
     const InputVals& input_vals ///< [in] 入力値
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval2(
+    const AssignList& assign_list ///< [in] 値割り当てのリスト
   );
 
   /// @brief 値の計算を行う．

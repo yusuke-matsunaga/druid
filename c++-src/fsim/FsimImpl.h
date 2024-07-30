@@ -100,6 +100,20 @@ public:
     DiffBits& dbits                     ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   ) = 0;
 
+  /// @brief SPSFP故障シミュレーションを行う．
+  /// @retval true 故障の検出が行えた．
+  /// @retval false 故障の検出が行えなかった．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  virtual
+  bool
+  xspsfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault* f,             ///< [in] 対象の故障
+    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+  ) = 0;
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   virtual
   void
@@ -118,6 +132,19 @@ public:
     cbtype1 callback                    ///< [in] コールバック関数
                                         ///<      1番目の引数は検出された故障
                                         ///<      2番目の引数は出力の伝搬状況
+  ) = 0;
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  virtual
+  void
+  xsppfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    cbtype1 callback               ///< [in] コールバック関数
+                                   ///<      1番目の引数は検出された故障
+                                   ///<      2番目の引数は出力の伝搬状況
   ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
