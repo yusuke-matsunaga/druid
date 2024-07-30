@@ -126,6 +126,10 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 	    engine->sppfp(mSyncObj.assign_list());
 	    break;
 
+	  case Cmd::XSPPFP:
+	    engine->xsppfp(mSyncObj.assign_list());
+	    break;
+
 	  case Cmd::END:
 	    go_on = false;
 	    break;
@@ -383,8 +387,9 @@ FSIM_CLASSNAME::xspsfp(
   DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
 )
 {
-#warning "TODO: 未完"
-  return false;
+  SimEngine engine{0, mSyncObj, *this, {}};
+  auto ff = mFaultMap[f->id()];
+  return engine.xspsfp(assign_list, ff, dbits);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -424,7 +429,12 @@ FSIM_CLASSNAME::xsppfp(
   cbtype1 callback
 )
 {
-  #warning "TODO: 未完"
+  // SPPFP コマンドを送る．
+  mSyncObj.put_xsppfp_command(assign_list);
+
+  for ( auto& engine: mEngineList ) {
+    engine->apply_callback1(callback);
+  }
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．

@@ -68,6 +68,14 @@ public:
     DiffBits& dbits                ///< [out] 出力ごとの伝搬結果
   );
 
+  /// @brief SPSFP 法のシミュレーションを行う．
+  bool
+  xspsfp(
+    const AssignList& assign_list, ///< [in] 入力割り当てのリスト
+    const SimFault* f,             ///< [in] 故障
+    DiffBits& dbits                ///< [out] 出力ごとの伝搬結果
+  );
+
   /// @brief SPPFP 法のシミュレーションを行う．
   void
   sppfp(
@@ -77,6 +85,12 @@ public:
   /// @brief SPPFP 法のシミュレーションを行う．
   void
   sppfp(
+    const AssignList& assign_list ///< [in] 入力割り当てのリスト
+  );
+
+  /// @brief SPPFP 法のシミュレーションを行う．
+  void
+  xsppfp(
     const AssignList& assign_list ///< [in] 入力割り当てのリスト
   );
 
@@ -219,6 +233,12 @@ private:
   /// @brief 正常値の計算を行う．
   void
   _calc_gval(
+    const AssignList& assign_list ///< [in] 入力割り当てのリスト
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _xcalc_gval(
     const AssignList& assign_list ///< [in] 入力割り当てのリスト
   );
 

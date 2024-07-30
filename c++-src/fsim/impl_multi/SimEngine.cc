@@ -170,6 +170,21 @@ SimEngine::spsfp(
 
 // @brief SPSFP 法のシミュレーションを行う．
 bool
+SimEngine::xspsfp(
+  const AssignList& assign_list,
+  const SimFault* f,
+  DiffBits& dbits
+)
+{
+  // 正常値の計算を行う．
+  _xcalc_gval(assign_list);
+
+  // 故障シミュレーションを行う．
+  return _spsfp(f, dbits);
+}
+
+// @brief SPSFP 法のシミュレーションを行う．
+bool
 SimEngine::_spsfp(
   const SimFault* f,
   DiffBits& dbits
@@ -274,6 +289,18 @@ SimEngine::sppfp(
 {
   // 正常値の計算を行う．
   _calc_gval(assign_list);
+
+  _sppfp();
+}
+
+// @brief SPPFP 法のシミュレーションを行う．
+void
+SimEngine::xsppfp(
+  const AssignList& assign_list ///< [in] 入力割り当てのリスト
+)
+{
+  // 正常値の計算を行う．
+  _xcalc_gval(assign_list);
 
   _sppfp();
 }
@@ -461,6 +488,32 @@ SimEngine::_calc_gval(
   // 正常値の計算を行う．
   _calc_val(mValArray);
 }
+
+// @brief 正常値の計算を行う．
+void
+SimEngine::_xcalc_gval(
+    const AssignList& assign_list
+)
+{
+  // デフォルト値で初期化する．
+  auto val0 = init_val();
+  for ( auto simnode: mFsim.ppi_list() ) {
+    mValArray[simnode->id()] = val0;
+  }
+  for ( auto simnode: mFsim.logic_list() ) {
+    mValArray[simnode->id()] = val0;
+  }
+
+  for ( auto nv: assign_list ) {
+    ASSERT_COND( nv.time() == 1 );
+    SizeType iid = nv.node()->input_id();
+    auto simnode = mFsim.ppi(iid);
+    mValArray[simnode->id()] = bool_to_packedval(nv.val());
+  }
+
+  // 正常値の計算を行う．
+  _calc_val(mValArray);
+}
 #endif
 
 #if FSIM_BSIDE
@@ -583,6 +636,60 @@ SimEngine::_calc_gval(
   for ( auto simnode: mFsim.input_list() ) {
     mValArray[simnode->id()] = val0;
   }
+  for ( auto nv: assign_list ) {
+    if ( nv.time() == 1 ) {
+      SizeType iid = nv.node()->input_id();
+      auto simnode = mFsim.ppi(iid);
+      mValArray[simnode->id()] = bool_to_packedval(nv.val());
+    }
+  }
+
+  // 2時刻目の正常値の計算を行う．
+  _calc_val(mValArray);
+}
+
+// @brief 正常値の計算を行う．
+void
+SimEngine::_xcalc_gval(
+    const AssignList& assign_list
+)
+{
+  // 1時刻目の入力を設定する．
+  auto val0 = init_val();
+  for ( auto simnode: mFsim.ppi_list() ) {
+    mPrevValArray[simnode->id()] = val0;
+  }
+  for ( auto simnode: mFsim.logic_list() ) {
+    mPrevValArray[simnode->id()] = val0;
+  }
+
+  for ( auto nv: assign_list ) {
+    if ( nv.time() == 0 ) {
+      SizeType iid = nv.node()->input_id();
+      auto simnode = mFsim.ppi(iid);
+      mPrevValArray[simnode->id()] = bool_to_packedval(nv.val());
+    }
+  }
+
+  // 1時刻目の正常値の計算を行う．
+  _calc_val(mPrevValArray);
+
+  // DFF の出力の値を入力にコピーする．
+  for ( auto i: Range(mFsim.dff_num()) ) {
+    auto onode = mFsim.dff_output(i);
+    auto inode = mFsim.dff_input(i);
+    auto val = mPrevValArray[onode->id()];
+    mValArray[inode->id()] = val;
+  }
+
+  // 2時刻目の入力を設定する．
+  for ( auto simnode: mFsim.input_list() ) {
+    mValArray[simnode->id()] = val0;
+  }
+  for ( auto simnode: mFsim.logic_list() ) {
+    mValArray[simnode->id()] = val0;
+  }
+
   for ( auto nv: assign_list ) {
     if ( nv.time() == 1 ) {
       SizeType iid = nv.node()->input_id();

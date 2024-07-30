@@ -26,6 +26,7 @@ enum class Cmd: std::uint8_t {
   PPSFP,
   SPPFP_TV,
   SPPFP_AS,
+  XSPPFP,
   END
 };
 
@@ -40,6 +41,7 @@ operator<<(
   case Cmd::PPSFP:    s << "PPSFP"; break;
   case Cmd::SPPFP_TV: s << "SPPFP_TV"; break;
   case Cmd::SPPFP_AS: s << "SPPFP_AS"; break;
+  case Cmd::XSPPFP:   s << "XSPPFP"; break;
   case Cmd::END:      s << "END"; break;
   }
   return s;
@@ -120,6 +122,26 @@ public:
     if ( debug ) {
       ostringstream buf;
       buf << "put_command(SPPFP_AS)";
+      log(buf.str());
+    }
+    wait();
+  }
+
+  /// @brief コマンドを設定する．
+  void
+  put_xsppfp_command(
+    const AssignList& assign_list ///< [in] 割り当てリスト
+  )
+  {
+    {
+      std::unique_lock lck{mCmdMTX};
+      mCmd = Cmd::XSPPFP;
+      mAssignListPtr = &assign_list;
+      mCmdCV.notify_all();
+    }
+    if ( debug ) {
+      ostringstream buf;
+      buf << "put_command(XSPPFP)";
       log(buf.str());
     }
     wait();
