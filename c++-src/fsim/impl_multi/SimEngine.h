@@ -16,7 +16,6 @@
 BEGIN_NAMESPACE_DRUID_FSIM
 
 class SyncObj;
-class InputVals;
 
 //////////////////////////////////////////////////////////////////////
 /// @class SimEngine SimEngine.h "SimEngine.h"
@@ -56,21 +55,35 @@ public:
   /// @brief SPSFP 法のシミュレーションを行う．
   bool
   spsfp(
-    const InputVals& iv, ///< [in] 入力値
-    const SimFault* f,   ///< [in] 故障
-    DiffBits& dbits      ///< [out] 出力ごとの伝搬結果
+    const TestVector& tv, ///< [in] テストベクタ
+    const SimFault* f,    ///< [in] 故障
+    DiffBits& dbits       ///< [out] 出力ごとの伝搬結果
+  );
+
+  /// @brief SPSFP 法のシミュレーションを行う．
+  bool
+  spsfp(
+    const AssignList& assign_list, ///< [in] 入力割り当てのリスト
+    const SimFault* f,             ///< [in] 故障
+    DiffBits& dbits                ///< [out] 出力ごとの伝搬結果
   );
 
   /// @brief SPPFP 法のシミュレーションを行う．
   void
   sppfp(
-    const InputVals& iv ///< [in] 入力値
+    const TestVector& tv ///< [in] テストベクタ
+  );
+
+  /// @brief SPPFP 法のシミュレーションを行う．
+  void
+  sppfp(
+    const AssignList& assign_list ///< [in] 入力割り当てのリスト
   );
 
   /// @brief PPSFP 法のシミュレーションを行う．
   void
   ppsfp(
-    const InputVals& iv ///< [in] 入力値
+    const vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   );
 
   /// @brief SPPFP 法の結果に対してコールバック関数を呼び出す．
@@ -91,7 +104,18 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief sppsp() 用の下請け関数
+  /// @brief spsfp() の下請け関数
+  bool
+  _spsfp(
+    const SimFault* f,    ///< [in] 故障
+    DiffBits& dbits       ///< [out] 出力ごとの伝搬結果
+  );
+
+  /// @brief sppf() の下請け関数
+  void
+  _sppfp();
+
+  /// @brief _sppsp() 用の下請け関数
   void
   sppfp_simulation(
     const vector<const SimFFR*>& ffr_array ///< [in] イベントを挿入するFFRのリスト
@@ -183,7 +207,19 @@ private:
   /// @brief 正常値の計算を行う．
   void
   _calc_gval(
-    const InputVals& input_vals      ///< [in] 入力値
+    const TestVector& tv ///< [in] テストベクタ
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval(
+    const vector<TestVector>& tv ///< [in] テストベクタのリスト
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval(
+    const AssignList& assign_list ///< [in] 入力割り当てのリスト
   );
 
   /// @brief 値の計算を行う．

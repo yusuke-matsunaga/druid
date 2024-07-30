@@ -17,8 +17,6 @@
 
 BEGIN_NAMESPACE_DRUID_FSIM
 
-class InputVals;
-
 const bool debug = false;
 
 //////////////////////////////////////////////////////////////////////
@@ -26,7 +24,8 @@ const bool debug = false;
 //////////////////////////////////////////////////////////////////////
 enum class Cmd: std::uint8_t {
   PPSFP,
-  SPPFP,
+  SPPFP_TV,
+  SPPFP_AS,
   END
 };
 
@@ -38,9 +37,10 @@ operator<<(
 )
 {
   switch ( cmd ) {
-  case Cmd::PPSFP: s << "PPSFP"; break;
-  case Cmd::SPPFP: s << "SPPFP"; break;
-  case Cmd::END:   s << "END"; break;
+  case Cmd::PPSFP:    s << "PPSFP"; break;
+  case Cmd::SPPFP_TV: s << "SPPFP_TV"; break;
+  case Cmd::SPPFP_AS: s << "SPPFP_AS"; break;
+  case Cmd::END:      s << "END"; break;
   }
   return s;
 }
@@ -88,18 +88,38 @@ public:
   /// @brief コマンドを設定する．
   void
   put_sppfp_command(
-    const InputVals& iv ///< [in] 入力値
+    const TestVector& tv ///< [in] テストベクタ
   )
   {
     {
       std::unique_lock lck{mCmdMTX};
-      mCmd = Cmd::SPPFP;
-      mIV = &iv;
+      mCmd = Cmd::SPPFP_TV;
+      mTvPtr = &tv;
       mCmdCV.notify_all();
     }
     if ( debug ) {
       ostringstream buf;
-      buf << "put_command(SPPFP)";
+      buf << "put_command(SPPFP_TV)";
+      log(buf.str());
+    }
+    wait();
+  }
+
+  /// @brief コマンドを設定する．
+  void
+  put_sppfp_command(
+    const AssignList& assign_list ///< [in] 割り当てリスト
+  )
+  {
+    {
+      std::unique_lock lck{mCmdMTX};
+      mCmd = Cmd::SPPFP_AS;
+      mAssignListPtr = &assign_list;
+      mCmdCV.notify_all();
+    }
+    if ( debug ) {
+      ostringstream buf;
+      buf << "put_command(SPPFP_AS)";
       log(buf.str());
     }
     wait();
@@ -108,13 +128,13 @@ public:
   /// @brief コマンドを設定する．
   void
   put_ppsfp_command(
-    const InputVals& iv ///< [in] 入力値
+    const vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   )
   {
     {
       std::unique_lock lck{mCmdMTX};
       mCmd = Cmd::PPSFP;
-      mIV = &iv;
+      mTvListPtr = &tv_list;
       mCmdCV.notify_all();
     }
     if ( debug ) {
@@ -131,7 +151,9 @@ public:
   {
     std::unique_lock lck{mCmdMTX};
     mCmd = Cmd::END;
-    mIV = nullptr;
+    mTvPtr = nullptr;
+    mAssignListPtr = nullptr;
+    mTvListPtr = nullptr;
     mCmdCV.notify_all();
     if ( debug ) {
       ostringstream buf;
@@ -168,11 +190,25 @@ public:
     return mCmd;
   }
 
-  /// @brief 入力値を返す．
-  const InputVals&
-  input_vals()
+  /// @brief テストベクタを返す．
+  const TestVector&
+  testvector()
   {
-    return *mIV;
+    return *mTvPtr;
+  }
+
+  /// @brief 割り当てリストを返す．
+  const AssignList&
+  assign_list()
+  {
+    return *mAssignListPtr;
+  }
+
+  /// @brief テストベクタのリストを返す．
+  const vector<TestVector>&
+  testvector_list()
+  {
+    return *mTvListPtr;
   }
 
   /// @brief 全ての子スレッドが ready になるのを待つ．
@@ -214,8 +250,14 @@ private:
   // コマンド
   Cmd mCmd;
 
-  // 入力値
-  const InputVals* mIV;
+  // テストベクタ
+  const TestVector* mTvPtr{nullptr};
+
+  // テストベクタのリスト
+  const vector<TestVector>* mTvListPtr{nullptr};
+
+  // 割り当てリスト
+  const AssignList* mAssignListPtr{nullptr};
 
   // mCmd 用のミューテックス
   std::mutex mCmdMTX;

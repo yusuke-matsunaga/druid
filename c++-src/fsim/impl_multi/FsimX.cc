@@ -19,7 +19,6 @@
 
 #include "SimNode.h"
 #include "SimFFR.h"
-#include "InputVals.h"
 #include "SimEngine.h"
 #include "ym/Range.h"
 
@@ -116,11 +115,15 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 	  auto cmd = mSyncObj.get_command(engine->id());
 	  switch ( cmd ) {
 	  case Cmd::PPSFP:
-	    engine->ppsfp(mSyncObj.input_vals());
+	    engine->ppsfp(mSyncObj.testvector_list());
 	    break;
 
-	  case Cmd::SPPFP:
-	    engine->sppfp(mSyncObj.input_vals());
+	  case Cmd::SPPFP_TV:
+	    engine->sppfp(mSyncObj.testvector());
+	    break;
+
+	  case Cmd::SPPFP_AS:
+	    engine->sppfp(mSyncObj.assign_list());
 	    break;
 
 	  case Cmd::END:
@@ -354,10 +357,9 @@ FSIM_CLASSNAME::spsfp(
   DiffBits& dbits
 )
 {
-  TvInputVals iv{tv};
-
-  // 故障伝搬を行う．
-  return _spsfp(iv, f, dbits);
+  SimEngine engine{0, mSyncObj, *this, {}};
+  auto ff = mFaultMap[f->id()];
+  return engine.spsfp(tv, ff, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -368,10 +370,9 @@ FSIM_CLASSNAME::spsfp(
   DiffBits& dbits
 )
 {
-  NvlInputVals iv{assign_list};
-
-  // 故障伝搬を行う．
-  return _spsfp(iv, f, dbits);
+  SimEngine engine{0, mSyncObj, *this, {}};
+  auto ff = mFaultMap[f->id()];
+  return engine.spsfp(assign_list, ff, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -386,19 +387,6 @@ FSIM_CLASSNAME::xspsfp(
   return false;
 }
 
-// @brief SPSFP故障シミュレーションの本体
-bool
-FSIM_CLASSNAME::_spsfp(
-  const InputVals& iv,
-  const TpgFault* f,
-  DiffBits& dbits
-)
-{
-  SimEngine engine{0, mSyncObj, *this, {}};
-  auto ff = mFaultMap[f->id()];
-  return engine.spsfp(iv, ff, dbits);
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 void
 FSIM_CLASSNAME::sppfp(
@@ -406,10 +394,12 @@ FSIM_CLASSNAME::sppfp(
   cbtype1 callback
 )
 {
-  TvInputVals iv{tv};
+  // SPPFP コマンドを送る．
+  mSyncObj.put_sppfp_command(tv);
 
-  // 故障伝搬を行う．
-  return _sppfp(iv, callback);
+  for ( auto& engine: mEngineList ) {
+    engine->apply_callback1(callback);
+  }
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -419,10 +409,12 @@ FSIM_CLASSNAME::sppfp(
   cbtype1 callback
 )
 {
-  NvlInputVals iv{assign_list};
+  // SPPFP コマンドを送る．
+  mSyncObj.put_sppfp_command(assign_list);
 
-  // 故障伝搬を行う．
-  return _sppfp(iv, callback);
+  for ( auto& engine: mEngineList ) {
+    engine->apply_callback1(callback);
+  }
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -435,21 +427,6 @@ FSIM_CLASSNAME::xsppfp(
   #warning "TODO: 未完"
 }
 
-// @brief SPPFP故障シミュレーションの本体
-void
-FSIM_CLASSNAME::_sppfp(
-  const InputVals& iv,
-  cbtype1 callback
-)
-{
-  // SPPFP コマンドを送る．
-  mSyncObj.put_sppfp_command(iv);
-
-  for ( auto& engine: mEngineList ) {
-    engine->apply_callback1(callback);
-  }
-}
-
 // @brief 複数のパタンで故障シミュレーションを行う．
 void
 FSIM_CLASSNAME::ppsfp(
@@ -457,10 +434,8 @@ FSIM_CLASSNAME::ppsfp(
   cbtype2 callback
 )
 {
-  Tv2InputVals iv{tv_list};
-
   // PPSFP コマンドを送る．
-  mSyncObj.put_ppsfp_command(iv);
+  mSyncObj.put_ppsfp_command(tv_list);
 
   for ( auto& engine: mEngineList ) {
     engine->apply_callback2(callback);
