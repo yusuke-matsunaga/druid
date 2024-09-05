@@ -187,6 +187,10 @@ testcube_gen(
   string filename = argv[pos];
   auto network = TpgNetwork::read_network(filename, format, fault_type);
 
+  if ( verbose ) {
+    cout << "Total " << network.rep_fault_list().size() << " faults" << endl;
+  }
+
   unordered_map<string, JsonValue> option_dict;
   if ( just_type != "" ) {
     option_dict.emplace("justifier", just_type);
@@ -216,7 +220,6 @@ testcube_gen(
   Timer dtimer;
   Timer rtimer;
   Timer ctimer;
-
 
   vector<const TpgFault*> det_fault_list;
   vector<const TpgFault*> fault_list;
@@ -263,7 +266,7 @@ testcube_gen(
   else {
     dtimer.start();
 
-    DtpgMgr mgr{network, fault_list};
+    DtpgMgr mgr{network, network.rep_fault_list()};
 
     vector<TestVector> tv_list;
     std::mt19937 rg;

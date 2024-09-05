@@ -161,6 +161,13 @@ private:
 
 };
 
+/// @brief AssignExpr のストリーム出力演算子
+ostream&
+operator<<(
+  ostream& s,            ///< [in] 出力ストリーム
+  const AssignExpr& expr ///< [in] 対象の式
+);
+
 END_NAMESPACE_DRUID
 
 #endif // ASSIGNEXPR_H

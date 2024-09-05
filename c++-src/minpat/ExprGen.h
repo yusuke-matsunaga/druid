@@ -1,8 +1,8 @@
-#ifndef EXCUBEGEN_H
-#define EXCUBEGEN_H
+#ifndef EXPRGEN_H
+#define EXPRGEN_H
 
-/// @file ExCubeGen.h
-/// @brief ExCubeGen のヘッダファイル
+/// @file ExprGen.h
+/// @brief ExprGen のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -18,7 +18,7 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class ExCubeGen ExCubeGen.h "ExCubeGen.h"
+/// @class ExprGen ExprGen.h "ExprGen.h"
 /// @brief 拡張テストキューブを生成するクラス
 ///
 /// 拡張テストキューブを生成する．
@@ -30,20 +30,20 @@ BEGIN_NAMESPACE_DRUID
 /// - "cube_per_fault"  int    1故障あたりのキューブ数の上限
 /// - "dtpg":           object DTPG用の初期化パラメータ
 //////////////////////////////////////////////////////////////////////
-class ExCubeGen
+class ExprGen
 {
 public:
 
   /// @brief コンストラクタ
-  ExCubeGen(
+  ExprGen(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,                    ///< [in] 対象の FFR
+    const TpgNode* root                   ///< [in] FFRの根のノード
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
 
   /// @brief デストラクタ
-  ~ExCubeGen();
+  ~ExprGen();
 
 
 public:
@@ -51,12 +51,10 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 与えられた故障を検出するテストカバーを生成する．
-  /// @return 生成したテストカバーを返す．
-  TestCover
-  run(
-    const TpgFault* fault ///< [in] 対象の故障
-  );
+  /// @brief 対象のFFRの根のノードのブール微分を表す論理式を得る．
+  /// @return 生成した式を返す．
+  AssignExpr
+  run();
 
 
 private:
@@ -64,23 +62,29 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // FFR
-  const TpgFFR* mFFR;
+  // FFRの根のノード
+  const TpgNode* mRoot;
 
   // 基本エンコーダ
-  BaseEnc mBaseEnc;
+  StructEngine mEngine;
 
   // FFR用のブール微分器
   BoolDiffEnc* mBdEnc;
+
+  // FFR の出力の故障伝搬の必要条件
+  AssignList mRootMandCond;
+
+  // FFR の出力の故障伝搬可能性
+  SatBool3 mRootStatus;
 
   // 上限値
   SizeType mLimit;
 
   // デバッグフラグ
-  bool mDebug{false};
+  int mDebug{0};
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // EXCUBEGEN_H
+#endif // EXPRGEN_H
