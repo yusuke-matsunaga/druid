@@ -1,5 +1,5 @@
 
-/// @file testcube_gen.cc
+/// @file expr_gen.cc
 /// @brief TestCoverGen を使ったサンプルプログラム
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
@@ -7,16 +7,11 @@
 /// All rights reserved.
 
 #include "TpgNetwork.h"
+#include "TpgFFR.h"
 #include "TpgFault.h"
 #include "FaultType.h"
 #include "Fsim.h"
-#include "DtpgMgr.h"
-#include "DomCandMgr.h"
-#include "Reducer.h"
-#include "XChecker.h"
-#include "TestCoverGen.h"
-#include "TestExprGen.h"
-#include "TestCover.h"
+#include "FFRFaultList.h"
 #include "ExprGen.h"
 #include "ym/Timer.h"
 #include <random>
@@ -33,7 +28,7 @@ usage()
 }
 
 int
-testcube_gen(
+expr_gen(
   int argc,
   char** argv
 )
@@ -55,7 +50,6 @@ testcube_gen(
   bool do_reduction = true;
   bool do_ffr_reduction = false;
   bool do_global_reduction = false;
-  bool expr_gen = false;
   int debug_level = 0;
 
   argv0 = argv[0];
@@ -152,9 +146,6 @@ testcube_gen(
 	  return -1;
 	}
       }
-      else if ( strcmp(argv[pos], "--expr_gen") == 0 ) {
-	expr_gen = true;
-      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
@@ -207,16 +198,16 @@ testcube_gen(
   }
   JsonValue option{option_dict};
 
-  unordered_map<string, JsonValue> tcg_option_dict;
+  unordered_map<string, JsonValue> eg_option_dict;
   if ( sat_type != string{} ) {
     auto sat_obj = JsonValue{sat_type};
-    tcg_option_dict.emplace("sat_param", sat_obj);
+    eg_option_dict.emplace("sat_param", sat_obj);
   }
-  tcg_option_dict.emplace("debug", JsonValue{debug_level});
+  eg_option_dict.emplace("debug", JsonValue{debug_level});
   if ( limit > 0 ) {
-    tcg_option_dict.emplace("limit", JsonValue{limit});
+    eg_option_dict.emplace("limit", JsonValue{limit});
   }
-  JsonValue tcg_option{tcg_option_dict};
+  JsonValue eg_option{eg_option_dict};
 
   auto src_fault_list = network.rep_fault_list();
 
@@ -224,121 +215,27 @@ testcube_gen(
   total_timer.start();
 
   Timer dtimer;
-  Timer rtimer;
-  Timer ctimer;
 
-  vector<const TpgFault*> det_fault_list;
-  vector<const TpgFault*> fault_list;
-  vector<TestCover> cover_list;
+  dtimer.start();
 
+  FFRFaultList ffr_fault_list{network, src_fault_list};
+
+  for ( auto ffr: network.ffr_list() ) {
+    ExprGen gen{network, ffr, eg_option};
+    for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
+      auto expr = gen.run(fault);
+    }
+  }
+
+  dtimer.stop();
+
+#if 0
   SizeType total_cube_num = 0;
   SizeType total_literal_num = 0;
-
-  if ( do_finfo_mgr ) {
-    dtimer.start();
-
-    FaultInfoMgr finfo_mgr{network, src_fault_list};
-
-    finfo_mgr.generate(option);
-
-    det_fault_list.reserve(fault_list.size());
-    for ( auto fault: src_fault_list ) {
-      auto& finfo = finfo_mgr.fault_info(fault);
-      if ( finfo.status() == FaultStatus::Detected ) {
-	det_fault_list.push_back(fault);
-      }
-    }
-    dtimer.stop();
-
-    unordered_map<string, JsonValue> fr_option_dict;
-    fr_option_dict.emplace("debug", JsonValue{debug_level});
-    fr_option_dict.emplace("loop_limit", JsonValue{loop});
-    JsonValue fr_option{fr_option_dict};
-
-    rtimer.start();
-
-    if ( do_reduction ) {
-      fault_list = Reducer::reduce(finfo_mgr, fr_option);
-    }
-    else {
-      fault_list = det_fault_list;
-    }
-
-    rtimer.stop();
-
-    ctimer.start();
-
-    cover_list = TestCoverGen::run(finfo_mgr, tcg_option);
-
-    ctimer.stop();
+  for ( auto& cover: cover_list ) {
+    total_cube_num += cover.cube_num();
+    total_literal_num += cover.literal_num();
   }
-  else {
-    dtimer.start();
-
-    DtpgMgr mgr{network, network.rep_fault_list()};
-
-    vector<TestVector> tv_list;
-    std::mt19937 rg;
-
-    mgr.run(
-      // detected callback
-      [&](DtpgMgr& mgr, const TpgFault* f, TestVector tv) {
-	det_fault_list.push_back(f);
-	tv.fix_x_from_random(rg);
-	tv_list.push_back(tv);
-      }
-    );
-
-    dtimer.stop();
-
-    rtimer.start();
-
-    DomCandMgr domcand_mgr{network};
-
-    if ( do_ffr_reduction || do_global_reduction ) {
-      domcand_mgr.generate(det_fault_list, tv_list, loop);
-    }
-
-    fault_list = det_fault_list;
-
-    if ( do_ffr_reduction ) {
-      unordered_map<string, JsonValue> option_dict;
-      option_dict.emplace("debug", JsonValue{debug_level});
-      JsonValue option{option_dict};
-
-      fault_list = ffr_reduction(network, fault_list,
-				 domcand_mgr, option);
-    }
-
-    if ( do_global_reduction ) {
-      unordered_map<string, JsonValue> option_dict;
-      option_dict.emplace("debug", JsonValue{debug_level});
-      JsonValue option{option_dict};
-
-      XChecker xc{network};
-
-      fault_list = global_reduction(network, fault_list,
-				    domcand_mgr, xc, option);
-    }
-    rtimer.stop();
-
-    ctimer.start();
-
-    if ( expr_gen ) {
-      auto nc = TestExprGen::run(network, fault_list, tcg_option);
-      total_cube_num += nc;
-    }
-    else {
-      cover_list = TestCoverGen::run(network, fault_list, tcg_option);
-      for ( auto& cover: cover_list ) {
-	total_cube_num += cover.cube_num();
-	total_literal_num += cover.literal_num();
-      }
-    }
-
-    ctimer.stop();
-  }
-
   cout << "# DTPG TIME  :  "
        << (dtimer.get_time() / 1000.0) << endl;
   cout << "# REDUCE TIME:  "
@@ -354,6 +251,7 @@ testcube_gen(
        << "Total # of literal:  " << total_literal_num << endl
        << "Total CPU time:      "
        << (total_timer.get_time() / 1000.0) << endl;
+#endif
 
   return 0;
 }
@@ -367,5 +265,5 @@ main(
   char** argv
 )
 {
-  return DRUID_NAMESPACE::testcube_gen(argc, argv);
+  return DRUID_NAMESPACE::expr_gen(argc, argv);
 }

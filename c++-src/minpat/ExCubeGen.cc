@@ -33,8 +33,8 @@ ExCubeGen::ExCubeGen(
 {
   mLimit = 1;
   if ( option.is_object() ) {
-    if ( option.has_key("cube_per_fault") ) {
-      mLimit = option.get("cube_per_fault").get_int();
+    if ( option.has_key("limit") ) {
+      mLimit = option.get("limit").get_int();
     }
   }
   mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
@@ -77,8 +77,8 @@ ExCubeGen::ExCubeGen(
 {
   mLimit = 1;
   if ( option.is_object() ) {
-    if ( option.has_key("cube_per_fault") ) {
-      mLimit = option.get("cube_per_fault").get_int();
+    if ( option.has_key("limit") ) {
+      mLimit = option.get("limit").get_int();
     }
   }
   mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
@@ -204,6 +204,58 @@ ExCubeGen::run(
   }
 
   return TestCover{fault, mand_cond, cube_list};
+}
+
+// @brief TestCover に対応するBDDを返す．
+Bdd
+ExCubeGen::make_bdd(
+  const TestCover& cover
+)
+{
+  auto common_cube = make_bdd(cover.common_cube());
+  Bdd cover_bdd = mBddMgr.zero();
+  for ( auto cube: cover.cube_list() ) {
+    auto cube_bdd = make_bdd(cube);
+    cover_bdd |= cube_bdd;
+  }
+  auto ans = common_cube & cover_bdd;
+  return ans;
+}
+
+// @brief AssignList に対応するBDDを返す．
+Bdd
+ExCubeGen::make_bdd(
+  const AssignList& cube
+)
+{
+  auto cube_bdd = mBddMgr.one();
+  for ( auto nv: cube ) {
+    auto lit_bdd = make_bdd(nv);
+    cube_bdd &= lit_bdd;
+  }
+  return cube_bdd;
+}
+
+// @brief Assign に対応するBDDを返す．
+Bdd
+ExCubeGen::make_bdd(
+  const Assign& assign
+)
+{
+  auto sig = assign.node_time();
+  Bdd bdd;
+  if ( mBddMap.count(sig) > 0 ) {
+    bdd= mBddMap.at(sig);
+  }
+  else {
+    bdd = mBddMgr.posi_literal(mBddVarBase);
+    ++ mBddVarBase;
+    mBddMap.emplace(sig, bdd);
+  }
+  if ( !assign.val() ) {
+    bdd = ~bdd;
+  }
+  return bdd;
 }
 
 END_NAMESPACE_DRUID

@@ -43,7 +43,7 @@ public:
   static
   AssignExpr
   make_and(
-    const vector<AssignExpr>& opr_list
+    vector<AssignExpr>& opr_list
   );
 
   /// @brief 論理積を作る．
@@ -57,7 +57,7 @@ public:
   static
   AssignExpr
   make_or(
-    const vector<AssignExpr>& opr_list
+    vector<AssignExpr>& opr_list
   );
 
   /// @brief 空のコンストラクタ
@@ -138,9 +138,19 @@ public:
     const AssignExpr& right
   ) const;
 
-  /// @brief AND演算付き代入
-  AssignExpr&
-  operator&=(
+  /// @brief 等価関係の比較関数
+  friend
+  bool
+  operator==(
+    const AssignExpr& left,
+    const AssignExpr& right
+  );
+
+  /// @brief 大小関係の比較関数
+  friend
+  bool
+  operator<(
+    const AssignExpr& left,
     const AssignExpr& right
   );
 
@@ -167,6 +177,50 @@ operator<<(
   ostream& s,            ///< [in] 出力ストリーム
   const AssignExpr& expr ///< [in] 対象の式
 );
+
+/// @brief 非等価関係
+inline
+bool
+operator!=(
+  const AssignExpr& left,
+  const AssignExpr& right
+)
+{
+  return !operator==(left, right);
+}
+
+/// @brief 大小関係の比較関数
+inline
+bool
+operator>(
+  const AssignExpr& left,
+  const AssignExpr& right
+)
+{
+  return operator<(right, left);
+}
+
+/// @brief 大小関係の比較関数
+inline
+bool
+operator<=(
+  const AssignExpr& left,
+  const AssignExpr& right
+)
+{
+  return !operator<(right, left);
+}
+
+/// @brief 大小関係の比較関数
+inline
+bool
+operator>=(
+  const AssignExpr& left,
+  const AssignExpr& right
+)
+{
+  return !operator<(left, right);
+}
 
 END_NAMESPACE_DRUID
 

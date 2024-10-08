@@ -12,6 +12,8 @@
 #include "StructEngine.h"
 #include "BoolDiffEnc.h"
 #include "TestCover.h"
+#include "ym/Bdd.h"
+#include "ym/BddMgr.h"
 #include "ym/JsonValue.h"
 
 
@@ -65,6 +67,37 @@ public:
     const TpgFault* fault ///< [in] 対象の故障
   );
 
+  /// @brief TestCover に対応するBDDを返す．
+  Bdd
+  make_bdd(
+    const TestCover& cover
+  );
+
+  /// @brief AssignList に対応するBDDを返す．
+  Bdd
+  make_bdd(
+    const AssignList& cube
+  );
+
+  /// @brief BddMgr を返す．
+  BddMgr&
+  bddmgr()
+  {
+    return mBddMgr;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief Assign に対応するBDDを返す．
+  Bdd
+  make_bdd(
+    const Assign& assign
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -88,6 +121,16 @@ private:
 
   // 上限値
   SizeType mLimit;
+
+  // BDDマネージャ
+  BddMgr mBddMgr;
+
+  // TpgNode とBDDの変数の対応付けを持つ辞書
+  // 実際には時刻も区別する．
+  std::unordered_map<SizeType, Bdd> mBddMap;
+
+  // 次のBDDの変数の値
+  SizeType mBddVarBase;
 
   // デバッグフラグ
   int mDebug{0};

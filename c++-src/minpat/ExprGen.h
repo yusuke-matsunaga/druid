@@ -9,9 +9,9 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "BaseEnc.h"
+#include "StructEngine.h"
 #include "BoolDiffEnc.h"
-#include "TestCover.h"
+#include "AssignExpr.h"
 #include "ym/JsonValue.h"
 
 
@@ -37,7 +37,7 @@ public:
   /// @brief コンストラクタ
   ExprGen(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgNode* root                   ///< [in] FFRの根のノード
+    const TpgFFR* ffr,                    ///< [in] 対象のFFR
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
@@ -53,8 +53,29 @@ public:
 
   /// @brief 対象のFFRの根のノードのブール微分を表す論理式を得る．
   /// @return 生成した式を返す．
-  AssignExpr
-  run();
+  SizeType
+  run(
+    const TpgFault* fault
+  );
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief expr を否定した節を加える．
+  void
+  add_negation(
+    SatLiteral clit,
+    const AssignExpr& expr
+  );
+
+  /// @brief expr を否定した節を加える．
+  SatLiteral
+  add_negation_sub(
+    const AssignExpr& expr
+  );
 
 
 private:
@@ -62,8 +83,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // FFRの根のノード
-  const TpgNode* mRoot;
+  // 対象のFFR
+  const TpgFFR* mFFR;
 
   // 基本エンコーダ
   StructEngine mEngine;

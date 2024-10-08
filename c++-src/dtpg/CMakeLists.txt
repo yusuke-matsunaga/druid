@@ -50,8 +50,8 @@ set ( ex_SOURCES
   ex/Extractor.cc
   ex/Extractor2.cc
   ex/ExtSimple.cc
-  ex/MultiExtractor.cc
   ex/ExData.cc
+  ex/PropData.cc
   )
 
 set (jt_SOURCES
