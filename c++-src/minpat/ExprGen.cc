@@ -79,17 +79,17 @@ ExprGen::run(
       break;
     }
 
+#if 0
     // 十分条件を取り出す．
     auto expr = mBdEnc->extract_sufficient_conditions();
-#if 0
     {
       cout << endl;
       cout << "expr = " << expr << endl;
     }
-#endif
     tmp_list.push_back(expr);
     // expr の否定を加える．
     add_negation(clit, expr);
+#endif
   }
   timer.stop();
 

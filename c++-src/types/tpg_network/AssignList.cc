@@ -94,6 +94,28 @@ AssignList::diff(
   mDirty = false;
 }
 
+// @brief 差分を計算する．
+void
+AssignList::diff(
+  const Assign& src
+)
+{
+  _sort();
+  vector<Assign> tmp_list;
+  SizeType n1 = mAsList.size();
+  tmp_list.reserve(n1 - 1);
+  for ( SizeType i1 = 0; i1 < n1; ++ i1 ) {
+    auto& v1 = mAsList[i1];
+    if ( v1 != src ) {
+      tmp_list.push_back(v1);
+      ++ i1;
+    }
+  }
+
+  mAsList = tmp_list;
+  mDirty = false;
+}
+
 // @brief 矛盾した内容になっていないかチェックする．
 bool
 AssignList::sanity_check() const

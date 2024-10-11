@@ -175,6 +175,7 @@ BoolDiffEnc::extract_sufficient_condition()
 		       solver().model());
 }
 
+#if 0
 // @brief 直前の check() が成功したときの十分条件を求める．
 AssignExpr
 BoolDiffEnc::extract_sufficient_conditions()
@@ -184,5 +185,6 @@ BoolDiffEnc::extract_sufficient_conditions()
 			mFvarMap,
 			solver().model());
 }
+#endif
 
 END_NAMESPACE_DRUID

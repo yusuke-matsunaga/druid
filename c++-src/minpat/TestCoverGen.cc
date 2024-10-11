@@ -66,18 +66,24 @@ TestCoverGen::run(
 	}
 	total_cube_num += nc;
 	total_literal_num += nl;
-	auto bdd = gen.make_bdd(testcover);
-	bdd_list.push_back(bdd);
+#if 1
+	cout << " " << testcover.cube_num()
+	     << " | " << testcover.literal_num() << endl;
+	BddMgr mgr;
+	auto bdd = gen.make_bdd(mgr, testcover);
+	//bdd_list.push_back(bdd);
 	auto n = bdd.size();
 	auto nl2 = n * 3;
 	total_literal_num2 += nl2;
+	cout << " " << n << endl;
+#endif
       }
       if ( debug > 1 ) {
 	DBG_OUT << "  " << testcover.cube_num()
 		<< " | " << testcover.literal_num() << endl;
       }
     }
-    total_literal_num3 += gen.bddmgr().bdd_size(bdd_list) * 3;
+    //total_literal_num3 += gen.bddmgr().bdd_size(bdd_list) * 3;
     timer.stop();
     auto time = timer.get_time();
     if ( max_time < time ) {

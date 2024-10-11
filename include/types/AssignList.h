@@ -102,6 +102,12 @@ public:
     const AssignList& src_list  ///< [in] 差分の対象のリスト
   );
 
+  /// @brief 差分を計算する．
+  void
+  diff(
+    const Assign& src           ///< [in] 差分の対象
+  );
+
   /// @brief 要素数を返す．
   SizeType
   size() const
@@ -154,6 +160,17 @@ public:
     return *this;
   }
 
+  /// @brief diff() の別名
+  AssignList&
+  operator-=(
+    const Assign& src  ///< [in] 差分の対象
+  )
+  {
+    diff(src);
+
+    return *this;
+  }
+
   /// @brief elem() の別名
   Assign
   operator[](
@@ -199,6 +216,16 @@ private:
   {
     if ( mDirty ) {
       std::sort(mAsList.begin(), mAsList.end());
+      vector<Assign> tmp_list;
+      tmp_list.reserve(mAsList.size());
+      Assign prev;
+      for ( auto& cur: mAsList ) {
+	if ( cur != prev ) {
+	  tmp_list.push_back(cur);
+	  prev = cur;
+	}
+      }
+      std::swap(mAsList, tmp_list);
       mDirty = false;
     }
   }
@@ -275,6 +302,18 @@ operator-(
 {
   AssignList tmp(src_list1);
   return tmp.operator-=(src_list2);
+}
+
+/// @brief 2つのリストの差分を計算して新しいリストを返す．
+inline
+AssignList
+operator-(
+  const AssignList& src_list1,
+  const Assign& src2
+)
+{
+  AssignList tmp(src_list1);
+  return tmp.operator-=(src2);
 }
 
 /// @brief 割当の内容を出力する．

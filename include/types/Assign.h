@@ -124,6 +124,17 @@ private:
 
 };
 
+/// @brief 非等価比較演算子
+inline
+bool
+operator!=(
+  const Assign& left,
+  const Assign& right
+)
+{
+  return !operator==(left, right);
+}
+
 /// @brief 割当の内容を出力する．
 /// @return s を返す．
 ostream&

@@ -8,7 +8,7 @@
 
 #include "Extractor.h"
 #include "ExtSimple.h"
-#include "PropData.h"
+#include "ExData.h"
 
 
 #define DBG_OUT cerr
@@ -61,30 +61,31 @@ Extractor::operator()(
   const SatModel& model
 )
 {
-  PropData data{root, gvar_map, fvar_map, model};
+  ExData data{root, gvar_map, fvar_map, model};
+
+  // 故障差の伝搬している経路を探す．
+  ASSERT_COND( !data.sensitized_output_list().empty() );
 
   AssignList min_assign_list;
   SizeType min_val = std::numeric_limits<SizeType>::max();
-  for ( auto& boundary_data: data.boundary_data_list() ) {
-    AssignList assign_list;
-    for ( auto node: boundary_data.mNodeList ) {
-      auto& assign_data = data.assign_data(node);
-      if ( assign_data.mAndCond ) {
-	for ( auto& assign: assign_data.mAssignList ) {
-	  assign_list.add(assign);
-	}
-      }
-      else {
-	auto& assign = assign_data.mAssignList.front();
-	assign_list.add(assign);
-      }
-    }
-#if 0
+  for ( auto po: data.sensitized_output_list() ) {
+    vector<vector<const TpgNode*>> choice_list;
+    auto node_list = data.backtrace(po, choice_list);
     auto cnode_list = select_cnode(choice_list);
-    for ( auto cnode: cnode_list ) {
-      assign_list.add(data.get_assign(cnode));
+    node_list.insert(node_list.end(), cnode_list.begin(), cnode_list.end());
+    // IDの昇順にソートする．
+    sort(node_list.begin(), node_list.end(),
+	 [](const TpgNode* a,
+	    const TpgNode* b) {
+	   return a->id() < b->id();
+	 });
+    // 重複を取り除きならが AssignList に変換する．
+    AssignList assign_list;
+    const TpgNode* prev = nullptr;
+    for ( auto node: node_list ) {
+      auto bval = (data.gval(node) == Val3::_1);
+      assign_list.add(node, 1, bval);
     }
-#endif
     SizeType val = assign_list.size();
     if ( min_val > val ) {
       min_val = val;

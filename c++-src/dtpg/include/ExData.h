@@ -5,12 +5,11 @@
 /// @brief ExData のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2024 Yusuke Matsunaga
+/// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "TpgNode.h"
-#include "Assign.h"
 #include "VidMap.h"
 #include "Val3.h"
 #include "ym/SatModel.h"
@@ -24,9 +23,7 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// 以下の情報を持つ．
 /// - 起点となるノード
-/// - 起点から到達可能なノードのリスト
-/// - 故障の影響が伝搬している出力のリスト
-/// - 出力ごとに関係する境界ノードのリスト
+/// - 起点から到達可能なノードの印
 /// - 変数割り当てマップ
 /// - SATのモデル
 //////////////////////////////////////////////////////////////////////
@@ -51,6 +48,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 起点のノードを返す．
+  const TpgNode*
+  root() const
+  {
+    return mRoot;
+  }
+
   /// @brief 故障差の伝搬している出力のリストを返す．
   const vector<const TpgNode*>&
   sensitized_output_list() const
@@ -58,41 +62,12 @@ public:
     return mSensitizedOutputList;
   }
 
-  /// @brief 出力に関係する境界ノードのリスト
-  const vector<const TpgNode*>&
-  boundary_node_list(
-    const TpgNode* node ///< [in] 出力ノード
-  ) const
-  {
-    return mBoundaryNodeListDict.at(node->id());
-  }
-
-  /// @brief ノードの side input を求める．
-  void
-  get_side_inputs(
-    const TpgNode* node, ///< [in] 対象のノード
-    vector<const TpgNode*>& side_inputs,
-    vector<const TpgNode*>& cnode_list
-  ) const;
-
-  /// @brief root() から到達可能なノードの時に true を返す．
-  bool
-  is_in_fcone(
-    const TpgNode* node ///< [in] 対象のノード
-  ) const
-  {
-    return mFconeMark.count(node->id()) > 0;
-  }
-
-  /// @brief ノードの値割り当てを返す．
-  Assign
-  get_assign(
-    const TpgNode* node ///< [in] 対象のノード
-  ) const
-  {
-    bool val = (gval(node) == Val3::_1);
-    return Assign{node, 1, val};
-  }
+  /// @brief ノードの出力に故障の影響を伝搬させる side input を求める．
+  vector<const TpgNode*>
+  backtrace(
+    const TpgNode* node,
+    vector<vector<const TpgNode*>>& cgroup_list
+  );
 
   /// @brief 正常回路の値を返す．
   Val3
@@ -118,26 +93,40 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 起点のノードを返す．
-  const TpgNode*
-  root() const
-  {
-    return mRoot;
-  }
-
-  /// @brief root() から到達可能なノードのリストを返す．
-  const vector<const TpgNode*>&
-  fcone_node_list() const
-  {
-    return mFconeNodeList;
-  }
-
-  /// @brief 境界ノードを求める．
+  /// @brief ノードの出力の値を確定させる side input を求める．
   void
-  backtrace(
-    const TpgNode* node,              ///< [in] 対象のノード
-    vector<const TpgNode*>& node_list ///< [out] 境界ノードを格納するリスト
+  backtrace2(
+    const TpgNode* node,
+    vector<const TpgNode*>& ncnode_list,
+    vector<vector<const TpgNode*>>& cgroup_list
   );
+
+  /// @brief root() から到達可能なノードの時に true を返す．
+  bool
+  is_in_fcone(
+    const TpgNode* node ///< [in] 対象のノード
+  ) const
+  {
+    return mFconeMark.count(node->id()) > 0;
+  }
+
+  /// @brief ノードの種類を求める．
+  /// @retval 1 故障差が伝搬している．
+  /// @retval 2 故障差が伝搬していない．
+  /// @retval 3 fcone の外側
+  int
+  type(
+    const TpgNode* node ///< [in] 対象のノード
+  ) const
+  {
+    if ( is_in_fcone(node) ) {
+      if ( gval(node) != fval(node) ) {
+	return 1;
+      }
+      return 2;
+    }
+    return 3;
+  }
 
 
 private:
@@ -160,15 +149,8 @@ private:
   // 故障の fanout cone のマーク
   unordered_set<SizeType> mFconeMark;
 
-  // mRoot の TFO のノードのリスト
-  vector<const TpgNode*> mFconeNodeList;
-
   // 故障差の伝搬している外部出力のリスト
   vector<const TpgNode*> mSensitizedOutputList;
-
-  // 境界ノードのリストの辞書
-  // キーはノード番号
-  std::unordered_map<SizeType, vector<const TpgNode*>> mBoundaryNodeListDict;
 
 };
 
