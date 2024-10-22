@@ -248,7 +248,7 @@ GateType::primitive_type() const
 Expr
 GateType::expr() const
 {
-  return Expr::make_invalid();
+  return Expr::invalid();
 }
 
 // @brief 追加ノード数を返す．

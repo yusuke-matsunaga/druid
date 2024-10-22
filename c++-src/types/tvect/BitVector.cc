@@ -234,7 +234,7 @@ BitVector::hash() const
 void
 BitVector::uniquefy()
 {
-  if ( !mPtr.unique() ) {
+  if ( mPtr.use_count() > 1) {
     // 内容を変更するので複製する．
     mPtr = std::shared_ptr<BitVectorRep>(BitVectorRep::new_vector(*mPtr));
   }
