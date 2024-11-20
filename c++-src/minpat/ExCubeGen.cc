@@ -18,6 +18,7 @@
 #include "ym/JsonValue.h"
 
 
+
 #define DBG_OUT cerr
 
 BEGIN_NAMESPACE_DRUID
@@ -212,7 +213,7 @@ BEGIN_NONAMESPACE
 Bdd
 cube_to_bdd(
   BddMgr& mgr,
-  const std::unordered_map<PtrIntType, SizeType>& varmap,
+  const std::unordered_map<PtrIntType, BddVar>& varmap,
   const AssignList& cube
 )
 {
@@ -221,10 +222,10 @@ cube_to_bdd(
     auto sig = assign.node_time();
     auto var = varmap.at(sig);
     if ( assign.val() ) {
-      bdd &= mgr.posi_literal(var);
+      bdd &= var;
     }
     else {
-      bdd &= mgr.nega_literal(var);
+      bdd &= ~var;
     }
   }
   return bdd;
@@ -233,7 +234,7 @@ cube_to_bdd(
 Bdd
 cover_to_bdd(
   BddMgr& mgr,
-  const std::unordered_map<PtrIntType, SizeType>& varmap,
+  const std::unordered_map<PtrIntType, BddVar>& varmap,
   const vector<PtrIntType>& sig_list,
   SizeType pos,
   const vector<AssignList>& cube_list
@@ -327,11 +328,11 @@ ExCubeGen::make_bdd(
 )
 {
   // common_cube は最上位の変数となる．
-  std::unordered_map<PtrIntType, SizeType> varmap;
+  std::unordered_map<PtrIntType, BddVar> varmap;
   SizeType varbase = 0;
   for ( auto assign: cover.common_cube() ) {
     auto sig = assign.node_time();
-    auto var = varbase;
+    auto var = mgr.variable(varbase);
     ++ varbase;
     varmap.emplace(sig, var);
   }
@@ -383,7 +384,7 @@ ExCubeGen::make_bdd(
       auto sig = assign.node_time();
       if ( sig_set.count(sig) == 0 ) {
 	sig_set.emplace(sig);
-	auto var = varbase;
+	auto var = mgr.variable(varbase);
 	++ varbase;
 	varmap.emplace(sig, var);
       }

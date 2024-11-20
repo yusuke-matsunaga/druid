@@ -13,6 +13,7 @@
 #include "BoolDiffEnc.h"
 #include "TestCover.h"
 #include "ym/Bdd.h"
+#include "ym/BddVar.h"
 #include "ym/BddMgr.h"
 #include "ym/JsonValue.h"
 

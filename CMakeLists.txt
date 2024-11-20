@@ -90,7 +90,6 @@ ym_init_submodules (
   ym-cell
   ym-combopt
   ym-common
-  ym-json
   ym-logic
   ym-sat
   )
