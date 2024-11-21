@@ -13,6 +13,7 @@
 #include "ExCubeGen.h"
 #include "OpBase.h"
 #include "ym/Bdd.h"
+#include "ym/BddVar.h"
 #include "ym/BddMgr.h"
 #include "ym/Timer.h"
 
@@ -20,6 +21,117 @@
 #define DBG_OUT cerr
 
 BEGIN_NAMESPACE_DRUID
+
+BEGIN_NONAMESPACE
+
+class CountBdd
+{
+public:
+
+  CountBdd() = default;
+
+  ~CountBdd() = default;
+
+
+public:
+
+  void
+  run(
+    const Bdd& bdd
+  );
+
+  SizeType
+  clause_num() const
+  {
+    return mClauseNum;
+  }
+
+  SizeType
+  literal_num() const
+  {
+    return mLiteralNum;
+  }
+
+
+private:
+
+  void
+  sub(
+    const Bdd& bdd
+  );
+
+
+private:
+
+  SizeType mClauseNum;
+
+  SizeType mLiteralNum;
+
+  std::unordered_set<Bdd> mMark;
+
+};
+
+void
+CountBdd::run(
+  const Bdd& bdd
+)
+{
+  mClauseNum = 0;
+  mLiteralNum = 0;
+  if ( bdd.is_const() ) {
+    return;
+  }
+  mMark.clear();
+  sub(bdd);
+}
+
+void
+CountBdd::sub(
+  const Bdd& bdd
+)
+{
+  if ( mMark.count(bdd) > 0 ) {
+    return;
+  }
+  mMark.emplace(bdd);
+
+  Bdd bdd0;
+  Bdd bdd1;
+  (void) bdd.root_decomp(bdd0, bdd1);
+  if ( bdd0.is_const() ) {
+    if ( bdd1.is_const() ) {
+      mClauseNum += 1;
+      mLiteralNum += 2;
+    }
+    else {
+      sub(bdd1);
+      if ( bdd0.is_zero() ) {
+	mClauseNum += 2;
+	mLiteralNum += 4;
+      }
+      else {
+	mClauseNum += 1;
+	mLiteralNum += 3;
+      }
+    }
+  }
+  else {
+    sub(bdd0);
+    if ( bdd1.is_zero() ) {
+      mClauseNum += 2;
+      mLiteralNum += 4;
+    }
+    else if ( bdd1.is_one() ) {
+      mClauseNum += 1;
+      mLiteralNum += 3;
+    }
+    else {
+      sub(bdd1);
+    }
+  }
+}
+
+END_NONAMESPACE
 
 // @brief 各故障のテストカバーを生成する．
 vector<TestCover>
@@ -39,9 +151,14 @@ TestCoverGen::run(
   vector<TestCover> cover_list;
   cover_list.reserve(fault_list.size());
   SizeType total_cube_num = 0;
+  SizeType total_clause_num = 0;
   SizeType total_literal_num = 0;
+  SizeType total_clause_num2 = 0;
   SizeType total_literal_num2 = 0;
+  SizeType total_clause_num3 = 0;
   SizeType total_literal_num3 = 0;
+  SizeType sop_count = 0;
+  SizeType bdd_count = 0;
   const TpgFFR* max_ffr = nullptr;
   double max_time = 0.0;
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
@@ -60,22 +177,58 @@ TestCoverGen::run(
       cover_list.push_back(testcover);
       auto nc = testcover.cube_num();
       if ( nc > 1 ) {
-	SizeType nl = testcover.common_cube().size() * 2;
-	for ( auto cube: testcover.cube_list() ) {
-	  nl += cube.size() * 3 + 1;
-	}
+	SizeType clause_num  = 0;
+	SizeType literal_num = 0;
+	cout << fault->str() << endl;
 	total_cube_num += nc;
-	total_literal_num += nl;
+	clause_num = nc + 1;
+	total_clause_num += clause_num;
+	for ( auto& cube: testcover.cube_list() ) {
+	  literal_num += cube.size() + 1;
+	}
+	total_literal_num += literal_num;
+	if ( debug > 2 ) {
+	  cout << "common cube: ";
+	  for ( auto nv: testcover.common_cube() ) {
+	    cout << " " << nv;
+	  }
+	  cout << endl;
+	  for ( auto& cube: testcover.cube_list() ) {
+	    for ( auto nv: cube ) {
+	      cout << " " << nv;
+	    }
+	    cout << endl;
+	  }
+	}
 #if 1
-	cout << " " << testcover.cube_num()
-	     << " | " << testcover.literal_num() << endl;
 	BddMgr mgr;
 	auto bdd = gen.make_bdd(mgr, testcover);
+	if ( debug > 2 ) {
+	  bdd.display(cout);
+	}
 	//bdd_list.push_back(bdd);
 	auto n = bdd.size();
-	auto nl2 = n * 3;
-	total_literal_num2 += nl2;
-	cout << " " << n << endl;
+	cout << " " << testcover.cube_num()
+	     << " | " << testcover.literal_num()
+	     << " | " << n << endl;
+	CountBdd count_bdd;
+	count_bdd.run(bdd);
+	SizeType clause_num2 = count_bdd.clause_num();
+	SizeType literal_num2 = count_bdd.literal_num();
+	total_clause_num2 += clause_num2;
+	total_literal_num2 += literal_num2;
+	if ( literal_num < literal_num2 ) {
+	  total_clause_num3 += clause_num;
+	  total_literal_num3 += literal_num;
+	  ++ sop_count;
+	}
+	else {
+	  total_clause_num3 += clause_num2;
+	  total_literal_num3 += literal_num2;
+	  ++ bdd_count;
+	}
+	cout << clause_num << " " << literal_num << endl
+	     << clause_num2 << " " << literal_num2 << endl;
 #endif
       }
       if ( debug > 1 ) {
@@ -83,7 +236,6 @@ TestCoverGen::run(
 		<< " | " << testcover.literal_num() << endl;
       }
     }
-    //total_literal_num3 += gen.bddmgr().bdd_size(bdd_list) * 3;
     timer.stop();
     auto time = timer.get_time();
     if ( max_time < time ) {
@@ -104,10 +256,14 @@ TestCoverGen::run(
 	    << (timer.get_time() / 1000.0) << endl;
   }
   cout << "Total # of cubes:          " << total_cube_num << endl
-       << "Total # of literals:       " << total_literal_num << endl
-       << "Total # of literals(BDD):  " << total_literal_num2 << endl
-       << "Total # of literals(SBDD): " << total_literal_num3 << endl;
-
+       << "Total # of clauses:        " << setw(10) << total_clause_num
+       << " | " << setw(10) << total_literal_num << endl
+       << "Total # of clauses(BDD):   " << setw(10) << total_clause_num2
+       << " | " << setw(10) << total_literal_num2 << endl
+       << "Total # of clauses(Best):  " << setw(10) << total_clause_num3
+       << " | " << setw(10) << total_literal_num3 << endl;
+  cout << "SOP count:                   " << sop_count << endl
+       << "BDD count:                   " << bdd_count << endl;
   return cover_list;
 }
 
