@@ -15,11 +15,11 @@
 BEGIN_NAMESPACE_DRUID
 
 class FaultInfoMgr;
-class TestCover;
+class TestCond;
 
 //////////////////////////////////////////////////////////////////////
 /// @class TestCoverGen TestCoverGen.h "TestCoverGen.h"
-/// @brief 各故障のテストカバーを生成するクラス
+/// @brief 各故障の検出条件を生成するクラス
 ///
 /// 実はクラスメソッドだけの仮想クラス
 //////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ public:
 
   /// @brief 各故障のテストカバーを生成する．
   static
-  vector<TestCover>
+  vector<TestCond>
   run(
     const TpgNetwork& network,                 ///< [in] ネットワーク
     const vector<const TpgFault*>& fault_list, ///< [in] 故障のリスト
@@ -42,6 +42,7 @@ public:
                              ///<      - 'debug': bool         デバッグフラグ
   );
 
+#if 0
   /// @brief 各故障のテストカバーを生成する．
   static
   vector<TestCover>
@@ -52,6 +53,7 @@ public:
                              ///<      - 'cube_per_fault': int 1故障あたりのキューブ数
                              ///<      - 'debug': bool         デバッグフラグ
   );
+#endif
 
 };
 

@@ -15,9 +15,7 @@
 #include "Reducer.h"
 #include "XChecker.h"
 #include "TestCoverGen.h"
-#include "TestExprGen.h"
-#include "TestCover.h"
-#include "ExprGen.h"
+#include "TestCond.h"
 #include "ym/Timer.h"
 #include <random>
 
@@ -229,7 +227,7 @@ testcube_gen(
 
   vector<const TpgFault*> det_fault_list;
   vector<const TpgFault*> fault_list;
-  vector<TestCover> cover_list;
+  vector<TestCond> cond_list;
 
   SizeType total_cube_num = 0;
   SizeType total_literal_num = 0;
@@ -268,7 +266,8 @@ testcube_gen(
 
     ctimer.start();
 
-    cover_list = TestCoverGen::run(finfo_mgr, tcg_option);
+    auto& fault_list = finfo_mgr.active_fault_list();
+    cond_list = TestCoverGen::run(network, fault_list, tcg_option);
 
     ctimer.stop();
   }
@@ -324,17 +323,13 @@ testcube_gen(
 
     ctimer.start();
 
-    if ( expr_gen ) {
-      auto nc = TestExprGen::run(network, fault_list, tcg_option);
-      total_cube_num += nc;
+    cond_list = TestCoverGen::run(network, fault_list, tcg_option);
+#if 0
+    for ( auto& cover: cover_list ) {
+      total_cube_num += cover.cube_num();
+      total_literal_num += cover.literal_num();
     }
-    else {
-      cover_list = TestCoverGen::run(network, fault_list, tcg_option);
-      for ( auto& cover: cover_list ) {
-	total_cube_num += cover.cube_num();
-	total_literal_num += cover.literal_num();
-      }
-    }
+#endif
 
     ctimer.stop();
   }

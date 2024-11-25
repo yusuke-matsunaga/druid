@@ -133,8 +133,8 @@ CountBdd::sub(
 
 END_NONAMESPACE
 
-// @brief 各故障のテストカバーを生成する．
-vector<TestCover>
+// @brief 各故障の検出条件ーを生成する．
+vector<TestCond>
 TestCoverGen::run(
   const TpgNetwork& network,
   const vector<const TpgFault*>& fault_list,
@@ -176,6 +176,7 @@ TestCoverGen::run(
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
       auto cond = gen.generate(fault);
       cond_list.push_back(cond);
+#if 0
       auto clause_num = cond.clause_num();
       auto literal_num = cond.literal_num();
       if ( clause_num > 1 ) {
@@ -214,6 +215,7 @@ TestCoverGen::run(
 	DBG_OUT << "  " << testcover.cube_num()
 		<< " | " << testcover.literal_num() << endl;
       }
+#endif
     }
     timer.stop();
     auto time = timer.get_time();
@@ -243,74 +245,7 @@ TestCoverGen::run(
        << " | " << setw(10) << total_literal_num3 << endl;
   cout << "SOP count:                   " << sop_count << endl
        << "BDD count:                   " << bdd_count << endl;
-  return cover_list;
-}
-
-// @brief 各故障のテストカバーを生成する．
-vector<TestCover>
-TestCoverGen::run(
-  const FaultInfoMgr& finfo_mgr,
-  const JsonValue& option
-)
-{
-  Timer timer;
-  timer.start();
-
-  int debug = OpBase::get_debug(option);
-
-  auto& network = finfo_mgr.network();
-  auto& fault_list = finfo_mgr.active_fault_list();
-  FFRFaultList ffr_fault_list{network, fault_list};
-
-  vector<TestCover> cover_list;
-  //cover_list.reserve(fault_list.size());
-  SizeType nc = 0;
-  SizeType nl = 0;
-  const TpgFFR* max_ffr = nullptr;
-  double max_time = 0.0;
-  for ( auto ffr: ffr_fault_list.ffr_list() ) {
-    if ( debug > 1 ) {
-      DBG_OUT << "FFR#" << ffr->id()
-	      << " [" << ffr_fault_list.fault_list(ffr).size() << "]"
-	      << " / "
-	      << ffr_fault_list.ffr_list().size() << endl;
-    }
-    Timer timer;
-    timer.start();
-    CondGen gen{network, ffr,
-		finfo_mgr.root_mandatory_condition(ffr),
-		option};
-    for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
-      auto cond = gen.generate(fault);
-      //cover_list.push_back(testcover);
-      nc += testcover.cube_num();
-      nl += testcover.literal_num();
-      if ( debug > 1 ) {
-	DBG_OUT << "  " << testcover.cube_num()
-		<< " | " << testcover.literal_num() << endl;
-      }
-    }
-    timer.stop();
-    auto time = timer.get_time();
-    if ( max_time < time ) {
-      max_time = time;
-      max_ffr = ffr;
-#if 0
-      cout << "max updated: FFR#" << max_ffr->id()
-	   << " CPU Time: " << max_time << endl;
-#endif
-    }
-  }
-
-  timer.stop();
-  if ( debug > 0 ) {
-    DBG_OUT << "Total # of cubes:    " << nc << endl
-	    << "Total # of literals: " << nl << endl
-	    << "CPU time:            "
-	    << (timer.get_time() / 1000.0) << endl;
-  }
-
-  return cover_list;
+  return cond_list;
 }
 
 END_NAMESPACE_DRUID

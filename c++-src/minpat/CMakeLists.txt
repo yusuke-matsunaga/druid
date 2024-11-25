@@ -27,10 +27,10 @@ set ( minpat_SOURCES
   FaultAnalyzer.cc
   FFRFaultList.cc
   TestCoverGen.cc
-  TestExprGen.cc
-  ExCubeGen.cc
+  #TestExprGen.cc
+  #ExCubeGen.cc
   CondGen.cc
-  ExprGen.cc
+  #ExprGen.cc
   ConflictChecker.cc
   FaultGroupGen.cc
   LocalImp.cc
