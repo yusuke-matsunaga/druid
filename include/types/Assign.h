@@ -65,6 +65,8 @@ public:
   }
 
   /// @brief 時刻を返す．
+  ///
+  /// 返される値は 0 か 1
   int
   time() const
   {
@@ -85,6 +87,13 @@ public:
   val() const
   {
     return static_cast<bool>(mPackVal & 1UL);
+  }
+
+  /// @brief 反対の割り当てを返す．
+  Assign
+  operator~() const
+  {
+    return Assign{mPackVal ^ 1UL};
   }
 
   /// @brief ハッシュ値を返す．
@@ -112,6 +121,19 @@ public:
     const Assign& left,
     const Assign& right
   );
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 内容を指定したコンストラクタ
+  Assign(
+    PtrIntType val
+  ) : mPackVal{val}
+  {
+  }
 
 
 private:

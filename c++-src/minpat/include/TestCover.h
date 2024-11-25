@@ -18,7 +18,9 @@ BEGIN_NAMESPACE_DRUID
 /// @class TestCover TestCover.h "TestCover.h"
 /// @brief (拡張)テストカバーを表すクラス
 ///
-/// 各々のキューブに共通なキューブをくくりだしている．
+/// - 実際にはカバーとは別に各々のキューブに共通なキューブを持つ．
+/// - 入力は AssignList で与えられるが内部では変数番号を用いる．
+/// - そのため Assign と番号の対応付けを保持する辞書を持つ．
 //////////////////////////////////////////////////////////////////////
 class TestCover
 {
@@ -32,11 +34,7 @@ public:
     const TpgFault* fault,              ///< [in] 対象の故障
     const AssignList& common_cube,      ///< [in] 共通の割り当て
     const vector<AssignList>& cube_list ///< [in] 値割り当てのリスト
-  ) : mFault{fault},
-      mCommonCube{common_cube},
-      mCubeList{cube_list}
-  {
-  }
+  );
 
   /// @brief デストラクタ
   ~TestCover() = default;
@@ -54,15 +52,34 @@ public:
     return mFault;
   }
 
-  /// @brief 共通な割り当てを返す．
-  const AssignList&
+  /// @brief 用いられている変数の数を返す．
+  SizeType
+  variable_num() const
+  {
+    return mAssignList.size();
+  }
+
+  /// @biref 変数番号に対応する割り当てを返す．
+  Assign
+  assign(
+    SizeType var ///< [in] 変数番号
+  ) const
+  {
+    if ( var >= variable_num() ) {
+      throw std::invalid_argument{"var is out of range"};
+    }
+    return mAssignList[var];
+  }
+
+  /// @brief 共通なキューブを返す．
+  const vector<SizeType>&
   common_cube() const
   {
     return mCommonCube;
   }
 
-  /// @brief 値割り当てのリストのリストを返す．
-  const vector<AssignList>&
+  /// @brief キューブのリストを返す．
+  const vector<vector<SizeType>>&
   cube_list() const
   {
     return mCubeList;
@@ -95,11 +112,14 @@ private:
   // 対象の故障
   const TpgFault* mFault{nullptr};
 
-  // 共通な割り当て
-  AssignList mCommonCube;
+  // 割り当てのリスト
+  AssignList mAssignList;
+
+  // 共通なキューブ
+  vector<SizeType> mCommonCube;
 
   // 値割り当てのリスト
-  vector<AssignList> mCubeList;
+  vector<vector<SizeType>> mCubeList;
 
 };
 

@@ -1,29 +1,48 @@
 
-/// @file ExCubeGen.cc
-/// @brief ExCubeGen の実装ファイル
+/// @file CondGen.cc
+/// @brief CondGen の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "ExCubeGen.h"
+#include "CondGen.h"
 #include "TpgNetwork.h"
 #include "TpgFFR.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "StructEngine.h"
-#include "BoolDiffEnc.h"
-#include "TestVector.h"
+#include "AssignMgr.h"
 #include "OpBase.h"
-
 
 
 #define DBG_OUT cerr
 
 BEGIN_NAMESPACE_DRUID
 
+BEGIN_NONAMESPACE
+
+Expr
+conv2expr(
+  const AssignList& cube,
+  AssignMgr& assign_mgr
+)
+{
+  vector<Expr> opr_list;
+  opr_list.reserve(cube.size());
+  for ( auto nv: cube ) {
+    auto var = assign_mgr.get_varid(nv);
+    bool inv = !nv.val();
+    auto lit = Expr::literal(var, inv);
+    opr_list.push_back(lit);
+  }
+  return Expr::and_op(opr_list);
+}
+
+END_NONAMESPACE
+
+
 // @brief コンストラクタ
-ExCubeGen::ExCubeGen(
+CondGen::CondGen(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
@@ -65,7 +84,7 @@ ExCubeGen::ExCubeGen(
 }
 
 // @brief コンストラクタ
-ExCubeGen::ExCubeGen(
+CondGen::CondGen(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const AssignList& root_cond,
@@ -91,13 +110,13 @@ ExCubeGen::ExCubeGen(
 }
 
 // @brief デストラクタ
-ExCubeGen::~ExCubeGen()
+CondGen::~CondGen()
 {
 }
 
 // @brief 与えられた故障を検出するテストキューブを生成する．
-TestCover
-ExCubeGen::run(
+TestCond
+CondGen::generate(
   const TpgFault* fault
 )
 {
@@ -149,14 +168,17 @@ ExCubeGen::run(
     DBG_OUT << "PHASE1: " << (timer.get_time() / 1000.0) << endl;
   }
 
+  AssignMgr assign_mgr;
+  if ( suff_cond.size() == 0 ) {
+    // 十分条件と必要条件が等しかった．
+    auto expr = conv2expr(mand_cond, assign_mgr);
+    return TestCond{expr, assign_mgr.assign_list()};
+  }
+
   timer.reset();
   timer.start();
   vector<AssignList> cube_list;
   cube_list.push_back(suff_cond);
-  if ( suff_cond.size() == 0 ) {
-    // 十分条件と必要条件が等しかった．
-    return TestCover{fault, mand_cond, cube_list};
-  }
 
   // 制御用の変数を用意する．
   auto clit = mEngine.solver().new_variable(false);
@@ -203,7 +225,16 @@ ExCubeGen::run(
     DBG_OUT << "PHASE2: " << (timer.get_time() / 1000.0) << endl;
   }
 
-  return TestCover{fault, mand_cond, cube_list};
+  auto mand_cond_expr = conv2expr(mand_cond, assign_mgr);
+  vector<Expr> opr_list;
+  opr_list.reserve(cube_list.size());
+  for ( auto& cube: cube_list ) {
+    auto expr = conv2expr(cube, assign_mgr);
+    opr_list.push_back(expr);
+  }
+  auto cover_expr = Expr::or_op(opr_list);
+  auto expr = mand_cond_expr & cover_expr;
+  return TestCond{expr, assign_mgr.assign_list()};
 }
 
 END_NAMESPACE_DRUID

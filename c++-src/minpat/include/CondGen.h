@@ -1,8 +1,8 @@
-#ifndef EXCUBEGEN_H
-#define EXCUBEGEN_H
+#ifndef CONDGEN_H
+#define CONDGEN_H
 
-/// @file ExCubeGen.h
-/// @brief ExCubeGen のヘッダファイル
+/// @file CondGen.h
+/// @brief CondGen のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -11,14 +11,14 @@
 #include "druid.h"
 #include "StructEngine.h"
 #include "BoolDiffEnc.h"
-#include "TestCover.h"
+#include "TestCond.h"
 #include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class ExCubeGen ExCubeGen.h "ExCubeGen.h"
+/// @class CondGen CondGen.h "CondGen.h"
 /// @brief 拡張テストキューブを生成するクラス
 ///
 /// 拡張テストキューブを生成する．
@@ -30,19 +30,19 @@ BEGIN_NAMESPACE_DRUID
 /// - "cube_per_fault"  int    1故障あたりのキューブ数の上限
 /// - "dtpg":           object DTPG用の初期化パラメータ
 //////////////////////////////////////////////////////////////////////
-class ExCubeGen
+class CondGen
 {
 public:
 
   /// @brief コンストラクタ
-  ExCubeGen(
+  CondGen(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
     const TpgFFR* ffr,                    ///< [in] 対象の FFR
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
   /// @brief コンストラクタ
-  ExCubeGen(
+  CondGen(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
     const TpgFFR* ffr,                    ///< [in] 対象の FFR
     const AssignList& root_cond,          ///< [in] 出力の故障伝搬の必要条件
@@ -50,7 +50,7 @@ public:
   );
 
   /// @brief デストラクタ
-  ~ExCubeGen();
+  ~CondGen();
 
 
 public:
@@ -58,18 +58,12 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 与えられた故障を検出するテストカバーを生成する．
-  /// @return 生成したテストカバーを返す．
-  TestCover
-  run(
+  /// @brief 与えられた故障を検出する条件を生成する．
+  /// @return 条件式を返す．
+  TestCond
+  generate(
     const TpgFault* fault ///< [in] 対象の故障
   );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:
@@ -102,4 +96,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // EXCUBEGEN_H
+#endif // CONDGEN_H

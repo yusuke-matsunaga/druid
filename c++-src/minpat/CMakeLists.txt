@@ -24,25 +24,12 @@ add_subdirectory( test-programs )
 
 set ( minpat_SOURCES
   FaultInfoMgr.cc
-  FFRFaultList.cc
   FaultAnalyzer.cc
-  Reducer.cc
-  XChecker.cc
-  ffr_reduction.cc
-  global_reduction.cc
-  FFRDomChecker.cc
-  DomCandMgr.cc
-  DomCandGen.cc
-  DomChecker.cc
-  SimpleDomChecker.cc
-  TrivialChecker1.cc
-  TrivialChecker2.cc
-  TrivialChecker3.cc
-  NaiveDomChecker.cc
-  NaiveDomChecker2.cc
+  FFRFaultList.cc
   TestCoverGen.cc
   TestExprGen.cc
   ExCubeGen.cc
+  CondGen.cc
   ExprGen.cc
   ConflictChecker.cc
   FaultGroupGen.cc
@@ -53,12 +40,30 @@ set ( minpat_SOURCES
   Sim.cc
   )
 
+set ( reducer_SOURCES
+  reducer/Reducer.cc
+  reducer/SimpleDomChecker.cc
+  reducer/TrivialChecker1.cc
+  reducer/TrivialChecker2.cc
+  reducer/TrivialChecker3.cc
+  reducer/NaiveDomChecker.cc
+  reducer/NaiveDomChecker2.cc
+  reducer/ffr_reduction.cc
+  reducer/global_reduction.cc
+  reducer/FFRDomChecker.cc
+  reducer/DomCandMgr.cc
+  reducer/DomCandGen.cc
+  reducer/DomChecker.cc
+  reducer/XChecker.cc
+  )
+
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
 ym_add_object_library ( druid_minpat
   ${minpat_SOURCES}
+  ${reducer_SOURCES}
   )
 
 

@@ -10,7 +10,7 @@
 #include "TestCover.h"
 #include "FaultInfoMgr.h"
 #include "FFRFaultList.h"
-#include "ExCubeGen.h"
+#include "CondGen.h"
 #include "OpBase.h"
 #include "ym/Bdd.h"
 #include "ym/BddVar.h"
@@ -148,8 +148,8 @@ TestCoverGen::run(
 
   FFRFaultList ffr_fault_list{network, fault_list};
 
-  vector<TestCover> cover_list;
-  cover_list.reserve(fault_list.size());
+  vector<TestCond> cond_list;
+  cond_list.reserve(fault_list.size());
   SizeType total_cube_num = 0;
   SizeType total_clause_num = 0;
   SizeType total_literal_num = 0;
@@ -170,51 +170,30 @@ TestCoverGen::run(
     }
     Timer timer;
     timer.start();
-    ExCubeGen gen{network, ffr, option};
+    CondGen gen{network, ffr, option};
     vector<Bdd> bdd_list;
+    BddMgr ffr_mgr;
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
-      auto testcover = gen.run(fault);
-      cover_list.push_back(testcover);
-      auto nc = testcover.cube_num();
-      if ( nc > 1 ) {
-	SizeType clause_num  = 0;
-	SizeType literal_num = 0;
-	cout << fault->str() << endl;
-	total_cube_num += nc;
-	clause_num = nc + 1;
-	total_clause_num += clause_num;
-	for ( auto& cube: testcover.cube_list() ) {
-	  literal_num += cube.size() + 1;
-	}
-	total_literal_num += literal_num;
+      auto cond = gen.generate(fault);
+      cond_list.push_back(cond);
+      auto clause_num = cond.clause_num();
+      auto literal_num = cond.literal_num();
+      if ( clause_num > 1 ) {
 	if ( debug > 2 ) {
-	  cout << "common cube: ";
-	  for ( auto nv: testcover.common_cube() ) {
-	    cout << " " << nv;
-	  }
-	  cout << endl;
-	  for ( auto& cube: testcover.cube_list() ) {
-	    for ( auto nv: cube ) {
-	      cout << " " << nv;
-	    }
-	    cout << endl;
-	  }
+	  cout << fault->str() << endl;
 	}
-#if 1
+	total_clause_num += clause_num;
+	total_literal_num += literal_num;
 	BddMgr mgr;
-	auto bdd = gen.make_bdd(mgr, testcover);
+	auto bdd = conv.make_bdd(mgr, cover);
 	if ( debug > 2 ) {
 	  bdd.display(cout);
 	}
 	//bdd_list.push_back(bdd);
-	auto n = bdd.size();
-	cout << " " << testcover.cube_num()
-	     << " | " << testcover.literal_num()
-	     << " | " << n << endl;
 	CountBdd count_bdd;
 	count_bdd.run(bdd);
-	SizeType clause_num2 = count_bdd.clause_num();
-	SizeType literal_num2 = count_bdd.literal_num();
+	auto clause_num2 = count_bdd.clause_num();
+	auto literal_num2 = count_bdd.literal_num();
 	total_clause_num2 += clause_num2;
 	total_literal_num2 += literal_num2;
 	if ( literal_num < literal_num2 ) {
@@ -229,7 +208,7 @@ TestCoverGen::run(
 	}
 	cout << clause_num << " " << literal_num << endl
 	     << clause_num2 << " " << literal_num2 << endl;
-#endif
+	auto bdd2 = expr2bdd();
       }
       if ( debug > 1 ) {
 	DBG_OUT << "  " << testcover.cube_num()
@@ -284,7 +263,7 @@ TestCoverGen::run(
   FFRFaultList ffr_fault_list{network, fault_list};
 
   vector<TestCover> cover_list;
-  cover_list.reserve(fault_list.size());
+  //cover_list.reserve(fault_list.size());
   SizeType nc = 0;
   SizeType nl = 0;
   const TpgFFR* max_ffr = nullptr;
@@ -298,12 +277,12 @@ TestCoverGen::run(
     }
     Timer timer;
     timer.start();
-    ExCubeGen gen{network, ffr,
-		  finfo_mgr.root_mandatory_condition(ffr),
-		  option};
+    CondGen gen{network, ffr,
+		finfo_mgr.root_mandatory_condition(ffr),
+		option};
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
-      auto testcover = gen.run(fault);
-      cover_list.push_back(testcover);
+      auto cond = gen.generate(fault);
+      //cover_list.push_back(testcover);
       nc += testcover.cube_num();
       nl += testcover.literal_num();
       if ( debug > 1 ) {
