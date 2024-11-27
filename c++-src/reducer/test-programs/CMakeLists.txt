@@ -11,7 +11,8 @@ include_directories(
 # サブディレクトリの設定
 # ===================================================================
 
-#add_subdirectory ( minpat )
+add_subdirectory ( fault_reducer )
+add_subdirectory ( conflict_checker )
 
 
 # ===================================================================
