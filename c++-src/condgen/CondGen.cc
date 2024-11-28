@@ -19,27 +19,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-Expr
-conv2expr(
-  const AssignList& cube,
-  AssignMgr& assign_mgr
-)
-{
-  vector<Expr> opr_list;
-  opr_list.reserve(cube.size());
-  for ( auto nv: cube ) {
-    auto var = assign_mgr.get_varid(nv);
-    bool inv = !nv.val();
-    auto lit = Expr::literal(var, inv);
-    opr_list.push_back(lit);
-  }
-  return Expr::and_op(opr_list);
-}
-
-END_NONAMESPACE
-
 //////////////////////////////////////////////////////////////////////
 // クラス CondGen
 //////////////////////////////////////////////////////////////////////
@@ -107,7 +86,7 @@ CondGen::~CondGen()
 
 // @brief FFRの出力の故障伝搬条件を求める．
 // @return 条件式を返す．
-TestCond
+AssignExpr
 CondGen::root_cond(
   SizeType limit,
   SizeType& loop_count
@@ -117,7 +96,7 @@ CondGen::root_cond(
 }
 
 // @brief 与えられた故障を検出するテストキューブを生成する．
-TestCond
+AssignExpr
 CondGen::fault_cond(
   const TpgFault* fault,
   SizeType limit,
@@ -134,7 +113,7 @@ CondGen::fault_cond(
 }
 
 // @brief root_cond(), fault_cond() の共通な下請け関数
-TestCond
+AssignExpr
 CondGen::gen_cond(
   const AssignList& extra_cond,
   SizeType limit,
@@ -144,7 +123,9 @@ CondGen::gen_cond(
   Timer timer;
   timer.start();
   auto plit = mBdEnc->prop_var();
-  auto assumptions = mEngine.conv_to_literal_list(extra_cond);
+  AssignList precond{extra_cond};
+  precond.merge(mRootMandCond);
+  auto assumptions = mEngine.conv_to_literal_list(precond);
   assumptions.push_back(plit);
   auto res = mEngine.solver().solve(assumptions);
   timer.stop();
@@ -174,8 +155,7 @@ CondGen::gen_cond(
     }
   }
   suff_cond.diff(mand_cond);
-  mand_cond.merge(extra_cond);
-  mand_cond.merge(mRootMandCond);
+  mand_cond.merge(precond);
   timer.stop();
 
   if ( mDebug > 1 ) {
@@ -184,11 +164,9 @@ CondGen::gen_cond(
 
   loop_count = 1;
 
-  AssignMgr assign_mgr;
   if ( suff_cond.size() == 0 ) {
     // 十分条件と必要条件が等しかった．
-    auto expr = conv2expr(mand_cond, assign_mgr);
-    return TestCond{expr, assign_mgr.assign_list()};
+    return AssignExpr{mand_cond};
   }
 
   timer.reset();
@@ -241,16 +219,11 @@ CondGen::gen_cond(
     DBG_OUT << "PHASE2: " << (timer.get_time() / 1000.0) << endl;
   }
 
-  auto mand_cond_expr = conv2expr(mand_cond, assign_mgr);
-  vector<Expr> opr_list;
-  opr_list.reserve(cube_list.size());
-  for ( auto& cube: cube_list ) {
-    auto expr = conv2expr(cube, assign_mgr);
-    opr_list.push_back(expr);
-  }
-  auto cover_expr = Expr::or_op(opr_list);
+  AssignMgr assign_mgr;
+  auto mand_cond_expr = assign_mgr.to_expr(mand_cond);
+  auto cover_expr = assign_mgr.to_expr(cube_list);
   auto expr = mand_cond_expr & cover_expr;
-  return TestCond{expr, assign_mgr.assign_list()};
+  return AssignExpr{expr, assign_mgr.assign_list()};
 }
 
 END_NAMESPACE_DRUID

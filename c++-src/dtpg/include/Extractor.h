@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "AssignList.h"
+#include "AssignExpr.h"
 #include "VidMap.h"
 #include "Val3.h"
 #include "ym/SatModel.h"
@@ -70,6 +71,16 @@ public:
   /// @return 値の割当リスト
   AssignList
   operator()(
+    const TpgNode* root,    ///< [in] 起点となるノード
+    const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
+    const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
+    const SatModel& model   ///< [in] SATソルバの作ったモデル
+  );
+
+  /// @brief 可能な全ての十分条件を求める
+  static
+  AssignExpr
+  extract_all(
     const TpgNode* root,    ///< [in] 起点となるノード
     const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
     const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ

@@ -93,6 +93,60 @@ ExData::backtrace(
   vector<vector<const TpgNode*>>& cgroup_list
 )
 {
+  vector<vector<const TpgNode*>> tmp_cgroup_list;
+  auto tmp_node_list = backtrace1(node, tmp_cgroup_list);
+
+  // step1: node_list 中の重複を取り除く
+
+  // IDの昇順にソートする．
+  sort(tmp_node_list.begin(), tmp_node_list.end(),
+       [](const TpgNode* a,
+	  const TpgNode* b) {
+	 return a->id() < b->id();
+       });
+  // 重複を取り除く．
+  vector<const TpgNode*> node_list;
+  node_list.reserve(tmp_node_list.size());
+  const TpgNode* prev = nullptr;
+  for ( auto node: tmp_node_list ) {
+    if ( node != prev ) {
+      node_list.push_back(node);
+      prev = node;
+    }
+  }
+
+  // step2: cgroup_list 中に node_list が現れていたら
+  // そのグループを削除する（常に成り立っているので）
+  std::unordered_set<SizeType> node_set;
+  for ( auto node: node_list ) {
+    node_set.emplace(node->id());
+  }
+  cgroup_list.clear();
+  cgroup_list.reserve(tmp_cgroup_list.size());
+  for ( auto& cgroup: tmp_cgroup_list ) {
+    for ( auto node: cgroup ) {
+      if ( node_set.count(node->id()) > 0 ) {
+	continue;
+      }
+      // cgroup をソートしておく
+      sort(cgroup.begin(), cgroup.end(),
+	   [](const TpgNode* a,
+	      const TpgNode* b) {
+	     return a->id() < b->id();
+	   });
+      cgroup_list.push_back(cgroup);
+    }
+  }
+  return node_list;
+}
+
+// @brief ノードの出力に故障の影響を伝搬させる side input を求める．
+vector<const TpgNode*>
+ExData::backtrace1(
+  const TpgNode* node,
+  vector<vector<const TpgNode*>>& cgroup_list
+)
+{
   vector<const TpgNode*> ncnode_list;
   Queue queue;
   queue.put(node);

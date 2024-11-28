@@ -93,6 +93,13 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief backtrace() の下請け関数
+  vector<const TpgNode*>
+  backtrace1(
+    const TpgNode* node,
+    vector<vector<const TpgNode*>>& cgroup_list
+  );
+
   /// @brief ノードの出力の値を確定させる side input を求める．
   void
   backtrace2(

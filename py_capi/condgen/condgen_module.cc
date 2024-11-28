@@ -14,7 +14,7 @@
 #include "pym/PyTpgNetwork.h"
 #include "pym/PyTpgFFR.h"
 #include "pym/PyTpgFault.h"
-#include "pym/PyTestCond.h"
+#include "pym/PyAssignExpr.h"
 #include "pym/PyJsonValue.h"
 #include "pym/PyModule.h"
 
@@ -61,11 +61,11 @@ root_cond(
   }
   CondGenMgr::root_cond(network, limit,
 			[&](const TpgFFR* ffr,
-			    const TestCond& cond,
+			    const AssignExpr& cond,
 			    SizeType count,
 			    double time){
 			  auto ffr_obj = PyTpgFFR::ToPyObject(ffr);
-			  auto cond_obj = PyTestCond::ToPyObject(cond);
+			  auto cond_obj = PyAssignExpr::ToPyObject(cond);
 			  auto ret_obj = PyObject_CallFunction(callback_obj,
 							       "(OOkd)",
 							       ffr_obj,
@@ -129,11 +129,11 @@ fault_cond(
   }
   CondGenMgr::fault_cond(network, fault_list, limit,
 			 [&](const TpgFault* fault,
-			     const TestCond& cond,
+			     const AssignExpr& cond,
 			     SizeType count,
 			     double time){
 			   auto fault_obj = PyTpgFault::ToPyObject(fault);
-			   auto cond_obj = PyTestCond::ToPyObject(cond);
+			   auto cond_obj = PyAssignExpr::ToPyObject(cond);
 			   auto ret_obj = PyObject_CallFunction(callback_obj,
 								"(OOkd)",
 								fault_obj,
@@ -179,10 +179,6 @@ PyInit_condgen()
   auto m = PyModule::init(&condgen_module);
   if ( m == nullptr ) {
     return nullptr;
-  }
-
-  if ( !PyTestCond::init(m) ) {
-    goto error;
   }
 
   return m;

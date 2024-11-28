@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "Assign.h"
+#include "AssignExpr.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -49,6 +50,14 @@ public:
   /// @brief ムーブ代入演算子
   AssignList&
   operator=(AssignList&& src) = default;
+
+  /// @brief vector<Assign> からの変換コンストラクタ
+  AssignList(
+    const vector<Assign>& src_list
+  ) : mDirty{true},
+      mAsList{src_list}
+  {
+  }
 
   /// @brief デストラクタ
   ~AssignList() = default;
@@ -202,6 +211,28 @@ public:
   {
     _sort();
     return mAsList.end();
+  }
+
+  /// @brief vector<Assign> に変換する．
+  vector<Assign>
+  to_vector() const
+  {
+    _sort();
+    return mAsList;
+  }
+
+  /// @brief AssignExpr に変換する．
+  AssignExpr
+  to_expr() const
+  {
+    auto assign_list = to_vector();
+    auto n = assign_list.size();
+    vector<Expr> opr_list(n);
+    for ( SizeType i = 0; i < n; ++ i ) {
+      opr_list[i] = Expr::literal(i);
+    }
+    auto expr = Expr::and_op(opr_list);
+    return AssignExpr{expr, assign_list};
   }
 
 

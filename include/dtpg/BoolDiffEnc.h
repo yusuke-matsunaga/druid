@@ -15,7 +15,6 @@
 BEGIN_NAMESPACE_DRUID
 
 class Extractor;
-class Extractor2;
 
 //////////////////////////////////////////////////////////////////////
 /// @class BoolDiffEnc BoolDiffEnc.h "BoolDiffEnc.h"
@@ -167,9 +166,6 @@ private:
 
   // 十分条件を取り出すオブジェクト
   std::unique_ptr<Extractor> mExtractor;
-
-  // 複数の十分条件を取り出すオブジェクト
-  std::unique_ptr<Extractor2> mExtractor2;
 
 };
 

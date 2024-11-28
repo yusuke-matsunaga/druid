@@ -43,6 +43,7 @@ set ( druid_SOURCES
   types/PyTpgNode.cc
   types/PyTpgMFFC.cc
   types/PyTpgFFR.cc
+  types/PyAssignExpr.cc
 
   fsim/fsim_module.cc
   fsim/PyFsim.cc
@@ -62,7 +63,6 @@ set ( druid_SOURCES
   bist/PyLFSR.cc
 
   condgen/condgen_module.cc
-  condgen/PyTestCond.cc
   )
 
 

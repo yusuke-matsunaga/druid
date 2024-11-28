@@ -206,7 +206,7 @@ condgen(
   if ( ffr_mode ) {
     CondGenMgr::root_cond(network, limit,
 			  [&](const TpgFFR* ffr,
-			      const TestCond& cond,
+			      const AssignExpr& cond,
 			      SizeType count,
 			      double time){
 			    cout << "FFR#" << ffr->id()
@@ -219,7 +219,7 @@ condgen(
   else {
     CondGenMgr::fault_cond(network, src_fault_list, limit,
 			   [&](const TpgFault* fault,
-			       const TestCond& cond,
+			       const AssignExpr& cond,
 			       SizeType count,
 			       double time){
 			     cout << fault->str()

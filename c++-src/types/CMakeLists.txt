@@ -21,8 +21,6 @@ add_subdirectory( test-programs )
 
 set (types_SOURCES
   tpg_network/GateType.cc
-  tpg_network/AssignList.cc
-  tpg_network/AssignExpr.cc
   tpg_network/TpgNodeSet.cc
   tpg_network/TpgNetwork.cc
   tpg_network/TpgNetworkImpl.cc
@@ -34,6 +32,9 @@ set (types_SOURCES
   tpg_network/TpgPPO.cc
   tpg_network/TpgLogic.cc
   tpg_network/FFRFaultList.cc
+
+  tpg_network/AssignList.cc
+  tpg_network/AssignExpr.cc
 
   tvect/BitVector.cc
   tvect/BitVectorRep.cc

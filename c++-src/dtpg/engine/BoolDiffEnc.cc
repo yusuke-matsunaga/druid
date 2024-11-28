@@ -11,7 +11,6 @@
 #include "TpgNodeSet.h"
 #include "GateEnc.h"
 #include "Extractor.h"
-#include "Extractor2.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -41,8 +40,7 @@ BoolDiffEnc::BoolDiffEnc(
     mRoot{root},
     mFvarMap{engine.network().node_num()},
     mDvarMap{engine.network().node_num()},
-    mExtractor{Extractor::new_impl(get_option(option, "extractor"))},
-    mExtractor2{new Extractor2}
+    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
 {
   mTfoList = TpgNodeSet::get_tfo_list(
     engine.network().node_num(), mRoot,
@@ -175,16 +173,14 @@ BoolDiffEnc::extract_sufficient_condition()
 		       solver().model());
 }
 
-#if 0
 // @brief 直前の check() が成功したときの十分条件を求める．
 AssignExpr
 BoolDiffEnc::extract_sufficient_conditions()
 {
-  return (*mExtractor2)(root_node(),
-			engine().gvar_map(),
-			mFvarMap,
-			solver().model());
+  return Extractor::extract_all(root_node(),
+				engine().gvar_map(),
+				mFvarMap,
+				solver().model());
 }
-#endif
 
 END_NAMESPACE_DRUID

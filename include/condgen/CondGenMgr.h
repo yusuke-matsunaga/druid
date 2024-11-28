@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "TestCond.h"
+#include "AssignExpr.h"
 #include "ym/JsonValue.h"
 
 
@@ -26,16 +26,16 @@ class CondGenMgr
 public:
 
   /// @brief FFRの根の故障伝搬条件用のコールバック関数
-  using RootCondCallback = std::function<void(const TpgFFR*,   ///< [in] 対象の FFR
-					      const TestCond&, ///< [in] 伝搬条件
-					      SizeType,        ///< [in] ループ回数
-					      double)>;        ///< [in] 計算時間
+  using RootCondCallback = std::function<void(const TpgFFR*,     ///< [in] 対象の FFR
+					      const AssignExpr&, ///< [in] 伝搬条件
+					      SizeType,          ///< [in] ループ回数
+					      double)>;          ///< [in] 計算時間
 
   /// @brief 故障検出条件用のコールバック関数
-  using FaultCondCallback = std::function<void(const TpgFault*, ///< [in] 対象の故障
-					       const TestCond&, ///< [in] 検出条件
-					       SizeType,        ///< [in] ループ回数
-					       double)>;        ///< [in] 計算時間
+  using FaultCondCallback = std::function<void(const TpgFault*,   ///< [in] 対象の故障
+					       const AssignExpr&, ///< [in] 検出条件
+					       SizeType,          ///< [in] ループ回数
+					       double)>;          ///< [in] 計算時間
 
 public:
   //////////////////////////////////////////////////////////////////////

@@ -10,75 +10,47 @@
 
 #include "druid.h"
 #include "Assign.h"
+#include "AssignMap.h"
+#include "ym/Expr.h"
+#include "ym/Literal.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-class NtvNode;
 
 //////////////////////////////////////////////////////////////////////
 /// @class AssignExpr AssignExpr.h "AssignExpr.h"
 /// @brief Assign を用いた論理式を表すクラス
 ///
-/// 以下のタイプを持つ．
-/// - リテラル: Assign に対応する．
-/// - AND:     AssignExpr の論理積を表す．
-/// - OR:      AssignExpr の論理和を表す．
+/// 実際には Assign と変数番号の割り当てと Expr を持つクラス
 //////////////////////////////////////////////////////////////////////
 class AssignExpr
 {
 public:
 
-  /// @brief リテラルを作る．
-  static
-  AssignExpr
-  make_literal(
-    const Assign& ntv ///< [in] 割り当て
-  )
-  {
-    return AssignExpr{ntv};
-  }
-
-  /// @brief 論理積を作る．
-  static
-  AssignExpr
-  make_and(
-    vector<AssignExpr>& opr_list
-  );
-
-  /// @brief 論理積を作る．
-  static
-  AssignExpr
-  make_and(
-    const AssignList& opr_list
-  );
-
-  /// @brief 論理和を作る．
-  static
-  AssignExpr
-  make_or(
-    vector<AssignExpr>& opr_list
-  );
-
   /// @brief 空のコンストラクタ
-  AssignExpr() = default;
-
-  /// @brief リテラル用のコンストラクタ
+  ///
+  /// - 定数0を表す．
   AssignExpr(
-    const Assign& literal
-  ) : mType{1},
-      mLiteral{literal}
+  ) : mExpr{Expr::zero()}
   {
   }
 
-  /// @brief AND/OR用のコンストラクタ
+  /// @brief コンストラクタ
   AssignExpr(
-    int type,
-    const vector<AssignExpr>& opr_list
-  ) : mType{static_cast<std::uint8_t>(type)},
-      mOprList{opr_list}
+    const Expr& expr,                 ///< [in] 論理式
+    const vector<Assign>& assign_list ///< [in] 割り当てのリスト
+  ) : mExpr{expr},
+      mMap{assign_list}
   {
   }
+
+  /// @brief AssignList からの変換コンストラクタ
+  ///
+  /// AssignList をキューブだと見なす．
+  explicit
+  AssignExpr(
+    const AssignList& cube ///< [in] キューブ
+  );
 
   /// @brief デストラクタ
   ~AssignExpr() = default;
@@ -89,70 +61,44 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief リテラルの時 true を返す．
-  bool
-  is_literal() const
+  /// @brief 論理式を返す．
+  Expr
+  expr() const
   {
-    return mType == 1;
+    return mExpr;
   }
 
-  /// @brief リテラルの時 値割り当てを返す．
-  Assign
-  literal() const
-  {
-    return mLiteral;
-  }
-
-  /// @brief 論理積の時 true を返す．
-  bool
-  is_and() const
-  {
-    return mType == 2;
-  }
-
-  /// @brief 論理和の時 true を返す．
-  bool
-  is_or() const
-  {
-    return mType == 3;
-  }
-
-  /// @brief オペランドを返す．
-  const vector<AssignExpr>&
-  opr_list() const
-  {
-    return mOprList;
-  }
-
-  /// @brief 含まれるキューブを取り出す．
-  AssignList
-  extract_cube() const;
-
-  /// @brief リテラル数を返す．
+  /// @brief 変数の数を返す．
   SizeType
-  literal_num() const;
+  variable_num() const
+  {
+    return mMap.variable_num();
+  }
 
-  /// @brief AND演算子
-  AssignExpr
-  operator&(
-    const AssignExpr& right
-  ) const;
+  /// @brief 変数番号に対応する割り当てを返す．
+  Assign
+  assign(
+    SizeType var ///< [in] 変数番号 ( 0 <= var < variable_num() )
+  ) const
+  {
+    return mMap.assign(var);
+  }
 
-  /// @brief 等価関係の比較関数
-  friend
-  bool
-  operator==(
-    const AssignExpr& left,
-    const AssignExpr& right
-  );
+  /// @brief リテラルに対応する割り当てを返す．
+  Assign
+  assign(
+    Literal lit ///< [in] リテラル
+  ) const
+  {
+    return mMap.assign(lit);
+  }
 
-  /// @brief 大小関係の比較関数
-  friend
-  bool
-  operator<(
-    const AssignExpr& left,
-    const AssignExpr& right
-  );
+  /// @brief 割り当てマップを返す．
+  const AssignMap&
+  assign_map() const
+  {
+    return mMap;
+  }
 
 
 private:
@@ -160,67 +106,13 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // タイプ
-  std::uint8_t mType;
+  // 論理式
+  Expr mExpr;
 
-  // リテラル
-  Assign mLiteral;
-
-  // オペランドのリスト
-  vector<AssignExpr> mOprList;
+  // 変数番号をキーとして対応する Assign を持つリスト
+  AssignMap mMap;
 
 };
-
-/// @brief AssignExpr のストリーム出力演算子
-ostream&
-operator<<(
-  ostream& s,            ///< [in] 出力ストリーム
-  const AssignExpr& expr ///< [in] 対象の式
-);
-
-/// @brief 非等価関係
-inline
-bool
-operator!=(
-  const AssignExpr& left,
-  const AssignExpr& right
-)
-{
-  return !operator==(left, right);
-}
-
-/// @brief 大小関係の比較関数
-inline
-bool
-operator>(
-  const AssignExpr& left,
-  const AssignExpr& right
-)
-{
-  return operator<(right, left);
-}
-
-/// @brief 大小関係の比較関数
-inline
-bool
-operator<=(
-  const AssignExpr& left,
-  const AssignExpr& right
-)
-{
-  return !operator<(right, left);
-}
-
-/// @brief 大小関係の比較関数
-inline
-bool
-operator>=(
-  const AssignExpr& left,
-  const AssignExpr& right
-)
-{
-  return !operator<(left, right);
-}
 
 END_NAMESPACE_DRUID
 

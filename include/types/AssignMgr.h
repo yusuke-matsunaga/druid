@@ -9,6 +9,9 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "AssignMap.h"
+#include "AssignList.h"
+#include "ym/Expr.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -54,6 +57,47 @@ public:
   assign_list() const
   {
     return mAssignList;
+  }
+
+  /// @brief AssignMap を返す．
+  AssignMap
+  assign_map() const
+  {
+    return AssignMap{mAssignList};
+  }
+
+  /// @brief AssignList をキューブとみなして変換する．
+  /// @return 変換した式を返す．
+  Expr
+  to_expr(
+    const AssignList& cube
+  )
+  {
+    vector<Expr> opr_list;
+    opr_list.reserve(cube.size());
+    for ( auto nv: cube ) {
+      auto var = get_varid(nv);
+      bool inv = !nv.val();
+      auto lit = Expr::literal(var, inv);
+      opr_list.push_back(lit);
+    }
+    return Expr::and_op(opr_list);
+  }
+
+  /// @brief AssignList のリストをカバーとみなして変換する．
+  /// @return 変換した式を返す．
+  Expr
+  to_expr(
+    const vector<AssignList>& cover
+  )
+  {
+    vector<Expr> opr_list;
+    opr_list.reserve(cover.size());
+    for ( auto& cube: cover ) {
+      auto expr1 = to_expr(cube);
+      opr_list.push_back(expr1);
+    }
+    return Expr::or_op(opr_list);
   }
 
 

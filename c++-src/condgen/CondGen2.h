@@ -1,8 +1,8 @@
-#ifndef CONDGEN_H
-#define CONDGEN_H
+#ifndef CONDGEN2_H
+#define CONDGEN2_H
 
-/// @file CondGen.h
-/// @brief CondGen のヘッダファイル
+/// @file CondGen2.h
+/// @brief CondGen2 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -18,7 +18,7 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class CondGen CondGen.h "CondGen.h"
+/// @class CondGen2 CondGen2.h "CondGen2.h"
 /// @brief 拡張テストキューブを生成するクラス
 ///
 /// 拡張テストキューブを生成する．
@@ -27,21 +27,22 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// パラメータ
 /// - "debug":          int    デバッグレベル
+/// - "cube_per_fault"  int    1故障あたりのキューブ数の上限
 /// - "dtpg":           object DTPG用の初期化パラメータ
 //////////////////////////////////////////////////////////////////////
-class CondGen
+class CondGen2
 {
 public:
 
   /// @brief コンストラクタ
-  CondGen(
+  CondGen2(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
     const TpgFFR* ffr,                    ///< [in] 対象の FFR
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
   /// @brief コンストラクタ
-  CondGen(
+  CondGen2(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
     const TpgFFR* ffr,                    ///< [in] 対象の FFR
     const AssignList& root_cond,          ///< [in] 出力の故障伝搬の必要条件
@@ -49,7 +50,7 @@ public:
   );
 
   /// @brief デストラクタ
-  ~CondGen();
+  ~CondGen2();
 
 
 public:
@@ -88,6 +89,25 @@ private:
     SizeType& loop_count          ///< [out] 実際のループ回数
   );
 
+  /// @brief root_cond(), fault_cond() の共通な下請け関数
+  AssignExpr
+  gen_cond2(
+    const AssignList& extra_cond, ///< [in] 追加の条件
+    SizeType limit,               ///< [in] ループの上限
+    SizeType& loop_count          ///< [out] 実際のループ回数
+  );
+
+  /// @brief expr を否定した項を追加する．
+  ///
+  /// ただし clit が 1 の時のみその条件が
+  /// 活性化されるようにする．
+  void
+  add_negate(
+    const Expr& expr,            ///< [in] 元の論理式
+    const AssignMap& assign_map, ///< [in] 変数番号の割り当て
+    SatLiteral clit              ///< [in] 制御変数
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -112,8 +132,10 @@ private:
   // デバッグフラグ
   int mDebug{0};
 
+  bool mMethod2{false};
+
 };
 
 END_NAMESPACE_DRUID
 
-#endif // CONDGEN_H
+#endif // CONDGEN2_H

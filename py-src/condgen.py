@@ -21,12 +21,16 @@ parser.add_argument('filename')
 parser.add_argument('--fault_type',
                     type=str,
                     help="specify the fault type('stuck_at' or 'transition_delay')")
-parser.add_argument('--blif',
-                    action='store_true',
-                    help='read blif file [default]')
-parser.add_argument('--iscas89',
-                    action='store_true',
-                    help='read ISCAS89(.bench) file')
+read_group = parser.add_mutually_exclusive_group()
+read_group.add_argument('--blif',
+                        action='store_true',
+                        help='read blif file [default]')
+read_group.add_argument('--iscas89',
+                        action='store_true',
+                        help='read ISCAS89(.bench) file')
+read_group.add_argument('--bench',
+                        action='store_true',
+                        help='read ISCAS89(.bench) file')
 parser.add_argument('--limit',
                     type=int,
                     help="loop count limit")
@@ -37,6 +41,9 @@ mode_group.add_argument('--ffr',
 mode_group.add_argument('--fault',
                         action='store_true',
                         help='fault mode')
+parser.add_argument('--method2',
+                    action='store_true',
+                    help="use method2")
 parser.add_argument('-v', '--verbose',
                     action='store_true',
                     help='get verbose')
@@ -46,15 +53,18 @@ if not args:
     exit(1)
 
 blif = False
-iscas89 = False
+bench = False
 if args.blif:
     blif = True
 if args.iscas89:
-    iscas89 = True
-if not blif and not iscas89:
+    bench = True
+if args.bench:
+    bench = True
+if not blif and not bench:
     blif = True
     
 filename = args.filename
+fault_type = None
 if args.fault_type:
     fault_type_str = args.fault_type
 else:
@@ -69,8 +79,8 @@ verbose = args.verbose
 
 if blif:
     network = TpgNetwork.read_blif(filename, fault_type)
-elif iscas89:
-    network = TpgNetwork.read_iscas89(filename, fault_type)
+elif bench:
+    network = TpgNetwork.read_bench(filename, fault_type)
 else:
     assert False
 
@@ -88,19 +98,50 @@ fault_list = network.rep_fault_list
 
 start_time = time.process_time()
 
+option = {}
+if args.method2:
+    option['method2'] = True
+    
 if ffr_mode:
+    result_list = []
+    
     def callback(ffr, cond, count, time):
-        print(f'FFR#{ffr.ffr_id}: {count}, {time}')
+        #print(f'FFR#{ffr.ffr_id}: {count}, {time}')
+        result_list.append((ffr.ffr_id, count))
         
-    root_cond(network=network, limit=limit, callback=callback)
+    root_cond(network=network,
+              limit=limit,
+              callback=callback,
+              option=option)
+            
 else:
+    result_list = []
+    
     def callback(fault, cond, count, time):
         print(f'{fault}: {count}, {time}')
+        result_list.append((fault.id, count))
         
-    fault_cond(network=network, fault_list=fault_list,
-               limit=limit, callback=callback)
+    fault_cond(network=network,
+               fault_list=fault_list,
+               limit=limit,
+               callback=callback,
+               option=option)
 
 end_time = time.process_time()
 
+n1 = 0
+n10 = 0
+nmax = 0
+total_count = 0
+for _, count in result_list:
+    total_count += count
+    if count == 1:
+        n1 += 1
+    elif count <= 10:
+        n10 += 1
+    elif count == limit:
+        nmax += 1
+
+print(f'=1: {n1:4}, <=10: {n10:4}, ={limit}: {nmax:4}, total {total_count}')
 print(f'CPU time:   {end_time - start_time:0.2f}')
     
