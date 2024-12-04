@@ -9,44 +9,14 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "ym/JsonValue.h"
 #include "ym/sat.h"
+#include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 class StructEngine;
 class AssignEnxpr;
-
-//////////////////////////////////////////////////////////////////////
-/// @class CnfSize CnfSize.h "CnfSize.h"
-/// @brief CNF のサイズを表す構造体
-//////////////////////////////////////////////////////////////////////
-struct CnfSize
-{
-  SizeType clause_num{0};  ///< 項数
-  SizeType literal_num{0}; ///< リテラル数
-
-  CnfSize&
-  operator+=(
-    const CnfSize& right
-  )
-  {
-    clause_num += right.clause_num;
-    literal_num += right.literal_num;
-    return *this;
-  }
-
-  CnfSize
-  operator+(
-    const CnfSize& right
-  ) const
-  {
-    return CnfSize{*this}.operator+=(right);
-  }
-
-};
-
 
 //////////////////////////////////////////////////////////////////////
 /// @class CnfGen CnfGen.h "CnfGen.h"

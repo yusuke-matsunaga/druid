@@ -1,9 +1,9 @@
 
-/// @file condgen.cc
-/// @brief TestCoverGen を使ったサンプルプログラム
+/// @file count_test.cc
+/// @brief CnfGen を使ったサンプルプログラム
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2017, 2022 Yusuke Matsunaga
+/// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "TpgNetwork.h"
@@ -13,6 +13,7 @@
 #include "Fsim.h"
 #include "CondGenMgr.h"
 #include "CnfGen.h"
+#include "StructEngine.h"
 #include "ym/CnfSize.h"
 #include "ym/Timer.h"
 #include <random>
@@ -29,7 +30,7 @@ usage()
 }
 
 int
-condgen(
+count_test(
   int argc,
   char** argv
 )
@@ -45,7 +46,7 @@ condgen(
   bool multi = false;
   bool verbose = false;
   string just_type;
-  int limit = 1;
+  int limit = 100;
   bool ffr_mode = false;
   bool do_finfo_mgr = false;
   bool do_reduction = true;
@@ -236,8 +237,16 @@ condgen(
 			     cout << fault->str()
 				  << ": " << time << endl
 				  << setw(4) << count
-				  << "| " << cnf_size.clause_num
-				  << ", " << cnf_size.literal_num << endl;
+				  << "| " << cnf_size << endl;
+			     StructEngine engine{network};
+			     auto root = fault->ffr_root();
+			     engine.make_cnf({root}, {root});
+			     auto cnf_size0 = engine.solver().cnf_size();
+			     CnfGen::make_cnf(engine, cond);
+			     auto cnf_size1 = engine.solver().cnf_size();
+			     auto real_size = cnf_size1 - cnf_size0;
+			     cout << "real_size: " << real_size << endl;
+			     cout << "cond: " << cond.expr() << endl;
 			     total_cnf_size += cnf_size;
 			   },
 			   cg_option);
@@ -258,5 +267,5 @@ main(
   char** argv
 )
 {
-  return DRUID_NAMESPACE::condgen(argc, argv);
+  return DRUID_NAMESPACE::count_test(argc, argv);
 }

@@ -36,6 +36,7 @@ class StructEngine
 public:
 
   /// @brief コンストラクタ
+  explicit
   StructEngine(
     const TpgNetwork& network, ///< [in] 対象のネットワーク
     const JsonValue& option    ///< [in] 初期化オプション

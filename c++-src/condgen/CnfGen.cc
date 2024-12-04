@@ -67,6 +67,7 @@ CnfGenImpl::make_cnf(
     auto as = mMap.assign(expr.literal());
     auto lit = mEngine.conv_to_literal(as);
     assumptions.push_back(lit);
+    return;
   }
   if ( expr.is_and() ) {
     // AND の場合
@@ -76,6 +77,7 @@ CnfGenImpl::make_cnf(
       auto opr = expr.operand(i);
       make_cnf(opr, assumptions);
     }
+    return;
   }
   // それ以外の場合は expr が成り立つ条件を表すリテラルを作る．
   auto lit = make_cnf_sub(expr);
