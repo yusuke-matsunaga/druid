@@ -29,16 +29,6 @@ public:
   CondGenChecker(
     const TpgNetwork& network,            ///< [in] 対象のネットワーク
     const TpgFFR* ffr,                    ///< [in] 対象の FFR
-    const AssignExpr& cond,               ///< [in] CondGen::root_cond() の結果
-    const JsonValue& option = JsonValue{} ///< [in] オプション
-  );
-
-  /// @brief コンストラクタ
-  CondGenChecker(
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,                    ///< [in] 対象の FFR
-    const TpgFault* fault,                ///< [in] 対象の故障
-    const AssignExpr& cond,               ///< [in] CondGen::root_cond() の結果
     const JsonValue& option = JsonValue{} ///< [in] オプション
   );
 
@@ -53,26 +43,9 @@ public:
 
   /// @breif 結果の検証を行う．
   bool
-  check();
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief cond の条件を CNF式に変換する．
-  void
-  make_cnf(
-    const Expr& expr,
-    const AssignMap& assign_map
-  );
-
-  /// @brief cond の条件を CNF式に変換する．
-  SatLiteral
-  make_cnf2(
-    const Expr& expr,
-    const AssignMap& assign_map
+  check(
+    const AssignList& extra_cond, ///< [in] 追加の条件
+    const AssignExpr& cond        ///< [in] CondGen::root_cond() の結果
   );
 
 

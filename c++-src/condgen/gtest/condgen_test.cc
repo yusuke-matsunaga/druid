@@ -111,8 +111,10 @@ CondGenTestWithParam::do_test()
       SizeType count = 0;
       auto cond = gen.fault_cond(fault, limit, count);
       ASSERT_FALSE( cond.expr().is_zero() );
-      CondGenChecker checker{network, ffr, fault, cond, option};
-      EXPECT_TRUE ( checker.check() );
+      CondGenChecker checker{network, ffr, option};
+      auto res = checker.check(fault->ffr_propagate_condition(),
+			       cond);
+      EXPECT_TRUE ( res );
     }
   }
 }
