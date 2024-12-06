@@ -68,6 +68,13 @@ public:
     return mExpr;
   }
 
+  /// @brief 正規化した論理式を返す．
+  ///
+  /// 変数番号を ノード番号 x 2 + 時刻(0 or 1) に
+  /// 置き換える．
+  Expr
+  normalize() const;
+
   /// @brief 変数の数を返す．
   SizeType
   variable_num() const
