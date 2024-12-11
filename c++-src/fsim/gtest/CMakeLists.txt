@@ -53,3 +53,7 @@ target_compile_options ( refsim_test
 target_compile_definitions ( refsim_test
   PRIVATE "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
   )
+
+target_link_libraries ( refsim_test
+  ${YM_LIB_DEPENDS}
+  )
