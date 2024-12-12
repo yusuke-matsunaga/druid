@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "FFREnc.h"
-#include "BoolDiffEnc.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "Val3.h"
@@ -18,11 +17,11 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 FFREnc::FFREnc(
   StructEngine& engine,
-  BoolDiffEnc* bd_enc,
+  SatLiteral root_pvar,
   const TpgFFR* ffr,
   const vector<const TpgFault*>& fault_list
 ) : SubEnc{engine},
-    mBdEnc{bd_enc},
+    mRootPropVar{root_pvar},
     mFFR{ffr},
     mFaultList{fault_list}
 {
@@ -42,10 +41,9 @@ void
 FFREnc::make_cnf()
 {
   auto root = mFFR->root();
-  // 根のノードは BoolDiffEnc::prop_var() を用いる．
-  if ( mBdEnc != nullptr ) {
-    auto pvar = mBdEnc->prop_var();
-    mPropNodeVarMap.emplace(root->id(), pvar);
+  // 根から先の伝搬条件
+  if ( mRootPropVar != SatLiteral::X ) {
+    mPropNodeVarMap.emplace(root->id(), mRootPropVar);
   }
   else {
     auto pvar = solver().new_variable(true);

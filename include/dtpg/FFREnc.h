@@ -15,8 +15,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class BoolDiffEnc;
-
 //////////////////////////////////////////////////////////////////////
 /// @class FFREnc FFREnc.h "FFREnc.h"
 /// @brief FFR内の故障伝搬条件を表すCNFを作るクラス
@@ -38,7 +36,7 @@ public:
   /// engine が nullptr の場合には FFR 内の伝搬条件のみを考慮する．
   FFREnc(
     StructEngine& engine,                     ///< [in] 親の StructEngine
-    BoolDiffEnc* bd_enc,                      ///< [in] FFR の出力の先のエンコーダ
+    SatLiteral root_pvar,                     ///< [in] 根から外部出力までの伝搬条件を表す変数
     const TpgFFR* ffr,                        ///< [in] 対象の FFR
     const vector<const TpgFault*>& fault_list ///< [in] 対象の故障リスト
   );
@@ -96,8 +94,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 根の故障伝搬エンコーダ
-  BoolDiffEnc* mBdEnc;
+  // 根の故障伝搬条件
+  SatLiteral mRootPropVar;
 
   // 対象のFFR
   const TpgFFR* mFFR;

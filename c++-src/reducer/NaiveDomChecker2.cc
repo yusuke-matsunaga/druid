@@ -37,8 +37,9 @@ NaiveDomChecker2::NaiveDomChecker2(
   auto node2 = fault2->ffr_root();
   {
     mBdEnc2 = new BoolDiffEnc{mEngine, node2, option};
+    auto pvar = mBdEnc2->prop_var();
     auto ffr2 = ffr_map.at(node2->id());
-    mFFREnc2 = new FFREnc{mEngine, mBdEnc2, ffr2, {fault2}};
+    mFFREnc2 = new FFREnc{mEngine, pvar, ffr2, {fault2}};
   }
   mEngine.make_cnf({}, {node1, node2});
 

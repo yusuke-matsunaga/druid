@@ -12,7 +12,6 @@
 #include "druid.h"
 #include "StructEngine.h"
 #include "BoolDiffEnc.h"
-#include "FFREnc.h"
 #include "DtpgStats.h"
 
 #include "ym/JsonValue.h"
