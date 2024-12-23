@@ -16,7 +16,7 @@
 BEGIN_NAMESPACE_DRUID
 
 class StructEngine;
-class AssignEnxpr;
+class AssignExpr;
 
 //////////////////////////////////////////////////////////////////////
 /// @class CnfGen CnfGen.h "CnfGen.h"
@@ -31,23 +31,43 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief AssignExpr を CNF に変換する．
-  /// @return expr の条件を活性化する時の assumption を返す．
+  /// @brief 論理式を CNF に変換する．
+  /// @return 活性化するための条件を返す．
   static
   vector<SatLiteral>
   make_cnf(
     StructEngine& engine,   ///< [in] StructEngine
-    const AssignExpr& expr, ///< [in] 元の式
+    const AssignExpr& expr, ///< [in] 式
     const JsonValue& option ///< [in] オプション
     = JsonValue{}
   );
 
-  /// @brief AssignExpr を CNF に変換した際の項数とリテラル数を数える．
+  /// @brief 複数の論理式を CNF に変換する．
+  /// @return 個々の式の活性化するための条件のリストを返す．
+  static
+  vector<vector<SatLiteral>>
+  make_cnf(
+    StructEngine& engine,                ///< [in] StructEngine
+    const vector<AssignExpr>& expr_list, ///< [in] 式のリスト
+    const JsonValue& option              ///< [in] オプション
+    = JsonValue{}
+  );
+
+  /// @brief 論理式を CNF に変換した際の項数とリテラル数を数える．
   static
   CnfSize
   calc_cnf_size(
-    const AssignExpr& expr, ///< [in] 元の式
+    const AssignExpr& expr, ///< [in] 式
     const JsonValue& option ///< [in] オプション
+    = JsonValue{}
+  );
+
+  /// @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
+  static
+  CnfSize
+  calc_cnf_size(
+    const vector<AssignExpr>& expr_list, ///< [in] 式のリスト
+    const JsonValue& option              ///< [in] オプション
     = JsonValue{}
   );
 

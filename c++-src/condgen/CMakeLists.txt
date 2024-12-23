@@ -29,6 +29,9 @@ set ( condgen_SOURCES
   CondGen.cc
   CondGen2.cc
   CnfGen.cc
+  CnfGenImpl.cc
+  CnfGenImpl2.cc
+  CalcCnfImpl2.cc
   )
 
 

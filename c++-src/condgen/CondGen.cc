@@ -28,13 +28,8 @@ CondGen::CondGen(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
-) : mFFR{ffr},
-    mEngine{network, option},
-    mDebug{OpBase::get_debug(option)}
+) : CondGen{network, ffr, {}, option}
 {
-  mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
-  mEngine.make_cnf({}, {ffr->root()});
-
   // FFR の出力の伝搬可能性を調べる．
   Timer timer;
   timer.start();
@@ -72,11 +67,6 @@ CondGen::CondGen(
 {
   mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
   mEngine.make_cnf({}, {ffr->root()});
-
-  if ( mDebug > 1 ) {
-    DBG_OUT << "FFR#" << ffr->id()
-	    << ": " << mRootMandCond.size() << endl;
-  }
 }
 
 // @brief デストラクタ
@@ -219,6 +209,7 @@ CondGen::gen_cond(
     DBG_OUT << "PHASE2: " << (timer.get_time() / 1000.0) << endl;
   }
 
+  // 生成された結果を論理式の形に変換する．
   AssignMgr assign_mgr;
   auto mand_cond_expr = assign_mgr.to_expr(mand_cond);
   auto cover_expr = assign_mgr.to_expr(cube_list);

@@ -11,6 +11,8 @@
 #include "TpgFault.h"
 #include "FaultType.h"
 #include "Fsim.h"
+#include "StructEngine.h"
+#include "BoolDiffEnc.h"
 #include "CondGenMgr.h"
 #include "CnfGen.h"
 #include "ym/CnfSize.h"
@@ -47,6 +49,7 @@ condgen(
   string just_type;
   int limit = 1;
   bool ffr_mode = false;
+  bool naive_mode = false;
   bool do_finfo_mgr = false;
   bool do_reduction = true;
   bool do_ffr_reduction = false;
@@ -140,6 +143,9 @@ condgen(
       else if ( strcmp(argv[pos], "--ffr") == 0 ) {
 	ffr_mode = true;
       }
+      else if ( strcmp(argv[pos], "--naive") == 0 ) {
+	naive_mode = true;
+      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
@@ -221,6 +227,17 @@ condgen(
 			    total_cnf_size += cnf_size;
 			  },
 			  cg_option);
+  }
+  else if ( naive_mode ) {
+    for ( auto ffr: network.ffr_list() ) {
+      StructEngine engine{network, option};
+      auto before_size = engine.solver().cnf_size();
+      auto bd = new BoolDiffEnc{engine, ffr->root(), option};
+      engine.make_cnf({}, {ffr->root()});
+      auto after_size = engine.solver().cnf_size();
+      auto size = after_size - before_size;
+      total_cnf_size += size;
+    }
   }
   else {
     CondGenMgr::fault_cond(network, src_fault_list, limit,

@@ -1,8 +1,8 @@
-#ifndef CNFGENIMPL_H
-#define CNFGENIMPL_H
+#ifndef CNFGENIMPL2_H
+#define CNFGENIMPL2_H
 
-/// @file CnfGenImpl.h
-/// @brief CnfGenImpl のヘッダファイル
+/// @file CnfGenImpl2.h
+/// @brief CnfGenImpl2 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -11,28 +11,30 @@
 #include "druid.h"
 #include "StructEngine.h"
 #include "ym/Expr.h"
+#include "ym/Bdd.h"
+#include "ym/BddMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class CnfGenImpl CnfGenImpl.h "CnfGenImpl.h"
+/// @class CnfGenImpl2 CnfGenImpl2.h "CnfGenImpl2.h"
 /// @brief CnfGen の下請けクラス
 //////////////////////////////////////////////////////////////////////
-class CnfGenImpl
+class CnfGenImpl2
 {
 public:
 
   /// @brief コンストラクタ
   explicit
-  CnfGenImpl(
+  CnfGenImpl2(
     StructEngine& engine ///< [in] StructEngine
   ) : mEngine{engine}
   {
   }
 
   /// @brief デストラクタ
-  ~CnfGenImpl() = default;
+  ~CnfGenImpl2() = default;
 
 
 public:
@@ -48,11 +50,17 @@ public:
   );
 
   /// @brief 式を CNF に変換した際の項数とリテラル数を計算する．
-  static
-  CnfSize
+  void
   calc_cnf_size(
     const Expr& expr
   );
+
+  /// @brief calc_cnf_size() の結果を返す．
+  CnfSize
+  cnf_size() const
+  {
+    return mCnfSize;
+  }
 
 
 private:
@@ -60,40 +68,29 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief make_cnf() の下請け関数
-  /// @return expr が成り立つ時に 1 になるリテラルを返す．
-  SatLiteral
-  make_cnf_sub(
-    const Expr& expr ///< [in] 式
+  /// @brief 論理式を BDD に変換する．
+  Bdd
+  conv_to_bdd(
+    const Expr& expr ///< [in] 論理式
   );
 
-  /// @brief XOR を表す CNF を生成する．
+  /// @brief BDD を CNF 式に変換する．
   void
-  make_xor_cnf(
-    SatLiteral lit,                     ///< [in] 出力のリテラル
-    const vector<SatLiteral>& opr_lits, ///< [in] オペランドのリテラル
-    SizeType begin,                     ///< [in] 開始位置
-    SizeType end                        ///< [in] 終了位置
+  bdd_to_cnf(
+    const Bdd& bdd,
+    vector<SatLiteral>& lit_list
   );
 
-  /// @brief calc_cnf_size() の下請け関数
-  static
-  CnfSize
-  calc_sub(
-    const Expr& expr ///< [in] 式
+  /// @brief BDD を CNF に変換した際の項数とリテラル数を計算する．
+  SizeType
+  calc_cnf_size(
+    const Bdd& bdd
   );
 
-  /// @brief XOR 用のCNFサイズ計算関数
-  static
-  CnfSize
-  calc_xor(
-    SizeType n ///< [in] 入力数
-  );
-
-  /// @brief 論理式のリテラルを SAT ソルバのリテラルに変換する．
+  /// @brief BDDの変数を SAT ソルバのリテラルに変換する．
   SatLiteral
   conv_to_literal(
-    Literal lit ///< [in] 元のリテラル
+    const BddVar& var
   ) const;
 
 
@@ -104,6 +101,21 @@ private:
 
   // StructEngine
   StructEngine& mEngine;
+
+  // BDD マネージャ
+  BddMgr mBddMgr;
+
+  // 論理式の変数番号と BDD の変数の対応関係を保持する辞書
+  std::unordered_map<SizeType, BddVar> mVarDict;
+
+  // BDD と対応する SATリテラルを保持する辞書
+  std::unordered_map<Bdd, vector<SatLiteral>> mResultDict;
+
+  // サイズ計算用の辞書
+  std::unordered_map<Bdd, SizeType> mSizeDict;
+
+  // calc_cnf_size の結果
+  CnfSize mCnfSize{0, 0};
 
 };
 
