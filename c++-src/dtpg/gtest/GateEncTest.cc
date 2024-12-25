@@ -114,7 +114,7 @@ GateEncTest::check(
   auto after_size = mSolver.cnf_size();
 
   // これが見積もり値と一致しているか調べる．
-  EXPECT_EQ( after_size - before_size, gate_enc.calc_cnf_size(node) );
+  EXPECT_EQ( after_size - before_size, GateEnc::calc_cnf_size(node) );
 
   vector<SatLiteral> assumptions(input_num + 1);
   int ni_exp = 1 << input_num;

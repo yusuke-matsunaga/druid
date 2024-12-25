@@ -53,6 +53,7 @@ public:
   );
 
   /// @brief ノードの入出力の関係を表すCNF式のサイズを見積もる．
+  static
   CnfSize
   calc_cnf_size(
     const TpgNode* node  ///< [in] 対象のノード
