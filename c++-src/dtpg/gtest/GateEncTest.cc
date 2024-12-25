@@ -103,9 +103,18 @@ GateEncTest::check(
     varmap.set_vid(node, var);
   }
 
+  // 現在の CNF サイズ
+  auto before_size = mSolver.cnf_size();
+
   // node の入出力の関係を表す CNF 式を生成する．
   GateEnc gate_enc(mSolver, varmap);
   gate_enc.make_cnf(node);
+
+  // ノードの関係のCNFを追加した後のサイズ
+  auto after_size = mSolver.cnf_size();
+
+  // これが見積もり値と一致しているか調べる．
+  EXPECT_EQ( after_size - before_size, gate_enc.calc_cnf_size(node) );
 
   vector<SatLiteral> assumptions(input_num + 1);
   int ni_exp = 1 << input_num;

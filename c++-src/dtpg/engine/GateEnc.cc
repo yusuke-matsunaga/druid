@@ -401,6 +401,49 @@ GateEnc::make_cnf(
   }
 }
 
+// @brief ノードの入出力の関係を表すCNF式のサイズを見積もる．
+CnfSize
+GateEnc::calc_cnf_size(
+  const TpgNode* node
+)
+{
+  SizeType ni = node->fanin_num();
+  // 入出力の極性違いはサイズには影響しないのでまとめて処理する．
+  switch ( node->gate_type() ) {
+  case PrimType::None:
+    break;
+
+  case PrimType::C0:
+  case PrimType::C1:
+    return CnfSize{1, 1};
+
+  case PrimType::Buff:
+  case PrimType::Not:
+    // (ilit | ~olit)(~ilit | olit)
+    return CnfSize{2, 4};
+
+  case PrimType::And:
+  case PrimType::Nand:
+  case PrimType::Or:
+  case PrimType::Nor:
+    // (ilit_i | ~olit)...(~ilit_i | ... | olit)
+    return CnfSize{ni + 1, ni * 2 + ni + 1};
+
+  case PrimType::Xor:
+  case PrimType::Xnor:
+    // XOR2: (ilit0 | ilit1 | ~olit)(ilit0 | ~ilit1 | olit)
+    //       (~ilit0 | ilit1 | olit)(~ilit0 | ~ilit1 | ~olit)
+    // XOR-n は XOR2 を (n - 1) 個つなげる．
+    // 構造は複数考えられるが CNF のサイズは同一
+    return CnfSize{4, 12} * (ni - 1);
+
+  default:
+    break;
+  }
+  ASSERT_NOT_REACHED;
+  return CnfSize::zero();
+}
+
 // @brief ノードに対応するリテラルを返す．
 SatLiteral
 GateEnc::lit(
