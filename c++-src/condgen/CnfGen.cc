@@ -7,16 +7,43 @@
 /// All rights reserved.
 
 #include "CnfGen.h"
-#include "CnfGenImpl.h"
-#include "CnfGenImpl2.h"
-#include "CalcCnfImpl2.h"
+#include "CnfGenNaive.h"
+#include "CnfGenBdd.h"
 #include "StructEngine.h"
-#include "TpgNetwork.h"
-#include "AssignExpr.h"
-#include "ym/BddVar.h"
+//#include "TpgNetwork.h"
+//#include "DetCond.h"
+//#include "ym/BddVar.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+BEGIN_NONAMESPACE
+
+// 文字列型のオプションを取り出す．
+//
+// 結果は value に上書きされる．
+// エラーが起こったら std::invalid_argument 例外を送出する．
+void
+get_string(
+  const JsonValue& option,
+  const string& keyword,
+  string& value
+)
+{
+  if ( option.is_object() && option.has_key(keyword) ) {
+    auto value_obj = option.at(keyword);
+    if ( value_obj.is_string() ) {
+      value = value_obj.get_string();
+    }
+    else {
+      ostringstream buf;
+      buf << "'" << keyword << "' should be a string";
+      throw std::invalid_argument{buf.str()};
+    }
+  }
+}
+
+END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // クラス CnfGen
@@ -26,29 +53,45 @@ BEGIN_NAMESPACE_DRUID
 vector<SatLiteral>
 CnfGen::make_cnf(
   StructEngine& engine,
-  const AssignExpr& expr,
+  const DetCond& cond,
   const JsonValue& option
 )
 {
-  CnfGenImpl gen{engine};
-  vector<SatLiteral> assumptions;
-  gen.make_cnf(expr.normalize(), assumptions);
-  return assumptions;
+  if ( cond.empty() ) {
+    return {};
+  }
+
+  string method{"naive"};
+  get_string(option, "method", method);
+
+  if ( method == "naive" ) {
+    // ナイーブなやり方
+    // キューブごとにリテラルを割り当て，その OR 条件を作る．
+    CnfGenNaive gen{engine};
+    return gen.make_cnf(cond);
+  }
+  if ( method == "bdd" ) {
+    // 一旦 Bdd に変換して CNF を作る．
+    SizeType limit = 10000;
+    CnfGenBdd gen{engine, limit};
+    return gen.make_cnf(cond);
+  }
+  // デフォルトフォールバック
+  CnfGenNaive gen{engine};
+  return gen.make_cnf(cond);
 }
 
 // @brief 複数の論理式を CNF に変換する．
 vector<vector<SatLiteral>>
 CnfGen::make_cnf(
   StructEngine& engine,
-  const vector<AssignExpr>& expr_list,
+  const vector<DetCond>& cond_list,
   const JsonValue& option
 )
 {
   vector<vector<SatLiteral>> assumptions_list;
-  CnfGenImpl gen{engine};
-  for ( auto expr: expr_list ) {
-    vector<SatLiteral> assumptions;
-    gen.make_cnf(expr.normalize(), assumptions);
+  for ( auto& cond: cond_list ) {
+    auto assumptions = make_cnf(engine, cond, option);
     assumptions_list.push_back(assumptions);
   }
   return assumptions_list;
@@ -57,32 +100,46 @@ CnfGen::make_cnf(
 // @brief 論理式を CNF に変換した際の項数とリテラル数を数える．
 CnfSize
 CnfGen::calc_cnf_size(
-  const AssignExpr& expr,
+  StructEngine& engine,
+  const DetCond& cond,
   const JsonValue& option
 )
 {
-  if ( expr.expr().is_zero() ) {
+  if ( cond.empty() ) {
     return CnfSize::zero();
   }
-#if 1
-  return CnfGenImpl::calc_cnf_size(expr.normalize());
-#else
-  CalcCnfImpl2 calc;
-  calc.run(expr.normalize());
-  return calc.cnf_size();
-#endif
+
+  string method{"naive"};
+  get_string(option, "method", method);
+
+  if ( method == "naive" ) {
+    // ナイーブなやり方
+    // キューブごとにリテラルを割り当て，その OR 条件を作る．
+    CnfGenNaive gen{engine};
+    return gen.calc_cnf_size(cond);
+  }
+  if ( method == "bdd" ) {
+    // 一旦 Bdd に変換して CNF を作る．
+    SizeType limit = 10000;
+    CnfGenBdd gen{engine, limit};
+    return gen.calc_cnf_size(cond);
+  }
+  // デフォルトフォールバック
+  CnfGenNaive gen{engine};
+  return gen.calc_cnf_size(cond);
 }
 
 // @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
 CnfSize
 CnfGen::calc_cnf_size(
-  const vector<AssignExpr>& expr_list,
+  StructEngine& engine,
+  const vector<DetCond>& cond_list,
   const JsonValue& option
 )
 {
   CnfSize size = CnfSize::zero();
-  for ( auto expr: expr_list ) {
-    size += CnfGenImpl::calc_cnf_size(expr.normalize());
+  for ( auto& cond: cond_list ) {
+    size += calc_cnf_size(engine, cond, option);
   }
   return size;
 }

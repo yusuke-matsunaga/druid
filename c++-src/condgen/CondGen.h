@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "StructEngine.h"
 #include "BoolDiffEnc.h"
-#include "AssignExpr.h"
+#include "DetCond.h"
 #include "ym/JsonValue.h"
 
 
@@ -58,16 +58,16 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief FFRの出力の故障伝搬条件を求める．
-  /// @return 条件式を返す．
-  AssignExpr
+  /// @return 条件を返す．
+  DetCond
   root_cond(
     SizeType limit,      ///< [in] ループ回数の上限
     SizeType& loop_count ///< [out] 実際のループ回数
   );
 
   /// @brief 与えられた故障を検出する条件を生成する．
-  /// @return 条件式を返す．
-  AssignExpr
+  /// @return 条件を返す．
+  DetCond
   fault_cond(
     const TpgFault* fault, ///< [in] 対象の故障
     SizeType limit,        ///< [in] ループ回数の上限
@@ -81,7 +81,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief root_cond(), fault_cond() の共通な下請け関数
-  AssignExpr
+  DetCond
   gen_cond(
     const AssignList& extra_cond, ///< [in] 追加の条件
     SizeType limit,               ///< [in] ループの上限

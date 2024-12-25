@@ -11,7 +11,7 @@
 #include "druid.h"
 #include "StructEngine.h"
 #include "BoolDiffEnc.h"
-#include "AssignExpr.h"
+#include "DetCond.h"
 #include "ym/JsonValue.h"
 
 
@@ -45,7 +45,7 @@ public:
   bool
   check(
     const AssignList& extra_cond, ///< [in] 追加の条件
-    const AssignExpr& cond        ///< [in] CondGen::root_cond() の結果
+    const DetCond& cond           ///< [in] CondGen::root_cond() の結果
   );
 
 

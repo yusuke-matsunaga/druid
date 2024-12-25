@@ -10,7 +10,7 @@
 
 #include "druid.h"
 #include "StructEngine.h"
-#include "ym/Expr.h"
+#include "DetCond.h"
 #include "ym/Bdd.h"
 #include "ym/BddMgr.h"
 
@@ -42,25 +42,19 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 式を CNF に変換する．
+  /// @brief 条件を CNF に変換する．
   void
   make_cnf(
-    const Expr& expr,               ///< [in] 式
+    const DetCond& cond,            ///< [in] 検出条件
     vector<SatLiteral>& assumptions ///< [out] 活性化条件を追加する．
   );
 
-  /// @brief 式を CNF に変換した際の項数とリテラル数を計算する．
-  void
-  calc_cnf_size(
-    const Expr& expr
-  );
-
-  /// @brief calc_cnf_size() の結果を返す．
+  /// @brief 条件を CNF に変換した際の項数とリテラル数を計算する．
+  static
   CnfSize
-  cnf_size() const
-  {
-    return mCnfSize;
-  }
+  calc_cnf_size(
+    const DetCond& cond
+  );
 
 
 private:
@@ -68,10 +62,16 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 論理式を BDD に変換する．
+  /// @brief 条件を BDD に変換する．
   Bdd
   conv_to_bdd(
-    const Expr& expr ///< [in] 論理式
+    const DetCond& cond ///< [in] 条件
+  );
+
+  /// @brief キューブを BDD に変換する．
+  Bdd
+  cube_to_bdd(
+    const AssignList& cube ///< [in] キューブ
   );
 
   /// @brief BDD を CNF 式に変換する．
@@ -79,12 +79,6 @@ private:
   bdd_to_cnf(
     const Bdd& bdd,
     vector<SatLiteral>& lit_list
-  );
-
-  /// @brief BDD を CNF に変換した際の項数とリテラル数を計算する．
-  SizeType
-  calc_cnf_size(
-    const Bdd& bdd
   );
 
   /// @brief BDDの変数を SAT ソルバのリテラルに変換する．
@@ -110,12 +104,6 @@ private:
 
   // BDD と対応する SATリテラルを保持する辞書
   std::unordered_map<Bdd, vector<SatLiteral>> mResultDict;
-
-  // サイズ計算用の辞書
-  std::unordered_map<Bdd, SizeType> mSizeDict;
-
-  // calc_cnf_size の結果
-  CnfSize mCnfSize{0, 0};
 
 };
 

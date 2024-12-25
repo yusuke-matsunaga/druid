@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "AssignExpr.h"
+#include "DetCond.h"
 #include "ym/JsonValue.h"
 
 
@@ -27,17 +27,17 @@ public:
 
   /// @brief FFRの根の故障伝搬条件用のコールバック関数
   using RootCondCallback =
-    std::function<void(const TpgFFR*,     ///< [in] 対象の FFR
-		       const AssignExpr&, ///< [in] 伝搬条件
-		       SizeType,          ///< [in] ループ回数
-		       double)>;          ///< [in] 計算時間
+    std::function<void(const TpgFFR*,  ///< [in] 対象の FFR
+		       const DetCond&, ///< [in] 伝搬条件
+		       SizeType,       ///< [in] ループ回数
+		       double)>;       ///< [in] 計算時間
 
   /// @brief 故障検出条件用のコールバック関数
   using FaultCondCallback =
-    std::function<void(const TpgFault*,   ///< [in] 対象の故障
-		       const AssignExpr&, ///< [in] 検出条件
-		       SizeType,          ///< [in] ループ回数
-		       double)>;          ///< [in] 計算時間
+    std::function<void(const TpgFault*, ///< [in] 対象の故障
+		       const DetCond&,  ///< [in] 検出条件
+		       SizeType,        ///< [in] ループ回数
+		       double)>;        ///< [in] 計算時間
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -48,10 +48,10 @@ public:
   static
   void
   root_cond(
-    const TpgNetwork& network,                 ///< [in] 対象のネットワーク
-    SizeType limit,                            ///< [in] ループ回数の上限
-    RootCondCallback callback,                 ///< [in] コールバック関数
-    const JsonValue& option                    ///< [in] オプション
+    const TpgNetwork& network,           ///< [in] 対象のネットワーク
+    SizeType limit,                      ///< [in] ループ回数の上限
+    RootCondCallback callback,           ///< [in] コールバック関数
+    const JsonValue& option              ///< [in] オプション
   );
 
   /// @brief 故障検出条件を求める．

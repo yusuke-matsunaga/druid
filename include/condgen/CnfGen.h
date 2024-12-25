@@ -16,11 +16,11 @@
 BEGIN_NAMESPACE_DRUID
 
 class StructEngine;
-class AssignExpr;
+class DetCond;
 
 //////////////////////////////////////////////////////////////////////
 /// @class CnfGen CnfGen.h "CnfGen.h"
-/// @brief AssignExpr を CNF に変換するクラス
+/// @brief DetCond を CNF に変換するクラス
 ///
 /// 実はただの関数
 //////////////////////////////////////////////////////////////////////
@@ -37,7 +37,7 @@ public:
   vector<SatLiteral>
   make_cnf(
     StructEngine& engine,   ///< [in] StructEngine
-    const AssignExpr& expr, ///< [in] 式
+    const DetCond& expr,    ///< [in] 式
     const JsonValue& option ///< [in] オプション
     = JsonValue{}
   );
@@ -47,9 +47,9 @@ public:
   static
   vector<vector<SatLiteral>>
   make_cnf(
-    StructEngine& engine,                ///< [in] StructEngine
-    const vector<AssignExpr>& expr_list, ///< [in] 式のリスト
-    const JsonValue& option              ///< [in] オプション
+    StructEngine& engine,             ///< [in] StructEngine
+    const vector<DetCond>& expr_list, ///< [in] 式のリスト
+    const JsonValue& option           ///< [in] オプション
     = JsonValue{}
   );
 
@@ -57,7 +57,8 @@ public:
   static
   CnfSize
   calc_cnf_size(
-    const AssignExpr& expr, ///< [in] 式
+    StructEngine& engine,   ///< [in] StructEngine
+    const DetCond& expr,    ///< [in] 式
     const JsonValue& option ///< [in] オプション
     = JsonValue{}
   );
@@ -66,8 +67,9 @@ public:
   static
   CnfSize
   calc_cnf_size(
-    const vector<AssignExpr>& expr_list, ///< [in] 式のリスト
-    const JsonValue& option              ///< [in] オプション
+    StructEngine& engine,             ///< [in] StructEngine
+    const vector<DetCond>& expr_list, ///< [in] 式のリスト
+    const JsonValue& option           ///< [in] オプション
     = JsonValue{}
   );
 

@@ -10,14 +10,15 @@
 
 #include "druid.h"
 #include "StructEngine.h"
-#include "ym/Expr.h"
+#include "DetCond.h"
+#include "ym/CnfSize.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class CnfGenImpl CnfGenImpl.h "CnfGenImpl.h"
-/// @brief CnfGen の下請けクラス
+/// @brief CnfGen の下請けクラスの基底クラス
 //////////////////////////////////////////////////////////////////////
 class CnfGenImpl
 {
@@ -32,6 +33,7 @@ public:
   }
 
   /// @brief デストラクタ
+  virtual
   ~CnfGenImpl() = default;
 
 
@@ -40,19 +42,43 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 式を CNF に変換する．
-  void
+  /// @brief 条件を CNF に変換する．
+  vector<SatLiteral>
   make_cnf(
-    const Expr& expr,               ///< [in] 式
-    vector<SatLiteral>& assumptions ///< [out] 活性化条件を追加する．
+    const DetCond& cond ///< [in] 検出条件
   );
 
-  /// @brief 式を CNF に変換した際の項数とリテラル数を計算する．
-  static
+  /// @brief 条件を CNF に変換した際の項数とリテラル数を計算する．
   CnfSize
   calc_cnf_size(
-    const Expr& expr
+    const DetCond& cond ///< [in] 検出条件
   );
+
+
+protected:
+  //////////////////////////////////////////////////////////////////////
+  // 継承クラスで用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief キューブを表すリテラルのリストを返す．
+  vector<SatLiteral>
+  cube_to_literals(
+    const AssignList& cube ///< [in] キューブ
+  );
+
+  /// @brief StructEngine を返す．
+  StructEngine&
+  engine()
+  {
+    return mEngine;
+  }
+
+  /// @brief SATソルバを返す．
+  SatSolver&
+  solver()
+  {
+    return mEngine.solver();
+  }
 
 
 private:
@@ -60,41 +86,20 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief make_cnf() の下請け関数
-  /// @return expr が成り立つ時に 1 になるリテラルを返す．
+  /// @brief カバーをCNFに変換する．
+  /// @return カバーの成り立つ条件を表すリテラルを返す．
+  virtual
   SatLiteral
-  make_cnf_sub(
-    const Expr& expr ///< [in] 式
-  );
+  cover_to_cnf(
+    const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
+  ) = 0;
 
-  /// @brief XOR を表す CNF を生成する．
-  void
-  make_xor_cnf(
-    SatLiteral lit,                     ///< [in] 出力のリテラル
-    const vector<SatLiteral>& opr_lits, ///< [in] オペランドのリテラル
-    SizeType begin,                     ///< [in] 開始位置
-    SizeType end                        ///< [in] 終了位置
-  );
-
-  /// @brief calc_cnf_size() の下請け関数
-  static
+  /// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
+  virtual
   CnfSize
-  calc_sub(
-    const Expr& expr ///< [in] 式
-  );
-
-  /// @brief XOR 用のCNFサイズ計算関数
-  static
-  CnfSize
-  calc_xor(
-    SizeType n ///< [in] 入力数
-  );
-
-  /// @brief 論理式のリテラルを SAT ソルバのリテラルに変換する．
-  SatLiteral
-  conv_to_literal(
-    Literal lit ///< [in] 元のリテラル
-  ) const;
+  calc_cover_size(
+    const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
+  ) = 0;
 
 
 private:

@@ -10,10 +10,151 @@
 #include "CnfGenImpl2.h"
 #include "StructEngine.h"
 #include "TpgNetwork.h"
-#include "ym/BddVar.h"
+#include "BgMgr.h"
+#include "BgNode.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+BEGIN_NONAMESPACE
+
+// BDD をサイズの昇順に並べるためのヒープ木
+class HeapTree
+{
+public:
+
+  /// @brief コンストラクタ
+  HeapTree() = default;
+
+  /// @brief デストラクタ
+  ~HeapTree() = default;
+
+
+public:
+
+  /// @brief 要素数を返す．
+  SizeType
+  size() const
+  {
+    return mArray.size();
+  }
+
+  /// @brief BDDを追加する．
+  void
+  put(
+    const Bdd& bdd
+  )
+  {
+    auto pos = mArray.size();
+    mArray.push_back(Cell{bdd});
+    move_up(pos);
+  }
+
+  /// @brief 最小要素を取り出す．
+  Bdd
+  get_min()
+  {
+    auto bdd = mArray.front().mBdd;
+    mArray[0] = mArray.back();
+    mArray.pop_back();
+    move_down(0);
+    return bdd;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられるデータ構造
+  //////////////////////////////////////////////////////////////////////
+
+  struct Cell
+  {
+    Cell() = default;
+
+    Cell(
+      const Bdd& bdd
+    ) : mBdd{bdd},
+	mSize{bdd.size()}
+    {
+    }
+
+    Bdd mBdd;
+    SizeType mSize{0};
+  };
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 上に移動させる．
+  void
+  move_up(
+    SizeType cur_pos ///< [in] 現在の位置
+  )
+  {
+    while ( cur_pos > 0 ) {
+      auto cur_cell = mArray[cur_pos];
+      auto cur_size = cur_cell.mSize;
+      auto parent_pos = (cur_pos + 1) / 2;
+      auto parent_cell = mArray[parent_pos];
+      auto parent_size = parent_cell.mSize;
+      if ( parent_size <= cur_size ) {
+	break;
+      }
+      mArray[parent_pos] = cur_cell;
+      mArray[cur_pos] = parent_cell;
+      cur_pos = parent_pos;
+    }
+  }
+
+  /// @brief 下に移動させる．
+  void
+  move_down(
+    SizeType cur_pos ///< [in] 現在の位置
+  )
+  {
+    while ( true ) {
+      auto cur_cell = mArray[cur_pos];
+      auto cur_size = cur_cell.mSize;
+      auto right_pos = (cur_pos + 1) * 2;
+      auto left_pos = right_pos - 1;
+      if ( mArray.size() <= left_pos ) {
+	break;
+      }
+      // より小さいサイズを持つ子供を見つける．
+      auto child_cell = mArray[left_pos];
+      auto child_pos = left_pos;
+      if ( mArray.size() > right_pos ) {
+	auto right_cell = mArray[right_pos];
+	if ( child_cell.mSize > right_cell.mSize ) {
+	  child_cell = right_cell;
+	  child_pos = right_pos;
+	}
+      }
+      // それと比較する．
+      if ( cur_size > child_size ) {
+	mArray[cur_pos] = child_cell;
+	mArray[child_pos] = cur_cell;
+	cur_pos = child_pos;
+      }
+    }
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 配列本体
+  vector<Cell> mArray;
+
+};
+
+
+END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // クラス CnfGenImpl2
@@ -22,28 +163,113 @@ BEGIN_NAMESPACE_DRUID
 // @brief 式を CNF に変換する．
 void
 CnfGenImpl2::make_cnf(
-  const Expr& expr,
+  const DetCond& cond,
   vector<SatLiteral>& assumptions
 )
 {
-  auto bdd = conv_to_bdd(expr);
-  bdd_to_cnf(bdd, assumptions);
+  // mandatory_condition は直接 assumptions に変換する．
+
+  // cube_list をキューブごとにBDDに変換し，
+  // サイズの小さい順にマージしていく
+  HeapTree bdd_heap;
+  bdd_list.reserve(cond.cube_list().size());
+  for ( auto& cube: cond.cube_list() ) {
+    auto bdd1 = cube_to_bdd(cube);
+    bdd_heap.put(bdd1);
+  }
+  // サイズオーバーとなった Bdd を入れておくリスト
+  vector<Bdd> bdd_list;
+  bdd_list.reserve(bdd_heap.size());
+  while ( bdd_heap.size() > 1 ) {
+    auto bdd1 = bdd_heap.get_min();
+    auto bdd2 = bdd_heap.get_min();
+    auto bdd3 = bdd1 | bdd2;
+    if ( bdd3.size() > size_limit ) {
+      bdd_list.push_back(bdd3);
+    }
+    else {
+      bdd_heap.put(bdd3);
+    }
+  }
+  if ( bdd_heap.size() == 1 ) {
+    auto bdd1 = bdd_heap.get_min();
+    bdd_list.push_back(bdd1);
+  }
+  // bdd_list の BDD の OR が求めるべき論理式
+  auto n = bdd_list.size();
+  if ( n == 0 ) {
+    abort();
+  }
+  else if ( n == 1 ) {
+    auto bdd = bdd_list.front();
+    bdd_to_cnf(bdd, assumptions);
+  }
+  else {
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(n + 1);
+    auto new_lit = mEngine.solver().new_variable(false);
+    tmp_lits.push_back(~new_lit);
+    for ( auto bdd: bdd_list ) {
+      vector<SatLiteral> and_lits;
+      bdd_to_cnf(bdd, and_lits);
+      auto new_lit = mEngine.solver().new_variable(false);
+      tmp_lits.push_back(new_lit);
+      for ( auto lit: and_lits ) {
+	mEngine.solver().add_clause(~new_lit, lit);
+      }
+    }
+    assumptions.push_back(new_lit);
+  }
 }
 
 // @brief 式を CNF に変換した際の項数とリテラル数を計算する．
-void
+CnfSize
 CnfGenImpl2::calc_cnf_size(
-  const Expr& expr
+  const CondGen& cond
 )
 {
   auto bdd = conv_to_bdd(expr);
-  calc_cnf_size(bdd);
+  BddMgr bdd_mgr;
+  auto bdd = bdd_mgr.from_expr(expr);
+  BgMgr mgr{bdd};
+  auto size = CnfSize::zero();
+  for ( auto node: mgr.node_list() ) {
+    size += node->cnf_size();
+  }
+  {
+    cout << "Expr literal: " << expr.literal_num() << endl
+	 << "BDD size:     " << bdd.size() << endl
+	 << "BgNode size:  " << mgr.node_list().size() << endl
+	 << "CNF size:     " << size.clause_num
+	 << ", " << size.literal_num << endl;
+  }
+  return size;
+}
+
+// @brief キューブを BDD に変換する．
+Bdd
+CnfGenImpl2::conv_to_bdd(
+  const AssignList& cube
+)
+{
+  auto ans = mBddMgr.one();
+  for ( auto as: cube ) {
+    auto node = as.node();
+    auto time = as.time();
+    auto varid = node->id() * 2 + time;
+    auto bdd1 = mBddMgr.variable(varid);
+    if ( !as.val() ) {
+      bdd1 = ~bdd1;
+    }
+    ans &= bdd1;
+  }
+  return ans;
 }
 
 // @brief 論理式を BDD に変換する．
 Bdd
 CnfGenImpl2::conv_to_bdd(
-  const Expr& expr
+  const DetCond& cond
 )
 {
   if ( expr.is_zero() ) {
@@ -157,60 +383,6 @@ CnfGenImpl2::bdd_to_cnf(
     }
   }
   mResultDict.emplace(bdd, lit_list);
-}
-
-// @brief BDD を CNF に変換した際の項数とリテラル数を計算する．
-SizeType
-CnfGenImpl2::calc_cnf_size(
-  const Bdd& bdd
-)
-{
-  if ( mSizeDict.count(bdd) > 0 ) {
-    // すでに計算済み
-    return mSizeDict.at(bdd);
-  }
-  Bdd bdd0;
-  Bdd bdd1;
-  auto root_var = bdd.root_decomp(bdd0, bdd1);
-  SizeType result = 0;
-  if ( bdd0.is_zero() ) {
-    if ( bdd1.is_one() ) {
-      ;
-    }
-    else {
-      result = calc_cnf_size(bdd1) + 1;
-    }
-  }
-  if ( bdd0.is_one() ) {
-    if ( bdd1.is_zero() ) {
-      ;
-    }
-    else {
-      auto result1 = calc_cnf_size(bdd1);
-      mCnfSize += CnfSize{result1, result1 * 3};
-      result = 1;
-    }
-  }
-  else {
-    if ( bdd1.is_zero() ) {
-      // bdd0 は定数ではない．
-      result = calc_cnf_size(bdd0) + 1;
-    }
-    else if ( bdd1.is_one() ) {
-      auto result0 = calc_cnf_size(bdd0);
-      mCnfSize += CnfSize{result0, result0 * 3};
-      result = 1;
-    }
-    else {
-      auto result0 = calc_cnf_size(bdd0);
-      auto result1 = calc_cnf_size(bdd1);
-      mCnfSize += CnfSize{result0, result0 * 3};
-      mCnfSize += CnfSize{result1, result1 * 3};
-      result = 1;
-    }
-  }
-  mSizeDict.emplace(bdd, result);
-  return result;
 }
 
 // @brief 論理式のリテラルを SAT ソルバのリテラルに変換する．

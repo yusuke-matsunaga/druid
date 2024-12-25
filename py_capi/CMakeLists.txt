@@ -63,6 +63,7 @@ set ( druid_SOURCES
   bist/PyLFSR.cc
 
   condgen/condgen_module.cc
+  condgen/PyDetCond.cc
   )
 
 

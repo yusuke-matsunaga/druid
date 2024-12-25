@@ -206,14 +206,16 @@ count_test(
   Timer total_timer;
   total_timer.start();
 
+  StructEngine engine{network}; // ダミー
+
   CnfSize total_cnf_size{0, 0};
   if ( ffr_mode ) {
     CondGenMgr::root_cond(network, limit,
 			  [&](const TpgFFR* ffr,
-			      const AssignExpr& cond,
+			      const DetCond& cond,
 			      SizeType count,
 			      double time){
-			    auto cnf_size = CnfGen::calc_cnf_size(cond);
+			    auto cnf_size = CnfGen::calc_cnf_size(engine, cond);
 			    cout << "FFR#" << ffr->id()
 				 << ": " << time << endl
 				 << setw(4) << count
@@ -226,14 +228,10 @@ count_test(
   else {
     CondGenMgr::fault_cond(network, src_fault_list, limit,
 			   [&](const TpgFault* fault,
-			       const AssignExpr& cond,
+			       const DetCond& cond,
 			       SizeType count,
 			       double time){
-			     if ( cond.expr().is_zero() ) {
-			       // 検出不能故障
-			       return;
-			     }
-			     auto cnf_size = CnfGen::calc_cnf_size(cond);
+			     auto cnf_size = CnfGen::calc_cnf_size(engine, cond);
 			     cout << fault->str()
 				  << ": " << time << endl
 				  << setw(4) << count
@@ -246,7 +244,11 @@ count_test(
 			     auto cnf_size1 = engine.solver().cnf_size();
 			     auto real_size = cnf_size1 - cnf_size0;
 			     cout << "real_size: " << real_size << endl;
-			     cout << "cond: " << cond.expr() << endl;
+			     cout << "mandatory cond: " << cond.mandatory_condition() << endl;
+			     cout << "cover" << endl;
+			     for ( auto& cube: cond.cube_list() ) {
+			       cout << cube << endl;
+			     }
 			     total_cnf_size += cnf_size;
 			   },
 			   cg_option);

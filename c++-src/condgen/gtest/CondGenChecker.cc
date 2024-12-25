@@ -29,7 +29,7 @@ CondGenChecker::CondGenChecker(
 bool
 CondGenChecker::check(
   const AssignList& extra_cond,
-  const AssignExpr& cond
+  const DetCond& cond
 )
 {
   CnfSize size0;
@@ -48,7 +48,7 @@ CondGenChecker::check(
   size1.clause_num = mEngine.solver().clause_num();
   size1.literal_num = mEngine.solver().literal_num();
   CnfSize real_size = size1 - size0;
-  auto size = CnfGen::calc_cnf_size(cond);
+  auto size = CnfGen::calc_cnf_size(mEngine, cond);
   if ( size != real_size ) {
     cout << "real_size: " << real_size << endl
 	 << "calc_size: " << size << endl;

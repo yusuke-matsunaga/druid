@@ -50,6 +50,7 @@ condgen(
   int limit = 1;
   bool ffr_mode = false;
   bool naive_mode = false;
+  bool bdd_mode = false;
   bool do_finfo_mgr = false;
   bool do_reduction = true;
   bool do_ffr_reduction = false;
@@ -146,6 +147,9 @@ condgen(
       else if ( strcmp(argv[pos], "--naive") == 0 ) {
 	naive_mode = true;
       }
+      else if ( strcmp(argv[pos], "--bdd") == 0 ) {
+	bdd_mode = true;
+      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
@@ -208,17 +212,24 @@ condgen(
 
   auto src_fault_list = network.rep_fault_list();
 
+  std::unordered_map<string, JsonValue> cf_option_dict;
+  if ( bdd_mode ) {
+    cf_option_dict.emplace("method", JsonValue{"bdd"});
+  }
+  JsonValue cf_option{cf_option_dict};
+
   Timer total_timer;
   total_timer.start();
 
   CnfSize total_cnf_size{0, 0};
   if ( ffr_mode ) {
+    StructEngine engine{network};
     CondGenMgr::root_cond(network, limit,
 			  [&](const TpgFFR* ffr,
-			      const AssignExpr& cond,
+			      const DetCond& cond,
 			      SizeType count,
 			      double time){
-			    auto cnf_size = CnfGen::calc_cnf_size(cond);
+			    auto cnf_size = CnfGen::calc_cnf_size(engine, cond, cf_option);
 			    cout << "FFR#" << ffr->id()
 				 << ": " << time << endl
 				 << setw(4) << count
@@ -240,16 +251,13 @@ condgen(
     }
   }
   else {
+    StructEngine engine{network, option};
     CondGenMgr::fault_cond(network, src_fault_list, limit,
 			   [&](const TpgFault* fault,
-			       const AssignExpr& cond,
+			       const DetCond& cond,
 			       SizeType count,
 			       double time){
-			     if ( cond.expr().is_zero() ) {
-			       // 検出不能故障
-			       return;
-			     }
-			     auto cnf_size = CnfGen::calc_cnf_size(cond);
+			     auto cnf_size = CnfGen::calc_cnf_size(engine, cond);
 			     cout << fault->str()
 				  << ": " << time << endl
 				  << setw(4) << count

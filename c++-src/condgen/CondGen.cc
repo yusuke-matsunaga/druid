@@ -11,7 +11,6 @@
 #include "TpgFFR.h"
 #include "TpgNode.h"
 #include "TpgFault.h"
-#include "AssignMgr.h"
 #include "OpBase.h"
 
 
@@ -76,7 +75,7 @@ CondGen::~CondGen()
 
 // @brief FFRの出力の故障伝搬条件を求める．
 // @return 条件式を返す．
-AssignExpr
+DetCond
 CondGen::root_cond(
   SizeType limit,
   SizeType& loop_count
@@ -86,7 +85,7 @@ CondGen::root_cond(
 }
 
 // @brief 与えられた故障を検出するテストキューブを生成する．
-AssignExpr
+DetCond
 CondGen::fault_cond(
   const TpgFault* fault,
   SizeType limit,
@@ -103,7 +102,7 @@ CondGen::fault_cond(
 }
 
 // @brief root_cond(), fault_cond() の共通な下請け関数
-AssignExpr
+DetCond
 CondGen::gen_cond(
   const AssignList& extra_cond,
   SizeType limit,
@@ -156,7 +155,7 @@ CondGen::gen_cond(
 
   if ( suff_cond.size() == 0 ) {
     // 十分条件と必要条件が等しかった．
-    return AssignExpr{mand_cond};
+    return DetCond{mand_cond};
   }
 
   timer.reset();
@@ -210,11 +209,7 @@ CondGen::gen_cond(
   }
 
   // 生成された結果を論理式の形に変換する．
-  AssignMgr assign_mgr;
-  auto mand_cond_expr = assign_mgr.to_expr(mand_cond);
-  auto cover_expr = assign_mgr.to_expr(cube_list);
-  auto expr = mand_cond_expr & cover_expr;
-  return AssignExpr{expr, assign_mgr.assign_list()};
+  return DetCond{mand_cond, cube_list};
 }
 
 END_NAMESPACE_DRUID
