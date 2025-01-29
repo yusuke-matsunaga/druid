@@ -37,6 +37,15 @@ public:
   ~CnfGenBdd() = default;
 
 
+public:
+
+  /// @brief 検出条件をCNFに変換した時の CNF のサイズを見積もる．
+  CnfSize
+  calc_cnf_size(
+    const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
+  ) override;
+
+
 private:
   //////////////////////////////////////////////////////////////////////
   // CnfGenImpl の仮想関数
@@ -49,12 +58,6 @@ private:
     const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
   ) override;
 
-  /// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
-  CnfSize
-  calc_cover_size(
-    const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
-  ) override;
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -62,6 +65,12 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief カバーを BDD のリストに変換する．
+  ///
+  /// 具体的には個々のキューブをBDDに変換し，
+  /// キューブのBDDをマージしていく．
+  /// BDD のサイズが上限を超えたら別のBDD
+  /// を作る．
+  /// そのため結果は複数のBDDとなる．
   vector<Bdd>
   cover_to_bdd(
     const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）

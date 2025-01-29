@@ -1,19 +1,20 @@
 
-/// @file CnfGenNaive.cc
-/// @brief CnfGenNaive の実装ファイル
+/// @file CnfGenCube.cc
+/// @brief CnfGenCube の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CnfGenNaive.h"
+#include "CnfGenCube.h"
+#include "CubeMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief カバーをCNFに変換する．
 SatLiteral
-CnfGenNaive::cover_to_cnf(
+CnfGenCube::cover_to_cnf(
   const vector<AssignList>& cube_list
 )
 {
@@ -33,21 +34,33 @@ CnfGenNaive::cover_to_cnf(
 
 // @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
 CnfSize
-CnfGenNaive::calc_cnf_size(
+CnfGenCube::calc_cnf_size(
   const vector<DetCond>& cond_list
 )
 {
-  auto ans = CnfSize::zero();
-
+  CubeMgr cube_mgr;
+  SizeType nc = 0;
   for ( auto& cond: cond_list ) {
     auto& cube_list = cond.cube_list();
+    nc += cube_list.size();
     for ( auto& cube: cube_list ) {
-      auto n = cube.size();
-      // 1つのキューブにつき
-      // n 項， n * 2 リテラル
-      ans += CnfSize{n, n * 2};
+      cube_mgr.reg_cube(cube);
     }
-    // 最後にキューブ数+1の項を追加
+  }
+
+  cout << "Total Cube Num:  " << nc << endl
+       << "Unique Cube Num: " << cube_mgr.cube_num() << endl;
+
+  auto ans = CnfSize::zero();
+  for ( auto& cube: cube_mgr.cube_list() ) {
+    auto n = cube.size();
+    // 1つのキューブにつき
+    // n 項， n * 2 リテラル
+    ans += CnfSize{n, n * 2};
+  }
+  for ( auto& cond: cond_list ) {
+    auto& cube_list = cond.cube_list();
+    // キューブ数+1の項を追加
     ans += CnfSize{1, cube_list.size() + 1};
   }
 

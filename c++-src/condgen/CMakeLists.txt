@@ -31,6 +31,7 @@ set ( condgen_SOURCES
   CnfGen.cc
   CnfGenImpl.cc
   CnfGenNaive.cc
+  CnfGenCube.cc
   CnfGenBdd.cc
   Bdd2Cnf.cc
   BgNode.cc

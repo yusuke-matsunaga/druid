@@ -8,11 +8,9 @@
 
 #include "CnfGen.h"
 #include "CnfGenNaive.h"
+#include "CnfGenCube.h"
 #include "CnfGenBdd.h"
 #include "StructEngine.h"
-//#include "TpgNetwork.h"
-//#include "DetCond.h"
-//#include "ym/BddVar.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -105,28 +103,7 @@ CnfGen::calc_cnf_size(
   const JsonValue& option
 )
 {
-  if ( cond.empty() ) {
-    return CnfSize::zero();
-  }
-
-  string method{"naive"};
-  get_string(option, "method", method);
-
-  if ( method == "naive" ) {
-    // ナイーブなやり方
-    // キューブごとにリテラルを割り当て，その OR 条件を作る．
-    CnfGenNaive gen{engine};
-    return gen.calc_cnf_size(cond);
-  }
-  if ( method == "bdd" ) {
-    // 一旦 Bdd に変換して CNF を作る．
-    SizeType limit = 10000;
-    CnfGenBdd gen{engine, limit};
-    return gen.calc_cnf_size(cond);
-  }
-  // デフォルトフォールバック
-  CnfGenNaive gen{engine};
-  return gen.calc_cnf_size(cond);
+  return calc_cnf_size(engine, vector<DetCond>{cond}, option);
 }
 
 // @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
@@ -137,11 +114,34 @@ CnfGen::calc_cnf_size(
   const JsonValue& option
 )
 {
-  CnfSize size = CnfSize::zero();
-  for ( auto& cond: cond_list ) {
-    size += calc_cnf_size(engine, cond, option);
+  if ( cond_list.empty() ) {
+    return CnfSize::zero();
   }
-  return size;
+
+  string method{"naive"};
+  get_string(option, "method", method);
+
+  if ( method == "naive" ) {
+    // ナイーブなやり方
+    // キューブごとにリテラルを割り当て，その OR 条件を作る．
+    CnfGenNaive gen{engine};
+    return gen.calc_cnf_size(cond_list);
+  }
+  if ( method == "cube" ) {
+    // 共通なキューブを共有する．
+    // キューブごとにリテラルを割り当て，その OR 条件を作る．
+    CnfGenCube gen{engine};
+    return gen.calc_cnf_size(cond_list);
+  }
+  if ( method == "bdd" ) {
+    // 一旦 Bdd に変換して CNF を作る．
+    SizeType limit = 10000;
+    CnfGenBdd gen{engine, limit};
+    return gen.calc_cnf_size(cond_list);
+  }
+  // デフォルトフォールバック
+  CnfGenNaive gen{engine};
+  return gen.calc_cnf_size(cond_list);
 }
 
 END_NAMESPACE_DRUID

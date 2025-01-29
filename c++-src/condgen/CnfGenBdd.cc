@@ -47,26 +47,38 @@ CnfGenBdd::cover_to_cnf(
 
 // @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
 CnfSize
-CnfGenBdd::calc_cover_size(
-  const vector<AssignList>& cube_list
+CnfGenBdd::calc_cnf_size(
+  const vector<DetCond>& cond_list
 )
 {
-  auto bdd_list = cover_to_bdd(cube_list);
-
-  Bdd2Cnf conv{engine()};
-  auto n = bdd_list.size();
-  if ( n == 0 ) {
-    abort();
-  }
-  if ( n == 1 ) {
-    return conv.calc_cnf_size(bdd_list.front());
-  }
   auto size = CnfSize::zero();
-  for ( auto& bdd1: bdd_list ) {
-    auto size1 = conv.calc_cnf_size(bdd1);
-    size += size1;
+  for ( auto& cond: cond_list ) {
+    auto& cube_list = cond.cube_list();
+    if ( cube_list.empty() ) {
+      continue;
+    }
+    auto bdd_list = cover_to_bdd(cube_list);
+
+    Bdd2Cnf conv{engine()};
+    auto n = bdd_list.size();
+    if ( n == 0 ) {
+      cout << endl;
+      for ( auto& cube: cube_list ) {
+	cout << cube << endl;
+      }
+      abort();
+    }
+    if ( n == 1 ) {
+      size += conv.calc_cnf_size(bdd_list.front());
+    }
+    else {
+      for ( auto& bdd1: bdd_list ) {
+	auto size1 = conv.calc_cnf_size(bdd1);
+	size += size1;
+      }
+      size += CnfSize{1, n + 1};
+    }
   }
-  size += CnfSize{1, n + 1};
   return size;
 }
 
@@ -79,6 +91,7 @@ CnfGenBdd::cover_to_bdd(
   // 個々のキューブをBddに変換してヒープ木に入れる．
   BddHeap bdd_heap;
   for ( auto& cube: cube_list ) {
+    cout << cube << endl;
     auto bdd1 = cube_to_bdd(cube);
     bdd_heap.put(bdd1);
   }

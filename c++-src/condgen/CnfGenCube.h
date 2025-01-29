@@ -1,8 +1,8 @@
-#ifndef CNFGENNAIVE_H
-#define CNFGENNAIVE_H
+#ifndef CNFGENCUBE_H
+#define CNFGENCUBE_H
 
-/// @file CnfGenNaive.h
-/// @brief CnfGenNaive のヘッダファイル
+/// @file CnfGenCube.h
+/// @brief CnfGenCube のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -15,23 +15,23 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class CnfGenNaive CnfGenNaive.h "CnfGenNaive.h"
+/// @class CnfGenCube CnfGenCube.h "CnfGenCube.h"
 /// @brief カバーをCNFに変換する
 //////////////////////////////////////////////////////////////////////
-class CnfGenNaive :
+class CnfGenCube :
   public CnfGenImpl
 {
 public:
 
   /// @brief コンストラクタ
-  CnfGenNaive(
+  CnfGenCube(
     StructEngine& engine ///< [in] StructEngine
   ) : CnfGenImpl{engine}
   {
   }
 
   /// @brief デストラクタ
-  ~CnfGenNaive() = default;
+  ~CnfGenCube() = default;
 
 
 public:
@@ -59,4 +59,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // CNFGENNAIVE_H
+#endif // CNFGENCUBE_H

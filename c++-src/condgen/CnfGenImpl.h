@@ -48,11 +48,12 @@ public:
     const DetCond& cond ///< [in] 検出条件
   );
 
-  /// @brief 条件を CNF に変換した際の項数とリテラル数を計算する．
+  /// @brief 複数の条件を CNF に変換した際の項数とリテラル数を計算する．
+  virtual
   CnfSize
   calc_cnf_size(
-    const DetCond& cond ///< [in] 検出条件
-  );
+    const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
+  ) = 0;
 
 
 protected:
@@ -60,9 +61,9 @@ protected:
   // 継承クラスで用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief キューブを表すリテラルのリストを返す．
-  vector<SatLiteral>
-  cube_to_literals(
+  /// @brief キューブを表すリテラルを返す．
+  SatLiteral
+  cube_to_cnf(
     const AssignList& cube ///< [in] キューブ
   );
 
@@ -91,13 +92,6 @@ private:
   virtual
   SatLiteral
   cover_to_cnf(
-    const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
-  ) = 0;
-
-  /// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
-  virtual
-  CnfSize
-  calc_cover_size(
     const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
   ) = 0;
 

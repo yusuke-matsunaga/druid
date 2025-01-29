@@ -52,6 +52,8 @@ count_test(
   bool do_reduction = true;
   bool do_ffr_reduction = false;
   bool do_global_reduction = false;
+  bool bdd = false;
+  bool cube = false;
   int debug_level = 0;
 
   argv0 = argv[0];
@@ -141,6 +143,12 @@ count_test(
       else if ( strcmp(argv[pos], "--ffr") == 0 ) {
 	ffr_mode = true;
       }
+      else if ( strcmp(argv[pos], "--bdd") == 0 ) {
+	bdd = true;
+      }
+      else if ( strcmp(argv[pos], "--cube") == 0 ) {
+	cube = true;
+      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
@@ -208,22 +216,30 @@ count_test(
 
   StructEngine engine{network}; // ダミー
 
-  CnfSize total_cnf_size{0, 0};
+  unordered_map<string, JsonValue> cnf_option_dict;
+  if ( bdd ) {
+    cnf_option_dict.emplace("method", "bdd");
+  }
+  else if ( cube ) {
+    cnf_option_dict.emplace("method", "cube");
+  }
+  JsonValue cnf_option{cnf_option_dict};
+
+  auto total_cnf_size = CnfSize::zero();
+  auto total_cnf_size_naive = CnfSize::zero();
   if ( ffr_mode ) {
+    vector<DetCond> cond_list;
+    cond_list.reserve(network.ffr_num());
     CondGenMgr::root_cond(network, limit,
 			  [&](const TpgFFR* ffr,
 			      const DetCond& cond,
 			      SizeType count,
 			      double time){
-			    auto cnf_size = CnfGen::calc_cnf_size(engine, cond);
-			    cout << "FFR#" << ffr->id()
-				 << ": " << time << endl
-				 << setw(4) << count
-				 << "| " << cnf_size.clause_num
-				 << ", " << cnf_size.literal_num << endl;
-			    total_cnf_size += cnf_size;
+			    cond_list.push_back(cond);
 			  },
 			  cg_option);
+    total_cnf_size = CnfGen::calc_cnf_size(engine, cond_list, cnf_option);
+    total_cnf_size_naive = CnfGen::calc_cnf_size(engine, cond_list);
   }
   else {
     CondGenMgr::fault_cond(network, src_fault_list, limit,
@@ -231,7 +247,7 @@ count_test(
 			       const DetCond& cond,
 			       SizeType count,
 			       double time){
-			     auto cnf_size = CnfGen::calc_cnf_size(engine, cond);
+			     auto cnf_size = CnfGen::calc_cnf_size(engine, cond, cnf_option);
 			     cout << fault->str()
 				  << ": " << time << endl
 				  << setw(4) << count
@@ -254,8 +270,9 @@ count_test(
 			   cg_option);
   }
 
-  cout << "Total Clause Num:  " << setw(10) << total_cnf_size.clause_num << endl
-       << "Total Literal Num: " << setw(10) << total_cnf_size.literal_num << endl;
+  cout << "Total CNF size:         " << setw(10) << total_cnf_size.clause_num << " " << setw(10) << total_cnf_size.literal_num << endl;
+  cout << "Total CNF size(naive):  " << setw(10) << total_cnf_size_naive.clause_num << " "
+       << setw(10) << total_cnf_size_naive.literal_num << endl;
 
   return 0;
 }
