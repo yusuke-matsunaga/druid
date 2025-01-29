@@ -16,9 +16,10 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief 式を CNF に変換する．
-vector<SatLiteral>
+vector<vector<SatLiteral>>
 CnfGenImpl::make_cnf(
-  const DetCond& cond
+  StructEngine& engine,
+  const vector<DetCond>& cond_list
 )
 {
   vector<SatLiteral> assumptions;
@@ -40,15 +41,8 @@ CnfGenImpl::make_cnf(
 // @brief キューブを表すリテラルを返す．
 SatLiteral
 CnfGenImpl::cube_to_cnf(
+  StructEngine& engine,
   const AssignList& cube
 )
-{
-  auto cube_lit = solver().new_variable(false);
-  for ( auto as: cube ) {
-    auto lit = mEngine.conv_to_literal(as);
-    solver().add_clause(~cube_lit, lit);
-  }
-  return cube_lit;
-}
 
 END_NAMESPACE_DRUID

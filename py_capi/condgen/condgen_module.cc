@@ -33,54 +33,28 @@ root_cond(
   static const char* kw_list[] = {
     "network",
     "limit",
-    "callback",
     "option",
     nullptr
   };
   PyObject* network_obj = nullptr;
   SizeType limit = 0;
-  PyObject* callback_obj = nullptr;
   PyObject* option_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!kO|O",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!k|O",
 				    const_cast<char**>(kw_list),
 				    PyTpgNetwork::_typeobject(), &network_obj,
 				    &limit,
-				    &callback_obj,
 				    &option_obj) ) {
     return nullptr;
   }
   auto& network = PyTpgNetwork::Get(network_obj);
-  if ( !PyCallable_Check(callback_obj) ) {
-    PyErr_SetString(PyExc_TypeError, "'callback' should be a callable type");
-    return nullptr;
-  }
   JsonValue option;
   if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
     PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
     return nullptr;
   }
-  CondGenMgr::root_cond(network, limit,
-			[&](const TpgFFR* ffr,
-			    const DetCond& cond,
-			    SizeType count,
-			    double time){
-			  auto ffr_obj = PyTpgFFR::ToPyObject(ffr);
-			  auto cond_obj = PyDetCond::ToPyObject(cond);
-			  auto ret_obj = PyObject_CallFunction(callback_obj,
-							       "(OOkd)",
-							       ffr_obj,
-							       cond_obj,
-							       count,
-							       time);
-			  Py_DECREF(ffr_obj);
-			  Py_DECREF(cond_obj);
-			  Py_XDECREF(ret_obj);
-			  // 本当は ret_obj == nullptr の時のエラー処理を
-			  // しなければならない．
-			  // たぶん，ここで例外を送出して func_cond() の外側
-			  // で catch するのが正解
-			}, option);
-  Py_RETURN_NONE;
+  auto cond_list = CondGenMgr::root_cond(network, limit, option);
+
+  return PyDetCond::ToPyList(cond_list);
 }
 
 PyObject*
@@ -94,21 +68,18 @@ fault_cond(
     "network",
     "fault_list",
     "limit",
-    "callback",
     "option",
     nullptr
   };
   PyObject* network_obj = nullptr;
   PyObject* fault_list_obj = nullptr;
   SizeType limit = 0;
-  PyObject* callback_obj = nullptr;
   PyObject* option_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!OkO|O",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!Ok|O",
 				    const_cast<char**>(kw_list),
 				    PyTpgNetwork::_typeobject(), &network_obj,
 				    &fault_list_obj,
 				    &limit,
-				    &callback_obj,
 				    &option_obj) ) {
     return nullptr;
   }
@@ -118,37 +89,15 @@ fault_cond(
     PyErr_SetString(PyExc_TypeError, "'fault_list' should be a list of TpgFault");
     return nullptr;
   }
-  if ( !PyCallable_Check(callback_obj) ) {
-    PyErr_SetString(PyExc_TypeError, "'callback' should be a callable type");
-    return nullptr;
-  }
   JsonValue option;
   if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
     PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
     return nullptr;
   }
-  CondGenMgr::fault_cond(network, fault_list, limit,
-			 [&](const TpgFault* fault,
-			     const DetCond& cond,
-			     SizeType count,
-			     double time){
-			   auto fault_obj = PyTpgFault::ToPyObject(fault);
-			   auto cond_obj = PyDetCond::ToPyObject(cond);
-			   auto ret_obj = PyObject_CallFunction(callback_obj,
-								"(OOkd)",
-								fault_obj,
-								cond_obj,
-								count,
-								time);
-			   Py_DECREF(fault_obj);
-			   Py_DECREF(cond_obj);
-			   Py_XDECREF(ret_obj);
-			   // 本当は ret_obj == nullptr の時のエラー処理を
-			   // しなければならない．
-			   // たぶん，ここで例外を送出して func_cond() の外側
-			   // で catch するのが正解
-			 }, option);
-  Py_RETURN_NONE;
+  auto cond_list = CondGenMgr::fault_cond(network, fault_list, limit,
+					  option);
+
+  return PyDetCond::ToPyList(cond_list);
 }
 
 // メソッド定義構造体

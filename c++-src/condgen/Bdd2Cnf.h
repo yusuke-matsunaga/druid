@@ -47,6 +47,7 @@ public:
   );
 
   /// @brief BDD を CNF に変換した時のサイズを見積もる．
+  static
   CnfSize
   calc_cnf_size(
     const Bdd& bdd ///< [in] BDD

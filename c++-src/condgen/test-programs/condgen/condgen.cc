@@ -224,20 +224,17 @@ condgen(
   CnfSize total_cnf_size{0, 0};
   if ( ffr_mode ) {
     StructEngine engine{network};
-    CondGenMgr::root_cond(network, limit,
-			  [&](const TpgFFR* ffr,
-			      const DetCond& cond,
-			      SizeType count,
-			      double time){
-			    auto cnf_size = CnfGen::calc_cnf_size(engine, cond, cf_option);
-			    cout << "FFR#" << ffr->id()
-				 << ": " << time << endl
-				 << setw(4) << count
-				 << "| " << cnf_size.clause_num
-				 << ", " << cnf_size.literal_num << endl;
-			    total_cnf_size += cnf_size;
-			  },
-			  cg_option);
+    auto cond_list = CondGenMgr::root_cond(network, limit, cg_option);
+    SizeType ffr_id = 0;
+    for ( auto& cond: cond_list ) {
+      auto cnf_size = CnfGen::calc_cnf_size(cond, cf_option);
+      cout << "FFR#" << ffr_id
+	   << ": " << endl
+	   << "| " << cnf_size.clause_num
+	   << ", " << cnf_size.literal_num << endl;
+      total_cnf_size += cnf_size;
+      ++ ffr_id;
+    }
   }
   else if ( naive_mode ) {
     for ( auto ffr: network.ffr_list() ) {
@@ -252,20 +249,17 @@ condgen(
   }
   else {
     StructEngine engine{network, option};
-    CondGenMgr::fault_cond(network, src_fault_list, limit,
-			   [&](const TpgFault* fault,
-			       const DetCond& cond,
-			       SizeType count,
-			       double time){
-			     auto cnf_size = CnfGen::calc_cnf_size(engine, cond);
-			     cout << fault->str()
-				  << ": " << time << endl
-				  << setw(4) << count
-				  << "| " << cnf_size.clause_num
-				  << ", " << cnf_size.literal_num << endl;
-			     total_cnf_size += cnf_size;
-			   },
-			   cg_option);
+    auto cond_array = CondGenMgr::fault_cond(network, src_fault_list, limit,
+					     cg_option);
+    for ( auto fault: src_fault_list ) {
+      auto& cond = cond_array[fault->id()];
+      auto cnf_size = CnfGen::calc_cnf_size(cond);
+      cout << fault->str()
+	   << ": " << endl
+	   << "| " << cnf_size.clause_num
+	   << ", " << cnf_size.literal_num << endl;
+      total_cnf_size += cnf_size;
+    }
   }
 
   cout << "Total Clause Num:  " << setw(10) << total_cnf_size.clause_num << endl

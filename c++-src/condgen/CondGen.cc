@@ -77,19 +77,17 @@ CondGen::~CondGen()
 // @return 条件式を返す．
 DetCond
 CondGen::root_cond(
-  SizeType limit,
-  SizeType& loop_count
+  SizeType limit
 )
 {
-  return gen_cond({}, limit, loop_count);
+  return gen_cond({}, limit);
 }
 
 // @brief 与えられた故障を検出するテストキューブを生成する．
 DetCond
 CondGen::fault_cond(
   const TpgFault* fault,
-  SizeType limit,
-  SizeType& loop_count
+  SizeType limit
 )
 {
   if ( fault->ffr_root() != mFFR->root() ) {
@@ -98,15 +96,14 @@ CondGen::fault_cond(
     throw std::invalid_argument{buf.str()};
   }
   auto ffr_cond = fault->ffr_propagate_condition();
-  return gen_cond(ffr_cond, limit, loop_count);
+  return gen_cond(ffr_cond, limit);
 }
 
 // @brief root_cond(), fault_cond() の共通な下請け関数
 DetCond
 CondGen::gen_cond(
   const AssignList& extra_cond,
-  SizeType limit,
-  SizeType& loop_count
+  SizeType limit
 )
 {
   Timer timer;
@@ -123,7 +120,6 @@ CondGen::gen_cond(
   }
   if ( res != SatBool3::True ) {
     // 検出可能ではなかった．
-    loop_count = 0;
     return {};
   }
   timer.reset();
@@ -151,7 +147,7 @@ CondGen::gen_cond(
     DBG_OUT << "PHASE1: " << (timer.get_time() / 1000.0) << endl;
   }
 
-  loop_count = 1;
+  SizeType loop_count = 1;
 
   if ( suff_cond.size() == 0 ) {
     // 十分条件と必要条件が等しかった．

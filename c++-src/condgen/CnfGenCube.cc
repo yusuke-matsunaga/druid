@@ -12,22 +12,46 @@
 
 BEGIN_NAMESPACE_DRUID
 
+// @brief 条件を CNF に変換する．
+vector<vector<SatLiteral>>
+CnfGenCube::make_cnf(
+  StructEngine& engine,
+  const vector<DetCond>& cond_list
+)
+{
+  vector<vector<SatLiteral>> ans_list;
+  ans_list.reserve(cond_list.size());
+  for ( auto& cond: cond_list ) {
+    vector<SatLiteral> assumptions;
+    assumptions.reserve(cond.mandatory_condition().size() + 1);
+    for ( auto as: cond.mandatory_condition() ) {
+      auto lit = engine.conv_to_literal(as);
+      assumptions.push_back(lit);
+    }
+    auto lit = cover_to_cnf(engine, cond.cube_list());
+    assumptions.push_back(lit);
+    ans_list.push_back(assumptions);
+  }
+  return ans_list;
+}
+
 // @brief カバーをCNFに変換する．
 SatLiteral
 CnfGenCube::cover_to_cnf(
+  StructEngine& engine,
   const vector<AssignList>& cube_list
 )
 {
   auto n = cube_list.size();
   vector<SatLiteral> tmp_lits;
   tmp_lits.reserve(n + 1);
-  auto new_lit = solver().new_variable(false);
+  auto new_lit = engine.solver().new_variable(false);
   tmp_lits.push_back(~new_lit);
   for ( auto& cube: cube_list ) {
-    auto new_lit1 = cube_to_cnf(cube);
+    auto new_lit1 = cube_to_cnf(engine, cube);
     tmp_lits.push_back(new_lit1);
   }
-  solver().add_clause(tmp_lits);
+  engine.solver().add_clause(tmp_lits);
 
   return new_lit;
 }

@@ -11,6 +11,7 @@
 #include "druid.h"
 #include "StructEngine.h"
 #include "DetCond.h"
+#include "AssignList.h"
 #include "ym/CnfSize.h"
 
 
@@ -24,14 +25,6 @@ class CnfGenImpl
 {
 public:
 
-  /// @brief コンストラクタ
-  explicit
-  CnfGenImpl(
-    StructEngine& engine ///< [in] StructEngine
-  ) : mEngine{engine}
-  {
-  }
-
   /// @brief デストラクタ
   virtual
   ~CnfGenImpl() = default;
@@ -43,10 +36,12 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 条件を CNF に変換する．
-  vector<SatLiteral>
+  virtual
+  vector<vector<SatLiteral>>
   make_cnf(
-    const DetCond& cond ///< [in] 検出条件
-  );
+    StructEngine& engine,            ///< [in] StructEngine
+    const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
+  ) = 0;
 
   /// @brief 複数の条件を CNF に変換した際の項数とリテラル数を計算する．
   virtual
@@ -62,47 +57,20 @@ protected:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief キューブを表すリテラルを返す．
+  static
   SatLiteral
   cube_to_cnf(
+    StructEngine& engine,  ///< [in] StructEngine
     const AssignList& cube ///< [in] キューブ
-  );
-
-  /// @brief StructEngine を返す．
-  StructEngine&
-  engine()
+  )
   {
-    return mEngine;
+    auto cube_lit = engine.solver().new_variable(false);
+    for ( auto as: cube ) {
+      auto lit = engine.conv_to_literal(as);
+      engine.solver().add_clause(~cube_lit, lit);
+    }
+    return cube_lit;
   }
-
-  /// @brief SATソルバを返す．
-  SatSolver&
-  solver()
-  {
-    return mEngine.solver();
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief カバーをCNFに変換する．
-  /// @return カバーの成り立つ条件を表すリテラルを返す．
-  virtual
-  SatLiteral
-  cover_to_cnf(
-    const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
-  ) = 0;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // StructEngine
-  StructEngine& mEngine;
 
 };
 

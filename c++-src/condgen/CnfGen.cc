@@ -47,15 +47,15 @@ END_NONAMESPACE
 // クラス CnfGen
 //////////////////////////////////////////////////////////////////////
 
-// @brief 論理式を CNF に変換する．
-vector<SatLiteral>
+// @brief 複数の論理式を CNF に変換する．
+vector<vector<SatLiteral>>
 CnfGen::make_cnf(
   StructEngine& engine,
-  const DetCond& cond,
+  const vector<DetCond>& cond_list,
   const JsonValue& option
 )
 {
-  if ( cond.empty() ) {
+  if ( cond_list.empty() ) {
     return {};
   }
 
@@ -65,51 +65,23 @@ CnfGen::make_cnf(
   if ( method == "naive" ) {
     // ナイーブなやり方
     // キューブごとにリテラルを割り当て，その OR 条件を作る．
-    CnfGenNaive gen{engine};
-    return gen.make_cnf(cond);
+    CnfGenNaive gen;
+    return gen.make_cnf(engine, cond_list);
   }
   if ( method == "bdd" ) {
     // 一旦 Bdd に変換して CNF を作る．
-    SizeType limit = 10000;
-    CnfGenBdd gen{engine, limit};
-    return gen.make_cnf(cond);
+    SizeType limit = 1000;
+    CnfGenBdd gen{limit};
+    return gen.make_cnf(engine, cond_list);
   }
   // デフォルトフォールバック
-  CnfGenNaive gen{engine};
-  return gen.make_cnf(cond);
-}
-
-// @brief 複数の論理式を CNF に変換する．
-vector<vector<SatLiteral>>
-CnfGen::make_cnf(
-  StructEngine& engine,
-  const vector<DetCond>& cond_list,
-  const JsonValue& option
-)
-{
-  vector<vector<SatLiteral>> assumptions_list;
-  for ( auto& cond: cond_list ) {
-    auto assumptions = make_cnf(engine, cond, option);
-    assumptions_list.push_back(assumptions);
-  }
-  return assumptions_list;
-}
-
-// @brief 論理式を CNF に変換した際の項数とリテラル数を数える．
-CnfSize
-CnfGen::calc_cnf_size(
-  StructEngine& engine,
-  const DetCond& cond,
-  const JsonValue& option
-)
-{
-  return calc_cnf_size(engine, vector<DetCond>{cond}, option);
+  CnfGenNaive gen;
+  return gen.make_cnf(engine, cond_list);
 }
 
 // @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
 CnfSize
 CnfGen::calc_cnf_size(
-  StructEngine& engine,
   const vector<DetCond>& cond_list,
   const JsonValue& option
 )
@@ -124,23 +96,23 @@ CnfGen::calc_cnf_size(
   if ( method == "naive" ) {
     // ナイーブなやり方
     // キューブごとにリテラルを割り当て，その OR 条件を作る．
-    CnfGenNaive gen{engine};
+    CnfGenNaive gen;
     return gen.calc_cnf_size(cond_list);
   }
   if ( method == "cube" ) {
     // 共通なキューブを共有する．
     // キューブごとにリテラルを割り当て，その OR 条件を作る．
-    CnfGenCube gen{engine};
+    CnfGenCube gen;
     return gen.calc_cnf_size(cond_list);
   }
   if ( method == "bdd" ) {
     // 一旦 Bdd に変換して CNF を作る．
     SizeType limit = 10000;
-    CnfGenBdd gen{engine, limit};
+    CnfGenBdd gen{limit};
     return gen.calc_cnf_size(cond_list);
   }
   // デフォルトフォールバック
-  CnfGenNaive gen{engine};
+  CnfGenNaive gen;
   return gen.calc_cnf_size(cond_list);
 }
 

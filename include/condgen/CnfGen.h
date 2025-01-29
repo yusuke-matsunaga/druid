@@ -9,14 +9,15 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "DetCond.h"
 #include "ym/sat.h"
+#include "ym/CnfSize.h"
 #include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 class StructEngine;
-class DetCond;
 
 //////////////////////////////////////////////////////////////////////
 /// @class CnfGen CnfGen.h "CnfGen.h"
@@ -40,7 +41,12 @@ public:
     const DetCond& expr,    ///< [in] 式
     const JsonValue& option ///< [in] オプション
     = JsonValue{}
-  );
+  )
+  {
+    auto tmp_list = make_cnf(engine, vector<DetCond>{expr}, option);
+    ASSERT_COND( tmp_list.size() == 1 );
+    return tmp_list.front();
+  }
 
   /// @brief 複数の論理式を CNF に変換する．
   /// @return 個々の式の活性化するための条件のリストを返す．
@@ -57,17 +63,18 @@ public:
   static
   CnfSize
   calc_cnf_size(
-    StructEngine& engine,   ///< [in] StructEngine
     const DetCond& expr,    ///< [in] 式
     const JsonValue& option ///< [in] オプション
     = JsonValue{}
-  );
+  )
+  {
+    return calc_cnf_size(vector<DetCond>{expr}, option);
+  }
 
   /// @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
   static
   CnfSize
   calc_cnf_size(
-    StructEngine& engine,             ///< [in] StructEngine
     const vector<DetCond>& expr_list, ///< [in] 式のリスト
     const JsonValue& option           ///< [in] オプション
     = JsonValue{}

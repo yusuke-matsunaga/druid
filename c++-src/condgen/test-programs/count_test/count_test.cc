@@ -14,6 +14,7 @@
 #include "CondGenMgr.h"
 #include "CnfGen.h"
 #include "StructEngine.h"
+#include "BoolDiffEnc.h"
 #include "ym/CnfSize.h"
 #include "ym/Timer.h"
 #include <random>
@@ -227,52 +228,66 @@ count_test(
 
   auto total_cnf_size = CnfSize::zero();
   auto total_cnf_size_naive = CnfSize::zero();
+  auto total_cnf_size_real = CnfSize::zero();
   if ( ffr_mode ) {
-    vector<DetCond> cond_list;
-    cond_list.reserve(network.ffr_num());
-    CondGenMgr::root_cond(network, limit,
-			  [&](const TpgFFR* ffr,
-			      const DetCond& cond,
-			      SizeType count,
-			      double time){
-			    cond_list.push_back(cond);
-			  },
-			  cg_option);
-    total_cnf_size = CnfGen::calc_cnf_size(engine, cond_list, cnf_option);
-    total_cnf_size_naive = CnfGen::calc_cnf_size(engine, cond_list);
+    total_cnf_size = CondGenMgr::calc_root_cond_size(network, limit,
+						     cg_option,
+						     cnf_option);
+    total_cnf_size_naive = CondGenMgr::calc_root_cond_size(network, limit,
+							   cg_option,
+							   JsonValue{});
+
+    for ( auto ffr: network.ffr_list() ) {
+      auto root = ffr->root();
+      StructEngine engine0{network};
+      engine0.make_cnf({root}, {root});
+      auto size0 = engine0.solver().cnf_size();
+      StructEngine engine1{network};
+      auto bd_enc = new BoolDiffEnc{engine1, root};
+      engine1.make_cnf({}, {root});
+      auto size1 = engine1.solver().cnf_size();
+      auto size = size1 - size0;
+      total_cnf_size_real += size;
+    }
   }
   else {
-    CondGenMgr::fault_cond(network, src_fault_list, limit,
-			   [&](const TpgFault* fault,
-			       const DetCond& cond,
-			       SizeType count,
-			       double time){
-			     auto cnf_size = CnfGen::calc_cnf_size(engine, cond, cnf_option);
-			     cout << fault->str()
-				  << ": " << time << endl
-				  << setw(4) << count
-				  << "| " << cnf_size << endl;
-			     StructEngine engine{network};
-			     auto root = fault->ffr_root();
-			     engine.make_cnf({root}, {root});
-			     auto cnf_size0 = engine.solver().cnf_size();
-			     CnfGen::make_cnf(engine, cond);
-			     auto cnf_size1 = engine.solver().cnf_size();
-			     auto real_size = cnf_size1 - cnf_size0;
-			     cout << "real_size: " << real_size << endl;
-			     cout << "mandatory cond: " << cond.mandatory_condition() << endl;
-			     cout << "cover" << endl;
-			     for ( auto& cube: cond.cube_list() ) {
-			       cout << cube << endl;
-			     }
-			     total_cnf_size += cnf_size;
-			   },
-			   cg_option);
+    auto cond_array = CondGenMgr::fault_cond(network, src_fault_list, limit,
+					    cg_option);
+    for ( auto fault: src_fault_list ) {
+      auto cond = cond_array[fault->id()];
+      auto cnf_size = CnfGen::calc_cnf_size(cond, cnf_option);
+      cout << fault->str()
+	   << ": " << endl
+	   << "| " << cnf_size << endl;
+      StructEngine engine{network};
+      auto root = fault->ffr_root();
+      engine.make_cnf({root}, {root});
+      auto cnf_size0 = engine.solver().cnf_size();
+      CnfGen::make_cnf(engine, cond);
+      auto cnf_size1 = engine.solver().cnf_size();
+      auto real_size = cnf_size1 - cnf_size0;
+      cout << "real_size: " << real_size << endl;
+      cout << "mandatory cond: " << cond.mandatory_condition() << endl;
+      cout << "cover" << endl;
+      for ( auto& cube: cond.cube_list() ) {
+	cout << cube << endl;
+      }
+      total_cnf_size += cnf_size;
+    }
   }
 
-  cout << "Total CNF size:         " << setw(10) << total_cnf_size.clause_num << " " << setw(10) << total_cnf_size.literal_num << endl;
-  cout << "Total CNF size(naive):  " << setw(10) << total_cnf_size_naive.clause_num << " "
+  cout << "Total CNF size:         "
+       << setw(10) << total_cnf_size.clause_num
+       << " "
+       << setw(10) << total_cnf_size.literal_num << endl;
+  cout << "Total CNF size(naive):  "
+       << setw(10) << total_cnf_size_naive.clause_num
+       << " "
        << setw(10) << total_cnf_size_naive.literal_num << endl;
+  cout << "Total CNF size(real):   "
+       << setw(10) << total_cnf_size_real.clause_num
+       << " "
+       << setw(10) << total_cnf_size_real.literal_num << endl;
 
   return 0;
 }

@@ -96,6 +96,22 @@ PyDetCond::ToPyObject(
   return obj;
 }
 
+// @brief DetCond のリストを PyObject に変換する．
+PyObject*
+PyDetCond::ToPyList(
+  const vector<DetCond>& val_list
+)
+{
+  SizeType n = val_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto cond = val_list[i];
+    auto cond_obj = ToPyObject(cond);
+    PyList_SET_ITEM(ans_obj, i, cond_obj);
+  }
+  return ans_obj;
+}
+
 // @brief PyObject が DetCond タイプか調べる．
 bool
 PyDetCond::Check(

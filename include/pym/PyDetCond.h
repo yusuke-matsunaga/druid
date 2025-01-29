@@ -47,6 +47,16 @@ public:
     const DetCond& val ///< [in] 値
   );
 
+  /// @brief DetCond のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const vector<DetCond>& val_list ///< [in] 値のリスト
+  );
+
   /// @brief PyObject が DetCond タイプか調べる．
   static
   bool

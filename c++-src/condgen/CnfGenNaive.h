@@ -24,17 +24,23 @@ class CnfGenNaive :
 public:
 
   /// @brief コンストラクタ
-  CnfGenNaive(
-    StructEngine& engine ///< [in] StructEngine
-  ) : CnfGenImpl{engine}
-  {
-  }
+  CnfGenNaive() = default;
 
   /// @brief デストラクタ
   ~CnfGenNaive() = default;
 
 
 public:
+  //////////////////////////////////////////////////////////////////////
+  // CnfGenImpl の仮想関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 条件を CNF に変換する．
+  vector<vector<SatLiteral>>
+  make_cnf(
+    StructEngine& engine,            ///< [in] StructEngine
+    const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
+  ) override;
 
   /// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
   CnfSize
@@ -45,15 +51,16 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // CnfGenImpl の仮想関数
+  // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief カバーをCNFに変換する．
-  /// @return カバーの成り立つ条件を表すリテラルを返す．
+  static
   SatLiteral
   cover_to_cnf(
-    const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
-  ) override;
+    StructEngine& engine,
+    const vector<AssignList>& cube_list
+  );
 
 };
 

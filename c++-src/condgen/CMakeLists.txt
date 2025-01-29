@@ -29,7 +29,6 @@ set ( condgen_SOURCES
   CondGen.cc
   CondGen2.cc
   CnfGen.cc
-  CnfGenImpl.cc
   CnfGenNaive.cc
   CnfGenCube.cc
   CnfGenBdd.cc

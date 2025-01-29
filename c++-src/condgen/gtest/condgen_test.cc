@@ -109,7 +109,7 @@ CondGenTestWithParam::do_test()
     CondGen gen{network, ffr, option};
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
       SizeType count = 0;
-      auto cond = gen.fault_cond(fault, limit, count);
+      auto cond = gen.fault_cond(fault, limit);
       CondGenChecker checker{network, ffr, option};
       auto res = checker.check(fault->ffr_propagate_condition(),
 			       cond);

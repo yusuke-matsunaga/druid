@@ -61,8 +61,7 @@ public:
   /// @return 条件を返す．
   DetCond
   root_cond(
-    SizeType limit,      ///< [in] ループ回数の上限
-    SizeType& loop_count ///< [out] 実際のループ回数
+    SizeType limit      ///< [in] ループ回数の上限
   );
 
   /// @brief 与えられた故障を検出する条件を生成する．
@@ -70,8 +69,7 @@ public:
   DetCond
   fault_cond(
     const TpgFault* fault, ///< [in] 対象の故障
-    SizeType limit,        ///< [in] ループ回数の上限
-    SizeType& loop_count   ///< [out] 実際のループ回数
+    SizeType limit         ///< [in] ループ回数の上限
   );
 
 
@@ -84,8 +82,7 @@ private:
   DetCond
   gen_cond(
     const AssignList& extra_cond, ///< [in] 追加の条件
-    SizeType limit,               ///< [in] ループの上限
-    SizeType& loop_count          ///< [out] 実際のループ回数
+    SizeType limit                ///< [in] ループの上限
   );
 
 

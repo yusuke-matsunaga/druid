@@ -26,10 +26,8 @@ public:
 
   /// @brief コンストラクタ
   CnfGenBdd(
-    StructEngine& engine, ///< [in] StructEngine
     SizeType size_limit   ///< [in] BDD サイズの上限値
-  ) : CnfGenImpl{engine},
-      mSizeLimit{size_limit}
+  ) : mSizeLimit{size_limit}
   {
   }
 
@@ -38,6 +36,16 @@ public:
 
 
 public:
+  //////////////////////////////////////////////////////////////////////
+  // CnfGenImpl の仮想関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 条件を CNF に変換する．
+  vector<vector<SatLiteral>>
+  make_cnf(
+    StructEngine& engine,            ///< [in] StructEngine
+    const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
+  ) override;
 
   /// @brief 検出条件をCNFに変換した時の CNF のサイズを見積もる．
   CnfSize
@@ -48,21 +56,16 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // CnfGenImpl の仮想関数
+  // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief カバーをCNFに変換する．
   /// @return カバーの成り立つ条件を表すリテラルを返す．
   SatLiteral
   cover_to_cnf(
+    StructEngine& engine,               ///< [in] StructEngine
     const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
-  ) override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  );
 
   /// @brief カバーを BDD のリストに変換する．
   ///

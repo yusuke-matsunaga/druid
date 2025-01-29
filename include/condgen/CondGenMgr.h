@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "DetCond.h"
+#include "ym/CnfSize.h"
 #include "ym/JsonValue.h"
 
 
@@ -24,44 +25,40 @@ BEGIN_NAMESPACE_DRUID
 class CondGenMgr
 {
 public:
-
-  /// @brief FFRの根の故障伝搬条件用のコールバック関数
-  using RootCondCallback =
-    std::function<void(const TpgFFR*,  ///< [in] 対象の FFR
-		       const DetCond&, ///< [in] 伝搬条件
-		       SizeType,       ///< [in] ループ回数
-		       double)>;       ///< [in] 計算時間
-
-  /// @brief 故障検出条件用のコールバック関数
-  using FaultCondCallback =
-    std::function<void(const TpgFault*, ///< [in] 対象の故障
-		       const DetCond&,  ///< [in] 検出条件
-		       SizeType,        ///< [in] ループ回数
-		       double)>;        ///< [in] 計算時間
-
-public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
   /// @brief FFRの故障伝搬条件を求める．
+  /// @return 各 FFR の伝搬条件のリストを返す．
   static
-  void
+  vector<DetCond>
   root_cond(
     const TpgNetwork& network,           ///< [in] 対象のネットワーク
     SizeType limit,                      ///< [in] ループ回数の上限
-    RootCondCallback callback,           ///< [in] コールバック関数
     const JsonValue& option              ///< [in] オプション
   );
 
-  /// @brief 故障検出条件を求める．
+  /// @brief FFRの故障伝搬条件を表すCNFのサイズを求める．
   static
-  void
+  CnfSize
+  calc_root_cond_size(
+    const TpgNetwork& network,           ///< [in] 対象のネットワーク
+    SizeType limit,                      ///< [in] ループ回数の上限
+    const JsonValue& option,             ///< [in] オプション
+    const JsonValue& option2             ///< [in] CnfGen 用のオプション
+  );
+
+  /// @brief 故障検出条件を求める．
+  /// @return fault_list に対する検出条件の配列を返す．
+  ///
+  /// 結果のベクタは故障番号をキーにして対応する検出条件を格納する．
+  static
+  vector<DetCond>
   fault_cond(
     const TpgNetwork& network,                 ///< [in] 対象のネットワーク
     const vector<const TpgFault*>& fault_list, ///< [in] 対象の故障のリスト
     SizeType limit,                            ///< [in] ループ回数の上限
-    FaultCondCallback callback,                ///< [in] コールバック関数
     const JsonValue& option                    ///< [in] オプション
   );
 

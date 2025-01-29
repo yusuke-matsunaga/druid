@@ -17,15 +17,40 @@ BEGIN_NAMESPACE_DRUID
 // クラス CnfGenBdd
 //////////////////////////////////////////////////////////////////////
 
+// @brief 条件を CNF に変換する．
+vector<vector<SatLiteral>>
+CnfGenBdd::make_cnf(
+  StructEngine& engine,
+  const vector<DetCond>& cond_list
+)
+{
+  vector<vector<SatLiteral>> ans_list;
+  ans_list.reserve(cond_list.size());
+  for ( auto& cond: cond_list ) {
+    vector<SatLiteral> assumptions;
+    assumptions.reserve(cond.mandatory_condition().size() + 1);
+    for ( auto as: cond.mandatory_condition() ) {
+      auto lit = engine.conv_to_literal(as);
+      assumptions.push_back(lit);
+    }
+    auto lit = cover_to_cnf(engine, cond.cube_list());
+    assumptions.push_back(lit);
+    ans_list.push_back(assumptions);
+  }
+  return ans_list;
+}
+
 // @brief カバーをCNFに変換する．
 SatLiteral
 CnfGenBdd::cover_to_cnf(
+  StructEngine& engine,
   const vector<AssignList>& cube_list
 )
 {
+  Bdd2Cnf conv{engine};
+
   auto bdd_list = cover_to_bdd(cube_list);
 
-  Bdd2Cnf conv{engine()};
   auto n = bdd_list.size();
   if ( n == 0 ) {
     abort();
@@ -35,13 +60,13 @@ CnfGenBdd::cover_to_cnf(
   }
   vector<SatLiteral> tmp_lits;
   tmp_lits.reserve(n + 1);
-  auto lit = solver().new_variable(false);
+  auto lit = engine.solver().new_variable(false);
   tmp_lits.push_back(~lit);
   for ( auto& bdd1: bdd_list ) {
     auto lit1 = conv.conv_to_cnf(bdd1);
     tmp_lits.push_back(lit);
   }
-  solver().add_clause(tmp_lits);
+  engine.solver().add_clause(tmp_lits);
   return lit;
 }
 
@@ -59,7 +84,6 @@ CnfGenBdd::calc_cnf_size(
     }
     auto bdd_list = cover_to_bdd(cube_list);
 
-    Bdd2Cnf conv{engine()};
     auto n = bdd_list.size();
     if ( n == 0 ) {
       cout << endl;
@@ -68,17 +92,36 @@ CnfGenBdd::calc_cnf_size(
       }
       abort();
     }
+    auto size1 = CnfSize::zero();
     if ( n == 1 ) {
-      size += conv.calc_cnf_size(bdd_list.front());
+      size1 = Bdd2Cnf::calc_cnf_size(bdd_list.front());
     }
     else {
       for ( auto& bdd1: bdd_list ) {
-	auto size1 = conv.calc_cnf_size(bdd1);
-	size += size1;
+	auto tmp_size = Bdd2Cnf::calc_cnf_size(bdd1);
+	size1 += tmp_size;
       }
-      size += CnfSize{1, n + 1};
+      size1 += CnfSize{1, n + 1};
+    }
+
+    auto size0 = CnfSize::zero();
+    for ( auto& cube: cube_list ) {
+      auto n = cube.size();
+      // 1つのキューブにつき
+      // n 項， n * 2 リテラル
+      size0 += CnfSize{n, n * 2};
+    }
+    // 最後にキューブ数+1の項を追加
+    size0 += CnfSize{1, cube_list.size() + 1};
+
+    if ( size0.literal_num < size1.literal_num ) {
+      size += size0;
+    }
+    else {
+      size += size1;
     }
   }
+
   return size;
 }
 
@@ -91,7 +134,6 @@ CnfGenBdd::cover_to_bdd(
   // 個々のキューブをBddに変換してヒープ木に入れる．
   BddHeap bdd_heap;
   for ( auto& cube: cube_list ) {
-    cout << cube << endl;
     auto bdd1 = cube_to_bdd(cube);
     bdd_heap.put(bdd1);
   }
