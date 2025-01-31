@@ -208,14 +208,10 @@ count_test(
     cg_option_dict.emplace("sat_param", sat_obj);
   }
   cg_option_dict.emplace("debug", JsonValue{debug_level});
-  JsonValue cg_option{cg_option_dict};
 
-  auto src_fault_list = network.rep_fault_list();
+  cg_option_dict.emplace("loop_limit", limit);
 
-  Timer total_timer;
-  total_timer.start();
-
-  StructEngine engine{network}; // ダミー
+  JsonValue naive_cg_option{cg_option_dict};
 
   unordered_map<string, JsonValue> cnf_option_dict;
   if ( bdd ) {
@@ -226,54 +222,27 @@ count_test(
   }
   JsonValue cnf_option{cnf_option_dict};
 
-  auto total_cnf_size = CnfSize::zero();
-  auto total_cnf_size_naive = CnfSize::zero();
-  auto total_cnf_size_real = CnfSize::zero();
-  if ( ffr_mode ) {
-    total_cnf_size = CondGenMgr::calc_root_cond_size(network, limit,
-						     cg_option,
-						     cnf_option);
-    total_cnf_size_naive = CondGenMgr::calc_root_cond_size(network, limit,
-							   cg_option,
-							   JsonValue{});
+  cg_option_dict.emplace("cnfgen", cnf_option);
 
-    for ( auto ffr: network.ffr_list() ) {
-      auto root = ffr->root();
-      StructEngine engine0{network};
-      engine0.make_cnf({root}, {root});
-      auto size0 = engine0.solver().cnf_size();
-      StructEngine engine1{network};
-      auto bd_enc = new BoolDiffEnc{engine1, root};
-      engine1.make_cnf({}, {root});
-      auto size1 = engine1.solver().cnf_size();
-      auto size = size1 - size0;
-      total_cnf_size_real += size;
-    }
-  }
-  else {
-    auto cond_array = CondGenMgr::fault_cond(network, src_fault_list, limit,
-					    cg_option);
-    for ( auto fault: src_fault_list ) {
-      auto cond = cond_array[fault->id()];
-      auto cnf_size = CnfGen::calc_cnf_size(cond, cnf_option);
-      cout << fault->str()
-	   << ": " << endl
-	   << "| " << cnf_size << endl;
-      StructEngine engine{network};
-      auto root = fault->ffr_root();
-      engine.make_cnf({root}, {root});
-      auto cnf_size0 = engine.solver().cnf_size();
-      CnfGen::make_cnf(engine, cond);
-      auto cnf_size1 = engine.solver().cnf_size();
-      auto real_size = cnf_size1 - cnf_size0;
-      cout << "real_size: " << real_size << endl;
-      cout << "mandatory cond: " << cond.mandatory_condition() << endl;
-      cout << "cover" << endl;
-      for ( auto& cube: cond.cube_list() ) {
-	cout << cube << endl;
-      }
-      total_cnf_size += cnf_size;
-    }
+  JsonValue cg_option{cg_option_dict};
+
+  Timer total_timer;
+  total_timer.start();
+
+  auto total_cnf_size = CondGenMgr::calc_ffr_cond_size(network, cg_option);
+  auto total_cnf_size_naive = CondGenMgr::calc_ffr_cond_size(network, naive_cg_option);
+  auto total_cnf_size_real = CnfSize::zero();
+  for ( auto ffr: network.ffr_list() ) {
+    auto root = ffr->root();
+    StructEngine engine0{network};
+    engine0.make_cnf({root}, {root});
+    auto size0 = engine0.solver().cnf_size();
+    StructEngine engine1{network};
+    auto bd_enc = new BoolDiffEnc{engine1, root};
+    engine1.make_cnf({}, {root});
+    auto size1 = engine1.solver().cnf_size();
+    auto size = size1 - size0;
+    total_cnf_size_real += size;
   }
 
   cout << "Total CNF size:         "

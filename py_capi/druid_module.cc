@@ -76,9 +76,11 @@ PyInit_druid()
   if ( !bist_init(m) ) {
     goto error;
   }
+#if 0
   if ( !condgen_init(m) ) {
     goto error;
   }
+#endif
 
   return m;
 

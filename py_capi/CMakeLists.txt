@@ -62,8 +62,7 @@ set ( druid_SOURCES
   bist/PyPhaseShifter.cc
   bist/PyLFSR.cc
 
-  condgen/condgen_module.cc
-  condgen/PyDetCond.cc
+  #condgen/condgen_module.cc
   )
 
 

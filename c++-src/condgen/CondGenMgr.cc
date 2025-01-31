@@ -22,45 +22,121 @@
 
 BEGIN_NAMESPACE_DRUID
 
+BEGIN_NONAMESPACE
+
+// デフォルトのループ回数
+static const SizeType DEFAULT_LOOP_LIMIT = 300;
+
+// @brief オプション中から "loop_limit" 属性を取り出す．
+//
+// * "loop_limit" の値を持たなければデフォルト値を返す．
+// * "loop_limit" の値が int ならそのまま返す．
+// * それ以外は例外を送出する．
+SizeType
+get_loop_limit(
+  const JsonValue& option ///< [in] オプション
+)
+{
+  const char* KEY = "loop_limit";
+  if ( option.is_object() && option.has_key(KEY) ) {
+    auto val = option.get(KEY);
+    if ( val.is_int() ) {
+      return val.get_int();
+    }
+    throw std::invalid_argument{"'loop_limit' should be an integer"};
+  }
+  return DEFAULT_LOOP_LIMIT;
+}
+
+// @brief オプションの中から "cnfgen" 属性を取り出す．
+JsonValue
+get_cnfgen_option(
+  const JsonValue& option ///< [in] オプション
+)
+{
+  const char* KEY = "cnfgen";
+  if ( option.is_object() ) {
+    return option.get(KEY);
+  }
+  return JsonValue{};
+}
+
+END_NONAMESPACE
+
 //////////////////////////////////////////////////////////////////////
 // クラス CondGenMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 故障検出条件を求める．
-vector<DetCond>
-CondGenMgr::root_cond(
+vector<vector<SatLiteral>>
+CondGenMgr::make_ffr_cond(
+  StructEngine& engine,
   const TpgNetwork& network,
-  SizeType limit,
   const JsonValue& option
 )
 {
   int debug = OpBase::get_debug(option);
-  vector<DetCond> cond_list;
-  cond_list.reserve(network.ffr_num());
-  for ( auto ffr: network.ffr_list() ) {
-    if ( debug > 1 ) {
-      DBG_OUT << "FFR#" << ffr->id()
-	      << " / "
-	      << network.ffr_num() << endl;
-    }
+  auto limit = get_loop_limit(option);
+  auto cnfgen_option = get_cnfgen_option(option);
 
+  auto ffr_num = network.ffr_num();
+  // ffr->id() をキーとして cond_list 中のインデックスを保持する辞書
+  // 上限を超えた場合，cond_list には登録されない．
+  std::unordered_map<SizeType, SizeType> id_map;
+  vector<DetCond> cond_list;
+  cond_list.reserve(ffr_num);
+  vector<BoolDiffEnc*> bd_array(ffr_num, nullptr);
+  vector<const TpgNode*> root_list;
+  root_list.reserve(ffr_num);
+  for ( auto ffr: network.ffr_list() ) {
+    auto root = ffr->root();
+    root_list.push_back(root);
     CondGen gen{network, ffr, option};
     auto cond = gen.root_cond(limit);
-    cond_list.push_back(cond);
+    if ( cond.cube_list().size() == limit ) {
+      // オーバーフローした場合は本当の式を作る．
+      auto bd_enc = new BoolDiffEnc{engine, root};
+      bd_array[ffr->id()] = bd_enc;
+    }
+    else {
+      auto id = cond_list.size();
+      id_map.emplace(ffr->id(), id);
+      cond_list.push_back(cond);
+    }
   }
-  return cond_list;
+  engine.make_cnf(root_list, root_list);
+
+  auto tmp_lits_array = CnfGen::make_cnf(engine, cond_list, cnfgen_option);
+  vector<vector<SatLiteral>> lits_array(ffr_num);
+  for ( auto ffr: network.ffr_list() ) {
+    auto bd = bd_array[ffr->id()];
+    if ( bd != nullptr ) {
+      auto lit = bd->prop_var();
+      lits_array[ffr->id()] = vector<SatLiteral>{lit};
+    }
+    else {
+      auto id = id_map.at(ffr->id());
+      lits_array[ffr->id()] = tmp_lits_array[id];
+    }
+  }
+  return lits_array;
 }
 
 // @brief FFRの故障伝搬条件を表すCNFのサイズを求める．
 CnfSize
-CondGenMgr::calc_root_cond_size(
+CondGenMgr::calc_ffr_cond_size(
   const TpgNetwork& network,
-  SizeType limit,
-  const JsonValue& option,
-  const JsonValue& option2
+  const JsonValue& option
 )
 {
+  auto limit = get_loop_limit(option);
+  auto cnfgen_option = get_cnfgen_option(option);
+
   auto total_size = CnfSize::zero();
+  vector<DetCond> cond_list;
+  cond_list.reserve(network.ffr_num());
+  SizeType total_cube_num = 0;
+  SizeType cond_num = 0;
   for ( auto ffr: network.ffr_list() ) {
     CondGen gen{network, ffr, option};
     auto cond = gen.root_cond(limit);
@@ -78,46 +154,17 @@ CondGenMgr::calc_root_cond_size(
       total_size += size;
     }
     else {
-      auto size1 = CnfGen::calc_cnf_size(cond, option2);
-      auto size2 = CnfGen::calc_cnf_size(cond);
-      if ( size1.literal_num < size2.literal_num ) {
-	total_size += size1;
-      }
-      else {
-	total_size += size2;
-      }
+      cond_list.push_back(cond);
+      total_cube_num += cond.cube_list().size();
+      ++ cond_num;
     }
   }
+  auto size1 = CnfGen::calc_cnf_size(cond_list, cnfgen_option);
+  total_size += size1;
+  auto ave_cube_num = cond_num > 0 ? total_cube_num / cond_num : 0;
+  cout << "Ave. cube num = " << ave_cube_num << endl;
+
   return total_size;
-}
-
-// @brief 故障検出条件を求める．
-vector<DetCond>
-CondGenMgr::fault_cond(
-  const TpgNetwork& network,
-  const vector<const TpgFault*>& fault_list,
-  SizeType limit,
-  const JsonValue& option
-)
-{
-  int debug = OpBase::get_debug(option);
-  vector<DetCond> cond_array(network.max_fault_id());
-  FFRFaultList ffr_fault_list{network, fault_list};
-  for ( auto ffr: ffr_fault_list.ffr_list() ) {
-    if ( debug > 1 ) {
-      DBG_OUT << "FFR#" << ffr->id()
-	      << " [" << ffr_fault_list.fault_list(ffr).size() << "]"
-	      << " / "
-	      << ffr_fault_list.ffr_list().size() << endl;
-    }
-
-    CondGen gen{network, ffr, option};
-    for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
-      auto cond = gen.fault_cond(fault, limit);
-      cond_array[fault->id()] = cond;
-    }
-  }
-  return cond_array;
 }
 
 END_NAMESPACE_DRUID

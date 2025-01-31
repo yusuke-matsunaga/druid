@@ -9,14 +9,14 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "AssignList.h"
+#include "ym/SopCube.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class CubeMgr CubeMgr.h "CubeMgr.h"
-/// @brief キューブ(AssignList)を管理するクラス
+/// @brief SopCube を管理するクラス
 //////////////////////////////////////////////////////////////////////
 class CubeMgr
 {
@@ -45,21 +45,20 @@ public:
   /// @return キューブ番号を返す．
   SizeType
   reg_cube(
-    const AssignList& cube
+    const SopCube& cube
   )
   {
-    auto sig = gen_signature(cube);
-    if ( mCubeDict.count(sig) == 0 ) {
+    if ( mCubeDict.count(cube) == 0 ) {
       auto id = mCubeList.size();
       mCubeList.push_back(cube);
-      mCubeDict.emplace(sig, id);
+      mCubeDict.emplace(cube, id);
       return id;
     }
-    return mCubeDict.at(sig);
+    return mCubeDict.at(cube);
   }
 
   /// @brief キューブを取り出す．
-  const AssignList&
+  const SopCube&
   get_cube(
     SizeType id ///< [in] キューブ番号
   ) const
@@ -71,33 +70,10 @@ public:
   }
 
   /// @brief 登録されているキューブのリストを返す．
-  const vector<AssignList>&
+  const vector<SopCube>&
   cube_list() const
   {
     return mCubeList;
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief キューブのシグネチャを作る．
-  static
-  string
-  gen_signature(
-    const AssignList& cube
-  )
-  {
-    ostringstream buf;
-    const char* sep = "";
-    for ( auto as: cube ) {
-      buf << sep;
-      sep = " ";
-      buf << as.hash();
-    }
-    return buf.str();
   }
 
 
@@ -107,10 +83,10 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // キューブのリスト
-  vector<AssignList> mCubeList;
+  vector<SopCube> mCubeList;
 
-  // キューブのシグネチャをキーにして mCubeList 中の位置を持つ辞書
-  std::unordered_map<string, SizeType> mCubeDict;
+  // キューブキーにして mCubeList 中の位置を持つ辞書
+  std::unordered_map<SopCube, SizeType> mCubeDict;
 
 };
 

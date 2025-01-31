@@ -14,7 +14,8 @@
 #include "pym/PyTpgNetwork.h"
 #include "pym/PyTpgFFR.h"
 #include "pym/PyTpgFault.h"
-#include "pym/PyDetCond.h"
+#include "pym/PySatLiteral.h"
+#include "pym/PyCnfSize.h"
 #include "pym/PyJsonValue.h"
 #include "pym/PyModule.h"
 
@@ -24,7 +25,58 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 PyObject*
-root_cond(
+make_ffr_cond(
+  PyObject* Py_UNUSED(self),
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kw_list[] = {
+    "network",
+    "limit",
+    "option",
+    nullptr
+  };
+  PyObject* engine_obj = nullptr;
+  PyObject* network_obj = nullptr;
+  SizeType limit = 0;
+  PyObject* option_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!k|O",
+				    const_cast<char**>(kw_list),
+				    PyStructEngine::_typeobject(), &network_obj,
+				    PyTpgNetwork::_typeobject(), &network_obj,
+				    &limit,
+				    &option_obj) ) {
+    return nullptr;
+  }
+  auto& engine = PyStructEngine::Get(engine_obj);
+  auto& network = PyTpgNetwork::Get(network_obj);
+  JsonValue option;
+  if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
+    PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
+    return nullptr;
+  }
+  auto lits_list = CondGenMgr::make_ffr_cond(engine, network, limit, option);
+
+  auto n = lits_list.size();
+  auto ans_obj = PyList_New(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto& lits = lits_list[i];
+    auto m = lits.size();
+    auto lits_obj = PyList_New(m);
+    for ( SizeType j = 0; j < m; ++ j ) {
+      auto lit = lits[j];
+      auto lit_obj = PySatLiteral::ToPyObject(lit);
+      PyList_SetItem(lits_obj, j, lit_obj);
+    }
+    PyList_SetItem(ans_obj, i, lits_obj);
+  }
+
+  return ans_obj;
+}
+
+PyObject*
+calc_ffr_cond_size(
   PyObject* Py_UNUSED(self),
   PyObject* args,
   PyObject* kwds
@@ -52,64 +104,21 @@ root_cond(
     PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
     return nullptr;
   }
-  auto cond_list = CondGenMgr::root_cond(network, limit, option);
+  auto size = CondGenMgr::calc_ffr_cond_size(network, limit, option);
 
-  return PyDetCond::ToPyList(cond_list);
-}
-
-PyObject*
-fault_cond(
-  PyObject* Py_UNUSED(self),
-  PyObject* args,
-  PyObject* kwds
-)
-{
-  static const char* kw_list[] = {
-    "network",
-    "fault_list",
-    "limit",
-    "option",
-    nullptr
-  };
-  PyObject* network_obj = nullptr;
-  PyObject* fault_list_obj = nullptr;
-  SizeType limit = 0;
-  PyObject* option_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!Ok|O",
-				    const_cast<char**>(kw_list),
-				    PyTpgNetwork::_typeobject(), &network_obj,
-				    &fault_list_obj,
-				    &limit,
-				    &option_obj) ) {
-    return nullptr;
-  }
-  auto& network = PyTpgNetwork::Get(network_obj);
-  vector<const TpgFault*> fault_list;
-  if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
-    PyErr_SetString(PyExc_TypeError, "'fault_list' should be a list of TpgFault");
-    return nullptr;
-  }
-  JsonValue option;
-  if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
-    PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
-    return nullptr;
-  }
-  auto cond_list = CondGenMgr::fault_cond(network, fault_list, limit,
-					  option);
-
-  return PyDetCond::ToPyList(cond_list);
+  return PyCnfSize::ToPyObject(size);
 }
 
 // メソッド定義構造体
 PyMethodDef condgen_methods[] = {
-  {"root_cond",
-   reinterpret_cast<PyCFunction>(root_cond),
+  {"make_ffr_cond",
+   reinterpret_cast<PyCFunction>(make_ffr_cond),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("generate propagate condition for the root of FFR")},
-  {"fault_cond",
-   reinterpret_cast<PyCFunction>(fault_cond),
+   PyDoc_STR("generate propagate condition of the roots of FFRs")},
+  {"calc_ffr_cond_size",
+   reinterpret_cast<PyCFunction>(calc_ffr_cond_size),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("generate fault detect condition")},
+   PyDoc_STR("calculate CNF size for propagate condition of the roots of FFRs")},
   {nullptr, nullptr, 0, nullptr},
 };
 
@@ -128,10 +137,6 @@ PyInit_condgen()
   auto m = PyModule::init(&condgen_module);
   if ( m == nullptr ) {
     return nullptr;
-  }
-
-  if ( !PyDetCond::init(m) ) {
-    goto error;
   }
 
   return m;

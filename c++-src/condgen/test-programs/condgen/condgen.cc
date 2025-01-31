@@ -247,20 +247,6 @@ condgen(
       total_cnf_size += size;
     }
   }
-  else {
-    StructEngine engine{network, option};
-    auto cond_array = CondGenMgr::fault_cond(network, src_fault_list, limit,
-					     cg_option);
-    for ( auto fault: src_fault_list ) {
-      auto& cond = cond_array[fault->id()];
-      auto cnf_size = CnfGen::calc_cnf_size(cond);
-      cout << fault->str()
-	   << ": " << endl
-	   << "| " << cnf_size.clause_num
-	   << ", " << cnf_size.literal_num << endl;
-      total_cnf_size += cnf_size;
-    }
-  }
 
   cout << "Total Clause Num:  " << setw(10) << total_cnf_size.clause_num << endl
        << "Total Literal Num: " << setw(10) << total_cnf_size.literal_num << endl;
