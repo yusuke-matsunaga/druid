@@ -7,6 +7,8 @@
 /// All rights reserved.
 
 #include "CnfGenCube.h"
+#include "ym/AlgCover.h"
+#include "ym/AlgCube.h"
 #include "VarMgr.h"
 
 
@@ -58,24 +60,24 @@ CnfGenCube::cover_to_cnf(
 
 BEGIN_NONAMESPACE
 
-SopCover
+AlgCover
 gen_cover(
   VarMgr& var_mgr,
   vector<AssignList>& src_cube_list
 )
 {
   SizeType nv = var_mgr.var_num();
-  vector<SopCube> cube_list;
+  vector<AlgCube> cube_list;
   for ( auto& src_cube: src_cube_list ) {
     vector<Literal> lit_list;
     for ( auto& as: src_cube ) {
       auto lit = var_mgr.to_literal(as);
       lit_list.push_back(lit);
     }
-    SopCube cube{nv, lit_list};
+    AlgCube cube{nv, lit_list};
     cube_list.push_back(cube);
   }
-  return SopCover{nv, cube_list};
+  return AlgCover{nv, cube_list};
 }
 
 #if 0
@@ -124,6 +126,7 @@ struct Elem {
   SizeType cube_id;
 };
 
+#if 0
 void
 make_matrix(
   const vector<SopCover>& cover_list
@@ -166,6 +169,7 @@ make_matrix(
     }
   }
 }
+#endif
 
 END_NONAMESPACE
 
@@ -188,13 +192,14 @@ CnfGenCube::calc_cnf_size(
   }
   auto nv = var_mgr.var_num();
 
-  vector<SopCover> cover_list;
+#if 0
+  vector<AlgCover> cover_list;
   cover_list.reserve(cond_list.size());
   for ( auto& cond: cond_list ) {
     auto cover = gen_cover(var_mgr, cond.cube_list());
     cover_list.push_back(cover);
   }
-
+#endif
 
   auto ans = CnfSize::zero();
 
