@@ -11,6 +11,7 @@
 #include "druid.h"
 #include "ym/logic.h"
 #include "ym/TvFunc.h"
+#include "ym/Expr.h"
 
 
 BEGIN_NAMESPACE_DRUID
