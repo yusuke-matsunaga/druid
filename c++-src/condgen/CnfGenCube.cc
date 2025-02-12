@@ -7,8 +7,8 @@
 /// All rights reserved.
 
 #include "CnfGenCube.h"
-#include "ym/AlgCover.h"
-#include "ym/AlgCube.h"
+#include "ym/SopCover.h"
+#include "ym/SopCube.h"
 #include "VarMgr.h"
 
 
@@ -60,24 +60,24 @@ CnfGenCube::cover_to_cnf(
 
 BEGIN_NONAMESPACE
 
-AlgCover
+SopCover
 gen_cover(
   VarMgr& var_mgr,
   vector<AssignList>& src_cube_list
 )
 {
   SizeType nv = var_mgr.var_num();
-  vector<AlgCube> cube_list;
+  vector<SopCube> cube_list;
   for ( auto& src_cube: src_cube_list ) {
     vector<Literal> lit_list;
     for ( auto& as: src_cube ) {
       auto lit = var_mgr.to_literal(as);
       lit_list.push_back(lit);
     }
-    AlgCube cube{nv, lit_list};
+    SopCube cube{nv, lit_list};
     cube_list.push_back(cube);
   }
-  return AlgCover{nv, cube_list};
+  return SopCover{nv, cube_list};
 }
 
 #if 0
@@ -193,7 +193,7 @@ CnfGenCube::calc_cnf_size(
   auto nv = var_mgr.var_num();
 
 #if 0
-  vector<AlgCover> cover_list;
+  vector<SopCover> cover_list;
   cover_list.reserve(cond_list.size());
   for ( auto& cond: cond_list ) {
     auto cover = gen_cover(var_mgr, cond.cube_list());
