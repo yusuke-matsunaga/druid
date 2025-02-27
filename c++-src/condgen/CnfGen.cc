@@ -8,7 +8,7 @@
 
 #include "CnfGen.h"
 #include "CnfGenNaive.h"
-#include "CnfGenCube.h"
+#include "CnfGenFactor.h"
 #include "CnfGenBdd.h"
 #include "StructEngine.h"
 
@@ -68,6 +68,11 @@ CnfGen::make_cnf(
     CnfGenNaive gen;
     return gen.make_cnf(engine, cond_list);
   }
+  if ( method == "factor" ) {
+    // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
+    CnfGenFactor gen;
+    return gen.make_cnf(engine, cond_list);
+  }
   if ( method == "bdd" ) {
     // 一旦 Bdd に変換して CNF を作る．
     SizeType limit = 1000;
@@ -99,10 +104,9 @@ CnfGen::calc_cnf_size(
     CnfGenNaive gen;
     return gen.calc_cnf_size(cond_list);
   }
-  if ( method == "cube" ) {
-    // 共通なキューブを共有する．
-    // キューブごとにリテラルを割り当て，その OR 条件を作る．
-    CnfGenCube gen;
+  if ( method == "factor" ) {
+    // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
+    CnfGenFactor gen;
     return gen.calc_cnf_size(cond_list);
   }
   if ( method == "bdd" ) {

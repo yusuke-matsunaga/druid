@@ -51,6 +51,7 @@ condgen(
   bool ffr_mode = false;
   bool naive_mode = false;
   bool bdd_mode = false;
+  bool factor_mode = false;
   bool do_finfo_mgr = false;
   bool do_reduction = true;
   bool do_ffr_reduction = false;
@@ -150,6 +151,9 @@ condgen(
       else if ( strcmp(argv[pos], "--bdd") == 0 ) {
 	bdd_mode = true;
       }
+      else if ( strcmp(argv[pos], "--factor") == 0 ) {
+	factor_mode = true;
+      }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
@@ -215,6 +219,9 @@ condgen(
   std::unordered_map<string, JsonValue> cf_option_dict;
   if ( bdd_mode ) {
     cf_option_dict.emplace("method", JsonValue{"bdd"});
+  }
+  else if ( factor_mode ) {
+    cf_option_dict.emplace("method", JsonValue{"factor"});
   }
   JsonValue cf_option{cf_option_dict};
 

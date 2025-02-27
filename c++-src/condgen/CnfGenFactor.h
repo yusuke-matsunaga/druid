@@ -48,20 +48,6 @@ public:
     const vector<DetCond>& cond_list ///< [in] カバー（キューブのリスト）
   ) override;
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief カバーをCNFに変換する．
-  static
-  SatLiteral
-  cover_to_cnf(
-    StructEngine& engine,
-    const vector<AssignList>& cube_list
-  );
-
 };
 
 END_NAMESPACE_DRUID

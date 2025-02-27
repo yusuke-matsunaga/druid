@@ -54,7 +54,7 @@ count_test(
   bool do_ffr_reduction = false;
   bool do_global_reduction = false;
   bool bdd = false;
-  bool cube = false;
+  bool factor = false;
   int debug_level = 0;
 
   argv0 = argv[0];
@@ -147,8 +147,8 @@ count_test(
       else if ( strcmp(argv[pos], "--bdd") == 0 ) {
 	bdd = true;
       }
-      else if ( strcmp(argv[pos], "--cube") == 0 ) {
-	cube = true;
+      else if ( strcmp(argv[pos], "--factor") == 0 ) {
+	factor = true;
       }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
@@ -217,8 +217,8 @@ count_test(
   if ( bdd ) {
     cnf_option_dict.emplace("method", "bdd");
   }
-  else if ( cube ) {
-    cnf_option_dict.emplace("method", "cube");
+  else if ( factor ) {
+    cnf_option_dict.emplace("method", "factor");
   }
   JsonValue cnf_option{cnf_option_dict};
 

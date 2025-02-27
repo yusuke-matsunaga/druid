@@ -30,7 +30,7 @@ set ( condgen_SOURCES
   CondGen2.cc
   CnfGen.cc
   CnfGenNaive.cc
-  CnfGenCube.cc
+  CnfGenFactor.cc
   CnfGenBdd.cc
   Bdd2Cnf.cc
   BgNode.cc
