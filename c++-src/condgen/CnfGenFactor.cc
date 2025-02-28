@@ -23,6 +23,10 @@ to_expr(
   VarMgr& var_mgr
 )
 {
+  if ( cube_list.empty() ) {
+    throw std::invalid_argument{"cube_list is empty"};
+  }
+
   // cube_list を SopCover に変換する．
   vector<vector<Literal>> literal_list;
   literal_list.reserve(cube_list.size());
@@ -58,8 +62,14 @@ to_expr(
     }
   }
   // ファクタリングを行う．
-  auto expr = cover.bool_factor();
-  return expr;
+  if ( cover.variable_num() <= 20 ) {
+    auto expr = cover.bool_factor();
+    return expr;
+  }
+  else {
+    auto expr = cover.good_factor();
+    return expr;
+  }
 }
 
 vector<SatLiteral>
@@ -204,6 +214,23 @@ calc_size(
   auto size = CnfSize::zero();
   auto n = calc_expr_size(expr, size);
 
+  {
+    auto ans = CnfSize::zero();
+    for ( auto& cube: cube_list ) {
+      auto n = cube.size();
+      // 1つのキューブにつき
+      // n 項， n * 2 リテラル
+      ans += CnfSize{n, n * 2};
+    }
+    // 最後にキューブ数+1の項を追加
+    ans += CnfSize{1, cube_list.size() + 1};
+    cout << "initial CNF Size: " << ans.clause_num
+	 << ", " << ans.literal_num << endl;
+  }
+  {
+    cout << "CNF Size: " << size.clause_num
+	 << ", " << size.literal_num << endl;
+  }
   return size;
 }
 
@@ -245,15 +272,6 @@ CnfGenFactor::calc_cnf_size(
     // mandatory_condition() に対応するリテラルは CNF にならない．
     auto& cube_list = cond.cube_list();
     ans += calc_size(cube_list);
-
-    for ( auto& cube: cube_list ) {
-      auto n = cube.size();
-      // 1つのキューブにつき
-      // n 項， n * 2 リテラル
-      ans += CnfSize{n, n * 2};
-    }
-    // 最後にキューブ数+1の項を追加
-    ans += CnfSize{1, cube_list.size() + 1};
   }
 
   return ans;

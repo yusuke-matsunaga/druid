@@ -120,4 +120,14 @@ CnfGen::calc_cnf_size(
   return gen.calc_cnf_size(cond_list);
 }
 
+// @brief 複数の論理式をそのまま CNF に変換した際の項数とリテラル数を数える．
+CnfSize
+CnfGen::calc_naive_cnf_size(
+  const vector<DetCond>& cond_list
+)
+{
+  CnfGenNaive gen;
+  return gen.calc_cnf_size(cond_list);
+}
+
 END_NAMESPACE_DRUID

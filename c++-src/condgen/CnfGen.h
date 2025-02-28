@@ -80,6 +80,13 @@ public:
     = JsonValue{}
   );
 
+  /// @brief 複数の論理式をそのまま CNF に変換した際の項数とリテラル数を数える．
+  static
+  CnfSize
+  calc_naive_cnf_size(
+    const vector<DetCond>& expr_list ///< [in] 式のリスト
+  );
+
 };
 
 END_NAMESPACE_DRUID

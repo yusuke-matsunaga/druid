@@ -229,34 +229,26 @@ count_test(
   Timer total_timer;
   total_timer.start();
 
-  auto total_cnf_size = CondGenMgr::calc_ffr_cond_size(network, cg_option);
-  auto total_cnf_size_naive = CondGenMgr::calc_ffr_cond_size(network, naive_cg_option);
-  auto total_cnf_size_real = CnfSize::zero();
-  for ( auto ffr: network.ffr_list() ) {
-    auto root = ffr->root();
-    StructEngine engine0{network};
-    engine0.make_cnf({root}, {root});
-    auto size0 = engine0.solver().cnf_size();
-    StructEngine engine1{network};
-    auto bd_enc = new BoolDiffEnc{engine1, root};
-    engine1.make_cnf({}, {root});
-    auto size1 = engine1.solver().cnf_size();
-    auto size = size1 - size0;
-    total_cnf_size_real += size;
-  }
+  auto stats = CondGenMgr::calc_ffr_cond_size(network, cg_option);
 
-  cout << "Total CNF size:         "
-       << setw(10) << total_cnf_size.clause_num
+  cout << "Total CNF size(optimized): "
+       << setw(10) << stats.opt_size.clause_num
        << " "
-       << setw(10) << total_cnf_size.literal_num << endl;
-  cout << "Total CNF size(naive):  "
-       << setw(10) << total_cnf_size_naive.clause_num
+       << setw(10) << stats.opt_size.literal_num << endl;
+  cout << "Total CNF size(naive):     "
+       << setw(10) << stats.naive_size.clause_num
        << " "
-       << setw(10) << total_cnf_size_naive.literal_num << endl;
-  cout << "Total CNF size(real):   "
-       << setw(10) << total_cnf_size_real.clause_num
+       << setw(10) << stats.naive_size.literal_num << endl;
+  cout << "Total CNF size(rest):      "
+       << setw(10) << stats.rest_size.clause_num
        << " "
-       << setw(10) << total_cnf_size_real.literal_num << endl;
+       << setw(10) << stats.rest_size.literal_num << endl;
+  cout << "rest count:                " << setw(10)
+       << stats.rest_num << endl;
+  cout << "Total CNF size(raw):       "
+       << setw(10) << stats.total_raw_size.clause_num
+       << " "
+       << setw(10) << stats.total_raw_size.literal_num << endl;
 
   return 0;
 }

@@ -16,6 +16,17 @@
 
 BEGIN_NAMESPACE_DRUID
 
+/// @brief 結果を表す構造体
+struct CondGenStats
+{
+  CnfSize total_raw_size; ///< オリジナルのCNF式のサイズ
+  CnfSize naive_size;     ///< SOP をナイーブに CNF に変換した場合のサイズ
+  CnfSize opt_size;       ///< 最適化した CNF に変換した場合のサイズ
+  CnfSize rest_size;      ///< SOP 化できなかった部分のサイズ
+  SizeType rest_num;      ///< SOP 化できなかった条件の数
+};
+
+
 //////////////////////////////////////////////////////////////////////
 /// @class CondGenMgr CondGenMgr.h "CondGenMgr.h"
 /// @brief FFRの故障伝搬条件を表すCNFを作るクラス
@@ -41,7 +52,7 @@ public:
 
   /// @brief FFRの故障伝搬条件を表すCNFのサイズを求める．
   static
-  CnfSize
+  CondGenStats
   calc_ffr_cond_size(
     const TpgNetwork& network,           ///< [in] 対象のネットワーク
     const JsonValue& option              ///< [in] オプション
