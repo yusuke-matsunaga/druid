@@ -22,13 +22,17 @@ CnfGenNaive::make_cnf(
   ans_list.reserve(cond_list.size());
   for ( auto& cond: cond_list ) {
     vector<SatLiteral> assumptions;
-    assumptions.reserve(cond.mandatory_condition().size() + 1);
-    for ( auto as: cond.mandatory_condition() ) {
-      auto lit = engine.conv_to_literal(as);
-      assumptions.push_back(lit);
+    if ( cond.type() == DetCond::Detected ) {
+      assumptions.reserve(cond.mandatory_condition().size() + 1);
+      for ( auto as: cond.mandatory_condition() ) {
+	auto lit = engine.conv_to_literal(as);
+	assumptions.push_back(lit);
+      }
+      if ( !cond.cube_list().empty() ) {
+	auto lit = cover_to_cnf(engine, cond.cube_list());
+	assumptions.push_back(lit);
+      }
     }
-    auto lit = cover_to_cnf(engine, cond.cube_list());
-    assumptions.push_back(lit);
     ans_list.push_back(assumptions);
   }
   return ans_list;
@@ -44,7 +48,7 @@ CnfGenNaive::cover_to_cnf(
   auto n = cube_list.size();
   vector<SatLiteral> tmp_lits;
   tmp_lits.reserve(n + 1);
-  auto new_lit = engine.solver().new_variable(false);
+  auto new_lit = engine.solver().new_variable(true);
   tmp_lits.push_back(~new_lit);
   for ( auto& cube: cube_list ) {
     auto new_lit1 = cube_to_cnf(engine, cube);
@@ -63,15 +67,17 @@ CnfGenNaive::calc_cnf_size(
 {
   auto ans = CnfSize::zero();
   for ( auto& cond: cond_list ) {
-    auto& cube_list = cond.cube_list();
-    for ( auto& cube: cube_list ) {
-      auto n = cube.size();
-      // 1つのキューブにつき
-      // n 項， n * 2 リテラル
-      ans += CnfSize{n, n * 2};
+    if ( cond.type() == DetCond::Detected ) {
+      auto& cube_list = cond.cube_list();
+      for ( auto& cube: cube_list ) {
+	auto n = cube.size();
+	// 1つのキューブにつき
+	// n 項， n * 2 リテラル
+	ans += CnfSize{n, n * 2};
+      }
+      // 最後にキューブ数+1の項を追加
+      ans += CnfSize{1, cube_list.size() + 1};
     }
-    // 最後にキューブ数+1の項を追加
-    ans += CnfSize{1, cube_list.size() + 1};
   }
 
   return ans;

@@ -26,6 +26,16 @@ class DetCond
 {
 public:
 
+  /// @brief 結果の種類
+  enum Type: std::uint8_t {
+    Detected,
+    Overflow,
+    Undetected
+  };
+
+
+public:
+
   /// @brief 空のコンストラクタ
   DetCond() = default;
 
@@ -34,9 +44,26 @@ public:
     const AssignList& mandatory_condition, ///< [in] 必要条件
     const vector<AssignList>& cube_list    ///< [in] キューブのリスト
     = {}
-  ) : mMandatoryCondition{mandatory_condition},
+  ) : mType{Detected},
+      mMandatoryCondition{mandatory_condition},
       mCubeList{cube_list}
   {
+  }
+
+  /// @brief Overflow を返すクラスメソッド
+  static
+  DetCond
+  overflow()
+  {
+    return DetCond(Overflow);
+  }
+
+  /// @brief Undetected を返すクラスメソッド
+  static
+  DetCond
+  undetected()
+  {
+    return DetCond(Undetected);
   }
 
   /// @brief デストラクタ
@@ -47,6 +74,13 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief タイプを返す．
+  Type
+  type() const
+  {
+    return mType;
+  }
 
   /// @brief 条件が空の時 true を返す．
   bool
@@ -71,9 +105,22 @@ public:
 
 
 private:
+
+  /// @brief 種類を指定したコンストラクタ
+  DetCond(
+    Type type
+  ) : mType{type}
+  {
+  }
+
+
+private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // タイプ
+  Type mType;
 
   // 必要条件
   AssignList mMandatoryCondition;

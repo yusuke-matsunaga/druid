@@ -120,7 +120,7 @@ CondGen::gen_cond(
   }
   if ( res != SatBool3::True ) {
     // 検出可能ではなかった．
-    return {};
+    return DetCond::undetected();
   }
   timer.reset();
   timer.start();
@@ -159,6 +159,8 @@ CondGen::gen_cond(
   vector<AssignList> cube_list;
   cube_list.push_back(suff_cond);
 
+  bool found = false;
+
   // 制御用の変数を用意する．
   auto clit = mEngine.solver().new_variable(false);
   for ( ; loop_count < limit; ++ loop_count ) {
@@ -185,6 +187,7 @@ CondGen::gen_cond(
     }
     if ( res != SatBool3::True ) {
       // すべてのキューブを生成した．
+      found = true;
       break;
     }
     suff_cond = mBdEnc->extract_sufficient_condition();
@@ -205,7 +208,10 @@ CondGen::gen_cond(
   }
 
   // 生成された結果を論理式の形に変換する．
-  return DetCond{mand_cond, cube_list};
+  if ( found ) {
+    return DetCond(mand_cond, cube_list);
+  }
+  return DetCond::overflow();
 }
 
 END_NAMESPACE_DRUID

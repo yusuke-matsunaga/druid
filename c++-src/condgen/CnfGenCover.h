@@ -1,8 +1,8 @@
-#ifndef CNFGENCUBE_H
-#define CNFGENCUBE_H
+#ifndef CNFGENCOVER_H
+#define CNFGENCOVER_H
 
-/// @file CnfGenCube.h
-/// @brief CnfGenCube のヘッダファイル
+/// @file CnfGenCover.h
+/// @brief CnfGenCover のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -15,19 +15,19 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class CnfGenCube CnfGenCube.h "CnfGenCube.h"
+/// @class CnfGenCover CnfGenCover.h "CnfGenCover.h"
 /// @brief カバーをCNFに変換する
 //////////////////////////////////////////////////////////////////////
-class CnfGenCube :
+class CnfGenCover :
   public CnfGenImpl
 {
 public:
 
   /// @brief コンストラクタ
-  CnfGenCube() = default;
+  CnfGenCover() = default;
 
   /// @brief デストラクタ
-  ~CnfGenCube() = default;
+  ~CnfGenCover() = default;
 
 
 public:
@@ -48,22 +48,8 @@ public:
     const vector<DetCond>& cond_list ///< [in] カバー（キューブのリスト）
   ) override;
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief カバーをCNFに変換する．
-  /// @return カバーの成り立つ条件を表すリテラルを返す．
-  SatLiteral
-  cover_to_cnf(
-    StructEngine& engine,               ///< [in] StructEngine
-    const vector<AssignList>& cube_list ///< [in] カバー（キューブのリスト）
-  );
-
 };
 
 END_NAMESPACE_DRUID
 
-#endif // CNFGENCUBE_H
+#endif // CNFGENCOVER_H

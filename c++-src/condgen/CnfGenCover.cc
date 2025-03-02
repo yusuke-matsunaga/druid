@@ -1,12 +1,12 @@
 
-/// @file CnfGenFactor.cc
-/// @brief CnfGenFactor の実装ファイル
+/// @file CnfGenCover.cc
+/// @brief CnfGenCover の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CnfGenFactor.h"
+#include "CnfGenCover.h"
 #include "ym/SopCover.h"
 #include "ym/Expr.h"
 #include "AssignVarDict.h"
@@ -54,8 +54,15 @@ to_expr(
   const SopCover& cover
 )
 {
-  // ファクタリングを行う．
-  auto expr = cover.bool_factor();
+  auto expr = Expr::zero();
+  auto literal_list = cover.literal_list();
+  for ( auto& lits: literal_list ) {
+    auto product = Expr::one();
+    for ( auto lit: lits ) {
+      product &= Expr::literal(lit);
+    }
+    expr |= product;
+  }
   return expr;
 }
 
@@ -114,7 +121,30 @@ calc_size(
 
   // Expr に変換する．
   auto expr = to_expr(cover);
+
+  {
+    cout << " => " << expr.literal_num() << " literals" << endl;
+  }
+
   auto size = Expr2Cnf::calc_cnf_size(expr);
+
+  {
+    auto ans = CnfSize::zero();
+    for ( auto& cube: cube_list ) {
+      auto n = cube.size();
+      // 1つのキューブにつき
+      // n 項， n * 2 リテラル
+      ans += CnfSize{n, n * 2};
+    }
+    // 最後にキューブ数+1の項を追加
+    ans += CnfSize{1, cube_list.size() + 1};
+    cout << "initial CNF Size: " << ans.clause_num
+	 << ", " << ans.literal_num << endl;
+  }
+  {
+    cout << "CNF Size: " << size.clause_num
+	 << ", " << size.literal_num << endl;
+  }
   return size;
 }
 
@@ -122,7 +152,7 @@ END_NONAMESPACE
 
 // @brief 条件を CNF に変換する．
 vector<vector<SatLiteral>>
-CnfGenFactor::make_cnf(
+CnfGenCover::make_cnf(
   StructEngine& engine,
   const vector<DetCond>& cond_list
 )
@@ -149,7 +179,7 @@ CnfGenFactor::make_cnf(
 
 // @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
 CnfSize
-CnfGenFactor::calc_cnf_size(
+CnfGenCover::calc_cnf_size(
   const vector<DetCond>& cond_list
 )
 {

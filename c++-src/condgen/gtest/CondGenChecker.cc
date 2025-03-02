@@ -19,9 +19,9 @@ CondGenChecker::CondGenChecker(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
-) : mEngine{network, option}
+) : mEngine{network, option},
+    mBdEnc{new BoolDiffEnc(mEngine, ffr->root(), option)}
 {
-  mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
   mEngine.make_cnf({}, {ffr->root()});
 }
 

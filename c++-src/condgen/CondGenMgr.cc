@@ -93,15 +93,23 @@ CondGenMgr::make_ffr_cond(
     root_list.push_back(root);
     CondGen gen{network, ffr, option};
     auto cond = gen.root_cond(limit);
-    if ( cond.cube_list().size() == limit ) {
-      // オーバーフローした場合は本当の式を作る．
-      auto bd_enc = new BoolDiffEnc{engine, root};
-      bd_array[ffr->id()] = bd_enc;
-    }
-    else {
-      auto id = cond_list.size();
-      id_map.emplace(ffr->id(), id);
-      cond_list.push_back(cond);
+    switch ( cond.type() ) {
+    case DetCond::Detected:
+    case DetCond::Undetected:
+      {
+	auto id = cond_list.size();
+	id_map.emplace(ffr->id(), id);
+	cond_list.push_back(cond);
+      }
+      break;
+
+    case DetCond::Overflow:
+      {
+	// オーバーフローした場合は本当の式を作る．
+	auto bd_enc = new BoolDiffEnc{engine, root};
+	bd_array[ffr->id()] = bd_enc;
+      }
+      break;
     }
   }
   engine.make_cnf(root_list, root_list);
@@ -159,15 +167,21 @@ CondGenMgr::calc_ffr_cond_size(
     }
     CondGen gen{network, ffr, option};
     auto cond = gen.root_cond(limit);
-    if ( cond.cube_list().size() == limit ) {
-      // オーバーフローした場合は本当の式を作る．
-      stats.rest_size += raw_size;
-      ++ stats.rest_num;
-    }
-    else {
+    switch ( cond.type() ) {
+    case DetCond::Detected:
       cond_list.push_back(cond);
       total_cube_num += cond.cube_list().size();
       ++ cond_num;
+      break;
+
+    case DetCond::Overflow:
+      // オーバーフローした場合は本当の式を作る．
+      stats.rest_size += raw_size;
+      ++ stats.rest_num;
+      break;
+
+    case DetCond::Undetected:
+      break;
     }
   }
 

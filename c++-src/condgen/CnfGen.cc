@@ -8,6 +8,7 @@
 
 #include "CnfGen.h"
 #include "CnfGenNaive.h"
+#include "CnfGenCover.h"
 #include "CnfGenFactor.h"
 #include "CnfGenBdd.h"
 #include "StructEngine.h"
@@ -68,6 +69,11 @@ CnfGen::make_cnf(
     CnfGenNaive gen;
     return gen.make_cnf(engine, cond_list);
   }
+  if ( method == "cover" ) {
+    // 一旦 SopCover に変換して CNF を作る．
+    CnfGenCover gen;
+    return gen.make_cnf(engine, cond_list);
+  }
   if ( method == "factor" ) {
     // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
     CnfGenFactor gen;
@@ -104,6 +110,11 @@ CnfGen::calc_cnf_size(
     CnfGenNaive gen;
     return gen.calc_cnf_size(cond_list);
   }
+  if ( method == "cover" ) {
+    // 一旦 SopCover に変換して CNF を作る．
+    CnfGenCover gen;
+    return gen.calc_cnf_size(cond_list);
+  }
   if ( method == "factor" ) {
     // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
     CnfGenFactor gen;
@@ -118,6 +129,17 @@ CnfGen::calc_cnf_size(
   // デフォルトフォールバック
   CnfGenNaive gen;
   return gen.calc_cnf_size(cond_list);
+}
+
+// @brief 複数の論理式を CNF に変換する．
+vector<vector<SatLiteral>>
+CnfGen::make_naive_cnf(
+  StructEngine& engine,
+  const vector<DetCond>& cond_list
+)
+{
+  CnfGenNaive gen;
+  return gen.make_cnf(engine, cond_list);
 }
 
 // @brief 複数の論理式をそのまま CNF に変換した際の項数とリテラル数を数える．
