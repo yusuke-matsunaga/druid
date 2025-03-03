@@ -7,81 +7,66 @@
 /// All rights reserved.
 
 #include "CnfGenNaive.h"
+#include "Expr2Cnf.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
-// @brief 条件を CNF に変換する．
-vector<vector<SatLiteral>>
-CnfGenNaive::make_cnf(
-  StructEngine& engine,
-  const vector<DetCond>& cond_list
+// @brief リテラルのリストから Expr を作る．
+Expr
+CnfGenNaive::to_expr(
+  const vector<vector<Literal>>& literal_list
 )
 {
-  vector<vector<SatLiteral>> ans_list;
-  ans_list.reserve(cond_list.size());
-  for ( auto& cond: cond_list ) {
-    vector<SatLiteral> assumptions;
-    if ( cond.type() == DetCond::Detected ) {
-      assumptions.reserve(cond.mandatory_condition().size() + 1);
-      for ( auto as: cond.mandatory_condition() ) {
-	auto lit = engine.conv_to_literal(as);
-	assumptions.push_back(lit);
-      }
-      if ( !cond.cube_list().empty() ) {
-	auto lit = cover_to_cnf(engine, cond.cube_list());
-	assumptions.push_back(lit);
-      }
+  if ( literal_list.empty() ) {
+    return Expr::one();
+  }
+  auto expr = Expr::zero();
+  for ( auto& lits: literal_list ) {
+    auto product = Expr::one();
+    for ( auto lit: lits ) {
+      product &= Expr::literal(lit);
     }
-    ans_list.push_back(assumptions);
+    expr |= product;
   }
-  return ans_list;
+  return expr;
 }
 
-// @brief カバーをCNFに変換する．
-SatLiteral
-CnfGenNaive::cover_to_cnf(
+// @brief Expr のリストから CNF を作る．
+vector<vector<SatLiteral>>
+CnfGenNaive::expr_to_cnf(
   StructEngine& engine,
-  const vector<AssignList>& cube_list
+  const vector<Expr>& expr_list
 )
 {
-  auto n = cube_list.size();
-  vector<SatLiteral> tmp_lits;
-  tmp_lits.reserve(n + 1);
-  auto new_lit = engine.solver().new_variable(true);
-  tmp_lits.push_back(~new_lit);
-  for ( auto& cube: cube_list ) {
-    auto new_lit1 = cube_to_cnf(engine, cube);
-    tmp_lits.push_back(new_lit1);
+  // 変数番号とSATリテラルの対応表を作る．
+  std::unordered_map<SizeType, SatLiteral> lit_map;
+  for ( SizeType id = 0; id < var_num(); ++ id ) {
+    auto as = get_assign(id);
+    auto satlit = engine.conv_to_literal(as);
+    lit_map.emplace(id, satlit);
   }
-  engine.solver().add_clause(tmp_lits);
+  Expr2Cnf conv(engine.solver(), lit_map);
 
-  return new_lit;
+  vector<vector<SatLiteral>> lits_list;
+  lits_list.reserve(expr_list.size());
+  for ( auto& expr: expr_list ) {
+    auto lits = conv.make_cnf(expr);
+    lits_list.push_back(lits);
+  }
+  return lits_list;
 }
 
-// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
+// @brief Expr のリストから CNF サイズを見積もる．
 CnfSize
-CnfGenNaive::calc_cnf_size(
-  const vector<DetCond>& cond_list
+CnfGenNaive::expr_cnf_size(
+  const vector<Expr>& expr_list
 )
 {
   auto ans = CnfSize::zero();
-  for ( auto& cond: cond_list ) {
-    if ( cond.type() == DetCond::Detected ) {
-      auto& cube_list = cond.cube_list();
-      if ( !cube_list.empty() ) {
-	for ( auto& cube: cube_list ) {
-	  auto n = cube.size();
-	  // 1つのキューブにつき
-	  // n 項， n * 2 リテラル
-	  ans += CnfSize{n, n * 2};
-	}
-	// 最後にキューブ数+1の項を追加
-	ans += CnfSize{1, cube_list.size() + 1};
-      }
-    }
+  for ( auto& expr: expr_list ) {
+    ans += Expr2Cnf::calc_cnf_size(expr);
   }
-
   return ans;
 }
 

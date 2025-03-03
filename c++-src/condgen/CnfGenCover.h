@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "CnfGenImpl.h"
+#include "CnfGenNaive.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -19,7 +19,7 @@ BEGIN_NAMESPACE_DRUID
 /// @brief カバーをCNFに変換する
 //////////////////////////////////////////////////////////////////////
 class CnfGenCover :
-  public CnfGenImpl
+  public CnfGenNaive
 {
 public:
 
@@ -28,25 +28,6 @@ public:
 
   /// @brief デストラクタ
   ~CnfGenCover() = default;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // CnfGenImpl の仮想関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 条件を CNF に変換する．
-  vector<vector<SatLiteral>>
-  make_cnf(
-    StructEngine& engine,            ///< [in] StructEngine
-    const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
-  ) override;
-
-  /// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
-  CnfSize
-  calc_cnf_size(
-    const vector<DetCond>& cond_list ///< [in] カバー（キューブのリスト）
-  ) override;
 
 };
 

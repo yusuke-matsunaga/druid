@@ -7,136 +7,61 @@
 /// All rights reserved.
 
 #include "CnfGen.h"
-#include "CnfGenNaive.h"
-#include "CnfGenCover.h"
-#include "CnfGenFactor.h"
-#include "StructEngine.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-BEGIN_NONAMESPACE
-
-// 文字列型のオプションを取り出す．
-//
-// 結果は value に上書きされる．
-// エラーが起こったら std::invalid_argument 例外を送出する．
-void
-get_string(
-  const JsonValue& option,
-  const string& keyword,
-  string& value
-)
-{
-  if ( option.is_object() && option.has_key(keyword) ) {
-    auto value_obj = option.at(keyword);
-    if ( value_obj.is_string() ) {
-      value = value_obj.get_string();
-    }
-    else {
-      ostringstream buf;
-      buf << "'" << keyword << "' should be a string";
-      throw std::invalid_argument{buf.str()};
-    }
-  }
-}
-
-END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // クラス CnfGen
 //////////////////////////////////////////////////////////////////////
 
-// @brief 複数の論理式を CNF に変換する．
+// @brief 条件を CNF に変換する．
 vector<vector<SatLiteral>>
 CnfGen::make_cnf(
   StructEngine& engine,
-  const vector<DetCond>& cond_list,
-  const JsonValue& option
+  const vector<DetCond>& cond_list
 )
 {
-  if ( cond_list.empty() ) {
-    return {};
-  }
+  // 条件を Expr に変換する．
+  auto expr_list = _make_expr_list(cond_list);
 
-  string method{"naive"};
-  get_string(option, "method", method);
+  // Expr のリストを CNF に変換する．
+  auto lits_list = expr_to_cnf(engine, expr_list);
 
-  if ( method == "naive" ) {
-    // ナイーブなやり方
-    // キューブごとにリテラルを割り当て，その OR 条件を作る．
-    CnfGenNaive gen;
-    return gen.make_cnf(engine, cond_list);
+  // 結果を作る．
+  vector<vector<SatLiteral>> ans_list(cond_list.size());
+  for ( SizeType id = 0; id < cond_list.size(); ++ id ) {
+    auto& cond = cond_list[id];
+    if ( cond.type() == DetCond::Detected ) {
+      vector<SatLiteral> assumptions;
+      auto lits = lits_list[id];
+      assumptions.reserve(cond.mandatory_condition().size() + lits.size());
+      for ( auto as: cond.mandatory_condition() ) {
+	auto lit = engine.conv_to_literal(as);
+	assumptions.push_back(lit);
+      }
+      for ( auto lit: lits ) {
+	assumptions.push_back(lit);
+      }
+      ans_list[id] = assumptions;
+    }
   }
-  if ( method == "cover" ) {
-    // 一旦 SopCover に変換して CNF を作る．
-    CnfGenCover gen;
-    return gen.make_cnf(engine, cond_list);
-  }
-  if ( method == "factor" ) {
-    // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
-    CnfGenFactor gen;
-    return gen.make_cnf(engine, cond_list);
-  }
-  // デフォルトフォールバック
-  CnfGenNaive gen;
-  return gen.make_cnf(engine, cond_list);
+  return ans_list;
 }
 
-// @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
+// @brief 条件を CNF に変換した時の CNF のサイズを見積もる．
 CnfSize
 CnfGen::calc_cnf_size(
-  const vector<DetCond>& cond_list,
-  const JsonValue& option
-)
-{
-  if ( cond_list.empty() ) {
-    return CnfSize::zero();
-  }
-
-  string method{"naive"};
-  get_string(option, "method", method);
-
-  if ( method == "naive" ) {
-    // ナイーブなやり方
-    // キューブごとにリテラルを割り当て，その OR 条件を作る．
-    CnfGenNaive gen;
-    return gen.calc_cnf_size(cond_list);
-  }
-  if ( method == "cover" ) {
-    // 一旦 SopCover に変換して CNF を作る．
-    CnfGenCover gen;
-    return gen.calc_cnf_size(cond_list);
-  }
-  if ( method == "factor" ) {
-    // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
-    CnfGenFactor gen;
-    return gen.calc_cnf_size(cond_list);
-  }
-  // デフォルトフォールバック
-  CnfGenNaive gen;
-  return gen.calc_cnf_size(cond_list);
-}
-
-// @brief 複数の論理式を CNF に変換する．
-vector<vector<SatLiteral>>
-CnfGen::make_naive_cnf(
-  StructEngine& engine,
   const vector<DetCond>& cond_list
 )
 {
-  CnfGenNaive gen;
-  return gen.make_cnf(engine, cond_list);
-}
+  // 条件を Expr に変換する．
+  auto expr_list = _make_expr_list(cond_list);
 
-// @brief 複数の論理式をそのまま CNF に変換した際の項数とリテラル数を数える．
-CnfSize
-CnfGen::calc_naive_cnf_size(
-  const vector<DetCond>& cond_list
-)
-{
-  CnfGenNaive gen;
-  return gen.calc_cnf_size(cond_list);
+  // Expr のリストの CNF サイズを見積もる．
+  auto size = expr_cnf_size(expr_list);
+
+  return size;
 }
 
 END_NAMESPACE_DRUID

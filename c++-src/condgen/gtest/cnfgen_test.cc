@@ -11,7 +11,7 @@
 #include "TpgFFR.h"
 #include "FaultType.h"
 #include "CondGen.h"
-#include "CnfGen.h"
+#include "CnfGenMgr.h"
 #include "ym/SatInitParam.h"
 
 
@@ -27,7 +27,8 @@ string mydata[] = {
 string mymethod[] = {
   "naive",
   "cover",
-  "factor"
+  "factor",
+  "aig"
 };
 
 
@@ -112,7 +113,7 @@ CondGenTestWithParam::do_test()
     if ( cond.type() != DetCond::Detected ) {
       continue;
     }
-    auto assumptions = CnfGen::make_cnf(engine, cond, option);
+    auto assumptions = CnfGenMgr::make_cnf(engine, cond, option);
     auto pvar = bd_enc->prop_var();
     auto assumptions1 = assumptions;
     assumptions1.push_back(~pvar);

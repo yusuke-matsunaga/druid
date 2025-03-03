@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "CondGenChecker.h"
-#include "CnfGen.h"
+#include "CnfGenMgr.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
 
@@ -33,7 +33,7 @@ CondGenChecker::check(
 )
 {
   auto size0 = mEngine.solver().cnf_size();
-  auto assumptions = CnfGen::make_cnf(mEngine, cond);
+  auto assumptions = CnfGenMgr::make_cnf(mEngine, cond);
   auto extra_lits = mEngine.conv_to_literal_list(extra_cond);
   assumptions.insert(assumptions.end(), extra_lits.begin(), extra_lits.end());
   auto pvar = mBdEnc->prop_var();
@@ -44,7 +44,7 @@ CondGenChecker::check(
   }
   auto size1 = mEngine.solver().cnf_size();
   auto real_size = size1 - size0;
-  auto size = CnfGen::calc_cnf_size(cond);
+  auto size = CnfGenMgr::calc_cnf_size(cond);
   if ( size != real_size ) {
     cout << "real_size: " << real_size << endl
 	 << "calc_size: " << size << endl;

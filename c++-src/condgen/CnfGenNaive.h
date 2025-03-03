@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "CnfGenImpl.h"
+#include "CnfGen.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -19,7 +19,7 @@ BEGIN_NAMESPACE_DRUID
 /// @brief カバーをCNFに変換する
 //////////////////////////////////////////////////////////////////////
 class CnfGenNaive :
-  public CnfGenImpl
+  public CnfGen
 {
 public:
 
@@ -30,37 +30,29 @@ public:
   ~CnfGenNaive() = default;
 
 
-public:
+protected:
   //////////////////////////////////////////////////////////////////////
-  // CnfGenImpl の仮想関数
+  // CnfGen の仮想関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 条件を CNF に変換する．
+  /// @brief リテラルのリストから Expr を作る．
+  Expr
+  to_expr(
+    const vector<vector<Literal>>& literal_list
+  ) override;
+
+  /// @brief Expr のリストから CNF を作る．
   vector<vector<SatLiteral>>
-  make_cnf(
-    StructEngine& engine,            ///< [in] StructEngine
-    const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
-  ) override;
-
-  /// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
-  CnfSize
-  calc_cnf_size(
-    const vector<DetCond>& cond_list ///< [in] カバー（キューブのリスト）
-  ) override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief カバーをCNFに変換する．
-  static
-  SatLiteral
-  cover_to_cnf(
+  expr_to_cnf(
     StructEngine& engine,
-    const vector<AssignList>& cube_list
-  );
+    const vector<Expr>& expr_list
+  ) override;
+
+  /// @brief Expr のリストから CNF サイズを見積もる．
+  CnfSize
+  expr_cnf_size(
+    const vector<Expr>& expr_list
+  ) override;
 
 };
 

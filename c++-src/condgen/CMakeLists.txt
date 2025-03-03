@@ -28,11 +28,12 @@ set ( condgen_SOURCES
   CondGenMgr.cc
   CondGen.cc
   CondGen2.cc
+  CnfGenMgr.cc
   CnfGen.cc
   CnfGenNaive.cc
-  CnfGenCover.cc
+  #CnfGenCover.cc
   CnfGenFactor.cc
-  #CnfGenAig.cc
+  CnfGenAig.cc
   Expr2Aig.cc
   Expr2Cnf.cc
   )

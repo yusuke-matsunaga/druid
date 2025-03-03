@@ -102,7 +102,9 @@ calc_expr_size(
   if ( expr.is_or() ) {
     for ( auto& expr1: expr.operand_list() ) {
       auto n1 = calc_expr_size(expr1, size);
-      size += CnfSize{n1, n1 * 2};
+      if ( n1 > 1 ) {
+	size += CnfSize{n1, n1 * 2};
+      }
     }
     auto n = expr.operand_num();
     size += CnfSize{1, n + 1};

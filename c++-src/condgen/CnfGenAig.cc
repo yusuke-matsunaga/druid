@@ -9,179 +9,171 @@
 #include "CnfGenAig.h"
 #include "ym/SopCover.h"
 #include "ym/Expr.h"
-#include "AssignVarDict.h"
+#include "ym/AigMgr.h"
 #include "Expr2Aig.h"
-#include "Expr2Cnf.h"
 
 
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-SopCover
-to_cover(
+// @brief Expr のリストから CNF を作る．
+vector<vector<SatLiteral>>
+CnfGenAig::expr_to_cnf(
   StructEngine& engine,
-  const vector<AssignList>& cube_list,
-  std::unordered_map<SizeType, SatLiteral>& lit_map
+  const vector<Expr>& expr_list
 )
 {
-  // Assign のノードと変数番号の対応表
-  AssignVarDict as_dict;
+  AigMgr mgr;
+  Expr2Aig expr2aig(mgr);
+  auto aig_list = expr2aig.conv_to_aig(expr_list);
 
-  // cube_list を SopCover に変換する．
-  vector<vector<Literal>> literal_list;
-  literal_list.reserve(cube_list.size());
-  for ( auto& cube: cube_list ) {
-    vector<Literal> cube_lits;
-    cube_lits.reserve(cube.size());
-    for ( auto& as: cube ) {
-      auto id = as_dict.reg_assign(as);
-      auto satlit = engine.conv_to_literal(as);
-      lit_map.emplace(id, satlit);
-      auto lit = as_dict.to_literal(as);
-      cube_lits.push_back(lit);
-    }
-    literal_list.push_back(cube_lits);
+  // AigHandle をキーにして SatLiteral を記憶する辞書
+  std::unordered_map<AigHandle, vector<SatLiteral>> aig_map;
+
+  vector<vector<SatLiteral>> lits_list;
+  lits_list.reserve(expr_list.size());
+  for ( auto& aig: aig_list ) {
+    auto lits = aig_to_cnf(engine, aig, aig_map);
+    lits_list.push_back(lits);
   }
-  auto nv = as_dict.var_num();
-  auto cover = SopCover(nv, literal_list);
-  return cover;
+  return lits_list;
 }
 
-// vector<AssignList> を Expr に変換する．
-Expr
-to_expr(
-  const SopCover& cover
-)
-{
-  // ファクタリングを行う．
-  auto expr = cover.bool_factor();
-  return expr;
-}
-
-// @brief カバーをCNFに変換する．
-vector<SatLiteral>
-cond_to_cnf(
-  StructEngine& engine,
-  const vector<AssignList>& cube_list
-)
-{
-  if ( cube_list.empty() ) {
-    return {};
-  }
-
-  AssignVarDict as_dict;
-  auto cover = as_dict.to_cover(cube_list);
-
-  // Expr に変換する．
-  auto expr = to_expr(cover);
-
-  // 変数番号とSATリテラルの対応表を作る．
-  std::unordered_map<SizeType, SatLiteral> lit_map;
-  for ( SizeType id = 0; id < as_dict.var_num(); ++ id ) {
-    auto as = as_dict.to_assign(id);
-    auto satlit = engine.conv_to_literal(as);
-    lit_map.emplace(id, satlit);
-  }
-
-  // CNF に変換する．
-  Expr2Cnf conv(engine.solver(), lit_map);
-  auto lits = conv.make_cnf(expr);
-  return lits;
-}
-
-// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
+// @brief Expr のリストから CNF サイズを見積もる．
 CnfSize
-calc_size(
-  const vector<AssignList>& cube_list
+CnfGenAig::expr_cnf_size(
+  const vector<Expr>& expr_list
 )
 {
-  if ( cube_list.empty() ) {
-    return CnfSize::zero();
+  AigMgr mgr;
+  Expr2Aig expr2aig(mgr);
+  auto aig_list = expr2aig.conv_to_aig(expr_list);
+
+  std::unordered_map<AigHandle, SizeType> aig_map;
+
+  auto size = CnfSize::zero();
+  for ( auto& aig: aig_list ) {
+    aig_cnf_size(aig, size, aig_map);
   }
-
-  {
-    SizeType n = 0;
-    for ( auto& cube: cube_list ) {
-      n += cube.size();
-    }
-    cout << "Initial: " << cube_list.size()
-	 << " cubes, " << n << " literals" << endl;
-  }
-
-  AssignVarDict as_dict;
-  auto cover = as_dict.to_cover(cube_list);
-
-  // Expr に変換する．
-  auto expr = to_expr(cover);
-  auto size = Expr2Cnf::calc_cnf_size(expr);
   return size;
 }
 
-END_NONAMESPACE
-
-// @brief 条件を CNF に変換する．
-vector<vector<SatLiteral>>
-CnfGenAig::make_cnf(
+// @brief AigHandle に対応する CNF を作る．
+vector<SatLiteral>
+CnfGenAig::aig_to_cnf(
   StructEngine& engine,
-  const vector<DetCond>& cond_list
+  const AigHandle& aig,
+  std::unordered_map<AigHandle, vector<SatLiteral>>& aig_map
 )
 {
-  vector<Expr> expr_list;
-  expr_list.reserve(cond_list.size());
-  for ( auto& cond: cond_list ) {
-    if ( cond.type() == DetCond::Detected ) {
-      AssignVarDict as_dict;
-      auto cover = as_dict.to_cover(cond.cube_list());
-      // Expr に変換する．
-      auto expr = to_expr(cover);
-      expr_list.push_back(expr);
-    }
-    else {
-      expr_list.push_back(Expr::zero());
-    }
+  if ( aig.is_zero() ) {
+    throw std::logic_error{"aig is zero"};
+  }
+  if ( aig.is_one() ) {
+    return {};
+  }
+  if ( aig.is_input() ) {
+    auto input_id = aig.input_id();
+    auto as = get_assign(input_id);
+    auto lit = engine.conv_to_literal(as);
+    return {lit};
   }
 
-  Expr2Aig expr2aig(mgr);
-  auto aig_list = expr2aig.conv_to_aig(expr_list);
-  auto lits_list = aig_to_cnf(engine, aig_list, lit_map);
-  vector<vector<SatLiteral>> ans_list(cond_list.size());
-  for ( SizeType id = 0; id < cond_list.size(); ++ id ) {
-    auto& cond = cond_list[id];
-    if ( cond.type() == DetCond::Detected ) {
-      vector<SatLiteral> assumptions;
-      auto lits = lits_list[id];
-      assumptions.reserve(cond.mandatory_condition().size() + lits.size());
-      for ( auto as: cond.mandatory_condition() ) {
-	auto lit = engine.conv_to_literal(as);
-	assumptions.push_back(lit);
-      }
-      for ( auto lit: lits ) {
-	assumptions.push_back(lit);
-      }
-      ans_list[id] = assumptions;
-    }
+  if ( aig_map.count(aig) > 0 ) {
+    auto lits = aig_map.at(aig);
+    return lits;
   }
-  return ans_list;
+  auto iaig = ~aig;
+  if ( aig_map.count(iaig) > 0 ) {
+    auto ilits = aig_map.at(iaig);
+    auto lit = invert(engine, ilits);
+    auto lits = vector<SatLiteral>{lit};
+    aig_map.emplace(aig, lits);
+    return lits;
+  }
+  // aig.is_and()
+  auto h0 = aig.fanin0();
+  auto h1 = aig.fanin1();
+  auto lits0 = aig_to_cnf(engine, h0, aig_map);
+  auto lits1 = aig_to_cnf(engine, h1, aig_map);
+  vector<SatLiteral> lits;
+  lits.reserve(lits0.size() + lits1.size());
+  for ( auto lit: lits0 ) {
+    lits.push_back(lit);
+  }
+  for ( auto lit: lits1 ) {
+    lits.push_back(lit);
+  }
+  auto paig = aig.positive_handle();
+  aig_map.emplace(paig, lits);
+
+  if ( aig == paig ) {
+    return lits;
+  }
+
+  auto ilit = invert(engine, lits);
+  auto ilits = vector<SatLiteral>{ilit};
+  aig_map.emplace(aig, ilits);
+  return ilits;
 }
 
-// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
-CnfSize
-CnfGenAig::calc_cnf_size(
-  const vector<DetCond>& cond_list
+// @brief 反転したCNFを作る．
+SatLiteral
+CnfGenAig::invert(
+  StructEngine& engine,
+  const vector<SatLiteral>& lits
 )
 {
-  auto ans = CnfSize::zero();
-  for ( auto& cond: cond_list ) {
-    if ( cond.type() == DetCond::Detected ) {
-      // mandatory_condition() に対応するリテラルは CNF にならない．
-      auto& cube_list = cond.cube_list();
-      ans += calc_size(cube_list);
-    }
+  auto lit = engine.solver().new_variable(false);
+  vector<SatLiteral> tmp_lits;
+  tmp_lits.reserve(lits.size() + 1);
+  tmp_lits.push_back(~lit);
+  for ( auto lit: lits ) {
+    tmp_lits.push_back(~lit);
+  }
+  engine.solver().add_clause(tmp_lits);
+  return lit;
+}
+
+// @brief AigHandle に対応する CNF のサイズを見積もる．
+SizeType
+CnfGenAig::aig_cnf_size(
+  const AigHandle& aig,
+  CnfSize& size,
+  std::unordered_map<AigHandle, SizeType>& aig_map
+)
+{
+  if ( aig.is_const() ) {
+    return 0;
+  }
+  if ( aig.is_input() ) {
+    return 1;
+  }
+  if ( aig_map.count(aig) > 0 ) {
+    return aig_map.at(aig);
+  }
+  auto iaig = ~aig;
+  if ( aig_map.count(iaig) > 0 ) {
+    auto n = aig_map.at(iaig);
+    size += CnfSize{1, n + 1};
+    aig_map.emplace(aig, 1);
+    return 1;
+  }
+  auto h0 = aig.fanin0();
+  auto h1 = aig.fanin1();
+  auto n0 = aig_cnf_size(h0, size, aig_map);
+  auto n1 = aig_cnf_size(h1, size, aig_map);
+  auto n = n0 + n1;
+  auto paig = aig.positive_handle();
+  aig_map.emplace(paig, n);
+
+  if ( aig == paig ) {
+    return n;
   }
 
-  return ans;
+  size += CnfSize{1, n + 1};
+  aig_map.emplace(aig, 1);
+  return 1;
 }
 
 END_NAMESPACE_DRUID

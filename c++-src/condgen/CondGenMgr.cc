@@ -8,7 +8,7 @@
 
 #include "CondGenMgr.h"
 #include "CondGen.h"
-#include "CnfGen.h"
+#include "CnfGenMgr.h"
 #include "TpgNetwork.h"
 #include "TpgFault.h"
 #include "FFRFaultList.h"
@@ -102,7 +102,7 @@ CondGenMgr::make_ffr_cond(
   // 追加したブール微分回路に対するCNF式を作る．
   engine.make_cnf(root_list, root_list);
 
-  auto tmp_lits_array = CnfGen::make_cnf(engine, cond_list, cnfgen_option);
+  auto tmp_lits_array = CnfGenMgr::make_cnf(engine, cond_list, cnfgen_option);
   vector<vector<SatLiteral>> lits_array(ffr_num);
   for ( auto ffr: network.ffr_list() ) {
     auto bd = bd_array[ffr->id()];
@@ -174,8 +174,8 @@ CondGenMgr::calc_ffr_cond_size(
     }
   }
 
-  stats.naive_size = CnfGen::calc_naive_cnf_size(cond_list);
-  stats.opt_size = CnfGen::calc_cnf_size(cond_list, cnfgen_option);
+  stats.naive_size = CnfGenMgr::calc_naive_cnf_size(cond_list);
+  stats.opt_size = CnfGenMgr::calc_cnf_size(cond_list, cnfgen_option);
   auto ave_cube_num = cond_num > 0 ? total_cube_num / cond_num : 0;
 
   return stats;

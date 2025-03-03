@@ -53,8 +53,10 @@ count_test(
   bool do_reduction = true;
   bool do_ffr_reduction = false;
   bool do_global_reduction = false;
+  bool cover = false;
   bool bdd = false;
   bool factor = false;
+  bool aig = false;
   int debug_level = 0;
 
   argv0 = argv[0];
@@ -144,11 +146,17 @@ count_test(
       else if ( strcmp(argv[pos], "--ffr") == 0 ) {
 	ffr_mode = true;
       }
+      else if ( strcmp(argv[pos], "--cover") == 0 ) {
+	cover = true;
+      }
       else if ( strcmp(argv[pos], "--bdd") == 0 ) {
 	bdd = true;
       }
       else if ( strcmp(argv[pos], "--factor") == 0 ) {
 	factor = true;
+      }
+      else if ( strcmp(argv[pos], "--aig") == 0 ) {
+	aig = true;
       }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
@@ -214,11 +222,17 @@ count_test(
   JsonValue naive_cg_option{cg_option_dict};
 
   unordered_map<string, JsonValue> cnf_option_dict;
-  if ( bdd ) {
+  if ( cover ) {
+    cnf_option_dict.emplace("method", "cover");
+  }
+  else if ( bdd ) {
     cnf_option_dict.emplace("method", "bdd");
   }
   else if ( factor ) {
     cnf_option_dict.emplace("method", "factor");
+  }
+  else if ( aig ) {
+    cnf_option_dict.emplace("method", "aig");
   }
   JsonValue cnf_option{cnf_option_dict};
 
