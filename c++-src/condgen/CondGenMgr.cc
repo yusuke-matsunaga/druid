@@ -80,9 +80,10 @@ CondGenMgr::make_ffr_cond(
   auto cnfgen_option = get_cnfgen_option(option);
 
   auto ffr_num = network.ffr_num();
-  // ffr->id() をキーとして cond_list 中のインデックスを保持する辞書
-  // 上限を超えた場合，cond_list には登録されない．
-  vector<DetCond> cond_list(ffr_num, DetCond::Undetected);
+  // ffr->id() をキーとして個々のFFRの伝搬条件を記録する配列
+  vector<DetCond> cond_list(ffr_num, DetCond::undetected());
+  // 伝搬条件がオーバーフローしていた場合のブール微分回路
+  // 通常の場合には nullptr が入っている．
   vector<BoolDiffEnc*> bd_array(ffr_num, nullptr);
   vector<const TpgNode*> root_list;
   root_list.reserve(ffr_num);
@@ -91,21 +92,14 @@ CondGenMgr::make_ffr_cond(
     root_list.push_back(root);
     CondGen gen(network, ffr, option);
     auto cond = gen.root_cond(limit);
-    switch ( cond.type() ) {
-    case DetCond::Detected:
-    case DetCond::Undetected:
-      cond_list[ffr->id()] = cond;
-      break;
-
-    case DetCond::Overflow:
-      {
-	// オーバーフローした場合は本当の式を作る．
-	auto bd_enc = new BoolDiffEnc{engine, root};
-	bd_array[ffr->id()] = bd_enc;
-      }
-      break;
+    cond_list[ffr->id()] = cond;
+    if ( cond.type() == DetCond::Overflow ) {
+      // オーバーフローした場合は本当の式を作る．
+      auto bd_enc = new BoolDiffEnc(engine, root);
+      bd_array[ffr->id()] = bd_enc;
     }
   }
+  // 追加したブール微分回路に対するCNF式を作る．
   engine.make_cnf(root_list, root_list);
 
   auto tmp_lits_array = CnfGen::make_cnf(engine, cond_list, cnfgen_option);
@@ -137,6 +131,7 @@ CondGenMgr::calc_ffr_cond_size(
   stats.total_raw_size = CnfSize::zero();
   stats.naive_size = CnfSize::zero();
   stats.opt_size = CnfSize::zero();
+  stats.sop_num = 0;
   stats.rest_size = CnfSize::zero();
   stats.rest_num = 0;
 
@@ -151,20 +146,21 @@ CondGenMgr::calc_ffr_cond_size(
       StructEngine engine0(network);
       engine0.make_cnf({root}, {root});
       auto size0 = engine0.solver().cnf_size();
-      StructEngine engine1{network};
-      auto bd_enc = new BoolDiffEnc{engine1, root};
+      StructEngine engine1(network);
+      auto bd_enc = new BoolDiffEnc(engine1, root);
       engine1.make_cnf({}, {root});
       auto size1 = engine1.solver().cnf_size();
       raw_size = size1 - size0;
       stats.total_raw_size += raw_size;
     }
-    CondGen gen{network, ffr, option};
+    CondGen gen(network, ffr, option);
     auto cond = gen.root_cond(limit);
     switch ( cond.type() ) {
     case DetCond::Detected:
       cond_list.push_back(cond);
       total_cube_num += cond.cube_list().size();
       ++ cond_num;
+      ++ stats.sop_num;
       break;
 
     case DetCond::Overflow:

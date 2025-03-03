@@ -32,7 +32,7 @@ set ( condgen_SOURCES
   CnfGenNaive.cc
   CnfGenCover.cc
   CnfGenFactor.cc
-  CnfGenAig.cc
+  #CnfGenAig.cc
   Expr2Aig.cc
   Expr2Cnf.cc
   )

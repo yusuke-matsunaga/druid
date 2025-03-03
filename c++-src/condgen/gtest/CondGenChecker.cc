@@ -32,9 +32,7 @@ CondGenChecker::check(
   const DetCond& cond
 )
 {
-  CnfSize size0;
-  size0.clause_num = mEngine.solver().clause_num();
-  size0.literal_num = mEngine.solver().literal_num();
+  auto size0 = mEngine.solver().cnf_size();
   auto assumptions = CnfGen::make_cnf(mEngine, cond);
   auto extra_lits = mEngine.conv_to_literal_list(extra_cond);
   assumptions.insert(assumptions.end(), extra_lits.begin(), extra_lits.end());
@@ -44,14 +42,18 @@ CondGenChecker::check(
   if ( res != SatBool3::False ) {
     cout << mCond.expr() << endl;
   }
-  CnfSize size1;
-  size1.clause_num = mEngine.solver().clause_num();
-  size1.literal_num = mEngine.solver().literal_num();
-  CnfSize real_size = size1 - size0;
+  auto size1 = mEngine.solver().cnf_size();
+  auto real_size = size1 - size0;
   auto size = CnfGen::calc_cnf_size(cond);
   if ( size != real_size ) {
     cout << "real_size: " << real_size << endl
 	 << "calc_size: " << size << endl;
+    cout << "mandatory condition: " << cond.mandatory_condition() << endl;
+    cout << "cube_list: ";
+    for ( auto& cube: cond.cube_list() ) {
+      cout << cube << endl;
+    }
+    cout << endl;
     return false;
   }
   return res == SatBool3::False;

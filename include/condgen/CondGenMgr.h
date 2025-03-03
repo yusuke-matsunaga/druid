@@ -16,12 +16,13 @@
 
 BEGIN_NAMESPACE_DRUID
 
-/// @brief 結果を表す構造体
+/// @brief calc_ffr_cond_size の結果を表す構造体
 struct CondGenStats
 {
   CnfSize total_raw_size; ///< オリジナルのCNF式のサイズ
   CnfSize naive_size;     ///< SOP をナイーブに CNF に変換した場合のサイズ
   CnfSize opt_size;       ///< 最適化した CNF に変換した場合のサイズ
+  SizeType sop_num;       ///< SOPした条件の数
   CnfSize rest_size;      ///< SOP 化できなかった部分のサイズ
   SizeType rest_num;      ///< SOP 化できなかった条件の数
 };

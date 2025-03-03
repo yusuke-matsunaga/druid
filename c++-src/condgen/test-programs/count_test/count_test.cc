@@ -231,6 +231,8 @@ count_test(
 
   auto stats = CondGenMgr::calc_ffr_cond_size(network, cg_option);
 
+  cout << "SOP count:                " << setw(10)
+       << stats.sop_num << endl;
   cout << "Total CNF size(optimized): "
        << setw(10) << stats.opt_size.clause_num
        << " "

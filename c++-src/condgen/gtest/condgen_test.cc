@@ -36,7 +36,11 @@ public:
 
   /// @brief テストを行う．
   void
-  do_test();
+  do_test1();
+
+  /// @brief テストを行う．
+  void
+  do_test2();
 
 
 private:
@@ -80,7 +84,7 @@ CondGenTestWithParam::TearDown()
 }
 
 void
-CondGenTestWithParam::do_test()
+CondGenTestWithParam::do_test1()
 {
   unordered_map<string, JsonValue> option_dict;
   //option_dict.emplace("sat_param", JsonValue{"minisat2"});
@@ -106,13 +110,37 @@ CondGenTestWithParam::do_test()
 
   FFRFaultList ffr_fault_list{network, det_fault_list};
   for ( auto ffr: ffr_fault_list.ffr_list() ) {
-    CondGen gen{network, ffr, option};
+    CondGen gen(network, ffr, option);
     for ( auto fault: ffr_fault_list.fault_list(ffr) ) {
-      SizeType count = 0;
       auto cond = gen.fault_cond(fault, limit);
-      CondGenChecker checker{network, ffr, option};
-      auto res = checker.check(fault->ffr_propagate_condition(),
-			       cond);
+      if ( cond.type() == DetCond::Detected ) {
+	CondGenChecker checker(network, ffr, option);
+	auto res = checker.check(fault->ffr_propagate_condition(),
+				 cond);
+	EXPECT_TRUE ( res );
+      }
+    }
+  }
+}
+
+void
+CondGenTestWithParam::do_test2()
+{
+  unordered_map<string, JsonValue> option_dict;
+  //option_dict.emplace("sat_param", JsonValue{"minisat2"});
+  //option_dict.emplace("sat_param", JsonValue{"ymsat1_old"});
+  JsonValue option{option_dict};
+  auto network = TpgNetwork::read_blif(filename(), fault_type());
+  auto fault_list = network.rep_fault_list();
+
+  SizeType limit = 100;
+
+  for ( auto ffr: network.ffr_list() ) {
+    CondGen gen(network, ffr, option);
+    auto cond = gen.root_cond(limit);
+    if ( cond.type() == DetCond::Detected ) {
+      CondGenChecker checker(network, ffr, option);
+      auto res = checker.check(AssignList{}, cond);
       EXPECT_TRUE ( res );
     }
   }
@@ -135,7 +163,12 @@ CondGenTestWithParam::fault_type()
 
 TEST_P(CondGenTestWithParam, test1)
 {
-  do_test();
+  do_test1();
+}
+
+TEST_P(CondGenTestWithParam, test2)
+{
+  do_test2();
 }
 
 INSTANTIATE_TEST_SUITE_P(CondGenTest2, CondGenTestWithParam,

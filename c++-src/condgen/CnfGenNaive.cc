@@ -69,14 +69,16 @@ CnfGenNaive::calc_cnf_size(
   for ( auto& cond: cond_list ) {
     if ( cond.type() == DetCond::Detected ) {
       auto& cube_list = cond.cube_list();
-      for ( auto& cube: cube_list ) {
-	auto n = cube.size();
-	// 1つのキューブにつき
-	// n 項， n * 2 リテラル
-	ans += CnfSize{n, n * 2};
+      if ( !cube_list.empty() ) {
+	for ( auto& cube: cube_list ) {
+	  auto n = cube.size();
+	  // 1つのキューブにつき
+	  // n 項， n * 2 リテラル
+	  ans += CnfSize{n, n * 2};
+	}
+	// 最後にキューブ数+1の項を追加
+	ans += CnfSize{1, cube_list.size() + 1};
       }
-      // 最後にキューブ数+1の項を追加
-      ans += CnfSize{1, cube_list.size() + 1};
     }
   }
 

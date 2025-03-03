@@ -1,12 +1,12 @@
 
-/// @file CnfGenFactor.cc
-/// @brief CnfGenFactor の実装ファイル
+/// @file CnfGenAig.cc
+/// @brief CnfGenAig の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CnfGenFactor.h"
+#include "CnfGenAig.h"
 #include "ym/SopCover.h"
 #include "ym/Expr.h"
 #include "AssignVarDict.h"
@@ -123,7 +123,7 @@ END_NONAMESPACE
 
 // @brief 条件を CNF に変換する．
 vector<vector<SatLiteral>>
-CnfGenFactor::make_cnf(
+CnfGenAig::make_cnf(
   StructEngine& engine,
   const vector<DetCond>& cond_list
 )
@@ -139,7 +139,7 @@ CnfGenFactor::make_cnf(
       expr_list.push_back(expr);
     }
     else {
-      expr_list.push_back(Expr::make_zero());
+      expr_list.push_back(Expr::zero());
     }
   }
 
@@ -168,7 +168,7 @@ CnfGenFactor::make_cnf(
 
 // @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
 CnfSize
-CnfGenFactor::calc_cnf_size(
+CnfGenAig::calc_cnf_size(
   const vector<DetCond>& cond_list
 )
 {
