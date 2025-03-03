@@ -82,25 +82,19 @@ CondGenMgr::make_ffr_cond(
   auto ffr_num = network.ffr_num();
   // ffr->id() をキーとして cond_list 中のインデックスを保持する辞書
   // 上限を超えた場合，cond_list には登録されない．
-  std::unordered_map<SizeType, SizeType> id_map;
-  vector<DetCond> cond_list;
-  cond_list.reserve(ffr_num);
+  vector<DetCond> cond_list(ffr_num, DetCond::Undetected);
   vector<BoolDiffEnc*> bd_array(ffr_num, nullptr);
   vector<const TpgNode*> root_list;
   root_list.reserve(ffr_num);
   for ( auto ffr: network.ffr_list() ) {
     auto root = ffr->root();
     root_list.push_back(root);
-    CondGen gen{network, ffr, option};
+    CondGen gen(network, ffr, option);
     auto cond = gen.root_cond(limit);
     switch ( cond.type() ) {
     case DetCond::Detected:
     case DetCond::Undetected:
-      {
-	auto id = cond_list.size();
-	id_map.emplace(ffr->id(), id);
-	cond_list.push_back(cond);
-      }
+      cond_list[ffr->id()] = cond;
       break;
 
     case DetCond::Overflow:
@@ -123,8 +117,7 @@ CondGenMgr::make_ffr_cond(
       lits_array[ffr->id()] = vector<SatLiteral>{lit};
     }
     else {
-      auto id = id_map.at(ffr->id());
-      lits_array[ffr->id()] = tmp_lits_array[id];
+      lits_array[ffr->id()] = tmp_lits_array[ffr->id()];
     }
   }
   return lits_array;

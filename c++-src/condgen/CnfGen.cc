@@ -10,7 +10,6 @@
 #include "CnfGenNaive.h"
 #include "CnfGenCover.h"
 #include "CnfGenFactor.h"
-#include "CnfGenBdd.h"
 #include "StructEngine.h"
 
 
@@ -79,12 +78,6 @@ CnfGen::make_cnf(
     CnfGenFactor gen;
     return gen.make_cnf(engine, cond_list);
   }
-  if ( method == "bdd" ) {
-    // 一旦 Bdd に変換して CNF を作る．
-    SizeType limit = 1000;
-    CnfGenBdd gen{limit};
-    return gen.make_cnf(engine, cond_list);
-  }
   // デフォルトフォールバック
   CnfGenNaive gen;
   return gen.make_cnf(engine, cond_list);
@@ -118,12 +111,6 @@ CnfGen::calc_cnf_size(
   if ( method == "factor" ) {
     // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
     CnfGenFactor gen;
-    return gen.calc_cnf_size(cond_list);
-  }
-  if ( method == "bdd" ) {
-    // 一旦 Bdd に変換して CNF を作る．
-    SizeType limit = 10000;
-    CnfGenBdd gen{limit};
     return gen.calc_cnf_size(cond_list);
   }
   // デフォルトフォールバック
