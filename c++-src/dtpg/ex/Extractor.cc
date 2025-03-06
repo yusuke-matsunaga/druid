@@ -89,6 +89,43 @@ Extractor::operator()(
   return min_assign_list;
 }
 
+// @brief 値割り当てを１つ求める．
+AssignList
+Extractor::operator()(
+  const TpgNode* root,
+  const VidMap& gvar_map,
+  const VidMap& fvar_map,
+  const TpgNode* output,
+  const SatModel& model
+)
+{
+  ExData data{root, gvar_map, fvar_map, model};
+
+  // 故障差の伝搬している経路を探す．
+  ASSERT_COND( !data.sensitized_output_list().empty() );
+
+  AssignList min_assign_list;
+  SizeType min_val = std::numeric_limits<SizeType>::max();
+  {
+    vector<vector<const TpgNode*>> choice_list;
+    auto node_list = data.backtrace(output, choice_list);
+    auto cnode_list = select_cnode(choice_list);
+    node_list.insert(node_list.end(), cnode_list.begin(), cnode_list.end());
+    // AssignList に変換する．
+    AssignList assign_list;
+    for ( auto node: node_list ) {
+      auto bval = (data.gval(node) == Val3::_1);
+      assign_list.add(node, 1, bval);
+    }
+    SizeType val = assign_list.size();
+    if ( min_val > val ) {
+      min_val = val;
+      min_assign_list = assign_list;
+    }
+  }
+  return min_assign_list;
+}
+
 BEGIN_NONAMESPACE
 
 // 共通なノードのリストを作る．

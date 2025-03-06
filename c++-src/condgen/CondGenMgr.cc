@@ -68,52 +68,35 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief 故障検出条件を求める．
-vector<vector<SatLiteral>>
+vector<DetCond>
 CondGenMgr::make_ffr_cond(
-  StructEngine& engine,
   const TpgNetwork& network,
   const JsonValue& option
 )
 {
   int debug = OpBase::get_debug(option);
   auto limit = get_loop_limit(option);
-  auto cnfgen_option = get_cnfgen_option(option);
 
   auto ffr_num = network.ffr_num();
   // ffr->id() をキーとして個々のFFRの伝搬条件を記録する配列
-  vector<DetCond> cond_list(ffr_num, DetCond::undetected());
-  // 伝搬条件がオーバーフローしていた場合のブール微分回路
-  // 通常の場合には nullptr が入っている．
-  vector<BoolDiffEnc*> bd_array(ffr_num, nullptr);
-  vector<const TpgNode*> root_list;
-  root_list.reserve(ffr_num);
+  vector<DetCond> cond_list;
+  cond_list.reserve(ffr_num);
   for ( auto ffr: network.ffr_list() ) {
-    auto root = ffr->root();
-    root_list.push_back(root);
-    CondGen gen(network, ffr, option);
-    auto cond = gen.root_cond(limit);
-    cond_list[ffr->id()] = cond;
-    if ( cond.type() == DetCond::Overflow ) {
-      // オーバーフローした場合は本当の式を作る．
-      auto bd_enc = new BoolDiffEnc(engine, root);
-      bd_array[ffr->id()] = bd_enc;
-    }
+    auto cond = CondGen::root_cond(network, ffr, limit, option);
+    cond_list.push_back(cond);
   }
-  // 追加したブール微分回路に対するCNF式を作る．
-  engine.make_cnf(root_list, root_list);
+  return cond_list;
+}
 
-  auto tmp_lits_array = CnfGenMgr::make_cnf(engine, cond_list, cnfgen_option);
-  vector<vector<SatLiteral>> lits_array(ffr_num);
-  for ( auto ffr: network.ffr_list() ) {
-    auto bd = bd_array[ffr->id()];
-    if ( bd != nullptr ) {
-      auto lit = bd->prop_var();
-      lits_array[ffr->id()] = vector<SatLiteral>{lit};
-    }
-    else {
-      lits_array[ffr->id()] = tmp_lits_array[ffr->id()];
-    }
-  }
+// @brief FFRの故障伝搬条件を表すCNF式を作る．
+vector<vector<SatLiteral>>
+CondGenMgr::make_ffr_cond_cnf(
+  StructEngine& engine,
+  const vector<DetCond>& cond_list,
+  const JsonValue& option
+)
+{
+  auto lits_array = CnfGenMgr::make_cnf(engine, cond_list, option);
   return lits_array;
 }
 
@@ -121,10 +104,10 @@ CondGenMgr::make_ffr_cond(
 CondGenStats
 CondGenMgr::calc_ffr_cond_size(
   const TpgNetwork& network,
+  const vector<DetCond>& cond_list,
   const JsonValue& option
 )
 {
-  auto limit = get_loop_limit(option);
   auto cnfgen_option = get_cnfgen_option(option);
 
   auto stats = CondGenStats();
@@ -135,48 +118,9 @@ CondGenMgr::calc_ffr_cond_size(
   stats.rest_size = CnfSize::zero();
   stats.rest_num = 0;
 
-  vector<DetCond> cond_list;
-  cond_list.reserve(network.ffr_num());
-  SizeType total_cube_num = 0;
-  SizeType cond_num = 0;
-  for ( auto ffr: network.ffr_list() ) {
-    CnfSize raw_size;
-    { // とりあえず従来のCNF式の生成を行う．
-      auto root = ffr->root();
-      StructEngine engine0(network);
-      engine0.make_cnf({root}, {root});
-      auto size0 = engine0.solver().cnf_size();
-      StructEngine engine1(network);
-      auto bd_enc = new BoolDiffEnc(engine1, root);
-      engine1.make_cnf({}, {root});
-      auto size1 = engine1.solver().cnf_size();
-      raw_size = size1 - size0;
-      stats.total_raw_size += raw_size;
-    }
-    CondGen gen(network, ffr, option);
-    auto cond = gen.root_cond(limit);
-    switch ( cond.type() ) {
-    case DetCond::Detected:
-      cond_list.push_back(cond);
-      total_cube_num += cond.cube_list().size();
-      ++ cond_num;
-      ++ stats.sop_num;
-      break;
-
-    case DetCond::Overflow:
-      // オーバーフローした場合は本当の式を作る．
-      stats.rest_size += raw_size;
-      ++ stats.rest_num;
-      break;
-
-    case DetCond::Undetected:
-      break;
-    }
-  }
-
+  stats.total_raw_size = CnfGenMgr::calc_raw_cnf_size(network);
   stats.naive_size = CnfGenMgr::calc_naive_cnf_size(cond_list);
   stats.opt_size = CnfGenMgr::calc_cnf_size(cond_list, cnfgen_option);
-  auto ave_cube_num = cond_num > 0 ? total_cube_num / cond_num : 0;
 
   return stats;
 }

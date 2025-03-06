@@ -243,7 +243,8 @@ count_test(
   Timer total_timer;
   total_timer.start();
 
-  auto stats = CondGenMgr::calc_ffr_cond_size(network, cg_option);
+  auto cond_list = CondGenMgr::make_ffr_cond(network, cg_option);
+  auto stats = CondGenMgr::calc_ffr_cond_size(network, cond_list, cg_option);
 
   cout << "SOP count:                " << setw(10)
        << stats.sop_num << endl;

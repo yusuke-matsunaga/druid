@@ -254,6 +254,82 @@ StructEngine::conv_to_literal_list(
   return ans_list;
 }
 
+// @brief 与えられた論理式を充足させるCNF式を作る．
+vector<SatLiteral>
+StructEngine::make_cnf(
+  const Expr& expr
+)
+{
+  if ( expr.is_zero() ) {
+    // 充足不能
+    throw std::invalid_argument{"expr is zero"};
+  }
+  if ( expr.is_one() ) {
+    // 無条件で充足している．
+    return {};
+  }
+  if ( expr.is_literal() ) {
+    auto vid = expr.varid();
+    auto node_id = vid / 2;
+    auto time = vid % 2;
+    auto node = mNetwork.node(node_id);
+    auto lit = (time == 0) ? hvar(node) : gvar(node);
+    if ( expr.is_nega_literal() ) {
+      lit = ~lit;
+    }
+    return {lit};
+  }
+  if ( expr.is_and() ) {
+    vector<SatLiteral> lits;
+    for ( auto& expr1: expr.operand_list() ) {
+      auto lits1 = make_cnf(expr1);
+      lits.insert(lits.end(), lits1.begin(), lits1.end());
+    }
+    return lits;
+  }
+  if ( expr.is_or() ) {
+    auto new_lit = solver().new_variable(false);
+    vector<SatLiteral> lits;
+    lits.reserve(expr.operand_num() + 1);
+    lits.push_back(~new_lit);
+    for ( auto& expr1: expr.operand_list() ) {
+      auto lits1 = make_cnf(expr1);
+      if ( lits1.empty() ) {
+	continue;
+      }
+      if ( lits1.size() == 1 ) {
+	auto lit1 = lits1.front();
+	lits.push_back(lit1);
+      }
+      else {
+	auto lit1 = solver().new_variable(false);
+	for ( auto lit: lits1 ) {
+	  solver().add_clause(~lit1, lit);
+	}
+	lits.push_back(lit1);
+      }
+    }
+    solver().add_clause(lits);
+    return {new_lit};
+  }
+  if ( expr.is_xor() ) {
+    // EXOR は両極性を必要とするので非常に効率が悪い．
+    auto new_lit = solver().new_variable(false);
+    vector<SatLiteral> lits;
+    lits.reserve(expr.operand_num());
+    for ( auto& expr1: expr.operand_list() ) {
+      auto lit1 = solver().new_variable(false);
+      auto lits1 = make_cnf(expr1);
+      solver().add_andgate(lit1, lits1);
+      lits.push_back(lit1);
+    }
+    solver().add_xorgate(new_lit, lits);
+    return {new_lit};
+  }
+  throw std::invalid_argument{"unexpected error"};
+  return {};
+}
+
 // @brief 値を返す．
 bool
 StructEngine::val(

@@ -48,12 +48,7 @@ CondGenChecker::check(
   if ( size != real_size ) {
     cout << "real_size: " << real_size << endl
 	 << "calc_size: " << size << endl;
-    cout << "mandatory condition: " << cond.mandatory_condition() << endl;
-    cout << "cube_list: ";
-    for ( auto& cube: cond.cube_list() ) {
-      cout << cube << endl;
-    }
-    cout << endl;
+    //cout << "expr: " << cond.expr() << endl;
     return false;
   }
   return res == SatBool3::False;

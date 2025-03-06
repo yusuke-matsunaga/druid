@@ -20,7 +20,7 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class CnfGen CnfGen.h "CnfGen.h"
-/// @brief CnfGen の下請けクラスの基底クラス
+/// @brief CnfGenMgr の下請けクラスの基底クラス
 //////////////////////////////////////////////////////////////////////
 class CnfGen
 {
@@ -58,32 +58,11 @@ protected:
   // 継承クラスで用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @breif cond_list の cube_list() の内容をリテラルのリストに変換する．
-  vector<vector<Literal>>
-  to_literal_list(
-    const DetCond& cond ///< [in] 条件
-  )
-  {
-    vector<vector<Literal>> literal_list;
-    literal_list.reserve(cond.cube_list().size());
-    for ( auto& cube: cond.cube_list() ) {
-      vector<Literal> cube_lits;
-      cube_lits.reserve(cube.size());
-      for ( auto& as: cube ) {
-	reg_assign(as);
-	auto lit = literal(as);
-	cube_lits.push_back(lit);
-      }
-      literal_list.push_back(cube_lits);
-    }
-    return literal_list;
-  }
-
-  /// @brief リテラルのリストから Expr を作る．
+  /// @brief DetCond から Expr を作る．
   virtual
   Expr
   to_expr(
-    const vector<vector<Literal>>& literal_list
+    const DetCond::CondData& cond
   ) = 0;
 
   /// @brief Expr のリストから CNF を作る．
@@ -101,69 +80,6 @@ protected:
     const vector<Expr>& expr_list
   ) = 0;
 
-  /// @brief 変数の数を得る．
-  SizeType
-  var_num() const
-  {
-    return mAssignList.size();
-  }
-
-  /// @brief 変数番号を得る．
-  ///
-  /// - assign が登録されていなければ例外を送出する．
-  /// - assign.val() は無視される．
-  SizeType
-  varid(
-    const Assign& assign ///< [in] 値の割当
-  ) const
-  {
-    auto key = make_key(assign);
-    if ( mMap.count(key) == 0 ) {
-      throw std::invalid_argument{"assign is not registered"};
-    }
-    auto id = mMap.at(key);
-    return id;
-  }
-
-  /// @brief リテラルに変換する．
-  ///
-  /// - assign が登録されていなければ例外を送出する．
-  Literal
-  literal(
-    const Assign& assign ///< [in] 値の割当
-  ) const
-  {
-    auto id = varid(assign);
-    bool inv = assign.val() == false;
-    return Literal(id, inv);
-  }
-
-  /// @brief リテラルから元の割り当てを得る．
-  Assign
-  get_assign(
-    Literal lit ///< [in] リテラル
-  ) const
-  {
-    auto vid = lit.varid();
-    auto as = get_assign(vid);
-    if ( lit.is_negative() ) {
-      as = ~as;
-    }
-    return as;
-  }
-
-  /// @brief 変数番号から元の割当を得る．
-  Assign
-  get_assign(
-    SizeType id ///< [in] 変数番号 ( 0 <= id < var_num() )
-  ) const
-  {
-    if ( id >= var_num() ) {
-      throw std::out_of_range{"id is out of range"};
-    }
-    return mAssignList[id];
-  }
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -180,8 +96,15 @@ private:
     expr_list.reserve(cond_list.size());
     for ( auto& cond: cond_list ) {
       if ( cond.type() == DetCond::Detected ) {
-	auto literal_list = to_literal_list(cond);
-	auto expr = to_expr(literal_list);
+	auto expr = to_expr(cond.cond());
+	expr_list.push_back(expr);
+      }
+      else if ( cond.type() == DetCond::PartialDetected ) {
+	auto expr = Expr::zero();
+	for ( auto& cond1: cond.cond_list() ) {
+	  auto expr1 = to_expr(cond1);
+	  expr |= expr1;
+	}
 	expr_list.push_back(expr);
       }
       else {
@@ -190,51 +113,6 @@ private:
     }
     return expr_list;
   }
-
-  /// @brief 変数を登録する．
-  /// @return ID 番号を返す．
-  ///
-  /// - すでに登録されていたらなにもしない．
-  /// - Assign.val() は無視される．
-  SizeType
-  reg_assign(
-    const Assign& assign ///< [in] 値の割当
-  )
-  {
-    auto key = make_key(assign);
-    if ( mMap.count(key) == 0 ) {
-      auto id = var_num();
-      mMap.emplace(key, id);
-      auto posi_assign = assign.val() ? assign : ~assign;
-      mAssignList.push_back(posi_assign);
-      return id;
-    }
-    return mMap.at(key);
-  }
-
-  /// @brief Assign からキーを作る．
-  ///
-  /// Assign.val() は無視される．
-  static
-  SizeType
-  make_key(
-    const Assign& assign ///< [in] 値の割当
-  )
-  {
-    return assign.node()->id() * 2 + assign.time();
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // Assign のノード(と時間)をキーとして変数番号を格納する連想配列
-  std::unordered_map<SizeType, SizeType> mMap;
-
-  // 変数番号をキーにして Assign を格納する配列
-  std::vector<Assign> mAssignList;
 
 };
 

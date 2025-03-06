@@ -38,12 +38,12 @@ public:
   vector<SatLiteral>
   make_cnf(
     StructEngine& engine,   ///< [in] StructEngine
-    const DetCond& expr,    ///< [in] 式
+    const DetCond& cond,    ///< [in] 条件
     const JsonValue& option ///< [in] オプション
     = JsonValue{}
   )
   {
-    auto tmp_list = make_cnf(engine, vector<DetCond>{expr}, option);
+    auto tmp_list = make_cnf(engine, vector<DetCond>{cond}, option);
     ASSERT_COND( tmp_list.size() == 1 );
     return tmp_list.front();
   }
@@ -54,7 +54,7 @@ public:
   vector<vector<SatLiteral>>
   make_cnf(
     StructEngine& engine,             ///< [in] StructEngine
-    const vector<DetCond>& expr_list, ///< [in] 式のリスト
+    const vector<DetCond>& cond_list, ///< [in] 式のリスト
     const JsonValue& option           ///< [in] オプション
     = JsonValue{}
   );
@@ -63,21 +63,37 @@ public:
   static
   CnfSize
   calc_cnf_size(
-    const DetCond& expr,    ///< [in] 式
+    const DetCond& cond,    ///< [in] 式
     const JsonValue& option ///< [in] オプション
     = JsonValue{}
   )
   {
-    return calc_cnf_size(vector<DetCond>{expr}, option);
+    return calc_cnf_size(vector<DetCond>{cond}, option);
   }
 
   /// @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
   static
   CnfSize
   calc_cnf_size(
-    const vector<DetCond>& expr_list, ///< [in] 式のリスト
+    const vector<DetCond>& cond_list, ///< [in] 式のリスト
     const JsonValue& option           ///< [in] オプション
     = JsonValue{}
+  );
+
+  /// @brief 複数の論理式を CNF に変換する．
+  /// @return 個々の式の活性化するための条件のリストを返す．
+  static
+  vector<vector<SatLiteral>>
+  make_raw_cnf(
+    StructEngine& engine,     ///< [in] StructEngine
+    const TpgNetwork& network ///< [in] 対象のネットワーク
+  );
+
+  /// @brief 複数の論理式をそのまま CNF に変換した際の項数とリテラル数を数える．
+  static
+  CnfSize
+  calc_raw_cnf_size(
+    const TpgNetwork& network ///< [in] 対象のネットワーク
   );
 
   /// @brief 複数の論理式を CNF に変換する．

@@ -9,8 +9,6 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "StructEngine.h"
-#include "BoolDiffEnc.h"
 #include "DetCond.h"
 #include "ym/JsonValue.h"
 
@@ -32,82 +30,20 @@ BEGIN_NAMESPACE_DRUID
 class CondGen
 {
 public:
-
-  /// @brief コンストラクタ
-  CondGen(
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,                    ///< [in] 対象の FFR
-    const JsonValue& option = JsonValue{} ///< [in] オプション
-  );
-
-  /// @brief コンストラクタ
-  CondGen(
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,                    ///< [in] 対象の FFR
-    const AssignList& root_cond,          ///< [in] 出力の故障伝搬の必要条件
-    const JsonValue& option = JsonValue{} ///< [in] オプション
-  );
-
-  /// @brief デストラクタ
-  ~CondGen();
-
-
-public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
   /// @brief FFRの出力の故障伝搬条件を求める．
   /// @return 条件を返す．
+  static
   DetCond
   root_cond(
-    SizeType limit      ///< [in] ループ回数の上限
+    const TpgNetwork& network,            ///< [in] 対象のネットワーク
+    const TpgFFR* ffr,                    ///< [in] 対象の FFR
+    SizeType limit,                       ///< [in] ループ回数の上限
+    const JsonValue& option = JsonValue{} ///< [in] オプション
   );
-
-  /// @brief 与えられた故障を検出する条件を生成する．
-  /// @return 条件を返す．
-  DetCond
-  fault_cond(
-    const TpgFault* fault, ///< [in] 対象の故障
-    SizeType limit         ///< [in] ループ回数の上限
-  );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief root_cond(), fault_cond() の共通な下請け関数
-  DetCond
-  gen_cond(
-    const AssignList& extra_cond, ///< [in] 追加の条件
-    SizeType limit                ///< [in] ループの上限
-  );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // FFR
-  const TpgFFR* mFFR;
-
-  // 基本エンコーダ
-  StructEngine mEngine;
-
-  // FFR用のブール微分器
-  BoolDiffEnc* mBdEnc;
-
-  // FFR の出力の故障伝搬の必要条件
-  AssignList mRootMandCond;
-
-  // FFR の出力の故障伝搬可能性
-  SatBool3 mRootStatus;
-
-  // デバッグフラグ
-  int mDebug{0};
 
 };
 

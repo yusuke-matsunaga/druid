@@ -28,25 +28,7 @@ CnfGen::make_cnf(
   // Expr のリストを CNF に変換する．
   auto lits_list = expr_to_cnf(engine, expr_list);
 
-  // 結果を作る．
-  vector<vector<SatLiteral>> ans_list(cond_list.size());
-  for ( SizeType id = 0; id < cond_list.size(); ++ id ) {
-    auto& cond = cond_list[id];
-    if ( cond.type() == DetCond::Detected ) {
-      vector<SatLiteral> assumptions;
-      auto lits = lits_list[id];
-      assumptions.reserve(cond.mandatory_condition().size() + lits.size());
-      for ( auto as: cond.mandatory_condition() ) {
-	auto lit = engine.conv_to_literal(as);
-	assumptions.push_back(lit);
-      }
-      for ( auto lit: lits ) {
-	assumptions.push_back(lit);
-      }
-      ans_list[id] = assumptions;
-    }
-  }
-  return ans_list;
+  return lits_list;
 }
 
 // @brief 条件を CNF に変換した時の CNF のサイズを見積もる．

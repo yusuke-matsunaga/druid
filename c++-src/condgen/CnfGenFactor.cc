@@ -14,26 +14,41 @@
 
 BEGIN_NAMESPACE_DRUID
 
-// @brief リテラルのリストから Expr を作る．
+BEGIN_NONAMESPACE
+
 Expr
-CnfGenFactor::to_expr(
-  const vector<vector<Literal>>& literal_list
+lits_to_expr(
+  const vector<Literal>& lits
 )
 {
-  if ( literal_list.empty() ) {
-    return Expr::one();
+  auto expr = Expr::one();
+  for ( auto lit: lits ) {
+    auto expr1 = Expr::literal(lit);
+    expr &= expr1;
   }
+  return expr;
+}
+
+END_NONAMESPACE
+
+// @brief DetCond から Expr を作る．
+Expr
+CnfGenFactor::to_expr(
+  const DetCond::CondData& cond
+)
+{
+  auto expr = lits_to_expr(cond.mand_cond);
 
   // cube_list に現れる変数のみを集めた辞書を作る．
   LocalMap local_map;
-  auto cover = local_map.to_cover(literal_list);
+  auto cover = local_map.to_cover(cond.cube_list);
 
   // ファクタリングを行う．
   auto local_expr = cover.bool_factor();
 
   // local_expr 中の ID を元に ID に置き換える．
-  auto expr = local_map.remap_expr(local_expr);
-  return expr;
+  auto cov_expr = local_map.remap_expr(local_expr);
+  return expr & cov_expr;
 }
 
 END_NAMESPACE_DRUID

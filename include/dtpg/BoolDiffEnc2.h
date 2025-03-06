@@ -22,12 +22,14 @@ class Extractor;
 ///
 /// StructEngine に部品として組み込んで用いる SubEnc の継承クラス
 ///
-/// 起点となるノードにおける値を0/1に固定した影響がいずれかの外部出力
+/// 起点となるノードにおける値を0/1に固定した影響が個々の外部出力
 /// に伝搬する条件を表す変数を生成する．
 /// 生成された変数は prop_var() で取得できる．
 ///
 /// prop_var() が true になったときの十分条件は
 /// extract_sufficient_condition() で取得できる．
+///
+/// BoolDiffEnc との違いは個々の外部出力ごとの伝搬可能性を調べていること．
 //////////////////////////////////////////////////////////////////////
 class BoolDiffEnc2 :
   public SubEnc
@@ -58,13 +60,6 @@ public:
     return mRoot;
   }
 
-  /// @brief root_node() の TFO を返す．
-  const vector<const TpgNode*>&
-  tfo_list() const
-  {
-    return mTfoList;
-  }
-
   /// @brief root_node() から到達可能な外部出力のリストを返す．
   const vector<const TpgNode*>&
   output_list() const
@@ -72,20 +67,51 @@ public:
     return mOutputList;
   }
 
+  /// @brief root_node() から到達可能な外部出力の数を返す．
+  SizeType
+  output_num() const
+  {
+    return mOutputList.size();
+  }
+
+  /// @brief root_node() から到達可能な外部出力を返す．
+  const TpgNode*
+  output(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
+  ) const
+  {
+    if ( pos >= output_num() ) {
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mOutputList[pos];
+  }
+
+  /// @brief root_node() の TFO を返す．
+  const vector<const TpgNode*>&
+  tfo_list(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
+  ) const
+  {
+    return mPartialTfoList[pos];
+  }
+
   /// @brief 微分結果を表す変数を返す．
   SatLiteral
-  prop_var() const
+  prop_var(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
+  ) const
   {
-    return mPropVar;
+    if ( pos >= output_num() ) {
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mPropVarList[pos];
   }
 
   /// @brief 直前の check() が成功したときの十分条件を求める．
   AssignList
-  extract_sufficient_condition();
-
-  /// @brief 直前の check() が成功したときの十分条件を求める．
-  AssignExpr
-  extract_sufficient_conditions();
+  extract_sufficient_condition(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < output_num() )
+  );
 
 
 private:
@@ -110,7 +136,8 @@ private:
   /// @brief 故障伝搬条件を表すCNF式を生成する．
   void
   make_dchain_cnf(
-    const TpgNode* node  ///< [in] 対象のノード
+    const TpgNode* node,  ///< [in] 対象のノード
+    SizeType pos          ///< [in] 出力番号
   );
 
   /// @brief 正常値を表す変数を返す．
@@ -124,20 +151,14 @@ private:
 
   /// @brief 0故障値を表す変数を返す．
   SatLiteral
-  f0var(
+  fvar(
     const TpgNode* node ///< [in] 対象のノード
   )
   {
-    return mF0varMap(node);
-  }
-
-  /// @brief 1故障値を表す変数を返す．
-  SatLiteral
-  f1var(
-    const TpgNode* node ///< [in] 対象のノード
-  )
-  {
-    return mF1varMap(node);
+    if ( pos >= output_num() ) {
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mFvarMap(node);
   }
 
   /// @brief 故障伝搬条件を表す変数を返す．
@@ -164,17 +185,17 @@ private:
   // mRoot から到達可能な外部出力のリスト
   vector<const TpgNode*> mOutputList;
 
-  // 微分結果を表す変数
-  SatLiteral mPropVar;
+  // 個々の出力ごとの TFO
+  vector<vector<const TpgNode*>> mPartialTfoList;
 
-  // 0故障値を表す変数マップ
-  VidMap mF0varMap;
+  // 微分結果を表す変数のリスト
+  vector<SatLiteral> mPropVarList;
 
-  // 1故障値を表す変数マップ
-  VidMap mF1varMap;
+  // 故障値を表す変数マップのリスト
+  vector<VidMap> mFvarMapList;
 
-  // 伝搬条件を表す変数マップ
-  VidMap mDvarMap;
+  // 伝搬条件を表す変数マップのリスト
+  vector<VidMap> mDvarMapList;
 
   // 十分条件を取り出すオブジェクト
   std::unique_ptr<Extractor> mExtractor;

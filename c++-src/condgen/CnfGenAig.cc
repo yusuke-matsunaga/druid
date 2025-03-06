@@ -10,6 +10,7 @@
 #include "ym/SopCover.h"
 #include "ym/Expr.h"
 #include "ym/AigMgr.h"
+#include "TpgNetwork.h"
 #include "Expr2Aig.h"
 
 
@@ -74,7 +75,10 @@ CnfGenAig::aig_to_cnf(
   }
   if ( aig.is_input() ) {
     auto input_id = aig.input_id();
-    auto as = get_assign(input_id);
+    auto node_id = input_id / 2;
+    auto time = node_id % 2;
+    auto node = engine.network().node(node_id);
+    auto as = Assign(node, time, true);
     auto lit = engine.conv_to_literal(as);
     return {lit};
   }

@@ -40,7 +40,7 @@ set ( engine_SOURCES
   engine/GateEnc.cc
   engine/StructEngine.cc
   engine/BoolDiffEnc.cc
-  engine/BoolDiffEnc2.cc
+  #engine/BoolDiffEnc2.cc
   engine/FFREnc.cc
   engine/MFFCEnc.cc
   engine/FaultEnc.cc

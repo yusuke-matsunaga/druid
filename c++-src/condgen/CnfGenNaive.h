@@ -35,10 +35,10 @@ protected:
   // CnfGen の仮想関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief リテラルのリストから Expr を作る．
+  /// @brief DetCond::CondData から Expr を作る．
   Expr
   to_expr(
-    const vector<vector<Literal>>& literal_list
+    const DetCond::CondData& cond
   ) override;
 
   /// @brief Expr のリストから CNF を作る．

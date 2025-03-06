@@ -94,6 +94,15 @@ public:
     const AssignList& assign_list ///< [in] 値割り当てのリスト
   );
 
+  /// @brief 与えられた論理式を充足させるCNF式を作る．
+  /// @return 条件を表すリテラルのリストを返す．
+  ///
+  /// 論理式中の変数番号は TpgNode->id() * 2 + time に対応している．
+  vector<SatLiteral>
+  make_cnf(
+    const Expr& expr ///< [in] 論理式
+  );
+
   /// @brief 対象のネットワークを得る．
   const TpgNetwork&
   network() const

@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "StructEngine.h"
+#include "DetCond.h"
 #include "ym/CnfSize.h"
 #include "ym/JsonValue.h"
 
@@ -42,12 +43,20 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief FFRの故障伝搬条件を求める．
-  /// @return 各 FFR の伝搬条件を表すリテラル集合のリストを返す．
+  /// @return 各 FFR の伝搬条件のリストを返す．
+  static
+  vector<DetCond>
+  make_ffr_cond(
+    const TpgNetwork& network,           ///< [in] 対象のネットワーク
+    const JsonValue& option              ///< [in] オプション
+  );
+
+  /// @brief FFRの故障伝搬条件を表すCNF式を作る．
   static
   vector<vector<SatLiteral>>
-  make_ffr_cond(
-    StructEngine& engine,                ///< [in] CNF作成用のエンジン
-    const TpgNetwork& network,           ///< [in] 対象のネットワーク
+  make_ffr_cond_cnf(
+    StructEngine& engine,                ///< [in] CNFの作成用のエンジン
+    const vector<DetCond>& cond_list,    ///< [in] 条件のリスト
     const JsonValue& option              ///< [in] オプション
   );
 
@@ -56,6 +65,7 @@ public:
   CondGenStats
   calc_ffr_cond_size(
     const TpgNetwork& network,           ///< [in] 対象のネットワーク
+    const vector<DetCond>& cond_list,    ///< [in] 条件のリスト
     const JsonValue& option              ///< [in] オプション
   );
 

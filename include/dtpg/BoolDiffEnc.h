@@ -37,10 +37,18 @@ public:
 
   /// @brief コンストラクタ
   BoolDiffEnc(
-    StructEngine& engine,   ///< [in] 親の StructEngine
-    const TpgNode* root,    ///< [in] 起点のノード
-    const JsonValue& option ///< [in] オプション
-    = JsonValue{}
+    StructEngine& engine,                 ///< [in] 親の StructEngine
+    const TpgNode* root,                  ///< [in] 起点のノード
+    const JsonValue& option = JsonValue{} ///< [in] オプション
+
+  );
+
+  /// @brief コンストラクタ
+  BoolDiffEnc(
+    StructEngine& engine,                      ///< [in] 親の StructEngine
+    const TpgNode* root,                       ///< [in] 起点のノード
+    const vector<const TpgNode*>& output_list, ///< [in] 出力のリスト
+    const JsonValue& option = JsonValue{}      ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -73,6 +81,25 @@ public:
     return mOutputList;
   }
 
+  /// @brief root_node() から到達可能な外部出力の数を返す．
+  SizeType
+  output_num() const
+  {
+    return mOutputList.size();
+  }
+
+  /// @brief root_node() から到達可能な外部出力を返す．
+  const TpgNode*
+  output(
+    SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
+  ) const
+  {
+    if ( pos >= output_num() ) {
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mOutputList[pos];
+  }
+
   /// @brief 微分結果を表す変数を返す．
   SatLiteral
   prop_var() const
@@ -80,9 +107,27 @@ public:
     return mPropVar;
   }
 
+  /// @brief 微分結果を表す変数を返す．
+  SatLiteral
+  prop_var(
+    SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
+  ) const
+  {
+    if ( pos >= output_num() ) {
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mPropVarList[pos];
+  }
+
   /// @brief 直前の check() が成功したときの十分条件を求める．
   AssignList
   extract_sufficient_condition();
+
+  /// @brief 直前の check() が成功したときの十分条件を求める．
+  AssignList
+  extract_sufficient_condition(
+    SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
+  );
 
   /// @brief 直前の check() が成功したときの十分条件を求める．
   AssignExpr
@@ -170,6 +215,9 @@ private:
 
   // 微分結果を表す変数
   SatLiteral mPropVar;
+
+  // 各出力ごとの微分結果を表す変数
+  vector<SatLiteral> mPropVarList;
 
   // 故障値を表す変数マップ
   VidMap mFvarMap;

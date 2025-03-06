@@ -12,6 +12,8 @@
 #include "FaultType.h"
 #include "CondGen.h"
 #include "CnfGenMgr.h"
+#include "StructEngine.h"
+#include "BoolDiffEnc.h"
 #include "ym/SatInitParam.h"
 
 
@@ -108,8 +110,7 @@ CondGenTestWithParam::do_test()
     StructEngine engine(network, option);
     auto bd_enc = new BoolDiffEnc(engine, ffr->root(), option);
     engine.make_cnf({}, {ffr->root()});
-    CondGen gen(network, ffr, option);
-    auto cond = gen.root_cond(limit);
+    auto cond = CondGen::root_cond(network, ffr, limit, option);
     if ( cond.type() != DetCond::Detected ) {
       continue;
     }
@@ -120,14 +121,7 @@ CondGenTestWithParam::do_test()
     auto res = engine.solver().solve(assumptions1);
     if ( res != SatBool3::False ) {
       cout << "FFR#" << ffr->id() << endl;
-      cout << "mandatory condition: " << cond.mandatory_condition() << endl;
-      SizeType i = 0;
-      for ( auto cube: cond.cube_list() ) {
-	cout << "Cube#" << i << ": ";
-	cout << cube << endl;
-	++ i;
-	cout << endl;
-      }
+      //cout << "expr: " << cond.expr() << endl;
       cout << "assumptions: ";
       for ( auto lit: assumptions ) {
 	cout << " " << lit;

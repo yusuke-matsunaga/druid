@@ -36,27 +36,24 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief カバーを表すリテラルのリストから SopCover を作る．
+  /// @brief カバーを表す Expr から SopCover を作る．
   ///
-  /// literal_list に現れる変数を登録する．
+  /// expr に現れる変数を登録する．
   SopCover
   to_cover(
-    const vector<vector<Literal>>& literal_list ///< [in] リテラルのリスト
+    const vector<vector<Literal>>& literal_list
   )
   {
     vector<vector<Literal>> local_literal_list;
     local_literal_list.reserve(literal_list.size());
-    for ( auto& lits: literal_list ) {
-      vector<Literal> local_lits;
-      local_lits.reserve(lits.size());
-      for ( auto lit: lits ) {
-	auto id = lit.varid();
-	auto local_id = reg_id(id);
-	bool inv = lit.is_negative();
-	auto local_lit = Literal(local_id, inv);
-	local_lits.push_back(local_lit);
+    for ( auto src_lits: literal_list ) {
+      vector<Literal> lits;
+      lits.reserve(src_lits.size());
+      for ( auto src_lit: src_lits ) {
+	auto lit = to_literal(src_lit);
+	lits.push_back(lit);
       }
-      local_literal_list.push_back(local_lits);
+      local_literal_list.push_back(lits);
     }
     auto nv = local_num();
     auto cover = SopCover(nv, local_literal_list);
@@ -85,6 +82,41 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief キューブを表す Expr を変換する．
+  vector<Literal>
+  to_cube(
+    const Expr& expr
+  )
+  {
+    if ( expr.is_literal() ) {
+      auto lit = to_literal(expr.literal());
+      return {lit};
+    }
+    if ( expr.is_and() ) {
+      vector<Literal> lits;
+      lits.reserve(expr.operand_num());
+      for ( auto& expr1: expr.operand_list() ) {
+	auto lit = to_literal(expr1.literal());
+	lits.push_back(lit);
+      }
+      return lits;
+    }
+    throw std::invalid_argument{"expr is not a cube"};
+    return {};
+  }
+
+  /// @brief リテラルをローカルなリテラルに変換する．
+  Literal
+  to_literal(
+    Literal lit
+  )
+  {
+    auto varid = lit.varid();
+    auto local_id = reg_id(varid);
+    auto inv = lit.is_negative();
+    return Literal(local_id, inv);
+  }
 
   /// @brief ID を登録する．
   /// @return ローカルIDを返す．

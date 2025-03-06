@@ -36,10 +36,10 @@ BoolDiffEnc::BoolDiffEnc(
   StructEngine& engine,
   const TpgNode* root,
   const JsonValue& option
-) : SubEnc{engine},
+) : SubEnc(engine),
     mRoot{root},
-    mFvarMap{engine.network().node_num()},
-    mDvarMap{engine.network().node_num()},
+    mFvarMap(engine.network().node_num()),
+    mDvarMap(engine.network().node_num()),
     mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
 {
   mTfoList = TpgNodeSet::get_tfo_list(
@@ -50,6 +50,63 @@ BoolDiffEnc::BoolDiffEnc(
       }
     }
   );
+  mPropVarList.resize(output_num());
+}
+
+BEGIN_NONAMESPACE
+
+void
+dfs(
+  const TpgNode* node,
+  const std::unordered_set<SizeType>& tfo_mark,
+  std::unordered_set<SizeType>& dfs_mark
+)
+{
+  if ( tfo_mark.count(node->id()) == 0 ) {
+    return;
+  }
+  if ( dfs_mark.count(node->id()) > 0 ) {
+    return;
+  }
+  dfs_mark.emplace(node->id());
+  for ( auto inode: node->fanin_list() ) {
+    dfs(inode, tfo_mark, dfs_mark);
+  }
+}
+
+END_NONAMESPACE
+
+// @brief コンストラクタ
+BoolDiffEnc::BoolDiffEnc(
+  StructEngine& engine,
+  const TpgNode* root,
+  const vector<const TpgNode*>& output_list,
+  const JsonValue& option
+) : SubEnc(engine),
+    mRoot{root},
+    mOutputList{output_list},
+    mFvarMap(engine.network().node_num()),
+    mDvarMap(engine.network().node_num()),
+    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
+{
+  std::unordered_set<SizeType> tfo_mark;
+  auto tfo_list = TpgNodeSet::get_tfo_list(
+    engine.network().node_num(), mRoot,
+    [&](const TpgNode* node) {
+      tfo_mark.emplace(node->id());
+    }
+  );
+  std::unordered_set<SizeType> dfs_mark;
+  for ( auto output: mOutputList ) {
+    dfs(output, tfo_mark, dfs_mark);
+  }
+  mTfoList.reserve(dfs_mark.size());
+  for ( auto node: tfo_list ) {
+    if ( dfs_mark.count(node->id()) > 0 ) {
+      mTfoList.push_back(node);
+    }
+  }
+  mPropVarList.resize(output_num());
 }
 
 // @brief デストラクタ
@@ -78,7 +135,7 @@ BoolDiffEnc::make_cnf()
   }
 
   // CNF の生成
-  GateEnc fval_enc{solver(), mFvarMap};
+  GateEnc fval_enc(solver(), mFvarMap);
   for ( auto node: mTfoList ) {
     if ( node != mRoot ) {
       fval_enc.make_cnf(node);
@@ -93,21 +150,30 @@ BoolDiffEnc::make_cnf()
     solver().add_clause(~glit, ~flit);
   }
 
+  // 各出力の微分結果を表す変数を作る．
+  mPropVarList.resize(output_num());
+  for ( SizeType i = 0; i < output_num(); ++ i ) {
+    auto node = mOutputList[i];
+    auto plit = solver().new_variable(true);
+    auto dlit = dvar(node);
+    solver().add_buffgate(plit, dlit);
+    mPropVarList[i] = plit;
+  }
+
   // 微分結果を表す変数を作る．
-  ASSERT_COND( !mOutputList.empty() );
   if ( mOutputList.size() > 1 ) {
-    mPropVar = solver().new_variable(true);
     vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(mOutputList.size());
-    for ( auto node: mOutputList ) {
-      auto dlit = dvar(node);
-      tmp_lits.push_back(dlit);
+    tmp_lits.reserve(output_num());
+    for ( auto plit: mPropVarList ) {
+      tmp_lits.push_back(plit);
     }
-    solver().add_orgate(mPropVar, tmp_lits);
+    auto plit = solver().new_variable(true);
+    solver().add_orgate(plit, tmp_lits);
+    mPropVar = plit;
   }
   else {
-    // 1出力ならその出力の dlit が伝搬条件そのもの
-    mPropVar = dvar(mOutputList[0]);
+    // 1出力ならその出力の PropVar が伝搬条件そのもの
+    mPropVar = mPropVarList[0];
   }
 }
 
@@ -170,6 +236,22 @@ BoolDiffEnc::extract_sufficient_condition()
   return (*mExtractor)(root_node(),
 		       engine().gvar_map(),
 		       mFvarMap,
+		       solver().model());
+}
+
+// @brief 直前の check() が成功したときの十分条件を求める．
+AssignList
+BoolDiffEnc::extract_sufficient_condition(
+  SizeType pos
+)
+{
+  if ( pos >= output_num() ) {
+    throw std::out_of_range{"pos is out of range"};
+  }
+  return (*mExtractor)(root_node(),
+		       engine().gvar_map(),
+		       mFvarMap,
+		       mOutputList[pos],
 		       solver().model());
 }
 

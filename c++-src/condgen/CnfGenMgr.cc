@@ -11,7 +11,10 @@
 #include "CnfGenCover.h"
 #include "CnfGenFactor.h"
 #include "CnfGenAig.h"
+#include "TpgNetwork.h"
+#include "TpgFFR.h"
 #include "StructEngine.h"
+#include "BoolDiffEnc.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -122,6 +125,50 @@ CnfGenMgr::calc_cnf_size(
   // デフォルトフォールバック
   CnfGenNaive gen;
   return gen.calc_cnf_size(cond_list);
+}
+
+// @brief 複数の論理式を CNF に変換する．
+vector<vector<SatLiteral>>
+CnfGenMgr::make_raw_cnf(
+  StructEngine& engine,
+  const TpgNetwork& network
+)
+{
+  vector<vector<SatLiteral>> lits_list;
+  lits_list.reserve(network.ffr_num());
+  vector<const TpgNode*> root_list;
+  root_list.reserve(network.ffr_num());
+  for ( auto ffr: network.ffr_list() ) {
+    auto root = ffr->root();
+    auto bd_enc = new BoolDiffEnc(engine, root);
+    auto plit = bd_enc->prop_var();
+    lits_list.push_back({plit});
+    root_list.push_back(root);
+  }
+  engine.make_cnf({}, root_list);
+  return lits_list;
+}
+
+// @brief 複数の論理式をそのまま CNF に変換した際の項数とリテラル数を数える．
+CnfSize
+CnfGenMgr::calc_raw_cnf_size(
+  const TpgNetwork& network
+)
+{
+  auto size = CnfSize::zero();
+  for ( auto ffr: network.ffr_list() ) {
+    auto root = ffr->root();
+    StructEngine engine0(network);
+    engine0.make_cnf({root}, {root});
+    auto size0 = engine0.solver().cnf_size();
+    StructEngine engine1(network);
+    auto bd_enc = new BoolDiffEnc(engine1, root);
+    engine1.make_cnf({}, {root});
+    auto size1 = engine1.solver().cnf_size();
+    auto raw_size = size1 - size0;
+    size += raw_size;
+  }
+  return size;
 }
 
 // @brief 複数の論理式を CNF に変換する．
