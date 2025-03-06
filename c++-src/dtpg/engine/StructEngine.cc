@@ -262,6 +262,7 @@ StructEngine::make_cnf(
 {
   if ( expr.is_zero() ) {
     // 充足不能
+    abort();
     throw std::invalid_argument{"expr is zero"};
   }
   if ( expr.is_one() ) {

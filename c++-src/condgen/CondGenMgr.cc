@@ -119,8 +119,8 @@ CondGenMgr::calc_ffr_cond_size(
   stats.rest_num = 0;
 
   stats.total_raw_size = CnfGenMgr::calc_raw_cnf_size(network);
-  stats.naive_size = CnfGenMgr::calc_naive_cnf_size(cond_list);
-  stats.opt_size = CnfGenMgr::calc_cnf_size(cond_list, cnfgen_option);
+  stats.naive_size = CnfGenMgr::calc_naive_cnf_size(network, cond_list);
+  stats.opt_size = CnfGenMgr::calc_cnf_size(network, cond_list, cnfgen_option);
 
   return stats;
 }

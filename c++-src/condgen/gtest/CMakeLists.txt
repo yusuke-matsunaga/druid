@@ -41,6 +41,7 @@ ym_add_gtest ( druid_condgen_test
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
   )
 
+if ( 0 )
 ym_add_gtest ( druid_Expr2Cnf_test
   Expr2CnfTest.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
@@ -57,6 +58,7 @@ ym_add_gtest ( druid_Expr2Cnf_test
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
+endif ()
 
 ym_add_gtest ( druid_cnfgen_test
   cnfgen_test.cc

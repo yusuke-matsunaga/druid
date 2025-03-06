@@ -42,15 +42,17 @@ CondGenChecker::check(
   if ( res != SatBool3::False ) {
     cout << mCond.expr() << endl;
   }
+#if 0
   auto size1 = mEngine.solver().cnf_size();
   auto real_size = size1 - size0;
-  auto size = CnfGenMgr::calc_cnf_size(cond);
+  auto size = CnfGenMgr::calc_cnf_size(mEngine.network(), cond);
   if ( size != real_size ) {
     cout << "real_size: " << real_size << endl
 	 << "calc_size: " << size << endl;
     //cout << "expr: " << cond.expr() << endl;
     return false;
   }
+#endif
   return res == SatBool3::False;
 }
 

@@ -59,22 +59,11 @@ public:
     = JsonValue{}
   );
 
-  /// @brief 論理式を CNF に変換した際の項数とリテラル数を数える．
-  static
-  CnfSize
-  calc_cnf_size(
-    const DetCond& cond,    ///< [in] 式
-    const JsonValue& option ///< [in] オプション
-    = JsonValue{}
-  )
-  {
-    return calc_cnf_size(vector<DetCond>{cond}, option);
-  }
-
   /// @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
   static
   CnfSize
   calc_cnf_size(
+    const TpgNetwork& network,        ///< [in] 対象のネットワーク
     const vector<DetCond>& cond_list, ///< [in] 式のリスト
     const JsonValue& option           ///< [in] オプション
     = JsonValue{}
@@ -109,6 +98,7 @@ public:
   static
   CnfSize
   calc_naive_cnf_size(
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
     const vector<DetCond>& expr_list ///< [in] 式のリスト
   );
 

@@ -35,7 +35,7 @@ set ( condgen_SOURCES
   CnfGenFactor.cc
   CnfGenAig.cc
   Expr2Aig.cc
-  Expr2Cnf.cc
+  #Expr2Cnf.cc
   )
 
 

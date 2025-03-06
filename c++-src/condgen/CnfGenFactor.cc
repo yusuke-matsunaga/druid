@@ -38,6 +38,9 @@ CnfGenFactor::to_expr(
 )
 {
   auto expr = lits_to_expr(cond.mand_cond);
+  if ( cond.cube_list.empty() ) {
+    return expr;
+  }
 
   // cube_list に現れる変数のみを集めた辞書を作る．
   LocalMap local_map;

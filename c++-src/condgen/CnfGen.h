@@ -49,6 +49,7 @@ public:
   /// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
   CnfSize
   calc_cnf_size(
+    const TpgNetwork& network,       ///< [in] 対象のネットワーク
     const vector<DetCond>& cond_list ///< [in] カバー（キューブのリスト）
   );
 
@@ -90,29 +91,7 @@ private:
   vector<Expr>
   _make_expr_list(
     const vector<DetCond>& cond_list
-  )
-  {
-    vector<Expr> expr_list;
-    expr_list.reserve(cond_list.size());
-    for ( auto& cond: cond_list ) {
-      if ( cond.type() == DetCond::Detected ) {
-	auto expr = to_expr(cond.cond());
-	expr_list.push_back(expr);
-      }
-      else if ( cond.type() == DetCond::PartialDetected ) {
-	auto expr = Expr::zero();
-	for ( auto& cond1: cond.cond_list() ) {
-	  auto expr1 = to_expr(cond1);
-	  expr |= expr1;
-	}
-	expr_list.push_back(expr);
-      }
-      else {
-	expr_list.push_back(Expr::zero());
-      }
-    }
-    return expr_list;
-  }
+  );
 
 };
 

@@ -57,7 +57,8 @@ to_cond(
     auto cube_lits = assign_to_literal(cube);
     cov_lits.push_back(cube_lits);
   }
-  return DetCond::CondData{mand_lits, cov_lits};
+  auto data = DetCond::CondData{mand_lits, cov_lits};
+  return data;
 }
 
 END_NONAMESPACE
@@ -79,8 +80,9 @@ CondGen::root_cond(
   Timer timer;
   timer.start();
 
+  auto root = ffr->root();
   StructEngine engine(network, option);
-  auto bd_enc = new BoolDiffEnc(engine, ffr->root(), option);
+  auto bd_enc = new BoolDiffEnc(engine, root, option);
   engine.make_cnf({}, {ffr->root()});
 
   // FFR の出力の伝搬可能性を調べる．
@@ -89,7 +91,7 @@ CondGen::root_cond(
   auto res = solver.solve({pvar});
   if ( res != SatBool3::True ) {
     // 検出可能ではなかった．
-    return DetCond::undetected();
+    return DetCond::undetected(root);
   }
 
   // 最初の十分条件を求める．
@@ -112,7 +114,7 @@ CondGen::root_cond(
 
   if ( suff_cond.size() == 0 ) {
     // 十分条件と必要条件が等しかった．
-    return DetCond::detected(to_cond(mand_cond));
+    return DetCond::detected(root, to_cond(mand_cond));
   }
 
   vector<AssignList> cube_list;
@@ -171,8 +173,10 @@ CondGen::root_cond(
 
   // 生成された結果を論理式の形に変換する．
   if ( found ) {
-    return DetCond::detected(to_cond(mand_cond, cube_list));
+    return DetCond::detected(root, to_cond(mand_cond, cube_list));
   }
+
+  return DetCond::overflow(root, {});
 
   // 伝搬先の出力を一つに制限して同じ処理を繰り返す．
   auto n = bd_enc->output_num();
@@ -195,7 +199,7 @@ CondGen::root_cond(
     suff_cond.diff(mand_cond);
 
     // 必要条件を求める．
-    AssignList mand_cond1;
+    AssignList mand_cond1 = mand_cond;
     for ( auto as: suff_cond ) {
       auto lit = engine.conv_to_literal(as);
       auto assumptions1 = assumptions;
@@ -255,10 +259,10 @@ CondGen::root_cond(
     }
   }
   if ( cond_list.empty() ) {
-    return DetCond::overflow(output_list);
+    return DetCond::overflow(root, output_list);
   }
   else {
-    return DetCond::partial_detected(cond_list, output_list);
+    return DetCond::partial_detected(root, cond_list, output_list);
   }
 }
 

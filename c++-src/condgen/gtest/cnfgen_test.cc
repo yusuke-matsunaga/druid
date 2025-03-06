@@ -121,12 +121,13 @@ CondGenTestWithParam::do_test()
     auto res = engine.solver().solve(assumptions1);
     if ( res != SatBool3::False ) {
       cout << "FFR#" << ffr->id() << endl;
-      //cout << "expr: " << cond.expr() << endl;
+      cond.print(cout);
       cout << "assumptions: ";
       for ( auto lit: assumptions ) {
 	cout << " " << lit;
       }
       cout << endl;
+      abort();
     }
     EXPECT_EQ( SatBool3::False, res );
   }

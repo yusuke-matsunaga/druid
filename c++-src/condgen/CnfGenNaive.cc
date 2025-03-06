@@ -35,6 +35,9 @@ CnfGenNaive::to_expr(
 )
 {
   auto expr = lits_to_expr(cond.mand_cond);
+  if ( cond.cube_list.empty() ) {
+    return expr;
+  }
   auto cov_expr = Expr::zero();
   for ( auto lits: cond.cube_list ) {
     auto expr1 = lits_to_expr(lits);

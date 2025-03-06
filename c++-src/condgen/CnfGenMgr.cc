@@ -90,6 +90,7 @@ CnfGenMgr::make_cnf(
 // @brief 複数の論理式を CNF に変換した際の項数とリテラル数を数える．
 CnfSize
 CnfGenMgr::calc_cnf_size(
+  const TpgNetwork& network,
   const vector<DetCond>& cond_list,
   const JsonValue& option
 )
@@ -105,26 +106,26 @@ CnfGenMgr::calc_cnf_size(
     // ナイーブなやり方
     // キューブごとにリテラルを割り当て，その OR 条件を作る．
     CnfGenNaive gen;
-    return gen.calc_cnf_size(cond_list);
+    return gen.calc_cnf_size(network, cond_list);
   }
   if ( method == "cover" ) {
     // 一旦 SopCover に変換して CNF を作る．
     CnfGenCover gen;
-    return gen.calc_cnf_size(cond_list);
+    return gen.calc_cnf_size(network, cond_list);
   }
   if ( method == "factor" ) {
     // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
     CnfGenFactor gen;
-    return gen.calc_cnf_size(cond_list);
+    return gen.calc_cnf_size(network, cond_list);
   }
   if ( method == "aig" ) {
     // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
     CnfGenAig gen;
-    return gen.calc_cnf_size(cond_list);
+    return gen.calc_cnf_size(network, cond_list);
   }
   // デフォルトフォールバック
   CnfGenNaive gen;
-  return gen.calc_cnf_size(cond_list);
+  return gen.calc_cnf_size(network, cond_list);
 }
 
 // @brief 複数の論理式を CNF に変換する．
@@ -185,11 +186,12 @@ CnfGenMgr::make_naive_cnf(
 // @brief 複数の論理式をそのまま CNF に変換した際の項数とリテラル数を数える．
 CnfSize
 CnfGenMgr::calc_naive_cnf_size(
+  const TpgNetwork& network,
   const vector<DetCond>& cond_list
 )
 {
   CnfGenNaive gen;
-  return gen.calc_cnf_size(cond_list);
+  return gen.calc_cnf_size(network, cond_list);
 }
 
 END_NAMESPACE_DRUID
