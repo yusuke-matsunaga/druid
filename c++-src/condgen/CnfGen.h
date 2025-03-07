@@ -62,7 +62,7 @@ protected:
   /// @brief DetCond から Expr を作る．
   virtual
   Expr
-  to_expr(
+  cond_to_expr(
     const DetCond::CondData& cond
   ) = 0;
 

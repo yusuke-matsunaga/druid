@@ -64,13 +64,13 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 基本のエンコーダ
-  StructEngine mEngine;
+  std::unique_ptr<StructEngine> mEngine;
 
   // mFFR1 用の BoolDiffエンコーダ
   BoolDiffEnc* mBdEnc1;
 
   // 故障番号をキーとして制御変数を格納する辞書
-  unordered_map<SizeType, SatLiteral> mVarMap;
+  std::unordered_map<SizeType, SatLiteral> mVarMap;
 
 };
 

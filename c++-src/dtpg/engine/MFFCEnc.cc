@@ -49,12 +49,9 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 MFFCEnc::MFFCEnc(
-  StructEngine& engine,
   const TpgMFFC* mffc
-) : SubEnc{engine},
-    mMFFC{mffc},
-    mFFRInfoArray(mMFFC->ffr_num()),
-    mFvarMap{engine.network().node_num()}
+) : mMFFC{mffc},
+    mFFRInfoArray(mMFFC->ffr_num())
 {
   // MFFC 内の FFR に対してローカルな番号を割り当てる．
   SizeType ffr_id = 0;
@@ -194,13 +191,20 @@ MFFCEnc::is_in_fcone(
   return glit != flit;
 }
 
+// @brief データ構造の初期化を行う．
+void
+MFFCEnc::init()
+{
+  mFvarMap.init(engine().network().node_num());
+}
+
 // @brief 必要な変数を割り当て CNF 式を作る．
 void
 MFFCEnc::make_cnf()
 {
-  mPropVar = solver().new_variable();
+  mPropVar = new_variable(true);
   for ( auto& info: mFFRInfoArray ) {
-    info.mCvar = solver().new_variable(true);
+    info.mCvar = new_variable(true);
 
     if ( debug_mffc ) {
       DEBUG_OUT << "cvar(FFR#" << info.mFFR->id() << ") = " << info.mCvar << endl;
@@ -216,7 +220,7 @@ MFFCEnc::make_cnf()
   }
   // node に新しい変数を割り当てる．
   for ( auto node: mNodeList ) {
-    auto flit = solver().new_variable(true);
+    auto flit = new_variable(true);
     mFvarMap.set_vid(node, flit);
 
     if ( debug_mffc ) {
@@ -230,7 +234,7 @@ MFFCEnc::make_cnf()
     auto node = info.mFFR->root();
     if ( fvar(node) == gvar(node) ) {
       // この FFR は最も入力よりにある．
-      auto flit = solver().new_variable(true);
+      auto flit = new_variable(true);
       mFvarMap.set_vid(node, flit);
       auto glit = gvar(node);
       inject_fault(info, glit);
@@ -246,7 +250,7 @@ MFFCEnc::make_cnf()
       auto& info = mFFRInfoArray[ffr_id];
       // 実際のゲートの出力と ovar の間に XOR ゲートを挿入する．
       // XORの一方の入力は info.mCvar
-      auto olit = solver().new_variable();
+      auto olit = new_variable();
       // olit は fvar(node) ではない！
       fval_enc.make_cnf(node, olit);
       inject_fault(info, olit);

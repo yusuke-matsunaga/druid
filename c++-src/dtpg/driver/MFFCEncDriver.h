@@ -72,7 +72,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 基本のエンコーダ
-  StructEngine mEngine;
+  std::unique_ptr<StructEngine> mEngine;
 
   // BoolDiffEnc
   BoolDiffEnc* mBdEnc;

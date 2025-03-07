@@ -77,23 +77,25 @@ CondGen2::CondGen2(
   const TpgFFR* ffr,
   const JsonValue& option
 ) : mFFR{ffr},
-    mEngine{network, option},
     mDebug{OpBase::get_debug(option)}
 {
-  mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
-  mEngine.make_cnf({}, {ffr->root()});
+  mBdEnc = new BoolDiffEnc(ffr->root(), option);
+  StructEngine::Builder builder;
+  builder.add_subenc(mBdEnc);
+  builder.add_extra_prev_node(ffr->root());
+  mEngine = builder.new_obj(network, option);
 
   // FFR の出力の伝搬可能性を調べる．
   Timer timer;
   timer.start();
   auto pvar = mBdEnc->prop_var();
-  mRootStatus = mEngine.solver().solve({pvar});
+  mRootStatus = mEngine->solver().solve({pvar});
   if ( mRootStatus == SatBool3::True ) {
     // 必要条件を求める．
     auto suff_cond = mBdEnc->extract_sufficient_condition();
     for ( auto nv: suff_cond ) {
-      auto lit = mEngine.conv_to_literal(nv);
-      if ( mEngine.solver().solve({pvar, ~lit}) == SatBool3::False ) {
+      auto lit = mEngine->conv_to_literal(nv);
+      if ( mEngine->solver().solve({pvar, ~lit}) == SatBool3::False ) {
 	mRootMandCond.add(nv);
       }
     }
@@ -114,12 +116,14 @@ CondGen2::CondGen2(
   const AssignList& root_cond,
   const JsonValue& option
 ) : mFFR{ffr},
-    mEngine{network, option},
+    mBdEnc{new BoolDiffEnc(ffr->root(), option)},
     mRootMandCond{root_cond},
     mDebug{OpBase::get_debug(option)}
 {
-  mBdEnc = new BoolDiffEnc{mEngine, ffr->root(), option};
-  mEngine.make_cnf({}, {ffr->root()});
+  StructEngine::Builder builder;
+  builder.add_subenc(mBdEnc);
+  builder.add_extra_prev_node(ffr->root());
+  mEngine = builder.new_obj(network, option);
 
   if ( mDebug > 1 ) {
     DBG_OUT << "FFR#" << ffr->id()
@@ -368,9 +372,9 @@ CondGen2::gen_cond(
   Timer timer;
   timer.start();
   auto plit = mBdEnc->prop_var();
-  auto assumptions = mEngine.conv_to_literal_list(extra_cond);
+  auto assumptions = mEngine->conv_to_literal_list(extra_cond);
   assumptions.push_back(plit);
-  auto res = mEngine.solver().solve(assumptions);
+  auto res = mEngine->solver().solve(assumptions);
   timer.stop();
   if ( mDebug > 1 ) {
     DBG_OUT << "DTPG: " << (timer.get_time() / 1000.0) << endl;
@@ -397,9 +401,9 @@ CondGen2::gen_cond(
   auto assumptions1 = assumptions;
   assumptions1.push_back(SatLiteral::X);
   for ( auto nv: tmp_cond ) {
-    auto lit = mEngine.conv_to_literal(nv);
+    auto lit = mEngine->conv_to_literal(nv);
     assumptions1.back() = ~lit;
-    if ( mEngine.solver().solve(assumptions1) == SatBool3::False ) {
+    if ( mEngine->solver().solve(assumptions1) == SatBool3::False ) {
       mand_cond.add(nv);
     }
   }
@@ -434,7 +438,7 @@ CondGen2::gen_cond(
   auto or_expr = expr;
 
   // 制御用の変数を用意する．
-  auto clit = mEngine.solver().new_variable(false);
+  auto clit = mEngine->solver().new_variable(false);
   for ( ; loop_count < limit; ++ loop_count ) {
     Timer timer;
     timer.start();
@@ -442,10 +446,10 @@ CondGen2::gen_cond(
     // ただし他の故障の処理のときには無効化したいので
     // 制御変数をつけておく．
     add_negate(expr, assign_mgr.assign_map(), clit);
-    auto tmp_assumptions = mEngine.conv_to_literal_list(mand_cond);
+    auto tmp_assumptions = mEngine->conv_to_literal_list(mand_cond);
     tmp_assumptions.push_back(plit);
     tmp_assumptions.push_back(clit);
-    auto res = mEngine.solver().solve(tmp_assumptions);
+    auto res = mEngine->solver().solve(tmp_assumptions);
     timer.stop();
     if ( mDebug > 2 ) {
       DBG_OUT << "  " << (timer.get_time() / 1000.0) << endl;
@@ -496,8 +500,8 @@ CondGen2::add_negate(
   }
   if ( expr.is_literal() ) {
     auto as = assign_map.assign(expr.literal());
-    auto lit = mEngine.conv_to_literal(as);
-    mEngine.solver().add_clause(~clit, ~lit);
+    auto lit = mEngine->conv_to_literal(as);
+    mEngine->solver().add_clause(~clit, ~lit);
     return;
   }
   auto n = expr.operand_num();
@@ -509,16 +513,16 @@ CondGen2::add_negate(
       auto opr = expr.operand(i);
       if ( opr.is_literal() ) {
 	auto as = assign_map.assign(opr.literal());
-	auto lit = mEngine.conv_to_literal(as);
+	auto lit = mEngine->conv_to_literal(as);
 	tmp_list.push_back(~lit);
       }
       else {
-	auto lit = mEngine.solver().new_variable();
+	auto lit = mEngine->solver().new_variable();
 	add_negate(opr, assign_map, ~lit);
 	tmp_list.push_back(~lit);
       }
     }
-    mEngine.solver().add_clause(tmp_list);
+    mEngine->solver().add_clause(tmp_list);
     return;
   }
   if ( expr.is_or() ) {
@@ -526,13 +530,13 @@ CondGen2::add_negate(
       auto opr = expr.operand(i);
       if ( opr.is_literal() ) {
 	auto as = assign_map.assign(opr.literal());
-	auto lit = mEngine.conv_to_literal(as);
-	mEngine.solver().add_clause(~clit, ~lit);
+	auto lit = mEngine->conv_to_literal(as);
+	mEngine->solver().add_clause(~clit, ~lit);
       }
       else {
-	auto lit = mEngine.solver().new_variable();
+	auto lit = mEngine->solver().new_variable();
 	add_negate(opr, assign_map, ~lit);
-	mEngine.solver().add_clause(~clit, ~lit);
+	mEngine->solver().add_clause(~clit, ~lit);
       }
     }
     return;

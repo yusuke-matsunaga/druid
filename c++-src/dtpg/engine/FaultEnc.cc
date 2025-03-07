@@ -14,10 +14,8 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 FaultEnc::FaultEnc(
-  StructEngine& engine,
   const TpgFault* fault
-) : SubEnc{engine},
-    mFault{fault}
+) : mFault{fault}
 {
   auto ex_cond = mFault->excitation_condition();
   mNodeList.reserve(ex_cond.size());
@@ -33,11 +31,17 @@ FaultEnc::FaultEnc(
   }
 }
 
+// @brief データ構造の初期化を行う．
+void
+FaultEnc::init()
+{
+}
+
 // @brief 必要な変数を割り当てCNF式を作る．
 void
 FaultEnc::make_cnf()
 {
-  mPropVar = solver().new_variable(true);
+  mPropVar = new_variable(true);
   auto ex_cond = mFault->excitation_condition();
   auto tmp_lits = conv_to_literal_list(ex_cond);
   solver().add_andgate(mPropVar, tmp_lits);

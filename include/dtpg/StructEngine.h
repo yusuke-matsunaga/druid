@@ -31,19 +31,115 @@ class Justifier;
 //////////////////////////////////////////////////////////////////////
 class StructEngine
 {
-  friend class SubEnc;
+public:
+
+  /// @brief StructEngine 用のビルダクラス
+  class Builder
+  {
+  public:
+
+    /// @brief コンストラクタ
+    Builder()
+    {
+    }
+
+    /// @brief SubEnc を追加する．
+    void
+    add_subenc(
+      SubEnc* enc
+    )
+    {
+      mSubEncList.push_back(enc);
+    }
+
+    /// @brief ノードリストに追加する．
+    void
+    add_extra_node(
+      const TpgNode* node
+    )
+    {
+      mExNodeList.push_back(node);
+    }
+
+    /// @brief ノードリストに追加する．
+    void
+    add_extra_node_list(
+      const std::vector<const TpgNode*>& node_list
+    )
+    {
+      mExNodeList.reserve(mExNodeList.size() + node_list.size());
+      for ( auto node: node_list ) {
+	add_extra_node(node);
+      }
+    }
+
+    /// @brief 1時刻前のノードリストに追加する．
+    void
+    add_extra_prev_node(
+      const TpgNode* node
+    )
+    {
+      mExPrevNodeList.push_back(node);
+    }
+
+    /// @brief 1時刻前のノードリストに追加する．
+    void
+    add_extra_prev_node_list(
+      const std::vector<const TpgNode*>& node_list
+    )
+    {
+      mExPrevNodeList.reserve(mExPrevNodeList.size() + node_list.size());
+      for ( auto node: node_list ) {
+	add_extra_prev_node(node);
+      }
+    }
+
+    /// @brief StructEngine を作る．
+    std::unique_ptr<StructEngine>
+    new_obj(
+      const TpgNetwork& network,
+      const JsonValue& option = JsonValue{}
+    )
+    {
+      auto engine = new StructEngine{network, mSubEncList,
+				     mExNodeList, mExPrevNodeList,
+				     option};
+      return std::unique_ptr<StructEngine>{engine};
+    }
+
+
+  private:
+    //////////////////////////////////////////////////////////////////////
+    // データメンバ
+    //////////////////////////////////////////////////////////////////////
+
+    // SubEnc のリスト
+    std::vector<SubEnc*> mSubEncList;
+
+    // 追加のノードリスト
+    std::vector<const TpgNode*> mExNodeList;
+
+    // 追加の1時刻前のノードリスト
+    std::vector<const TpgNode*> mExPrevNodeList;
+
+  };
+
 
 public:
 
   /// @brief コンストラクタ
-  explicit
   StructEngine(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
-    const JsonValue& option    ///< [in] 初期化オプション
-    = JsonValue{}              ///<      "sat_param": JsonValue
-                               ///<                   SATソルバの初期化パラメータ
-                               ///<      "justifier": string
-                               ///<                   Justifier の初期化パラメータ
+    const TpgNetwork& network,          ///< [in] 対象のネットワーク
+    const std::vector<SubEnc*>& subenc_list, ///< [in] SubEnc のリスト
+    const std::vector<const TpgNode*>& ex_node_list,
+                                        ///< [in] 追加するノードのリスト
+    const std::vector<const TpgNode*>& ex_prev_node_list,
+                                        ///< [in] 追加する1時刻前のノードのリスト
+    const JsonValue& option             ///< [in] 初期化オプション
+    = JsonValue{}                       ///<      "sat_param": JsonValue
+                                        ///<      SATソルバの初期化パラメータ
+                                        ///<      "justifier": string
+                                        ///<      Justifier の初期化パラメータ
   );
 
   /// @brief デストラクタ
@@ -56,13 +152,6 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 回路の構造を表すCNFを生成する．
-  void
-  make_cnf(
-    const vector<const TpgNode*>& cur_node_list, ///< [in] 関係するノードのリスト
-    const vector<const TpgNode*>& prev_node_list ///< [in] 1時刻前の値に関係するノードのリスト
-  );
 
   /// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
   /// @return 外部入力の割り当てリストを返す．
@@ -99,7 +188,7 @@ public:
   ///
   /// 論理式中の変数番号は TpgNode->id() * 2 + time に対応している．
   vector<SatLiteral>
-  make_cnf(
+  expr_to_cnf(
     const Expr& expr ///< [in] 論理式
   );
 
@@ -123,6 +212,23 @@ public:
   {
     return mPrevNodeList;
   }
+
+  /// @brief 変数を作る．
+  SatLiteral
+  new_variable(
+    bool decision = false ///< [in] 決定変数のときに true とする．
+  );
+
+  /// @brief SAT問題を解く
+  SatBool3
+  solve(
+    const vector<SatLiteral>& assumptions ///< [in] アサートするリテラルのリスト
+    = {}
+  );
+
+  /// @brief 現在の内部状態を得る．
+  SatStats
+  get_stats() const;
 
   /// @brief SATソルバを返す．
   SatSolver&
@@ -185,16 +291,12 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 部品を登録する．
-  ///
-  /// subenc の所有権は StructEngine に委譲される．
+  /// @brief 回路の構造を表すCNFを生成する．
   void
-  reg_subenc(
-    SubEnc* subenc ///< [in] 部品のエンコーダ
-  )
-  {
-    mSubEncList.push_back(subenc);
-  }
+  _make_cnf(
+    const vector<const TpgNode*>& ex_node_list,
+    const vector<const TpgNode*>& ex_prev_node_list
+  );
 
 
 private:
@@ -206,16 +308,16 @@ private:
   const TpgNetwork& mNetwork;
 
   // 部品のリスト
-  vector<SubEnc*> mSubEncList;
+  std::vector<std::unique_ptr<SubEnc>> mSubEncList;
 
   // 現時刻に関係のあるノードのリスト
-  vector<const TpgNode*> mCurNodeList;
+  std::vector<const TpgNode*> mCurNodeList;
 
   // DFF の入力ノードのリスト
-  vector<const TpgNode*> mDffInputList;
+  std::vector<const TpgNode*> mDffInputList;
 
   // 1時刻前に関係のあるノードのリスト
-  vector<const TpgNode*> mPrevNodeList;
+  std::vector<const TpgNode*> mPrevNodeList;
 
   // SATソルバ
   SatSolver mSolver;
@@ -251,16 +353,11 @@ class SubEnc
 public:
 
   /// @brief コンストラクタ
-  SubEnc(
-    StructEngine& engine ///< [in] 親の StructEngine
-  ) : mEngine{engine}
-  {
-    mEngine.reg_subenc(this);
-  }
+  SubEnc() = default;
 
   /// @brief デストラクタ
   virtual
-  ~SubEnc() {}
+  ~SubEnc() = default;
 
 
 protected:
@@ -272,7 +369,7 @@ protected:
   StructEngine&
   engine() const
   {
-    return mEngine;
+    return *mEngine;
   }
 
   /// @brief 対象のネットワークを返す．
@@ -298,6 +395,15 @@ protected:
     return engine().conv_to_literal(assign);
   }
 
+  /// @brief 変数を作る．
+  SatLiteral
+  new_variable(
+    bool decision = false ///< [in] 決定変数のときに true とする．
+  )
+  {
+    return engine().new_variable(decision);
+  }
+
   /// @brief 値割り当てのリストを対応するリテラルのリストに変換する．
   vector<SatLiteral>
   conv_to_literal_list(
@@ -312,6 +418,11 @@ private:
   //////////////////////////////////////////////////////////////////////
   // StructEngine から利用される仮想関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief データ構造の初期化を行う．
+  virtual
+  void
+  init() = 0;
 
   /// @brief 変数を割り当てCNFを生成する．
   virtual
@@ -335,7 +446,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 親の StructEngine
-  StructEngine& mEngine;
+  StructEngine* mEngine{nullptr};
 
 };
 

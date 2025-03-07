@@ -37,15 +37,12 @@ public:
 
   /// @brief コンストラクタ
   BoolDiffEnc(
-    StructEngine& engine,                 ///< [in] 親の StructEngine
     const TpgNode* root,                  ///< [in] 起点のノード
     const JsonValue& option = JsonValue{} ///< [in] オプション
-
   );
 
   /// @brief コンストラクタ
   BoolDiffEnc(
-    StructEngine& engine,                      ///< [in] 親の StructEngine
     const TpgNode* root,                       ///< [in] 起点のノード
     const vector<const TpgNode*>& output_list, ///< [in] 出力のリスト
     const JsonValue& option = JsonValue{}      ///< [in] オプション
@@ -144,6 +141,10 @@ private:
   //////////////////////////////////////////////////////////////////////
   // SubEnc の仮想関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief データ構造の初期化を行う．
+  void
+  init() override;
 
   /// @brief 必要な変数を割り当て CNF 式を作る．
   void

@@ -202,7 +202,17 @@ DtpgTestWithParam2::do_test()
   option_dict.emplace("group_mode", group_mode());
   option_dict.emplace("driver_type", driver_type());
   option_dict.emplace("justifier", just_type());
+#if 1
   auto sat_obj = JsonValue{sat_type()};
+#else
+  unordered_map<string, JsonValue> sat_dict;
+  sat_dict.emplace("type", sat_type());
+  unordered_map<string, JsonValue> log_dict;
+  log_dict.emplace("stdout", JsonValue(true));
+  auto log_obj = JsonValue(log_dict);
+  sat_dict.emplace("log", log_obj);
+  auto sat_obj = JsonValue(sat_dict);
+#endif
   option_dict.emplace("sat_param", sat_obj);
   JsonValue option{option_dict};
   auto network = TpgNetwork::read_blif(filename(), fault_type());

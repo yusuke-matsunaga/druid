@@ -22,10 +22,13 @@ NodeEncDriver::NodeEncDriver(
   const TpgNetwork& network,
   const TpgNode* node,
   const JsonValue& option
-) : mEngine{network, option}
+)
 {
-  mBdEnc = new BoolDiffEnc{mEngine, node, option};
-  mEngine.make_cnf({}, {node});
+  mBdEnc = new BoolDiffEnc(node, option);
+  StructEngine::Builder builder;
+  builder.add_subenc(mBdEnc);
+  builder.add_extra_prev_node(node);
+  mEngine = builder.new_obj(network, option);
 }
 
 // @brief デストラクタ
@@ -40,9 +43,9 @@ NodeEncDriver::solve(
 )
 {
   auto ex_cond = fault->excitation_condition();
-  auto assumptions = mEngine.conv_to_literal_list(ex_cond);
+  auto assumptions = mEngine->conv_to_literal_list(ex_cond);
   assumptions.push_back(mBdEnc->prop_var());
-  return mEngine.solver().solve(assumptions);
+  return mEngine->solve(assumptions);
 }
 
 // @brief テストパタン生成を行う．
@@ -54,22 +57,22 @@ NodeEncDriver::gen_pattern(
   auto assign_list = mBdEnc->extract_sufficient_condition();
   auto ex_cond = fault->excitation_condition();
   assign_list.merge(ex_cond);
-  auto pi_assign_list = mEngine.justify(assign_list);
-  return TestVector{mEngine.network(), pi_assign_list};
+  auto pi_assign_list = mEngine->justify(assign_list);
+  return TestVector(mEngine->network(), pi_assign_list);
 }
 
 // @brief CNF の生成時間を返す．
 double
 NodeEncDriver::cnf_time() const
 {
-  return mEngine.cnf_time();
+  return mEngine->cnf_time();
 }
 
 // @brief SATの統計情報を返す．
 SatStats
 NodeEncDriver::sat_stats() const
 {
-  return mEngine.solver().get_stats();
+  return mEngine->get_stats();
 }
 
 END_NAMESPACE_DRUID

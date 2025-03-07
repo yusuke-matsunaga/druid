@@ -34,9 +34,11 @@ CnfGen::make_cnf(
 
   // overflow した出力を持つ場合に追加のCNF式を作る．
   auto n = cond_list.size();
-  auto& network = engine.network();
+  vector<const TpgNode*> root_list;
+  root_list.reserve(n);
   for ( SizeType i = 0; i < n; ++ i ) {
     auto& cond = cond_list[i];
+    root_list.push_back(cond.root());
 #if 0
     if ( cond.type() == DetCond::PartialDetected && !cond.output_list().empty() ) {
       auto bd_enc = new BoolDiffEnc(engine, cond.root(), cond.output_list());
@@ -59,12 +61,13 @@ CnfGen::make_cnf(
     }
 #else
     if ( cond.type() == DetCond::PartialDetected || cond.type() == DetCond::Overflow ) {
-      auto bd_enc = new BoolDiffEnc(engine, cond.root());
+      auto bd_enc = new BoolDiffEnc(cond.root());
       auto plit = bd_enc->prop_var();
       lits_list[i] = {plit};
     }
 #endif
   }
+  //engine.make_cnf(root_list, root_list);
 
   return lits_list;
 }
@@ -86,26 +89,42 @@ CnfGen::calc_cnf_size(
   for ( auto& cond: cond_list ) {
     if ( cond.type() == DetCond::PartialDetected && !cond.output_list().empty() ) {
       auto root = cond.root();
-      StructEngine engine0(network);
-      engine0.make_cnf({root}, {root});
-      auto size0 = engine0.solver().cnf_size();
-      StructEngine engine1(network);
-      auto bd_enc = new BoolDiffEnc(engine1, root, cond.output_list());
-      engine1.make_cnf({}, {root});
-      auto size1 = engine1.solver().cnf_size();
+
+      StructEngine::Builder builder0;
+      builder0.add_extra_node(root);
+      builder0.add_extra_prev_node(root);
+      auto engine0 = builder0.new_obj(network);
+      auto size0 = engine0->solver().cnf_size();
+
+      StructEngine::Builder builder1;
+      auto bd_enc = new BoolDiffEnc(root, cond.output_list());
+      builder1.add_subenc(bd_enc);
+      builder1.add_extra_node(root);
+      builder1.add_extra_prev_node(root);
+      auto engine1 = builder1.new_obj(network);
+      auto size1 = engine1->solver().cnf_size();
+
       auto raw_size = size1 - size0;
       size += raw_size;
       // 本当はもう少しリテラルが増える．
     }
     else if ( cond.type() == DetCond::Overflow ) {
       auto root = cond.root();
-      StructEngine engine0(network);
-      engine0.make_cnf({root}, {root});
-      auto size0 = engine0.solver().cnf_size();
-      StructEngine engine1(network);
-      auto bd_enc = new BoolDiffEnc(engine1, root, cond.output_list());
-      engine1.make_cnf({}, {root});
-      auto size1 = engine1.solver().cnf_size();
+
+      StructEngine::Builder builder0;
+      builder0.add_extra_node(root);
+      builder0.add_extra_prev_node(root);
+      auto engine0 = builder0.new_obj(network);
+      auto size0 = engine0->solver().cnf_size();
+
+      StructEngine::Builder builder1;
+      auto bd_enc = new BoolDiffEnc(root, cond.output_list());
+      builder1.add_subenc(bd_enc);
+      builder1.add_extra_node(root);
+      builder1.add_extra_prev_node(root);
+      auto engine1 = builder1.new_obj(network);
+      auto size1 = engine1->solver().cnf_size();
+
       auto raw_size = size1 - size0;
       size += raw_size;
     }
@@ -124,22 +143,13 @@ CnfGen::_make_expr_list(
   expr_list.reserve(cond_list.size());
   for ( auto& cond: cond_list ) {
     if ( cond.type() == DetCond::Detected ) {
-      auto expr = to_expr(cond.cond());
+      auto expr = cond_to_expr(cond.cond());
       expr_list.push_back(expr);
-      if ( expr.is_zero() ) {
-	cout << "expr is zero" << endl;
-	cond.print(cout);
-	abort();
-      }
     }
     else if ( cond.type() == DetCond::PartialDetected ) {
-      if ( cond.cond_list().empty() ) {
-	cout << "cond.cond_list.empty()" << endl;
-	abort();
-      }
       auto expr = Expr::zero();
       for ( auto& cond1: cond.cond_list() ) {
-	auto expr1 = to_expr(cond1);
+	auto expr1 = cond_to_expr(cond1);
 	expr |= expr1;
       }
       expr_list.push_back(expr);

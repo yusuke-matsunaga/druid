@@ -27,6 +27,10 @@ END_NONAMESPACE
 
 BEGIN_NAMESPACE_DRUID
 
+//////////////////////////////////////////////////////////////////////
+// クラス StructEngine
+//////////////////////////////////////////////////////////////////////
+
 BEGIN_NONAMESPACE
 
 JsonValue
@@ -46,36 +50,43 @@ END_NONAMESPACE
 // @brief コンストラクタ
 StructEngine::StructEngine(
   const TpgNetwork& network,
+  const std::vector<SubEnc*>& subenc_list,
+  const std::vector<const TpgNode*>& ex_node_list,
+  const std::vector<const TpgNode*>& ex_prev_node_list,
   const JsonValue& option
 ) : mNetwork{network},
-    mSolver{SatInitParam{get_option(option, "sat_param")}},
-    mGvarMap{network.node_num()},
-    mHvarMap{network.node_num()},
+    mSolver(SatInitParam{get_option(option, "sat_param")}),
+    mGvarMap(network.node_num()),
+    mHvarMap(network.node_num()),
     mJustifier{Justifier::new_obj(network, get_option(option, "justifier"))}
 {
+  mSubEncList.reserve(subenc_list.size());
+  for ( auto enc: subenc_list ) {
+    mSubEncList.push_back(std::unique_ptr<SubEnc>{enc});
+    enc->mEngine = this;
+    enc->init();
+  }
+  _make_cnf(ex_node_list, ex_prev_node_list);
 }
 
 // @brief デストラクタ
 StructEngine::~StructEngine()
 {
-  for ( auto sub: mSubEncList ) {
-    delete sub;
-  }
 }
 
 // @brief 回路の構造を表すCNFを生成する．
 void
-StructEngine::make_cnf(
-  const vector<const TpgNode*>& cur_node_list,
-  const vector<const TpgNode*>& prev_node_list
+StructEngine::_make_cnf(
+  const std::vector<const TpgNode*>& ex_node_list,
+  const std::vector<const TpgNode*>& ex_prev_node_list
 )
 {
   mTimer.reset();
   mTimer.start();
 
   // 関係するノードのリストを作る．
-  vector<const TpgNode*> node_list{cur_node_list};
-  for ( auto sub: mSubEncList ) {
+  auto node_list = ex_node_list;
+  for ( auto& sub: mSubEncList ) {
     auto& node_list1 = sub->node_list();
     node_list.insert(node_list.end(), node_list1.begin(), node_list1.end());
   }
@@ -92,9 +103,10 @@ StructEngine::make_cnf(
     });
 
   if ( has_prev_state ) {
-    vector<const TpgNode*> prev_list{mDffInputList};
-    prev_list.insert(prev_list.end(), prev_node_list.begin(), prev_node_list.end());
-    for ( auto sub: mSubEncList ) {
+    auto prev_list = mDffInputList;
+    prev_list.insert(prev_list.end(),
+		     ex_prev_node_list.begin(), ex_prev_node_list.end());
+    for ( auto& sub: mSubEncList ) {
       auto& node_list1 = sub->prev_node_list();
       prev_list.insert(prev_list.end(), node_list1.begin(), node_list1.end());
     }
@@ -105,7 +117,7 @@ StructEngine::make_cnf(
 
   // 変数を割り当てる．
   for ( auto node: mCurNodeList ) {
-    auto glit = solver().new_variable(true);
+    auto glit = new_variable(true);
     mGvarMap.set_vid(node, glit);
 
     if ( debug_base_enc ) {
@@ -114,7 +126,7 @@ StructEngine::make_cnf(
     }
   }
   for ( auto node: mPrevNodeList ) {
-    auto hlit = solver().new_variable(true);
+    auto hlit = new_variable(true);
     mHvarMap.set_vid(node, hlit);
 
     if ( debug_base_enc ) {
@@ -124,42 +136,14 @@ StructEngine::make_cnf(
   }
 
   // 現時刻の値の関係を表すCNFを作る．
-  GateEnc gvar_enc{mSolver, mGvarMap};
+  GateEnc gvar_enc(mSolver, mGvarMap);
   for ( auto node: mCurNodeList ) {
-    {
-      auto olit = gvar(node);
-      if ( olit == SatLiteral::X ) {
-	cout << node->str() << ": gvar = X" << endl;
-	abort();
-      }
-      for ( auto inode: node->fanin_list() ) {
-	auto ilit = gvar(inode);
-	if ( ilit == SatLiteral::X ) {
-	  cout << inode->str() << ": gvar = X" << endl;
-	  abort();
-	}
-      }
-    }
     gvar_enc.make_cnf(node);
   }
 
   // 1時刻前の値の関係を表すCNFを作る．
-  GateEnc hvar_enc{mSolver, mHvarMap};
+  GateEnc hvar_enc(mSolver, mHvarMap);
   for ( auto node: mPrevNodeList ) {
-    {
-      auto olit = hvar(node);
-      if ( olit == SatLiteral::X ) {
-	cout << node->str() << ": hvar = X" << endl;
-	abort();
-      }
-      for ( auto inode: node->fanin_list() ) {
-	auto ilit = hvar(inode);
-	if ( ilit == SatLiteral::X ) {
-	  cout << inode->str() << ": hvar = X" << endl;
-	  abort();
-	}
-      }
-    }
     hvar_enc.make_cnf(node);
   }
 
@@ -168,23 +152,40 @@ StructEngine::make_cnf(
     auto onode = node->alt_node();
     auto olit = gvar(onode);
     auto ilit = hvar(node);
-    if ( olit == SatLiteral::X ) {
-      cout << onode->str() << ": gvar = X" << endl;
-      abort();
-    }
-    if ( ilit == SatLiteral::X ) {
-      cout << node->str() << ": hvar = X" << endl;
-      abort();
-    }
     mSolver.add_buffgate(olit, ilit);
   }
 
-  for ( auto sub: mSubEncList ) {
+  for ( auto& sub: mSubEncList ) {
     sub->make_cnf();
   }
 
   mTimer.stop();
   mCnfTime = mTimer.get_time();
+}
+
+// @brief 変数を作る．
+SatLiteral
+StructEngine::new_variable(
+  bool decision
+)
+{
+  return mSolver.new_variable(decision);
+}
+
+// @brief SAT問題を解く
+SatBool3
+StructEngine::solve(
+  const vector<SatLiteral>& assumptions
+)
+{
+  return mSolver.solve(assumptions);
+}
+
+// @brief 現在の内部状態を得る．
+SatStats
+StructEngine::get_stats() const
+{
+  return mSolver.get_stats();
 }
 
 // @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
@@ -256,13 +257,12 @@ StructEngine::conv_to_literal_list(
 
 // @brief 与えられた論理式を充足させるCNF式を作る．
 vector<SatLiteral>
-StructEngine::make_cnf(
+StructEngine::expr_to_cnf(
   const Expr& expr
 )
 {
   if ( expr.is_zero() ) {
     // 充足不能
-    abort();
     throw std::invalid_argument{"expr is zero"};
   }
   if ( expr.is_one() ) {
@@ -283,7 +283,7 @@ StructEngine::make_cnf(
   if ( expr.is_and() ) {
     vector<SatLiteral> lits;
     for ( auto& expr1: expr.operand_list() ) {
-      auto lits1 = make_cnf(expr1);
+      auto lits1 = expr_to_cnf(expr1);
       lits.insert(lits.end(), lits1.begin(), lits1.end());
     }
     return lits;
@@ -294,7 +294,7 @@ StructEngine::make_cnf(
     lits.reserve(expr.operand_num() + 1);
     lits.push_back(~new_lit);
     for ( auto& expr1: expr.operand_list() ) {
-      auto lits1 = make_cnf(expr1);
+      auto lits1 = expr_to_cnf(expr1);
       if ( lits1.empty() ) {
 	continue;
       }
@@ -320,7 +320,7 @@ StructEngine::make_cnf(
     lits.reserve(expr.operand_num());
     for ( auto& expr1: expr.operand_list() ) {
       auto lit1 = solver().new_variable(false);
-      auto lits1 = make_cnf(expr1);
+      auto lits1 = expr_to_cnf(expr1);
       solver().add_andgate(lit1, lits1);
       lits.push_back(lit1);
     }

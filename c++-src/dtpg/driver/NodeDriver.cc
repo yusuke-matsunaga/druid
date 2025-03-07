@@ -46,7 +46,7 @@ NodeDriver::NodeDriver(
   DtpgMgr& mgr,
   const TpgNode* node,
   const JsonValue& option
-) : DtpgDriver{mgr, gen_impl(mgr.network(), node, option)}
+) : DtpgDriver(mgr, gen_impl(mgr.network(), node, option))
 {
 }
 

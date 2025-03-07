@@ -33,7 +33,7 @@ END_NONAMESPACE
 
 // @brief DetCond から Expr を作る．
 Expr
-CnfGenFactor::to_expr(
+CnfGenFactor::cond_to_expr(
   const DetCond::CondData& cond
 )
 {

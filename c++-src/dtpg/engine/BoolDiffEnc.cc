@@ -33,24 +33,27 @@ END_NONAMESPACE
 
 // @brief コンストラクタ
 BoolDiffEnc::BoolDiffEnc(
-  StructEngine& engine,
   const TpgNode* root,
   const JsonValue& option
-) : SubEnc(engine),
-    mRoot{root},
-    mFvarMap(engine.network().node_num()),
-    mDvarMap(engine.network().node_num()),
+) : mRoot{root},
     mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
 {
-  mTfoList = TpgNodeSet::get_tfo_list(
-    engine.network().node_num(), mRoot,
-    [&](const TpgNode* node) {
-      if ( node->is_ppo() ) {
-	mOutputList.push_back(node);
-      }
-    }
-  );
-  mPropVarList.resize(output_num());
+}
+
+// @brief コンストラクタ
+BoolDiffEnc::BoolDiffEnc(
+  const TpgNode* root,
+  const vector<const TpgNode*>& output_list,
+  const JsonValue& option
+) : mRoot{root},
+    mOutputList{output_list},
+    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
+{
+}
+
+// @brief デストラクタ
+BoolDiffEnc::~BoolDiffEnc()
+{
 }
 
 BEGIN_NONAMESPACE
@@ -76,42 +79,43 @@ dfs(
 
 END_NONAMESPACE
 
-// @brief コンストラクタ
-BoolDiffEnc::BoolDiffEnc(
-  StructEngine& engine,
-  const TpgNode* root,
-  const vector<const TpgNode*>& output_list,
-  const JsonValue& option
-) : SubEnc(engine),
-    mRoot{root},
-    mOutputList{output_list},
-    mFvarMap(engine.network().node_num()),
-    mDvarMap(engine.network().node_num()),
-    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
+// @brief データ構造の初期化を行う．
+void
+BoolDiffEnc::init()
 {
-  std::unordered_set<SizeType> tfo_mark;
-  auto tfo_list = TpgNodeSet::get_tfo_list(
-    engine.network().node_num(), mRoot,
-    [&](const TpgNode* node) {
-      tfo_mark.emplace(node->id());
-    }
-  );
-  std::unordered_set<SizeType> dfs_mark;
-  for ( auto output: mOutputList ) {
-    dfs(output, tfo_mark, dfs_mark);
+  mFvarMap.init(engine().network().node_num());
+  mDvarMap.init(engine().network().node_num());
+
+  if ( mOutputList.empty() ) {
+    mTfoList = TpgNodeSet::get_tfo_list(
+      engine().network().node_num(), mRoot,
+      [&](const TpgNode* node) {
+	if ( node->is_ppo() ) {
+	  mOutputList.push_back(node);
+	}
+      }
+    );
   }
-  mTfoList.reserve(dfs_mark.size());
-  for ( auto node: tfo_list ) {
-    if ( dfs_mark.count(node->id()) > 0 ) {
-      mTfoList.push_back(node);
+  else {
+    std::unordered_set<SizeType> tfo_mark;
+    auto tfo_list = TpgNodeSet::get_tfo_list(
+      engine().network().node_num(), mRoot,
+      [&](const TpgNode* node) {
+	tfo_mark.emplace(node->id());
+      }
+    );
+    std::unordered_set<SizeType> dfs_mark;
+    for ( auto output: mOutputList ) {
+      dfs(output, tfo_mark, dfs_mark);
+    }
+    mTfoList.reserve(dfs_mark.size());
+    for ( auto node: tfo_list ) {
+      if ( dfs_mark.count(node->id()) > 0 ) {
+	mTfoList.push_back(node);
+      }
     }
   }
   mPropVarList.resize(output_num());
-}
-
-// @brief デストラクタ
-BoolDiffEnc::~BoolDiffEnc()
-{
 }
 
 // @brief 必要な変数を割り当て CNF 式を作る．
@@ -193,6 +197,18 @@ BoolDiffEnc::make_dchain_cnf(
   auto glit = gvar(node);
   auto flit = fvar(node);
   auto dlit = dvar(node);
+
+  {
+    if ( !glit.is_valid() ) {
+      abort();
+    }
+    if ( !flit.is_valid() ) {
+      abort();
+    }
+    if ( !dlit.is_valid() ) {
+      abort();
+    }
+  }
 
   // dlit -> XOR(glit, flit) を追加する．
   // 要するに正常回路と故障回路で異なっているとき dlit が 1 となる．

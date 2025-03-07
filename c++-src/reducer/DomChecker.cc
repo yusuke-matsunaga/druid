@@ -34,11 +34,14 @@ DomChecker::DomChecker(
   const TpgFFR* ffr1,
   const TpgFFR* ffr2,
   const JsonValue& option
-) : mEngine{network, option}
+)
 {
-  mBdEnc1 = new BoolDiffEnc{mEngine, ffr1->root(), option};
-  mBdEnc2 = new BoolDiffEnc{mEngine, ffr2->root(), option};
-  mEngine.make_cnf({}, {ffr1->root(), ffr2->root()});
+  mBdEnc1 = new BoolDiffEnc(ffr1->root(), option);
+  mBdEnc2 = new BoolDiffEnc(ffr2->root(), option);
+  StructEngine::Builder builder;
+  builder.add_subenc(mBdEnc1);
+  builder.add_subenc(mBdEnc2);
+  mEngine = builder.new_obj(network, option);
 }
 
 // @brief デストラクタ
@@ -53,10 +56,10 @@ DomChecker::check(
 )
 {
   auto ffr_cond1 = fault1->ffr_propagate_condition();
-  auto assumptions = mEngine.conv_to_literal_list(ffr_cond1);
+  auto assumptions = mEngine->conv_to_literal_list(ffr_cond1);
   assumptions.push_back(mBdEnc1->prop_var());
   assumptions.push_back(~mBdEnc2->prop_var());
-  return mEngine.solver().solve(assumptions) == SatBool3::False;
+  return mEngine->solve(assumptions) == SatBool3::False;
 }
 
 END_NAMESPACE_DRUID

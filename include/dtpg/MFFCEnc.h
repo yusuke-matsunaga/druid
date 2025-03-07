@@ -25,7 +25,6 @@ public:
 
   /// @brief コンストラクタ
   MFFCEnc(
-    StructEngine& engine, ///< [in] 親の StructEngine
     const TpgMFFC* mffc   ///< [in] 対象の MFFC
   );
 
@@ -62,6 +61,10 @@ private:
   //////////////////////////////////////////////////////////////////////
   // SubEnc の仮想関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief データ構造の初期化を行う．
+  void
+  init() override;
 
   /// @brief 必要な変数を割り当て CNF 式を作る．
   void

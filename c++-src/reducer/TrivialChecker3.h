@@ -63,7 +63,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 基本のエンコーダ
-  StructEngine mEngine;
+  std::unique_ptr<StructEngine> mEngine;
 
   // mFFR2 用の BoolDiffエンコーダ
   BoolDiffEnc* mBdEnc2;

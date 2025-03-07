@@ -19,10 +19,12 @@ CondGenChecker::CondGenChecker(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
-) : mEngine{network, option},
-    mBdEnc{new BoolDiffEnc(mEngine, ffr->root(), option)}
+) : mBdEnc{new BoolDiffEnc(ffr->root(), option)}
 {
-  mEngine.make_cnf({}, {ffr->root()});
+  StructEngine::Builder builder;
+  builder.add_subenc(mBdEnc);
+  builder.add_extra_prev_node(ffr->root());
+  mEngine = builder.new_obj(network, option);
 }
 
 // @breif 結果の検証を行う．
@@ -32,20 +34,20 @@ CondGenChecker::check(
   const DetCond& cond
 )
 {
-  auto size0 = mEngine.solver().cnf_size();
+  auto size0 = mEngine->solver().cnf_size();
   auto assumptions = CnfGenMgr::make_cnf(mEngine, cond);
-  auto extra_lits = mEngine.conv_to_literal_list(extra_cond);
+  auto extra_lits = mEngine->conv_to_literal_list(extra_cond);
   assumptions.insert(assumptions.end(), extra_lits.begin(), extra_lits.end());
   auto pvar = mBdEnc->prop_var();
   assumptions.push_back(~pvar);
-  auto res = mEngine.solver().solve(assumptions);
+  auto res = mEngine->solver().solve(assumptions);
   if ( res != SatBool3::False ) {
     cout << mCond.expr() << endl;
   }
 #if 0
-  auto size1 = mEngine.solver().cnf_size();
+  auto size1 = mEngine->solver().cnf_size();
   auto real_size = size1 - size0;
-  auto size = CnfGenMgr::calc_cnf_size(mEngine.network(), cond);
+  auto size = CnfGenMgr::calc_cnf_size(mEngine->network(), cond);
   if ( size != real_size ) {
     cout << "real_size: " << real_size << endl
 	 << "calc_size: " << size << endl;

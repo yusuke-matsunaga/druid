@@ -111,6 +111,9 @@ CondGenTestWithParam::do_test()
     auto bd_enc = new BoolDiffEnc(engine, ffr->root(), option);
     engine.make_cnf({}, {ffr->root()});
     auto cond = CondGen::root_cond(network, ffr, limit, option);
+    if ( cond.type() == DetCond::Undetected ) {
+      continue;
+    }
     if ( cond.type() != DetCond::Detected ) {
       continue;
     }

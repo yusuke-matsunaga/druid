@@ -37,7 +37,7 @@ protected:
 
   /// @brief DetCond::CondData から Expr を作る．
   Expr
-  to_expr(
+  cond_to_expr(
     const DetCond::CondData& cond
   ) override;
 

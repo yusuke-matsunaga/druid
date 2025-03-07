@@ -30,7 +30,7 @@ END_NONAMESPACE
 
 // @brief DetCond::CondData から Expr を作る．
 Expr
-CnfGenNaive::to_expr(
+CnfGenNaive::cond_to_expr(
   const DetCond::CondData& cond
 )
 {
@@ -56,7 +56,7 @@ CnfGenNaive::expr_to_cnf(
   vector<vector<SatLiteral>> lits_list;
   lits_list.reserve(expr_list.size());
   for ( auto& expr: expr_list ) {
-    auto lits = engine.make_cnf(expr);
+    auto lits = engine.expr_to_cnf(expr);
     lits_list.push_back(lits);
 
   }

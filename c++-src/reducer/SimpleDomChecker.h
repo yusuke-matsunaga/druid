@@ -71,10 +71,10 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 基本のエンコーダ
-  StructEngine mEngine;
+  std::unique_ptr<StructEngine> mEngine;
 
-  // mFFR1 用の BoolDiffエンコーダ
-  BoolDiffEnc* mBdEnc1;
+  // ffr 用の伝搬条件を表すエンコーダ
+  BoolDiffEnc* mBdEnc;
 
 };
 

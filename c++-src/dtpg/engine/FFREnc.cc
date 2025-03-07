@@ -16,12 +16,10 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 FFREnc::FFREnc(
-  StructEngine& engine,
   SatLiteral root_pvar,
   const TpgFFR* ffr,
   const vector<const TpgFault*>& fault_list
-) : SubEnc{engine},
-    mRootPropVar{root_pvar},
+) : mRootPropVar{root_pvar},
     mFFR{ffr},
     mFaultList{fault_list}
 {
@@ -36,6 +34,12 @@ FFREnc::FFREnc(
   }
 }
 
+// @brief データ構造の初期化を行う．
+void
+FFREnc::init()
+{
+}
+
 // @brief 必要な変数を割り当てCNF式を作る．
 void
 FFREnc::make_cnf()
@@ -46,7 +50,7 @@ FFREnc::make_cnf()
     mPropNodeVarMap.emplace(root->id(), mRootPropVar);
   }
   else {
-    auto pvar = solver().new_variable(true);
+    auto pvar = new_variable(true);
     solver().add_clause(pvar);
     mPropNodeVarMap.emplace(root->id(), pvar);
   }
@@ -58,7 +62,7 @@ FFREnc::make_cnf()
 
   // 故障の伝搬条件を作る．
   for ( auto fault: mFaultList ) {
-    auto pvar = solver().new_variable(true);
+    auto pvar = new_variable(true);
     auto ex_cond = fault->excitation_condition();
     auto tmp_lits = conv_to_literal_list(ex_cond);
     auto node = fault->origin_node();
@@ -118,7 +122,7 @@ FFREnc::make_cnf_sub(
       for ( auto lit: tmp_list2[i] ) {
 	cond.push_back(lit);
       }
-      auto plit = solver().new_variable(true);
+      auto plit = new_variable(true);
       solver().add_andgate(plit, cond);
       mPropNodeVarMap.emplace(inode->id(), plit);
     }

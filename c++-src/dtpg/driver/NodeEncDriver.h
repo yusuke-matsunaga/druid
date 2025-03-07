@@ -70,7 +70,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // エンジン本体
-  StructEngine mEngine;
+  std::unique_ptr<StructEngine> mEngine;
 
   // BoolDiff
   BoolDiffEnc* mBdEnc;

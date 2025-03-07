@@ -79,7 +79,7 @@ add_executable ( druid
   $<TARGET_OBJECTS:druid_types_obj>
   $<TARGET_OBJECTS:druid_dtpg_obj>
   $<TARGET_OBJECTS:druid_classify_obj>
-  $<TARGET_OBJECTS:druid_condgen_obj>
+  #$<TARGET_OBJECTS:druid_condgen_obj>
   $<TARGET_OBJECTS:druid_fsim_obj>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj>
@@ -111,7 +111,7 @@ add_executable ( druid_d
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_dtpg_obj_d>
   $<TARGET_OBJECTS:druid_classify_obj_d>
-  $<TARGET_OBJECTS:druid_condgen_obj_d>
+  #$<TARGET_OBJECTS:druid_condgen_obj_d>
   $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>

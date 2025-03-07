@@ -55,7 +55,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 基本エンコーダ
-  StructEngine mEngine;
+  std::unique_ptr<StructEngine> mEngine;
 
   // FFR用のブール微分器
   BoolDiffEnc* mBdEnc;

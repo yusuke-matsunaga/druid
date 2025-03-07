@@ -35,9 +35,8 @@ public:
   ///
   /// engine が nullptr の場合には FFR 内の伝搬条件のみを考慮する．
   FFREnc(
-    StructEngine& engine,                     ///< [in] 親の StructEngine
-    SatLiteral root_pvar,                     ///< [in] 根から外部出力までの伝搬条件を表す変数
-    const TpgFFR* ffr,                        ///< [in] 対象の FFR
+    SatLiteral root_pvar,  ///< [in] 根から外部出力までの伝搬条件を表す変数
+    const TpgFFR* ffr,     ///< [in] 対象の FFR
     const vector<const TpgFault*>& fault_list ///< [in] 対象の故障リスト
   );
 
@@ -63,6 +62,10 @@ private:
   //////////////////////////////////////////////////////////////////////
   // SubEnc の仮想関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief データ構造の初期化を行う．
+  void
+  init() override;
 
   /// @brief 必要な変数を割り当て CNF 式を作る．
   void
