@@ -106,10 +106,15 @@ public:
   void
   update()
   {
-    if ( mDirty ) {
-      _update();
-      mDirty = false;
+    if ( mState != DIRTY ) {
+      return;
     }
+    if ( mCurNodeCandList.empty() &&
+	 mPrevNodeCandList.empty() &&
+	 mSubEncCandList.empty() ) {
+      return;
+    }
+    _update();
   }
 
   /// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
@@ -270,7 +275,12 @@ private:
   std::vector<const TpgNode*> mPrevNodeList;
 
   // 未処理のノードが残っていることを示すフラグ
-  bool mDirty{false};
+  enum State {
+    STABLE,
+    UPDATING,
+    DIRTY
+  };
+  State mState{STABLE};
 
   // make_cnf() を呼んでいない SubEnc のリスト
   std::vector<SubEnc*> mSubEncCandList;

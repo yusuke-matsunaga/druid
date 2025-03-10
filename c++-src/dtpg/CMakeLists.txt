@@ -28,12 +28,10 @@ set ( mgr_SOURCES
 
 set ( driver_SOURCES
   driver/DtpgDriver.cc
-  driver/NodeDriver.cc
-  driver/NodeEncDriver.cc
-  driver/FFRDriver.cc
-  driver/FFREncDriver.cc
-  driver/MFFCDriver.cc
-  driver/MFFCEncDriver.cc
+  driver/DtpgDriver_Enc.cc
+  driver/DtpgDriver_NodeEnc.cc
+  driver/DtpgDriver_FFREnc.cc
+  driver/DtpgDriver_MFFCEnc.cc
   )
 
 set ( engine_SOURCES

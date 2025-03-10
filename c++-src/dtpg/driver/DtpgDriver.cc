@@ -7,7 +7,12 @@
 /// All rights reserved.
 
 #include "DtpgDriver.h"
-#include "DtpgDriverImpl.h"
+#include "NodeDriver.h"
+#include "FFRDriver.h"
+#include "MFFCDriver.h"
+#include "DtpgDriver_NodeEnc.h"
+#include "DtpgDriver_FFREnc.h"
+#include "DtpgDriver_MFFCEnc.h"
 #include "DtpgResult.h"
 #include "TestVector.h"
 #include "DtpgStats.h"
@@ -16,6 +21,10 @@
 
 
 BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+// クラス DtpgDriver
+//////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
 DtpgDriver::DtpgDriver(
@@ -85,6 +94,48 @@ SatStats
 DtpgDriver::sat_stats() const
 {
   return mImpl->sat_stats();
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// NodeDriver
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+NodeDriver::NodeDriver(
+  DtpgMgr& mgr,
+  const TpgNode* node,
+  const JsonValue& option
+) : DtpgDriver(mgr, new DtpgDriver_NodeEnc(mgr.network(), node, option))
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// FFRDriver
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+FFRDriver::FFRDriver(
+  DtpgMgr& mgr,
+  const TpgFFR* ffr,
+  const JsonValue& option
+) : DtpgDriver(mgr, new DtpgDriver_FFREnc(mgr.network(), ffr, option))
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// MFFCDriver
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+MFFCDriver::MFFCDriver(
+  DtpgMgr& mgr,
+  const TpgMFFC* mffc,
+  const JsonValue& option
+) : DtpgDriver(mgr, new DtpgDriver_MFFCEnc(mgr.network(), mffc, option))
+{
 }
 
 END_NAMESPACE_DRUID

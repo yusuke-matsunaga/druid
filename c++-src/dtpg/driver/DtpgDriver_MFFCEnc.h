@@ -1,81 +1,70 @@
-#ifndef FFRENCDRIVER_H
-#define FFRENCDRIVER_H
+#ifndef DTPGDRIVER_MFFCENC_H
+#define DTPGDRIVER_MFFCENC_H
 
-/// @file MFFCEncDriver.h
-/// @brief MFFCEncDriver のヘッダファイル
+/// @file DtpgDriver_MFFCEnc.h
+/// @brief DtpgDriver_MFFCEnc のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgDriverImpl.h"
-#include "StructEngine.h"
-#include "BoolDiffEnc.h"
+#include "DtpgDriver_Enc.h"
 #include "MFFCEnc.h"
-#include "Justifier.h"
 #include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class MFFCEncDriver MFFCEncDriver.h "MFFCEncDriver.h"
-/// @brief MFFCEnc を用いたドライバ
+/// @class DtpgDriver_MFFCEnc DtpgDriver_MFFCEnc.h "DtpgDriver_MFFCEnc.h"
+/// @brief MFFC 単位で処理をおこなう DtpgDriver_Enc
 //////////////////////////////////////////////////////////////////////
-class MFFCEncDriver :
-  public DtpgDriverImpl
+class DtpgDriver_MFFCEnc :
+  public DtpgDriver_Enc
 {
 public:
 
   /// @brief コンストラクタ
-  MFFCEncDriver(
+  DtpgDriver_MFFCEnc(
     const TpgNetwork& network, ///< [in] 対象のネットワーク
     const TpgMFFC* mffc,       ///< [in] 故障伝搬の起点となる MFFC
     const JsonValue& option    ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~MFFCEncDriver() = default;
+  ~DtpgDriver_MFFCEnc() = default;
 
 
-public:
+private:
   //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
+  // DtpgEnc の仮想関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障を検出する条件を求める．
-  ///
-  /// - f はコンストラクタで指定した FFR 内の故障でなければならない．
-  SatBool3
-  solve(
+  /// @brief 故障の伝搬条件を得る．
+  AssignList
+  fault_prop_condition(
     const TpgFault* fault ///< [in] 対象の故障
   ) override;
 
-  /// @brief テストパタン生成を行う．
-  TestVector
-  gen_pattern(
-    const TpgFault* fault ///< [in] 対象の故障
+  /// @brief 追加の条件を加える．
+  void
+  add_extra_assumptions(
+    const TpgFault* fault,          ///< [in] 対象の故障
+    vector<SatLiteral>& assumptions ///< [inout] 追加する対象のリスト
   ) override;
 
-  /// @brief CNF の生成時間を返す．
-  double
-  cnf_time() const override;
-
-  /// @brief SATの統計情報を返す．
-  SatStats
-  sat_stats() const override;
+  /// @brief 追加の割り当てを加える．
+  void
+  add_extra_assignments(
+    const TpgFault* fault,  ///< [in] 対象の故障
+    AssignList& assign_list ///< [inout] 追加する対象のリスト
+  ) override;
 
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 基本のエンコーダ
-  StructEngine mEngine;
-
-  // BoolDiffEnc
-  BoolDiffEnc* mBdEnc;
 
   // MFFCEnc
   MFFCEnc* mMFFCEnc;
@@ -84,4 +73,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // FFRENCDRIVER_H
+#endif // DTPGDRIVER_MFFCENC_H

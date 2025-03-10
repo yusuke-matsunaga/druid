@@ -1,8 +1,8 @@
-#ifndef NODEENCDRIVER_H
-#define NODEENCDRIVER_H
+#ifndef DTPGDRIVER_ENC_H
+#define DTPGDRIVER_ENC_H
 
-/// @file NodeEncDriver.h
-/// @brief NodeEncDriver のヘッダファイル
+/// @file DtpgDriver_Enc.h
+/// @brief DtpgDriver_Enc のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -17,23 +17,24 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class NodeEncDriver NodeEncDriver.h "NodeEncDriver.h"
-/// @brief BoolDiffEnc を用いたドライバ
+/// @class DtpgDriver_Enc DtpgDriver_Enc.h "DtpgDriver_Enc.h"
+/// @brief BoolDiffEnc を用いた DtpgDriverImpl の基底クラス
 //////////////////////////////////////////////////////////////////////
-class NodeEncDriver :
+class DtpgDriver_Enc:
   public DtpgDriverImpl
 {
 public:
 
   /// @brief コンストラクタ
-  NodeEncDriver(
+  DtpgDriver_Enc(
     const TpgNetwork& network, ///< [in] 対象のネットワーク
     const TpgNode* node,       ///< [in] 故障伝搬の起点となるノード
     const JsonValue& option    ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~NodeEncDriver();
+  virtual
+  ~DtpgDriver_Enc();
 
 
 public:
@@ -64,6 +65,50 @@ public:
   sat_stats() const override;
 
 
+protected:
+  //////////////////////////////////////////////////////////////////////
+  // 継承クラスから用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief SubEnc を登録する．
+  void
+  add_subenc(
+    std::unique_ptr<SubEnc> enc
+  )
+  {
+    mEngine.add_subenc(std::move(enc));
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障の伝搬条件を得る．
+  virtual
+  AssignList
+  fault_prop_condition(
+    const TpgFault* fault ///< [in] 対象の故障
+  ) = 0;
+
+  /// @brief 追加の条件を加える．
+  virtual
+  void
+  add_extra_assumptions(
+    const TpgFault* fault,          ///< [in] 対象の故障
+    vector<SatLiteral>& assumptions ///< [inout] 追加する対象のリスト
+  );
+
+  /// @brief 追加の割り当てを加える．
+  virtual
+  void
+  add_extra_assignments(
+    const TpgFault* fault,  ///< [in] 対象の故障
+    AssignList& assign_list ///< [inout] 追加する対象のリスト
+  );
+
+
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
@@ -79,4 +124,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // NODEENCDRIVER_H
+#endif // DTPGDRIVEE_ENC_H

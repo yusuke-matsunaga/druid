@@ -53,6 +53,8 @@ StructEngine::StructEngine(
   const JsonValue& option
 ) : mNetwork{network},
     mSolver(SatInitParam(get_option(option, "sat_param"))),
+    mGvarMap(network.node_num()),
+    mHvarMap(network.node_num()),
     mJustifier{Justifier::new_obj(network, get_option(option, "justifier"))}
 {
 }
@@ -69,6 +71,8 @@ StructEngine::add_subenc(
 )
 {
   mSubEncCandList.push_back(enc.get());
+  enc->mEngine = this;
+  enc->init();
   mCurNodeCandList.reserve(mCurNodeCandList.size() + enc->node_list().size());
   for ( auto node: enc->node_list() ) {
     mCurNodeCandList.push_back(node);
@@ -77,9 +81,8 @@ StructEngine::add_subenc(
   for ( auto node: enc->prev_node_list() ) {
     mPrevNodeCandList.push_back(node);
   }
-  enc->mEngine = this;
   mSubEncList.push_back(std::move(enc));
-  mDirty = true;
+  mState = DIRTY;
 }
 
 // @brief 現時刻で考慮するノードを追加する．
@@ -89,7 +92,7 @@ StructEngine::add_cur_node(
 )
 {
   mCurNodeCandList.push_back(node);
-  mDirty = true;
+  mState = DIRTY;
 }
 
 // @brief 1時刻前で考慮するノードを追加する．
@@ -99,7 +102,7 @@ StructEngine::add_prev_node(
 )
 {
   mPrevNodeCandList.push_back(node);
-  mDirty = true;
+  mState = DIRTY;
 }
 
 // @brief 回路の構造を表すCNFを生成する．
@@ -108,6 +111,8 @@ StructEngine::_update()
 {
   mTimer.reset();
   mTimer.start();
+
+  mState = UPDATING;
 
   bool has_prev_state = mNetwork.has_prev_state();
 
@@ -194,7 +199,7 @@ StructEngine::_update()
   mSubEncCandList.clear();
   mCurNodeCandList.clear();
   mPrevNodeCandList.clear();
-  mDirty = false;
+  mState = STABLE;
 
   mTimer.stop();
   mCnfTime += mTimer.get_time();

@@ -200,13 +200,13 @@ BoolDiffEnc::make_dchain_cnf(
 
   {
     if ( !glit.is_valid() ) {
-      abort();
+      throw std::logic_error{"glit is invalid"};
     }
     if ( !flit.is_valid() ) {
-      abort();
+      throw std::logic_error{"flit is invalid"};
     }
     if ( !dlit.is_valid() ) {
-      abort();
+      throw std::logic_error{"dlit is invalid"};
     }
   }
 
