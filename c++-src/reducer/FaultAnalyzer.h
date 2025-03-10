@@ -67,7 +67,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 基本エンコーダ
-  std::unique_ptr<StructEngine> mEngine;
+  StructEngine mEngine;
 
   // FFR の出力のブール微分
   BoolDiffEnc* mBdEnc;

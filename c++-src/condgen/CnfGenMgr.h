@@ -32,12 +32,11 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 論理式を CNF に変換する．
-  /// @return 活性化するための条件を返す．
+  /// @brief CNFを生成する．
   static
   vector<SatLiteral>
   make_cnf(
-    StructEngine& engine,   ///< [in] StructEngine
+    StructEngine& engine,   ///< [in] 基本エンジン
     const DetCond& cond,    ///< [in] 条件
     const JsonValue& option ///< [in] オプション
     = JsonValue{}
@@ -48,12 +47,11 @@ public:
     return tmp_list.front();
   }
 
-  /// @brief 複数の論理式を CNF に変換する．
-  /// @return 個々の式の活性化するための条件のリストを返す．
+  /// @brief CNFを生成する．
   static
   vector<vector<SatLiteral>>
   make_cnf(
-    StructEngine& engine,             ///< [in] StructEngine
+    StructEngine& engine,             ///< [in] 基本エンジン
     const vector<DetCond>& cond_list, ///< [in] 式のリスト
     const JsonValue& option           ///< [in] オプション
     = JsonValue{}

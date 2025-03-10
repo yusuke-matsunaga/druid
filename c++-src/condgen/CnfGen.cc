@@ -29,19 +29,17 @@ CnfGen::make_cnf(
   // 条件を Expr に変換する．
   auto expr_list = _make_expr_list(cond_list);
 
-  // Expr のリストを CNF に変換する．
+  // Expr のリストからCNFを作る．
   auto lits_list = expr_to_cnf(engine, expr_list);
 
-  // overflow した出力を持つ場合に追加のCNF式を作る．
+  // overflow した出力を持つ場合に追加のエンコーダを作る．
   auto n = cond_list.size();
-  vector<const TpgNode*> root_list;
-  root_list.reserve(n);
   for ( SizeType i = 0; i < n; ++ i ) {
     auto& cond = cond_list[i];
-    root_list.push_back(cond.root());
 #if 0
     if ( cond.type() == DetCond::PartialDetected && !cond.output_list().empty() ) {
-      auto bd_enc = new BoolDiffEnc(engine, cond.root(), cond.output_list());
+      auto bd_enc = new BoolDiffEnc(cond.root(), cond.output_list());
+      engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
       auto plit = bd_enc->prop_var();
       auto old_lits = lits_list[i];
       auto and_lit = engine.solver().new_variable(false);
@@ -61,13 +59,10 @@ CnfGen::make_cnf(
     }
 #else
     if ( cond.type() == DetCond::PartialDetected || cond.type() == DetCond::Overflow ) {
-      auto bd_enc = new BoolDiffEnc(cond.root());
-      auto plit = bd_enc->prop_var();
-      lits_list[i] = {plit};
+      ; // 未完
     }
 #endif
   }
-  //engine.make_cnf(root_list, root_list);
 
   return lits_list;
 }
@@ -89,20 +84,16 @@ CnfGen::calc_cnf_size(
   for ( auto& cond: cond_list ) {
     if ( cond.type() == DetCond::PartialDetected && !cond.output_list().empty() ) {
       auto root = cond.root();
+      StructEngine engine0(network);
+      engine0.add_cur_node(root);
+      engine0.add_prev_node(root);
+      auto size0 = engine0.solver().cnf_size();
 
-      StructEngine::Builder builder0;
-      builder0.add_extra_node(root);
-      builder0.add_extra_prev_node(root);
-      auto engine0 = builder0.new_obj(network);
-      auto size0 = engine0->solver().cnf_size();
-
-      StructEngine::Builder builder1;
+      StructEngine engine1(network);
       auto bd_enc = new BoolDiffEnc(root, cond.output_list());
-      builder1.add_subenc(bd_enc);
-      builder1.add_extra_node(root);
-      builder1.add_extra_prev_node(root);
-      auto engine1 = builder1.new_obj(network);
-      auto size1 = engine1->solver().cnf_size();
+      engine1.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+      engine1.add_prev_node(root);
+      auto size1 = engine1.solver().cnf_size();
 
       auto raw_size = size1 - size0;
       size += raw_size;
@@ -111,19 +102,16 @@ CnfGen::calc_cnf_size(
     else if ( cond.type() == DetCond::Overflow ) {
       auto root = cond.root();
 
-      StructEngine::Builder builder0;
-      builder0.add_extra_node(root);
-      builder0.add_extra_prev_node(root);
-      auto engine0 = builder0.new_obj(network);
-      auto size0 = engine0->solver().cnf_size();
+      StructEngine engine0(network);
+      engine0.add_cur_node(root);
+      engine0.add_prev_node(root);
+      auto size0 = engine0.solver().cnf_size();
 
-      StructEngine::Builder builder1;
+      StructEngine engine1(network);
       auto bd_enc = new BoolDiffEnc(root, cond.output_list());
-      builder1.add_subenc(bd_enc);
-      builder1.add_extra_node(root);
-      builder1.add_extra_prev_node(root);
-      auto engine1 = builder1.new_obj(network);
-      auto size1 = engine1->solver().cnf_size();
+      engine1.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+      engine1.add_prev_node(root);
+      auto size1 = engine1.solver().cnf_size();
 
       auto raw_size = size1 - size0;
       size += raw_size;

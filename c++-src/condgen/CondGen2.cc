@@ -80,7 +80,7 @@ CondGen2::CondGen2(
     mDebug{OpBase::get_debug(option)}
 {
   mBdEnc = new BoolDiffEnc(ffr->root(), option);
-  StructEngine::Builder builder;
+
   builder.add_subenc(mBdEnc);
   builder.add_extra_prev_node(ffr->root());
   mEngine = builder.new_obj(network, option);

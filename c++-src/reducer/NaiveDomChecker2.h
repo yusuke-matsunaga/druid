@@ -63,7 +63,7 @@ private:
   const TpgFault* mFault2;
 
   // base engine
-  std::unique_ptr<StructEngine> mEngine;
+  StructEngine mEngine;
 
   // 故障1用の BoolDiff
   BoolDiffEnc* mBdEnc1;

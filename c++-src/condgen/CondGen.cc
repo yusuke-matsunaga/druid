@@ -82,13 +82,12 @@ CondGen::root_cond(
 
   auto root = ffr->root();
   auto bd_enc = new BoolDiffEnc(root, option);
-  StructEngine::Builder builder;
-  builder.add_subenc(bd_enc);
-  builder.add_extra_prev_node(root);
-  auto engine = builder.new_obj(network, option);
+  StructEngine engine(network, option);
+  engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+  engine.add_prev_node(root);
 
   // FFR の出力の伝搬可能性を調べる．
-  auto& solver = engine->solver();
+  auto& solver = engine.solver();
   auto pvar = bd_enc->prop_var();
   auto res = solver.solve({pvar});
   if ( res != SatBool3::True ) {
@@ -101,7 +100,7 @@ CondGen::root_cond(
   // 必要条件を求める．
   AssignList mand_cond;
   for ( auto as: suff_cond ) {
-    auto lit = engine->conv_to_literal(as);
+    auto lit = engine.conv_to_literal(as);
     if ( solver.solve({pvar, ~lit}) == SatBool3::False ) {
       mand_cond.add(as);
     }
@@ -134,11 +133,11 @@ CondGen::root_cond(
     vector<SatLiteral> tmp_lits;
     tmp_lits.reserve(suff_cond.size());
     for ( auto nv: suff_cond ) {
-      auto lit = engine->conv_to_literal(nv);
+      auto lit = engine.conv_to_literal(nv);
       tmp_lits.push_back(~lit);
     }
     solver.add_clause(tmp_lits);
-    auto tmp_assumptions = engine->conv_to_literal_list(mand_cond);
+    auto tmp_assumptions = engine.conv_to_literal_list(mand_cond);
     tmp_assumptions.push_back(pvar);
     auto res = solver.solve(tmp_assumptions);
     timer.stop();
@@ -187,9 +186,9 @@ CondGen::root_cond(
   vector<DetCond::CondData> cond_list;
   for ( SizeType pos = 0; pos < n; ++ pos ) {
     auto output = bd_enc->output(pos);
-    auto& solver = engine->solver();
+    auto& solver = engine.solver();
     auto pvar = bd_enc->prop_var(pos);
-    auto assumptions = engine->conv_to_literal_list(mand_cond);
+    auto assumptions = engine.conv_to_literal_list(mand_cond);
     assumptions.push_back(pvar);
     auto res = solver.solve(assumptions);
     if ( res != SatBool3::True ) {
@@ -203,7 +202,7 @@ CondGen::root_cond(
     // 必要条件を求める．
     AssignList mand_cond1 = mand_cond;
     for ( auto as: suff_cond ) {
-      auto lit = engine->conv_to_literal(as);
+      auto lit = engine.conv_to_literal(as);
       auto assumptions1 = assumptions;
       assumptions1.push_back(~lit);
       if ( solver.solve(assumptions1) == SatBool3::False ) {
@@ -229,11 +228,11 @@ CondGen::root_cond(
       vector<SatLiteral> tmp_lits;
       tmp_lits.reserve(suff_cond.size());
       for ( auto as: suff_cond ) {
-	auto lit = engine->conv_to_literal(as);
+	auto lit = engine.conv_to_literal(as);
 	tmp_lits.push_back(~lit);
       }
       solver.add_clause(tmp_lits);
-      auto tmp_assumptions = engine->conv_to_literal_list(mand_cond1);
+      auto tmp_assumptions = engine.conv_to_literal_list(mand_cond1);
       tmp_assumptions.push_back(pvar);
       auto res = solver.solve(tmp_assumptions);
       if ( res == SatBool3::False ) {

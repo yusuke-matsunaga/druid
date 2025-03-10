@@ -50,23 +50,11 @@ END_NONAMESPACE
 // @brief コンストラクタ
 StructEngine::StructEngine(
   const TpgNetwork& network,
-  const std::vector<SubEnc*>& subenc_list,
-  const std::vector<const TpgNode*>& ex_node_list,
-  const std::vector<const TpgNode*>& ex_prev_node_list,
   const JsonValue& option
 ) : mNetwork{network},
-    mSolver(SatInitParam{get_option(option, "sat_param")}),
-    mGvarMap(network.node_num()),
-    mHvarMap(network.node_num()),
+    mSolver(SatInitParam(get_option(option, "sat_param"))),
     mJustifier{Justifier::new_obj(network, get_option(option, "justifier"))}
 {
-  mSubEncList.reserve(subenc_list.size());
-  for ( auto enc: subenc_list ) {
-    mSubEncList.push_back(std::unique_ptr<SubEnc>{enc});
-    enc->mEngine = this;
-    enc->init();
-  }
-  _make_cnf(ex_node_list, ex_prev_node_list);
 }
 
 // @brief デストラクタ
@@ -74,93 +62,142 @@ StructEngine::~StructEngine()
 {
 }
 
+// @brief SubEnc を追加する．
+void
+StructEngine::add_subenc(
+  std::unique_ptr<SubEnc>&& enc
+)
+{
+  mSubEncCandList.push_back(enc.get());
+  mCurNodeCandList.reserve(mCurNodeCandList.size() + enc->node_list().size());
+  for ( auto node: enc->node_list() ) {
+    mCurNodeCandList.push_back(node);
+  }
+  mPrevNodeCandList.reserve(mPrevNodeCandList.size() + enc->prev_node_list().size());
+  for ( auto node: enc->prev_node_list() ) {
+    mPrevNodeCandList.push_back(node);
+  }
+  enc->mEngine = this;
+  mSubEncList.push_back(std::move(enc));
+  mDirty = true;
+}
+
+// @brief 現時刻で考慮するノードを追加する．
+void
+StructEngine::add_cur_node(
+  const TpgNode* node
+)
+{
+  mCurNodeCandList.push_back(node);
+  mDirty = true;
+}
+
+// @brief 1時刻前で考慮するノードを追加する．
+void
+StructEngine::add_prev_node(
+  const TpgNode* node
+)
+{
+  mPrevNodeCandList.push_back(node);
+  mDirty = true;
+}
+
 // @brief 回路の構造を表すCNFを生成する．
 void
-StructEngine::_make_cnf(
-  const std::vector<const TpgNode*>& ex_node_list,
-  const std::vector<const TpgNode*>& ex_prev_node_list
-)
+StructEngine::_update()
 {
   mTimer.reset();
   mTimer.start();
 
-  // 関係するノードのリストを作る．
-  auto node_list = ex_node_list;
-  for ( auto& sub: mSubEncList ) {
-    auto& node_list1 = sub->node_list();
-    node_list.insert(node_list.end(), node_list1.begin(), node_list1.end());
-  }
-
   bool has_prev_state = mNetwork.has_prev_state();
-  mCurNodeList = TpgNodeSet::get_tfi_list(
+
+  // 関係するノードのリストを作る．
+  std::vector<const TpgNode*> new_dff_input_list;
+  auto new_node_list = TpgNodeSet::get_tfi_list(
     mNetwork.node_num(),
-    node_list,
+    mCurNodeCandList,
     [&](const TpgNode* node) {
       if ( has_prev_state && node->is_dff_output() ) {
 	auto alt_node = node->alt_node();
-	mDffInputList.push_back(alt_node);
+	new_dff_input_list.push_back(alt_node);
       }
     });
 
+  std::vector<const TpgNode*> new_prev_node_list;
   if ( has_prev_state ) {
-    auto prev_list = mDffInputList;
+    auto prev_list = new_dff_input_list;
     prev_list.insert(prev_list.end(),
-		     ex_prev_node_list.begin(), ex_prev_node_list.end());
-    for ( auto& sub: mSubEncList ) {
-      auto& node_list1 = sub->prev_node_list();
-      prev_list.insert(prev_list.end(), node_list1.begin(), node_list1.end());
-    }
-    mPrevNodeList = TpgNodeSet::get_tfi_list(
+		     mPrevNodeCandList.begin(), mPrevNodeCandList.end());
+    new_prev_node_list = TpgNodeSet::get_tfi_list(
       mNetwork.node_num(),
       prev_list);
   }
 
   // 変数を割り当てる．
-  for ( auto node: mCurNodeList ) {
-    auto glit = new_variable(true);
-    mGvarMap.set_vid(node, glit);
+  std::vector<const TpgNode*> new_node_list2;
+  new_node_list2.reserve(new_node_list.size());
+  std::unordered_set<SizeType> new_node_mark;
+  for ( auto node: new_node_list ) {
+    if ( mGvarMap(node) == SatLiteral::X ) {
+      auto glit = new_variable(true);
+      mGvarMap.set_vid(node, glit);
+      new_node_list2.push_back(node);
+      new_node_mark.emplace(node->id());
 
-    if ( debug_base_enc ) {
-      DEBUG_OUT << "Node#" << node->id()
-		<< ": gvar = " << glit << endl;
+      if ( debug_base_enc ) {
+	DEBUG_OUT << "Node#" << node->id()
+		  << ": gvar = " << glit << endl;
+      }
     }
   }
-  for ( auto node: mPrevNodeList ) {
-    auto hlit = new_variable(true);
-    mHvarMap.set_vid(node, hlit);
+  std::vector<const TpgNode*> new_prev_node_list2;
+  new_prev_node_list2.reserve(new_prev_node_list.size());
+  for ( auto node: new_prev_node_list ) {
+    if ( mHvarMap(node) == SatLiteral::X ) {
+      auto hlit = new_variable(true);
+      mHvarMap.set_vid(node, hlit);
+      new_prev_node_list2.push_back(node);
 
-    if ( debug_base_enc ) {
-      DEBUG_OUT << "Node#" << node->id()
-		<< ": hvar = " << hlit << endl;
+      if ( debug_base_enc ) {
+	DEBUG_OUT << "Node#" << node->id()
+		  << ": hvar = " << hlit << endl;
+      }
     }
   }
 
   // 現時刻の値の関係を表すCNFを作る．
   GateEnc gvar_enc(mSolver, mGvarMap);
-  for ( auto node: mCurNodeList ) {
+  for ( auto node: new_node_list2 ) {
     gvar_enc.make_cnf(node);
   }
 
   // 1時刻前の値の関係を表すCNFを作る．
   GateEnc hvar_enc(mSolver, mHvarMap);
-  for ( auto node: mPrevNodeList ) {
+  for ( auto node: new_prev_node_list2 ) {
     hvar_enc.make_cnf(node);
   }
 
   // DFF の入力と出力の関係を表すCNFを作る．
-  for ( auto node: mDffInputList ) {
+  for ( auto node: new_dff_input_list ) {
     auto onode = node->alt_node();
-    auto olit = gvar(onode);
-    auto ilit = hvar(node);
-    mSolver.add_buffgate(olit, ilit);
+    if ( new_node_mark.count(onode->id()) > 0 ) {
+      auto olit = gvar(onode);
+      auto ilit = hvar(node);
+      mSolver.add_buffgate(olit, ilit);
+    }
   }
 
-  for ( auto& sub: mSubEncList ) {
+  for ( auto sub: mSubEncCandList ) {
     sub->make_cnf();
   }
 
+  mSubEncCandList.clear();
+  mCurNodeCandList.clear();
+  mPrevNodeCandList.clear();
+  mDirty = false;
+
   mTimer.stop();
-  mCnfTime = mTimer.get_time();
+  mCnfTime += mTimer.get_time();
 }
 
 // @brief 変数を作る．
@@ -178,6 +215,7 @@ StructEngine::solve(
   const vector<SatLiteral>& assumptions
 )
 {
+  update();
   return mSolver.solve(assumptions);
 }
 
@@ -233,6 +271,7 @@ StructEngine::conv_to_literal(
   Assign assign
 )
 {
+  update();
   auto node = assign.node();
   bool inv = !assign.val(); // 0 の時が inv = true
   auto vid = (assign.time() == 0) ? hvar(node) : gvar(node);
@@ -336,7 +375,7 @@ bool
 StructEngine::val(
   const TpgNode* node,
   int time
-) const
+)
 {
   auto lit = (time == 0) ? hvar(node) : gvar(node);
   return mSolver.model()[lit] == SatBool3::True;

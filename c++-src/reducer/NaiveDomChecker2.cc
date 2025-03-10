@@ -21,7 +21,8 @@ NaiveDomChecker2::NaiveDomChecker2(
   const TpgFault* fault2,
   const JsonValue& option
 ) : mFault1{fault1},
-    mFault2{fault2}
+    mFault2{fault2},
+    mEngine(network, option)
 {
   unordered_map<SizeType, const TpgFFR*> ffr_map;
   for ( auto ffr: network.ffr_list() ) {
@@ -37,23 +38,21 @@ NaiveDomChecker2::NaiveDomChecker2(
     auto pvar = mBdEnc2->prop_var();
     auto ffr2 = ffr_map.at(node2->id());
     mFFREnc2 = new FFREnc(pvar, ffr2, {fault2});
-    StructEngine::Builder builder;
-    builder.add_subenc(mBdEnc1);
-    builder.add_subenc(mBdEnc2);
-    builder.add_subenc(mFFREnc2);
-    mEngine = builder.new_obj(network, option);
+    mEngine.add_subenc(std::unique_ptr<SubEnc>{mBdEnc1});
+    mEngine.add_subenc(std::unique_ptr<SubEnc>{mBdEnc2});
+    mEngine.add_subenc(std::unique_ptr<SubEnc>{mFFREnc2});
   }
 
   // fault1 の検出条件を追加する．
   {
     auto pvar1 = mBdEnc1->prop_var();
-    mEngine->solver().add_clause(pvar1);
+    mEngine.solver().add_clause(pvar1);
   }
   // fault2 は検出しないので mBdEnc2->prop_var() か
   // mFFREnc2->prop_var() のいずれかは false
   {
     auto pvar2 = mFFREnc2->prop_var(fault2);
-    mEngine->solver().add_clause(~pvar2);
+    mEngine.solver().add_clause(~pvar2);
   }
 }
 
@@ -67,8 +66,8 @@ bool
 NaiveDomChecker2::check()
 {
   auto prop_cond = mFault1->ffr_propagate_condition();
-  auto assumptions = mEngine->conv_to_literal_list(prop_cond);
-  return mEngine->solve(assumptions) == SatBool3::False;
+  auto assumptions = mEngine.conv_to_literal_list(prop_cond);
+  return mEngine.solve(assumptions) == SatBool3::False;
 }
 
 END_NAMESPACE_DRUID

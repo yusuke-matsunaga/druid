@@ -22,14 +22,13 @@ FaultAnalyzer::FaultAnalyzer(
   const TpgNetwork& network,
   const TpgFFR* ffr,
   const JsonValue& option
-) : mDebug{OpBase::get_debug(option)}
+) : mEngine(network, option),
+    mDebug{OpBase::get_debug(option)}
 {
   auto root = ffr->root();
   mBdEnc = new BoolDiffEnc(root, option);
-  StructEngine::Builder builder;
-  builder.add_subenc(mBdEnc);
-  builder.add_extra_prev_node(root);
-  mEngine = builder.new_obj(network, option);
+  mEngine.add_subenc(std::unique_ptr<SubEnc>{mBdEnc});
+  mEngine.add_prev_node(root);
 
   // FFR の出力の伝搬可能性を調べる．
   if ( mDebug > 1 ) {
@@ -39,13 +38,13 @@ FaultAnalyzer::FaultAnalyzer(
   Timer timer;
   timer.start();
   auto pvar = mBdEnc->prop_var();
-  mRootStatus = mEngine->solve({pvar});
+  mRootStatus = mEngine.solve({pvar});
   if ( mRootStatus == SatBool3::True ) {
     // 必要条件を求める．
     auto suff_cond = mBdEnc->extract_sufficient_condition();
     for ( auto nv: suff_cond ) {
-      auto lit = mEngine->conv_to_literal(nv);
-      if ( mEngine->solve({pvar, ~lit}) == SatBool3::False ) {
+      auto lit = mEngine.conv_to_literal(nv);
+      if ( mEngine.solve({pvar, ~lit}) == SatBool3::False ) {
 	mRootMandCond.add(nv);
       }
     }
@@ -70,9 +69,9 @@ FaultAnalyzer::run(
     auto ffr_cond = fault->ffr_propagate_condition();
     auto root_cond = mRootMandCond;
     ffr_cond.merge(root_cond);
-    auto assumptions = mEngine->conv_to_literal_list(ffr_cond);
+    auto assumptions = mEngine.conv_to_literal_list(ffr_cond);
     assumptions.push_back(mBdEnc->prop_var());
-    auto res = mEngine->solve(assumptions);
+    auto res = mEngine.solve(assumptions);
     timer.stop();
     if ( mDebug > 1 ) {
       DBG_OUT << "  DTPG: " << fault->str() << ": "
@@ -86,16 +85,16 @@ FaultAnalyzer::run(
       auto tmp_cond{suff_cond};
       suff_cond.merge(ffr_cond);
       auto suff_cond_expr = suff_cond.to_expr();
-      auto pi_assign = mEngine->justify(suff_cond);
+      auto pi_assign = mEngine.justify(suff_cond);
       finfo.set_sufficient_condition(suff_cond, suff_cond_expr, pi_assign);
       tmp_cond.diff(root_cond);
       auto assumptions1{assumptions};
       assumptions1.push_back(SatLiteral::X);
       AssignList mand_cond;
       for ( auto nv: tmp_cond ) {
-	auto lit = mEngine->conv_to_literal(nv);
+	auto lit = mEngine.conv_to_literal(nv);
 	assumptions1.back() = ~lit;
-	auto res = mEngine->solve(assumptions1);
+	auto res = mEngine.solve(assumptions1);
 	if ( res == SatBool3::False ) {
 	  mand_cond.add(nv);
 	}

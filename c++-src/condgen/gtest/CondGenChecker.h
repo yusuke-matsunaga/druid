@@ -24,47 +24,19 @@ BEGIN_NAMESPACE_DRUID
 class CondGenChecker
 {
 public:
-
-  /// @brief コンストラクタ
-  CondGenChecker(
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,                    ///< [in] 対象の FFR
-    const JsonValue& option = JsonValue{} ///< [in] オプション
-  );
-
-  /// @brief デストラクタ
-  ~CondGenChecker() = default;
-
-
-public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
   /// @breif 結果の検証を行う．
+  static
   bool
   check(
-    const AssignList& extra_cond, ///< [in] 追加の条件
-    const DetCond& cond           ///< [in] CondGen::root_cond() の結果
+    const TpgNetwork& network,            ///< [in] 対象のネットワーク
+    const TpgFFR* ffr,                    ///< [in] 対象の FFR
+    const DetCond& cond,                  ///< [in] CondGen::root_cond() の結果
+    const JsonValue& option = JsonValue{} ///< [in] オプション
   );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 基本エンコーダ
-  std::unique_ptr<StructEngine> mEngine;
-
-  // FFR用のブール微分器
-  BoolDiffEnc* mBdEnc;
-
-  // 故障検出の追加条件
-  AssignList mExtraCond;
-
-  // 対象の条件
-  AssignExpr mCond;
 
 };
 

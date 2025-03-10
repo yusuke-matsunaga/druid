@@ -39,10 +39,10 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 条件を CNF に変換する．
+  /// @brief CNFを生成する．
   vector<vector<SatLiteral>>
   make_cnf(
-    StructEngine& engine,            ///< [in] StructEngine
+    StructEngine& engine,            ///< [in] 基本エンジン
     const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
   );
 
@@ -66,7 +66,7 @@ protected:
     const DetCond::CondData& cond
   ) = 0;
 
-  /// @brief Expr のリストから CNF を作る．
+  /// @brief Expr のリストから CNF を生成する．
   virtual
   vector<vector<SatLiteral>>
   expr_to_cnf(

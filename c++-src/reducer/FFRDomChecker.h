@@ -66,7 +66,7 @@ private:
   const TpgFFR* mFFR;
 
   // 基本のエンコーダ
-  std::unique_ptr<StructEngine> mEngine;
+  StructEngine mEngine;
 
   // mFFR 用の BoolDiffエンコーダ
   BoolDiffEnc* mBdEnc;

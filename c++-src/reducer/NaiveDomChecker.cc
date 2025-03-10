@@ -20,7 +20,8 @@ NaiveDomChecker::NaiveDomChecker(
   const TpgFault* fault2,
   const JsonValue& option
 ) : mFault1{fault1},
-    mFault2{fault2}
+    mFault2{fault2},
+    mEngine(network, option)
 {
   auto node1 = fault1->origin_node();
   mBdEnc1 = new BoolDiffEnc(node1, option);
@@ -30,26 +31,24 @@ NaiveDomChecker::NaiveDomChecker(
   mBdEnc2 = new BoolDiffEnc(node2, option);
   mFaultEnc2 = new FaultEnc(fault2);
 
-  StructEngine::Builder builder;
-  builder.add_subenc(mBdEnc1);
-  builder.add_subenc(mFaultEnc1);
-  builder.add_subenc(mBdEnc2);
-  builder.add_subenc(mFaultEnc2);
-  mEngine = builder.new_obj(network, option);
+  mEngine.add_subenc(std::unique_ptr<SubEnc>{mBdEnc1});
+  mEngine.add_subenc(std::unique_ptr<SubEnc>{mFaultEnc1});
+  mEngine.add_subenc(std::unique_ptr<SubEnc>{mBdEnc2});
+  mEngine.add_subenc(std::unique_ptr<SubEnc>{mFaultEnc2});
 
   // fault1 の検出条件を追加する．
   {
     auto pvar1 = mBdEnc1->prop_var();
     auto pvar2 = mFaultEnc1->prop_var();
-    mEngine->solver().add_clause(pvar1);
-    mEngine->solver().add_clause(pvar2);
+    mEngine.solver().add_clause(pvar1);
+    mEngine.solver().add_clause(pvar2);
   }
   // fault2 は検出しないので mBdEnc2->prop_var() か mFaultEnc2->prop_var()
   // のいずれかは false
   {
     auto pvar1 = mBdEnc2->prop_var();
     auto pvar2 = mFaultEnc2->prop_var();
-    mEngine->solver().add_clause(~pvar1, ~pvar2);
+    mEngine.solver().add_clause(~pvar1, ~pvar2);
   }
 }
 
@@ -62,7 +61,7 @@ NaiveDomChecker::~NaiveDomChecker()
 bool
 NaiveDomChecker::check()
 {
-  return mEngine->solve() == SatBool3::False;
+  return mEngine.solve() == SatBool3::False;
 }
 
 END_NAMESPACE_DRUID

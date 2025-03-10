@@ -14,40 +14,31 @@
 
 BEGIN_NAMESPACE_DRUID
 
-// @brief コンストラクタ
-CondGenChecker::CondGenChecker(
-  const TpgNetwork& network,
-  const TpgFFR* ffr,
-  const JsonValue& option
-) : mBdEnc{new BoolDiffEnc(ffr->root(), option)}
-{
-  StructEngine::Builder builder;
-  builder.add_subenc(mBdEnc);
-  builder.add_extra_prev_node(ffr->root());
-  mEngine = builder.new_obj(network, option);
-}
-
 // @breif 結果の検証を行う．
 bool
 CondGenChecker::check(
-  const AssignList& extra_cond,
-  const DetCond& cond
+  const TpgNetwork& network,
+  const TpgFFR* ffr,
+  const DetCond& cond,
+  const JsonValue& option
 )
 {
-  auto size0 = mEngine->solver().cnf_size();
-  auto assumptions = CnfGenMgr::make_cnf(mEngine, cond);
-  auto extra_lits = mEngine->conv_to_literal_list(extra_cond);
-  assumptions.insert(assumptions.end(), extra_lits.begin(), extra_lits.end());
-  auto pvar = mBdEnc->prop_var();
+  auto bd_enc = new BoolDiffEnc(ffr->root(), option);
+  StructEngine engine(network, option);
+  engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+  engine.add_prev_node(ffr->root());
+
+  auto assumptions = CnfGenMgr::make_cnf(engine, cond);
+  auto pvar = bd_enc->prop_var();
   assumptions.push_back(~pvar);
-  auto res = mEngine->solver().solve(assumptions);
+  auto res = engine.solve(assumptions);
   if ( res != SatBool3::False ) {
-    cout << mCond.expr() << endl;
+    cond.print(cout);
   }
 #if 0
-  auto size1 = mEngine->solver().cnf_size();
+  auto size1 = mEngine.solver().cnf_size();
   auto real_size = size1 - size0;
-  auto size = CnfGenMgr::calc_cnf_size(mEngine->network(), cond);
+  auto size = CnfGenMgr::calc_cnf_size(mEngine.network(), cond);
   if ( size != real_size ) {
     cout << "real_size: " << real_size << endl
 	 << "calc_size: " << size << endl;

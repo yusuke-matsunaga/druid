@@ -33,113 +33,14 @@ class StructEngine
 {
 public:
 
-  /// @brief StructEngine 用のビルダクラス
-  class Builder
-  {
-  public:
-
-    /// @brief コンストラクタ
-    Builder()
-    {
-    }
-
-    /// @brief SubEnc を追加する．
-    void
-    add_subenc(
-      SubEnc* enc
-    )
-    {
-      mSubEncList.push_back(enc);
-    }
-
-    /// @brief ノードリストに追加する．
-    void
-    add_extra_node(
-      const TpgNode* node
-    )
-    {
-      mExNodeList.push_back(node);
-    }
-
-    /// @brief ノードリストに追加する．
-    void
-    add_extra_node_list(
-      const std::vector<const TpgNode*>& node_list
-    )
-    {
-      mExNodeList.reserve(mExNodeList.size() + node_list.size());
-      for ( auto node: node_list ) {
-	add_extra_node(node);
-      }
-    }
-
-    /// @brief 1時刻前のノードリストに追加する．
-    void
-    add_extra_prev_node(
-      const TpgNode* node
-    )
-    {
-      mExPrevNodeList.push_back(node);
-    }
-
-    /// @brief 1時刻前のノードリストに追加する．
-    void
-    add_extra_prev_node_list(
-      const std::vector<const TpgNode*>& node_list
-    )
-    {
-      mExPrevNodeList.reserve(mExPrevNodeList.size() + node_list.size());
-      for ( auto node: node_list ) {
-	add_extra_prev_node(node);
-      }
-    }
-
-    /// @brief StructEngine を作る．
-    std::unique_ptr<StructEngine>
-    new_obj(
-      const TpgNetwork& network,
-      const JsonValue& option = JsonValue{}
-    )
-    {
-      auto engine = new StructEngine{network, mSubEncList,
-				     mExNodeList, mExPrevNodeList,
-				     option};
-      return std::unique_ptr<StructEngine>{engine};
-    }
-
-
-  private:
-    //////////////////////////////////////////////////////////////////////
-    // データメンバ
-    //////////////////////////////////////////////////////////////////////
-
-    // SubEnc のリスト
-    std::vector<SubEnc*> mSubEncList;
-
-    // 追加のノードリスト
-    std::vector<const TpgNode*> mExNodeList;
-
-    // 追加の1時刻前のノードリスト
-    std::vector<const TpgNode*> mExPrevNodeList;
-
-  };
-
-
-public:
-
   /// @brief コンストラクタ
   StructEngine(
-    const TpgNetwork& network,          ///< [in] 対象のネットワーク
-    const std::vector<SubEnc*>& subenc_list, ///< [in] SubEnc のリスト
-    const std::vector<const TpgNode*>& ex_node_list,
-                                        ///< [in] 追加するノードのリスト
-    const std::vector<const TpgNode*>& ex_prev_node_list,
-                                        ///< [in] 追加する1時刻前のノードのリスト
-    const JsonValue& option             ///< [in] 初期化オプション
-    = JsonValue{}                       ///<      "sat_param": JsonValue
-                                        ///<      SATソルバの初期化パラメータ
-                                        ///<      "justifier": string
-                                        ///<      Justifier の初期化パラメータ
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const JsonValue& option    ///< [in] 初期化オプション
+    = JsonValue{}              ///<      "sat_param": JsonValue
+                               ///<      SATソルバの初期化パラメータ
+                               ///<      "justifier": string
+                               ///<      Justifier の初期化パラメータ
   );
 
   /// @brief デストラクタ
@@ -152,6 +53,64 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief SubEnc を追加する．
+  void
+  add_subenc(
+    std::unique_ptr<SubEnc>&& enc
+  );
+
+  /// @brief 現時刻で考慮するノードを追加する．
+  ///
+  /// 実際にはこのノードのTFOのTFIを対象にする．
+  void
+  add_cur_node(
+    const TpgNode* node
+  );
+
+  /// @brief 現時刻で考慮するノードのリストを追加する．
+  ///
+  /// 実際にはこのノードのTFOのTFIを対象にする．
+  void
+  add_cur_node_list(
+    const std::vector<const TpgNode*>& node_list
+  )
+  {
+    for ( auto node: node_list ) {
+      add_cur_node(node);
+    }
+  }
+
+  /// @brief 1時刻前で考慮するノードを追加する．
+  ///
+  /// 実際にはこのノードのTFIを対象にする．
+  void
+  add_prev_node(
+    const TpgNode* node
+  );
+
+  /// @brief 1時刻前で考慮するノードのリストを追加する．
+  ///
+  /// 実際にはこのノードのTFIを対象にする．
+  void
+  add_prev_node_list(
+    const std::vector<const TpgNode*>& node_list
+  )
+  {
+    for ( auto node: node_list ) {
+      add_prev_node(node);
+    }
+  }
+
+  /// @brief 未処理のノードを処理する．
+  void
+  update()
+  {
+    if ( mDirty ) {
+      _update();
+      mDirty = false;
+    }
+  }
 
   /// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
   /// @return 外部入力の割り当てリストを返す．
@@ -234,13 +193,7 @@ public:
   SatSolver&
   solver()
   {
-    return mSolver;
-  }
-
-  /// @brief SATソルバを返す．
-  const SatSolver&
-  solver() const
-  {
+    update();
     return mSolver;
   }
 
@@ -248,15 +201,17 @@ public:
   SatLiteral
   gvar(
     const TpgNode* node ///< [in] 対象のノード
-  ) const
+  )
   {
+    update();
     return mGvarMap(node);
   }
 
   /// @brief ノードの値を表す変数の辞書を返す．
   const VidMap&
-  gvar_map() const
+  gvar_map()
   {
+    update();
     return mGvarMap;
   }
 
@@ -264,8 +219,9 @@ public:
   SatLiteral
   hvar(
     const TpgNode* node ///< [in] 対象のノード
-  ) const
+  )
   {
+    update();
     return mHvarMap(node);
   }
 
@@ -276,7 +232,7 @@ public:
   val(
     const TpgNode* node, ///< [in] 対象のノード
     int time             ///< [in] 時刻(0 or 1)
-  ) const;
+  );
 
   /// @brief CNF の生成時間を返す．
   double
@@ -293,10 +249,7 @@ private:
 
   /// @brief 回路の構造を表すCNFを生成する．
   void
-  _make_cnf(
-    const vector<const TpgNode*>& ex_node_list,
-    const vector<const TpgNode*>& ex_prev_node_list
-  );
+  _update();
 
 
 private:
@@ -313,11 +266,20 @@ private:
   // 現時刻に関係のあるノードのリスト
   std::vector<const TpgNode*> mCurNodeList;
 
-  // DFF の入力ノードのリスト
-  std::vector<const TpgNode*> mDffInputList;
-
   // 1時刻前に関係のあるノードのリスト
   std::vector<const TpgNode*> mPrevNodeList;
+
+  // 未処理のノードが残っていることを示すフラグ
+  bool mDirty{false};
+
+  // make_cnf() を呼んでいない SubEnc のリスト
+  std::vector<SubEnc*> mSubEncCandList;
+
+  // mCurNodeList に追加する予定のノードリスト
+  std::vector<const TpgNode*> mCurNodeCandList;
+
+  // mPrevNodeList に追加する予定のノードリスト
+  std::vector<const TpgNode*> mPrevNodeCandList;
 
   // SATソルバ
   SatSolver mSolver;

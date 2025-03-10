@@ -108,8 +108,9 @@ CondGenTestWithParam::do_test()
 
   for ( auto ffr: network.ffr_list() ) {
     StructEngine engine(network, option);
-    auto bd_enc = new BoolDiffEnc(engine, ffr->root(), option);
-    engine.make_cnf({}, {ffr->root()});
+    auto bd_enc = new BoolDiffEnc(ffr->root(), option);
+    engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+    engine.add_prev_node(ffr->root());
     auto cond = CondGen::root_cond(network, ffr, limit, option);
     if ( cond.type() == DetCond::Undetected ) {
       continue;
