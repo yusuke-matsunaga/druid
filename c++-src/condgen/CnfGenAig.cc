@@ -67,13 +67,17 @@ CnfGenAig::aig_to_cnf(
   std::unordered_map<AigHandle, vector<SatLiteral>>& aig_map
 )
 {
+  // 境界条件
   if ( aig.is_zero() ) {
+    // 定数０は充足不可
     throw std::logic_error{"aig is zero"};
   }
   if ( aig.is_one() ) {
+    // 定数１は常に充足している．
     return {};
   }
   if ( aig.is_input() ) {
+    // 対応するリテラルを返す．
     auto input_id = aig.input_id();
     auto node_id = input_id / 2;
     auto time = node_id % 2;
@@ -84,41 +88,53 @@ CnfGenAig::aig_to_cnf(
   }
 
   if ( aig_map.count(aig) > 0 ) {
+    // すでに計算済みならその結果を返す．
     auto lits = aig_map.at(aig);
     return lits;
   }
-  auto iaig = ~aig;
-  if ( aig_map.count(iaig) > 0 ) {
-    auto ilits = aig_map.at(iaig);
-    auto lit = invert(engine, ilits);
-    auto lits = vector<SatLiteral>{lit};
-    aig_map.emplace(aig, lits);
-    return lits;
-  }
+
   // aig.is_and()
-  auto h0 = aig.fanin0();
-  auto h1 = aig.fanin1();
-  auto lits0 = aig_to_cnf(engine, h0, aig_map);
-  auto lits1 = aig_to_cnf(engine, h1, aig_map);
+  auto fanin_list = aig.ex_fanin_list();
+  vector<vector<SatLiteral>> lits_list;
+  lits_list.reserve(fanin_list.size());
+  for ( auto& h: fanin_list ) {
+    auto lits = aig_to_cnf(engine, h, aig_map);
+    lits_list.push_back(lits);
+  }
+
   vector<SatLiteral> lits;
-  lits.reserve(lits0.size() + lits1.size());
-  for ( auto lit: lits0 ) {
+  if ( aig.inv() ) {
+    // NAND
+    // lits_list のいずれかのグループが全て成り立たなければよい．
+    lits.reserve(1);
+    auto lit = engine.new_variable(true);
+    SizeType ni = fanin_list.size();
+    vector<SatLiteral> tmp_lits;
+    tmp_lits.reserve(ni + 1);
+    tmp_lits.push_back(~lit);
+    for ( SizeType i = 0; i < ni; ++ i ) {
+      auto lit1 = engine.new_variable(false);
+      for ( auto lit2: lits_list[i] ) {
+	engine.solver().add_clause(~lit1, ~lit2);
+      }
+      tmp_lits.push_back(lit1);
+    }
+    engine.solver().add_clause(tmp_lits);
     lits.push_back(lit);
   }
-  for ( auto lit: lits1 ) {
-    lits.push_back(lit);
+  else {
+    // AND なので lits_list を連結すればよい．
+    SizeType n = 0;
+    for ( auto& lits: lits_list ) {
+      n += lits.size();
+    }
+    lits.reserve(n);
+    for ( auto& lits1: lits_list ) {
+      lits.insert(lits.end(), lits1.begin(), lits1.end());
+    }
   }
-  auto paig = aig.positive_handle();
-  aig_map.emplace(paig, lits);
-
-  if ( aig == paig ) {
-    return lits;
-  }
-
-  auto ilit = invert(engine, lits);
-  auto ilits = vector<SatLiteral>{ilit};
-  aig_map.emplace(aig, ilits);
-  return ilits;
+  aig_map.emplace(aig, lits);
+  return lits;
 }
 
 // @brief 反転したCNFを作る．
