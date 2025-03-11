@@ -22,10 +22,8 @@ DtpgDriver_Enc::DtpgDriver_Enc(
   const TpgNetwork& network,
   const TpgNode* node,
   const JsonValue& option
-) : mEngine(network, option)
+) : mEngine(network, node, option)
 {
-  mBdEnc = new BoolDiffEnc(node, option);
-  mEngine.add_subenc(std::unique_ptr<SubEnc>(mBdEnc));
   mEngine.add_prev_node(node);
 }
 
@@ -42,7 +40,7 @@ DtpgDriver_Enc::solve(
 {
   auto prop_cond = fault_prop_condition(fault);
   auto assumptions = mEngine.conv_to_literal_list(prop_cond);
-  assumptions.push_back(mBdEnc->prop_var());
+  assumptions.push_back(mEngine.prop_var());
   add_extra_assumptions(fault, assumptions);
   return mEngine.solve(assumptions);
 }
@@ -53,7 +51,7 @@ DtpgDriver_Enc::gen_pattern(
   const TpgFault* fault
 )
 {
-  auto assign_list = mBdEnc->extract_sufficient_condition();
+  auto assign_list = mEngine.extract_sufficient_condition();
   auto prop_cond = fault_prop_condition(fault);
   assign_list.merge(prop_cond);
   add_extra_assignments(fault, assign_list);

@@ -12,8 +12,7 @@
 #include "FaultType.h"
 #include "CondGen.h"
 #include "CnfGenMgr.h"
-#include "StructEngine.h"
-#include "BoolDiffEnc.h"
+#include "BdEngine.h"
 #include "ym/SatInitParam.h"
 
 
@@ -107,9 +106,7 @@ CondGenTestWithParam::do_test()
   SizeType limit = 1000;
 
   for ( auto ffr: network.ffr_list() ) {
-    StructEngine engine(network, option);
-    auto bd_enc = new BoolDiffEnc(ffr->root(), option);
-    engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+    BdEngine engine(network, ffr->root(), option);
     engine.add_prev_node(ffr->root());
     auto cond = CondGen::root_cond(network, ffr, limit, option);
     if ( cond.type() == DetCond::Undetected ) {
@@ -119,7 +116,7 @@ CondGenTestWithParam::do_test()
       continue;
     }
     auto assumptions = CnfGenMgr::make_cnf(engine, cond, option);
-    auto pvar = bd_enc->prop_var();
+    auto pvar = engine.prop_var();
     auto assumptions1 = assumptions;
     assumptions1.push_back(~pvar);
     auto res = engine.solver().solve(assumptions1);

@@ -12,8 +12,7 @@
 #include "TpgNode.h"
 #include "TpgFault.h"
 #include "OpBase.h"
-#include "StructEngine.h"
-#include "BoolDiffEnc.h"
+#include "BdEngine.h"
 
 
 #define DBG_OUT cerr
@@ -81,27 +80,25 @@ CondGen::root_cond(
   timer.start();
 
   auto root = ffr->root();
-  auto bd_enc = new BoolDiffEnc(root, option);
-  StructEngine engine(network, option);
-  engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+  BdEngine engine(network, root, option);
   engine.add_prev_node(root);
 
   // FFR の出力の伝搬可能性を調べる．
   auto& solver = engine.solver();
-  auto pvar = bd_enc->prop_var();
-  auto res = solver.solve({pvar});
+  auto pvar = engine.prop_var();
+  auto res = engine.solve({pvar});
   if ( res != SatBool3::True ) {
     // 検出可能ではなかった．
     return DetCond::undetected(root);
   }
 
   // 最初の十分条件を求める．
-  auto suff_cond = bd_enc->extract_sufficient_condition();
+  auto suff_cond = engine.extract_sufficient_condition();
   // 必要条件を求める．
   AssignList mand_cond;
   for ( auto as: suff_cond ) {
     auto lit = engine.conv_to_literal(as);
-    if ( solver.solve({pvar, ~lit}) == SatBool3::False ) {
+    if ( engine.solve({pvar, ~lit}) == SatBool3::False ) {
       mand_cond.add(as);
     }
   }
@@ -154,7 +151,7 @@ CondGen::root_cond(
       // どうする？
       break;
     }
-    suff_cond = bd_enc->extract_sufficient_condition();
+    suff_cond = engine.extract_sufficient_condition();
     suff_cond.diff(mand_cond);
     if ( suff_cond.size() == 0 ) {
       // 最初に生成された suff_cond が冗長だった．
@@ -180,14 +177,14 @@ CondGen::root_cond(
   return DetCond::overflow(root, {});
 
   // 伝搬先の出力を一つに制限して同じ処理を繰り返す．
-  auto n = bd_enc->output_num();
+  auto n = engine.output_num();
   vector<const TpgNode*> output_list;
   output_list.reserve(n);
   vector<DetCond::CondData> cond_list;
   for ( SizeType pos = 0; pos < n; ++ pos ) {
-    auto output = bd_enc->output(pos);
+    auto output = engine.output(pos);
     auto& solver = engine.solver();
-    auto pvar = bd_enc->prop_var(pos);
+    auto pvar = engine.prop_var(pos);
     auto assumptions = engine.conv_to_literal_list(mand_cond);
     assumptions.push_back(pvar);
     auto res = solver.solve(assumptions);
@@ -196,7 +193,7 @@ CondGen::root_cond(
       continue;
     }
     // 最初の十分条件を求める．
-    auto suff_cond = bd_enc->extract_sufficient_condition(pos);
+    auto suff_cond = engine.extract_sufficient_condition(pos);
     suff_cond.diff(mand_cond);
 
     // 必要条件を求める．
@@ -242,7 +239,7 @@ CondGen::root_cond(
       if ( res == SatBool3::X ) {
 	break;
       }
-      suff_cond = bd_enc->extract_sufficient_condition(pos);
+      suff_cond = engine.extract_sufficient_condition(pos);
       suff_cond.diff(mand_cond1);
       if ( suff_cond.size() == 0 ) {
 	cube_list.clear();

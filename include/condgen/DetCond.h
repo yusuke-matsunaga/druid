@@ -268,6 +268,18 @@ private:
 
 };
 
+/// @brief ストリーム出力
+inline
+ostream&
+operator<<(
+  ostream& s,
+  const DetCond& cond
+)
+{
+  cond.print(s);
+  return s;
+}
+
 END_NAMESPACE_DRUID
 
 #endif // DETCOND_H

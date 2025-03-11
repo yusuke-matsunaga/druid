@@ -9,8 +9,7 @@
 /// All rights reserved.
 
 #include "DtpgDriverImpl.h"
-#include "StructEngine.h"
-#include "BoolDiffEnc.h"
+#include "BdEngine.h"
 #include "ym/JsonValue.h"
 
 
@@ -115,10 +114,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // エンジン本体
-  StructEngine mEngine;
-
-  // BoolDiff
-  BoolDiffEnc* mBdEnc;
+  BdEngine mEngine;
 
 };
 

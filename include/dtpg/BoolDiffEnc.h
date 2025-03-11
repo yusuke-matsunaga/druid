@@ -101,6 +101,7 @@ public:
   SatLiteral
   prop_var() const
   {
+    engine().update();
     return mPropVar;
   }
 
@@ -113,6 +114,7 @@ public:
     if ( pos >= output_num() ) {
       throw std::out_of_range{"pos is out of range"};
     }
+    engine().update();
     return mPropVarList[pos];
   }
 
