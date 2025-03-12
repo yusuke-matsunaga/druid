@@ -49,35 +49,6 @@ protected:
     const vector<Expr>& expr_list
   ) override;
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief AigHandle に対応する CNF を作る．
-  vector<SatLiteral>
-  aig_to_cnf(
-    StructEngine& engine,
-    const AigHandle& aig,
-    std::unordered_map<AigHandle, vector<SatLiteral>>& aig_map
-  );
-
-  /// @brief 反転したCNFを作る．
-  SatLiteral
-  invert(
-    StructEngine& engine,
-    const vector<SatLiteral>& lits
-  );
-
-  /// @brief AigHandle に対応する CNF のサイズを見積もる．
-  SizeType
-  aig_cnf_size(
-    const AigHandle& aig,
-    CnfSize& size,
-    std::unordered_map<AigHandle, SizeType>& aig_map
-  );
-
 };
 
 END_NAMESPACE_DRUID

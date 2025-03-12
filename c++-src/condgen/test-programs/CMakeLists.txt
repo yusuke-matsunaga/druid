@@ -14,6 +14,7 @@ include_directories(
 #add_subdirectory ( testcube_gen )
 #add_subdirectory ( condgen )
 add_subdirectory ( count_test )
+add_subdirectory ( cnfgen )
 
 
 # ===================================================================

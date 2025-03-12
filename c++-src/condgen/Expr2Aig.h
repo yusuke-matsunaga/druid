@@ -86,12 +86,6 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief Expr を AIG に変換する．
-  AigHandle
-  conv_to_aig(
-    const Expr& expr ///< [in] 論理式
-  );
-
   /// @brief 複数の Expr を AIG に変換する
   vector<AigHandle>
   conv_to_aig(
@@ -101,7 +95,7 @@ public:
     vector<AigHandle> aig_list;
     aig_list.reserve(expr_list.size());
     for ( auto& expr: expr_list ) {
-      auto aig = conv_to_aig(expr);
+      auto aig = _conv_to_aig(expr);
       aig_list.push_back(aig);
     }
     return aig_list;
@@ -112,6 +106,12 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief Expr を AIG に変換する．
+  AigHandle
+  _conv_to_aig(
+    const Expr& expr ///< [in] 論理式
+  );
 
   /// @brief AND木を作る．
   AigHandle

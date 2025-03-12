@@ -11,8 +11,6 @@
 #include "druid.h"
 #include "StructEngine.h"
 #include "DetCond.h"
-#include "AssignList.h"
-#include "Expr2Cnf.h"
 #include "ym/CnfSize.h"
 
 

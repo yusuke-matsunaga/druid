@@ -8,7 +8,6 @@
 
 #include "CnfGenMgr.h"
 #include "CnfGenNaive.h"
-#include "CnfGenCover.h"
 #include "CnfGenFactor.h"
 #include "CnfGenAig.h"
 #include "TpgNetwork.h"
@@ -72,14 +71,14 @@ CnfGenMgr::make_cnf(
     CnfGenNaive gen;
     return gen.make_cnf(engine, cond_list);
   }
-  if ( method == "cover" ) {
-    // 一旦 SopCover に変換して CNF を作る．
-    CnfGenCover gen;
-    return gen.make_cnf(engine, cond_list);
-  }
   if ( method == "factor" ) {
     // 一旦 SopCover に変換して その後さらにファクタリングを行い，CNF を作る．
     CnfGenFactor gen;
+    return gen.make_cnf(engine, cond_list);
+  }
+  if ( method == "aig" ) {
+    // factor の結果を AIG を用いて共有する．
+    CnfGenAig gen;
     return gen.make_cnf(engine, cond_list);
   }
   // デフォルトフォールバック
@@ -106,11 +105,6 @@ CnfGenMgr::calc_cnf_size(
     // ナイーブなやり方
     // キューブごとにリテラルを割り当て，その OR 条件を作る．
     CnfGenNaive gen;
-    return gen.calc_cnf_size(network, cond_list);
-  }
-  if ( method == "cover" ) {
-    // 一旦 SopCover に変換して CNF を作る．
-    CnfGenCover gen;
     return gen.calc_cnf_size(network, cond_list);
   }
   if ( method == "factor" ) {

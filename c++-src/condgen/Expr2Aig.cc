@@ -13,7 +13,7 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief 複数の Expr を AIG に変換する
 AigHandle
-Expr2Aig::conv_to_aig(
+Expr2Aig::_conv_to_aig(
   const Expr& expr
 )
 {

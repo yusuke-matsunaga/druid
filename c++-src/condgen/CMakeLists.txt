@@ -27,15 +27,13 @@ add_subdirectory( test-programs )
 set ( condgen_SOURCES
   CondGenMgr.cc
   CondGen.cc
-  #CondGen2.cc
   CnfGenMgr.cc
   CnfGen.cc
   CnfGenNaive.cc
-  #CnfGenCover.cc
   CnfGenFactor.cc
   CnfGenAig.cc
   Expr2Aig.cc
-  #Expr2Cnf.cc
+  AigCnfCalc.cc
   )
 
 
