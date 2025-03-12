@@ -280,7 +280,9 @@ StructEngine::conv_to_literal(
   auto node = assign.node();
   bool inv = !assign.val(); // 0 の時が inv = true
   auto vid = (assign.time() == 0) ? hvar(node) : gvar(node);
-  ASSERT_COND( vid != SatLiteral::X );
+  if ( vid == SatLiteral::X ) {
+    throw std::invalid_argument{"assign is not registered"};
+  }
   return vid * inv;
 }
 
@@ -299,80 +301,49 @@ StructEngine::conv_to_literal_list(
   return ans_list;
 }
 
+BEGIN_NONAMESPACE
+
+void
+dfs(
+  const Expr& expr,
+  std::unordered_set<SizeType>& input_id_set
+)
+{
+  if ( expr.is_constant() ) {
+    return;
+  }
+  if ( expr.is_literal() ) {
+    auto varid = expr.varid();
+    if ( input_id_set.count(varid) == 0 ) {
+      input_id_set.emplace(varid);
+    }
+    return;
+  }
+  for ( auto& expr1: expr.operand_list() ) {
+    dfs(expr1, input_id_set);
+  }
+}
+
+END_NONAMESPACE
+
 // @brief 与えられた論理式を充足させるCNF式を作る．
 vector<SatLiteral>
 StructEngine::expr_to_cnf(
   const Expr& expr
 )
 {
-  if ( expr.is_zero() ) {
-    // 充足不能
-    throw std::invalid_argument{"expr is zero"};
-  }
-  if ( expr.is_one() ) {
-    // 無条件で充足している．
-    return {};
-  }
-  if ( expr.is_literal() ) {
-    auto vid = expr.varid();
-    auto node_id = vid / 2;
-    auto time = vid % 2;
+  // Expr の変数番号とリテラルの対応表を作る．
+  std::unordered_set<SizeType> input_id_set;
+  dfs(expr, input_id_set);
+  std::unordered_map<SizeType, SatLiteral> lit_map;
+  for ( auto varid: input_id_set ) {
+    auto node_id = varid / 2;
+    auto time = varid % 2;
     auto node = mNetwork.node(node_id);
     auto lit = (time == 0) ? hvar(node) : gvar(node);
-    if ( expr.is_nega_literal() ) {
-      lit = ~lit;
-    }
-    return {lit};
+    lit_map.emplace(varid, lit);
   }
-  if ( expr.is_and() ) {
-    vector<SatLiteral> lits;
-    for ( auto& expr1: expr.operand_list() ) {
-      auto lits1 = expr_to_cnf(expr1);
-      lits.insert(lits.end(), lits1.begin(), lits1.end());
-    }
-    return lits;
-  }
-  if ( expr.is_or() ) {
-    auto new_lit = solver().new_variable(false);
-    vector<SatLiteral> lits;
-    lits.reserve(expr.operand_num() + 1);
-    lits.push_back(~new_lit);
-    for ( auto& expr1: expr.operand_list() ) {
-      auto lits1 = expr_to_cnf(expr1);
-      if ( lits1.empty() ) {
-	continue;
-      }
-      if ( lits1.size() == 1 ) {
-	auto lit1 = lits1.front();
-	lits.push_back(lit1);
-      }
-      else {
-	auto lit1 = solver().new_variable(false);
-	for ( auto lit: lits1 ) {
-	  solver().add_clause(~lit1, lit);
-	}
-	lits.push_back(lit1);
-      }
-    }
-    solver().add_clause(lits);
-    return {new_lit};
-  }
-  if ( expr.is_xor() ) {
-    // EXOR は両極性を必要とするので非常に効率が悪い．
-    auto new_lit = solver().new_variable(false);
-    vector<SatLiteral> lits;
-    lits.reserve(expr.operand_num());
-    for ( auto& expr1: expr.operand_list() ) {
-      auto lit1 = solver().new_variable(false);
-      auto lits1 = expr_to_cnf(expr1);
-      solver().add_andgate(lit1, lits1);
-      lits.push_back(lit1);
-    }
-    solver().add_xorgate(new_lit, lits);
-    return {new_lit};
-  }
-  throw std::invalid_argument{"unexpected error"};
-  return {};
+  return solver().add_expr(expr, lit_map);
 }
 
 // @brief 値を返す．
