@@ -72,44 +72,49 @@ public:
   static
   DetCond
   undetected(
+    SizeType id,        ///< [in] FFR 番号
     const TpgNode* root ///< [in] 根のノード
   )
   {
-    return DetCond(root);
+    return DetCond(id, root);
   }
 
   /// @brief Detected タイプを返すクラスメソッド
   static
   DetCond
   detected(
+    SizeType id,         ///< [in] FFR 番号
     const TpgNode* root, ///< [in] 根のノード
     const CondData& cond ///< [in] 全体の条件
   )
   {
-    return DetCond(root, cond);
+    return DetCond(id, root, cond);
   }
 
   /// @brief PartialDetected を返すクラスメソッド
   static
   DetCond
   partial_detected(
-    const TpgNode* root,                           ///< [in] 根のノード
-    const vector<CondData>& cond_list,             ///< [in] 個々の出力ごとの条件のリスト
-    const vector<const TpgNode*>& output_list = {} ///< [in] オーバーフローした出力のリスト
+    SizeType id,                       ///< [in] FFR 番号
+    const TpgNode* root,               ///< [in] 根のノード
+    const vector<CondData>& cond_list, ///< [in] 個々の出力ごとの条件のリスト
+    const vector<const TpgNode*>& output_list = {}
+    ///< [in] オーバーフローした出力のリスト
   )
   {
-    return DetCond(root, cond_list, output_list);
+    return DetCond(id, root, cond_list, output_list);
   }
 
   /// @brief Overflow を返すクラスメソッド
   static
   DetCond
   overflow(
+    SizeType id,                              ///< [in] FFR 番号
     const TpgNode* root,                      ///< [in] 根のノード
     const vector<const TpgNode*>& output_list ///< [in] オーバーフローした出力のリスト
   )
   {
-    return DetCond(root, output_list);
+    return DetCond(id, root, output_list);
   }
 
   /// @brief デストラクタ
@@ -120,6 +125,13 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief FFR 番号を返す．
+  SizeType
+  ffr_id() const
+  {
+    return mId;
+  }
 
   /// @brief 根のノードを返す．
   const TpgNode*
@@ -162,6 +174,7 @@ public:
     ostream& s
   ) const
   {
+    s << "FFR#" << ffr_id() << ": ";
     switch ( type() ) {
     case DetCond::Undetected:
       s << "Undetected" << endl;
@@ -207,17 +220,21 @@ private:
 
   /// @brief Undetected 用のコンストラクタ
   DetCond(
+    SizeType id,
     const TpgNode* root
-  ) : mRoot{root},
+  ) : mId{id},
+      mRoot{root},
       mType{Undetected}
   {
   }
 
   /// @brief Detected 用のコンストラクタ
   DetCond(
+    SizeType id,
     const TpgNode* root,
     const CondData& cond
-  ) : mRoot{root},
+  ) : mId{id},
+      mRoot{root},
       mType{Detected},
       mCond{cond}
   {
@@ -225,10 +242,12 @@ private:
 
   /// @brief PartialDetected 用のコンストラクタ
   DetCond(
+    SizeType id,
     const TpgNode* root,
     const vector<CondData>& cond_list,
     const vector<const TpgNode*>& output_list
-  ) : mRoot{root},
+  ) : mId{id},
+      mRoot{root},
       mType{PartialDetected},
       mCondList{cond_list},
       mOutputList{output_list}
@@ -237,9 +256,11 @@ private:
 
   /// @brief Overflow 用のコンストラクタ
   DetCond(
+    SizeType id,
     const TpgNode* root,
     const vector<const TpgNode*>& output_list
-  ) : mRoot{root},
+  ) : mId{id},
+      mRoot{root},
       mType{Overflow},
       mOutputList{output_list}
   {
@@ -250,6 +271,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // FFR 番号
+  SizeType mId;
 
   // 根のノード
   const TpgNode* mRoot{nullptr};

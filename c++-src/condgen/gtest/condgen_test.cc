@@ -93,10 +93,8 @@ CondGenTestWithParam::do_test()
 
   for ( auto ffr: network.ffr_list() ) {
     auto cond = CondGen::root_cond(network, ffr, limit, option);
-    if ( cond.type() == DetCond::Detected ) {
-      auto res = CondGenChecker::check(network, ffr, cond, option);
-      EXPECT_TRUE ( res );
-    }
+    auto res = CondGenChecker::check(network, ffr, cond, option);
+    EXPECT_TRUE ( res );
   }
 }
 

@@ -72,8 +72,10 @@ public:
 
   /// @brief コンストラクタ
   Expr2Aig(
-    AigMgr& mgr ///< [in] AIGマネージャ
-  ) : mMgr{mgr}
+    AigMgr& mgr, ///< [in] AIGマネージャ
+    bool sharing ///< [in] 共有を行う時 true にするフラグ
+  ) : mMgr{mgr},
+      mSharing{sharing}
   {
   }
 
@@ -151,11 +153,13 @@ private:
       std::swap(aig0, aig1);
     }
     auto key = AigStr{aig0, aig1};
-    if ( mStrDict.count(key) > 0 ) {
+    if ( mSharing && mStrDict.count(key) > 0 ) {
       return mStrDict.at(key);
     }
     auto aig = mMgr.and_op({aig0, aig1});
-    mStrDict.emplace(key, aig);
+    if ( mSharing ) {
+      mStrDict.emplace(key, aig);
+    }
     return aig;
   }
 
@@ -196,7 +200,10 @@ private:
   // AIGマネージャ
   AigMgr& mMgr;
 
-  // AIGの構造に基づくハッシュ表
+  // AIG の構造に基づく共有を行う時に true にするフラグ
+  bool mSharing;
+
+  // AIG の構造に基づくハッシュ表
   AigStrDict mStrDict;
 
 };

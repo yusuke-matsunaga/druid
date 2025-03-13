@@ -12,12 +12,9 @@
 #include "FaultType.h"
 #include "Fsim.h"
 #include "CondGenMgr.h"
-#include "CnfGen.h"
 #include "StructEngine.h"
-#include "BoolDiffEnc.h"
 #include "ym/CnfSize.h"
 #include "ym/Timer.h"
-#include <random>
 
 
 BEGIN_NAMESPACE_DRUID
@@ -44,20 +41,13 @@ count_test(
 
   bool sa_mode = false;
   bool td_mode = false;
-  bool multi = false;
   bool verbose = false;
   string just_type;
   int limit = 100;
-  bool ffr_mode = false;
-  bool do_finfo_mgr = false;
-  bool do_reduction = true;
-  bool do_ffr_reduction = false;
-  bool do_global_reduction = false;
   bool cover = false;
   bool bdd = false;
   bool factor = false;
   bool aig = false;
-  bool cnf = false;
   int debug_level = 0;
 
   argv0 = argv[0];
@@ -119,21 +109,6 @@ count_test(
 	}
 	just_type = "just2";
       }
-      else if ( strcmp(argv[pos], "--multi") == 0 ) {
-	multi = true;
-      }
-      else if ( strcmp(argv[pos], "--fault-info-mgr") == 0 ) {
-	do_finfo_mgr = true;
-      }
-      else if ( strcmp(argv[pos], "--no-reduction") == 0 ) {
-	do_reduction = false;
-      }
-      else if ( strcmp(argv[pos], "--ffr_reduction") == 0 ) {
-	do_ffr_reduction = true;
-      }
-      else if ( strcmp(argv[pos], "--global_reduction") == 0 ) {
-	do_global_reduction = true;
-      }
       else if ( strcmp(argv[pos], "--limit") == 0 ) {
 	++ pos;
 	if ( pos < argc ) {
@@ -143,9 +118,6 @@ count_test(
 	  cerr << "--limit requires <int> argument" << endl;
 	  return -1;
 	}
-      }
-      else if ( strcmp(argv[pos], "--ffr") == 0 ) {
-	ffr_mode = true;
       }
       else if ( strcmp(argv[pos], "--cover") == 0 ) {
 	cover = true;
@@ -158,9 +130,6 @@ count_test(
       }
       else if ( strcmp(argv[pos], "--aig") == 0 ) {
 	aig = true;
-      }
-      else if ( strcmp(argv[pos], "--make_cnf") == 0 ) {
-	cnf = true;
       }
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
@@ -247,37 +216,12 @@ count_test(
   Timer total_timer;
   total_timer.start();
 
-  auto cond_list = CondGenMgr::make_ffr_cond(network, cg_option);
-  if ( cnf ) {
-    StructEngine engine(network, cg_option);
-    CondGenMgr::make_ffr_cond_cnf(engine, cond_list, cnf_option);
-    auto size = engine.solver().cnf_size();
-    cout << size << endl;
-  }
-  else {
-    auto stats = CondGenMgr::calc_ffr_cond_size(network, cond_list, cnf_option);
+  auto cond_list = CondGenMgr::make_cond(network, cg_option);
 
-    cout << "SOP count:                " << setw(10)
-	 << stats.sop_num << endl;
-    cout << "Total CNF size(optimized): "
-	 << setw(10) << stats.opt_size.clause_num
-	 << " "
-	 << setw(10) << stats.opt_size.literal_num << endl;
-    cout << "Total CNF size(naive):     "
-	 << setw(10) << stats.naive_size.clause_num
-	 << " "
-	 << setw(10) << stats.naive_size.literal_num << endl;
-    cout << "Total CNF size(rest):      "
-	 << setw(10) << stats.rest_size.clause_num
-	 << " "
-	 << setw(10) << stats.rest_size.literal_num << endl;
-    cout << "rest count:                " << setw(10)
-	 << stats.rest_num << endl;
-    cout << "Total CNF size(raw):       "
-	 << setw(10) << stats.total_raw_size.clause_num
-	 << " "
-	 << setw(10) << stats.total_raw_size.literal_num << endl;
-  }
+  StructEngine engine(network, cg_option);
+  CondGenMgr::make_cnf(engine, cond_list, cnf_option);
+  auto size = engine.solver().cnf_size();
+  cout << size << endl;
 
   return 0;
 }

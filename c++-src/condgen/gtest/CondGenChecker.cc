@@ -10,6 +10,7 @@
 #include "CnfGenMgr.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
+#include "BdEngine.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -23,9 +24,11 @@ CondGenChecker::check(
   const JsonValue& option
 )
 {
-  auto bd_enc = new BoolDiffEnc(ffr->root(), option);
-  StructEngine engine(network, option);
-  engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+  if ( cond.type() == DetCond::Undetected ) {
+    return true;
+  }
+
+  BdEngine engine(network, ffr->root(), option);
   engine.add_prev_node(ffr->root());
 
   auto assumptions = CnfGenMgr::make_cnf(engine, cond);

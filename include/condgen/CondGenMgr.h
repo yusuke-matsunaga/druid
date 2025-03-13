@@ -46,7 +46,7 @@ public:
   /// @return 各 FFR の伝搬条件のリストを返す．
   static
   vector<DetCond>
-  make_ffr_cond(
+  make_cond(
     const TpgNetwork& network,           ///< [in] 対象のネットワーク
     const JsonValue& option              ///< [in] オプション
   );
@@ -54,17 +54,8 @@ public:
   /// @brief FFRの故障伝搬条件を表すCNF式を作る．
   static
   vector<vector<SatLiteral>>
-  make_ffr_cond_cnf(
+  make_cnf(
     StructEngine& engine,                ///< [in] CNFの作成用のエンジン
-    const vector<DetCond>& cond_list,    ///< [in] 条件のリスト
-    const JsonValue& option              ///< [in] オプション
-  );
-
-  /// @brief FFRの故障伝搬条件を表すCNFのサイズを求める．
-  static
-  CondGenStats
-  calc_ffr_cond_size(
-    const TpgNetwork& network,           ///< [in] 対象のネットワーク
     const vector<DetCond>& cond_list,    ///< [in] 条件のリスト
     const JsonValue& option              ///< [in] オプション
   );

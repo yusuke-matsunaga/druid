@@ -112,9 +112,6 @@ CondGenTestWithParam::do_test()
     if ( cond.type() == DetCond::Undetected ) {
       continue;
     }
-    if ( cond.type() != DetCond::Detected ) {
-      continue;
-    }
     auto assumptions = CnfGenMgr::make_cnf(engine, cond, option);
     auto pvar = engine.prop_var();
     auto assumptions1 = assumptions;

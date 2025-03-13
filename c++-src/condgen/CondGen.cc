@@ -89,7 +89,7 @@ CondGen::root_cond(
   auto res = engine.solve({pvar});
   if ( res != SatBool3::True ) {
     // 検出可能ではなかった．
-    return DetCond::undetected(root);
+    return DetCond::undetected(ffr->id(), root);
   }
 
   // 最初の十分条件を求める．
@@ -112,7 +112,7 @@ CondGen::root_cond(
 
   if ( suff_cond.size() == 0 ) {
     // 十分条件と必要条件が等しかった．
-    return DetCond::detected(root, to_cond(mand_cond));
+    return DetCond::detected(ffr->id(), root, to_cond(mand_cond));
   }
 
   vector<AssignList> cube_list;
@@ -171,10 +171,10 @@ CondGen::root_cond(
 
   // 生成された結果を論理式の形に変換する．
   if ( found ) {
-    return DetCond::detected(root, to_cond(mand_cond, cube_list));
+    return DetCond::detected(ffr->id(), root, to_cond(mand_cond, cube_list));
   }
 
-  return DetCond::overflow(root, {});
+  return DetCond::overflow(ffr->id(), root, {});
 
   // 伝搬先の出力を一つに制限して同じ処理を繰り返す．
   auto n = engine.output_num();
@@ -257,10 +257,10 @@ CondGen::root_cond(
     }
   }
   if ( cond_list.empty() ) {
-    return DetCond::overflow(root, output_list);
+    return DetCond::overflow(ffr->id(), root, output_list);
   }
   else {
-    return DetCond::partial_detected(root, cond_list, output_list);
+    return DetCond::partial_detected(ffr->id(), root, cond_list, output_list);
   }
 }
 

@@ -8,14 +8,15 @@
 
 #include "CondGenMgr.h"
 #include "CondGen.h"
-#include "CnfGenMgr.h"
+#include "CnfGen.h"
 #include "TpgNetwork.h"
 #include "TpgFault.h"
-#include "FFRFaultList.h"
 #include "StructEngine.h"
-#include "BoolDiffEnc.h"
+//#include "BoolDiffEnc.h"
 #include "OpBase.h"
 #include "ym/Timer.h"
+#include "ExprGen.h"
+#include "Expr2Aig.h"
 
 
 #define DBG_OUT cerr
@@ -23,6 +24,30 @@
 BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
+
+// 文字列型のオプションを取り出す．
+//
+// 結果は value に上書きされる．
+// エラーが起こったら std::invalid_argument 例外を送出する．
+void
+get_string(
+  const JsonValue& option,
+  const string& keyword,
+  string& value
+)
+{
+  if ( option.is_object() && option.has_key(keyword) ) {
+    auto value_obj = option.at(keyword);
+    if ( value_obj.is_string() ) {
+      value = value_obj.get_string();
+    }
+    else {
+      ostringstream buf;
+      buf << "'" << keyword << "' should be a string";
+      throw std::invalid_argument{buf.str()};
+    }
+  }
+}
 
 // デフォルトのループ回数
 static const SizeType DEFAULT_LOOP_LIMIT = 300;
@@ -69,7 +94,7 @@ END_NONAMESPACE
 
 // @brief 故障検出条件を求める．
 vector<DetCond>
-CondGenMgr::make_ffr_cond(
+CondGenMgr::make_cond(
   const TpgNetwork& network,
   const JsonValue& option
 )
@@ -90,39 +115,43 @@ CondGenMgr::make_ffr_cond(
 
 // @brief FFRの故障伝搬条件を表すCNF式を作る．
 vector<vector<SatLiteral>>
-CondGenMgr::make_ffr_cond_cnf(
+CondGenMgr::make_cnf(
   StructEngine& engine,
   const vector<DetCond>& cond_list,
   const JsonValue& option
 )
 {
-  auto lits_array = CnfGenMgr::make_cnf(engine, cond_list, option);
+  auto expr_gen = ExprGen::new_obj(option);
+
+  // DetCond を解析して Expr のリストと出力のリストを作る．
+  std::vector<Expr> expr_array;
+  std::vector<CnfGen::BdInfo> bd_list;
+  auto nd = cond_list.size();
+  expr_array.reserve(nd);
+  bd_list.reserve(nd);
+  for ( auto& cond: cond_list ) {
+    auto expr = expr_gen->cond_to_expr(cond);
+    expr_array.push_back(expr);
+    if ( cond.output_list().empty() ) {
+      continue;
+    }
+    auto bd_info = CnfGen::BdInfo{cond.ffr_id(),
+				  cond.root(),
+				  cond.output_list()};
+    bd_list.push_back(bd_info);
+  }
+
+  // Expr のリストを AIG に変形する．
+  auto method = string{"naive"};
+  get_string(option, "method", method);
+  auto sharing = method == "aig";
+  AigMgr mgr;
+  Expr2Aig expr2aig(mgr, sharing);
+  auto aig_array = expr2aig.conv_to_aig(expr_array);
+
+  // CNF を生成する．
+  auto lits_array = CnfGen::make_cnf(engine, aig_array, bd_list);
   return lits_array;
-}
-
-// @brief FFRの故障伝搬条件を表すCNFのサイズを求める．
-CondGenStats
-CondGenMgr::calc_ffr_cond_size(
-  const TpgNetwork& network,
-  const vector<DetCond>& cond_list,
-  const JsonValue& option
-)
-{
-  auto cnfgen_option = get_cnfgen_option(option);
-
-  auto stats = CondGenStats();
-  stats.total_raw_size = CnfSize::zero();
-  stats.naive_size = CnfSize::zero();
-  stats.opt_size = CnfSize::zero();
-  stats.sop_num = 0;
-  stats.rest_size = CnfSize::zero();
-  stats.rest_num = 0;
-
-  stats.total_raw_size = CnfGenMgr::calc_raw_cnf_size(network);
-  stats.naive_size = CnfGenMgr::calc_naive_cnf_size(network, cond_list);
-  stats.opt_size = CnfGenMgr::calc_cnf_size(network, cond_list, cnfgen_option);
-
-  return stats;
 }
 
 END_NAMESPACE_DRUID

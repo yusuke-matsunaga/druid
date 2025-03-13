@@ -5,31 +5,30 @@
 /// @brief CnfGen のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2024 Yusuke Matsunaga
+/// Copyright (C) 2025 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
 #include "StructEngine.h"
-#include "DetCond.h"
-#include "ym/CnfSize.h"
+#include "TpgNode.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class CnfGen CnfGen.h "CnfGen.h"
-/// @brief CnfGenMgr の下請けクラスの基底クラス
+/// @brief CNF の生成を行う．
 //////////////////////////////////////////////////////////////////////
 class CnfGen
 {
 public:
 
-  /// @brief コンストラクタ
-  CnfGen() = default;
-
-  /// @brief デストラクタ
-  virtual
-  ~CnfGen() = default;
+  /// @brief ブール微分用の情報
+  struct BdInfo {
+    SizeType id;                             ///< FFR番号
+    const TpgNode* root;                     ///< 起点のノード
+    std::vector<const TpgNode*> output_list; ///< 出力のリスト
+  };
 
 
 public:
@@ -38,57 +37,16 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief CNFを生成する．
+  /// @return 各要素ごとの条件を表すリテラルのリストの配列を返す．
+  ///
+  /// - aig_array[i] | bd_array[i] が条件となる．
+  /// - ただし AIG も BdInfo も空の場合がある．
+  static
   vector<vector<SatLiteral>>
   make_cnf(
-    StructEngine& engine,            ///< [in] 基本エンジン
-    const vector<DetCond>& cond_list ///< [in] 検出条件のリスト
-  );
-
-  /// @brief カバーをCNFに変換した時の CNF のサイズを見積もる．
-  CnfSize
-  calc_cnf_size(
-    const TpgNetwork& network,       ///< [in] 対象のネットワーク
-    const vector<DetCond>& cond_list ///< [in] カバー（キューブのリスト）
-  );
-
-
-protected:
-  //////////////////////////////////////////////////////////////////////
-  // 継承クラスで用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief DetCond から Expr を作る．
-  virtual
-  Expr
-  cond_to_expr(
-    const DetCond::CondData& cond
-  ) = 0;
-
-  /// @brief Expr のリストから CNF を生成する．
-  virtual
-  vector<vector<SatLiteral>>
-  expr_to_cnf(
-    StructEngine& engine,
-    const vector<Expr>& expr_list
-  ) = 0;
-
-  /// @brief Expr のリストから CNF サイズを見積もる．
-  virtual
-  CnfSize
-  expr_cnf_size(
-    const vector<Expr>& expr_list
-  ) = 0;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 条件を Expr に変換する．
-  vector<Expr>
-  _make_expr_list(
-    const vector<DetCond>& cond_list
+    StructEngine& engine,                    ///< [in] 基本エンジン
+    const std::vector<AigHandle>& aig_array, ///< [in] 論理式を表す AIG のリスト
+    const std::vector<BdInfo>& bd_array      ///< [in] 故障伝搬条件を作る出力のリスト
   );
 
 };

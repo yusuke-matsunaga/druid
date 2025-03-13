@@ -12,7 +12,7 @@
 #include "FaultType.h"
 #include "Fsim.h"
 #include "CondGen.h"
-#include "CnfGenMgr.h"
+#include "CondGenMgr.h"
 #include "BdEngine.h"
 #include "ym/CnfSize.h"
 #include "ym/Timer.h"
@@ -223,10 +223,11 @@ count_test(
     BdEngine engine(network, ffr->root(), option);
     engine.add_prev_node(ffr->root());
     auto cond = CondGen::root_cond(network, ffr, 1000, cg_option);
-    if ( cond.type() != DetCond::Detected ) {
+    if ( cond.type() == DetCond::Undetected ) {
       continue;
     }
-    auto assumptions = CnfGenMgr::make_cnf(engine, cond, cnf_option);
+    auto lits_list = CondGenMgr::make_cnf(engine, {cond}, cnf_option);
+    auto assumptions = lits_list.front();
     auto pvar = engine.prop_var();
     auto assumptions1 = assumptions;
     assumptions1.push_back(~pvar);
