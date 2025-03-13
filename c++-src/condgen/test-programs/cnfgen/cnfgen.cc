@@ -227,7 +227,11 @@ count_test(
       continue;
     }
     auto lits_list = CondGenMgr::make_cnf(engine, {cond}, cnf_option);
-    auto assumptions = lits_list.front();
+    auto& cond_lits = lits_list.front();
+    if ( !cond_lits.detected ) {
+      throw std::logic_error{"cond_lits.detected == false"};
+    }
+    auto assumptions = cond_lits.lits;
     auto pvar = engine.prop_var();
     auto assumptions1 = assumptions;
     assumptions1.push_back(~pvar);

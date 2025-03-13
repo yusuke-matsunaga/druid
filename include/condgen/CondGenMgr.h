@@ -11,23 +11,10 @@
 #include "druid.h"
 #include "StructEngine.h"
 #include "DetCond.h"
-#include "ym/CnfSize.h"
 #include "ym/JsonValue.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-/// @brief calc_ffr_cond_size の結果を表す構造体
-struct CondGenStats
-{
-  CnfSize total_raw_size; ///< オリジナルのCNF式のサイズ
-  CnfSize naive_size;     ///< SOP をナイーブに CNF に変換した場合のサイズ
-  CnfSize opt_size;       ///< 最適化した CNF に変換した場合のサイズ
-  SizeType sop_num;       ///< SOPした条件の数
-  CnfSize rest_size;      ///< SOP 化できなかった部分のサイズ
-  SizeType rest_num;      ///< SOP 化できなかった条件の数
-};
-
 
 //////////////////////////////////////////////////////////////////////
 /// @class CondGenMgr CondGenMgr.h "CondGenMgr.h"
@@ -38,6 +25,16 @@ struct CondGenStats
 class CondGenMgr
 {
 public:
+
+  /// @brief 検出条件を表す構造体
+  struct CondLits {
+    SizeType id;                  ///< FFR 番号
+    bool detected;                ///< 検出可の時 true となるフラグ
+    std::vector<SatLiteral> lits; ///< 検出条件を表すリテラルのリスト
+  };
+
+
+public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
@@ -45,19 +42,19 @@ public:
   /// @brief FFRの故障伝搬条件を求める．
   /// @return 各 FFR の伝搬条件のリストを返す．
   static
-  vector<DetCond>
+  std::vector<DetCond>
   make_cond(
-    const TpgNetwork& network,           ///< [in] 対象のネットワーク
-    const JsonValue& option              ///< [in] オプション
+    const TpgNetwork& network, ///< [in] 対象のネットワーク
+    const JsonValue& option    ///< [in] オプション
   );
 
   /// @brief FFRの故障伝搬条件を表すCNF式を作る．
   static
-  vector<vector<SatLiteral>>
+  std::vector<CondLits>
   make_cnf(
-    StructEngine& engine,                ///< [in] CNFの作成用のエンジン
-    const vector<DetCond>& cond_list,    ///< [in] 条件のリスト
-    const JsonValue& option              ///< [in] オプション
+    StructEngine& engine,                  ///< [in] CNFの作成用のエンジン
+    const std::vector<DetCond>& cond_list, ///< [in] 条件のリスト
+    const JsonValue& option                ///< [in] オプション
   );
 
 };

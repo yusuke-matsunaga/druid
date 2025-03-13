@@ -49,17 +49,18 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief 条件を CNF に変換する．
-vector<vector<SatLiteral>>
+std::vector<CnfGen::CondLits>
 CnfGen::make_cnf(
   StructEngine& engine,
-  const std::vector<AigHandle>& aig_array,
-  const std::vector<BdInfo>& bd_array
+  const std::vector<AigHandle>& aig_list,
+  const std::vector<SizeType>& ffr_id_list,
+  const std::vector<BdInfo>& bd_list
 )
 {
-  // aig_array 中に現れる入力番号のリストを得る．
+  // aig_list 中に現れる入力番号のリストを得る．
   std::vector<SizeType> input_id_list;
   std::unordered_set<AigHandle> mark;
-  for ( auto& aig: aig_array ) {
+  for ( auto& aig: aig_list ) {
     dfs(aig, mark, input_id_list);
   }
 
@@ -74,37 +75,52 @@ CnfGen::make_cnf(
     lit_map.emplace(input_id, lit);
   }
 
+  SizeType n = engine.network().ffr_num();
+  std::vector<CondLits> lits_array(n);
+  for ( SizeType i = 0; i < n; ++ i ) {
+    lits_array[i] = CondLits{i, false, {}};
+  }
+
   // AIG を CNF に変換する．
-  auto lits_list = engine.solver().add_aig(aig_array, lit_map);
+  auto aig_lits_list = engine.solver().add_aig(aig_list, lit_map);
+  // 結果を lits_array に反映させる．
+  for ( SizeType i = 0; i < aig_list.size(); ++ i ) {
+    auto& lits = aig_lits_list[i];
+    auto id = ffr_id_list[i];
+    lits_array[id] = CondLits{id, true, lits};
+  }
 
   // ブール微分回路を作る．
-  for ( auto& info: bd_array ) {
+  for ( auto& info: bd_list ) {
     auto id = info.id;
     auto bd_enc = new BoolDiffEnc(info.root, info.output_list);
     engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
     auto plit = bd_enc->prop_var();
-    auto old_lits = lits_list[id];
-    if ( old_lits.size() == 0 ) {
-      lits_list[id] = {plit};
-    }
-    else if ( old_lits.size() == 1 ) {
-      auto lit1 = old_lits.front();
-      auto new_lit = engine.solver().new_variable(true);
-      engine.solver().add_clause(~new_lit, lit1, plit);
-      lits_list[id] = {new_lit};
+    auto& data = lits_array[id];
+    if ( data.detected ) {
+      auto old_lits = data.lits;
+      if ( old_lits.size() == 1 ) {
+	auto lit1 = old_lits.front();
+	auto new_lit = engine.solver().new_variable(true);
+	engine.solver().add_clause(~new_lit, lit1, plit);
+	data.lits = {new_lit};
+      }
+      else {
+	auto and_lit = engine.solver().new_variable(false);
+	for ( auto lit: old_lits ) {
+	  engine.solver().add_clause(~and_lit, lit);
+	}
+	auto new_lit = engine.solver().new_variable(true);
+	engine.solver().add_clause(~new_lit, and_lit, plit);
+	data.lits = {new_lit};
+      }
     }
     else {
-      auto and_lit = engine.solver().new_variable(false);
-      for ( auto lit: old_lits ) {
-	engine.solver().add_clause(~and_lit, lit);
-      }
-      auto new_lit = engine.solver().new_variable(true);
-      engine.solver().add_clause(~new_lit, and_lit, plit);
-      lits_list[id] = {new_lit};
+      lits_array[id] = CondLits{id, true, {plit}};
     }
   }
 
-  return lits_list;
+  return lits_array;
 }
 
 END_NAMESPACE_DRUID

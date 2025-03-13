@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "CondGenChecker.h"
-#include "CnfGenMgr.h"
+#include "CondGenMgr.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
 #include "BdEngine.h"
@@ -31,8 +31,18 @@ CondGenChecker::check(
   BdEngine engine(network, ffr->root(), option);
   engine.add_prev_node(ffr->root());
 
-  auto assumptions = CnfGenMgr::make_cnf(engine, cond);
-  auto pvar = bd_enc->prop_var();
+  auto cond_lits_list = CondGenMgr::make_cnf(engine, {cond}, JsonValue{});
+  if ( cond_lits_list.size() != 1 ) {
+    cout << "cond_lits_list.size() != 1(" << cond_lits_list.size() << ")" << endl;
+    return false;
+  }
+  auto& cond_lits = cond_lits_list.front();
+  if ( !cond_lits.detected ) {
+    cout << "cond_lits.detected == false" << endl;
+    return false;
+  }
+  auto assumptions = cond_lits.lits;
+  auto pvar = engine.prop_var();
   assumptions.push_back(~pvar);
   auto res = engine.solve(assumptions);
   if ( res != SatBool3::False ) {

@@ -10,7 +10,9 @@
 
 #include "druid.h"
 #include "StructEngine.h"
+#include "CondGenMgr.h"
 #include "TpgNode.h"
+#include "ym/AigHandle.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -22,6 +24,8 @@ BEGIN_NAMESPACE_DRUID
 class CnfGen
 {
 public:
+
+  using CondLits = CondGenMgr::CondLits;
 
   /// @brief ブール微分用の情報
   struct BdInfo {
@@ -39,14 +43,15 @@ public:
   /// @brief CNFを生成する．
   /// @return 各要素ごとの条件を表すリテラルのリストの配列を返す．
   ///
-  /// - aig_array[i] | bd_array[i] が条件となる．
-  /// - ただし AIG も BdInfo も空の場合がある．
+  /// - aig_list と bd_list のORが条件となる．
+  /// - ただし AigInfo も BdInfo も空の場合がある．
   static
-  vector<vector<SatLiteral>>
+  std::vector<CondLits>
   make_cnf(
-    StructEngine& engine,                    ///< [in] 基本エンジン
-    const std::vector<AigHandle>& aig_array, ///< [in] 論理式を表す AIG のリスト
-    const std::vector<BdInfo>& bd_array      ///< [in] 故障伝搬条件を作る出力のリスト
+    StructEngine& engine,                     ///< [in] 基本エンジン
+    const std::vector<AigHandle>& aig_list,   ///< [in] 論理式を表す AIG のリスト
+    const std::vector<SizeType>& ffr_id_list, ///< [in] aig_list の各要素に対応するFFR番号のリスト
+    const std::vector<BdInfo>& bd_list        ///< [in] 故障伝搬条件を作る出力のリスト
   );
 
 };

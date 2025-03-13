@@ -1,6 +1,8 @@
 #ifndef CNFGENMGR_H
 #define CNFGENMGR_H
 
+#error "obsolete"
+
 /// @file CnfGenMgr.h
 /// @brief CnfGenMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)

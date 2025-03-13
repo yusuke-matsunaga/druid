@@ -11,7 +11,7 @@
 #include "TpgFFR.h"
 #include "FaultType.h"
 #include "CondGen.h"
-#include "CnfGenMgr.h"
+#include "CondGenMgr.h"
 #include "BdEngine.h"
 #include "ym/SatInitParam.h"
 
@@ -112,7 +112,11 @@ CondGenTestWithParam::do_test()
     if ( cond.type() == DetCond::Undetected ) {
       continue;
     }
-    auto assumptions = CnfGenMgr::make_cnf(engine, cond, option);
+    auto cond_list = CondGenMgr::make_cnf(engine, {cond}, option);
+    ASSERT_EQ( 1, cond_list.size() );
+    auto& cond_lits = cond_list.front();
+    ASSERT_TRUE( cond_lits.detected );
+    auto assumptions = cond_lits.lits;
     auto pvar = engine.prop_var();
     auto assumptions1 = assumptions;
     assumptions1.push_back(~pvar);

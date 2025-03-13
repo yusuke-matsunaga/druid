@@ -28,6 +28,54 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 文字列型のオプションを取り出す．
+  ///
+  /// - keyword の値が存在しない場合は何もしない．
+  /// - keyword の値が文字列なら value に設定する．
+  /// - keyword の値が文字列でなかったら std::invalid_argument 例外を送出する．
+  static
+  void
+  get_string(
+    const JsonValue& option, ///< [in] オプションを表すJSONオブジェクト
+    const string& keyword,   ///< [in] キーワード
+    string& value            ///< [out] 値を格納する変数
+  )
+  {
+    if ( option.is_object() && option.has_key(keyword) ) {
+      auto value_obj = option.at(keyword);
+      if ( !value_obj.is_string() ) {
+	ostringstream buf;
+	buf << "'" << keyword << "' should be a string";
+	throw std::invalid_argument{buf.str()};
+      }
+      value = value_obj.get_string();
+    }
+  }
+
+  /// @brief 整数型のオプションを取り出す．
+  ///
+  /// * keyword の値を持たなければ何もしない．
+  /// * keyword の値が int なら value に設定する．
+  /// * それ以外は例外を送出する．
+  static
+  void
+  get_int(
+    const JsonValue& option, ///< [in] オプション
+    const string& keyword,   ///< [in] キーワード
+    int& value               ///< [out] 値を格納する変数
+  )
+  {
+    if ( option.is_object() && option.has_key(keyword) ) {
+      auto value_obj = option.get(keyword);
+      if ( !value_obj.is_int() ) {
+	ostringstream buf;
+	buf << "'" << keyword << "' should be an integer";
+	throw std::invalid_argument{buf.str()};
+      }
+      value = value_obj.get_int();
+    }
+  }
+
   /// @brief オプション中から "debug" 属性を取り出す．
   ///
   /// * "debug" の値を持たなければ 0 を返す．

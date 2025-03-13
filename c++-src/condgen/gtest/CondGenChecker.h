@@ -9,8 +9,6 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "StructEngine.h"
-#include "BoolDiffEnc.h"
 #include "DetCond.h"
 #include "ym/JsonValue.h"
 
