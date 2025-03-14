@@ -87,14 +87,47 @@ CondGenTestWithParam::do_test()
   //option_dict.emplace("sat_param", JsonValue{"ymsat1_old"});
   JsonValue option{option_dict};
   auto network = TpgNetwork::read_blif(filename(), fault_type());
-  auto fault_list = network.rep_fault_list();
 
-  SizeType limit = 100;
-
+  SizeType limit = 1000;
   for ( auto ffr: network.ffr_list() ) {
     auto cond = CondGen::root_cond(network, ffr, limit, option);
-    auto res = CondGenChecker::check(network, ffr, cond, option);
-    EXPECT_TRUE ( res );
+    if ( cond.type() == DetCond::Undetected ) {
+      continue;
+    }
+    CondGenChecker checker(network, cond);
+    auto& engine = checker.engine();
+    auto& solver = checker.solver();
+    auto lit1 = checker.lit1();
+    auto lit2 = checker.lit2();
+    if ( lit1 == SatLiteral::X ) {
+      auto res1 = solver.solve({~lit2});
+      EXPECT_EQ( SatBool3::False, res1 );
+      if ( res1 != SatBool3::False ) {
+	cond.print(cout);
+      }
+    }
+    else {
+      auto res1 = solver.solve({~lit1, lit2});
+      EXPECT_EQ( SatBool3::False, res1 );
+      if ( res1 != SatBool3::False ) {
+	cond.print(cout);
+	auto& model = solver.model();
+	auto n = engine.output_list().size();
+	for ( SizeType i = 0; i < n; ++ i ) {
+	  auto plit = engine.prop_var(i);
+	  if ( model[plit] == SatBool3::True ) {
+	    auto output = engine.output_list()[i];
+	    cout << "detected at output#" << i << ": " << output->id()
+		 << endl;
+	  }
+	}
+      }
+      auto res2 = solver.solve({lit1, ~lit2});
+      EXPECT_EQ( SatBool3::False, res2 );
+      if ( res2 != SatBool3::False ) {
+	cond.print(cout);
+      }
+    }
   }
 }
 

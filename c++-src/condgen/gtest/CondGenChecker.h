@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "BdEngine.h"
 #include "DetCond.h"
 #include "ym/JsonValue.h"
 
@@ -22,19 +23,95 @@ BEGIN_NAMESPACE_DRUID
 class CondGenChecker
 {
 public:
+
+  /// @brief コンストラクタ
+  CondGenChecker(
+    const TpgNetwork& network,
+    const DetCond& cond
+  );
+
+  /// @brief デストラクタ
+  ~CondGenChecker() = default;
+
+
+public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @breif 結果の検証を行う．
-  static
-  bool
-  check(
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgFFR* ffr,                    ///< [in] 対象の FFR
-    const DetCond& cond,                  ///< [in] CondGen::root_cond() の結果
-    const JsonValue& option = JsonValue{} ///< [in] オプション
+  /// @brief エンジンを返す．
+  BdEngine&
+  engine()
+  {
+    return mEngine;
+  }
+
+  /// @brief SAT ソルバを返す．
+  SatSolver&
+  solver()
+  {
+    return mEngine.solver();
+  }
+
+  /// @brief DetCond の条件を表すリテラルを返す．
+  SatLiteral
+  lit1() const
+  {
+    return mLit1;
+  }
+
+  /// @brief BoolDiffEnc の条件を表すリテラルを返す．
+  SatLiteral
+  lit2() const
+  {
+    return mLit2;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 式中のリテラルを SAT リテラルに変換する．
+  SatLiteral
+  conv_to_literal(
+    Literal src_lit
   );
+
+  /// @brief 式中のリテラルのリストを SAT リテラルのリストに変換する．
+  std::vector<SatLiteral>
+  conv_to_literals(
+    const std::vector<Literal>& src_lits
+  );
+
+  /// @brief DetCond::CondData を CNF に変換する．
+  SatLiteral
+  make_cnf(
+    const DetCond::CondData& data
+  );
+
+  /// @brief DetCond を CNF に変換する．
+  SatLiteral
+  make_cnf();
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // BoolDiffEngine
+  BdEngine mEngine;
+
+  // 対象の条件
+  const DetCond& mCond;
+
+  // DetCond の条件を表すリテラル
+  SatLiteral mLit1;
+
+  // BoolDiffEnc の条件を表すリテラル
+  SatLiteral mLit2;
 
 };
 

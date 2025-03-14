@@ -57,6 +57,14 @@ public:
     const JsonValue& option                ///< [in] オプション
   );
 
+  /// @brief FFRの故障伝搬条件を表すCNF式を単純な方法で作る．
+  static
+  std::vector<CondLits>
+  make_raw_cnf(
+    StructEngine& engine,   ///< [in] CNFの作成用のエンジン
+    const JsonValue& option ///< [in] オプション
+  );
+
 };
 
 END_NAMESPACE_DRUID

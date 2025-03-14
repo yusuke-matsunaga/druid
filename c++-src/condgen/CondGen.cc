@@ -80,108 +80,110 @@ CondGen::root_cond(
   timer.start();
 
   auto root = ffr->root();
-  BdEngine engine(network, root, option);
-  engine.add_prev_node(root);
-
-  // FFR の出力の伝搬可能性を調べる．
-  auto& solver = engine.solver();
-  auto pvar = engine.prop_var();
-  auto res = engine.solve({pvar});
-  if ( res != SatBool3::True ) {
-    // 検出可能ではなかった．
-    return DetCond::undetected(ffr->id(), root);
-  }
-
-  // 最初の十分条件を求める．
-  auto suff_cond = engine.extract_sufficient_condition();
-  // 必要条件を求める．
   AssignList mand_cond;
-  for ( auto as: suff_cond ) {
-    auto lit = engine.conv_to_literal(as);
-    if ( engine.solve({pvar, ~lit}) == SatBool3::False ) {
-      mand_cond.add(as);
+  SizeType output_num;
+  {
+    BdEngine engine(network, root, option);
+    engine.add_prev_node(root);
+    output_num = engine.output_num();
+
+    // FFR の出力の伝搬可能性を調べる．
+    auto& solver = engine.solver();
+    auto pvar = engine.prop_var();
+    auto res = engine.solve({pvar});
+    if ( res != SatBool3::True ) {
+      // 検出可能ではなかった．
+      return DetCond::undetected(ffr->id(), root);
     }
-  }
-  suff_cond.diff(mand_cond);
 
-  timer.stop();
-
-  if ( debug > 1 ) {
-    DBG_OUT << "PHASE1: " << (timer.get_time() / 1000.0) << endl;
-  }
-
-  if ( suff_cond.size() == 0 ) {
-    // 十分条件と必要条件が等しかった．
-    return DetCond::detected(ffr->id(), root, to_cond(mand_cond));
-  }
-
-  vector<AssignList> cube_list;
-  cube_list.push_back(suff_cond);
-
-  bool found = false;
-
-  // 別の十分条件を求める．
-  timer.reset();
-  timer.start();
-  for ( SizeType loop_count = 1; loop_count < limit; ++ loop_count ) {
-    Timer timer;
-    timer.start();
-    // suff_cond を否定した節を加える．
-    vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(suff_cond.size());
-    for ( auto nv: suff_cond ) {
-      auto lit = engine.conv_to_literal(nv);
-      tmp_lits.push_back(~lit);
+    // 最初の十分条件を求める．
+    auto suff_cond = engine.extract_sufficient_condition();
+    // 必要条件を求める．
+    for ( auto as: suff_cond ) {
+      auto lit = engine.conv_to_literal(as);
+      if ( engine.solve({pvar, ~lit}) == SatBool3::False ) {
+	mand_cond.add(as);
+      }
     }
-    solver.add_clause(tmp_lits);
-    auto tmp_assumptions = engine.conv_to_literal_list(mand_cond);
-    tmp_assumptions.push_back(pvar);
-    auto res = solver.solve(tmp_assumptions);
-    timer.stop();
-    if ( debug > 2 ) {
-      DBG_OUT << "  " << (timer.get_time() / 1000.0) << endl;
-    }
-    if ( res == SatBool3::False ) {
-      // すべてのキューブを生成した．
-      found = true;
-      break;
-    }
-    if ( res == SatBool3::X ) {
-      // 時間切れ．
-      // どうする？
-      break;
-    }
-    suff_cond = engine.extract_sufficient_condition();
     suff_cond.diff(mand_cond);
-    if ( suff_cond.size() == 0 ) {
-      // 最初に生成された suff_cond が冗長だった．
-      // 結局 mand_cond が唯一の条件となる．
-      cube_list.clear();
-      cube_list.push_back(mand_cond);
-      found = true;
-      break;
+
+    timer.stop();
+
+    if ( debug > 1 ) {
+      DBG_OUT << "PHASE1: " << (timer.get_time() / 1000.0) << endl;
     }
+
+    if ( suff_cond.size() == 0 ) {
+      // 十分条件と必要条件が等しかった．
+      return DetCond::detected(ffr->id(), root, to_cond(mand_cond));
+    }
+
+    vector<AssignList> cube_list;
     cube_list.push_back(suff_cond);
+
+    bool found = false;
+
+    // 別の十分条件を求める．
+    timer.reset();
+    timer.start();
+    for ( SizeType loop_count = 1; loop_count < limit; ++ loop_count ) {
+      Timer timer;
+      timer.start();
+      // suff_cond を否定した節を加える．
+      vector<SatLiteral> tmp_lits;
+      tmp_lits.reserve(suff_cond.size());
+      for ( auto nv: suff_cond ) {
+	auto lit = engine.conv_to_literal(nv);
+	tmp_lits.push_back(~lit);
+      }
+      solver.add_clause(tmp_lits);
+      auto tmp_assumptions = engine.conv_to_literal_list(mand_cond);
+      tmp_assumptions.push_back(pvar);
+      auto res = solver.solve(tmp_assumptions);
+      timer.stop();
+      if ( debug > 2 ) {
+	DBG_OUT << "  " << (timer.get_time() / 1000.0) << endl;
+      }
+      if ( res == SatBool3::False ) {
+	// すべてのキューブを生成した．
+	found = true;
+	break;
+      }
+      if ( res == SatBool3::X ) {
+	// 時間切れ．
+	// どうする？
+	break;
+      }
+      suff_cond = engine.extract_sufficient_condition();
+      suff_cond.diff(mand_cond);
+      if ( suff_cond.size() == 0 ) {
+	// 最初に生成された suff_cond が冗長だった．
+	// 結局 mand_cond が唯一の条件となる．
+	cube_list.clear();
+	cube_list.push_back(mand_cond);
+	found = true;
+	break;
+      }
+      cube_list.push_back(suff_cond);
+    }
+    timer.stop();
+
+    if ( debug > 1 ) {
+      DBG_OUT << "PHASE2: " << (timer.get_time() / 1000.0) << endl;
+    }
+
+    // 生成された結果を論理式の形に変換する．
+    if ( found ) {
+      return DetCond::detected(ffr->id(), root, to_cond(mand_cond, cube_list));
+    }
   }
-  timer.stop();
-
-  if ( debug > 1 ) {
-    DBG_OUT << "PHASE2: " << (timer.get_time() / 1000.0) << endl;
-  }
-
-  // 生成された結果を論理式の形に変換する．
-  if ( found ) {
-    return DetCond::detected(ffr->id(), root, to_cond(mand_cond, cube_list));
-  }
-
-  return DetCond::overflow(ffr->id(), root, {});
-
   // 伝搬先の出力を一つに制限して同じ処理を繰り返す．
-  auto n = engine.output_num();
   vector<const TpgNode*> output_list;
-  output_list.reserve(n);
+  output_list.reserve(output_num);
   vector<DetCond::CondData> cond_list;
-  for ( SizeType pos = 0; pos < n; ++ pos ) {
+  for ( SizeType pos = 0; pos < output_num; ++ pos ) {
+    BdEngine engine(network, root, option);
+    engine.add_prev_node(root);
     auto output = engine.output(pos);
     auto& solver = engine.solver();
     auto pvar = engine.prop_var(pos);

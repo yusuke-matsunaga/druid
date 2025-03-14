@@ -27,6 +27,28 @@ usage()
   cerr << "USAGE: " << argv0 << " --blif|--iscas89 <file>" << endl;
 }
 
+void
+print_stats(
+  const string& method,
+  const CnfSize& size,
+  double time
+)
+{
+  std::cout << std::setw(8) << std::left << method
+	    << std::right
+	    << "|";
+  if ( method == "condgen" ) {
+    std::cout << "                        ";
+  }
+  else {
+    std::cout << " #C:" << std::setw(8) << size.clause_num
+	      << " #L:" << std::setw(8) << size.literal_num;
+  }
+  std::cout << " | "
+	    << std::setw(10) << std::fixed << std::setprecision(2)
+	    << time << endl;
+}
+
 int
 count_test(
   int argc,
@@ -216,12 +238,36 @@ count_test(
   Timer total_timer;
   total_timer.start();
 
+  Timer condgen_timer;
+  condgen_timer.start();
+
   auto cond_list = CondGenMgr::make_cond(network, cg_option);
 
-  StructEngine engine(network, cg_option);
-  CondGenMgr::make_cnf(engine, cond_list, cnf_option);
-  auto size = engine.solver().cnf_size();
-  cout << size << endl;
+  condgen_timer.stop();
+  print_stats("condgen", CnfSize::zero(), condgen_timer.get_time());
+
+  {
+    Timer timer;
+    timer.start();
+    StructEngine engine(network, cg_option);
+    CondGenMgr::make_raw_cnf(engine, cg_option);
+    timer.stop();
+    auto size = engine.solver().cnf_size();
+    print_stats("raw", size, timer.get_time());
+  }
+
+  for ( auto method: {"naive", "factor", "aig"} ) {
+    Timer timer;
+    timer.start();
+    std::unordered_map<string, JsonValue> json_dict;
+    json_dict.emplace("method", JsonValue(method));
+    auto option = JsonValue(json_dict);
+    StructEngine engine(network, cg_option);
+    CondGenMgr::make_cnf(engine, cond_list, option);
+    timer.stop();
+    auto size = engine.solver().cnf_size();
+    print_stats(method, size, timer.get_time());
+  }
 
   return 0;
 }

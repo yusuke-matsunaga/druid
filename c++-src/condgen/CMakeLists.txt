@@ -30,7 +30,6 @@ set ( condgen_SOURCES
   CnfGen.cc
   ExprGen.cc
   Expr2Aig.cc
-  #AigCnfCalc.cc
   )
 
 

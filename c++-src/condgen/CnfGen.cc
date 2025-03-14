@@ -75,10 +75,13 @@ CnfGen::make_cnf(
     lit_map.emplace(input_id, lit);
   }
 
-  SizeType n = engine.network().ffr_num();
+  SizeType n = aig_list.size();
   std::vector<CondLits> lits_array(n);
+  std::unordered_map<SizeType, SizeType> ffr_id_map;
   for ( SizeType i = 0; i < n; ++ i ) {
-    lits_array[i] = CondLits{i, false, {}};
+    auto id = ffr_id_list[i];
+    lits_array[i] = CondLits{id, false, {}};
+    ffr_id_map.emplace(id, i);
   }
 
   // AIG を CNF に変換する．
@@ -87,7 +90,7 @@ CnfGen::make_cnf(
   for ( SizeType i = 0; i < aig_list.size(); ++ i ) {
     auto& lits = aig_lits_list[i];
     auto id = ffr_id_list[i];
-    lits_array[id] = CondLits{id, true, lits};
+    lits_array[i] = CondLits{id, true, lits};
   }
 
   // ブール微分回路を作る．
@@ -96,7 +99,8 @@ CnfGen::make_cnf(
     auto bd_enc = new BoolDiffEnc(info.root, info.output_list);
     engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
     auto plit = bd_enc->prop_var();
-    auto& data = lits_array[id];
+    auto pos = ffr_id_map.at(id);
+    auto& data = lits_array[pos];
     if ( data.detected ) {
       auto old_lits = data.lits;
       if ( old_lits.size() == 1 ) {
@@ -116,7 +120,7 @@ CnfGen::make_cnf(
       }
     }
     else {
-      lits_array[id] = CondLits{id, true, {plit}};
+      lits_array[pos] = CondLits{id, true, {plit}};
     }
   }
 
