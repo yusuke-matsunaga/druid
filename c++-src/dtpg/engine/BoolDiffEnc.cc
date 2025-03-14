@@ -11,32 +11,17 @@
 #include "TpgNodeSet.h"
 #include "GateEnc.h"
 #include "Extractor.h"
+#include "OpBase.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-BEGIN_NONAMESPACE
-
-JsonValue
-get_option(
-  const JsonValue& option,
-  const char* keyword
-)
-{
-  if ( option.is_object() && option.has_key(keyword) ) {
-    return option.get(keyword);
-  }
-  return JsonValue{};
-}
-
-END_NONAMESPACE
 
 // @brief コンストラクタ
 BoolDiffEnc::BoolDiffEnc(
   const TpgNode* root,
   const JsonValue& option
 ) : mRoot{root},
-    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
+    mExtractor{Extractor::new_impl(OpBase::get_option(option, "extractor"))}
 {
 }
 
@@ -47,7 +32,7 @@ BoolDiffEnc::BoolDiffEnc(
   const JsonValue& option
 ) : mRoot{root},
     mOutputList{output_list},
-    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
+    mExtractor{Extractor::new_impl(OpBase::get_option(option, "extractor"))}
 {
 }
 
@@ -58,6 +43,8 @@ BoolDiffEnc::~BoolDiffEnc()
 
 BEGIN_NONAMESPACE
 
+// node から DFS を行いたどったノードに dfs_mark をつける．
+// ただし，tfo_mark が付いていないノードは除外する．
 void
 dfs(
   const TpgNode* node,
@@ -97,6 +84,7 @@ BoolDiffEnc::init()
     );
   }
   else {
+    // mRoot の TFO ノードを tfo_list に入れる．
     std::unordered_set<SizeType> tfo_mark;
     auto tfo_list = TpgNodeSet::get_tfo_list(
       engine().network().node_num(), mRoot,
@@ -104,10 +92,15 @@ BoolDiffEnc::init()
 	tfo_mark.emplace(node->id());
       }
     );
+    // tfo_list に入っているノードのうち，
+    // mOutputList へ到達可能なノードに dfs_mark
+    // を付ける．
     std::unordered_set<SizeType> dfs_mark;
     for ( auto output: mOutputList ) {
       dfs(output, tfo_mark, dfs_mark);
     }
+    // dfs_mark の付いているノードを mTfoList
+    // に入れる．
     mTfoList.reserve(dfs_mark.size());
     for ( auto node: tfo_list ) {
       if ( dfs_mark.count(node->id()) > 0 ) {
@@ -155,7 +148,6 @@ BoolDiffEnc::make_cnf()
   }
 
   // 各出力の微分結果を表す変数を作る．
-  mPropVarList.resize(output_num());
   for ( SizeType i = 0; i < output_num(); ++ i ) {
     auto node = mOutputList[i];
     auto plit = solver().new_variable(true);
@@ -165,15 +157,14 @@ BoolDiffEnc::make_cnf()
   }
 
   // 微分結果を表す変数を作る．
-  if ( mOutputList.size() > 1 ) {
+  if ( output_num() > 1 ) {
     vector<SatLiteral> tmp_lits;
     tmp_lits.reserve(output_num());
     for ( auto plit: mPropVarList ) {
       tmp_lits.push_back(plit);
     }
-    auto plit = solver().new_variable(true);
-    solver().add_orgate(plit, tmp_lits);
-    mPropVar = plit;
+    mPropVar = solver().new_variable(true);
+    solver().add_orgate(mPropVar, tmp_lits);
   }
   else {
     // 1出力ならその出力の PropVar が伝搬条件そのもの
