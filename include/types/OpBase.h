@@ -28,6 +28,23 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief キーワードに対応するオプションを取り出す．
+  ///
+  /// option がオブジェクト型でない場合とキーワードに対応する値がない
+  /// 場合には JsonValue::null() が返される．
+  static
+  JsonValue
+  get_option(
+    const JsonValue& option, ///< [in] オプションを表すJSONオブジェクト
+    const char* keyword	     ///< [in] キーワード
+  )
+  {
+    if ( option.is_object() && option.has_key(keyword) ) {
+      return option.get(keyword);
+    }
+    return JsonValue::null();
+  }
+
   /// @brief 文字列型のオプションを取り出す．
   ///
   /// - keyword の値が存在しない場合は何もしない．
