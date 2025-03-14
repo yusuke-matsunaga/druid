@@ -29,6 +29,7 @@ public:
     const TpgNetwork& network, ///< [in] ネットワーク
     const TpgNode* node,       ///< [in] 対象のノード
     const JsonValue& option    ///< [in] オプション
+    = JsonValue{}
   ) : StructEngine(network, option),
       mBdEnc{new BoolDiffEnc(node, option)}
   {
