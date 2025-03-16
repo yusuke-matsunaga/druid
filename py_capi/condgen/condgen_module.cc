@@ -11,10 +11,12 @@
 
 #include "druid.h"
 #include "CondGenMgr.h"
+#include "DetCond.h"
 #include "pym/PyTpgNetwork.h"
 #include "pym/PyTpgFFR.h"
 #include "pym/PyTpgFault.h"
 #include "pym/PySatLiteral.h"
+#include "pym/PyDetCond.h"
 #include "pym/PyCnfSize.h"
 #include "pym/PyJsonValue.h"
 #include "pym/PyModule.h"
@@ -25,7 +27,7 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 PyObject*
-make_ffr_cond(
+make_cond(
   PyObject* Py_UNUSED(self),
   PyObject* args,
   PyObject* kwds
@@ -33,30 +35,67 @@ make_ffr_cond(
 {
   static const char* kw_list[] = {
     "network",
-    "limit",
     "option",
     nullptr
   };
-  PyObject* engine_obj = nullptr;
+
   PyObject* network_obj = nullptr;
-  SizeType limit = 0;
   PyObject* option_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!k|O",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!|O",
 				    const_cast<char**>(kw_list),
-				    PyStructEngine::_typeobject(), &network_obj,
 				    PyTpgNetwork::_typeobject(), &network_obj,
-				    &limit,
 				    &option_obj) ) {
     return nullptr;
   }
-  auto& engine = PyStructEngine::Get(engine_obj);
   auto& network = PyTpgNetwork::Get(network_obj);
   JsonValue option;
   if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
     PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
     return nullptr;
   }
-  auto lits_list = CondGenMgr::make_ffr_cond(engine, network, limit, option);
+
+  auto cond_list = CondGenMgr::make_cond(network, option);
+
+  auto ans_obj = PyDetCond::ToPyList(cond_list);
+  return ans_obj;
+}
+
+PyObject*
+make_cnf(
+  PyObject* Py_UNUSED(self),
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kw_list[] = {
+    "engine",
+    "cond_list",
+    "option",
+    nullptr
+  };
+  PyObject* engine_obj = nullptr;
+  PyObject* cond_list_obj = nullptr;
+  PyObject* option_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O|O",
+				    const_cast<char**>(kw_list),
+				    PyStructengine::_typeobject(), &engine_obj,
+				    &cond_list_obj,
+				    &option_obj) ) {
+    return nullptr;
+  }
+  auto& engine = PyStructEngine::Get(engine_obj);
+  std::vector<DetCond> cond_list;
+  if ( !PyDetCond::FromPyList(cond_list_obj) ) {
+    PyErr_SetString(PyExc_TypeError, "'cond_list' should be a list of DetCond'");
+    return nullptr;
+  }
+  JsonValue option;
+  if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
+    PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
+    return nullptr;
+  }
+
+  auto lits_list = CondGenMgr::make_cnf(engine, cond_list, option);
 
   auto n = lits_list.size();
   auto ans_obj = PyList_New(n);
@@ -75,50 +114,16 @@ make_ffr_cond(
   return ans_obj;
 }
 
-PyObject*
-calc_ffr_cond_size(
-  PyObject* Py_UNUSED(self),
-  PyObject* args,
-  PyObject* kwds
-)
-{
-  static const char* kw_list[] = {
-    "network",
-    "limit",
-    "option",
-    nullptr
-  };
-  PyObject* network_obj = nullptr;
-  SizeType limit = 0;
-  PyObject* option_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!k|O",
-				    const_cast<char**>(kw_list),
-				    PyTpgNetwork::_typeobject(), &network_obj,
-				    &limit,
-				    &option_obj) ) {
-    return nullptr;
-  }
-  auto& network = PyTpgNetwork::Get(network_obj);
-  JsonValue option;
-  if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
-    PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
-    return nullptr;
-  }
-  auto size = CondGenMgr::calc_ffr_cond_size(network, limit, option);
-
-  return PyCnfSize::ToPyObject(size);
-}
-
 // メソッド定義構造体
 PyMethodDef condgen_methods[] = {
-  {"make_ffr_cond",
-   reinterpret_cast<PyCFunction>(make_ffr_cond),
+  {"make_cond",
+   reinterpret_cast<PyCFunction>(make_cond),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("generate propagate condition of the roots of FFRs")},
-  {"calc_ffr_cond_size",
-   reinterpret_cast<PyCFunction>(calc_ffr_cond_size),
+  {"make_cnf",
+   reinterpret_cast<PyCFunction>(calc_cnf),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("calculate CNF size for propagate condition of the roots of FFRs")},
+   PyDoc_STR("make CNF for propagate condition of the roots of FFRs")},
   {nullptr, nullptr, 0, nullptr},
 };
 

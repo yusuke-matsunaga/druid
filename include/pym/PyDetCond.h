@@ -57,6 +57,15 @@ public:
     const vector<DetCond>& val_list ///< [in] 値のリスト
   );
 
+  /// @brief DetCond のリストを表す PyObject から DetCond のリストを取り出す．
+  /// @return 正しく変換できたら true を返す．
+  static
+  bool
+  FromPyList(
+    PyObject* obj,                  ///< [in] 対象のオブジェクト
+    std::vector<DetCond>& cond_list ///< [out] 結果を格納するリスト
+  );
+
   /// @brief PyObject が DetCond タイプか調べる．
   static
   bool
@@ -69,18 +78,8 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  DetCond
-  Get(
-    PyObject* obj ///< [in] 変換元の PyObject
-  );
-
-  /// @brief DetCond を表す PyObject から DetCond を取り出す．
-  /// @return DetCond を返す．
-  ///
-  /// Check(obj) == true であると仮定している．
-  static
   const DetCond&
-  _Get(
+  Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

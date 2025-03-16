@@ -25,16 +25,6 @@ BEGIN_NAMESPACE_DRUID
 class CondGenMgr
 {
 public:
-
-  /// @brief 検出条件を表す構造体
-  struct CondLits {
-    SizeType id;                  ///< FFR 番号
-    bool detected;                ///< 検出可の時 true となるフラグ
-    std::vector<SatLiteral> lits; ///< 検出条件を表すリテラルのリスト
-  };
-
-
-public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
@@ -50,19 +40,54 @@ public:
 
   /// @brief FFRの故障伝搬条件を表すCNF式を作る．
   static
-  std::vector<CondLits>
+  std::vector<std::vector<SatLiteral>>
   make_cnf(
     StructEngine& engine,                  ///< [in] CNFの作成用のエンジン
     const std::vector<DetCond>& cond_list, ///< [in] 条件のリスト
     const JsonValue& option                ///< [in] オプション
   );
 
-  /// @brief FFRの故障伝搬条件を表すCNF式を単純な方法で作る．
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // make_cnf の内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 正常回路用の CNF を作る．
   static
-  std::vector<CondLits>
-  make_raw_cnf(
-    StructEngine& engine,   ///< [in] CNFの作成用のエンジン
-    const JsonValue& option ///< [in] オプション
+  void
+  make_base_cnf(
+    StructEngine& engine ///< [in] CNFの作成用のエンジン
+  );
+
+  /// @brief DetCond から Expr を作る．
+  ///
+  /// DetCond.type() が Detected/PartialDetected の場合のみ Expr を作る．
+  static
+  std::vector<Expr>
+  make_expr(
+    const std::vector<DetCond>& cond_list, ///< [in] 条件のリスト
+    const JsonValue& option                ///< [in] オプション
+  );
+
+  /// @brief Expr を CNF に変換する．
+  static
+  std::vector<vector<SatLiteral>>
+  expr_to_cnf(
+    StructEngine& engine,               ///< [in] CNFの作成用のエンジン
+    const std::vector<Expr>& expr_list, ///< [in] 式のリスト
+    const JsonValue& option             ///< [in] オプション
+  );
+
+  /// @brief BoolDiffEnc を用いた条件を作る．
+  ///
+  /// DetCond.type() が PartialDetected/Overflow の場合にのみ
+  /// BoolDiffEnc を作る．
+  static
+  std::vector<SatLiteral>
+  make_bd(
+    StructEngine& engine,                 ///< [in] CNFの作成用のエンジン
+    const std::vector<DetCond>& cond_list ///< [in] 条件
   );
 
 };

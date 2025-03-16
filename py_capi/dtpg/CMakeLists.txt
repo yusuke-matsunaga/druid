@@ -2,43 +2,29 @@
 # ===================================================================
 # インクルードパスの設定
 # ===================================================================
-include_directories (
-  ${PROJECT_SOURCE_DIR}/include/types
-  ${PROJECT_SOURCE_DIR}/include/dtpg
-  ${PROJECT_SOURCE_DIR}/include/fsim
-  ${PROJECT_SOURCE_DIR}/include/reducer
-  ${PROJECT_SOURCE_DIR}/include/condgen
-  include
-  )
 
 
 # ===================================================================
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( gtest )
-add_subdirectory( test-programs )
-
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
 
-set ( condgen_SOURCES
-  CondGenMgr.cc
-  CondGen.cc
-  #CnfGen.cc
-  ExprGen.cc
-  Expr2Aig.cc
+set ( dtpg_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/dtpg_module.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgMgr.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgResult.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgStats.cc
+  PARENT_SCOPE
   )
 
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
-ym_add_object_library ( druid_condgen
-  ${condgen_SOURCES}
-  )
 
 
 # ===================================================================

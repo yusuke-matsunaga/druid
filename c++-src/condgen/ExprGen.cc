@@ -9,40 +9,12 @@
 #include "ExprGen.h"
 #include "ExprGen_Naive.h"
 #include "ExprGen_Factor.h"
-#include "ym/SopCover.h"
 #include "LocalMap.h"
+#include "OpBase.h"
+#include "ym/SopCover.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-BEGIN_NONAMESPACE
-
-// 文字列型のオプションを取り出す．
-//
-// 結果は value に上書きされる．
-// エラーが起こったら std::invalid_argument 例外を送出する．
-void
-get_string(
-  const JsonValue& option,
-  const string& keyword,
-  string& value
-)
-{
-  if ( option.is_object() && option.has_key(keyword) ) {
-    auto value_obj = option.at(keyword);
-    if ( value_obj.is_string() ) {
-      value = value_obj.get_string();
-    }
-    else {
-      ostringstream buf;
-      buf << "'" << keyword << "' should be a string";
-      throw std::invalid_argument{buf.str()};
-    }
-  }
-}
-
-END_NONAMESPACE
-
 
 // @brief 継承クラスを生成するクラスメソッド
 std::unique_ptr<ExprGen>
@@ -50,10 +22,10 @@ ExprGen::new_obj(
   const JsonValue& option
 )
 {
-  auto method = string{"naive"};
-  get_string(option, "method", method);
+  auto method = string{"sop"};
+  OpBase::get_string(option, "method", method);
 
-  if ( method == "naive" ) {
+  if ( method == "sop" ) {
     // ナイーブなやり方
     // キューブごとにリテラルを割り当て，その OR 条件を作る．
     return std::unique_ptr<ExprGen>{new ExprGen_Naive};

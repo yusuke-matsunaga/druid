@@ -2,43 +2,40 @@
 # ===================================================================
 # インクルードパスの設定
 # ===================================================================
-include_directories (
-  ${PROJECT_SOURCE_DIR}/include/types
-  ${PROJECT_SOURCE_DIR}/include/dtpg
-  ${PROJECT_SOURCE_DIR}/include/fsim
-  ${PROJECT_SOURCE_DIR}/include/reducer
-  ${PROJECT_SOURCE_DIR}/include/condgen
-  include
-  )
 
 
 # ===================================================================
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( gtest )
-add_subdirectory( test-programs )
 
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
 
-set ( condgen_SOURCES
-  CondGenMgr.cc
-  CondGen.cc
-  #CnfGen.cc
-  ExprGen.cc
-  Expr2Aig.cc
+set ( types_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/types_module.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyVal3.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyFaultType.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyFaultStatus.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyBitVector.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyTestVector.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyInputVector.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyDffVector.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyTpgFault.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyTpgNetwork.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyTpgNode.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyTpgMFFC.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyTpgFFR.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyAssignExpr.cc
+  PARENT_SCOPE
   )
 
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
-ym_add_object_library ( druid_condgen
-  ${condgen_SOURCES}
-  )
 
 
 # ===================================================================

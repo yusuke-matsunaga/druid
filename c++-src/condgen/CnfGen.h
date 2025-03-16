@@ -25,8 +25,6 @@ class CnfGen
 {
 public:
 
-  using CondLits = CondGenMgr::CondLits;
-
   /// @brief ブール微分用の情報
   struct BdInfo {
     SizeType id;                             ///< FFR番号

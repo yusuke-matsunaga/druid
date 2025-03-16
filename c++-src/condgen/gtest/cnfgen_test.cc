@@ -112,11 +112,10 @@ CondGenTestWithParam::do_test()
     if ( cond.type() == DetCond::Undetected ) {
       continue;
     }
-    auto cond_list = CondGenMgr::make_cnf(engine, {cond}, option);
-    ASSERT_EQ( 1, cond_list.size() );
-    auto& cond_lits = cond_list.front();
-    ASSERT_TRUE( cond_lits.detected );
-    auto assumptions = cond_lits.lits;
+    auto lits_list = CondGenMgr::make_cnf(engine, {cond}, option);
+    ASSERT_EQ( 1, lits_list.size() );
+    auto& lits = lits_list.front();
+    auto assumptions = lits;
     auto pvar = engine.prop_var();
     auto assumptions1 = assumptions;
     assumptions1.push_back(~pvar);

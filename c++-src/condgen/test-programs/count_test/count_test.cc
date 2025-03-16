@@ -246,6 +246,7 @@ count_test(
   condgen_timer.stop();
   print_stats("condgen", CnfSize::zero(), condgen_timer.get_time());
 
+#if 0
   {
     Timer timer;
     timer.start();
@@ -255,8 +256,9 @@ count_test(
     auto size = engine.solver().cnf_size();
     print_stats("raw", size, timer.get_time());
   }
+#endif
 
-  for ( auto method: {"naive", "factor", "aig"} ) {
+  for ( auto method: {"sop", "factor", "aig"} ) {
     Timer timer;
     timer.start();
     std::unordered_map<string, JsonValue> json_dict;

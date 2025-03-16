@@ -19,6 +19,12 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
+add_subdirectory ( types )
+add_subdirectory ( fsim )
+add_subdirectory ( main )
+add_subdirectory ( dtpg )
+add_subdirectory ( bist )
+add_subdirectory ( condgen )
 add_subdirectory ( tests )
 
 
@@ -29,40 +35,12 @@ add_subdirectory ( tests )
 set ( druid_SOURCES
   druid.cc
   druid_module.cc
-
-  types/types_module.cc
-  types/PyVal3.cc
-  types/PyFaultType.cc
-  types/PyFaultStatus.cc
-  types/PyBitVector.cc
-  types/PyTestVector.cc
-  types/PyInputVector.cc
-  types/PyDffVector.cc
-  types/PyTpgFault.cc
-  types/PyTpgNetwork.cc
-  types/PyTpgNode.cc
-  types/PyTpgMFFC.cc
-  types/PyTpgFFR.cc
-  types/PyAssignExpr.cc
-
-  fsim/fsim_module.cc
-  fsim/PyFsim.cc
-  fsim/PyDiffBits.cc
-  fsim/PyDiffBitsArray.cc
-
-  main/main_module.cc
-  main/PyClassifier.cc
-
-  dtpg/dtpg_module.cc
-  dtpg/PyDtpgMgr.cc
-  dtpg/PyDtpgResult.cc
-  dtpg/PyDtpgStats.cc
-
-  bist/bist_module.cc
-  bist/PyPhaseShifter.cc
-  bist/PyLFSR.cc
-
-  #condgen/condgen_module.cc
+  ${types_SOURCES}
+  ${fsim_SOURCES}
+  ${main_SOURCES}
+  ${dtpg_SOURCES}
+  ${bist_SOURCES}
+  ${condgen_SOURCES}
   )
 
 
@@ -79,7 +57,7 @@ add_executable ( druid
   $<TARGET_OBJECTS:druid_types_obj>
   $<TARGET_OBJECTS:druid_dtpg_obj>
   $<TARGET_OBJECTS:druid_classify_obj>
-  #$<TARGET_OBJECTS:druid_condgen_obj>
+  $<TARGET_OBJECTS:druid_condgen_obj>
   $<TARGET_OBJECTS:druid_fsim_obj>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj>
@@ -111,7 +89,7 @@ add_executable ( druid_d
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_dtpg_obj_d>
   $<TARGET_OBJECTS:druid_classify_obj_d>
-  #$<TARGET_OBJECTS:druid_condgen_obj_d>
+  $<TARGET_OBJECTS:druid_condgen_obj_d>
   $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>

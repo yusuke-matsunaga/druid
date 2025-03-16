@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "ym/SopCover.h"
 
 
 BEGIN_NAMESPACE_DRUID
