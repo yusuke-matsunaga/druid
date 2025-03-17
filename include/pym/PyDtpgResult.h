@@ -50,7 +50,7 @@ public:
   /// @brief PyObject が DtpgResult タイプか調べる．
   static
   bool
-  Check(
+  _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -60,7 +60,7 @@ public:
   /// Check(obj) == true であると仮定している．
   static
   const DtpgResult&
-  Get(
+  _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

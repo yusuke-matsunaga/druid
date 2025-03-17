@@ -128,16 +128,6 @@ public:
     SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
   );
 
-  /// @brief 直前の check() が成功したときの十分条件を求める．
-  AssignExpr
-  extract_sufficient_conditions();
-
-  /// @brief CNF 式を作成する際のサイズを見積もる．
-  ///
-  /// 実際には CNF 式は生成しない．
-  CnfSize
-  calc_cnf_size();
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -165,12 +155,6 @@ private:
   /// @brief 故障伝搬条件を表すCNF式を生成する．
   void
   make_dchain_cnf(
-    const TpgNode* node  ///< [in] 対象のノード
-  );
-
-  /// @brief 故障伝搬条件を表すCNF式のサイズを見積もる．
-  CnfSize
-  calc_dchain_cnf_size(
     const TpgNode* node  ///< [in] 対象のノード
   );
 

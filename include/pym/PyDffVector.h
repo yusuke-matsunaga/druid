@@ -17,6 +17,51 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
+/// @class PyDffVectorConv PyDffVector.h "PyDffVector.h"
+/// @brief const DffVector* を PyObject* に変換するファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyDffVectorConv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief const DffVector& を PyObject* に変換する．
+  PyObject*
+  operator()(
+    const DffVector& val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyDffVectorDeconv PyDffVector.h "PyDffVector.h"
+/// @brief DffVector を取り出すファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyDffVectorDeconv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief PyObject* から DffVector を取り出す．
+  bool
+  operator()(
+    PyObject* obj,
+    DffVector& val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
 /// @class PyDffVector PyDffVector.h "PyDffVector.h"
 /// @brief Python 用の DffVector 拡張
 ///
@@ -45,12 +90,16 @@ public:
   PyObject*
   ToPyObject(
     const DffVector& val ///< [in] 値
-  );
+  )
+  {
+    PyDffVectorConv conv;
+    return conv(val);
+  }
 
   /// @brief PyObject が DffVector タイプか調べる．
   static
   bool
-  Check(
+  _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -60,7 +109,7 @@ public:
   /// Check(obj) == true であると仮定している．
   static
   const DffVector&
-  Get(
+  _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

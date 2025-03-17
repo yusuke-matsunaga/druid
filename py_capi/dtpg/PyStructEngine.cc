@@ -52,7 +52,7 @@ StructEngine_new(
     return nullptr;
   }
 
-  auto& network = PyTpgNetwork::Get(network_obj);
+  auto& network = PyTpgNetwork::_get_ref(network_obj);
   JsonValue option;
   if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
     PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
@@ -87,7 +87,7 @@ StructEngine_add_subenc(
     nullptr
   };
 
-  auto& val = PyStructEngine::Get(self);
+  auto& val = PyStructEngine::_get_ref(self);
   return nullptr;
 }
 
@@ -102,7 +102,7 @@ StructEngine_add_cur_node(
     nullptr
   };
 
-  auto& val = PyStructEngine::Get(self);
+  auto& val = PyStructEngine::_get_ref(self);
   return nullptr;
 }
 
@@ -117,7 +117,7 @@ StructEngine_add_prev_node(
     nullptr
   };
 
-  auto& val = PyStructEngine::Get(self);
+  auto& val = PyStructEngine::_get_ref(self);
   return nullptr;
 }
 
@@ -127,7 +127,7 @@ StructEngine_update(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto& val = PyStructEngine::Get(self);
+  auto& val = PyStructEngine::_get_ref(self);
   val.update();
   Py_RETURN_NONE;
 }
@@ -155,7 +155,7 @@ StructEngine_solve(
   // if ( !PySatLiteral::FromPyList(assumptions_obj, assumptions) ) {
   //    return nullptr;
   // }
-  auto& val = PyStructEngine::Get(self);
+  auto& val = PyStructEngine::_get_ref(self);
   auto res = val.solve(assumptions);
   return PySatBool3::ToPyObject(res);
 }
@@ -217,9 +217,6 @@ PyStructEngine::init(
   StructEngineType.tp_methods = StructEngine_methods;
   //StructEngineType.tp_getset = StructEngine_getset;
   StructEngineType.tp_new = StructEngine_new;
-  if ( PyType_Ready(&StructEngineType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
   if ( !PyModule::reg_type(m, "StructEngine", &StructEngineType) ) {
@@ -235,7 +232,7 @@ PyStructEngine::init(
 
 // @brief PyObject が StructEngine タイプか調べる．
 bool
-PyStructEngine::Check(
+PyStructEngine::_check(
   PyObject* obj
 )
 {
@@ -244,7 +241,7 @@ PyStructEngine::Check(
 
 // @brief StructEngine を表す PyObject から StructEngine を取り出す．
 StructEngine&
-PyStructEngine::Get(
+PyStructEngine::_get_ref(
   PyObject* obj
 )
 {

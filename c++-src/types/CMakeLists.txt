@@ -34,7 +34,6 @@ set (types_SOURCES
   tpg_network/FFRFaultList.cc
 
   tpg_network/AssignList.cc
-  tpg_network/AssignExpr.cc
 
   tvect/BitVector.cc
   tvect/BitVectorRep.cc

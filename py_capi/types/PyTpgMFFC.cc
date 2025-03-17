@@ -62,7 +62,7 @@ TpgMFFC_mffc_id(
   void* Py_UNUSED(closure)
 )
 {
-  auto val = PyTpgMFFC::Get(self);
+  auto val = PyTpgMFFC::_get(self);
   return PyLong_FromLong(val->id());
 }
 
@@ -80,10 +80,10 @@ TpgMFFC_richcmpfunc(
   int op
 )
 {
-  if ( PyTpgMFFC::Check(self) &&
-       PyTpgMFFC::Check(other) ) {
-    auto val1 = PyTpgMFFC::Get(self);
-    auto val2 = PyTpgMFFC::Get(other);
+  if ( PyTpgMFFC::_check(self) &&
+       PyTpgMFFC::_check(other) ) {
+    auto val1 = PyTpgMFFC::_get(self);
+    auto val2 = PyTpgMFFC::_get(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -129,7 +129,7 @@ PyTpgMFFC::init(
 
 // @brief TpgMFFC を PyObject に変換する．
 PyObject*
-PyTpgMFFC::ToPyObject(
+PyTpgMFFCConv::operator()(
   const TpgMFFC* val
 )
 {
@@ -139,25 +139,23 @@ PyTpgMFFC::ToPyObject(
   return obj;
 }
 
-// @brief TpgMFFC のリストを表す PyObject を作る．
-PyObject*
-PyTpgMFFC::ToPyList(
-  const vector<const TpgMFFC*>& val_list
+// @brief PyObject* から const TpgFFR* を取り出す．
+bool
+PyTpgMFFCDeconv::operator()(
+  PyObject* obj,
+  const TpgMFFC*& val
 )
 {
-  SizeType n = val_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto mffc = val_list[i];
-    auto mffc_obj = ToPyObject(mffc);
-    PyList_SET_ITEM(ans_obj, i, mffc_obj);
+  if ( PyTpgMFFC::_check(obj) ) {
+    val = PyTpgMFFC::_get(obj);
+    return true;
   }
-  return ans_obj;
+  return false;
 }
 
 // @brief PyObject が TpgMFFC タイプか調べる．
 bool
-PyTpgMFFC::Check(
+PyTpgMFFC::_check(
   PyObject* obj
 )
 {
@@ -166,7 +164,7 @@ PyTpgMFFC::Check(
 
 // @brief TpgMFFC を表す PyObject から TpgMFFC を取り出す．
 const TpgMFFC*
-PyTpgMFFC::Get(
+PyTpgMFFC::_get(
   PyObject* obj
 )
 {

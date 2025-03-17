@@ -104,7 +104,7 @@ PhaseShifter_str(
   PyObject* self
 )
 {
-  auto& ps = PyPhaseShifter::Get(self);
+  auto& ps = PyPhaseShifter::_get_ref(self);
   ostringstream buf;
   SizeType n = ps.input_num();
   for ( SizeType i = 0; i < n; ++ i ) {
@@ -139,8 +139,8 @@ PhaseShifter_convert(
 				    PyBitVector::_typeobject(), &bits_obj) ) {
     return nullptr;
   }
-  auto& bits = PyBitVector::Get(bits_obj);
-  auto& ps = PyPhaseShifter::Get(self);
+  auto& bits = PyBitVector::_get_ref(bits_obj);
+  auto& ps = PyPhaseShifter::_get_ref(self);
   auto ans = ps.convert(bits);
   return PyBitVector::ToPyObject(ans);
 }
@@ -155,7 +155,7 @@ PhaseShifter_input_config(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto& ps = PyPhaseShifter::Get(self);
+  auto& ps = PyPhaseShifter::_get_ref(self);
   if ( pos >= ps.input_num() ) {
     PyErr_SetString(PyExc_ValueError, "pos is out of range");
     return nullptr;
@@ -187,7 +187,7 @@ PhaseShifter_input_num(
   void* Py_UNUSED(closure)
 )
 {
-  auto& ps = PyPhaseShifter::Get(self);
+  auto& ps = PyPhaseShifter::_get_ref(self);
   return Py_BuildValue("k", ps.input_num());
 }
 
@@ -242,7 +242,7 @@ PyPhaseShifter::ToPyObject(
 
 // @brief PyObject が PhaseShifter タイプか調べる．
 bool
-PyPhaseShifter::Check(
+PyPhaseShifter::_check(
   PyObject* obj
 )
 {
@@ -251,7 +251,7 @@ PyPhaseShifter::Check(
 
 // @brief PhaseShifter を表す PyObject から PhaseShifter を取り出す．
 const PhaseShifter&
-PyPhaseShifter::Get(
+PyPhaseShifter::_get_ref(
   PyObject* obj
 )
 {

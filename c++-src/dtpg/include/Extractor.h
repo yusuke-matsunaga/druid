@@ -10,7 +10,6 @@
 
 #include "druid.h"
 #include "AssignList.h"
-#include "AssignExpr.h"
 #include "VidMap.h"
 #include "Val3.h"
 #include "ym/SatModel.h"
@@ -85,16 +84,6 @@ public:
     const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
     const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
     const TpgNode* output,  ///< [in] 故障の永久が伝搬している外部出力
-    const SatModel& model   ///< [in] SATソルバの作ったモデル
-  );
-
-  /// @brief 可能な全ての十分条件を求める
-  static
-  AssignExpr
-  extract_all(
-    const TpgNode* root,    ///< [in] 起点となるノード
-    const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
-    const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
     const SatModel& model   ///< [in] SATソルバの作ったモデル
   );
 

@@ -204,11 +204,11 @@ PyFaultType::FromPyObject(
   FaultType& val
 )
 {
-  if ( !Check(obj) ) {
+  if ( !_check(obj) ) {
     PyErr_SetString(PyExc_TypeError, "object is not a FaultType type");
     return false;
   }
-  val = Get(obj);
+  val = _get(obj);
   return true;
 }
 
@@ -231,7 +231,7 @@ PyFaultType::ToPyObject(
 
 // @brief PyObject が FaultType タイプか調べる．
 bool
-PyFaultType::Check(
+PyFaultType::_check(
   PyObject* obj
 )
 {
@@ -240,7 +240,7 @@ PyFaultType::Check(
 
 // @brief FaultType を表す PyObject から FaultType を取り出す．
 FaultType
-PyFaultType::Get(
+PyFaultType::_get(
   PyObject* obj
 )
 {

@@ -96,7 +96,7 @@ LFSR_str(
   PyObject* self
 )
 {
-  auto& lfsr = PyLFSR::Get(self);
+  auto& lfsr = PyLFSR::_get_ref(self);
   ostringstream buf;
   buf << "[";
   const char* comma = "";
@@ -134,7 +134,7 @@ LFSR_bitlen(
   void* Py_UNUSED(closure)
 )
 {
-  auto& lfsr = PyLFSR::Get(self);
+  auto& lfsr = PyLFSR::_get_ref(self);
   return Py_BuildValue("k", lfsr.bitlen());
 }
 
@@ -144,7 +144,7 @@ LFSR_bits(
   void* Py_UNUSED(closure)
 )
 {
-  auto& lfsr = PyLFSR::Get(self);
+  auto& lfsr = PyLFSR::_get_ref(self);
   auto& bv = lfsr.bits();
   return PyBitVector::ToPyObject(bv);
 }
@@ -156,13 +156,13 @@ LFSR_set_bits(
   void* Py_UNUSED(closure)
 )
 {
-  if ( !PyBitVector::Check(val_obj) ) {
+  if ( !PyBitVector::_check(val_obj) ) {
     PyErr_SetString(PyExc_TypeError, "not a BitVector");
     return -1;
   }
   auto lfsr_obj = reinterpret_cast<LFSRObject*>(self);
   auto& lfsr = *(lfsr_obj->mPtr);
-  auto& bv = PyBitVector::Get(val_obj);
+  auto& bv = PyBitVector::_get_ref(val_obj);
   lfsr.set_bits(bv);
   return 0;
 }
@@ -220,7 +220,7 @@ PyLFSR::ToPyObject(
 
 // @brief PyObject が LFSR タイプか調べる．
 bool
-PyLFSR::Check(
+PyLFSR::_check(
   PyObject* obj
 )
 {
@@ -229,7 +229,7 @@ PyLFSR::Check(
 
 // @brief LFSR を表す PyObject から LFSR を取り出す．
 const LFSR&
-PyLFSR::Get(
+PyLFSR::_get_ref(
   PyObject* obj
 )
 {

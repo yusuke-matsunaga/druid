@@ -51,12 +51,12 @@ classify(
     return nullptr;
   }
 
-  auto& network = PyTpgNetwork::Get(network_obj);
+  auto& network = PyTpgNetwork::_get_ref(network_obj);
   vector<const TpgFault*> fault_list;
   if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
     return nullptr;
   }
-  auto fault_type = PyFaultType::Get(fault_type_obj);
+  auto fault_type = PyFaultType::_get(fault_type_obj);
   vector<TestVector> tv_list;
   if ( !PyTestVector::FromPyList(tv_list_obj, tv_list) ) {
     return nullptr;

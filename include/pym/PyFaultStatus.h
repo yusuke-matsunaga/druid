@@ -61,7 +61,7 @@ public:
   /// @brief PyObject が FaultStatus タイプか調べる．
   static
   bool
-  Check(
+  _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -71,7 +71,7 @@ public:
   /// Check(obj) == true であると仮定している．
   static
   FaultStatus
-  Get(
+  _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

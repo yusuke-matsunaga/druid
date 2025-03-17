@@ -62,7 +62,7 @@ DtpgResult_detected(
 			 PyTestVector::_typeobject(), &tv_obj) ) {
     return nullptr;
   }
-  auto tv = PyTestVector::Get(tv_obj);
+  auto tv = PyTestVector::_get_ref(tv_obj);
   auto type = PyDtpgResult::_typeobject();
   auto obj = type->tp_alloc(type, 0);
   auto result_obj = reinterpret_cast<DtpgResultObject*>(obj);
@@ -185,7 +185,7 @@ PyDtpgResult::ToPyObject(
 
 // @brief PyObject が DtpgResult タイプか調べる．
 bool
-PyDtpgResult::Check(
+PyDtpgResult::_check(
   PyObject* obj
 )
 {
@@ -194,7 +194,7 @@ PyDtpgResult::Check(
 
 // @brief DtpgResult を表す PyObject から DtpgResult を取り出す．
 const DtpgResult&
-PyDtpgResult::Get(
+PyDtpgResult::_get_ref(
   PyObject* obj
 )
 {

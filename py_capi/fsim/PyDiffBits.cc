@@ -60,6 +60,7 @@ DiffBits_add_output(
     return nullptr;
   }
 
+  // _get_ref() と同じコードだが const 属性がない．
   auto dbits_obj = reinterpret_cast<DiffBitsObject*>(self);
   auto& dbits = *dbits_obj->mPtr;
   dbits.add_output(pos);
@@ -79,7 +80,7 @@ DiffBits_length(
   PyObject* self
 )
 {
-  auto& val = PyDiffBits::Get(self);
+  auto& val = PyDiffBits::_get_ref(self);
   return val.elem_num();
 }
 
@@ -89,7 +90,7 @@ DiffBits_item(
   Py_ssize_t index
 )
 {
-  auto& val = PyDiffBits::Get(self);
+  auto& val = PyDiffBits::_get_ref(self);
   try {
     int index1 = ( index >= 0 ) ? index : val.elem_num() + index;
     auto ans = val.output(index1);
@@ -114,10 +115,10 @@ DiffBits_richcompfunc(
   int op
 )
 {
-  if ( PyDiffBits::Check(self) &&
-       PyDiffBits::Check(other) ) {
-    auto& val1 = PyDiffBits::Get(self);
-    auto& val2 = PyDiffBits::Get(other);
+  if ( PyDiffBits::_check(self) &&
+       PyDiffBits::_check(other) ) {
+    auto& val1 = PyDiffBits::_get_ref(self);
+    auto& val2 = PyDiffBits::_get_ref(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -134,7 +135,7 @@ DiffBits_hashfunc(
   PyObject* self
 )
 {
-  auto& val = PyDiffBits::Get(self);
+  auto& val = PyDiffBits::_get_ref(self);
   return val.hash();
 }
 
@@ -186,7 +187,7 @@ PyDiffBits::ToPyObject(
 
 // @brief PyObject が DiffBits タイプか調べる．
 bool
-PyDiffBits::Check(
+PyDiffBits::_check(
   PyObject* obj
 )
 {
@@ -195,7 +196,7 @@ PyDiffBits::Check(
 
 // @brief DiffBits を表す PyObject から DiffBits を取り出す．
 const DiffBits&
-PyDiffBits::Get(
+PyDiffBits::_get_ref(
   PyObject* obj
 )
 {

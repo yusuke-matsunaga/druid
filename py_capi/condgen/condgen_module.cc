@@ -48,7 +48,7 @@ make_cond(
 				    &option_obj) ) {
     return nullptr;
   }
-  auto& network = PyTpgNetwork::Get(network_obj);
+  auto& network = PyTpgNetwork::_get_ref(network_obj);
   JsonValue option;
   if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
     PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
@@ -84,7 +84,7 @@ make_cnf(
 				    &option_obj) ) {
     return nullptr;
   }
-  auto& engine = PyStructEngine::Get(engine_obj);
+  auto& engine = PyStructEngine::_get_ref(engine_obj);
   std::vector<DetCond> cond_list;
   if ( !PyDetCond::FromPyList(cond_list_obj, cond_list) ) {
     PyErr_SetString(PyExc_TypeError, "'cond_list' should be a list of DetCond'");

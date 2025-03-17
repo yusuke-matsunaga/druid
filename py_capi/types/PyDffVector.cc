@@ -175,7 +175,7 @@ DffVector_set_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::Get(obj);
+  auto& mt19937 = PyMt19937::_get_ref(obj);
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
   dv_obj->mPtr->set_from_random(mt19937);
   Py_RETURN_NONE;
@@ -192,7 +192,7 @@ DffVector_fix_x_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::Get(obj);
+  auto& mt19937 = PyMt19937::_get_ref(obj);
   auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
   dv_obj->mPtr->fix_x_from_random(mt19937);
   Py_RETURN_NONE;
@@ -252,7 +252,7 @@ PyDffVector::init(
 
 // @brief DffVector を PyObject に変換する．
 PyObject*
-PyDffVector::ToPyObject(
+PyDffVectorConv::operator()(
   const DffVector& val
 )
 {
@@ -264,7 +264,7 @@ PyDffVector::ToPyObject(
 
 // @brief PyObject が DffVector タイプか調べる．
 bool
-PyDffVector::Check(
+PyDffVector::_check(
   PyObject* obj
 )
 {
@@ -273,7 +273,7 @@ PyDffVector::Check(
 
 // @brief DffVector を表す PyObject から DffVector を取り出す．
 const DffVector&
-PyDffVector::Get(
+PyDffVector::_get_ref(
   PyObject* obj
 )
 {

@@ -62,7 +62,7 @@ TpgFFR_ffr_id(
   void* Py_UNUSED(closure)
 )
 {
-  auto val = PyTpgFFR::Get(self);
+  auto val = PyTpgFFR::_get(self);
   return PyLong_FromLong(val->id());
 }
 
@@ -80,10 +80,10 @@ TpgFFR_richcmpfunc(
   int op
 )
 {
-  if ( PyTpgFFR::Check(self) &&
-       PyTpgFFR::Check(other) ) {
-    auto val1 = PyTpgFFR::Get(self);
-    auto val2 = PyTpgFFR::Get(other);
+  if ( PyTpgFFR::_check(self) &&
+       PyTpgFFR::_check(other) ) {
+    auto val1 = PyTpgFFR::_get(self);
+    auto val2 = PyTpgFFR::_get(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -129,7 +129,7 @@ PyTpgFFR::init(
 
 // @brief TpgFFR を PyObject に変換する．
 PyObject*
-PyTpgFFR::ToPyObject(
+PyTpgFFRConv::operator()(
   const TpgFFR* val
 )
 {
@@ -139,25 +139,23 @@ PyTpgFFR::ToPyObject(
   return obj;
 }
 
-// @brief TpgFFR のリストを表す PyObject を作る．
-PyObject*
-PyTpgFFR::ToPyList(
-  const vector<const TpgFFR*>& val_list
+// @brief PyObject* から const TpgFFR* を取り出す．
+bool
+PyTpgFFRDeconv::operator()(
+  PyObject* obj,
+  const TpgFFR*& val
 )
 {
-  SizeType n = val_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto ffr = val_list[i];
-    auto ffr_obj = ToPyObject(ffr);
-    PyList_SET_ITEM(ans_obj, i, ffr_obj);
+  if ( PyTpgFFR::_check(obj) ) {
+    val = PyTpgFFR::_get(obj);
+    return true;
   }
-  return ans_obj;
+  return false;
 }
 
 // @brief PyObject が TpgFFR タイプか調べる．
 bool
-PyTpgFFR::Check(
+PyTpgFFR::_check(
   PyObject* obj
 )
 {
@@ -166,7 +164,7 @@ PyTpgFFR::Check(
 
 // @brief TpgFFR を表す PyObject から TpgFFR を取り出す．
 const TpgFFR*
-PyTpgFFR::Get(
+PyTpgFFR::_get(
   PyObject* obj
 )
 {

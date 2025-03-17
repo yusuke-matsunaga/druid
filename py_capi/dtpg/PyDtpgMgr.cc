@@ -53,7 +53,7 @@ DtpgMgr_new(
 				    &fault_list_obj) ) {
     return nullptr;
   }
-  auto& network = PyTpgNetwork::Get(network_obj);
+  auto& network = PyTpgNetwork::_get_ref(network_obj);
   vector<const TpgFault*> fault_list;
   if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
     return nullptr;
@@ -118,7 +118,7 @@ DtpgMgr_run(
     return nullptr;
   }
 
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   auto stats = mgr.run(
     [&](DtpgMgr& mgr, const TpgFault* f, const TestVector& tv) {
       if ( dfunc_obj != nullptr ) {
@@ -175,8 +175,8 @@ DtpgMgr_dtpg_result(
 				    PyTpgFault::_typeobject(), &fault_obj) ) {
     return nullptr;
   }
-  auto fault = PyTpgFault::Get(fault_obj);
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto fault = PyTpgFault::_get(fault_obj);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   auto result = mgr.dtpg_result(fault);
   return PyDtpgResult::ToPyObject(result);
 }
@@ -201,9 +201,9 @@ DtpgMgr_set_dtpg_result(
 				    PyDtpgResult::_typeobject(), &result_obj) ) {
     return nullptr;
   }
-  auto fault = PyTpgFault::Get(fault_obj);
-  auto result = PyDtpgResult::Get(result_obj);
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto fault = PyTpgFault::_get(fault_obj);
+  auto& result = PyDtpgResult::_get_ref(result_obj);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   mgr.set_dtpg_result(fault, result);
   Py_RETURN_NONE;
 }
@@ -228,7 +228,7 @@ DtpgMgr_fault_list(
   void* Py_UNUSED(closure)
 )
 {
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   auto& fault_list = mgr.fault_list();
   return PyTpgFault::ToPyList(fault_list);
 }
@@ -239,7 +239,7 @@ DtpgMgr_testvector_list(
   void* Py_UNUSED(closure)
 )
 {
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   auto& tv_list = mgr.testvector_list();
   return PyTestVector::ToPyList(tv_list);
 }
@@ -250,7 +250,7 @@ DtpgMgr_total_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   auto val = mgr.total_count();
   return Py_BuildValue("k", val);
 }
@@ -261,7 +261,7 @@ DtpgMgr_detected_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   auto val = mgr.detected_count();
   return Py_BuildValue("k", val);
 }
@@ -272,7 +272,7 @@ DtpgMgr_untestable_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   auto val = mgr.untestable_count();
   return Py_BuildValue("k", val);
 }
@@ -283,7 +283,7 @@ DtpgMgr_undetected_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& mgr = PyDtpgMgr::Get(self);
+  auto& mgr = PyDtpgMgr::_get_ref(self);
   auto val = mgr.undetected_count();
   return Py_BuildValue("k", val);
 }
@@ -337,7 +337,7 @@ PyDtpgMgr::init(
 
 // @brief PyObject が DtpgMgr タイプか調べる．
 bool
-PyDtpgMgr::Check(
+PyDtpgMgr::_check(
   PyObject* obj
 )
 {
@@ -346,7 +346,7 @@ PyDtpgMgr::Check(
 
 // @brief DtpgMgr を表す PyObject から DtpgMgr を取り出す．
 DtpgMgr&
-PyDtpgMgr::Get(
+PyDtpgMgr::_get_ref(
   PyObject* obj
 )
 {

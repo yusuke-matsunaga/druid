@@ -116,7 +116,7 @@ DetCondType_repr(
   PyObject* self
 )
 {
-  auto val = PyDetCondType::Get(self);
+  auto val = PyDetCondType::_get(self);
   // val から 文字列を作る．
   const char* tmp_str = nullptr;
   switch ( val ) {
@@ -136,10 +136,10 @@ DetCondType_richcmpfunc(
   int op
 )
 {
-  if ( PyDetCondType::Check(self) &&
-       PyDetCondType::Check(other) ) {
-    auto val1 = PyDetCondType::Get(self);
-    auto val2 = PyDetCondType::Get(other);
+  if ( PyDetCondType::_check(self) &&
+       PyDetCondType::_check(other) ) {
+    auto val1 = PyDetCondType::_get(self);
+    auto val2 = PyDetCondType::_get(other);
     bool res = false;
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
@@ -194,9 +194,6 @@ PyDetCondType::init(
   DetCondTypeType.tp_richcompare = DetCondType_richcmpfunc;
   DetCondTypeType.tp_new = DetCondType_new;
   DetCondTypeType.tp_repr = DetCondType_repr;
-  if ( PyType_Ready(&DetCondTypeType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
   if ( !PyModule::reg_type(m, "DetCondType", &DetCondTypeType) ) {
@@ -254,7 +251,7 @@ PyDetCondType::ToPyObject(
 
 // @brief PyObject が DetCond::Type タイプか調べる．
 bool
-PyDetCondType::Check(
+PyDetCondType::_check(
   PyObject* obj
 )
 {
@@ -263,7 +260,7 @@ PyDetCondType::Check(
 
 // @brief PyObject から DetCond::Type を取り出す．
 DetCond::Type
-PyDetCondType::Get(
+PyDetCondType::_get(
   PyObject* obj
 )
 {

@@ -84,9 +84,8 @@ FaultAnalyzer::run(
       // あとで必要条件を求めるためにコピーしておく．
       auto tmp_cond{suff_cond};
       suff_cond.merge(ffr_cond);
-      auto suff_cond_expr = suff_cond.to_expr();
       auto pi_assign = mEngine.justify(suff_cond);
-      finfo.set_sufficient_condition(suff_cond, suff_cond_expr, pi_assign);
+      finfo.set_sufficient_condition(suff_cond, pi_assign);
       tmp_cond.diff(root_cond);
       auto assumptions1{assumptions};
       assumptions1.push_back(SatLiteral::X);

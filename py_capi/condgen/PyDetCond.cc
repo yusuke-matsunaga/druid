@@ -61,7 +61,7 @@ DetCond_type(
   void* Py_UNUSED(closure)
 )
 {
-  auto& val = PyDetCond::Get(self);
+  auto& val = PyDetCond::_get(self);
   return PyDetCondType::ToPyObject(val.type());
 }
 
@@ -89,9 +89,6 @@ PyDetCond::init(
   DetCondType.tp_methods = DetCond_methods;
   DetCondType.tp_getset = DetCond_getsetters;
   DetCondType.tp_new = DetCond_new;
-  if ( PyType_Ready(&DetCondType) < 0 ) {
-    return false;
-  }
 
   // 型オブジェクトの登録
   if ( !PyModule::reg_type(m, "DetCond", &DetCondType) ) {
@@ -107,7 +104,7 @@ PyDetCond::init(
 
 // @brief DetCond を PyObject に変換する．
 PyObject*
-PyDetCond::ToPyObject(
+PyDetCondConv::operator()(
   const DetCond& val
 )
 {
@@ -117,49 +114,23 @@ PyDetCond::ToPyObject(
   return obj;
 }
 
-// @brief DetCond のリストを PyObject に変換する．
-PyObject*
-PyDetCond::ToPyList(
-  const vector<DetCond>& val_list
-)
-{
-  SizeType n = val_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto cond = val_list[i];
-    auto cond_obj = ToPyObject(cond);
-    PyList_SET_ITEM(ans_obj, i, cond_obj);
-  }
-  return ans_obj;
-}
-
-// @brief DetCond のリストを表す PyObject から DetCond のリストを取り出す．
+// @brief PyObject* から DetCond を取り出す．
 bool
-PyDetCond::FromPyList(
+PyDetCondDeconv::operator()(
   PyObject* obj,
-  std::vector<DetCond>& cond_list
+  DetCond& val
 )
 {
-  cond_list.clear();
-  if ( !PySequence_Check(obj) ) {
-    return false;
+  if ( PyDetCond::_check(obj) ) {
+    val = PyDetCond::_get(obj);
+    return true;
   }
-  auto n = PySequence_Size(obj);
-  cond_list.reserve(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto item_obj = PySequence_GetItem(obj, i);
-    if ( !Check(item_obj) ) {
-      return false;
-    }
-    auto& cond = Get(item_obj);
-    cond_list.push_back(cond);
-  }
-  return true;
+  return false;
 }
 
 // @brief PyObject が DetCond タイプか調べる．
 bool
-PyDetCond::Check(
+PyDetCond::_check(
   PyObject* obj
 )
 {
@@ -168,7 +139,7 @@ PyDetCond::Check(
 
 // @brief DetCond を表す PyObject から DetCond を取り出す．
 const DetCond&
-PyDetCond::Get(
+PyDetCond::_get(
   PyObject* obj
 )
 {

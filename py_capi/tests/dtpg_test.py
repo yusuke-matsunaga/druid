@@ -18,8 +18,9 @@ def test_dtpg():
     filename = make_filename('s27.blif')
     network = TpgNetwork.read_blif(filename, FaultType.TransitionDelay)
     fault_list = network.rep_fault_list
+    print(f"len(fault_list.size()) =  {len(fault_list)}")
     option = {
-        'dtpg_type': 'mffc'
+        'group_mode': 'ffr'
         }
     mgr = DtpgMgr(network, fault_list)
     stats = mgr.run(option=option)

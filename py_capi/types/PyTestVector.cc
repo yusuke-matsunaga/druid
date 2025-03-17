@@ -60,7 +60,7 @@ TestVector_new(
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(self);
   bool has_prev_state = static_cast<bool>(tmp);
   if ( bits_obj != nullptr ) {
-    auto& bits = PyBitVector::Get(bits_obj);
+    auto& bits = PyBitVector::_get_ref(bits_obj);
     testvector_obj->mPtr = new TestVector{input_num, dff_num, has_prev_state, bits};
   }
   else {
@@ -412,7 +412,7 @@ TestVector_set_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::Get(obj);
+  auto& mt19937 = PyMt19937::_get_ref(obj);
   auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
   tv_obj->mPtr->set_from_random(mt19937);
   Py_RETURN_NONE;
@@ -429,7 +429,7 @@ TestVector_fix_x_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::Get(obj);
+  auto& mt19937 = PyMt19937::_get_ref(obj);
   auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
   tv_obj->mPtr->fix_x_from_random(mt19937);
   Py_RETURN_NONE;
@@ -545,7 +545,7 @@ PyTestVector::init(
 
 // @brief TestVector を PyObject に変換する．
 PyObject*
-PyTestVector::ToPyObject(
+PyTestVectorConv::operator()(
   TestVector val
 )
 {
@@ -555,25 +555,23 @@ PyTestVector::ToPyObject(
   return obj;
 }
 
-// @brief TestVector のリストを表す PyObject を作る．
-PyObject*
-PyTestVector::ToPyList(
-  const vector<TestVector>& val_list
+// @brief PyObject* を TestVector に変換する
+bool
+PyTestVectorDeconv::operator()(
+  PyObject* obj,
+  TestVector& val
 )
 {
-  SizeType n = val_list.size();
-  auto ans_obj = PyList_New(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto tv = val_list[i];
-    auto tv_obj = ToPyObject(tv);
-    PyList_SET_ITEM(ans_obj, i, tv_obj);
+  if ( PyTestVector::_check(obj) ) {
+    val = PyTestVector::_get_ref(obj);
+    return true;
   }
-  return ans_obj;
+  return false;
 }
 
 // @brief PyObject が TestVector タイプか調べる．
 bool
-PyTestVector::Check(
+PyTestVector::_check(
   PyObject* obj
 )
 {
@@ -582,46 +580,12 @@ PyTestVector::Check(
 
 // @brief TestVector を表す PyObject から TestVector を取り出す．
 const TestVector&
-PyTestVector::Get(
+PyTestVector::_get_ref(
   PyObject* obj
 )
 {
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(obj);
   return *testvector_obj->mPtr;
-}
-
-// @brief TestVector のリストを表す PyObject から TestVector のリストを取り出す．
-bool
-PyTestVector::FromPyList(
-  PyObject* obj,
-  vector<TestVector>& tv_list
-)
-{
-  if ( PySequence_Check(obj) ) {
-    SizeType n = PySequence_Size(obj);
-    tv_list.clear();
-    tv_list.resize(n);
-    for ( SizeType i = 0; i < n; ++ i ) {
-      auto tmp_obj = PySequence_GetItem(obj, i);
-      if ( !Check(tmp_obj) ) {
-	PyErr_SetString(PyExc_TypeError, "parameter must be a sequence of 'TestVector'");
-	return false;
-      }
-      auto tv = PyTestVector::Get(tmp_obj);
-      tv_list[i] = tv;
-    }
-    return true;
-  }
-  if ( Check(obj) ) {
-    auto tv = PyTestVector::Get(obj);
-    tv_list.clear();
-    tv_list.resize(1);
-    tv_list[0] = tv;
-    return true;
-  }
-
-  PyErr_SetString(PyExc_TypeError, "parameter must be a sequence of 'TestVector'");
-  return false;
 }
 
 // @brief TestVector を表すオブジェクトの型定義を返す．

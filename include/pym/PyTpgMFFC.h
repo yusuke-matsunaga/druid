@@ -11,10 +11,56 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include "pym/PyList.h"
 #include "TpgMFFC.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyTpgMFFCConv PyTpgMFFC.h "PyTpgMFFC.h"
+/// @brief const TpgMFFC* を PyObject* に変換するファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyTpgMFFCConv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief const TpgMFFC* を PyObject* に変換する．
+  PyObject*
+  operator()(
+    const TpgMFFC* val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyTpgMFFCDeconv PyTpgMFFC.h "PyTpgMFFC.h"
+/// @brief TpgMFFC を取り出すファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyTpgMFFCDeconv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief PyObject* から const TpgMFFC* を取り出す．
+  bool
+  operator()(
+    PyObject* obj,
+    const TpgMFFC*& val
+  );
+
+};
+
 
 //////////////////////////////////////////////////////////////////////
 /// @class PyTpgMFFC PyTpgMFFC.h "PyTpgMFFC.h"
@@ -45,6 +91,27 @@ public:
   PyObject*
   ToPyObject(
     const TpgMFFC* val ///< [in] 値
+  )
+  {
+    PyTpgMFFCConv conv;
+    return conv(val);
+  }
+
+  /// @brief PyObject が TpgMFFC タイプか調べる．
+  static
+  bool
+  _check(
+    PyObject* obj ///< [in] 対象の PyObject
+  );
+
+  /// @brief TpgMFFC を表す PyObject から TpgMFFC を取り出す．
+  /// @return TpgMFFC を返す．
+  ///
+  /// Check(obj) == true であると仮定している．
+  static
+  const TpgMFFC*
+  _get(
+    PyObject* obj ///< [in] 変換元の PyObject
   );
 
   /// @brief TpgMFFC のリストを表す PyObject を作る．
@@ -55,24 +122,10 @@ public:
   PyObject*
   ToPyList(
     const vector<const TpgMFFC*>& val_list ///< [in] 値のリスト
-  );
-
-  /// @brief PyObject が TpgMFFC タイプか調べる．
-  static
-  bool
-  Check(
-    PyObject* obj ///< [in] 対象の PyObject
-  );
-
-  /// @brief TpgMFFC を表す PyObject から TpgMFFC を取り出す．
-  /// @return TpgMFFC を返す．
-  ///
-  /// Check(obj) == true であると仮定している．
-  static
-  const TpgMFFC*
-  Get(
-    PyObject* obj ///< [in] 変換元の PyObject
-  );
+  )
+  {
+    return PyList::ToPyObject<const TpgMFFC*, PyTpgMFFCConv>(val_list);
+  }
 
   /// @brief TpgMFFC を表すオブジェクトの型定義を返す．
   static

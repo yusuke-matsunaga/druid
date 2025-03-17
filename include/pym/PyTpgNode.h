@@ -17,6 +17,51 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
+/// @class PyTpgNodeConv PyTpgNode.h "PyTpgNode.h"
+/// @brief const TpgNode* を PyObject* に変換するファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyTpgNodeConv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief const TpgNode* を PyObject* に変換する．
+  PyObject*
+  operator()(
+    const TpgNode* val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyTpgNodeDeconv PyTpgNode.h "PyTpgNode.h"
+/// @brief TpgNode を取り出すファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyTpgNodeDeconv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief PyObject* から const TpgNode* を取り出す．
+  bool
+  operator()(
+    PyObject* obj,
+    const TpgNode*& val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
 /// @class PyTpgNode PyTpgNode.h "PyTpgNode.h"
 /// @brief Python 用の TpgNode 拡張
 ///
@@ -37,18 +82,22 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief PyObject が TpgNode タイプか調べる．
-  static
-  bool
-  Check(
-    PyObject* obj ///< [in] 対象の PyObject
-  );
-
   // @brief TpgNode を PyObject に変換する．
   static
   PyObject*
   ToPyObject(
     const TpgNode* val
+  )
+  {
+    PyTpgNodeConv conv;
+    return conv(val);
+  }
+
+  /// @brief PyObject が TpgNode タイプか調べる．
+  static
+  bool
+  _check(
+    PyObject* obj ///< [in] 対象の PyObject
   );
 
   /// @brief TpgNode を表す PyObject から TpgNode を取り出す．
@@ -57,7 +106,7 @@ public:
   /// Check(obj) == true であると仮定している．
   static
   const TpgNode*
-  Get(
+  _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

@@ -127,7 +127,7 @@ Val3_repr(
   PyObject* self
 )
 {
-  auto val = PyVal3::Get(self);
+  auto val = PyVal3::_get(self);
   // val から 文字列を作る．
   const char* tmp_str = nullptr;
   switch ( val ) {
@@ -151,10 +151,10 @@ Val3_richcmpfunc(
   int op
 )
 {
-  if ( PyVal3::Check(self) &&
-       PyVal3::Check(other) ) {
-    auto val1 = PyVal3::Get(self);
-    auto val2 = PyVal3::Get(other);
+  if ( PyVal3::_check(self) &&
+       PyVal3::_check(other) ) {
+    auto val1 = PyVal3::_get(self);
+    auto val2 = PyVal3::_get(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -172,8 +172,8 @@ Val3_invert(
   PyObject* self
 )
 {
-  if ( PyVal3::Check(self) ) {
-    auto val = PyVal3::Get(self);
+  if ( PyVal3::_check(self) ) {
+    auto val = PyVal3::_get(self);
     return PyVal3::ToPyObject(~val);
   }
   Py_RETURN_NOTIMPLEMENTED;
@@ -186,9 +186,10 @@ Val3_and(
   PyObject* other
 )
 {
-  if ( PyVal3::Check(self) && PyVal3::Check(other) ) {
-    auto val1 = PyVal3::Get(self);
-    auto val2 = PyVal3::Get(other);
+  if ( PyVal3::_check(self) &&
+       PyVal3::_check(other) ) {
+    auto val1 = PyVal3::_get(self);
+    auto val2 = PyVal3::_get(other);
     return PyVal3::ToPyObject(val1 & val2);
   }
   Py_RETURN_NOTIMPLEMENTED;
@@ -201,9 +202,10 @@ Val3_or(
   PyObject* other
 )
 {
-  if ( PyVal3::Check(self) && PyVal3::Check(other) ) {
-    auto val1 = PyVal3::Get(self);
-    auto val2 = PyVal3::Get(other);
+  if ( PyVal3::_check(self) &&
+       PyVal3::_check(other) ) {
+    auto val1 = PyVal3::_get(self);
+    auto val2 = PyVal3::_get(other);
     return PyVal3::ToPyObject(val1 | val2);
   }
   Py_RETURN_NOTIMPLEMENTED;
@@ -216,9 +218,10 @@ Val3_xor(
   PyObject* other
 )
 {
-  if ( PyVal3::Check(self) && PyVal3::Check(other) ) {
-    auto val1 = PyVal3::Get(self);
-    auto val2 = PyVal3::Get(other);
+  if ( PyVal3::_check(self) &&
+       PyVal3::_check(other) ) {
+    auto val1 = PyVal3::_get(self);
+    auto val2 = PyVal3::_get(other);
     return PyVal3::ToPyObject(val1 ^ val2);
   }
   Py_RETURN_NOTIMPLEMENTED;
@@ -320,11 +323,11 @@ PyVal3::FromPyObject(
   Val3& val
 )
 {
-  if ( !Check(obj) ) {
+  if ( !_check(obj) ) {
     PyErr_SetString(PyExc_TypeError, "object is not a Val3 type");
     return false;
   }
-  val = Get(obj);
+  val = _get(obj);
   return true;
 }
 
@@ -347,7 +350,7 @@ PyVal3::ToPyObject(
 
 // @brief PyObject が Val3 タイプか調べる．
 bool
-PyVal3::Check(
+PyVal3::_check(
   PyObject* obj
 )
 {
@@ -356,7 +359,7 @@ PyVal3::Check(
 
 // @brief Val3 を表す PyObject から Val3 を取り出す．
 Val3
-PyVal3::Get(
+PyVal3::_get(
   PyObject* obj
 )
 {

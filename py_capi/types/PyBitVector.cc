@@ -70,7 +70,7 @@ BitVector_str(
   PyObject* self
 )
 {
-  auto& bv = PyBitVector::Get(self);
+  auto& bv = PyBitVector::_get_ref(self);
   auto tmp_str = bv.bin_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
@@ -86,7 +86,7 @@ BitVector_val(
     return nullptr;
   }
   // TODO: pos の範囲チェック
-  auto& bv = PyBitVector::Get(self);
+  auto& bv = PyBitVector::_get_ref(self);
   auto val = bv.val(pos);
   return PyVal3::ToPyObject(val);
 }
@@ -97,7 +97,7 @@ BitVector_x_count(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto& bv = PyBitVector::Get(self);
+  auto& bv = PyBitVector::_get_ref(self);
   auto val = bv.x_count();
   return PyLong_FromLong(val);
 }
@@ -108,7 +108,7 @@ BitVector_bin_str(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto& bv = PyBitVector::Get(self);
+  auto& bv = PyBitVector::_get_ref(self);
   auto tmp_str = bv.bin_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
@@ -119,7 +119,7 @@ BitVector_hex_str(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto& bv = PyBitVector::Get(self);
+  auto& bv = PyBitVector::_get_ref(self);
   auto tmp_str = bv.hex_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
@@ -237,7 +237,7 @@ BitVector_set_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::Get(obj);
+  auto& mt19937 = PyMt19937::_get_ref(obj);
   auto bv_obj = reinterpret_cast<BitVectorObject*>(self);
   auto& bv = *(bv_obj->mPtr);
   bv.set_from_random(mt19937);
@@ -255,7 +255,7 @@ BitVector_fix_x_from_random(
     return nullptr;
   }
 
-  auto& mt19937 = PyMt19937::Get(obj);
+  auto& mt19937 = PyMt19937::_get_ref(obj);
   auto bv_obj = reinterpret_cast<BitVectorObject*>(self);
   auto& bv = *(bv_obj->mPtr);
   bv.fix_x_from_random(mt19937);
@@ -298,7 +298,7 @@ BitVector_len(
   void* Py_UNUSED(closure)
 )
 {
-  auto& bv = PyBitVector::Get(self);
+  auto& bv = PyBitVector::_get_ref(self);
   return Py_BuildValue("k", bv.len());
 }
 
@@ -320,8 +320,8 @@ BitVector_and(
     PyErr_SetString(PyExc_TypeError, "both arguments sould be BitVector type");
     return nullptr;
   }
-  auto& bv = PyBitVector::Get(self);
-  auto& bv1 = PyBitVector::Get(other);
+  auto& bv = PyBitVector::_get_ref(self);
+  auto& bv1 = PyBitVector::_get_ref(other);
   auto ans = bv & bv1;
   return PyBitVector::ToPyObject(ans);
 }
@@ -366,7 +366,7 @@ PyBitVector::init(
 
 // @brief BitVector を PyObject に変換する．
 PyObject*
-PyBitVector::ToPyObject(
+PyBitVectorConv::operator()(
   BitVector val
 )
 {
@@ -376,9 +376,23 @@ PyBitVector::ToPyObject(
   return obj;
 }
 
+// @brief PyObject* から const BitVector* を取り出す．
+bool
+PyBitVectorDeconv::operator()(
+  PyObject* obj,
+  BitVector& val
+)
+{
+  if ( PyBitVector::_check(obj) ) {
+    val = PyBitVector::_get_ref(obj);
+    return true;
+  }
+  return false;
+}
+
 // @brief PyObject が BitVector タイプか調べる．
 bool
-PyBitVector::Check(
+PyBitVector::_check(
   PyObject* obj
 )
 {
@@ -387,7 +401,7 @@ PyBitVector::Check(
 
 // @brief BitVector を表す PyObject から BitVector を取り出す．
 const BitVector&
-PyBitVector::Get(
+PyBitVector::_get_ref(
   PyObject* obj
 )
 {

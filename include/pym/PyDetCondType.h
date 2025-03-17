@@ -50,7 +50,7 @@ public:
   /// @brief PyObject が DetCond::Type タイプか調べる．
   static
   bool
-  Check(
+  _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -60,7 +60,7 @@ public:
   /// Check(obj) == true であると仮定している．
   static
   DetCond::Type
-  Get(
+  _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

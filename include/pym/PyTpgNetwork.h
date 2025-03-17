@@ -40,7 +40,7 @@ public:
   /// @brief PyObject が TpgNetwork タイプか調べる．
   static
   bool
-  Check(
+  _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -50,7 +50,7 @@ public:
   /// Check(obj) == true であると仮定している．
   static
   const TpgNetwork&
-  Get(
+  _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

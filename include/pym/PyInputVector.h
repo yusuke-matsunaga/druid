@@ -17,6 +17,51 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
+/// @class PyInputVectorConv PyInputVector.h "PyInputVector.h"
+/// @brief const InputVector* を PyObject* に変換するファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyInputVectorConv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief const InputVector& を PyObject* に変換する．
+  PyObject*
+  operator()(
+    const InputVector& val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyInputVectorDeconv PyInputVector.h "PyInputVector.h"
+/// @brief InputVector を取り出すファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyInputVectorDeconv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief PyObject* から InputVector を取り出す．
+  bool
+  operator()(
+    PyObject* obj,
+    InputVector& val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
 /// @class PyInputVector PyInputVector.h "PyInputVector.h"
 /// @brief Python 用の InputVector 拡張
 ///
@@ -45,12 +90,16 @@ public:
   PyObject*
   ToPyObject(
     const InputVector& val ///< [in] 値
-  );
+  )
+  {
+    PyInputVectorConv conv;
+    return conv(val);
+  }
 
   /// @brief PyObject が InputVector タイプか調べる．
   static
   bool
-  Check(
+  _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -60,7 +109,7 @@ public:
   /// Check(obj) == true であると仮定している．
   static
   const InputVector&
-  Get(
+  _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

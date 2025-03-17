@@ -61,8 +61,8 @@ DiffBitsArray_add_output(
   }
 
   auto dbits_obj = reinterpret_cast<DiffBitsArrayObject*>(self);
-  auto& dbits = *dbits_obj->mPtr;
-  dbits.add_output(pos, PV_ALL1); // 嘘！
+  auto& dbarray = *dbits_obj->mPtr;
+  dbarray.add_output(pos, PV_ALL1); // 嘘！
 
   Py_RETURN_NONE;
 }
@@ -79,7 +79,7 @@ DiffBitsArray_length(
   PyObject* self
 )
 {
-  auto& val = PyDiffBitsArray::Get(self);
+  auto& val = PyDiffBitsArray::_get_ref(self);
   return val.elem_num();
 }
 
@@ -89,7 +89,7 @@ DiffBitsArray_item(
   Py_ssize_t index
 )
 {
-  auto& val = PyDiffBitsArray::Get(self);
+  auto& val = PyDiffBitsArray::_get_ref(self);
   try {
     int index1 = ( index >= 0 ) ? index : val.elem_num() + index;
     auto ans = val.output(index1);
@@ -114,10 +114,10 @@ DiffBitsArray_richcompfunc(
   int op
 )
 {
-  if ( PyDiffBitsArray::Check(self) &&
-       PyDiffBitsArray::Check(other) ) {
-    auto& val1 = PyDiffBitsArray::Get(self);
-    auto& val2 = PyDiffBitsArray::Get(other);
+  if ( PyDiffBitsArray::_check(self) &&
+       PyDiffBitsArray::_check(other) ) {
+    auto& val1 = PyDiffBitsArray::_get_ref(self);
+    auto& val2 = PyDiffBitsArray::_get_ref(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -134,7 +134,7 @@ DiffBitsArray_hashfunc(
   PyObject* self
 )
 {
-  auto& val = PyDiffBitsArray::Get(self);
+  auto& val = PyDiffBitsArray::_get_ref(self);
   return val.hash();
 }
 
@@ -186,7 +186,7 @@ PyDiffBitsArray::ToPyObject(
 
 // @brief PyObject が DiffBitsArray タイプか調べる．
 bool
-PyDiffBitsArray::Check(
+PyDiffBitsArray::_check(
   PyObject* obj
 )
 {
@@ -195,7 +195,7 @@ PyDiffBitsArray::Check(
 
 // @brief DiffBitsArray を表す PyObject から DiffBitsArray を取り出す．
 const DiffBitsArray&
-PyDiffBitsArray::Get(
+PyDiffBitsArray::_get_ref(
   PyObject* obj
 )
 {

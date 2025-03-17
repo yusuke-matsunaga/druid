@@ -11,10 +11,57 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include "pym/PyList.h"
 #include "TestVector.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyTestVectorConv PyTestVectorConv.h "PyTestVectorConv.h"
+/// @brief TestVector を PyObject* に変換するファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyTestVectorConv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief TestVector を PyObject* に変換する．
+  PyObject*
+  operator()(
+    TestVector val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyTestVectorDeconv PyTestVectorDeconv.h "PyTestVectorDeconv.h"
+/// @brief TestVector に変換するファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyTestVectorDeconv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief PyObject* を TestVector に変換する
+  /// @return 正しく変換できた時に true を返す．
+  bool
+  operator()(
+    PyObject* obj,
+    TestVector& val
+  );
+
+};
+
 
 //////////////////////////////////////////////////////////////////////
 /// @class PyTestVector PyTestVector.h "PyTestVector.h"
@@ -45,6 +92,27 @@ public:
   PyObject*
   ToPyObject(
     TestVector val ///< [in] 値
+  )
+  {
+    PyTestVectorConv conv;
+    return conv(val);
+  }
+
+  /// @brief PyObject が TestVector タイプか調べる．
+  static
+  bool
+  _check(
+    PyObject* obj ///< [in] 対象の PyObject
+  );
+
+  /// @brief TestVector を表す PyObject から TestVector を取り出す．
+  /// @return TestVector を返す．
+  ///
+  /// Check(obj) == true であると仮定している．
+  static
+  const TestVector&
+  _get_ref(
+    PyObject* obj ///< [in] 変換元の PyObject
   );
 
   /// @brief TestVector のリストを表す PyObject を作る．
@@ -55,24 +123,10 @@ public:
   PyObject*
   ToPyList(
     const vector<TestVector>& val_list ///< [in] 値のリスト
-  );
-
-  /// @brief PyObject が TestVector タイプか調べる．
-  static
-  bool
-  Check(
-    PyObject* obj ///< [in] 対象の PyObject
-  );
-
-  /// @brief TestVector を表す PyObject から TestVector を取り出す．
-  /// @return TestVector を返す．
-  ///
-  /// Check(obj) == true であると仮定している．
-  static
-  const TestVector&
-  Get(
-    PyObject* obj ///< [in] 変換元の PyObject
-  );
+  )
+  {
+    return PyList::ToPyObject<TestVector, PyTestVectorConv>(val_list);
+  }
 
   /// @brief TestVector のリストを表す PyObject から TestVector のリストを取り出す．
   /// @return 成功したら true を返す．
@@ -83,7 +137,10 @@ public:
   FromPyList(
     PyObject* obj,              ///< [in] 変換元の PyObject
     vector<TestVector>& tv_list ///< [out] 変換結果を格納する変数
-  );
+  )
+  {
+    return PyList::FromPyObject<TestVector, PyTestVectorDeconv>(obj, tv_list);
+  }
 
   /// @brief TestVector を表すオブジェクトの型定義を返す．
   static

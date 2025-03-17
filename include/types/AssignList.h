@@ -10,7 +10,6 @@
 
 #include "druid.h"
 #include "Assign.h"
-#include "AssignExpr.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -219,20 +218,6 @@ public:
   {
     _sort();
     return mAsList;
-  }
-
-  /// @brief AssignExpr に変換する．
-  AssignExpr
-  to_expr() const
-  {
-    auto assign_list = to_vector();
-    auto n = assign_list.size();
-    vector<Expr> opr_list(n);
-    for ( SizeType i = 0; i < n; ++ i ) {
-      opr_list[i] = Expr::literal(i);
-    }
-    auto expr = Expr::and_op(opr_list);
-    return AssignExpr{expr, assign_list};
   }
 
 

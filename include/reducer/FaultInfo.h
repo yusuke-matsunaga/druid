@@ -11,7 +11,6 @@
 #include "druid.h"
 #include "FaultStatus.h"
 #include "AssignList.h"
-#include "AssignExpr.h"
 #include "ym/JsonValue.h"
 
 
@@ -89,13 +88,6 @@ public:
     return mSuffCond;
   }
 
-  /// @brief 十分割り当てを返す．
-  const AssignExpr&
-  sufficient_condition_expr() const
-  {
-    return mSuffCondExpr;
-  }
-
   /// @brief 外部入力の割り当てを返す．
   const AssignList&
   pi_assign() const
@@ -132,12 +124,10 @@ public:
   void
   set_sufficient_condition(
     const AssignList& suff_cond,
-    const AssignExpr& suff_cond_expr,
     const AssignList& pi_assign
   )
   {
     mSuffCond = suff_cond;
-    mSuffCondExpr = suff_cond_expr;
     mPiAssign = pi_assign;
     mFlags[0] = true;
     mFlags[1] = false; // 念のため
@@ -198,9 +188,6 @@ private:
 
   // 十分割り当て
   AssignList mSuffCond;
-
-  // 十分割り当て
-  AssignExpr mSuffCondExpr;
 
   // テストパタン用の割り当て
   AssignList mPiAssign;

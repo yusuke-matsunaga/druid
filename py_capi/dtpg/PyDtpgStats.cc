@@ -125,7 +125,7 @@ DtpgStats_total_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("i", stats.total_count());
 }
 
@@ -135,7 +135,7 @@ DtpgStats_detect_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("i", stats.detect_count());
 }
 
@@ -145,7 +145,7 @@ DtpgStats_detect_time(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("d", stats.detect_time());
 }
 
@@ -155,7 +155,7 @@ DtpgStats_untest_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("i", stats.untest_count());
 }
 
@@ -165,7 +165,7 @@ DtpgStats_untest_time(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("d", stats.untest_time());
 }
 
@@ -175,7 +175,7 @@ DtpgStats_abort_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("i", stats.abort_count());
 }
 
@@ -185,7 +185,7 @@ DtpgStats_abort_time(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("d", stats.abort_time());
 }
 
@@ -195,7 +195,7 @@ DtpgStats_cnfgen_count(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("i", stats.cnfgen_count());
 }
 
@@ -205,7 +205,7 @@ DtpgStats_cnfgen_time(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("d", stats.cnfgen_time());
 }
 
@@ -215,7 +215,7 @@ DtpgStats_backtrace_time(
   void* Py_UNUSED(closure)
 )
 {
-  auto& stats = PyDtpgStats::Get(self);
+  auto& stats = PyDtpgStats::_get_ref(self);
   return Py_BuildValue("d", stats.backtrace_time());
 }
 
@@ -288,7 +288,7 @@ PyDtpgStats::ToPyObject(
 
 // @brief PyObject が DtpgStats タイプか調べる．
 bool
-PyDtpgStats::Check(
+PyDtpgStats::_check(
   PyObject* obj
 )
 {
@@ -297,7 +297,7 @@ PyDtpgStats::Check(
 
 // @brief DtpgStats を表す PyObject から DtpgStats を取り出す．
 const DtpgStats&
-PyDtpgStats::Get(
+PyDtpgStats::_get_ref(
   PyObject* obj
 )
 {

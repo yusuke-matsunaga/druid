@@ -17,6 +17,51 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
+/// @class PyBitVectorConv PyBitVector.h "PyBitVector.h"
+/// @brief const BitVector* を PyObject* に変換するファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyBitVectorConv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief BitVector を PyObject* に変換する．
+  PyObject*
+  operator()(
+    BitVector val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class PyBitVectorDeconv PyBitVector.h "PyBitVector.h"
+/// @brief BitVector を取り出すファンクタクラス
+///
+/// 実はただの関数
+//////////////////////////////////////////////////////////////////////
+class PyBitVectorDeconv
+{
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief PyObject* から BitVector を取り出す．
+  bool
+  operator()(
+    PyObject* obj,
+    BitVector& val
+  );
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
 /// @class PyBitVector PyBitVector.h "PyBitVector.h"
 /// @brief Python 用の BitVector 拡張
 ///
@@ -45,12 +90,16 @@ public:
   PyObject*
   ToPyObject(
     BitVector val ///< [in] 値
-  );
+  )
+  {
+    PyBitVectorConv conv;
+    return conv(val);
+  }
 
   /// @brief PyObject が BitVector タイプか調べる．
   static
   bool
-  Check(
+  _check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -60,7 +109,7 @@ public:
   /// Check(obj) == true であると仮定している．
   static
   const BitVector&
-  Get(
+  _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

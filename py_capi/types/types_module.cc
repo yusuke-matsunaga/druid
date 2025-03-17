@@ -21,7 +21,6 @@
 #include "pym/PyInputVector.h"
 #include "pym/PyDffVector.h"
 #include "pym/PyFaultStatus.h"
-#include "pym/PyAssignExpr.h"
 #include "pym/PyModule.h"
 
 
@@ -82,9 +81,6 @@ PyInit_types()
     goto error;
   }
   if ( !PyDffVector::init(m) ) {
-    goto error;
-  }
-  if ( !PyAssignExpr::init(m) ) {
     goto error;
   }
 

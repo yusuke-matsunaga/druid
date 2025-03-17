@@ -210,6 +210,7 @@ DtpgMgr::run(
       if ( !get_faults(*this, ffr, node_fault_list_array, fault_list) ) {
 	continue;
       }
+
       FFRDriver driver{*this, ffr, option};
       for ( auto fault: fault_list ) {
 	// 途中で status が変化している場合があるので再度チェック

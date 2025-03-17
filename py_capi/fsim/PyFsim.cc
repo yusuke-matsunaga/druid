@@ -61,7 +61,7 @@ Fsim_new(
     return nullptr;
   }
 
-  auto& network = PyTpgNetwork::Get(network_obj);
+  auto& network = PyTpgNetwork::_get_ref(network_obj);
   vector<const TpgFault*> fault_list;
   if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
     return nullptr;
@@ -103,7 +103,7 @@ Fsim_set_skip_all(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::Get(self);
+  auto fsim = PyFsim::_get(self);
   fsim->set_skip_all();
   Py_RETURN_NONE;
 }
@@ -131,7 +131,7 @@ Fsim_set_skip(
   if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
     return nullptr;
   }
-  auto fsim = PyFsim::Get(self);
+  auto fsim = PyFsim::_get(self);
   fsim->set_skip(fault_list);
   Py_RETURN_NONE;
 }
@@ -142,7 +142,7 @@ Fsim_clear_skip_all(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto fsim = PyFsim::Get(self);
+  auto fsim = PyFsim::_get(self);
   fsim->clear_skip_all();
   Py_RETURN_NONE;
 }
@@ -170,7 +170,7 @@ Fsim_clear_skip(
   if ( !PyTpgFault::FromPyList(obj, fault_list) ) {
     return nullptr;
   }
-  auto fsim = PyFsim::Get(self);
+  auto fsim = PyFsim::_get(self);
   fsim->clear_skip(fault_list);
   Py_RETURN_NONE;
 }
@@ -196,9 +196,9 @@ Fsim_spsfp(
 				    PyTpgFault::_typeobject(), &obj2) ) {
     return nullptr;
   }
-  auto tv = PyTestVector::Get(obj1);
-  auto fault = PyTpgFault::Get(obj2);
-  auto fsim = PyFsim::Get(self);
+  auto tv = PyTestVector::_get_ref(obj1);
+  auto fault = PyTpgFault::_get(obj2);
+  auto fsim = PyFsim::_get(self);
   DiffBits dbits;
   bool ans = fsim->spsfp(tv, fault, dbits);
   PyObject* dbits_obj = Py_None;
@@ -226,8 +226,8 @@ Fsim_sppfp(
 				    PyTestVector::_typeobject(), &obj1) ) {
     return nullptr;
   }
-  auto tv = PyTestVector::Get(obj1);
-  auto fsim = PyFsim::Get(self);
+  auto tv = PyTestVector::_get_ref(obj1);
+  auto fsim = PyFsim::_get(self);
   vector<pair<const TpgFault*, DiffBits>> ans_list;
   fsim->sppfp(tv,
 	      [&](
@@ -247,7 +247,7 @@ Fsim_sppfp(
     auto dbits = p.second;
     auto dbits_obj = PyDiffBits::ToPyObject(dbits);
     auto tuple_obj = Py_BuildValue("(OO)", fault_obj, dbits_obj);
-    PyList_SetItem(ans_obj, i, tuple_obj);
+    PyList_SET_ITEM(ans_obj, i, tuple_obj);
   }
   return ans_obj;
 }
@@ -284,7 +284,7 @@ Fsim_ppsfp(
   if ( !PyTestVector::FromPyList(tv_list_obj, tv_list) ) {
     return nullptr;
   }
-  auto fsim = PyFsim::Get(self);
+  auto fsim = PyFsim::_get(self);
   fsim->ppsfp(tv_list,
 	      [&](
 		const TpgFault* f,
@@ -313,8 +313,8 @@ Fsim_calc_wsa(
 			 &weighted) ) {
     return nullptr;
   }
-  auto iv = PyInputVector::Get(obj1);
-  auto fsim = PyFsim::Get(self);
+  auto iv = PyInputVector::_get_ref(obj1);
+  auto fsim = PyFsim::_get(self);
   SizeType n = fsim->calc_wsa(iv, static_cast<bool>(weighted));
   return PyLong_FromLong(n);
 }
@@ -332,9 +332,9 @@ Fsim_set_state(
 			 PyDffVector::_typeobject(), &obj2) ) {
     return nullptr;
   }
-  auto iv = PyInputVector::Get(obj1);
-  auto dv = PyDffVector::Get(obj2);
-  auto fsim = PyFsim::Get(self);
+  auto iv = PyInputVector::_get_ref(obj1);
+  auto dv = PyDffVector::_get_ref(obj2);
+  auto fsim = PyFsim::_get(self);
   fsim->set_state(iv, dv);
   Py_RETURN_NONE;
 }
@@ -347,7 +347,7 @@ Fsim_get_state(
 {
   InputVector iv;
   DffVector dv;
-  auto fsim = PyFsim::Get(self);
+  auto fsim = PyFsim::_get(self);
   fsim->get_state(iv, dv);
   auto obj1 = PyInputVector::ToPyObject(iv);
   auto obj2 = PyDffVector::ToPyObject(dv);
@@ -433,7 +433,7 @@ PyFsim::init(
 
 // @brief PyObject が Fsim タイプか調べる．
 bool
-PyFsim::Check(
+PyFsim::_check(
   PyObject* obj
 )
 {
@@ -442,7 +442,7 @@ PyFsim::Check(
 
 // @brief Fsim を表す PyObject から Fsim を取り出す．
 Fsim*
-PyFsim::Get(
+PyFsim::_get(
   PyObject* obj
 )
 {

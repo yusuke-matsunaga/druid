@@ -91,7 +91,7 @@ PyTpgNode::init(
 
 // @brief TpgNode を PyObject に変換する．
 PyObject*
-PyTpgNode::ToPyObject(
+PyTpgNodeConv::operator()(
   const TpgNode* val
 )
 {
@@ -101,9 +101,23 @@ PyTpgNode::ToPyObject(
   return obj;
 }
 
+// @brief PyObject* から const TpgNode* を取り出す．
+bool
+PyTpgNodeDeconv::operator()(
+  PyObject* obj,
+  const TpgNode*& val
+)
+{
+  if ( PyTpgNode::_check(obj) ) {
+    val = PyTpgNode::_get(obj);
+    return true;
+  }
+  return false;
+}
+
 // @brief PyObject が TpgNode タイプか調べる．
 bool
-PyTpgNode::Check(
+PyTpgNode::_check(
   PyObject* obj
 )
 {
@@ -112,7 +126,7 @@ PyTpgNode::Check(
 
 // @brief TpgNode を表す PyObject から TpgNode を取り出す．
 const TpgNode*
-PyTpgNode::Get(
+PyTpgNode::_get(
   PyObject* obj
 )
 {
