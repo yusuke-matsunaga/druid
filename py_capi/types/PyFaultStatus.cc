@@ -6,7 +6,7 @@
 /// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyFaultStatus.h"
+#include "pym/PyFaultStatus.h"
 #include "pym/PyModule.h"
 
 

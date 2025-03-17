@@ -6,7 +6,7 @@
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyTpgNode.h"
+#include "pym/PyTpgNode.h"
 #include "pym/PyModule.h"
 
 

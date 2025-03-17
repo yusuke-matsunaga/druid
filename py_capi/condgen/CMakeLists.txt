@@ -17,6 +17,7 @@ set ( condgen_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/condgen_module.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyDetCond.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyDetCondType.cc
+  PARENT_SCOPE
   )
 
 

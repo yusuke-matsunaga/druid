@@ -10,9 +10,10 @@
 #include <Python.h>
 
 #include "druid.h"
-#include "PyDtpgMgr.h"
-#include "PyDtpgResult.h"
-#include "PyDtpgStats.h"
+#include "pym/PyDtpgMgr.h"
+#include "pym/PyDtpgResult.h"
+#include "pym/PyDtpgStats.h"
+#include "pym/PyStructEngine.h"
 #include "pym/PyModule.h"
 
 
@@ -51,6 +52,10 @@ PyInit_dtpg()
   }
 
   if ( !PyDtpgStats::init(m) ) {
+    goto error;
+  }
+
+  if ( !PyStructEngine::init(m) ) {
     goto error;
   }
 

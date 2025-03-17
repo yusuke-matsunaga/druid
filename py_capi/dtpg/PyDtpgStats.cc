@@ -6,7 +6,7 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyDtpgStats.h"
+#include "pym/PyDtpgStats.h"
 #include "pym/PyModule.h"
 
 

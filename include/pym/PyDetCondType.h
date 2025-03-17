@@ -37,34 +37,34 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief DetCond::CondType を表す PyObject を作る．
+  /// @brief DetCond::Type を表す PyObject を作る．
   /// @return 生成した PyObject を返す．
   ///
   /// 返り値は新しい参照が返される．
   static
   PyObject*
   ToPyObject(
-    DetCond::CondType val ///< [in] 値
+    DetCond::Type val ///< [in] 値
   );
 
-  /// @brief PyObject が DetCond::CondType タイプか調べる．
+  /// @brief PyObject が DetCond::Type タイプか調べる．
   static
   bool
   Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
-  /// @brief DetCond::CondType を表す PyObject から DetCond::CondType を取り出す．
+  /// @brief DetCond::Type を表す PyObject から DetCond::Type を取り出す．
   /// @return DetCondType を返す．
   ///
   /// Check(obj) == true であると仮定している．
   static
-  DetCond::CondType
+  DetCond::Type
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 
-  /// @brief DetCond::CondType を表すオブジェクトの型定義を返す．
+  /// @brief DetCond::Type を表すオブジェクトの型定義を返す．
   static
   PyTypeObject*
   _typeobject();

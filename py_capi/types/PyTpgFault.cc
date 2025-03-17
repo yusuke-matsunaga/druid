@@ -6,8 +6,8 @@
 /// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyTpgFault.h"
-#include "PyTpgNode.h"
+#include "pym/PyTpgFault.h"
+#include "pym/PyTpgNode.h"
 #include "TpgNode.h"
 #include "AssignList.h"
 #include "pym/PyModule.h"

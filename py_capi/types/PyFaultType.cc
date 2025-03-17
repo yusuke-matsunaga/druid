@@ -6,7 +6,7 @@
 /// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyFaultType.h"
+#include "pym/PyFaultType.h"
 #include "pym/PyModule.h"
 
 

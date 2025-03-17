@@ -9,7 +9,7 @@ include_directories (
   ${PROJECT_SOURCE_DIR}/include/bist
   ${PROJECT_SOURCE_DIR}/include/classify
   ${PROJECT_SOURCE_DIR}/include/condgen
-  ${PROJECT_SOURCE_DIR}/include/pym
+  ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BUILD_DIR}/include
   ${Python3_INCLUDE_DIRS}
   )

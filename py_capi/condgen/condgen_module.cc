@@ -15,6 +15,7 @@
 #include "pym/PyTpgNetwork.h"
 #include "pym/PyTpgFFR.h"
 #include "pym/PyTpgFault.h"
+#include "pym/PyStructEngine.h"
 #include "pym/PySatLiteral.h"
 #include "pym/PyDetCond.h"
 #include "pym/PyCnfSize.h"
@@ -78,14 +79,14 @@ make_cnf(
   PyObject* option_obj = nullptr;
   if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O|O",
 				    const_cast<char**>(kw_list),
-				    PyStructengine::_typeobject(), &engine_obj,
+				    PyStructEngine::_typeobject(), &engine_obj,
 				    &cond_list_obj,
 				    &option_obj) ) {
     return nullptr;
   }
   auto& engine = PyStructEngine::Get(engine_obj);
   std::vector<DetCond> cond_list;
-  if ( !PyDetCond::FromPyList(cond_list_obj) ) {
+  if ( !PyDetCond::FromPyList(cond_list_obj, cond_list) ) {
     PyErr_SetString(PyExc_TypeError, "'cond_list' should be a list of DetCond'");
     return nullptr;
   }
@@ -121,7 +122,7 @@ PyMethodDef condgen_methods[] = {
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("generate propagate condition of the roots of FFRs")},
   {"make_cnf",
-   reinterpret_cast<PyCFunction>(calc_cnf),
+   reinterpret_cast<PyCFunction>(make_cnf),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("make CNF for propagate condition of the roots of FFRs")},
   {nullptr, nullptr, 0, nullptr},

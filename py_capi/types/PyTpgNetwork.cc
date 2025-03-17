@@ -6,11 +6,11 @@
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyTpgNetwork.h"
-#include "PyTpgMFFC.h"
-#include "PyTpgFFR.h"
-#include "PyFaultType.h"
-#include "PyTpgFault.h"
+#include "pym/PyTpgNetwork.h"
+#include "pym/PyTpgMFFC.h"
+#include "pym/PyTpgFFR.h"
+#include "pym/PyFaultType.h"
+#include "pym/PyTpgFault.h"
 #include "pym/PyClibCellLibrary.h"
 #include "pym/PyModule.h"
 

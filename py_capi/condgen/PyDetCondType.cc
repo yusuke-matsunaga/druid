@@ -1,12 +1,12 @@
 
 /// @file PyDetCondType.cc
-/// @brief Python DetCond::CondType の実装ファイル
+/// @brief Python DetCond::Type の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2025 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyDetCondType.h"
+#include "pym/PyDetCondType.h"
 #include "pym/PyModule.h"
 
 
@@ -18,7 +18,7 @@ BEGIN_NONAMESPACE
 struct DetCondTypeObject
 {
   PyObject_HEAD
-  DetCond::CondType mVal;
+  DetCond::Type mVal;
 };
 
 // Python 用のタイプ定義
@@ -67,16 +67,16 @@ DetCondType_new(
   // 実はこの関数では実際の new は行わない．
   // 既に作られたオブジェクトを返すだけ
   PyObject* obj = nullptr;
-  if ( strcasecmp(name_type, U_STR) == 0 ) {
+  if ( strcasecmp(name_str, U_STR) == 0 ) {
     obj = DetCondType_U;
   }
-  else if ( strcasecmp(name_type, D_STR) == 0 ) {
+  else if ( strcasecmp(name_str, D_STR) == 0 ) {
     obj = DetCondType_D;
   }
-  else if ( strcasecmp(name_type, P_STR) == 0 ) {
+  else if ( strcasecmp(name_str, P_STR) == 0 ) {
     obj = DetCondType_P;
   }
-  else if ( strcasecmp(name_type, O_STR) == 0 ) {
+  else if ( strcasecmp(name_str, O_STR) == 0 ) {
     obj = DetCondType_O;
   }
   else {
@@ -154,7 +154,7 @@ DetCondType_richcmpfunc(
 // 定数オブジェクトの生成
 PyObject*
 new_condtype(
-  DetCond::CondType type
+  DetCond::Type type
 )
 {
   auto obj = DetCondTypeType.tp_alloc(&DetCondTypeType, 0);
@@ -190,7 +190,7 @@ PyDetCondType::init(
   DetCondTypeType.tp_itemsize = 0;
   DetCondTypeType.tp_dealloc = DetCondType_dealloc;
   DetCondTypeType.tp_flags = Py_TPFLAGS_DEFAULT;
-  DetCondTypeType.tp_doc = PyDoc_STR("DetCond::CondType object");
+  DetCondTypeType.tp_doc = PyDoc_STR("DetCond::Type object");
   DetCondTypeType.tp_richcompare = DetCondType_richcmpfunc;
   DetCondTypeType.tp_new = DetCondType_new;
   DetCondTypeType.tp_repr = DetCondType_repr;
@@ -238,7 +238,7 @@ PyDetCondType::init(
 // @brief DetCondType を PyObject に変換する．
 PyObject*
 PyDetCondType::ToPyObject(
-  DetCond::CondType val
+  DetCond::Type val
 )
 {
   PyObject* obj = nullptr;
@@ -252,7 +252,7 @@ PyDetCondType::ToPyObject(
   return obj;
 }
 
-// @brief PyObject が DetCondType タイプか調べる．
+// @brief PyObject が DetCond::Type タイプか調べる．
 bool
 PyDetCondType::Check(
   PyObject* obj
@@ -261,8 +261,8 @@ PyDetCondType::Check(
   return Py_IS_TYPE(obj, _typeobject());
 }
 
-// @brief DetCondType を表す PyObject から DetCondType を取り出す．
-DetCondType
+// @brief PyObject から DetCond::Type を取り出す．
+DetCond::Type
 PyDetCondType::Get(
   PyObject* obj
 )
@@ -271,7 +271,7 @@ PyDetCondType::Get(
   return detcondtype_obj->mVal;
 }
 
-// @brief DetCondType を表すオブジェクトの型定義を返す．
+// @brief DetCond::Type を表すオブジェクトの型定義を返す．
 PyTypeObject*
 PyDetCondType::_typeobject()
 {

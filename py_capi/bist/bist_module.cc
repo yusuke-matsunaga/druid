@@ -10,8 +10,8 @@
 #include <Python.h>
 
 #include "druid.h"
-#include "PyPhaseShifter.h"
-#include "PyLFSR.h"
+#include "pym/PyPhaseShifter.h"
+#include "pym/PyLFSR.h"
 #include "pym/PyModule.h"
 
 

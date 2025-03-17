@@ -6,7 +6,7 @@
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyDiffBits.h"
+#include "pym/PyDiffBits.h"
 #include "pym/PyModule.h"
 
 

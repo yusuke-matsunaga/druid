@@ -57,11 +57,12 @@ PyMethodDef DetCond_methods[] = {
 
 PyObject*
 DetCond_type(
-  PyObject* self
+  PyObject* self,
+  void* Py_UNUSED(closure)
 )
 {
   auto& val = PyDetCond::Get(self);
-  return PyDetCondType::ToPyObject(val);
+  return PyDetCondType::ToPyObject(val.type());
 }
 
 // getsetter 定義
@@ -86,7 +87,7 @@ PyDetCond::init(
   DetCondType.tp_flags = Py_TPFLAGS_DEFAULT;
   DetCondType.tp_doc = PyDoc_STR("DetCond object");
   DetCondType.tp_methods = DetCond_methods;
-  DetCondType.getset = DetCond_type;
+  DetCondType.tp_getset = DetCond_getsetters;
   DetCondType.tp_new = DetCond_new;
   if ( PyType_Ready(&DetCondType) < 0 ) {
     return false;
@@ -146,7 +147,7 @@ PyDetCond::FromPyList(
   auto n = PySequence_Size(obj);
   cond_list.reserve(n);
   for ( SizeType i = 0; i < n; ++ i ) {
-    auto item_obj = PySequce_GetItem(obj, i);
+    auto item_obj = PySequence_GetItem(obj, i);
     if ( !Check(item_obj) ) {
       return false;
     }

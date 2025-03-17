@@ -6,9 +6,9 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyDtpgResult.h"
-#include "PyFaultStatus.h"
-#include "PyTestVector.h"
+#include "pym/PyDtpgResult.h"
+#include "pym/PyFaultStatus.h"
+#include "pym/PyTestVector.h"
 #include "pym/PyModule.h"
 
 

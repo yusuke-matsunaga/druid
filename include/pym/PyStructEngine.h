@@ -1,8 +1,8 @@
-#ifndef PYCONDGENMGR_H
-#define PYCONDGENMGR_H
+#ifndef PYSTRUCTENGINE_H
+#define PYSTRUCTENGINE_H
 
-/// @file PyCondGenMgr.h
-/// @brief PyCondGenMgr のヘッダファイル
+/// @file PyStructEngine.h
+/// @brief PyStructEngine のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2025 Yusuke Matsunaga
@@ -11,18 +11,18 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "CondGenMgr.h"
+#include "StructEngine.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyCondGenMgr PyCondGenMgr.h "PyCondGenMgr.h"
-/// @brief Python 用の CondGenMgr 拡張
+/// @class PyStructEngine PyStructEngine.h "PyStructEngine.h"
+/// @brief Python 用の StructEngine 拡張
 ///
 /// 複数の関数をひとまとめにしているだけなので実は名前空間として用いている．
 //////////////////////////////////////////////////////////////////////
-class PyCondGenMgr
+class PyStructEngine
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -37,24 +37,24 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief PyObject が CondGenMgr タイプか調べる．
+  /// @brief PyObject が StructEngine タイプか調べる．
   static
   bool
   Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
-  /// @brief CondGenMgr を表す PyObject から CondGenMgr を取り出す．
-  /// @return CondGenMgr を返す．
+  /// @brief StructEngine を表す PyObject から StructEngine を取り出す．
+  /// @return StructEngine を返す．
   ///
   /// Check(obj) == true であると仮定している．
   static
-  CondGenMgr&
+  StructEngine&
   Get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 
-  /// @brief CondGenMgr を表すオブジェクトの型定義を返す．
+  /// @brief StructEngine を表すオブジェクトの型定義を返す．
   static
   PyTypeObject*
   _typeobject();
@@ -63,4 +63,4 @@ public:
 
 END_NAMESPACE_DRUID
 
-#endif // PYCONDGENMGR_H
+#endif // PYSTRUCTENGINE_H

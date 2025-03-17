@@ -6,10 +6,10 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyTpgNetwork.h"
-#include "PyTestVector.h"
-#include "PyFaultType.h"
-#include "PyTpgFault.h"
+#include "pym/PyTpgNetwork.h"
+#include "pym/PyTestVector.h"
+#include "pym/PyFaultType.h"
+#include "pym/PyTpgFault.h"
 #include "Classifier.h"
 
 

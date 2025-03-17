@@ -6,15 +6,15 @@
 /// Copyright (C) 2022 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyFsim.h"
-#include "PyDiffBits.h"
-#include "PyDiffBitsArray.h"
-#include "PyTpgNetwork.h"
-#include "PyTestVector.h"
-#include "PyInputVector.h"
-#include "PyDffVector.h"
-#include "PyFaultType.h"
-#include "PyTpgFault.h"
+#include "pym/PyFsim.h"
+#include "pym/PyDiffBits.h"
+#include "pym/PyDiffBitsArray.h"
+#include "pym/PyTpgNetwork.h"
+#include "pym/PyTestVector.h"
+#include "pym/PyInputVector.h"
+#include "pym/PyDffVector.h"
+#include "pym/PyFaultType.h"
+#include "pym/PyTpgFault.h"
 #include "pym/PyModule.h"
 
 

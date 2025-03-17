@@ -6,7 +6,7 @@
 /// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyVal3.h"
+#include "pym/PyVal3.h"
 #include "pym/PyModule.h"
 
 

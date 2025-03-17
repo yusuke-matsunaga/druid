@@ -6,8 +6,8 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyLFSR.h"
-#include "PyBitVector.h"
+#include "pym/PyLFSR.h"
+#include "pym/PyBitVector.h"
 #include "pym/PyModule.h"
 
 

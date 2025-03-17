@@ -6,13 +6,13 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyDtpgMgr.h"
+#include "pym/PyDtpgMgr.h"
 #include "pym/PyModule.h"
-#include "PyTpgNetwork.h"
-#include "PyTpgFault.h"
-#include "PyTestVector.h"
-#include "PyDtpgResult.h"
-#include "PyDtpgStats.h"
+#include "pym/PyTpgNetwork.h"
+#include "pym/PyTpgFault.h"
+#include "pym/PyTestVector.h"
+#include "pym/PyDtpgResult.h"
+#include "pym/PyDtpgStats.h"
 #include "pym/PyJsonValue.h"
 
 

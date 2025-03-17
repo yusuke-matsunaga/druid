@@ -18,6 +18,7 @@ set ( dtpg_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgMgr.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgResult.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgStats.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyStructEngine.cc
   PARENT_SCOPE
   )
 

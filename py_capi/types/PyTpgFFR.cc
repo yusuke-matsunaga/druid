@@ -6,8 +6,8 @@
 /// Copyright (C) 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyTpgFFR.h"
-#include "PyTpgFault.h"
+#include "pym/PyTpgFFR.h"
+#include "pym/PyTpgFault.h"
 #include "pym/PyModule.h"
 
 

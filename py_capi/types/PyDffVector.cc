@@ -6,8 +6,8 @@
 /// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyDffVector.h"
-#include "PyVal3.h"
+#include "pym/PyDffVector.h"
+#include "pym/PyVal3.h"
 #include "pym/PyMt19937.h"
 #include "pym/PyModule.h"
 

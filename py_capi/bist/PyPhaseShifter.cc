@@ -6,8 +6,8 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyPhaseShifter.h"
-#include "PyBitVector.h"
+#include "pym/PyPhaseShifter.h"
+#include "pym/PyBitVector.h"
 #include "pym/PyModule.h"
 
 

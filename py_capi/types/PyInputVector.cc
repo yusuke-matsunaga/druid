@@ -6,8 +6,8 @@
 /// Copyright (C) 2022, 2023 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyInputVector.h"
-#include "PyVal3.h"
+#include "pym/PyInputVector.h"
+#include "pym/PyVal3.h"
 #include "pym/PyMt19937.h"
 #include "pym/PyModule.h"
 

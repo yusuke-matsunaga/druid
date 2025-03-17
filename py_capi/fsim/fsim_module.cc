@@ -10,9 +10,9 @@
 #include <Python.h>
 
 #include "druid.h"
-#include "PyFsim.h"
-#include "PyDiffBits.h"
-#include "PyDiffBitsArray.h"
+#include "pym/PyFsim.h"
+#include "pym/PyDiffBits.h"
+#include "pym/PyDiffBitsArray.h"
 #include "pym/PyModule.h"
 
 

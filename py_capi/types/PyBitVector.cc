@@ -6,8 +6,8 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PyBitVector.h"
-#include "PyVal3.h"
+#include "pym/PyBitVector.h"
+#include "pym/PyVal3.h"
 #include "pym/PyMt19937.h"
 #include "pym/PyModule.h"
 
