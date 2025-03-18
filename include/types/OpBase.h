@@ -45,6 +45,30 @@ public:
     return JsonValue::null();
   }
 
+  /// @brief bool型のオプションを取り出す．
+  ///
+  /// - keyword の値が存在しない場合には何もしない．
+  /// - keyword の値がブール値なら value に設定する．
+  /// - keyword の値がブール値以外なら std::invalid_argument 例外を送出する．
+  static
+  void
+  get_bool(
+    const JsonValue& option,
+    const string& keyword,
+    bool& value
+  )
+  {
+    if ( option.has_key(keyword) ) {
+      auto value_obj = option.at(keyword);
+      if ( !value_obj.is_bool() ) {
+	ostringstream buf;
+	buf << "'" << keyword << "' should be a bool";
+	throw std::invalid_argument{buf.str()};
+      }
+      value = value_obj.get_bool();
+    }
+  }
+
   /// @brief 文字列型のオプションを取り出す．
   ///
   /// - keyword の値が存在しない場合は何もしない．

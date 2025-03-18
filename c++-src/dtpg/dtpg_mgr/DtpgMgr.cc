@@ -15,60 +15,13 @@
 #include "TpgFFR.h"
 #include "TpgMFFC.h"
 #include "TpgNode.h"
+#include "OpBase.h"
 #include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
-
-// bool型のオプションを取り出す．
-//
-// 結果は value に上書きされる．
-// エラーが起こったら std::invalid_argument 例外を送出する．
-void
-get_bool(
-  const JsonValue& option,
-  const string& keyword,
-  bool& value
-)
-{
-  if ( option.has_key(keyword) ) {
-    auto value_obj = option.at(keyword);
-    if ( value_obj.is_bool() ) {
-      value = value_obj.get_bool();
-    }
-    else {
-      ostringstream buf;
-      buf << "'" << keyword << "' should be a bool";
-      throw std::invalid_argument{buf.str()};
-    }
-  }
-}
-
-// 文字列型のオプションを取り出す．
-//
-// 結果は value に上書きされる．
-// エラーが起こったら std::invalid_argument 例外を送出する．
-void
-get_string(
-  const JsonValue& option,
-  const string& keyword,
-  string& value
-)
-{
-  if ( option.has_key(keyword) ) {
-    auto value_obj = option.at(keyword);
-    if ( value_obj.is_string() ) {
-      value = value_obj.get_string();
-    }
-    else {
-      ostringstream buf;
-      buf << "'" << keyword << "' should be a string";
-      throw std::invalid_argument{buf.str()};
-    }
-  }
-}
 
 // FFR に関係する故障を求める．
 bool
@@ -162,14 +115,8 @@ DtpgMgr::run(
   string group_mode = "ffr";
   bool multi = false;
   // option の解析
-  if ( option.is_object() ) {
-    get_string(option, "group_mode", group_mode);
-    get_bool(option, "multi_thread", multi);
-  }
-  else if ( !option.is_null() ) {
-    // エラー
-    throw std::invalid_argument{"option should be a JsonObject"};
-  }
+  OpBase::get_string(option, "group_mode", group_mode);
+  OpBase::get_bool(option, "multi_thread", multi);
 
   // ノード番号をキーにして関係する故障のリストを格納する配列
   vector<vector<const TpgFault*>> node_fault_list_array(mNetwork.node_num());
