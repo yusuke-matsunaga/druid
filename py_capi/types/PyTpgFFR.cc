@@ -129,7 +129,7 @@ PyTpgFFR::init(
 
 // @brief TpgFFR を PyObject に変換する．
 PyObject*
-PyTpgFFRConv::operator()(
+PyTpgFFR::Conv::operator()(
   const TpgFFR* val
 )
 {
@@ -141,7 +141,7 @@ PyTpgFFRConv::operator()(
 
 // @brief PyObject* から const TpgFFR* を取り出す．
 bool
-PyTpgFFRDeconv::operator()(
+PyTpgFFR::Deconv::operator()(
   PyObject* obj,
   const TpgFFR*& val
 )

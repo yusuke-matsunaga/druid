@@ -11,6 +11,7 @@
 #include "pym/PyVal3.h"
 #include "pym/PyFaultType.h"
 #include "pym/PyMt19937.h"
+#include "pym/PyString.h"
 #include "pym/PyModule.h"
 
 
@@ -22,7 +23,7 @@ BEGIN_NONAMESPACE
 struct TestVectorObject
 {
   PyObject_HEAD
-  TestVector* mPtr;
+  TestVector mVal;
 };
 
 // Python 用のタイプ定義
@@ -61,10 +62,10 @@ TestVector_new(
   bool has_prev_state = static_cast<bool>(tmp);
   if ( bits_obj != nullptr ) {
     auto& bits = PyBitVector::_get_ref(bits_obj);
-    testvector_obj->mPtr = new TestVector{input_num, dff_num, has_prev_state, bits};
+    new (&testvector_obj->mVal) TestVector(input_num, dff_num, has_prev_state, bits);
   }
   else {
-    testvector_obj->mPtr = new TestVector{input_num, dff_num, has_prev_state};
+    new (&testvector_obj->mVal) TestVector(input_num, dff_num, has_prev_state);
   }
   return self;
 }
@@ -76,7 +77,7 @@ TestVector_dealloc(
 )
 {
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(self);
-  delete testvector_obj->mPtr;
+  testvector_obj->mVal.~TestVector();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -86,9 +87,8 @@ TestVector_str(
   PyObject* self
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto tmp_str = tv_obj->mPtr->bin_str();
-  return Py_BuildValue("s", tmp_str.c_str());
+  auto& tv = PyTestVector::_get_ref(self);
+  return PyString::ToPyObject(tv.bin_str());
 }
 
 PyObject*
@@ -97,9 +97,9 @@ TestVector_size(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  SizeType n = tv_obj->mPtr->vector_size();
-  return PyLong_FromLong(n);
+  auto& tv = PyTestVector::_get_ref(self);
+  auto val = tv.vector_size();
+  return PyLong_FromLong(val);
 }
 
 PyObject*
@@ -108,8 +108,8 @@ TestVector_input_num(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  SizeType n = tv_obj->mPtr->input_num();
+  auto& tv = PyTestVector::_get_ref(self);
+  SizeType n = tv.input_num();
   return PyLong_FromLong(n);
 }
 
@@ -119,8 +119,8 @@ TestVector_dff_num(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  SizeType n = tv_obj->mPtr->dff_num();
+  auto& tv = PyTestVector::_get_ref(self);
+  SizeType n = tv.dff_num();
   return PyLong_FromLong(n);
 }
 
@@ -130,8 +130,8 @@ TestVector_ppi_num(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  SizeType n = tv_obj->mPtr->ppi_num();
+  auto& tv = PyTestVector::_get_ref(self);
+  SizeType n = tv.ppi_num();
   return PyLong_FromLong(n);
 }
 
@@ -141,8 +141,8 @@ TestVector_has_aux_input(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  bool ans = tv_obj->mPtr->has_aux_input();
+  auto& tv = PyTestVector::_get_ref(self);
+  bool ans = tv.has_aux_input();
   return PyBool_FromLong(ans);
 }
 
@@ -156,8 +156,8 @@ TestVector_val(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto val = tv_obj->mPtr->val(pos);
+  auto& tv = PyTestVector::_get_ref(self);
+  auto val = tv.val(pos);
   return PyVal3::ToPyObject(val);
 }
 
@@ -171,8 +171,8 @@ TestVector_ppi_val(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto val = tv_obj->mPtr->ppi_val(pos);
+  auto& tv = PyTestVector::_get_ref(self);
+  auto val = tv.ppi_val(pos);
   return PyVal3::ToPyObject(val);
 }
 
@@ -186,8 +186,8 @@ TestVector_input_val(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto val = tv_obj->mPtr->input_val(pos);
+  auto& tv = PyTestVector::_get_ref(self);
+  auto val = tv.input_val(pos);
   return PyVal3::ToPyObject(val);
 }
 
@@ -201,8 +201,8 @@ TestVector_dff_val(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto val = tv_obj->mPtr->dff_val(pos);
+  auto& tv = PyTestVector::_get_ref(self);
+  auto val = tv.dff_val(pos);
   return PyVal3::ToPyObject(val);
 }
 
@@ -216,8 +216,8 @@ TestVector_aux_input_val(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto val = tv_obj->mPtr->aux_input_val(pos);
+  auto& tv = PyTestVector::_get_ref(self);
+  auto val = tv.aux_input_val(pos);
   return PyVal3::ToPyObject(val);
 }
 
@@ -227,8 +227,8 @@ TestVector_x_count(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto val = tv_obj->mPtr->x_count();
+  auto& tv = PyTestVector::_get_ref(self);
+  auto val = tv.x_count();
   return PyLong_FromLong(val);
 }
 
@@ -238,8 +238,8 @@ TestVector_bin_str(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto tmp_str = tv_obj->mPtr->bin_str();
+  auto& tv = PyTestVector::_get_ref(self);
+  auto tmp_str = tv.bin_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -249,8 +249,8 @@ TestVector_hex_str(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto tmp_str = tv_obj->mPtr->hex_str();
+  auto& tv = PyTestVector::_get_ref(self);
+  auto tmp_str = tv.hex_str();
   return Py_BuildValue("s", tmp_str.c_str());
 }
 
@@ -260,8 +260,8 @@ TestVector_init_method(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->init();
+  auto& tv = PyTestVector::_get_ref(self);
+  tv.init();
   Py_RETURN_NONE;
 }
 
@@ -336,8 +336,8 @@ TestVector_set_ppi_val(
   if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->set_ppi_val(pos, val);
+  auto& tv = PyTestVector::_get_ref(self);
+  tv.set_ppi_val(pos, val);
   Py_RETURN_NONE;
 }
 
@@ -356,8 +356,8 @@ TestVector_set_input_val(
   if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->set_input_val(pos, val);
+  auto& tv = PyTestVector::_get_ref(self);
+  tv.set_input_val(pos, val);
   Py_RETURN_NONE;
 }
 
@@ -376,8 +376,8 @@ TestVector_set_dff_val(
   if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->set_dff_val(pos, val);
+  auto& tv = PyTestVector::_get_ref(self);
+  tv.set_dff_val(pos, val);
   Py_RETURN_NONE;
 }
 
@@ -396,8 +396,8 @@ TestVector_set_aux_input_val(
   if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->set_aux_input_val(pos, val);
+  auto& tv = PyTestVector::_get_ref(self);
+  tv.set_aux_input_val(pos, val);
   Py_RETURN_NONE;
 }
 
@@ -413,8 +413,8 @@ TestVector_set_from_random(
   }
 
   auto& mt19937 = PyMt19937::_get_ref(obj);
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->set_from_random(mt19937);
+  auto& tv = PyTestVector::_get_ref(self);
+  tv.set_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -430,8 +430,8 @@ TestVector_fix_x_from_random(
   }
 
   auto& mt19937 = PyMt19937::_get_ref(obj);
-  auto tv_obj = reinterpret_cast<TestVectorObject*>(self);
-  tv_obj->mPtr->fix_x_from_random(mt19937);
+  auto& tv = PyTestVector::_get_ref(self);
+  tv.fix_x_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -498,12 +498,10 @@ TestVector_and(
     PyErr_SetString(PyExc_TypeError, "both arguments sould be TestVector type");
     return nullptr;
   }
-  auto tv1_obj = reinterpret_cast<TestVectorObject*>(self);
-  auto tv2_obj = reinterpret_cast<TestVectorObject*>(other);
-  auto ans = tv1_obj->mPtr->operator&(*tv2_obj->mPtr);
-  auto ans_obj = TestVector_new(&TestVectorType, nullptr, nullptr);
-  reinterpret_cast<TestVectorObject*>(ans_obj)->mPtr = new TestVector{ans};
-  return ans_obj;
+  auto& tv1 = PyTestVector::_get_ref(self);
+  auto& tv2 = PyTestVector::_get_ref(other);
+  auto ans = tv1 & tv2;
+  return PyTestVector::ToPyObject(ans);
 }
 
 // 数値演算メソッド定義
@@ -545,24 +543,24 @@ PyTestVector::init(
 
 // @brief TestVector を PyObject に変換する．
 PyObject*
-PyTestVectorConv::operator()(
-  TestVector val
+PyTestVector::Conv::operator()(
+  const TestVector& val
 )
 {
   auto obj = TestVectorType.tp_alloc(&TestVectorType, 0);
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(obj);
-  testvector_obj->mPtr = new TestVector{val};
+  new (&testvector_obj->mVal) TestVector(val);
   return obj;
 }
 
 // @brief PyObject* を TestVector に変換する
 bool
-PyTestVectorDeconv::operator()(
+PyTestVector::Deconv::operator()(
   PyObject* obj,
   TestVector& val
 )
 {
-  if ( PyTestVector::_check(obj) ) {
+  if ( PyTestVector::Check(obj) ) {
     val = PyTestVector::_get_ref(obj);
     return true;
   }
@@ -571,7 +569,7 @@ PyTestVectorDeconv::operator()(
 
 // @brief PyObject が TestVector タイプか調べる．
 bool
-PyTestVector::_check(
+PyTestVector::Check(
   PyObject* obj
 )
 {
@@ -579,13 +577,13 @@ PyTestVector::_check(
 }
 
 // @brief TestVector を表す PyObject から TestVector を取り出す．
-const TestVector&
+TestVector&
 PyTestVector::_get_ref(
   PyObject* obj
 )
 {
   auto testvector_obj = reinterpret_cast<TestVectorObject*>(obj);
-  return *testvector_obj->mPtr;
+  return testvector_obj->mVal;
 }
 
 // @brief TestVector を表すオブジェクトの型定義を返す．

@@ -136,8 +136,8 @@ DetCondType_richcmpfunc(
   int op
 )
 {
-  if ( PyDetCondType::_check(self) &&
-       PyDetCondType::_check(other) ) {
+  if ( PyDetCondType::Check(self) &&
+       PyDetCondType::Check(other) ) {
     auto val1 = PyDetCondType::_get(self);
     auto val2 = PyDetCondType::_get(other);
     bool res = false;
@@ -251,7 +251,7 @@ PyDetCondType::ToPyObject(
 
 // @brief PyObject が DetCond::Type タイプか調べる．
 bool
-PyDetCondType::_check(
+PyDetCondType::Check(
   PyObject* obj
 )
 {

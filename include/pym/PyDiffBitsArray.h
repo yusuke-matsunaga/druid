@@ -24,6 +24,28 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class PyDiffBitsArray
 {
+  using ElemType = DiffBitsArray;
+
+public:
+
+  /// @brief DiffBitsArray を PyObject* に変換するファンクタクラス
+  struct Conv {
+    PyObject*
+    operator()(
+      const DiffBitsArray& val
+    );
+  };
+
+  /// @brief PyObject* から DiffBitsArray を取り出すファンクタクラス
+  struct Deconv {
+    bool
+    operator()(
+      PyObject* obj,
+      DiffBitsArray& val
+    );
+  };
+
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -44,13 +66,30 @@ public:
   static
   PyObject*
   ToPyObject(
-    const DiffBitsArray& val  ///< [in] 値
-  );
+    const ElemType& val  ///< [in] 値
+  )
+  {
+    Conv conv;
+    return conv(val);
+  }
+
+  /// @brief PyObject から DiffBitsArray を取り出す．
+  /// @return 正しく変換できた時に true を返す．
+  static
+  bool
+  FromPyObject(
+    PyObject* obj, ///< [in] Python のオブジェクト
+    ElemType& val  ///< [out] 結果を格納する変数
+  )
+  {
+    Deconv deconv;
+    return deconv(obj, val);
+  }
 
   /// @brief PyObject が DiffBitsArray タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -59,7 +98,7 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  const DiffBitsArray&
+  DiffBitsArray&
   _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );

@@ -18,51 +18,6 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyTpgFFRConv PyTpgFFR.h "PyTpgFFR.h"
-/// @brief const TpgFFR* を PyObject* に変換するファンクタクラス
-///
-/// 実はただの関数
-//////////////////////////////////////////////////////////////////////
-class PyTpgFFRConv
-{
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief const TpgFFR* を PyObject* に変換する．
-  PyObject*
-  operator()(
-    const TpgFFR* val
-  );
-
-};
-
-
-//////////////////////////////////////////////////////////////////////
-/// @class PyTpgFFRDeconv PyTpgFFR.h "PyTpgFFR.h"
-/// @brief TpgFFR を取り出すファンクタクラス
-///
-/// 実はただの関数
-//////////////////////////////////////////////////////////////////////
-class PyTpgFFRDeconv
-{
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief PyObject* から const TpgFFR* を取り出す．
-  bool
-  operator()(
-    PyObject* obj,
-    const TpgFFR*& val
-  );
-
-};
-
-
-//////////////////////////////////////////////////////////////////////
 /// @class PyTpgFFR PyTpgFFR.h "PyTpgFFR.h"
 /// @brief Python 用の TpgFFR 拡張
 ///
@@ -70,6 +25,28 @@ public:
 //////////////////////////////////////////////////////////////////////
 class PyTpgFFR
 {
+public:
+
+  /// @brief const TpgFFR* を PyObject* に変換するファンクタクラス
+  struct Conv {
+    /// @brief const TpgFFR* を PyObject* に変換する．
+    PyObject*
+    operator()(
+      const TpgFFR* val
+    );
+  };
+
+  /// @brief TpgFFR を取り出すファンクタクラス
+  struct Deconv {
+    /// @brief PyObject* から const TpgFFR* を取り出す．
+    bool
+    operator()(
+      PyObject* obj,
+      const TpgFFR*& val
+    );
+  };
+
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -90,8 +67,34 @@ public:
     const TpgFFR* val ///< [in] 値
   )
   {
-    PyTpgFFRConv conv;
+    Conv conv;
     return conv(val);
+  }
+
+  /// @brief TpgFFR のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const vector<const TpgFFR*>& val_list ///< [in] 値のリスト
+  )
+  {
+    return PyList<const TpgFFR*, PyTpgFFR>::ToPyObject(val_list);
+  }
+
+  /// @brief PyObject から const TpgFFR* を取り出す．
+  /// @return 正しく変換できた時に true を返す．
+  static
+  bool
+  FromPyObject(
+    PyObject* obj,     ///< [in] Python のオブジェクト
+    const TpgFFR*& val ///< [out] 結果を格納する変数
+  )
+  {
+    Deconv deconv;
+    return deconv(obj, val);
   }
 
   /// @brief PyObject が TpgFFR タイプか調べる．
@@ -110,19 +113,6 @@ public:
   _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
-
-  /// @brief TpgFFR のリストを表す PyObject を作る．
-  /// @return 生成した PyObject を返す．
-  ///
-  /// 返り値は新しい参照が返される．
-  static
-  PyObject*
-  ToPyList(
-    const vector<const TpgFFR*>& val_list ///< [in] 値のリスト
-  )
-  {
-    return PyList::ToPyObject<const TpgFFR*, PyTpgFFRConv>(val_list);
-  }
 
   /// @brief TpgFFR を表すオブジェクトの型定義を返す．
   static

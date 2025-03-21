@@ -9,6 +9,7 @@
 #include "pym/PyInputVector.h"
 #include "pym/PyVal3.h"
 #include "pym/PyMt19937.h"
+#include "pym/PyString.h"
 #include "pym/PyModule.h"
 
 
@@ -20,7 +21,7 @@ BEGIN_NONAMESPACE
 struct InputVectorObject
 {
   PyObject_HEAD
-  InputVector* mPtr;
+  InputVector mVal;
 };
 
 // Python 用のタイプ定義
@@ -49,7 +50,7 @@ InputVector_new(
 
   auto obj = type->tp_alloc(type, 0);
   auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
-  inputvector_obj->mPtr = new InputVector{num};
+  new (&inputvector_obj->mVal) InputVector(num);
   return obj;
 }
 
@@ -60,7 +61,7 @@ InputVector_dealloc(
 )
 {
   auto inputvector_obj = reinterpret_cast<InputVectorObject*>(self);
-  delete inputvector_obj->mPtr;
+  inputvector_obj->mVal.~InputVector();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -82,9 +83,8 @@ InputVector_len(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  SizeType n = iv_obj->mPtr->len();
-  return PyLong_FromLong(n);
+  auto& val = PyInputVector::_get_ref(self);
+  return PyLong_FromLong(val.len());
 }
 
 PyObject*
@@ -97,9 +97,8 @@ InputVector_val(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto val = iv_obj->mPtr->val(pos);
-  return PyVal3::ToPyObject(val);
+  auto& val = PyInputVector::_get_ref(self);
+  return PyVal3::ToPyObject(val.val(pos));
 }
 
 PyObject*
@@ -108,9 +107,8 @@ InputVector_x_count(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto val = iv_obj->mPtr->x_count();
-  return PyLong_FromLong(val);
+  auto& val = PyInputVector::_get_ref(self);
+  return PyLong_FromLong(val.x_count());
 }
 
 PyObject*
@@ -119,9 +117,8 @@ InputVector_bin_str(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto tmp_str = iv_obj->mPtr->bin_str();
-  return Py_BuildValue("s", tmp_str.c_str());
+  auto& val = PyInputVector::_get_ref(self);
+  return PyString::ToPyObject(val.bin_str());
 }
 
 PyObject*
@@ -130,9 +127,8 @@ InputVector_hex_str(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  auto tmp_str = iv_obj->mPtr->hex_str();
-  return Py_BuildValue("s", tmp_str.c_str());
+  auto& val = PyInputVector::_get_ref(self);
+  return PyString::ToPyObject(val.hex_str());
 }
 
 PyObject*
@@ -141,8 +137,8 @@ InputVector_init_method(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mPtr->init();
+  auto& val = PyInputVector::_get_ref(self);
+  val.init();
   Py_RETURN_NONE;
 }
 
@@ -161,8 +157,8 @@ InputVector_set_val(
   if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mPtr->set_val(pos, val);
+  auto& iv = PyInputVector::_get_ref(self);
+  iv.set_val(pos, val);
   Py_RETURN_NONE;
 }
 
@@ -178,8 +174,8 @@ InputVector_set_from_random(
   }
 
   auto& mt19937 = PyMt19937::_get_ref(obj);
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mPtr->set_from_random(mt19937);
+  auto& iv = PyInputVector::_get_ref(self);
+  iv.set_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -195,8 +191,8 @@ InputVector_fix_x_from_random(
   }
 
   auto& mt19937 = PyMt19937::_get_ref(obj);
-  auto iv_obj = reinterpret_cast<InputVectorObject*>(self);
-  iv_obj->mPtr->fix_x_from_random(mt19937);
+  auto& iv = PyInputVector::_get_ref(self);
+  iv.fix_x_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -255,19 +251,33 @@ PyInputVector::init(
 
 // @brief InputVector を PyObject に変換する．
 PyObject*
-PyInputVectorConv::operator()(
+PyInputVector::Conv::operator()(
   const InputVector& val
 )
 {
   auto obj = InputVectorType.tp_alloc(&InputVectorType, 0);
   auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
-  (*inputvector_obj->mPtr) = val;
+  new (&inputvector_obj->mVal) InputVector(val);
   return obj;
+}
+
+// @brief PyObject* から InputVector を取り出す．
+bool
+PyInputVector::Deconv::operator()(
+  PyObject* obj,
+  InputVector& val
+)
+{
+  if ( PyInputVector::Check(obj) ) {
+    val = PyInputVector::_get_ref(obj);
+    return true;
+  }
+  return false;
 }
 
 // @brief PyObject が InputVector タイプか調べる．
 bool
-PyInputVector::_check(
+PyInputVector::Check(
   PyObject* obj
 )
 {
@@ -275,13 +285,13 @@ PyInputVector::_check(
 }
 
 // @brief InputVector を表す PyObject から InputVector を取り出す．
-const InputVector&
+InputVector&
 PyInputVector::_get_ref(
   PyObject* obj
 )
 {
   auto inputvector_obj = reinterpret_cast<InputVectorObject*>(obj);
-  return *inputvector_obj->mPtr;
+  return inputvector_obj->mVal;
 }
 
 // @brief InputVector を表すオブジェクトの型定義を返す．

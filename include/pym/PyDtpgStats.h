@@ -24,6 +24,30 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class PyDtpgStats
 {
+  using ElemType = DtpgStats;
+
+public:
+
+  /// @brief DtpgStats を PyObject* に変換するファンクタクラス
+  struct Conv {
+    /// @brief DtpgStats を PyObject* に変換する．
+    PyObject*
+    operator()(
+      const DtpgStats& val
+    );
+  };
+
+  /// @brief DtpgStats を取り出すファンクタクラス
+  struct Deconv {
+    /// @brief PyObject* から DtpgStats を取り出す．
+    bool
+    operator()(
+      PyObject* obj,
+      DtpgStats& val
+    );
+  };
+
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -44,13 +68,30 @@ public:
   static
   PyObject*
   ToPyObject(
-    const DtpgStats& val  ///< [in] 値
-  );
+    const ElemType& val  ///< [in] 値
+  )
+  {
+    Conv conv;
+    return conv(val);
+  }
+
+  /// @brief PyObject から DtpgStats を取り出す．
+  /// @return 正しく変換できた時に true を返す．
+  static
+  bool
+  FromPyObject(
+    PyObject* obj, ///< [in] Python のオブジェクト
+    ElemType& val  ///< [out] 結果を格納する変数
+  )
+  {
+    Deconv deconv;
+    return deconv(obj, val);
+  }
 
   /// @brief PyObject が DtpgStats タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -59,7 +100,7 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  const DtpgStats&
+  DtpgStats&
   _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );

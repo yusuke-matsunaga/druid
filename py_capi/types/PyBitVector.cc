@@ -20,7 +20,7 @@ BEGIN_NONAMESPACE
 struct BitVectorObject
 {
   PyObject_HEAD
-  BitVector* mPtr;
+  BitVector mVal;
 };
 
 // Python 用のタイプ定義
@@ -49,7 +49,7 @@ BitVector_new(
 
   auto self = type->tp_alloc(type, 0);
   auto bv_obj = reinterpret_cast<BitVectorObject*>(self);
-  bv_obj->mPtr = new BitVector{len};
+  new (&bv_obj->mVal) BitVector(len);
   return self;
 }
 
@@ -60,7 +60,7 @@ BitVector_dealloc(
 )
 {
   auto bv_obj = reinterpret_cast<BitVectorObject*>(self);
-  delete bv_obj->mPtr;
+  bv_obj->mVal.~BitVector();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -130,8 +130,7 @@ BitVector_init_method(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto bv_obj = reinterpret_cast<BitVectorObject*>(self);
-  auto& bv = *(bv_obj->mPtr);
+  auto& bv = PyBitVector::_get_ref(self);
   bv.init();
   Py_RETURN_NONE;
 }
@@ -220,8 +219,7 @@ BitVector_set_val(
   if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
-  auto bv_obj = reinterpret_cast<BitVectorObject*>(self);
-  auto& bv = *(bv_obj->mPtr);
+  auto& bv = PyBitVector::_get_ref(self);
   bv.set_val(pos, val);
   Py_RETURN_NONE;
 }
@@ -238,8 +236,7 @@ BitVector_set_from_random(
   }
 
   auto& mt19937 = PyMt19937::_get_ref(obj);
-  auto bv_obj = reinterpret_cast<BitVectorObject*>(self);
-  auto& bv = *(bv_obj->mPtr);
+  auto& bv = PyBitVector::_get_ref(self);
   bv.set_from_random(mt19937);
   Py_RETURN_NONE;
 }
@@ -256,8 +253,7 @@ BitVector_fix_x_from_random(
   }
 
   auto& mt19937 = PyMt19937::_get_ref(obj);
-  auto bv_obj = reinterpret_cast<BitVectorObject*>(self);
-  auto& bv = *(bv_obj->mPtr);
+  auto& bv = PyBitVector::_get_ref(self);
   bv.fix_x_from_random(mt19937);
   Py_RETURN_NONE;
 }
@@ -366,24 +362,25 @@ PyBitVector::init(
 
 // @brief BitVector を PyObject に変換する．
 PyObject*
-PyBitVectorConv::operator()(
-  BitVector val
+PyBitVector::Conv::operator()(
+  const BitVector& val
 )
 {
-  auto obj = BitVectorType.tp_alloc(&BitVectorType, 0);
+  auto type = PyBitVector::_typeobject();
+  auto obj = type->tp_alloc(type, 0);
   auto bv_obj = reinterpret_cast<BitVectorObject*>(obj);
-  bv_obj->mPtr = new BitVector{val};
+  new (&bv_obj->mVal) BitVector(val);
   return obj;
 }
 
 // @brief PyObject* から const BitVector* を取り出す．
 bool
-PyBitVectorDeconv::operator()(
+PyBitVector::Deconv::operator()(
   PyObject* obj,
   BitVector& val
 )
 {
-  if ( PyBitVector::_check(obj) ) {
+  if ( PyBitVector::Check(obj) ) {
     val = PyBitVector::_get_ref(obj);
     return true;
   }
@@ -392,7 +389,7 @@ PyBitVectorDeconv::operator()(
 
 // @brief PyObject が BitVector タイプか調べる．
 bool
-PyBitVector::_check(
+PyBitVector::Check(
   PyObject* obj
 )
 {
@@ -400,13 +397,13 @@ PyBitVector::_check(
 }
 
 // @brief BitVector を表す PyObject から BitVector を取り出す．
-const BitVector&
+BitVector&
 PyBitVector::_get_ref(
   PyObject* obj
 )
 {
   auto bv_obj = reinterpret_cast<BitVectorObject*>(obj);
-  return *bv_obj->mPtr;
+  return bv_obj->mVal;
 }
 
 // @brief BitVector を表すオブジェクトの型定義を返す．

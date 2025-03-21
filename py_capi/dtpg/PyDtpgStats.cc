@@ -55,7 +55,7 @@ DtpgStats_dealloc(
 )
 {
   auto dtpg_obj = reinterpret_cast<DtpgStatsObject*>(self);
-  // 特に DtpgStats 用の終了処理は必要ない．
+  dtpg_obj->mVal.~DtpgStats();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -70,8 +70,8 @@ DtpgStats_update_det(
   if ( !PyArg_ParseTuple(args, "dd", &sat_time, &backtrace_time) ) {
     return nullptr;
   }
-  auto stats_obj = reinterpret_cast<DtpgStatsObject*>(self);
-  auto& stats = stats_obj->mVal;
+
+  auto& stats = PyDtpgStats::_get_ref(self);
   stats.update_det(sat_time, backtrace_time);
   Py_RETURN_NONE;
 }
@@ -86,8 +86,8 @@ DtpgStats_update_untest(
   if ( !PyArg_ParseTuple(args, "d", &sat_time) ) {
     return nullptr;
   }
-  auto stats_obj = reinterpret_cast<DtpgStatsObject*>(self);
-  auto& stats = stats_obj->mVal;
+
+  auto& stats = PyDtpgStats::_get_ref(self);
   stats.update_untest(sat_time);
   Py_RETURN_NONE;
 }
@@ -102,8 +102,8 @@ DtpgStats_update_abort(
   if ( !PyArg_ParseTuple(args, "d", &sat_time) ) {
     return nullptr;
   }
-  auto stats_obj = reinterpret_cast<DtpgStatsObject*>(self);
-  auto& stats = stats_obj->mVal;
+
+  auto& stats = PyDtpgStats::_get_ref(self);
   stats.update_abort(sat_time);
   Py_RETURN_NONE;
 }
@@ -276,7 +276,7 @@ PyDtpgStats::init(
 
 // @brief DtpgStats を表す PyObject を作る．
 PyObject*
-PyDtpgStats::ToPyObject(
+PyDtpgStats::Conv::operator()(
   const DtpgStats& val
 )
 {
@@ -286,9 +286,23 @@ PyDtpgStats::ToPyObject(
   return obj;
 }
 
+// @brief PyObject* から DtpgStats を取り出す．
+bool
+PyDtpgStats::Deconv::operator()(
+  PyObject* obj,
+  DtpgStats& val
+)
+{
+  if ( PyDtpgStats::Check(obj) ) {
+    val = PyDtpgStats::_get_ref(obj);
+    return true;
+  }
+  return false;
+}
+
 // @brief PyObject が DtpgStats タイプか調べる．
 bool
-PyDtpgStats::_check(
+PyDtpgStats::Check(
   PyObject* obj
 )
 {
@@ -296,7 +310,7 @@ PyDtpgStats::_check(
 }
 
 // @brief DtpgStats を表す PyObject から DtpgStats を取り出す．
-const DtpgStats&
+DtpgStats&
 PyDtpgStats::_get_ref(
   PyObject* obj
 )

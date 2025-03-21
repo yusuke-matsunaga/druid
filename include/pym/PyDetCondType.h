@@ -50,7 +50,7 @@ public:
   /// @brief PyObject が DetCond::Type タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 

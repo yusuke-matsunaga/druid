@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "pym/PyFaultStatus.h"
+#include "pym/PyString.h"
 #include "pym/PyModule.h"
 
 
@@ -104,10 +105,9 @@ FaultStatus_repr(
   PyObject* self
 )
 {
-  auto val = PyFaultStatus::_get(self);
+  auto val = PyFaultStatus::_get_ref(self);
   // val から 文字列を作る．
-  const char* tmp_str = str(val);
-  return Py_BuildValue("s", tmp_str);
+  return PyString::ToPyObject(str(val));
 }
 
 // メソッド定義
@@ -123,10 +123,10 @@ FaultStatus_richcmpfunc(
   int op
 )
 {
-  if ( PyFaultStatus::_check(self) &&
-       PyFaultStatus::_check(other) ) {
-    auto val1 = PyFaultStatus::_get(self);
-    auto val2 = PyFaultStatus::_get(other);
+  if ( PyFaultStatus::Check(self) &&
+       PyFaultStatus::Check(other) ) {
+    auto val1 = PyFaultStatus::_get_ref(self);
+    auto val2 = PyFaultStatus::_get_ref(other);
     if ( op == Py_EQ ) {
       return PyBool_FromLong(val1 == val2);
     }
@@ -216,25 +216,10 @@ PyFaultStatus::init(
   return false;
 }
 
-// @brief PyObject から FaultStatus を取り出す．
-bool
-PyFaultStatus::FromPyObject(
-  PyObject* obj,
-  FaultStatus& val
-)
-{
-  if ( !_check(obj) ) {
-    PyErr_SetString(PyExc_TypeError, "object is not a FaultStatus type");
-    return false;
-  }
-  val = _get(obj);
-  return true;
-}
-
 // @brief FaultStatus を PyObject に変換する．
 PyObject*
-PyFaultStatus::ToPyObject(
-  FaultStatus val
+PyFaultStatus::Conv::operator()(
+  const FaultStatus& val
 )
 {
   PyObject* obj = nullptr;
@@ -248,9 +233,23 @@ PyFaultStatus::ToPyObject(
   return obj;
 }
 
+// @brief PyObject* から FaultStatus を取り出す．
+bool
+PyFaultStatus::Deconv::operator()(
+  PyObject* obj,
+  FaultStatus& val
+)
+{
+  if ( PyFaultStatus::Check(obj) ) {
+    val = PyFaultStatus::_get_ref(obj);
+    return true;
+  }
+  return false;
+}
+
 // @brief PyObject が FaultStatus タイプか調べる．
 bool
-PyFaultStatus::_check(
+PyFaultStatus::Check(
   PyObject* obj
 )
 {
@@ -258,8 +257,8 @@ PyFaultStatus::_check(
 }
 
 // @brief FaultStatus を表す PyObject から FaultStatus を取り出す．
-FaultStatus
-PyFaultStatus::_get(
+FaultStatus&
+PyFaultStatus::_get_ref(
   PyObject* obj
 )
 {

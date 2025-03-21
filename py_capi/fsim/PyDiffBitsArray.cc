@@ -18,7 +18,7 @@ BEGIN_NONAMESPACE
 struct DiffBitsArrayObject
 {
   PyObject_HEAD
-  DiffBitsArray* mPtr;
+  DiffBitsArray mVal;
 };
 
 // Python 用のタイプ定義
@@ -45,7 +45,7 @@ DiffBitsArray_dealloc(
 )
 {
   auto dbits_obj = reinterpret_cast<DiffBitsArrayObject*>(self);
-  delete dbits_obj->mPtr;
+  dbits_obj->mVal.~DiffBitsArray();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -60,8 +60,7 @@ DiffBitsArray_add_output(
     return nullptr;
   }
 
-  auto dbits_obj = reinterpret_cast<DiffBitsArrayObject*>(self);
-  auto& dbarray = *dbits_obj->mPtr;
+  auto& dbarray = PyDiffBitsArray::_get_ref(self);
   dbarray.add_output(pos, PV_ALL1); // 嘘！
 
   Py_RETURN_NONE;
@@ -114,8 +113,8 @@ DiffBitsArray_richcompfunc(
   int op
 )
 {
-  if ( PyDiffBitsArray::_check(self) &&
-       PyDiffBitsArray::_check(other) ) {
+  if ( PyDiffBitsArray::Check(self) &&
+       PyDiffBitsArray::Check(other) ) {
     auto& val1 = PyDiffBitsArray::_get_ref(self);
     auto& val2 = PyDiffBitsArray::_get_ref(other);
     if ( op == Py_EQ ) {
@@ -173,20 +172,34 @@ PyDiffBitsArray::init(
 
 // @brief DiffBitsArray を表す PyObject を作る．
 PyObject*
-PyDiffBitsArray::ToPyObject(
+PyDiffBitsArray::Conv::operator()(
   const DiffBitsArray& val
 )
 {
-  auto type = _typeobject();
+  auto type = PyDiffBitsArray::_typeobject();
   auto obj = type->tp_alloc(type, 0);
   auto dbits_obj = reinterpret_cast<DiffBitsArrayObject*>(obj);
-  dbits_obj->mPtr = new DiffBitsArray{val};
+  new (&dbits_obj->mVal) DiffBitsArray(val);
   return obj;
+}
+
+// @brief PyObject* から DiffBitsArray を取り出す．
+bool
+PyDiffBitsArray::Deconv::operator()(
+  PyObject* obj,
+  DiffBitsArray& val
+)
+{
+  if ( PyDiffBitsArray::Check(obj) ) {
+    val = PyDiffBitsArray::_get_ref(obj);
+    return true;
+  }
+  return false;
 }
 
 // @brief PyObject が DiffBitsArray タイプか調べる．
 bool
-PyDiffBitsArray::_check(
+PyDiffBitsArray::Check(
   PyObject* obj
 )
 {
@@ -194,13 +207,13 @@ PyDiffBitsArray::_check(
 }
 
 // @brief DiffBitsArray を表す PyObject から DiffBitsArray を取り出す．
-const DiffBitsArray&
+DiffBitsArray&
 PyDiffBitsArray::_get_ref(
   PyObject* obj
 )
 {
   auto dbits_obj = reinterpret_cast<DiffBitsArrayObject*>(obj);
-  return *dbits_obj->mPtr;
+  return dbits_obj->mVal;
 }
 
 // @brief DiffBitsArray を表すオブジェクトの型定義を返す．

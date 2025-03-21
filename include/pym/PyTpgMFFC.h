@@ -18,51 +18,6 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyTpgMFFCConv PyTpgMFFC.h "PyTpgMFFC.h"
-/// @brief const TpgMFFC* を PyObject* に変換するファンクタクラス
-///
-/// 実はただの関数
-//////////////////////////////////////////////////////////////////////
-class PyTpgMFFCConv
-{
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief const TpgMFFC* を PyObject* に変換する．
-  PyObject*
-  operator()(
-    const TpgMFFC* val
-  );
-
-};
-
-
-//////////////////////////////////////////////////////////////////////
-/// @class PyTpgMFFCDeconv PyTpgMFFC.h "PyTpgMFFC.h"
-/// @brief TpgMFFC を取り出すファンクタクラス
-///
-/// 実はただの関数
-//////////////////////////////////////////////////////////////////////
-class PyTpgMFFCDeconv
-{
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief PyObject* から const TpgMFFC* を取り出す．
-  bool
-  operator()(
-    PyObject* obj,
-    const TpgMFFC*& val
-  );
-
-};
-
-
-//////////////////////////////////////////////////////////////////////
 /// @class PyTpgMFFC PyTpgMFFC.h "PyTpgMFFC.h"
 /// @brief Python 用の TpgMFFC 拡張
 ///
@@ -70,6 +25,28 @@ public:
 //////////////////////////////////////////////////////////////////////
 class PyTpgMFFC
 {
+public:
+
+  /// @brief const TpgMFFC* を PyObject* に変換するファンクタクラス
+  struct Conv {
+    /// @brief const TpgMFFC* を PyObject* に変換する．
+    PyObject*
+    operator()(
+      const TpgMFFC* val
+    );
+  };
+
+  /// @brief TpgMFFC を取り出すファンクタクラス
+  struct Deconv {
+    /// @brief PyObject* から const TpgMFFC* を取り出す．
+    bool
+    operator()(
+      PyObject* obj,
+      const TpgMFFC*& val
+    );
+  };
+
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -93,8 +70,34 @@ public:
     const TpgMFFC* val ///< [in] 値
   )
   {
-    PyTpgMFFCConv conv;
+    Conv conv;
     return conv(val);
+  }
+
+  /// @brief TpgMFFC のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const vector<const TpgMFFC*>& val_list ///< [in] 値のリスト
+  )
+  {
+    return PyList<const TpgMFFC*, PyTpgMFFC>::ToPyObject(val_list);
+  }
+
+  /// @brief PyObject から const TpgMFFC* を取り出す．
+  /// @return 正しく変換できた時に true を返す．
+  static
+  bool
+  FromPyObject(
+    PyObject* obj,      ///< [in] Python のオブジェクト
+    const TpgMFFC*& val ///< [out] 結果を格納する変数
+  )
+  {
+    Deconv deconv;
+    return deconv(obj, val);
   }
 
   /// @brief PyObject が TpgMFFC タイプか調べる．
@@ -113,19 +116,6 @@ public:
   _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
-
-  /// @brief TpgMFFC のリストを表す PyObject を作る．
-  /// @return 生成した PyObject を返す．
-  ///
-  /// 返り値は新しい参照が返される．
-  static
-  PyObject*
-  ToPyList(
-    const vector<const TpgMFFC*>& val_list ///< [in] 値のリスト
-  )
-  {
-    return PyList::ToPyObject<const TpgMFFC*, PyTpgMFFCConv>(val_list);
-  }
 
   /// @brief TpgMFFC を表すオブジェクトの型定義を返す．
   static

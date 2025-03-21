@@ -50,7 +50,8 @@ make_cond(
   }
   auto& network = PyTpgNetwork::_get_ref(network_obj);
   JsonValue option;
-  if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
+  PyJsonValue::Deconv json_dec;
+  if ( !json_dec(option_obj, option) ) {
     PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
     return nullptr;
   }
@@ -91,7 +92,8 @@ make_cnf(
     return nullptr;
   }
   JsonValue option;
-  if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
+  PyJsonValue::Deconv json_dec;
+  if ( !json_dec(option_obj, option) ) {
     PyErr_SetString(PyExc_TypeError, "'option' should be a JsonValue type");
     return nullptr;
   }

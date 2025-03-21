@@ -61,7 +61,7 @@ DetCond_type(
   void* Py_UNUSED(closure)
 )
 {
-  auto& val = PyDetCond::_get(self);
+  auto& val = PyDetCond::_get_ref(self);
   return PyDetCondType::ToPyObject(val.type());
 }
 
@@ -104,7 +104,7 @@ PyDetCond::init(
 
 // @brief DetCond を PyObject に変換する．
 PyObject*
-PyDetCondConv::operator()(
+PyDetCond::Conv::operator()(
   const DetCond& val
 )
 {
@@ -116,13 +116,13 @@ PyDetCondConv::operator()(
 
 // @brief PyObject* から DetCond を取り出す．
 bool
-PyDetCondDeconv::operator()(
+PyDetCond::Deconv::operator()(
   PyObject* obj,
   DetCond& val
 )
 {
-  if ( PyDetCond::_check(obj) ) {
-    val = PyDetCond::_get(obj);
+  if ( PyDetCond::Check(obj) ) {
+    val = PyDetCond::_get_ref(obj);
     return true;
   }
   return false;
@@ -130,7 +130,7 @@ PyDetCondDeconv::operator()(
 
 // @brief PyObject が DetCond タイプか調べる．
 bool
-PyDetCond::_check(
+PyDetCond::Check(
   PyObject* obj
 )
 {
@@ -138,8 +138,8 @@ PyDetCond::_check(
 }
 
 // @brief DetCond を表す PyObject から DetCond を取り出す．
-const DetCond&
-PyDetCond::_get(
+DetCond&
+PyDetCond::_get_ref(
   PyObject* obj
 )
 {

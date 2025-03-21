@@ -24,7 +24,7 @@ BEGIN_NONAMESPACE
 struct DtpgMgrObject
 {
   PyObject_HEAD
-  DtpgMgr* mVal;
+  DtpgMgr mVal;
 };
 
 // Python 用のタイプ定義
@@ -60,7 +60,7 @@ DtpgMgr_new(
   }
   auto self = type->tp_alloc(type, 0);
   auto mgr_obj = reinterpret_cast<DtpgMgrObject*>(self);
-  mgr_obj->mVal = new DtpgMgr{network, fault_list};
+  new (&mgr_obj->mVal) DtpgMgr{network, fault_list};
   return self;
 }
 
@@ -71,7 +71,7 @@ DtpgMgr_dealloc(
 )
 {
   auto mgr_obj = reinterpret_cast<DtpgMgrObject*>(self);
-  delete mgr_obj->mVal;
+  mgr_obj->mVal.~DtpgMgr();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -113,7 +113,8 @@ DtpgMgr_run(
     return nullptr;
   }
   JsonValue option;
-  if ( !PyJsonValue::ConvToJsonValue(option_obj, option) ) {
+  PyJsonValue::Deconv json_dec;
+  if ( !json_dec(option_obj, option) ) {
     PyErr_SetString(PyExc_ValueError, "illegal value for option");
     return nullptr;
   }
@@ -337,7 +338,7 @@ PyDtpgMgr::init(
 
 // @brief PyObject が DtpgMgr タイプか調べる．
 bool
-PyDtpgMgr::_check(
+PyDtpgMgr::Check(
   PyObject* obj
 )
 {
@@ -351,7 +352,7 @@ PyDtpgMgr::_get_ref(
 )
 {
   auto mgr_obj = reinterpret_cast<DtpgMgrObject*>(obj);
-  return *mgr_obj->mVal;
+  return mgr_obj->mVal;
 }
 
 // @brief DtpgMgr を表すオブジェクトの型定義を返す．

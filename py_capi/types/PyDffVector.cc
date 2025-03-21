@@ -9,6 +9,7 @@
 #include "pym/PyDffVector.h"
 #include "pym/PyVal3.h"
 #include "pym/PyMt19937.h"
+#include "pym/PyString.h"
 #include "pym/PyModule.h"
 
 
@@ -20,7 +21,7 @@ BEGIN_NONAMESPACE
 struct DffVectorObject
 {
   PyObject_HEAD
-  DffVector* mPtr;
+  DffVector mVal;
 };
 
 // Python 用のタイプ定義
@@ -48,7 +49,7 @@ DffVector_new(
   }
   auto obj = type->tp_alloc(type, 0);
   auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
-  dffvector_obj->mPtr = new DffVector{num};
+  new (&dffvector_obj->mVal) DffVector(num);
   return obj;
 }
 
@@ -59,7 +60,7 @@ DffVector_dealloc(
 )
 {
   auto dffvector_obj = reinterpret_cast<DffVectorObject*>(self);
-  delete dffvector_obj->mPtr;
+  dffvector_obj->mVal.~DffVector();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -69,9 +70,8 @@ DffVector_str(
   PyObject* self
 )
 {
-  auto tv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto tmp_str = tv_obj->mPtr->bin_str();
-  return Py_BuildValue("s", tmp_str.c_str());
+  auto& dv = PyDffVector::_get_ref(self);
+  return PyString::ToPyObject(dv.bin_str());
 }
 
 PyObject*
@@ -80,9 +80,8 @@ DffVector_len(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  SizeType n = dv_obj->mPtr->len();
-  return PyLong_FromLong(n);
+  auto& dv = PyDffVector::_get_ref(self);
+  return PyLong_FromLong(dv.len());
 }
 
 PyObject*
@@ -95,8 +94,8 @@ DffVector_val(
   if ( !PyArg_ParseTuple(args, "i", &pos) ) {
     return nullptr;
   }
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto val = dv_obj->mPtr->val(pos);
+  auto& dv = PyDffVector::_get_ref(self);
+  auto val = dv.val(pos);
   return PyVal3::ToPyObject(val);
 }
 
@@ -106,8 +105,8 @@ DffVector_x_count(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto val = dv_obj->mPtr->x_count();
+  auto& dv = PyDffVector::_get_ref(self);
+  auto val = dv.x_count();
   return PyLong_FromLong(val);
 }
 
@@ -117,9 +116,8 @@ DffVector_bin_str(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto tmp_str = dv_obj->mPtr->bin_str();
-  return Py_BuildValue("s", tmp_str.c_str());
+  auto& dv = PyDffVector::_get_ref(self);
+  return PyString::ToPyObject(dv.bin_str());
 }
 
 PyObject*
@@ -128,9 +126,8 @@ DffVector_hex_str(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  auto tmp_str = dv_obj->mPtr->hex_str();
-  return Py_BuildValue("s", tmp_str.c_str());
+  auto& dv = PyDffVector::_get_ref(self);
+  return PyString::ToPyObject(dv.hex_str());
 }
 
 PyObject*
@@ -139,8 +136,8 @@ DffVector_init_method(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mPtr->init();
+  auto& dv = PyDffVector::_get_ref(self);
+  dv.init();
   Py_RETURN_NONE;
 }
 
@@ -159,8 +156,8 @@ DffVector_set_val(
   if ( !PyVal3::FromPyObject(obj, val) ) {
     return nullptr;
   }
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mPtr->set_val(pos, val);
+  auto& dv = PyDffVector::_get_ref(self);
+  dv.set_val(pos, val);
   Py_RETURN_NONE;
 }
 
@@ -176,8 +173,8 @@ DffVector_set_from_random(
   }
 
   auto& mt19937 = PyMt19937::_get_ref(obj);
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mPtr->set_from_random(mt19937);
+  auto& dv = PyDffVector::_get_ref(self);
+  dv.set_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -193,8 +190,8 @@ DffVector_fix_x_from_random(
   }
 
   auto& mt19937 = PyMt19937::_get_ref(obj);
-  auto dv_obj = reinterpret_cast<DffVectorObject*>(self);
-  dv_obj->mPtr->fix_x_from_random(mt19937);
+  auto& dv = PyDffVector::_get_ref(self);
+  dv.fix_x_from_random(mt19937);
   Py_RETURN_NONE;
 }
 
@@ -252,19 +249,33 @@ PyDffVector::init(
 
 // @brief DffVector を PyObject に変換する．
 PyObject*
-PyDffVectorConv::operator()(
+PyDffVector::Conv::operator()(
   const DffVector& val
 )
 {
   auto obj = DffVectorType.tp_alloc(&DffVectorType, 0);
   auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
-  (*dffvector_obj->mPtr) = val;
+  new (&dffvector_obj->mVal) DffVector(val);
   return obj;
+}
+
+// @brief PyObject* から DffVector を取り出す．
+bool
+PyDffVector::Deconv::operator()(
+  PyObject* obj,
+  DffVector& val
+)
+{
+  if ( PyDffVector::Check(obj) ) {
+    val = PyDffVector::_get_ref(obj);
+    return true;
+  }
+  return false;
 }
 
 // @brief PyObject が DffVector タイプか調べる．
 bool
-PyDffVector::_check(
+PyDffVector::Check(
   PyObject* obj
 )
 {
@@ -272,13 +283,13 @@ PyDffVector::_check(
 }
 
 // @brief DffVector を表す PyObject から DffVector を取り出す．
-const DffVector&
+DffVector&
 PyDffVector::_get_ref(
   PyObject* obj
 )
 {
   auto dffvector_obj = reinterpret_cast<DffVectorObject*>(obj);
-  return *dffvector_obj->mPtr;
+  return dffvector_obj->mVal;
 }
 
 // @brief DffVector を表すオブジェクトの型定義を返す．

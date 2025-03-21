@@ -129,7 +129,7 @@ PyTpgMFFC::init(
 
 // @brief TpgMFFC を PyObject に変換する．
 PyObject*
-PyTpgMFFCConv::operator()(
+PyTpgMFFC::Conv::operator()(
   const TpgMFFC* val
 )
 {
@@ -141,7 +141,7 @@ PyTpgMFFCConv::operator()(
 
 // @brief PyObject* から const TpgFFR* を取り出す．
 bool
-PyTpgMFFCDeconv::operator()(
+PyTpgMFFC::Deconv::operator()(
   PyObject* obj,
   const TpgMFFC*& val
 )

@@ -40,7 +40,7 @@ public:
   /// @brief PyObject が DtpgMgr タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 

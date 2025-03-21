@@ -18,7 +18,7 @@ BEGIN_NONAMESPACE
 struct DiffBitsObject
 {
   PyObject_HEAD
-  DiffBits* mPtr;
+  DiffBits mVal;
 };
 
 // Python 用のタイプ定義
@@ -45,7 +45,7 @@ DiffBits_dealloc(
 )
 {
   auto dbits_obj = reinterpret_cast<DiffBitsObject*>(self);
-  delete dbits_obj->mPtr;
+  dbits_obj->mVal.~DiffBits();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -60,9 +60,7 @@ DiffBits_add_output(
     return nullptr;
   }
 
-  // _get_ref() と同じコードだが const 属性がない．
-  auto dbits_obj = reinterpret_cast<DiffBitsObject*>(self);
-  auto& dbits = *dbits_obj->mPtr;
+  auto& dbits = PyDiffBits::_get_ref(self);
   dbits.add_output(pos);
 
   Py_RETURN_NONE;
@@ -115,8 +113,8 @@ DiffBits_richcompfunc(
   int op
 )
 {
-  if ( PyDiffBits::_check(self) &&
-       PyDiffBits::_check(other) ) {
+  if ( PyDiffBits::Check(self) &&
+       PyDiffBits::Check(other) ) {
     auto& val1 = PyDiffBits::_get_ref(self);
     auto& val2 = PyDiffBits::_get_ref(other);
     if ( op == Py_EQ ) {
@@ -174,20 +172,34 @@ PyDiffBits::init(
 
 // @brief DiffBits を表す PyObject を作る．
 PyObject*
-PyDiffBits::ToPyObject(
+PyDiffBits::Conv::operator()(
   const DiffBits& val
 )
 {
-  auto type = _typeobject();
+  auto type = PyDiffBits::_typeobject();
   auto obj = type->tp_alloc(type, 0);
   auto dbits_obj = reinterpret_cast<DiffBitsObject*>(obj);
-  dbits_obj->mPtr = new DiffBits{val};
+  new (&dbits_obj->mVal) DiffBits(val);
   return obj;
+}
+
+// @brief PyObject* から DiffBits を取り出す．
+bool
+PyDiffBits::Deconv::operator()(
+  PyObject* obj,
+  DiffBits& val
+)
+{
+  if ( PyDiffBits::Check(obj) ) {
+    val = PyDiffBits::_get_ref(obj);
+    return true;
+  }
+  return false;
 }
 
 // @brief PyObject が DiffBits タイプか調べる．
 bool
-PyDiffBits::_check(
+PyDiffBits::Check(
   PyObject* obj
 )
 {
@@ -195,13 +207,13 @@ PyDiffBits::_check(
 }
 
 // @brief DiffBits を表す PyObject から DiffBits を取り出す．
-const DiffBits&
+DiffBits&
 PyDiffBits::_get_ref(
   PyObject* obj
 )
 {
   auto dbits_obj = reinterpret_cast<DiffBitsObject*>(obj);
-  return *dbits_obj->mPtr;
+  return dbits_obj->mVal;
 }
 
 // @brief DiffBits を表すオブジェクトの型定義を返す．

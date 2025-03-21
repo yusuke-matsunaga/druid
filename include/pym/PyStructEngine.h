@@ -24,6 +24,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class PyStructEngine
 {
+  // このクラスは Conv/Deconv を持たない．
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -40,7 +42,7 @@ public:
   /// @brief PyObject が StructEngine タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 

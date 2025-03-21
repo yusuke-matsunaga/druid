@@ -24,6 +24,28 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class PyFaultType
 {
+  using ElemType = FaultType;
+
+public:
+
+  /// @brief FaultType を PyObject* に変換するファンクタクラス
+  struct Conv {
+    PyObject*
+    operator()(
+      const FaultType& val
+    );
+  };
+
+  /// @brief PyObject* から FaultType を取り出すファンクタクラス
+  struct Deconv {
+    bool
+    operator()(
+      PyObject* obj,
+      FaultType& val
+    );
+  };
+
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -37,17 +59,6 @@ public:
     PyObject* m ///< [in] 親のモジュールを表す PyObject
   );
 
-  /// @brief FaultType を表す PyObject から FaultType を取り出す．
-  /// @return 変換が成功したら true を返す．
-  ///
-  /// エラーの場合にはPython例外がセットされる．
-  static
-  bool
-  FromPyObject(
-    PyObject* obj,  ///< [in] FaultType を表す PyObject
-    FaultType& val ///< [out] 変換された FaultType を格納する変数
-  );
-
   /// @brief FaultType を表す PyObject を作る．
   /// @return 生成した PyObject を返す．
   ///
@@ -55,13 +66,30 @@ public:
   static
   PyObject*
   ToPyObject(
-    FaultType val ///< [in] 値
-  );
+    const FaultType& val ///< [in] 値
+  )
+  {
+    Conv conv;
+    return conv(val);
+  }
+
+  /// @brief PyObject から FaultType を取り出す．
+  /// @return 正しく変換できた時に true を返す．
+  static
+  bool
+  FromPyObject(
+    PyObject* obj, ///< [in] Python のオブジェクト
+    ElemType& val  ///< [out] 結果を格納する変数
+  )
+  {
+    Deconv deconv;
+    return deconv(obj, val);
+  }
 
   /// @brief PyObject が FaultType タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -70,8 +98,8 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  FaultType
-  _get(
+  FaultType&
+  _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

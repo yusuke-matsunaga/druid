@@ -23,7 +23,7 @@ BEGIN_NONAMESPACE
 struct TpgNetworkObject
 {
   PyObject_HEAD
-  TpgNetwork* mPtr;
+  TpgNetwork mVal;
 };
 
 // Python 用のタイプ定義
@@ -50,7 +50,7 @@ TpgNetwork_dealloc(
 )
 {
   auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(self);
-  delete tpgnetwork_obj->mPtr;
+  tpgnetwork_obj->mVal.~TpgNetwork();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -79,17 +79,17 @@ TpgNetwork_read_blif(
 				    &clib_obj) ) {
     return nullptr;
   }
-  auto fault_type = PyFaultType::_get(fault_type_obj);
+  auto fault_type = PyFaultType::_get_ref(fault_type_obj);
   ClibCellLibrary cell_library;
   if ( clib_obj != nullptr ) {
-    cell_library = ClibCellLibrary{PyClibCellLibrary::Get(clib_obj)};
+    cell_library = PyClibCellLibrary::_get_ref(clib_obj);
   }
   try {
     // blif ファイルを読み込む．
     auto src_network = TpgNetwork::read_blif(blif_file, fault_type, cell_library);
     auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
     auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
-    tpgnetwork_obj->mPtr = new TpgNetwork{std::move(src_network)};
+    new (&tpgnetwork_obj->mVal) TpgNetwork(std::move(src_network));
     return obj;
   }
   catch ( std::invalid_argument ) {
@@ -121,12 +121,12 @@ TpgNetwork_read_bench(
 				    &fault_type_obj) ) {
     return nullptr;
   }
-  auto fault_type = PyFaultType::_get(fault_type_obj);
+  auto fault_type = PyFaultType::_get_ref(fault_type_obj);
   try {
     auto src_network = TpgNetwork::read_iscas89(bench_file, fault_type);
     auto obj = TpgNetworkType.tp_alloc(&TpgNetworkType, 0);
     auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
-    tpgnetwork_obj->mPtr = new TpgNetwork{std::move(src_network)};
+    new (&tpgnetwork_obj->mVal) TpgNetwork(std::move(src_network));
     return obj;
   }
   catch ( std::invalid_argument ) {
@@ -330,7 +330,7 @@ PyTpgNetwork::init(
 
 // @brief PyObject が TpgNetwork タイプか調べる．
 bool
-PyTpgNetwork::_check(
+PyTpgNetwork::Check(
   PyObject* obj
 )
 {
@@ -338,13 +338,13 @@ PyTpgNetwork::_check(
 }
 
 // @brief TpgNetwork を表す PyObject から TpgNetwork を取り出す．
-const TpgNetwork&
+TpgNetwork&
 PyTpgNetwork::_get_ref(
   PyObject* obj
 )
 {
   auto tpgnetwork_obj = reinterpret_cast<TpgNetworkObject*>(obj);
-  return *tpgnetwork_obj->mPtr;
+  return tpgnetwork_obj->mVal;
 }
 
 // @brief TpgNetwork を表すオブジェクトの型定義を返す．

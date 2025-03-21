@@ -56,7 +56,7 @@ classify(
   if ( !PyTpgFault::FromPyList(fault_list_obj, fault_list) ) {
     return nullptr;
   }
-  auto fault_type = PyFaultType::_get(fault_type_obj);
+  auto fault_type = PyFaultType::_get_ref(fault_type_obj);
   vector<TestVector> tv_list;
   if ( !PyTestVector::FromPyList(tv_list_obj, tv_list) ) {
     return nullptr;

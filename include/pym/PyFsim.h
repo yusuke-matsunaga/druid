@@ -24,6 +24,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class PyFsim
 {
+  // このクラスは Conv/Deconv を持たない．
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -40,7 +42,7 @@ public:
   /// @brief PyObject が Fsim タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -49,8 +51,8 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  Fsim*
-  _get(
+  Fsim&
+  _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );
 

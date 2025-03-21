@@ -18,47 +18,13 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PyTpgFaultConv PyTpgFault.h "PyTpgFault.h"
-/// @brief const TpgFault* を PyObject* に変換するファンクタクラス
-///
-/// 実はただの関数
-//////////////////////////////////////////////////////////////////////
-class PyTpgFaultConv
-{
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief const TpgFault* を PyObject* に変換する．
-  PyObject*
-  operator()(
-    const TpgFault* val
-  );
-
-};
-
-
-//////////////////////////////////////////////////////////////////////
 /// @class PyTpgFaultDeconv PyTpgFaultDeconv.h "PyTpgFaultDeconv.h"
-/// @brief PyObject* を const TpgFault* に変換するファンクタクラス
 ///
 /// 実はただの関数
 //////////////////////////////////////////////////////////////////////
 class PyTpgFaultDeconv
 {
 public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief PyObject* を const TpgFault* に変換する
-  /// @return 正しく変換できた時に true を返す．
-  bool
-  operator()(
-    PyObject* obj,
-    const TpgFault*& val
-  );
 
 };
 
@@ -71,6 +37,28 @@ public:
 //////////////////////////////////////////////////////////////////////
 class PyTpgFault
 {
+public:
+
+  /// @brief const TpgFault* を PyObject* に変換するファンクタクラス
+  struct Conv {
+    /// @brief const TpgFault* を PyObject* に変換する．
+    PyObject*
+    operator()(
+      const TpgFault* val
+    );
+  };
+
+  /// @brief PyObject* を const TpgFault* に変換するファンクタクラス
+  struct Deconv {
+    /// @brief PyObject* を const TpgFault* に変換する
+    bool
+    operator()(
+      PyObject* obj,
+      const TpgFault*& val
+    );
+  };
+
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -94,8 +82,21 @@ public:
     const TpgFault* val ///< [in] 値
   )
   {
-    PyTpgFaultConv conv;
+    Conv conv;
     return conv(val);
+  }
+
+  /// @brief TpgFault のリストを表す PyObject を作る．
+  /// @return 生成した PyObject を返す．
+  ///
+  /// 返り値は新しい参照が返される．
+  static
+  PyObject*
+  ToPyList(
+    const vector<const TpgFault*>& val_list ///< [in] 値のリスト
+  )
+  {
+    return PyList<const TpgFault*, PyTpgFault>::ToPyObject(val_list);
   }
 
   /// @breif PyObject から TogFault を取り出す．
@@ -106,8 +107,22 @@ public:
     const TpgFault*& val
   )
   {
-    PyTpgFaultDeconv deconv;
+    Deconv deconv;
     return deconv(obj, val);
+  }
+
+  /// @brief TpgFault のリストを表す PyObject から TpgFault のリストを取り出す．
+  /// @return 結果のリストを返す．
+  ///
+  /// obj は単一の TpgFault か TpgFault のシーケンスタイプである必要がある．
+  static
+  bool
+  FromPyList(
+    PyObject* obj,                         ///< [in] 変換元の PyObject
+    std::vector<const TpgFault*>& val_list ///< [out] 変換結果を格納するリスト
+  )
+  {
+    return PyList<const TpgFault*, PyTpgFault>::FromPyObject(obj, val_list);
   }
 
   /// @brief PyObject が TpgFault タイプか調べる．
@@ -129,33 +144,6 @@ public:
   _get(
     PyObject* obj ///< [in] 変換元の PyObject
   );
-
-  /// @brief TpgFault のリストを表す PyObject を作る．
-  /// @return 生成した PyObject を返す．
-  ///
-  /// 返り値は新しい参照が返される．
-  static
-  PyObject*
-  ToPyList(
-    const vector<const TpgFault*>& val_list ///< [in] 値のリスト
-  )
-  {
-    return PyList::ToPyObject<const TpgFault*, PyTpgFaultConv>(val_list);
-  }
-
-  /// @brief TpgFault のリストを表す PyObject から TpgFault のリストを取り出す．
-  /// @return 結果のリストを返す．
-  ///
-  /// obj は単一の TpgFault か TpgFault のシーケンスタイプである必要がある．
-  static
-  bool
-  FromPyList(
-    PyObject* obj,                         ///< [in] 変換元の PyObject
-    std::vector<const TpgFault*>& val_list ///< [out] 変換結果を格納するリスト
-  )
-  {
-    return PyList::FromPyObject<const TpgFault*, PyTpgFaultDeconv>(obj, val_list);
-  }
 
   /// @brief TpgFault を表すオブジェクトの型定義を返す．
   static

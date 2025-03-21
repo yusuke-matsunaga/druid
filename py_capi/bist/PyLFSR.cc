@@ -156,7 +156,7 @@ LFSR_set_bits(
   void* Py_UNUSED(closure)
 )
 {
-  if ( !PyBitVector::_check(val_obj) ) {
+  if ( !PyBitVector::Check(val_obj) ) {
     PyErr_SetString(PyExc_TypeError, "not a BitVector");
     return -1;
   }

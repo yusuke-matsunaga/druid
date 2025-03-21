@@ -24,6 +24,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class PyTpgNetwork
 {
+  // このクラスは Conv/Deconv を持たない．
+
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
@@ -40,7 +42,7 @@ public:
   /// @brief PyObject が TpgNetwork タイプか調べる．
   static
   bool
-  _check(
+  Check(
     PyObject* obj ///< [in] 対象の PyObject
   );
 
@@ -49,7 +51,7 @@ public:
   ///
   /// Check(obj) == true であると仮定している．
   static
-  const TpgNetwork&
+  TpgNetwork&
   _get_ref(
     PyObject* obj ///< [in] 変換元の PyObject
   );

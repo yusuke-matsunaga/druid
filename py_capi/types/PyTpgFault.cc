@@ -196,7 +196,7 @@ PyTpgFault::init(
 
 // @brief TpgFault を PyObject に変換する．
 PyObject*
-PyTpgFaultConv::operator()(
+PyTpgFault::Conv::operator()(
   const TpgFault* val
 )
 {
@@ -208,7 +208,7 @@ PyTpgFaultConv::operator()(
 
 // @brief TpgFault を表す PyObject から TpgFault を取り出す．
 bool
-PyTpgFaultDeconv::operator()(
+PyTpgFault::Deconv::operator()(
   PyObject* obj,
   const TpgFault*& val
 )

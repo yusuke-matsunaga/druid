@@ -197,25 +197,10 @@ PyFaultType::init(
   return false;
 }
 
-// @brief PyObject から FaultType を取り出す．
-bool
-PyFaultType::FromPyObject(
-  PyObject* obj,
-  FaultType& val
-)
-{
-  if ( !_check(obj) ) {
-    PyErr_SetString(PyExc_TypeError, "object is not a FaultType type");
-    return false;
-  }
-  val = _get(obj);
-  return true;
-}
-
 // @brief FaultType を PyObject に変換する．
 PyObject*
-PyFaultType::ToPyObject(
-  FaultType val
+PyFaultType::Conv::operator()(
+  const FaultType& val
 )
 {
   PyObject* obj = nullptr;
@@ -229,9 +214,23 @@ PyFaultType::ToPyObject(
   return obj;
 }
 
+// @brief PyObject* から FaultType を取り出す．
+bool
+PyFaultType::Deconv::operator()(
+  PyObject* obj,
+  FaultType& val
+)
+{
+  if ( PyFaultType::Check(obj) ) {
+    val = PyFaultType::_get_ref(obj);
+    return true;
+  }
+  return false;
+}
+
 // @brief PyObject が FaultType タイプか調べる．
 bool
-PyFaultType::_check(
+PyFaultType::Check(
   PyObject* obj
 )
 {
@@ -239,8 +238,8 @@ PyFaultType::_check(
 }
 
 // @brief FaultType を表す PyObject から FaultType を取り出す．
-FaultType
-PyFaultType::_get(
+FaultType&
+PyFaultType::_get_ref(
   PyObject* obj
 )
 {

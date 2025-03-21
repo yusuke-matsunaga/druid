@@ -20,7 +20,7 @@ BEGIN_NONAMESPACE
 struct DtpgResultObject
 {
   PyObject_HEAD
-  DtpgResult* mVal;
+  DtpgResult mVal;
 };
 
 // Python 用のタイプ定義
@@ -47,7 +47,7 @@ DtpgResult_dealloc(
 )
 {
   auto result_obj = reinterpret_cast<DtpgResultObject*>(self);
-  delete result_obj->mVal;
+  result_obj->mVal.~DtpgResult();
   Py_TYPE(self)->tp_free(self);
 }
 
@@ -63,9 +63,6 @@ DtpgResult_detected(
     return nullptr;
   }
   auto tv = PyTestVector::_get_ref(tv_obj);
-  auto type = PyDtpgResult::_typeobject();
-  auto obj = type->tp_alloc(type, 0);
-  auto result_obj = reinterpret_cast<DtpgResultObject*>(obj);
   auto result = DtpgResult::detected(tv);
   return PyDtpgResult::ToPyObject(result);
 }
@@ -76,9 +73,6 @@ DtpgResult_untestable(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto type = PyDtpgResult::_typeobject();
-  auto obj = type->tp_alloc(type, 0);
-  auto result_obj = reinterpret_cast<DtpgResultObject*>(obj);
   auto result = DtpgResult::untestable();
   return PyDtpgResult::ToPyObject(result);
 }
@@ -89,9 +83,6 @@ DtpgResult_undetected(
   PyObject* Py_UNUSED(args)
 )
 {
-  auto type = PyDtpgResult::_typeobject();
-  auto obj = type->tp_alloc(type, 0);
-  auto result_obj = reinterpret_cast<DtpgResultObject*>(obj);
   auto result = DtpgResult::undetected();
   return PyDtpgResult::ToPyObject(result);
 }
@@ -116,8 +107,7 @@ DtpgResult_status(
   void* Py_UNUSED(closure)
 )
 {
-  auto result_obj = reinterpret_cast<DtpgResultObject*>(self);
-  auto& result = *result_obj->mVal;
+  auto& result = PyDtpgResult::_get_ref(self);
   return PyFaultStatus::ToPyObject(result.status());
 }
 
@@ -127,8 +117,7 @@ DtpgResult_testvector(
   void* Py_UNUSED(closure)
 )
 {
-  auto result_obj = reinterpret_cast<DtpgResultObject*>(self);
-  auto& result = *result_obj->mVal;
+  auto& result = PyDtpgResult::_get_ref(self);
   return PyTestVector::ToPyObject(result.testvector());
 }
 
@@ -173,19 +162,34 @@ PyDtpgResult::init(
 
 // @brief DtpgResult を表す PyObject を作る．
 PyObject*
-PyDtpgResult::ToPyObject(
+PyDtpgResult::Conv::operator()(
   const DtpgResult& val
 )
 {
-  auto obj = DtpgResultType.tp_alloc(&DtpgResultType, 0);
+  auto type = PyDtpgResult::_typeobject();
+  auto obj = type->tp_alloc(type, 0);
   auto result_obj = reinterpret_cast<DtpgResultObject*>(obj);
-  result_obj->mVal = new DtpgResult{val};
+  new (&result_obj->mVal) DtpgResult(val);
   return obj;
+}
+
+// @brief PyObject* から DtpgResult を取り出す．
+bool
+PyDtpgResult::Deconv::operator()(
+  PyObject* obj,
+  DtpgResult& val
+)
+{
+  if ( PyDtpgResult::Check(obj) ) {
+    val = PyDtpgResult::_get_ref(obj);
+    return true;
+  }
+  return false;
 }
 
 // @brief PyObject が DtpgResult タイプか調べる．
 bool
-PyDtpgResult::_check(
+PyDtpgResult::Check(
   PyObject* obj
 )
 {
@@ -193,13 +197,13 @@ PyDtpgResult::_check(
 }
 
 // @brief DtpgResult を表す PyObject から DtpgResult を取り出す．
-const DtpgResult&
+DtpgResult&
 PyDtpgResult::_get_ref(
   PyObject* obj
 )
 {
   auto result_obj = reinterpret_cast<DtpgResultObject*>(obj);
-  return *result_obj->mVal;
+  return result_obj->mVal;
 }
 
 // @brief DtpgResult を表すオブジェクトの型定義を返す．
