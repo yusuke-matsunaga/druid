@@ -111,31 +111,31 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
   for ( SizeType i = 0; i < NT; ++ i ) {
     auto& engine = mEngineList[i];
     mThreadList[i] = std::thread{[&](){
-	for ( bool go_on = true; go_on; ) {
-	  auto cmd = mSyncObj.get_command(engine->id());
-	  switch ( cmd ) {
-	  case Cmd::PPSFP:
-	    engine->ppsfp(mSyncObj.testvector_list());
-	    break;
+      for ( bool go_on = true; go_on; ) {
+	auto cmd = mSyncObj.get_command(engine->id());
+	switch ( cmd ) {
+	case Cmd::PPSFP:
+	  engine->ppsfp(mSyncObj.testvector_list());
+	  break;
 
-	  case Cmd::SPPFP_TV:
-	    engine->sppfp(mSyncObj.testvector());
-	    break;
+	case Cmd::SPPFP_TV:
+	  engine->sppfp(mSyncObj.testvector());
+	  break;
 
-	  case Cmd::SPPFP_AS:
-	    engine->sppfp(mSyncObj.assign_list());
-	    break;
+	case Cmd::SPPFP_AS:
+	  engine->sppfp(mSyncObj.assign_list());
+	  break;
 
-	  case Cmd::XSPPFP:
-	    engine->xsppfp(mSyncObj.assign_list());
-	    break;
+	case Cmd::XSPPFP:
+	  engine->xsppfp(mSyncObj.assign_list());
+	  break;
 
-	  case Cmd::END:
-	    go_on = false;
-	    break;
-	  }
+	case Cmd::END:
+	  go_on = false;
+	  break;
 	}
-      }};
+      }
+    }};
   }
   // 子スレッドがコマンド待ちになるまで待つ．
   mSyncObj.wait();
