@@ -182,33 +182,6 @@ DtpgMgr_dtpg_result(
   return PyDtpgResult::ToPyObject(result);
 }
 
-PyObject*
-DtpgMgr_set_dtpg_result(
-  PyObject* self,
-  PyObject* args,
-  PyObject* kwds
-)
-{
-  static const char* kw_list[] = {
-    "fault",
-    "result",
-    nullptr
-  };
-  PyObject* fault_obj = nullptr;
-  PyObject* result_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
-				    const_cast<char**>(kw_list),
-				    PyTpgFault::_typeobject(), &fault_obj,
-				    PyDtpgResult::_typeobject(), &result_obj) ) {
-    return nullptr;
-  }
-  auto fault = PyTpgFault::_get(fault_obj);
-  auto& result = PyDtpgResult::_get_ref(result_obj);
-  auto& mgr = PyDtpgMgr::_get_ref(self);
-  mgr.set_dtpg_result(fault, result);
-  Py_RETURN_NONE;
-}
-
 // メソッド定義
 PyMethodDef DtpgMgr_methods[] = {
   {"run", reinterpret_cast<PyCFunction>(DtpgMgr_run),
@@ -217,9 +190,6 @@ PyMethodDef DtpgMgr_methods[] = {
   {"dtpg_result", reinterpret_cast<PyCFunction>(DtpgMgr_dtpg_result),
    METH_KEYWORDS | METH_VARARGS,
    PyDoc_STR("get dtpg_result")},
-  {"set_dtpg_result", reinterpret_cast<PyCFunction>(DtpgMgr_set_dtpg_result),
-   METH_KEYWORDS | METH_VARARGS,
-   PyDoc_STR("set dtpg_result")},
   {nullptr, nullptr, 0, nullptr}
 };
 
