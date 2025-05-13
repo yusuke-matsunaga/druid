@@ -70,6 +70,7 @@ count_test(
   bool bdd = false;
   bool factor = false;
   bool aig = false;
+  bool multi = false;
   int debug_level = 0;
 
   argv0 = argv[0];
@@ -156,6 +157,9 @@ count_test(
       else if ( strcmp(argv[pos], "--verbose") == 0 ) {
 	verbose = true;
       }
+      else if ( strcmp(argv[pos], "--multi") == 0 ) {
+	multi = true;
+      }
       else if ( strcmp(argv[pos], "--debug") == 0 ) {
 	++ pos;
 	if ( pos < argc ) {
@@ -233,6 +237,10 @@ count_test(
 
   cg_option_dict.emplace("cnfgen", cnf_option);
 
+  if ( multi ) {
+    cg_option_dict.emplace("multi_thread", JsonValue{true});
+  }
+
   JsonValue cg_option{cg_option_dict};
 
   Timer total_timer;
@@ -263,6 +271,9 @@ count_test(
     timer.start();
     std::unordered_map<string, JsonValue> json_dict;
     json_dict.emplace("method", JsonValue(method));
+    if ( multi ) {
+      json_dict.emplace("multi_thread", JsonValue(true));
+    }
     auto option = JsonValue(json_dict);
     StructEngine engine(network, cg_option);
     CondGenMgr::make_cnf(engine, cond_list, option);

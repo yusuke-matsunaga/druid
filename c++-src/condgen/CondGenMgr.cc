@@ -6,6 +6,8 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
+#include <thread>
+#include <mutex>
 #include "CondGenMgr.h"
 #include "CondGen.h"
 #include "TpgNetwork.h"
@@ -57,16 +59,56 @@ CondGenMgr::make_cond(
   const JsonValue& option
 )
 {
-  int debug = OpBase::get_debug(option);
   auto limit = get_loop_limit(option);
+  bool multi_thread = false;
+  OpBase::get_bool(option, "multi_thread", multi_thread);
 
-  auto ffr_num = network.ffr_num();
   // ffr->id() をキーとして個々のFFRの伝搬条件を記録する配列
-  std::vector<DetCond> cond_list;
-  cond_list.reserve(ffr_num);
-  for ( auto ffr: network.ffr_list() ) {
-    auto cond = CondGen::root_cond(network, ffr, limit, option);
-    cond_list.push_back(cond);
+  std::vector<DetCond> cond_list(network.ffr_num());
+
+  if ( multi_thread ) {
+    // スレッド数
+    int thread_num = 0;
+    OpBase::get_int(option, "thread_num", thread_num);
+    if ( thread_num == 0 ) {
+      thread_num = std::thread::hardware_concurrency();
+    }
+    // スレッドのリスト
+    std::vector<std::thread> thr_list(thread_num);
+
+    // 次に処理すべき FFR 番号
+    SizeType ffr_id = 0;
+    // ffr_id 用のミューテックス
+    std::mutex mtx;
+    // スレッドを生成する．
+    for ( SizeType i = 0; i < thread_num; ++ i ) {
+      thr_list[i] = std::thread{[&](){
+	for ( ; ; ) {
+	  SizeType my_id = 0;
+	  {
+	    std::unique_lock lck{mtx};
+	    if ( ffr_id >= network.ffr_num() ) {
+	      break;
+	    }
+	    my_id = ffr_id;
+	    ++ ffr_id;
+	  }
+	  auto ffr = network.ffr(my_id);
+	  auto cond = CondGen::root_cond(network, ffr, limit, option);
+	  cond_list[my_id] = cond;
+	}
+      }};
+    }
+    // 子スレッドが終了するまで待つ．
+    for ( auto& thr: thr_list ) {
+      thr.join();
+    }
+  }
+  else {
+    for ( auto ffr: network.ffr_list() ) {
+      auto cond = CondGen::root_cond(network, ffr, limit, option);
+      cond_list[ffr->id()] = cond;
+    }
   }
   return cond_list;
 }
@@ -116,28 +158,22 @@ CondGenMgr::make_cnf(
   lits_array.reserve(cond_list.size());
 
   // lits_list1/lits_list2 の結果を反映する．
-  SizeType pos1 = 0;
-  SizeType pos2 = 0;
   for ( auto& cond: cond_list ) {
     auto id = cond.ffr_id();
     if ( cond.type() == DetCond::Detected ) {
-      auto& lits = lits_list1[pos1];
+      auto& lits = lits_list1[id];
       lits_array.push_back(lits);
-      ++ pos1;
     }
     else if ( cond.type() == DetCond::PartialDetected ) {
-      auto& lits1 = lits_list1[pos1];
-      auto lit2 = lit_list2[pos2];
+      auto& lits1 = lits_list1[id];
+      auto lit2 = lit_list2[id];
       auto lits = lits1;
       lits.push_back(lit2);
       lits_array.push_back(lits);
-      ++ pos1;
-      ++ pos2;
     }
     else if ( cond.type() == DetCond::Overflow ) {
-      auto lit = lit_list2[pos2];
+      auto lit = lit_list2[id];
       lits_array.push_back({lit});
-      ++ pos2;
     }
     else {
       lits_array.push_back({});
@@ -170,15 +206,61 @@ CondGenMgr::make_expr(
 {
   auto expr_gen = ExprGen::new_obj(option);
 
-  // DetCond を解析して Expr のリストと出力のリストを作る．
-  std::vector<Expr> expr_list;
-  auto nd = cond_list.size();
-  expr_list.reserve(nd);
-  for ( auto& cond: cond_list ) {
-    if ( cond.type() == DetCond::Detected ||
-	 cond.type() == DetCond::PartialDetected ) {
-      auto expr = expr_gen->cond_to_expr(cond);
-      expr_list.push_back(expr);
+  bool multi_thread = false;
+  OpBase::get_bool(option, "multi_thread", multi_thread);
+
+  auto ffr_num = cond_list.size();
+  // 結果の配列
+  std::vector<Expr> expr_list(ffr_num, Expr::one());
+
+  if ( multi_thread ) {
+    // スレッド数
+    int thread_num = 0;
+    OpBase::get_int(option, "thread_num", thread_num);
+    if ( thread_num == 0 ) {
+      thread_num = std::thread::hardware_concurrency();
+    }
+    // スレッドのリスト
+    std::vector<std::thread> thr_list(thread_num);
+
+    // 次に処理すべきFFR番号
+    SizeType ffr_id = 0;
+    // ffr_id 用のミューテックス
+    std::mutex mtx;
+    // スレッドを生成する．
+    for ( SizeType i = 0; i < thread_num; ++ i ) {
+      thr_list[i] = std::thread{[&](){
+	for ( ; ; ) {
+	  SizeType my_id = 0;
+	  {
+	    std::unique_lock lck{mtx};
+	    if ( ffr_id >= ffr_num ) {
+	      break;
+	    }
+	    my_id = ffr_id;
+	    ++ ffr_id;
+	  }
+	  auto cond = cond_list[my_id];
+	  if ( cond.type() == DetCond::Detected ||
+	       cond.type() == DetCond::PartialDetected ) {
+	    auto expr = expr_gen->cond_to_expr(cond);
+	    expr_list[my_id] = expr;
+	  }
+	}
+      }};
+    }
+    // 子スレッドが終了するまで待つ．
+    for ( auto& thr: thr_list ) {
+      thr.join();
+    }
+  }
+  else {
+    for ( auto& cond: cond_list ) {
+      if ( cond.type() == DetCond::Detected ||
+	   cond.type() == DetCond::PartialDetected ) {
+	auto expr = expr_gen->cond_to_expr(cond);
+	expr_list[cond.ffr_id()] = expr;
+      }
     }
   }
   return expr_list;
@@ -226,8 +308,13 @@ CondGenMgr::expr_to_cnf(
     std::vector<vector<SatLiteral>> lits_list;
     lits_list.reserve(expr_list.size());
     for ( auto& expr: expr_list ) {
-      auto lits = engine.solver().add_expr(expr, lit_map);
-      lits_list.push_back(lits);
+      if ( expr.is_zero() ) {
+	lits_list.push_back({});
+      }
+      else {
+	auto lits = engine.solver().add_expr(expr, lit_map);
+	lits_list.push_back(lits);
+      }
     }
     return lits_list;
   }
@@ -240,15 +327,14 @@ CondGenMgr::make_bd(
   const std::vector<DetCond>& cond_list
 )
 {
-  std::vector<SatLiteral> lit_list;
-  lit_list.reserve(cond_list.size());
+  std::vector<SatLiteral> lit_list(cond_list.size(), SatLiteral::X);
   for ( auto& cond: cond_list ) {
     if ( cond.type() == DetCond::PartialDetected ||
 	 cond.type() == DetCond::Overflow ) {
       auto bd_enc = new BoolDiffEnc(cond.root(), cond.output_list());
       engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
       auto lit = bd_enc->prop_var();
-      lit_list.push_back(lit);
+      lit_list[cond.ffr_id()] = lit;
     }
   }
   return lit_list;
