@@ -254,17 +254,15 @@ count_test(
   condgen_timer.stop();
   print_stats("condgen", CnfSize::zero(), condgen_timer.get_time());
 
-#if 0
   {
     Timer timer;
     timer.start();
     StructEngine engine(network, cg_option);
-    CondGenMgr::make_raw_cnf(engine, cg_option);
+    CondGenMgr::make_cnf_naive(engine, cg_option);
     timer.stop();
     auto size = engine.solver().cnf_size();
     print_stats("raw", size, timer.get_time());
   }
-#endif
 
   for ( auto method: {"sop", "factor", "aig"} ) {
     Timer timer;

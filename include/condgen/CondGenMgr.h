@@ -47,6 +47,14 @@ public:
     const JsonValue& option                ///< [in] オプション
   );
 
+  /// @brief FFRの故障伝搬条件を表すCNF式を作る(ナイーブバージョン)
+  static
+  std::vector<std::vector<SatLiteral>>
+  make_cnf_naive(
+    StructEngine& engine,                  ///< [in] CNFの作成用のエンジン
+    const JsonValue& option                ///< [in] オプション
+  );
+
 
 public:
   //////////////////////////////////////////////////////////////////////

@@ -85,7 +85,7 @@ CondGenMgr::make_cond(
       thr_list[i] = std::thread{[&](){
 	for ( ; ; ) {
 	  SizeType my_id = 0;
-	  {
+	  { // unique_lock 用のスコープ
 	    std::unique_lock lck{mtx};
 	    if ( ffr_id >= network.ffr_num() ) {
 	      break;
@@ -232,7 +232,7 @@ CondGenMgr::make_expr(
       thr_list[i] = std::thread{[&](){
 	for ( ; ; ) {
 	  SizeType my_id = 0;
-	  {
+	  { // unique_lock 用のスコープ
 	    std::unique_lock lck{mtx};
 	    if ( ffr_id >= ffr_num ) {
 	      break;
@@ -338,6 +338,25 @@ CondGenMgr::make_bd(
     }
   }
   return lit_list;
+}
+
+// @brief FFRの故障伝搬条件を表すCNF式を作る(ナイーブバージョン)
+std::vector<std::vector<SatLiteral>>
+CondGenMgr::make_cnf_naive(
+  StructEngine& engine,
+  const JsonValue& option
+)
+{
+  auto& network = engine.network();
+  auto ffr_num = network.ffr_num();
+  std::vector<std::vector<SatLiteral>> lits_array(ffr_num);
+  for ( auto ffr: network.ffr_list() ) {
+    auto bd_enc = new BoolDiffEnc(ffr->root());
+    engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+    auto lit = bd_enc->prop_var();
+    lits_array[ffr->id()] = std::vector<SatLiteral>{lit};
+  }
+  return lits_array;
 }
 
 END_NAMESPACE_DRUID
