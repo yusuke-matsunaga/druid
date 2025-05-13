@@ -308,13 +308,8 @@ CondGenMgr::expr_to_cnf(
     std::vector<vector<SatLiteral>> lits_list;
     lits_list.reserve(expr_list.size());
     for ( auto& expr: expr_list ) {
-      if ( expr.is_zero() ) {
-	lits_list.push_back({});
-      }
-      else {
-	auto lits = engine.solver().add_expr(expr, lit_map);
-	lits_list.push_back(lits);
-      }
+      auto lits = engine.solver().add_expr(expr, lit_map);
+      lits_list.push_back(lits);
     }
     return lits_list;
   }
