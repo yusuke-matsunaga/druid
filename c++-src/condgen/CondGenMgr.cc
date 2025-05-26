@@ -327,7 +327,7 @@ CondGenMgr::make_bd(
   auto cond_num = cond_list.size();
   std::vector<SatLiteral> lit_list(cond_num, SatLiteral::X);
   for ( SizeType id = 0; id < cond_num; ++ id ) {
-    auto& cond = cond_list[i];
+    auto& cond = cond_list[id];
     if ( cond.type() == DetCond::PartialDetected ||
 	 cond.type() == DetCond::Overflow ) {
       auto bd_enc = new BoolDiffEnc(cond.root(), cond.output_list());
