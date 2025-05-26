@@ -154,12 +154,13 @@ CondGenMgr::make_cnf(
   auto lit_list2 = make_bd(engine, cond_list);
 
   // 結果の配列を作る．
+  auto cond_num = cond_list.size();
   std::vector<std::vector<SatLiteral>> lits_array;
-  lits_array.reserve(cond_list.size());
+  lits_array.reserve(cond_num);
 
   // lits_list1/lits_list2 の結果を反映する．
-  for ( auto& cond: cond_list ) {
-    auto id = cond.ffr_id();
+  for ( SizeType id = 0; id < cond_num; ++ id ) {
+    auto& cond = cond_list[id];
     if ( cond.type() == DetCond::Detected ) {
       auto& lits = lits_list1[id];
       lits_array.push_back(lits);
@@ -209,9 +210,9 @@ CondGenMgr::make_expr(
   bool multi_thread = false;
   OpBase::get_bool(option, "multi_thread", multi_thread);
 
-  auto ffr_num = cond_list.size();
+  auto cond_num = cond_list.size();
   // 結果の配列
-  std::vector<Expr> expr_list(ffr_num, Expr::one());
+  std::vector<Expr> expr_list(cond_num, Expr::one());
 
   if ( multi_thread ) {
     // スレッド数
@@ -223,9 +224,9 @@ CondGenMgr::make_expr(
     // スレッドのリスト
     std::vector<std::thread> thr_list(thread_num);
 
-    // 次に処理すべきFFR番号
-    SizeType ffr_id = 0;
-    // ffr_id 用のミューテックス
+    // 次に処理すべきcond番号
+    SizeType cond_id = 0;
+    // cond_id 用のミューテックス
     std::mutex mtx;
     // スレッドを生成する．
     for ( SizeType i = 0; i < thread_num; ++ i ) {
@@ -234,11 +235,11 @@ CondGenMgr::make_expr(
 	  SizeType my_id = 0;
 	  { // unique_lock 用のスコープ
 	    std::unique_lock lck{mtx};
-	    if ( ffr_id >= ffr_num ) {
+	    if ( cond_id >= cond_num ) {
 	      break;
 	    }
-	    my_id = ffr_id;
-	    ++ ffr_id;
+	    my_id = cond_id;
+	    ++ cond_id;
 	  }
 	  auto cond = cond_list[my_id];
 	  if ( cond.type() == DetCond::Detected ||
@@ -255,11 +256,12 @@ CondGenMgr::make_expr(
     }
   }
   else {
-    for ( auto& cond: cond_list ) {
+    for ( SizeType cond_id = 0; cond_id < cond_num; ++ cond_id ) {
+      auto& cond = cond_list[cond_id];
       if ( cond.type() == DetCond::Detected ||
 	   cond.type() == DetCond::PartialDetected ) {
 	auto expr = expr_gen->cond_to_expr(cond);
-	expr_list[cond.ffr_id()] = expr;
+	expr_list[cond_id] = expr;
       }
     }
   }
@@ -322,14 +324,16 @@ CondGenMgr::make_bd(
   const std::vector<DetCond>& cond_list
 )
 {
-  std::vector<SatLiteral> lit_list(cond_list.size(), SatLiteral::X);
-  for ( auto& cond: cond_list ) {
+  auto cond_num = cond_list.size();
+  std::vector<SatLiteral> lit_list(cond_num, SatLiteral::X);
+  for ( SizeType id = 0; id < cond_num; ++ id ) {
+    auto& cond = cond_list[i];
     if ( cond.type() == DetCond::PartialDetected ||
 	 cond.type() == DetCond::Overflow ) {
       auto bd_enc = new BoolDiffEnc(cond.root(), cond.output_list());
       engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
       auto lit = bd_enc->prop_var();
-      lit_list[cond.ffr_id()] = lit;
+      lit_list[id] = lit;
     }
   }
   return lit_list;
