@@ -300,7 +300,16 @@ CondGenMgr::expr_to_cnf(
     // 一旦 AIG に変換する．
     AigMgr mgr;
     auto aig_list = mgr.from_expr_list(expr_list);
-
+    // AIG を CNF に変換する．
+    auto lits_list = engine.solver().add_aig(aig_list, lit_map);
+    return lits_list;
+  }
+  else if ( method == "aig2" ) {
+    // 一旦 AIG に変換する．
+    AigMgr mgr;
+    auto aig_list = mgr.from_expr_list(expr_list);
+    // 簡単化を行う．
+    mgr.rewrite();
     // AIG を CNF に変換する．
     auto lits_list = engine.solver().add_aig(aig_list, lit_map);
     return lits_list;

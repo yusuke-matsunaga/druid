@@ -220,23 +220,6 @@ count_test(
 
   JsonValue naive_cg_option{cg_option_dict};
 
-  unordered_map<string, JsonValue> cnf_option_dict;
-  if ( cover ) {
-    cnf_option_dict.emplace("method", "cover");
-  }
-  else if ( bdd ) {
-    cnf_option_dict.emplace("method", "bdd");
-  }
-  else if ( factor ) {
-    cnf_option_dict.emplace("method", "factor");
-  }
-  else if ( aig ) {
-    cnf_option_dict.emplace("method", "aig");
-  }
-  JsonValue cnf_option{cnf_option_dict};
-
-  cg_option_dict.emplace("cnfgen", cnf_option);
-
   if ( multi ) {
     cg_option_dict.emplace("multi_thread", JsonValue{true});
   }
@@ -264,7 +247,7 @@ count_test(
     print_stats("raw", size, timer.get_time());
   }
 
-  for ( auto method: {"sop", "factor", "aig"} ) {
+  for ( auto method: {"sop", "factor", "aig", "aig2"} ) {
     Timer timer;
     timer.start();
     std::unordered_map<string, JsonValue> json_dict;
