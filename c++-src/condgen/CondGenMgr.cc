@@ -150,8 +150,17 @@ CondGenMgr::make_cnf(
 {
   make_base_cnf(engine);
   auto expr_list = make_expr(cond_list, option);
+  {
+    cout << "Phase1: " << engine.solver().cnf_size() << endl;
+  }
   auto lits_list1 = expr_to_cnf(engine, expr_list, option);
+  {
+    cout << "Phase2: " << engine.solver().cnf_size() << endl;
+  }
   auto lit_list2 = make_bd(engine, cond_list);
+  {
+    cout << "Phase3: " << engine.solver().cnf_size() << endl;
+  }
 
   // 結果の配列を作る．
   auto cond_num = cond_list.size();
@@ -300,16 +309,12 @@ CondGenMgr::expr_to_cnf(
     // 一旦 AIG に変換する．
     AigMgr mgr;
     auto aig_list = mgr.from_expr_list(expr_list);
-    // AIG を CNF に変換する．
-    auto lits_list = engine.solver().add_aig(aig_list, lit_map);
-    return lits_list;
-  }
-  else if ( method == "aig2" ) {
-    // 一旦 AIG に変換する．
-    AigMgr mgr;
-    auto aig_list = mgr.from_expr_list(expr_list);
-    // 簡単化を行う．
-    mgr.rewrite();
+    bool rewrite = false;
+    OpBase::get_bool(option, "rewrite", rewrite);
+    if ( rewrite ) {
+      // 簡単化を行う．
+      mgr.rewrite();
+    }
     // AIG を CNF に変換する．
     auto lits_list = engine.solver().add_aig(aig_list, lit_map);
     return lits_list;

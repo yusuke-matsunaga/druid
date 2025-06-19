@@ -251,6 +251,10 @@ count_test(
     Timer timer;
     timer.start();
     std::unordered_map<string, JsonValue> json_dict;
+    if ( method == string{"aig2"} ) {
+      method = "aig";
+      json_dict.emplace("rewrite", JsonValue(true));
+    }
     json_dict.emplace("method", JsonValue(method));
     if ( multi ) {
       json_dict.emplace("multi_thread", JsonValue(true));
