@@ -16,6 +16,8 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class CondGenStats;
+
 //////////////////////////////////////////////////////////////////////
 /// @class CondGenMgr CondGenMgr.h "CondGenMgr.h"
 /// @brief FFRの故障伝搬条件を表すCNFを作るクラス
@@ -44,7 +46,8 @@ public:
   make_cnf(
     StructEngine& engine,                  ///< [in] CNFの作成用のエンジン
     const std::vector<DetCond>& cond_list, ///< [in] 条件のリスト
-    const JsonValue& option                ///< [in] オプション
+    const JsonValue& option,               ///< [in] オプション
+    CondGenStats& stats                    ///< [out] 統計情報を入れるオブジェクト
   );
 
   /// @brief FFRの故障伝搬条件を表すCNF式を作る(ナイーブバージョン)
@@ -52,7 +55,8 @@ public:
   std::vector<std::vector<SatLiteral>>
   make_cnf_naive(
     StructEngine& engine,                  ///< [in] CNFの作成用のエンジン
-    const JsonValue& option                ///< [in] オプション
+    const JsonValue& option,               ///< [in] オプション
+    CondGenStats& stats                    ///< [out] 統計情報を入れるオブジェクト
   );
 
 

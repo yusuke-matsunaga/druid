@@ -10,6 +10,7 @@
 #include <mutex>
 #include "CondGenMgr.h"
 #include "CondGen.h"
+#include "CondGenStats.h"
 #include "TpgNetwork.h"
 #include "TpgFFR.h"
 #include "TpgFault.h"
@@ -145,22 +146,18 @@ std::vector<std::vector<SatLiteral>>
 CondGenMgr::make_cnf(
   StructEngine& engine,
   const std::vector<DetCond>& cond_list,
-  const JsonValue& option
+  const JsonValue& option,
+  CondGenStats& stats
 )
 {
   make_base_cnf(engine);
+  engine.update();
+  auto size1 = engine.solver().cnf_size();
   auto expr_list = make_expr(cond_list, option);
-  {
-    cout << "Phase1: " << engine.solver().cnf_size() << endl;
-  }
   auto lits_list1 = expr_to_cnf(engine, expr_list, option);
-  {
-    cout << "Phase2: " << engine.solver().cnf_size() << endl;
-  }
+  auto size2 = engine.solver().cnf_size();
   auto lit_list2 = make_bd(engine, cond_list);
-  {
-    cout << "Phase3: " << engine.solver().cnf_size() << endl;
-  }
+  auto size3 = engine.solver().cnf_size();
 
   // 結果の配列を作る．
   auto cond_num = cond_list.size();
@@ -189,6 +186,8 @@ CondGenMgr::make_cnf(
       lits_array.push_back({});
     }
   }
+
+  stats = CondGenStats(size1, size3 - size2, size2 - size1);
 
   return lits_array;
 }
@@ -357,9 +356,13 @@ CondGenMgr::make_bd(
 std::vector<std::vector<SatLiteral>>
 CondGenMgr::make_cnf_naive(
   StructEngine& engine,
-  const JsonValue& option
+  const JsonValue& option,
+  CondGenStats& stats
 )
 {
+  engine.update();
+  auto size1 = engine.solver().cnf_size();
+
   auto& network = engine.network();
   auto ffr_num = network.ffr_num();
   std::vector<std::vector<SatLiteral>> lits_array(ffr_num);
@@ -369,6 +372,9 @@ CondGenMgr::make_cnf_naive(
     auto lit = bd_enc->prop_var();
     lits_array[ffr->id()] = std::vector<SatLiteral>{lit};
   }
+
+  auto size2 = engine.solver().cnf_size();
+  stats = CondGenStats(size1, CnfSize::zero(), size2 - size1);
   return lits_array;
 }
 

@@ -12,6 +12,7 @@
 #include "FaultType.h"
 #include "Fsim.h"
 #include "CondGenMgr.h"
+#include "CondGenStats.h"
 #include "StructEngine.h"
 #include "ym/CnfSize.h"
 #include "ym/Timer.h"
@@ -28,6 +29,15 @@ usage()
 }
 
 void
+print_cnf_size(
+  const CnfSize& size
+)
+{
+  std::cout << " #C:" << std::setw(8) << size.clause_num
+	    << " #L:" << std::setw(8) << size.literal_num;
+}
+
+void
 print_stats(
   const string& method,
   const CnfSize& size,
@@ -41,12 +51,12 @@ print_stats(
     std::cout << "                        ";
   }
   else {
-    std::cout << " #C:" << std::setw(8) << size.clause_num
-	      << " #L:" << std::setw(8) << size.literal_num;
+    print_cnf_size(size);
   }
   std::cout << " | "
 	    << std::setw(10) << std::fixed << std::setprecision(2)
-	    << time << endl;
+	    << time;
+  std::cout << endl;
 }
 
 int
@@ -241,7 +251,8 @@ count_test(
     Timer timer;
     timer.start();
     StructEngine engine(network, cg_option);
-    CondGenMgr::make_cnf_naive(engine, cg_option);
+    CondGenStats stats;
+    CondGenMgr::make_cnf_naive(engine, cg_option, stats);
     timer.stop();
     auto size = engine.solver().cnf_size();
     print_stats("raw", size, timer.get_time());
@@ -261,10 +272,16 @@ count_test(
     }
     auto option = JsonValue(json_dict);
     StructEngine engine(network, cg_option);
-    CondGenMgr::make_cnf(engine, cond_list, option);
+    CondGenStats stats;
+    CondGenMgr::make_cnf(engine, cond_list, option, stats);
     timer.stop();
     auto size = engine.solver().cnf_size();
     print_stats(method, size, timer.get_time());
+    {
+      std::cout << "                       base = " << stats.base_size() << endl
+		<< "                       bd   = " << stats.bd_size() << endl
+		<< "                       cond = " << stats.cond_size() << endl;
+    }
   }
 
   return 0;

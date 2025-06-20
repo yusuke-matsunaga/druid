@@ -11,6 +11,7 @@
 
 #include "druid.h"
 #include "CondGenMgr.h"
+#include "CondGenStats.h"
 #include "DetCond.h"
 #include "pym/PyTpgNetwork.h"
 #include "pym/PyTpgFFR.h"
@@ -98,7 +99,8 @@ make_cnf(
     return nullptr;
   }
 
-  auto lits_list = CondGenMgr::make_cnf(engine, cond_list, option);
+  CondGenStats stats;
+  auto lits_list = CondGenMgr::make_cnf(engine, cond_list, option, stats);
 
   auto n = lits_list.size();
   auto ans_obj = PyList_New(n);

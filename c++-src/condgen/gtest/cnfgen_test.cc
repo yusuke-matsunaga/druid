@@ -12,6 +12,7 @@
 #include "FaultType.h"
 #include "CondGen.h"
 #include "CondGenMgr.h"
+#include "CondGenStats.h"
 #include "BdEngine.h"
 #include "ym/SatInitParam.h"
 
@@ -112,7 +113,8 @@ CondGenTestWithParam::do_test()
     if ( cond.type() == DetCond::Undetected ) {
       continue;
     }
-    auto lits_list = CondGenMgr::make_cnf(engine, {cond}, option);
+    CondGenStats stats;
+    auto lits_list = CondGenMgr::make_cnf(engine, {cond}, option, stats);
     ASSERT_EQ( 1, lits_list.size() );
     auto& lits = lits_list.front();
     auto assumptions = lits;

@@ -13,6 +13,7 @@
 #include "Fsim.h"
 #include "CondGen.h"
 #include "CondGenMgr.h"
+#include "CondGenStats.h"
 #include "BdEngine.h"
 #include "ym/CnfSize.h"
 #include "ym/Timer.h"
@@ -226,7 +227,8 @@ count_test(
     if ( cond.type() == DetCond::Undetected ) {
       continue;
     }
-    auto lits_list = CondGenMgr::make_cnf(engine, {cond}, cnf_option);
+    CondGenStats stats;
+    auto lits_list = CondGenMgr::make_cnf(engine, {cond}, cnf_option, stats);
     auto& lits = lits_list.front();
     auto assumptions = lits;
     auto pvar = engine.prop_var();
