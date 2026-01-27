@@ -1,0 +1,97 @@
+﻿#ifndef DRUID_H
+#define DRUID_H
+
+/// @file druid.h
+/// @brief Druid 用の名前空間の定義
+///
+/// 必ず先頭でインクルードしなければならない．
+///
+/// @author Yusuke Matsunaga (松永 裕介)
+///
+/// Copyright (C) 2025 Yusuke Matsunaga
+/// All rights reserved.
+
+#include "ym_config.h"
+
+
+//////////////////////////////////////////////////////////////////////
+// バージョン変数の設定
+//////////////////////////////////////////////////////////////////////
+
+/// @brief プロジェクトの major バージョン
+#define DRUID_VERSION_MAJIR @PROJECT_VERSION_MAJOR@
+
+/// @brief プロジェクトの minor バージョン
+#define DRUID_VERSION_MINOR @PROJECT_VERSION_MINOR@
+
+/// @brief プロジェクトのバージョン
+#define DRUID_VERSION @PROJECT_VERSION@
+
+/// @brief プロジェクトのバージョンの文字列
+#define DRUID_VERSION_STR "@PROJECT_VERSION@"
+
+/// @brief バージョン付きのプロジェクト名の文字列
+#define DRUID_PROJECT_STR "@YM_PROJECT_STRING@"
+
+
+//////////////////////////////////////////////////////////////////////
+// 名前空間の定義用マクロ
+// namespace でネストするのがいやなので define マクロでごまかす．
+//////////////////////////////////////////////////////////////////////
+
+/// @brief druid 用の名前空間の開始
+#define BEGIN_NAMESPACE_DRUID \
+BEGIN_NAMESPACE_YM \
+BEGIN_NAMESPACE(@DRUID_NSNAME@)
+
+/// @brief druid 用の名前空間の終了
+#define END_NAMESPACE_DRUID \
+END_NAMESPACE(@DRUID_NSNAME@) \
+END_NAMESPACE_YM
+
+/// @brief druid 用の名前空間
+#define DRUID_NAMESPACE YM_NAMESPACE::@DRUID_NSNAME@
+
+/// @brief druid 用の名前空間の文字列
+#define DRUID_NAMESPACE_STR YM_NAMESPACE_STR "::@DRUID_NSNAME@"
+
+
+BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+// クラス名の宣言
+//////////////////////////////////////////////////////////////////////
+
+class TpgNetwork;
+class TpgNode;
+class TpgNodeList;
+class TpgGate;
+class TpgGateList;
+class TpgMFFC;
+class TpgMFFCList;
+class TpgFFR;
+class TpgFFRList;
+class TpgFault;
+class TpgFaultList;
+
+class Assign;
+class AssignList;
+class AssignExpr;
+class InputVector;
+class DffVector;
+class TestVector;
+
+class DtpgMgr;
+class DtpgResult;
+class DtpgStats;
+class VidMap;
+
+class Fsim;
+
+enum class FaultType : std::uint8_t;
+enum class Val3 : std::uint8_t;
+enum class Fval2 : std::uint8_t;
+
+END_NAMESPACE_DRUID
+
+#endif // DRUID_H

@@ -1,0 +1,3 @@
+[submodule "ymworks"]
+	path = ymworks
+	url = https://github.com/yusuke-matsunaga/ymworks.git
