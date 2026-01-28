@@ -27,8 +27,10 @@ BEGIN_NAMESPACE_DRUID
 /// @class TpgNetwork TpgNetwork.h "TpgNetwork.h"
 /// @brief DRUID 用のネットワークを表すクラス
 /// @ingroup TypesGroup
-/// @sa TpgNode
-/// @sa TpgDff
+/// @sa TpgNode, TpgNodeList
+/// @sa TpgFFR, TpgFFRList
+/// @sa TpgMFFC, TpgMFFCList
+/// @sa TpgFault, TpgFaultList
 ///
 /// 基本的には TpgNode のネットワーク(DAG)を表す．
 ///

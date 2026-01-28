@@ -22,6 +22,7 @@ BEGIN_NAMESPACE_DRUID
 /// @sa TpgNetwork
 /// @sa TpgMFFC
 /// @sa TpgFFR
+/// @sa TpgNodeList
 ///
 /// 基本的には一つのゲート(セル)に対応しているが，
 /// もとのゲートが組み込み型でない場合には複数の TpgNode を組み合わ

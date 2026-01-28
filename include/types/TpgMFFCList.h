@@ -19,6 +19,7 @@ BEGIN_NAMESPACE_DRUID
 /// @class TpgMFFCIter TpgMFFCList.h "TpgMFFCList.h"
 /// @brief TpgMFFCList の反復子
 /// @ingroup TypesGroup
+/// @sa TpgMFFC, TpgMFFCList
 //////////////////////////////////////////////////////////////////////
 class TpgMFFCIter :
   public TpgIterBase
@@ -60,6 +61,7 @@ public:
 /// @class TpgMFFCList TpgMFFCList.h "TpgMFFCList.h"
 /// @brief TpgMFFC のリスト
 /// @ingroup TypesGroup
+/// @sa TpgMFFC, TpgMFFCIter
 //////////////////////////////////////////////////////////////////////
 class TpgMFFCList :
   public TpgListBase

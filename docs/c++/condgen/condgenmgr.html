@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>CondGenMgr &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="CondGenStats" href="condgenstats.html" />
+    <link rel="prev" title="故障検出条件生成" href="condgen_module.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="condgenstats.html" title="CondGenStats"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="condgen_module.html" title="故障検出条件生成"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="condgen_module.html" accesskey="U">故障検出条件生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CondGenMgr</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="condgenmgr">
+<h1>CondGenMgr<a class="headerlink" href="#condgenmgr" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv410CondGenMgr">
+<span id="_CPPv310CondGenMgr"></span><span id="_CPPv210CondGenMgr"></span><span id="CondGenMgr"></span><span class="target" id="d8/d5e/classCondGenMgr"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CondGenMgr</span></span></span><a class="headerlink" href="#_CPPv410CondGenMgr" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>FFRの故障伝搬条件を表すCNFを作るクラス </p>
+<p>実はただの関数 </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10CondGenMgr9make_condERK10TpgNetworkRK9JsonValue">
+<span id="_CPPv3N10CondGenMgr9make_condERK10TpgNetworkRK9JsonValue"></span><span id="_CPPv2N10CondGenMgr9make_condERK10TpgNetworkRK9JsonValue"></span><span id="CondGenMgr::make_cond__TpgNetworkCR.JsonValueCR"></span><span class="target" id="d8/d5e/classCondGenMgr_1a72800c0e3a5479e1f57e37512e97085e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="detcond.html#_CPPv47DetCond" title="DetCond"><span class="n"><span class="pre">DetCond</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">make_cond</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnetwork.html#_CPPv410TpgNetwork" title="TpgNetwork"><span class="n"><span class="pre">TpgNetwork</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10CondGenMgr9make_condERK10TpgNetworkRK9JsonValue" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>FFRの故障伝搬条件を求める． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> -- [in] 対象のネットワーク </p></li>
+<li><p><strong>option</strong> -- [in] オプション </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>各 FFR の伝搬条件のリストを返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10CondGenMgr8make_cnfER12StructEngineRKNSt6vectorI7DetCondEERK9JsonValueR12CondGenStats">
+<span id="_CPPv3N10CondGenMgr8make_cnfER12StructEngineRKNSt6vectorI7DetCondEERK9JsonValueR12CondGenStats"></span><span id="_CPPv2N10CondGenMgr8make_cnfER12StructEngineRKNSt6vectorI7DetCondEERK9JsonValueR12CondGenStats"></span><span id="CondGenMgr::make_cnf__StructEngineR.std::vector:DetCond:CR.JsonValueCR.CondGenStatsR"></span><span class="target" id="d8/d5e/classCondGenMgr_1afc6720965aec95a6423a2f18ee3c174b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SatLiteral</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">make_cnf</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">StructEngine</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">engine</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="detcond.html#_CPPv47DetCond" title="DetCond"><span class="n"><span class="pre">DetCond</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cond_list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">option</span></span>, <a class="reference internal" href="condgenstats.html#_CPPv412CondGenStats" title="CondGenStats"><span class="n"><span class="pre">CondGenStats</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stats</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10CondGenMgr8make_cnfER12StructEngineRKNSt6vectorI7DetCondEERK9JsonValueR12CondGenStats" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>FFRの故障伝搬条件を表すCNF式を作る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>engine</strong> -- [in] CNFの作成用のエンジン </p></li>
+<li><p><strong>cond_list</strong> -- [in] 条件のリスト </p></li>
+<li><p><strong>option</strong> -- [in] オプション </p></li>
+<li><p><strong>stats</strong> -- [out] 統計情報を入れるオブジェクト </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10CondGenMgr14make_cnf_naiveER12StructEngineRK9JsonValueR12CondGenStats">
+<span id="_CPPv3N10CondGenMgr14make_cnf_naiveER12StructEngineRK9JsonValueR12CondGenStats"></span><span id="_CPPv2N10CondGenMgr14make_cnf_naiveER12StructEngineRK9JsonValueR12CondGenStats"></span><span id="CondGenMgr::make_cnf_naive__StructEngineR.JsonValueCR.CondGenStatsR"></span><span class="target" id="d8/d5e/classCondGenMgr_1a0ea96670c18867d47c1fecf4c1aaba13"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SatLiteral</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">make_cnf_naive</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">StructEngine</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">engine</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">option</span></span>, <a class="reference internal" href="condgenstats.html#_CPPv412CondGenStats" title="CondGenStats"><span class="n"><span class="pre">CondGenStats</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stats</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10CondGenMgr14make_cnf_naiveER12StructEngineRK9JsonValueR12CondGenStats" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>FFRの故障伝搬条件を表すCNF式を作る(ナイーブバージョン) </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>engine</strong> -- [in] CNFの作成用のエンジン </p></li>
+<li><p><strong>option</strong> -- [in] オプション </p></li>
+<li><p><strong>stats</strong> -- [out] 統計情報を入れるオブジェクト </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10CondGenMgr13make_base_cnfER12StructEngine">
+<span id="_CPPv3N10CondGenMgr13make_base_cnfER12StructEngine"></span><span id="_CPPv2N10CondGenMgr13make_base_cnfER12StructEngine"></span><span id="CondGenMgr::make_base_cnf__StructEngineR"></span><span class="target" id="d8/d5e/classCondGenMgr_1a759f5f0e53f6311dfb03a86a9363e517"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">make_base_cnf</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">StructEngine</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">engine</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10CondGenMgr13make_base_cnfER12StructEngine" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>正常回路用の CNF を作る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>engine</strong> -- [in] CNFの作成用のエンジン </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10CondGenMgr9make_exprERKNSt6vectorI7DetCondEERK9JsonValue">
+<span id="_CPPv3N10CondGenMgr9make_exprERKNSt6vectorI7DetCondEERK9JsonValue"></span><span id="_CPPv2N10CondGenMgr9make_exprERKNSt6vectorI7DetCondEERK9JsonValue"></span><span id="CondGenMgr::make_expr__std::vector:DetCond:CR.JsonValueCR"></span><span class="target" id="d8/d5e/classCondGenMgr_1a24c6497e67848151dca1244579477315"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Expr</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">make_expr</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="detcond.html#_CPPv47DetCond" title="DetCond"><span class="n"><span class="pre">DetCond</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cond_list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10CondGenMgr9make_exprERKNSt6vectorI7DetCondEERK9JsonValue" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="detcond.html#df/db2/classDetCond"><span class="std std-ref">DetCond</span></a> から Expr を作る． </p>
+<p><a class="reference internal" href="detcond.html#df/db2/classDetCond_1a5a8628343e3a9e69e863fd9998cab87a"><span class="std std-ref">DetCond.type()</span></a> が Detected/PartialDetected の場合のみ Expr を作る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cond_list</strong> -- [in] 条件のリスト </p></li>
+<li><p><strong>option</strong> -- [in] オプション </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10CondGenMgr11expr_to_cnfER12StructEngineRKNSt6vectorI4ExprEERK9JsonValue">
+<span id="_CPPv3N10CondGenMgr11expr_to_cnfER12StructEngineRKNSt6vectorI4ExprEERK9JsonValue"></span><span id="_CPPv2N10CondGenMgr11expr_to_cnfER12StructEngineRKNSt6vectorI4ExprEERK9JsonValue"></span><span id="CondGenMgr::expr_to_cnf__StructEngineR.std::vector:Expr:CR.JsonValueCR"></span><span class="target" id="d8/d5e/classCondGenMgr_1a5b27e0021788850f949b94c9f8c600c9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SatLiteral</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">expr_to_cnf</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">StructEngine</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">engine</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Expr</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">expr_list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10CondGenMgr11expr_to_cnfER12StructEngineRKNSt6vectorI4ExprEERK9JsonValue" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>Expr を CNF に変換する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>engine</strong> -- [in] CNFの作成用のエンジン </p></li>
+<li><p><strong>expr_list</strong> -- [in] 式のリスト </p></li>
+<li><p><strong>option</strong> -- [in] オプション </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10CondGenMgr7make_bdER12StructEngineRKNSt6vectorI7DetCondEE">
+<span id="_CPPv3N10CondGenMgr7make_bdER12StructEngineRKNSt6vectorI7DetCondEE"></span><span id="_CPPv2N10CondGenMgr7make_bdER12StructEngineRKNSt6vectorI7DetCondEE"></span><span id="CondGenMgr::make_bd__StructEngineR.std::vector:DetCond:CR"></span><span class="target" id="d8/d5e/classCondGenMgr_1a34df81e97a56a5e7669f2bdc96c140a0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SatLiteral</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">make_bd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">StructEngine</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">engine</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="detcond.html#_CPPv47DetCond" title="DetCond"><span class="n"><span class="pre">DetCond</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cond_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10CondGenMgr7make_bdER12StructEngineRKNSt6vectorI7DetCondEE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>BoolDiffEnc を用いた条件を作る． </p>
+<p><a class="reference internal" href="detcond.html#df/db2/classDetCond_1a5a8628343e3a9e69e863fd9998cab87a"><span class="std std-ref">DetCond.type()</span></a> が PartialDetected/Overflow の場合にのみ BoolDiffEnc を作る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>engine</strong> -- [in] CNFの作成用のエンジン </p></li>
+<li><p><strong>cond_list</strong> -- [in] 条件 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="condgen_module.html"
+                          title="前の章へ">故障検出条件生成</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="condgenstats.html"
+                          title="次の章へ">CondGenStats</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/condgen/condgenmgr.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="condgenstats.html" title="CondGenStats"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="condgen_module.html" title="故障検出条件生成"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="condgen_module.html" >故障検出条件生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CondGenMgr</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+DtpgStats
+==========
+
+.. doxygenclass:: DtpgStats
+   :members:

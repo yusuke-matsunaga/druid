@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>BitVector &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="DffVector" href="dffvector.html" />
+    <link rel="prev" title="AssignList" href="assignlist.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="dffvector.html" title="DffVector"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="assignlist.html" title="AssignList"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BitVector</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="bitvector">
+<h1>BitVector<a class="headerlink" href="#bitvector" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv49BitVector">
+<span id="_CPPv39BitVector"></span><span id="_CPPv29BitVector"></span><span id="BitVector"></span><span class="target" id="df/d21/classBitVector"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BitVector</span></span></span><a class="headerlink" href="#_CPPv49BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>入力用のビットベクタを表すクラス </p>
+<p>実体は BitVectorRep が持つ． </p>
+<p>Subclassed by <a class="reference internal" href="dffvector.html#d9/da1/classDffVector"><span class="std std-ref">DffVector</span></a>, <a class="reference internal" href="inputvector.html#d6/dee/classInputVector"><span class="std std-ref">InputVector</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector9BitVectorE8SizeType">
+<span id="_CPPv3N9BitVector9BitVectorE8SizeType"></span><span id="_CPPv2N9BitVector9BitVectorE8SizeType"></span><span id="BitVector::BitVector__SizeType"></span><span class="target" id="df/d21/classBitVector_1ae5e21dc3a6101695c792c4574c417cdf"></span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BitVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">len</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector9BitVectorE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ </p>
+<p>内容は X で初期化される． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>len</strong> -- [in] ベクタ長 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector9BitVectorERK9BitVector">
+<span id="_CPPv3N9BitVector9BitVectorERK9BitVector"></span><span id="_CPPv2N9BitVector9BitVectorERK9BitVector"></span><span id="BitVector::BitVector__BitVectorCR"></span><span class="target" id="df/d21/classBitVector_1af83dcfed1202d392d0643bed8a5d2a6d"></span><span class="sig-name descname"><span class="n"><span class="pre">BitVector</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9BitVector9BitVectorERK9BitVector" title="BitVector::BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector9BitVectorERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピーコンストラクタ </p>
+<p>'浅い'コピーとなる． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src</strong> -- [in] コピー元のソース </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVectoraSERK9BitVector">
+<span id="_CPPv3N9BitVectoraSERK9BitVector"></span><span id="_CPPv2N9BitVectoraSERK9BitVector"></span><span id="BitVector::assign-operator__BitVectorCR"></span><span class="target" id="df/d21/classBitVector_1a0f97a1cc5b5967f662f57db9750088e3"></span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVectoraSERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピー代入演算子 </p>
+<p>'浅い'コピーとなる． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src</strong> -- [in] コピー元のソース </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVectorD0Ev">
+<span id="_CPPv3N9BitVectorD0Ev"></span><span id="_CPPv2N9BitVectorD0Ev"></span><span id="BitVector::~BitVector"></span><span class="target" id="df/d21/classBitVector_1a77ca7fce8fc1cf29dd3ffe98f1fed314"></span><span class="sig-name descname"><span class="n"><span class="pre">~BitVector</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVectorD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVector3lenEv">
+<span id="_CPPv3NK9BitVector3lenEv"></span><span id="_CPPv2NK9BitVector3lenEv"></span><span id="BitVector::lenC"></span><span class="target" id="df/d21/classBitVector_1a6d043696af9599d2451593dcb661efc9"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">len</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVector3lenEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ベクタ長を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVector9block_numEv">
+<span id="_CPPv3NK9BitVector9block_numEv"></span><span id="_CPPv2NK9BitVector9block_numEv"></span><span id="BitVector::block_numC"></span><span class="target" id="df/d21/classBitVector_1a5476752570323d5f82beccf3322e3863"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">block_num</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVector9block_numEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ブロック長を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVector3valE8SizeType">
+<span id="_CPPv3NK9BitVector3valE8SizeType"></span><span id="_CPPv2NK9BitVector3valE8SizeType"></span><span id="BitVector::val__SizeTypeC"></span><span class="target" id="df/d21/classBitVector_1a382d432aeee5d99e9370c6585487341b"></span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVector3valE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を得る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] 位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#df/d21/classBitVector_1a6d043696af9599d2451593dcb661efc9"><span class="std std-ref">len()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVector7x_countEv">
+<span id="_CPPv3NK9BitVector7x_countEv"></span><span id="_CPPv2NK9BitVector7x_countEv"></span><span id="BitVector::x_countC"></span><span class="target" id="df/d21/classBitVector_1afa5a731a0a6cc6db76dbfafc30f6ef48"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVector7x_countEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>X の個数を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVectoraNERK9BitVector">
+<span id="_CPPv3N9BitVectoraNERK9BitVector"></span><span id="_CPPv2N9BitVectoraNERK9BitVector"></span><span id="BitVector::and-assign-operator__BitVectorCR"></span><span class="target" id="df/d21/classBitVector_1aaba98829af2ba9b6728a7da3933fad14"></span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&amp;=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVectoraNERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マージして代入する． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVector7bin_strEv">
+<span id="_CPPv3NK9BitVector7bin_strEv"></span><span id="_CPPv2NK9BitVector7bin_strEv"></span><span id="BitVector::bin_strC"></span><span class="target" id="df/d21/classBitVector_1a89c979407a76a89d0e85f7b9808affb0"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bin_str</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVector7bin_strEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容を BIN 形式で表す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVector7hex_strEv">
+<span id="_CPPv3NK9BitVector7hex_strEv"></span><span id="_CPPv2NK9BitVector7hex_strEv"></span><span id="BitVector::hex_strC"></span><span class="target" id="df/d21/classBitVector_1a0892d9b76bb76b70b12acdb0d911baf4"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hex_str</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVector7hex_strEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容を HEX 形式で表す． </p>
+<p>X を含む場合の出力は不定 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector4initEv">
+<span id="_CPPv3N9BitVector4initEv"></span><span id="_CPPv2N9BitVector4initEv"></span><span id="BitVector::init"></span><span class="target" id="df/d21/classBitVector_1abcefa268246ec39f0aff78201b5bad2f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">init</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector4initEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>すべて未定(X) で初期化する． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector6lshiftE4Val3">
+<span id="_CPPv3N9BitVector6lshiftE4Val3"></span><span id="_CPPv2N9BitVector6lshiftE4Val3"></span><span id="BitVector::lshift__Val3"></span><span class="target" id="df/d21/classBitVector_1a07dfd97f55ff8054be78dabb4783888f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lshift</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">new_val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector6lshiftE4Val3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1ビット左シフトを行う． </p>
+<p>ビット長は変わらないので左端の1ビットは捨てられる． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new_val</strong> -- [in] 右端に挿入する値 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector6rshiftE4Val3">
+<span id="_CPPv3N9BitVector6rshiftE4Val3"></span><span id="_CPPv2N9BitVector6rshiftE4Val3"></span><span id="BitVector::rshift__Val3"></span><span class="target" id="df/d21/classBitVector_1acfd234df3fb12c5517df334ada1d3eff"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rshift</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">new_val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector6rshiftE4Val3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1ビット右シフトを行う． </p>
+<p>ビット長は変わらないので右端の1ビットは捨てられる． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new_val</strong> -- [in] 左端に挿入する値 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector7set_valE8SizeType4Val3">
+<span id="_CPPv3N9BitVector7set_valE8SizeType4Val3"></span><span id="_CPPv2N9BitVector7set_valE8SizeType4Val3"></span><span id="BitVector::set_val__SizeType.Val3"></span><span class="target" id="df/d21/classBitVector_1ad76e0983967734a27b0edeb773ee7828"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span>, <span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector7set_valE8SizeType4Val3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を設定する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos</strong> -- [in] 位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#df/d21/classBitVector_1a6d043696af9599d2451593dcb661efc9"><span class="std std-ref">len()</span></a> ) </p></li>
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector12set_from_binERKNSt6stringE">
+<span id="_CPPv3N9BitVector12set_from_binERKNSt6stringE"></span><span id="_CPPv2N9BitVector12set_from_binERKNSt6stringE"></span><span id="BitVector::set_from_bin__ssCR"></span><span class="target" id="df/d21/classBitVector_1a046d897c5f540c6462da2d23a3d0e000"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_from_bin</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bin_string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector12set_from_binERKNSt6stringE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>BIN文字列から内容を設定する． </p>
+<p><ul class="simple">
+<li><p>bin_string がベクタ長より短い時には残りはXで初期化される．</p></li>
+<li><p>bin_string がベクタ長より長い時には余りは切り捨てられる．</p></li>
+<li><p>有効な文字は '0', '1', 'x', 'X' </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bin_string</strong> -- [in] BIN文字列 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>true</strong> -- 適切に設定された． </p></li>
+<li><p><strong>false</strong> -- bin_string に不適切な文字が含まれていた．</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector12set_from_hexERKNSt6stringE">
+<span id="_CPPv3N9BitVector12set_from_hexERKNSt6stringE"></span><span id="_CPPv2N9BitVector12set_from_hexERKNSt6stringE"></span><span id="BitVector::set_from_hex__ssCR"></span><span class="target" id="df/d21/classBitVector_1a764775540e8286e3ff314ddd84fc6343"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_from_hex</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">hex_string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector12set_from_hexERKNSt6stringE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>HEX文字列から内容を設定する． </p>
+<p><ul class="simple">
+<li><p>hex_string が短い時には残りは0で初期化される．</p></li>
+<li><p>hex_string が長い時には余りは捨てられる．</p></li>
+<li><p>有効な文字は '0'〜'9', 'a'〜'f', 'A'〜'F'</p></li>
+<li><p>この形式は X を扱えない． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hex_string</strong> -- [in] HEX 文字列 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>true</strong> -- 適切に設定された． </p></li>
+<li><p><strong>false</strong> -- hex_string に不適切な文字が含まれていた．</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN9BitVector15set_from_randomEvR4URNG">
+<span id="_CPPv3I0EN9BitVector15set_from_randomER4URNG"></span><span id="_CPPv2I0EN9BitVector15set_from_randomER4URNG"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">URNG</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="df/d21/classBitVector_1a1b650e9e6a065574027821c291a80e32"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_from_random</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN9BitVector15set_from_randomEvR4URNG" title="BitVector::set_from_random::URNG"><span class="n"><span class="pre">URNG</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">randgen</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9BitVector15set_from_randomEvR4URNG" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>乱数パタンを設定する． </p>
+<p><ul class="simple">
+<li><p>結果はかならず 0 か 1 になる．(Xは含まれない) </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>randgen</strong> -- [in] 乱数生成器 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN9BitVector17fix_x_from_randomEvR4URNG">
+<span id="_CPPv3I0EN9BitVector17fix_x_from_randomER4URNG"></span><span id="_CPPv2I0EN9BitVector17fix_x_from_randomER4URNG"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">URNG</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="df/d21/classBitVector_1a23a46f05cb0eb4340c5b75ce93654883"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fix_x_from_random</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN9BitVector17fix_x_from_randomEvR4URNG" title="BitVector::fix_x_from_random::URNG"><span class="n"><span class="pre">URNG</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">randgen</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9BitVector17fix_x_from_randomEvR4URNG" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>X の部分を乱数で 0/1 に設定する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>randgen</strong> -- [in] 乱数生成器 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVectoraaERK9BitVector">
+<span id="_CPPv3NK9BitVectoraaERK9BitVector"></span><span id="_CPPv2NK9BitVectoraaERK9BitVector"></span><span id="BitVector::sand-operator__BitVectorCRC"></span><span class="target" id="df/d21/classBitVector_1a55bdcde119b1dd183c4cbb1caa26f164"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&amp;&amp;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVectoraaERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>両立関係の比較を行う． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>left と right が両立する時 true を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVectoreqERK9BitVector">
+<span id="_CPPv3NK9BitVectoreqERK9BitVector"></span><span id="_CPPv2NK9BitVectoreqERK9BitVector"></span><span id="BitVector::eq-operator__BitVectorCRC"></span><span class="target" id="df/d21/classBitVector_1af1149874d88b23947d966a5ae42bce56"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVectoreqERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>等価関係の比較を行なう． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>left と right が等しいとき true を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVectorneERK9BitVector">
+<span id="_CPPv3NK9BitVectorneERK9BitVector"></span><span id="_CPPv2NK9BitVectorneERK9BitVector"></span><span id="BitVector::neq-operator__BitVectorCRC"></span><span class="target" id="df/d21/classBitVector_1a41c097748c611979c899a9b4dbd6e5b3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">!=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVectorneERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>等価関係の比較を行なう． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>left と right が等しくないとき true を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVectorltERK9BitVector">
+<span id="_CPPv3NK9BitVectorltERK9BitVector"></span><span id="_CPPv2NK9BitVectorltERK9BitVector"></span><span id="BitVector::lt-operator__BitVectorCRC"></span><span class="target" id="df/d21/classBitVector_1a0c0ea8b6adc73e5db6e74689bf32a228"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&lt;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVectorltERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>包含関係の比較を行なう </p>
+<p><ul class="simple">
+<li><p>false だからといって逆に left が right を含むとは限らない． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>minterm の集合として right が left を含んでいたら true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVectorgtERK9BitVector">
+<span id="_CPPv3NK9BitVectorgtERK9BitVector"></span><span id="_CPPv2NK9BitVectorgtERK9BitVector"></span><span id="BitVector::gt-operator__BitVectorCRC"></span><span class="target" id="df/d21/classBitVector_1a880e5bc950c026223fca95f54c6a7bfa"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&gt;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVectorgtERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>包含関係の比較を行なう． </p>
+<p><ul class="simple">
+<li><p>false だからといって逆に right が left を含むとは限らない． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>minterm の集合として left が right を含んでいたら true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVectorleERK9BitVector">
+<span id="_CPPv3NK9BitVectorleERK9BitVector"></span><span id="_CPPv2NK9BitVectorleERK9BitVector"></span><span id="BitVector::lte-operator__BitVectorCRC"></span><span class="target" id="df/d21/classBitVector_1a8452a496735e7c2e1d6962110e7a02b3"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&lt;=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVectorleERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>包含関係の比較を行なう </p>
+<p><ul class="simple">
+<li><p>こちらは等しい場合も含む．</p></li>
+<li><p>false だからといって逆に left が right を含むとは限らない． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>minterm の集合として right が left を含んでいたら true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVectorgeERK9BitVector">
+<span id="_CPPv3NK9BitVectorgeERK9BitVector"></span><span id="_CPPv2NK9BitVectorgeERK9BitVector"></span><span id="BitVector::gte-operator__BitVectorCRC"></span><span class="target" id="df/d21/classBitVector_1ad8784bb1981b9e0f0b64f08ba6cc3862"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&gt;=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVectorgeERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>包含関係の比較を行なう </p>
+<p><ul class="simple">
+<li><p>こちらは等しい場合も含む．</p></li>
+<li><p>false だからといって逆に right が left を含むとは限らない． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>minterm の集合として left が right を含んでいたら true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVectoranERK9BitVector">
+<span id="_CPPv3NK9BitVectoranERK9BitVector"></span><span id="_CPPv2NK9BitVectoranERK9BitVector"></span><span id="BitVector::and-operator__BitVectorCRC"></span><span class="target" id="df/d21/classBitVector_1aa6439afad3ce2dff48fe449adfac4966"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&amp;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVectoranERK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マージする． </p>
+<p>
+left と right がコンフリクトしている時の結果は不定 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>マージ結果を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9BitVector4hashEv">
+<span id="_CPPv3NK9BitVector4hashEv"></span><span id="_CPPv2NK9BitVector4hashEv"></span><span id="BitVector::hashC"></span><span class="target" id="df/d21/classBitVector_1a31cf5b80cc71eedded2debe7fe480cc0"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hash</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9BitVector4hashEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ハッシュ値を計算する． </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector8from_binERKNSt6stringE">
+<span id="_CPPv3N9BitVector8from_binERKNSt6stringE"></span><span id="_CPPv2N9BitVector8from_binERKNSt6stringE"></span><span id="BitVector::from_bin__ssCR"></span><span class="target" id="df/d21/classBitVector_1a90072e5fae9db2914f325485a7d9b897"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">from_bin</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bin_str</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector8from_binERKNSt6stringE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>2進文字列からオブジェクトを作る． </p>
+<p><ul class="simple">
+<li><p>ベクタ長は文字列の長さから得る．</p></li>
+<li><p>文字列は '0', '1', 'X', 'x' で構成される．</p></li>
+<li><p>最初の文字が0ビット目となる．</p></li>
+<li><p>bin_str が不適切な場合には長さ0のベクタを返す． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bin_str</strong> -- [in] 2進文字列 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9BitVector8from_hexE8SizeTypeRKNSt6stringE">
+<span id="_CPPv3N9BitVector8from_hexE8SizeTypeRKNSt6stringE"></span><span id="_CPPv2N9BitVector8from_hexE8SizeTypeRKNSt6stringE"></span><span id="BitVector::from_hex__SizeType.ssCR"></span><span class="target" id="df/d21/classBitVector_1a60cbe760004bc5cf7bb680b19982b68b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">from_hex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">len</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">hex_str</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9BitVector8from_hexE8SizeTypeRKNSt6stringE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>HEX文字列からオブジェクトを作る． </p>
+<p><ul class="simple">
+<li><p>hex_string が短い時には残りは0で初期化される．</p></li>
+<li><p>hex_string が長い時には余りは捨てられる．</p></li>
+<li><p>有効な文字は '0'〜'9', 'a'〜'f', 'A'〜'F'</p></li>
+<li><p>hex_str が不適切な場合には長さ0のベクタを返す． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>len</strong> -- [in] ベクタ長 </p></li>
+<li><p><strong>hex_str</strong> -- [in] HEX文字列 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="assignlist.html"
+                          title="前の章へ">AssignList</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="dffvector.html"
+                          title="次の章へ">DffVector</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/bitvector.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="dffvector.html" title="DffVector"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="assignlist.html" title="AssignList"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BitVector</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

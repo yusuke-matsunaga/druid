@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>TpgBase &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="TpgNetwork" href="tpgnetwork.html" />
+    <link rel="prev" title="FaultStatus" href="faultstatus.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="tpgnetwork.html" title="TpgNetwork"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="faultstatus.html" title="FaultStatus"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TpgBase</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tpgbase">
+<h1>TpgBase<a class="headerlink" href="#tpgbase" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv47TpgBase">
+<span id="_CPPv37TpgBase"></span><span id="_CPPv27TpgBase"></span><span id="TpgBase"></span><span class="target" id="de/dbc/classTpgBase"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TpgBase</span></span></span><a class="headerlink" href="#_CPPv47TpgBase" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>NetworkRep の共有ポインタを持つ基底クラス </p>
+<p><a class="reference internal" href="tpgnetwork.html#d9/d58/classTpgNetwork"><span class="std std-ref">TpgNetwork</span></a>, <a class="reference internal" href="tpgnode.html#dd/d13/classTpgNode"><span class="std std-ref">TpgNode</span></a>, <a class="reference internal" href="tpgffr.html#d8/d9a/classTpgFFR"><span class="std std-ref">TpgFFR</span></a>, <a class="reference internal" href="tpgmffc.html#d7/d08/classTpgMFFC"><span class="std std-ref">TpgMFFC</span></a>, <a class="reference internal" href="tpgfault.html#d3/d59/classTpgFault"><span class="std std-ref">TpgFault</span></a> などはこのクラス を継承する． <div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="tpgnode.html#dd/d13/classTpgNode"><span class="std std-ref">TpgNode</span></a></p>
+</div>
+</p>
+<p>Subclassed by <a class="reference internal" href="assign.html#d9/d95/classAssign"><span class="std std-ref">Assign</span></a>, AssignIter, <a class="reference internal" href="assignlist.html#d2/dfa/classAssignList"><span class="std std-ref">AssignList</span></a>, TpgIterBase, TpgListBase, <a class="reference internal" href="tpgnetwork.html#d9/d58/classTpgNetwork"><span class="std std-ref">TpgNetwork</span></a>, TpgObjBase</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7TpgBase7TpgBaseEv">
+<span id="_CPPv3N7TpgBase7TpgBaseEv"></span><span id="_CPPv2N7TpgBase7TpgBaseEv"></span><span id="TpgBase::TpgBase"></span><span class="target" id="de/dbc/classTpgBase_1aaa06d49820a621265bdf6498c249d416"></span><span class="sig-name descname"><span class="n"><span class="pre">TpgBase</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7TpgBase7TpgBaseEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+<p>不正な値となる． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7TpgBase7TpgBaseERKNSt10shared_ptrI10NetworkRepEE">
+<span id="_CPPv3N7TpgBase7TpgBaseERKNSt10shared_ptrI10NetworkRepEE"></span><span id="_CPPv2N7TpgBase7TpgBaseERKNSt10shared_ptrI10NetworkRepEE"></span><span id="TpgBase::TpgBase__std::shared_ptr:NetworkRep:CR"></span><span class="target" id="de/dbc/classTpgBase_1a8cd651803119e42fbdb945d70e5e38b1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TpgBase</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">NetworkRep</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">impl</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7TpgBase7TpgBaseERKNSt10shared_ptrI10NetworkRepEE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を指定したコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7TpgBaseD0Ev">
+<span id="_CPPv3N7TpgBaseD0Ev"></span><span id="_CPPv2N7TpgBaseD0Ev"></span><span id="TpgBase::~TpgBase"></span><span class="target" id="de/dbc/classTpgBase_1a211f674dd6bf5f1852ebc8e0bf74a9e6"></span><span class="sig-name descname"><span class="n"><span class="pre">~TpgBase</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7TpgBaseD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgBase8is_validEv">
+<span id="_CPPv3NK7TpgBase8is_validEv"></span><span id="_CPPv2NK7TpgBase8is_validEv"></span><span id="TpgBase::is_validC"></span><span class="target" id="de/dbc/classTpgBase_1aacb7d2b6f6689a419b20ce4c29860f95"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_valid</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgBase8is_validEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>適正な値を持っているとき true を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgBaseeqERK7TpgBase">
+<span id="_CPPv3NK7TpgBaseeqERK7TpgBase"></span><span id="_CPPv2NK7TpgBaseeqERK7TpgBase"></span><span id="TpgBase::eq-operator__TpgBaseCRC"></span><span class="target" id="de/dbc/classTpgBase_1a42935abf81ce46468970fbf0f12bc660"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47TpgBase" title="TpgBase"><span class="n"><span class="pre">TpgBase</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgBaseeqERK7TpgBase" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>等価比較演算子 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgBaseneERK7TpgBase">
+<span id="_CPPv3NK7TpgBaseneERK7TpgBase"></span><span id="_CPPv2NK7TpgBaseneERK7TpgBase"></span><span id="TpgBase::neq-operator__TpgBaseCRC"></span><span class="target" id="de/dbc/classTpgBase_1a6f28c5fb2916fe3476fb8a6259f6e372"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">!=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47TpgBase" title="TpgBase"><span class="n"><span class="pre">TpgBase</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgBaseneERK7TpgBase" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>非等価比較演算子 </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7TpgBase8check_eqERK7TpgBaseRK7TpgBase">
+<span id="_CPPv3N7TpgBase8check_eqERK7TpgBaseRK7TpgBase"></span><span id="_CPPv2N7TpgBase8check_eqERK7TpgBaseRK7TpgBase"></span><span id="TpgBase::check_eq__TpgBaseCR.TpgBaseCR"></span><span class="target" id="de/dbc/classTpgBase_1a489a8e4eb7ee6a705593e17d2e565601"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">check_eq</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47TpgBase" title="TpgBase"><span class="n"><span class="pre">TpgBase</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47TpgBase" title="TpgBase"><span class="n"><span class="pre">TpgBase</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">left</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7TpgBase8check_eqERK7TpgBaseRK7TpgBase" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>同じネットワークに属したオブジェクトの時に true を返す． </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="faultstatus.html"
+                          title="前の章へ">FaultStatus</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="tpgnetwork.html"
+                          title="次の章へ">TpgNetwork</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/tpgbase.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="tpgnetwork.html" title="TpgNetwork"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="faultstatus.html" title="FaultStatus"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TpgBase</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

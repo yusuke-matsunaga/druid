@@ -1,0 +1,5 @@
+Assign
+========
+
+.. doxygenclass:: Assign
+   :members:

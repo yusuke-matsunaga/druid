@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>BdEngine &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="VidMap" href="vidmap.html" />
+    <link rel="prev" title="BoolDiffEnc" href="booldiffenc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="vidmap.html" title="VidMap"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="booldiffenc.html" title="BoolDiffEnc"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="dtpg_module.html" accesskey="U">テスト生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BdEngine</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="bdengine">
+<h1>BdEngine<a class="headerlink" href="#bdengine" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv48BdEngine">
+<span id="_CPPv38BdEngine"></span><span id="_CPPv28BdEngine"></span><span id="BdEngine"></span><span class="target" id="d8/d45/classBdEngine"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BdEngine</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="structengine.html#_CPPv412StructEngine" title="StructEngine"><span class="n"><span class="pre">StructEngine</span></span></a><a class="headerlink" href="#_CPPv48BdEngine" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="booldiffenc.html#da/ded/classBoolDiffEnc"><span class="std std-ref">BoolDiffEnc</span></a> を一つ組み込んだ <a class="reference internal" href="structengine.html#d2/d36/classStructEngine"><span class="std std-ref">StructEngine</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8BdEngine8BdEngineERK10TpgNetworkRK7TpgNodeRK9JsonValue">
+<span id="_CPPv3N8BdEngine8BdEngineERK10TpgNetworkRK7TpgNodeRK9JsonValue"></span><span id="_CPPv2N8BdEngine8BdEngineERK10TpgNetworkRK7TpgNodeRK9JsonValue"></span><span id="BdEngine::BdEngine__TpgNetworkCR.TpgNodeCR.JsonValueCR"></span><span class="target" id="d8/d45/classBdEngine_1acaeba3aefef12f030ad99bc8dd92869e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BdEngine</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnetwork.html#_CPPv410TpgNetwork" title="TpgNetwork"><span class="n"><span class="pre">TpgNetwork</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">option</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8BdEngine8BdEngineERK10TpgNetworkRK7TpgNodeRK9JsonValue" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> -- [in] ネットワーク </p></li>
+<li><p><strong>node</strong> -- [in] 対象のノード </p></li>
+<li><p><strong>option</strong> -- [in] オプション </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8BdEngineD0Ev">
+<span id="_CPPv3N8BdEngineD0Ev"></span><span id="_CPPv2N8BdEngineD0Ev"></span><span id="BdEngine::~BdEngine"></span><span class="target" id="d8/d45/classBdEngine_1ae53784b083c46c159e6bc71443e2373c"></span><span class="sig-name descname"><span class="n"><span class="pre">~BdEngine</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N8BdEngineD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK8BdEngine11output_listEv">
+<span id="_CPPv3NK8BdEngine11output_listEv"></span><span id="_CPPv2NK8BdEngine11output_listEv"></span><span id="BdEngine::output_listC"></span><span class="target" id="d8/d45/classBdEngine_1a08599e89ea0100c3c78b6cd0c179f180"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">output_list</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK8BdEngine11output_listEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>root_node() から到達可能な外部出力のリストを返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK8BdEngine10output_numEv">
+<span id="_CPPv3NK8BdEngine10output_numEv"></span><span id="_CPPv2NK8BdEngine10output_numEv"></span><span id="BdEngine::output_numC"></span><span class="target" id="d8/d45/classBdEngine_1a18b5da9964dfe1210309cda4be7154b6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">output_num</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK8BdEngine10output_numEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>root_node() から到達可能な外部出力の数を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK8BdEngine6outputE8SizeType">
+<span id="_CPPv3NK8BdEngine6outputE8SizeType"></span><span id="_CPPv2NK8BdEngine6outputE8SizeType"></span><span id="BdEngine::output__SizeTypeC"></span><span class="target" id="d8/d45/classBdEngine_1a3e98e33672edbd5c36844c4b008429de"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">output</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK8BdEngine6outputE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>root_node() から到達可能な外部出力を返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] 出力番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#d8/d45/classBdEngine_1a18b5da9964dfe1210309cda4be7154b6"><span class="std std-ref">output_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK8BdEngine8prop_varEv">
+<span id="_CPPv3NK8BdEngine8prop_varEv"></span><span id="_CPPv2NK8BdEngine8prop_varEv"></span><span id="BdEngine::prop_varC"></span><span class="target" id="d8/d45/classBdEngine_1a621686507d33352e8f28711ea483c72f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SatLiteral</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">prop_var</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK8BdEngine8prop_varEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>伝搬変数 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK8BdEngine8prop_varE8SizeType">
+<span id="_CPPv3NK8BdEngine8prop_varE8SizeType"></span><span id="_CPPv2NK8BdEngine8prop_varE8SizeType"></span><span id="BdEngine::prop_var__SizeTypeC"></span><span class="target" id="d8/d45/classBdEngine_1a12036cf12cb6b16d74fa29610c316b37"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SatLiteral</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">prop_var</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK8BdEngine8prop_varE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>微分結果を表す変数を返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] 出力番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#d8/d45/classBdEngine_1a18b5da9964dfe1210309cda4be7154b6"><span class="std std-ref">output_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8BdEngine28extract_sufficient_conditionEv">
+<span id="_CPPv3N8BdEngine28extract_sufficient_conditionEv"></span><span id="_CPPv2N8BdEngine28extract_sufficient_conditionEv"></span><span id="BdEngine::extract_sufficient_condition"></span><span class="target" id="d8/d45/classBdEngine_1aa8f5bd9e3e864f9090416c92bb0a0b87"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">extract_sufficient_condition</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8BdEngine28extract_sufficient_conditionEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>直前の check() が成功したときの十分条件を求める． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8BdEngine28extract_sufficient_conditionE8SizeType">
+<span id="_CPPv3N8BdEngine28extract_sufficient_conditionE8SizeType"></span><span id="_CPPv2N8BdEngine28extract_sufficient_conditionE8SizeType"></span><span id="BdEngine::extract_sufficient_condition__SizeType"></span><span class="target" id="d8/d45/classBdEngine_1a0249151384295f11529da8db1677b6a5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">extract_sufficient_condition</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8BdEngine28extract_sufficient_conditionE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>直前の check() が成功したときの十分条件を求める． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] 出力番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#d8/d45/classBdEngine_1a18b5da9964dfe1210309cda4be7154b6"><span class="std std-ref">output_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="booldiffenc.html"
+                          title="前の章へ">BoolDiffEnc</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="vidmap.html"
+                          title="次の章へ">VidMap</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/dtpg/bdengine.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="vidmap.html" title="VidMap"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="booldiffenc.html" title="BoolDiffEnc"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="dtpg_module.html" >テスト生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BdEngine</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

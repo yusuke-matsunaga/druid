@@ -17,6 +17,7 @@ BEGIN_NAMESPACE_DRUID
 /// @class DiffBits DiffBits.h "DiffBits.h"
 /// @brief 故障の影響が伝搬したかどうかを表すビットベクタ
 /// @ingroup FsimGroup
+/// @sa Fsim, DiffBitsArray
 ///
 /// 意味的には出力数ぶんのビットベクタだが実際にはほぼゼロなので
 /// 非ゼロ要素の番号のリストで表す．

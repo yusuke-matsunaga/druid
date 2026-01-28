@@ -9,7 +9,6 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('/home/yusuke/var/build/druid/py_capi'))
-import druid
 
 project = 'Druid'
 copyright = '2026, Yusuke Matsunaga'

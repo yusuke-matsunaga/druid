@@ -1,0 +1,5 @@
+DtpgResult
+===========
+
+.. doxygenclass:: DtpgResult
+   :members:

@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Assign &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="AssignList" href="assignlist.html" />
+    <link rel="prev" title="PackedVal3" href="packedval3.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="assignlist.html" title="AssignList"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="packedval3.html" title="PackedVal3"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Assign</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="assign">
+<h1>Assign<a class="headerlink" href="#assign" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv46Assign">
+<span id="_CPPv36Assign"></span><span id="_CPPv26Assign"></span><span id="Assign"></span><span class="target" id="d9/d95/classAssign"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Assign</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="tpgbase.html#_CPPv47TpgBase" title="TpgBase"><span class="n"><span class="pre">TpgBase</span></span></a><a class="headerlink" href="#_CPPv46Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードに対する値の割当を表すクラス </p>
+<p>
+ノード番号と時刻と値を持つ． なお，縮退故障モードのときは時刻は 1 となる． <div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="assignlist.html#d2/dfa/classAssignList"><span class="std std-ref">AssignList</span></a></p>
+</div>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Assign6AssignEv">
+<span id="_CPPv3N6Assign6AssignEv"></span><span id="_CPPv2N6Assign6AssignEv"></span><span id="Assign::Assign"></span><span class="target" id="d9/d95/classAssign_1a29ad9f57298fc5623e8780ba14b67a8a"></span><span class="sig-name descname"><span class="n"><span class="pre">Assign</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N6Assign6AssignEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+<p>内容は不定 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Assign6AssignERKNSt10shared_ptrI10NetworkRepEE8SizeTypeib">
+<span id="_CPPv3N6Assign6AssignERKNSt10shared_ptrI10NetworkRepEE8SizeTypeib"></span><span id="_CPPv2N6Assign6AssignERKNSt10shared_ptrI10NetworkRepEE8SizeTypeib"></span><span id="Assign::Assign__std::shared_ptr:NetworkRep:CR.SizeType.i.b"></span><span class="target" id="d9/d95/classAssign_1a06c8f9972b10be8959a22eb415ad88a4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Assign</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">NetworkRep</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">node_id</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Assign6AssignERKNSt10shared_ptrI10NetworkRepEE8SizeTypeib" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を指定したコンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> -- [in] 親のネットワーク </p></li>
+<li><p><strong>node_id</strong> -- [in] ノード番号 </p></li>
+<li><p><strong>time</strong> -- [in] 時刻 ( 0 or 1 ) </p></li>
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Assign6AssignERK7TpgNodeib">
+<span id="_CPPv3N6Assign6AssignERK7TpgNodeib"></span><span id="_CPPv2N6Assign6AssignERK7TpgNodeib"></span><span id="Assign::Assign__TpgNodeCR.i.b"></span><span class="target" id="d9/d95/classAssign_1ac369d39afa447a1174b185e5b7b0d64f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Assign</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Assign6AssignERK7TpgNodeib" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードを指定したコンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> -- [in] ノード </p></li>
+<li><p><strong>time</strong> -- [in] 時刻 ( 0 or 1 ) </p></li>
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Assign6AssignERK6Assign">
+<span id="_CPPv3N6Assign6AssignERK6Assign"></span><span id="_CPPv2N6Assign6AssignERK6Assign"></span><span id="Assign::Assign__AssignCR"></span><span class="target" id="d9/d95/classAssign_1a7c11936f9a485cb243440e393072ff41"></span><span class="sig-name descname"><span class="n"><span class="pre">Assign</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N6Assign6AssignERK6Assign" title="Assign::Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N6Assign6AssignERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピーコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6AssignaSERK6Assign">
+<span id="_CPPv3N6AssignaSERK6Assign"></span><span id="_CPPv2N6AssignaSERK6Assign"></span><span id="Assign::assign-operator__AssignCR"></span><span class="target" id="d9/d95/classAssign_1a00ffe738655676d2413c0ee80805af41"></span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N6AssignaSERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピー代入演算子 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6Assign7node_idEv">
+<span id="_CPPv3NK6Assign7node_idEv"></span><span id="_CPPv2NK6Assign7node_idEv"></span><span id="Assign::node_idC"></span><span class="target" id="d9/d95/classAssign_1aaca91d7ad525b414459c5cf21840c04d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">node_id</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6Assign7node_idEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノード番号を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6Assign4nodeEv">
+<span id="_CPPv3NK6Assign4nodeEv"></span><span id="_CPPv2NK6Assign4nodeEv"></span><span id="Assign::nodeC"></span><span class="target" id="d9/d95/classAssign_1a175ee668beb7679015b0e28f3904d573"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">node</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6Assign4nodeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードを返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6Assign4timeEv">
+<span id="_CPPv3NK6Assign4timeEv"></span><span id="_CPPv2NK6Assign4timeEv"></span><span id="Assign::timeC"></span><span class="target" id="d9/d95/classAssign_1a125737eac92b9f46a3a3f986c0f57e63"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6Assign4timeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>時刻を返す． </p>
+<p>返される値は 0 か 1 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6Assign9node_timeEv">
+<span id="_CPPv3NK6Assign9node_timeEv"></span><span id="_CPPv2NK6Assign9node_timeEv"></span><span id="Assign::node_timeC"></span><span class="target" id="d9/d95/classAssign_1a04c34106143e64ab94f8d934481f2817"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">node_time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6Assign9node_timeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードと時刻をパックした値を返す． </p>
+<p>結果は等価比較のみに用いる． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6Assign3valEv">
+<span id="_CPPv3NK6Assign3valEv"></span><span id="_CPPv2NK6Assign3valEv"></span><span id="Assign::valC"></span><span class="target" id="d9/d95/classAssign_1ad0f474bc4519458713d766fc9b148b85"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">val</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6Assign3valEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6AssigncoEv">
+<span id="_CPPv3NK6AssigncoEv"></span><span id="_CPPv2NK6AssigncoEv"></span><span id="Assign::inv-operatorC"></span><span class="target" id="d9/d95/classAssign_1a5aaceb621c492de2442f14169a12beea"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">~</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6AssigncoEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>反対の割り当てを返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6Assign4hashEv">
+<span id="_CPPv3NK6Assign4hashEv"></span><span id="_CPPv2NK6Assign4hashEv"></span><span id="Assign::hashC"></span><span class="target" id="d9/d95/classAssign_1a90cc28c9c191bc0c9dca3138f710b13a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hash</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6Assign4hashEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ハッシュ値を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6AssigneqERK6Assign">
+<span id="_CPPv3NK6AssigneqERK6Assign"></span><span id="_CPPv2NK6AssigneqERK6Assign"></span><span id="Assign::eq-operator__AssignCRC"></span><span class="target" id="d9/d95/classAssign_1a42c7793b58a0aecff7f471a47ac0d155"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6AssigneqERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>等価関係の比較関数 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6AssignneERK6Assign">
+<span id="_CPPv3NK6AssignneERK6Assign"></span><span id="_CPPv2NK6AssignneERK6Assign"></span><span id="Assign::neq-operator__AssignCRC"></span><span class="target" id="d9/d95/classAssign_1abb58b8fcf79fc7893528afdfcdb78691"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">!=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6AssignneERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>非等価比較演算子 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6AssignltERK6Assign">
+<span id="_CPPv3NK6AssignltERK6Assign"></span><span id="_CPPv2NK6AssignltERK6Assign"></span><span id="Assign::lt-operator__AssignCRC"></span><span class="target" id="d9/d95/classAssign_1a76e4cb26b6ce203e7dda9ed85060a535"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&lt;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6AssignltERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>大小関係の比較関数 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6AssigngtERK6Assign">
+<span id="_CPPv3NK6AssigngtERK6Assign"></span><span id="_CPPv2NK6AssigngtERK6Assign"></span><span id="Assign::gt-operator__AssignCRC"></span><span class="target" id="d9/d95/classAssign_1a432102f06d8f93f896cff26ce47b1aef"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&gt;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6AssigngtERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>大小関係の比較関数 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6AssignleERK6Assign">
+<span id="_CPPv3NK6AssignleERK6Assign"></span><span id="_CPPv2NK6AssignleERK6Assign"></span><span id="Assign::lte-operator__AssignCRC"></span><span class="target" id="d9/d95/classAssign_1a1bcc7a568b541d1eb2b99984ebf04401"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&lt;=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6AssignleERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>大小関係の比較関数 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6AssigngeERK6Assign">
+<span id="_CPPv3NK6AssigngeERK6Assign"></span><span id="_CPPv2NK6AssigngeERK6Assign"></span><span id="Assign::gte-operator__AssignCRC"></span><span class="target" id="d9/d95/classAssign_1ac3bafc77317140d1e893c61c8e3707f2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&gt;=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6AssigngeERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>大小関係の比較関数 </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Assign6encodeE8SizeTypeib">
+<span id="_CPPv3N6Assign6encodeE8SizeTypeib"></span><span id="_CPPv2N6Assign6encodeE8SizeTypeib"></span><span id="Assign::encode__SizeType.i.b"></span><span class="target" id="d9/d95/classAssign_1add3ac0d3476c28aeda843148ffe76920"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">encode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">node_id</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Assign6encodeE8SizeTypeib" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>mPackVal に符号化する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_id</strong> -- [in] ノード番号 </p></li>
+<li><p><strong>time</strong> -- [in] 時刻 ( 0 or 1 ) </p></li>
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Assign14decode_node_idE8SizeType">
+<span id="_CPPv3N6Assign14decode_node_idE8SizeType"></span><span id="_CPPv2N6Assign14decode_node_idE8SizeType"></span><span id="Assign::decode_node_id__SizeType"></span><span class="target" id="d9/d95/classAssign_1a401ae2633a3f5fc964416ae59c112322"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">decode_node_id</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pack_val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Assign14decode_node_idE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>mPackVal からノード番号を取り出す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Assign11decode_timeE8SizeType">
+<span id="_CPPv3N6Assign11decode_timeE8SizeType"></span><span id="_CPPv2N6Assign11decode_timeE8SizeType"></span><span id="Assign::decode_time__SizeType"></span><span class="target" id="d9/d95/classAssign_1ac1fd651586203c39aa4db457875a43f5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">decode_time</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pack_val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Assign11decode_timeE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>mPackVal から時刻を取り出す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Assign10decode_valE8SizeType">
+<span id="_CPPv3N6Assign10decode_valE8SizeType"></span><span id="_CPPv2N6Assign10decode_valE8SizeType"></span><span id="Assign::decode_val__SizeType"></span><span class="target" id="d9/d95/classAssign_1ac3cd0801e9aac36241e7a1e80f936dd9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">decode_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pack_val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Assign10decode_valE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>mPackVal から値を取り出す． </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="packedval3.html"
+                          title="前の章へ">PackedVal3</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="assignlist.html"
+                          title="次の章へ">AssignList</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/assign.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="assignlist.html" title="AssignList"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="packedval3.html" title="PackedVal3"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Assign</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

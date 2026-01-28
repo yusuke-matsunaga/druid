@@ -19,6 +19,7 @@ BEGIN_NAMESPACE_DRUID
 /// @class TpgFaultIter TpgFaultList.h "TpgFaultList.h"
 /// @brief TpgFaultList の反復子
 /// @ingroup TypesGroup
+/// @sa TpgFault, TpgFaultList
 //////////////////////////////////////////////////////////////////////
 class TpgFaultIter:
   public TpgIterBase
@@ -60,6 +61,7 @@ public:
 /// @class TpgFaultList TpgFaultList.h "TpgFaultList.h"
 /// @brief 故障のリストを表すクラス
 /// @ingroup TypesGroup
+/// @sa TpgFault, TpgFaultIter
 ///
 /// NetworkRep への共有ポインタと故障番号のリストを持つ．
 //////////////////////////////////////////////////////////////////////

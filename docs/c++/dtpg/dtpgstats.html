@@ -1,0 +1,279 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>DtpgStats &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="故障検出条件生成" href="../condgen/condgen_module.html" />
+    <link rel="prev" title="DtpgResult" href="dtpgresult.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="../condgen/condgen_module.html" title="故障検出条件生成"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="dtpgresult.html" title="DtpgResult"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="dtpg_module.html" accesskey="U">テスト生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DtpgStats</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="dtpgstats">
+<h1>DtpgStats<a class="headerlink" href="#dtpgstats" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv49DtpgStats">
+<span id="_CPPv39DtpgStats"></span><span id="_CPPv29DtpgStats"></span><span id="DtpgStats"></span><span class="target" id="de/d0d/structDtpgStats"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DtpgStats</span></span></span><a class="headerlink" href="#_CPPv49DtpgStats" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DTPG の統計情報を表すクラス </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStats9DtpgStatsEv">
+<span id="_CPPv3N9DtpgStats9DtpgStatsEv"></span><span id="_CPPv2N9DtpgStats9DtpgStatsEv"></span><span id="DtpgStats::DtpgStats"></span><span class="target" id="de/d0d/structDtpgStats_1aebd7e4b2e45110f227fa03ad8f5287e4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DtpgStats</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9DtpgStats9DtpgStatsEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+<p>適切な初期化を行う． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStatsD0Ev">
+<span id="_CPPv3N9DtpgStatsD0Ev"></span><span id="_CPPv2N9DtpgStatsD0Ev"></span><span id="DtpgStats::~DtpgStats"></span><span class="target" id="de/d0d/structDtpgStats_1af8d30ef5e6f6c65822c9e6f0d11969cd"></span><span class="sig-name descname"><span class="n"><span class="pre">~DtpgStats</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N9DtpgStatsD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats11total_countEv">
+<span id="_CPPv3NK9DtpgStats11total_countEv"></span><span id="_CPPv2NK9DtpgStats11total_countEv"></span><span id="DtpgStats::total_countC"></span><span class="target" id="de/d0d/structDtpgStats_1a37c0b33aa163c7b3479f08a28190c153"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">total_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats11total_countEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>トータルの計算回数 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats12detect_countEv">
+<span id="_CPPv3NK9DtpgStats12detect_countEv"></span><span id="_CPPv2NK9DtpgStats12detect_countEv"></span><span id="DtpgStats::detect_countC"></span><span class="target" id="de/d0d/structDtpgStats_1a5e8df6d56e2c116d2166913cea05e3a2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">detect_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats12detect_countEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>テスト生成が成功した回数を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats11detect_timeEv">
+<span id="_CPPv3NK9DtpgStats11detect_timeEv"></span><span id="_CPPv2NK9DtpgStats11detect_timeEv"></span><span id="DtpgStats::detect_timeC"></span><span class="target" id="de/d0d/structDtpgStats_1a698441af8e6b710492716b6683373abc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">detect_time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats11detect_timeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>テスト生成が成功した時の計算時間の合計を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats12untest_countEv">
+<span id="_CPPv3NK9DtpgStats12untest_countEv"></span><span id="_CPPv2NK9DtpgStats12untest_countEv"></span><span id="DtpgStats::untest_countC"></span><span class="target" id="de/d0d/structDtpgStats_1acc686b6a9167fea1171207116e79d5da"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">untest_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats12untest_countEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>冗長故障を特定した回数を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats11untest_timeEv">
+<span id="_CPPv3NK9DtpgStats11untest_timeEv"></span><span id="_CPPv2NK9DtpgStats11untest_timeEv"></span><span id="DtpgStats::untest_timeC"></span><span class="target" id="de/d0d/structDtpgStats_1ad67d5fc678c4d9666ee35edb897a7b07"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">untest_time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats11untest_timeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>冗長故障を特定した時の計算時間の合計を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats11abort_countEv">
+<span id="_CPPv3NK9DtpgStats11abort_countEv"></span><span id="_CPPv2NK9DtpgStats11abort_countEv"></span><span id="DtpgStats::abort_countC"></span><span class="target" id="de/d0d/structDtpgStats_1ac09fa8ce240451246673d1cf52cbb1bb"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">abort_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats11abort_countEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>アボートした回数を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats10abort_timeEv">
+<span id="_CPPv3NK9DtpgStats10abort_timeEv"></span><span id="_CPPv2NK9DtpgStats10abort_timeEv"></span><span id="DtpgStats::abort_timeC"></span><span class="target" id="de/d0d/structDtpgStats_1a2f3729731d3905d49716f4f2433839a2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">abort_time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats10abort_timeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>アボートした時の計算時間の合計を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats12cnfgen_countEv">
+<span id="_CPPv3NK9DtpgStats12cnfgen_countEv"></span><span id="_CPPv2NK9DtpgStats12cnfgen_countEv"></span><span id="DtpgStats::cnfgen_countC"></span><span class="target" id="de/d0d/structDtpgStats_1a8eb58bf6aab0d22dc767ba64b9c792bd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cnfgen_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats12cnfgen_countEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>CNF の生成回数を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats11cnfgen_timeEv">
+<span id="_CPPv3NK9DtpgStats11cnfgen_timeEv"></span><span id="_CPPv2NK9DtpgStats11cnfgen_timeEv"></span><span id="DtpgStats::cnfgen_timeC"></span><span class="target" id="de/d0d/structDtpgStats_1a3db78b50ad77bf743d4d4c189b78b686"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cnfgen_time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats11cnfgen_timeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>CNF の生成にかかった計算時間の合計を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats9sat_statsEv">
+<span id="_CPPv3NK9DtpgStats9sat_statsEv"></span><span id="_CPPv2NK9DtpgStats9sat_statsEv"></span><span id="DtpgStats::sat_statsC"></span><span class="target" id="de/d0d/structDtpgStats_1aa01bad4bdb9cfdf1d11effd70dd828a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">SatStats</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">sat_stats</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats9sat_statsEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SAT の統計情報を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats13sat_stats_maxEv">
+<span id="_CPPv3NK9DtpgStats13sat_stats_maxEv"></span><span id="_CPPv2NK9DtpgStats13sat_stats_maxEv"></span><span id="DtpgStats::sat_stats_maxC"></span><span class="target" id="de/d0d/structDtpgStats_1a4787b4fafe87b56255b5571b03a37830"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">SatStats</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">sat_stats_max</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats13sat_stats_maxEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SAT の統計情報の最大値を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9DtpgStats14backtrace_timeEv">
+<span id="_CPPv3NK9DtpgStats14backtrace_timeEv"></span><span id="_CPPv2NK9DtpgStats14backtrace_timeEv"></span><span id="DtpgStats::backtrace_timeC"></span><span class="target" id="de/d0d/structDtpgStats_1a671cffbea5de7b837170482e4d8a2d70"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">backtrace_time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9DtpgStats14backtrace_timeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>バックトレースにかかった計算時間の合計を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStats5clearEv">
+<span id="_CPPv3N9DtpgStats5clearEv"></span><span id="_CPPv2N9DtpgStats5clearEv"></span><span id="DtpgStats::clear"></span><span class="target" id="de/d0d/structDtpgStats_1a94f618e9034214cab92bd586df08154d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9DtpgStats5clearEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>初期化する． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStats10update_detEdd">
+<span id="_CPPv3N9DtpgStats10update_detEdd"></span><span id="_CPPv2N9DtpgStats10update_detEdd"></span><span id="DtpgStats::update_det__double.double"></span><span class="target" id="de/d0d/structDtpgStats_1a489e9f1e111c3421f6d11b225dbdacea"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">update_det</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sat_time</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">backtrace_time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9DtpgStats10update_detEdd" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DetStats を更新する </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sat_time</strong> -- [in] SATにかかった時間 </p></li>
+<li><p><strong>backtrace_time</strong> -- [in] バックトレースにかかった時間 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStats13update_untestEd">
+<span id="_CPPv3N9DtpgStats13update_untestEd"></span><span id="_CPPv2N9DtpgStats13update_untestEd"></span><span id="DtpgStats::update_untest__double"></span><span class="target" id="de/d0d/structDtpgStats_1ac01ab391f6f5eeb7ad7d575a818431a3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">update_untest</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9DtpgStats13update_untestEd" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>RedStats を更新する </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>time</strong> -- [in] SATにかかった時間 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStats12update_abortEd">
+<span id="_CPPv3N9DtpgStats12update_abortEd"></span><span id="_CPPv2N9DtpgStats12update_abortEd"></span><span id="DtpgStats::update_abort__double"></span><span class="target" id="de/d0d/structDtpgStats_1ad1afcf06a6bd32006b1c964cfca61139"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">update_abort</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9DtpgStats12update_abortEd" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>AbortStats を更新する </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>time</strong> -- [in] SATにかかった時間 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStats10update_cnfEd">
+<span id="_CPPv3N9DtpgStats10update_cnfEd"></span><span id="_CPPv2N9DtpgStats10update_cnfEd"></span><span id="DtpgStats::update_cnf__double"></span><span class="target" id="de/d0d/structDtpgStats_1a46eee5a9ad204845e1952471c999a4bc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">update_cnf</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9DtpgStats10update_cnfEd" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>CNF 生成の情報を更新する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>time</strong> -- [in] CNF生成にかかった時間 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStats5mergeERK9DtpgStats">
+<span id="_CPPv3N9DtpgStats5mergeERK9DtpgStats"></span><span id="_CPPv2N9DtpgStats5mergeERK9DtpgStats"></span><span id="DtpgStats::merge__DtpgStatsCR"></span><span class="target" id="de/d0d/structDtpgStats_1a1734c4e4b7676e5749df7767c0c8fe07"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">merge</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49DtpgStats" title="DtpgStats"><span class="n"><span class="pre">DtpgStats</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9DtpgStats5mergeERK9DtpgStats" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>情報をマージする． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9DtpgStats16update_sat_statsERK8SatStats">
+<span id="_CPPv3N9DtpgStats16update_sat_statsERK8SatStats"></span><span id="_CPPv2N9DtpgStats16update_sat_statsERK8SatStats"></span><span id="DtpgStats::update_sat_stats__SatStatsCR"></span><span class="target" id="de/d0d/structDtpgStats_1a535c20821faab4382222a255469d9119"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">update_sat_stats</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">SatStats</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src_stats</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9DtpgStats16update_sat_statsERK8SatStats" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SAT の統計情報を更新する． </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="dtpgresult.html"
+                          title="前の章へ">DtpgResult</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="../condgen/condgen_module.html"
+                          title="次の章へ">故障検出条件生成</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/dtpg/dtpgstats.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="../condgen/condgen_module.html" title="故障検出条件生成"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="dtpgresult.html" title="DtpgResult"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="dtpg_module.html" >テスト生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DtpgStats</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

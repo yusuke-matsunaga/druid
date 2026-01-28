@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>テスト生成 &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="StructEngine" href="structengine.html" />
+    <link rel="prev" title="DiffBitsArray" href="../fsim/diffbitsarray.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="structengine.html" title="StructEngine"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="../fsim/diffbitsarray.html" title="DiffBitsArray"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" accesskey="U">C++ API</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">テスト生成</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>テスト生成<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
+<section id="id2">
+<h2>処理の概要<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<p>SATソルバを用いたテスト生成の処理の概要を以下に記す．</p>
+<ol class="arabic simple">
+<li><p>正常回路の論理関係を表すCNFを作る．</p></li>
+<li><p>故障回路の論理関係を表すCNFを作る．</p></li>
+<li><p>SAT問題を解く．</p></li>
+<li><p>SAT問題の解からテストパタンを求める．</p></li>
+</ol>
+<p>実際には効率的な処理を行うために以下の工夫を行う．</p>
+<ul class="simple">
+<li><p>正常回路において故障の推移的ファンアウトと無関係な部分を削除する．
+より厳密には故障の推移的ファンアウトの推移的ファンインのみを対象とする．</p></li>
+<li><p>故障回路において故障の推移的ファンアウト以外を削除する．</p></li>
+<li><p>故障箇所から FFR の根のノードの出力までの故障伝搬条件は別途考えるこ
+とにして FFR の根のノードの出力から外部出力までの故障伝搬条件のみを
+CNFとして生成する．</p></li>
+</ul>
+<p>特に最後の項目が重要で，FFR 内の故障伝搬は FFR の構造的な性質から故障
+伝搬経路はつねに単一経路となり，
+故障伝搬条件も一意に定まる．
+さらにその条件もすべての side input の値割り当ての論理積の形で表される
+のでCNFにする必要がない．
+すると同一のFFR内の故障に対するテスト生成問題は全て同一のCNFを用いる
+ことができる．</p>
+</section>
+<section id="cnf">
+<h2>テスト生成問題を表す CNF の生成<a class="headerlink" href="#cnf" title="この見出しへのパーマリンク">¶</a></h2>
+<p>正常回路の論理関係を表すCNFを生成するために <cite>StructEngine</cite> を用いる．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">StructEngine</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgNetwork</span><span class="o">&amp;</span><span class="w"> </span><span class="n">network</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">JsonValue</span><span class="o">&amp;</span><span class="w"> </span><span class="n">option</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p><cite>option</cite> で指定できる値は以下の通り．</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>キーワード</p></th>
+<th class="head"><p>タイプ</p></th>
+<th class="head"><p>説明</p></th>
+<th class="head"><p>デフォルト値</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>sat_param</p></td>
+<td><p>JsonValue</p></td>
+<td><p>SATソルバの初期化パラメータ</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>justifier</p></td>
+<td><p>string</p></td>
+<td><p>Jusitifer の初期化パラメータ</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>故障回路の論理関係を表すCNFを生成するために <cite>BoolDiffEnc</cite> を用いる．
+ただし， <cite>BoolDiffEnc</cite> は <cite>StructEngine</cite> と組み合わせて使うので
+<cite>BoolDiffEnc</cite> を組み込んだ <cite>BdEngine</cite> を用いたほうが簡単である．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">BdEngine</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgNetwork</span><span class="o">&amp;</span><span class="w"> </span><span class="n">network</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgNode</span><span class="o">&amp;</span><span class="w"> </span><span class="n">node</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">JsonValue</span><span class="o">&amp;</span><span class="w"> </span><span class="n">option</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p><cite>BdEngine</cite> は <cite>StructEngine</cite> の派生クラスなので <cite>network</cite> と
+<cite>StructEngine</cite> と同様である．
+<cite>node</cite> は故障伝搬の起点となるノードを指定する．
+<cite>option</cite> は <cite>StructEngine</cite> のオプションに加えて以下の値が指定できる．</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>キーワード</p></th>
+<th class="head"><p>タイプ</p></th>
+<th class="head"><p>説明</p></th>
+<th class="head"><p>デフォルト値</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>extractor</p></td>
+<td><p>string</p></td>
+<td><p>検出条件の抽出方法</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><cite>BdEngine</cite> を生成した時点で <cite>node</cite> を起点とした故障伝搬条件を求めるた
+めに必要な情報は全て設定されている．
+あとは <cite>BdEngine::solve()</cite> を呼び出すことで設定した条件を満たす
+解を求めることができる．</p>
+</section>
+<section id="sat">
+<h2>SAT問題から値を取り出す．<a class="headerlink" href="#sat" title="この見出しへのパーマリンク">¶</a></h2>
+<p>SAT問題の解は <cite>SatModel</cite> の形で取り出すことができる．
+<cite>SatModel</cite> からは個々の <cite>SatLiteral</cite> に対する真偽値を得ることができるが，
+個々の <cite>SatLiteral</cite> が元の回路のどのような値に対応しているかが
+わからなければテスト生成問題の解を求めることはできない．</p>
+<p>そこで， <cite>StructEngine</cite> および <cite>BoolDiffEnc</cite> ( <cite>BdEngine</cite> )
+はもとのネットワークのノード( <cite>TpgNode</cite> )と <cite>SatLiteral</cite>
+の対応関係を持っている．
+<cite>TpgNode</cite> と <cite>SatLiteral</cite> の対応関係は <cite>VidMap</cite> が持つ．</p>
+<p><cite>StructEngine</cite> は2つの <cite>VidMap</cite> を持つ．
+1つは <cite>gvar_map</cite> で現時刻におけるノードの値を持つ
+<cite>SatLiteral</cite> との対応関係を表す．
+もう1つは <cite>hvar_map</cite> で1時刻前のノードの値を持つ
+<cite>SatLiteral</cite> との対応関係を表す．</p>
+<p><cite>BoolDiffEnc</cite> も2つの <cite>VidMap</cite> を持つ．
+1つは <cite>fvar_map</cite> で現時刻における故障値を表す
+<cite>SatLiteral</cite> との対応関係を表す．
+もう1つは <cite>dvar_map</cite> で故障伝搬条件を表す
+<cite>SatLiteral</cite> との対応関係を表す．
+ただ， <cite>dvar_map</cite> は内部で用いられる．</p>
+</section>
+<section id="id3">
+<h2>故障の検出条件の抽出<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
+<p>SATの解からテストパタンを求めるだけなら上記の <cite>gvar_map</cite> から外部入力
+ノードの値を取り出せばよいが，
+複数の故障を同時に検出できる質のよいテストパタンを求めるなどのより高度
+な処理を行うためには，故障の検出条件を抽出する必要がある．</p>
+<p>もちろん， <cite>SatModel</cite> に含まれる全ての値割り当ての集合も完全な故障の検
+出条件である．
+ただ，値割り当てのなかには故障を検出するために必ずしも必要でないものが含まれる．
+そこで，故障の検出条件を満たす(可能であれば)極小の値割り当てを求めたい．
+さらに， <cite>gvar_map</cite> と <cite>hvar_map</cite> に含まれる変数のみからなる割り当て
+を検出条件として用いれば，
+<cite>StructEnc</cite> のみを用いてその条件を満たすテストパタンを求めることができる．
+このような検出条件を求めるに以下の関数を用いる．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">AssignList</span>
+<span class="nf">BdEngine::extract_sufficient_condition</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>この関数を呼ぶ前にSAT問題の解が求められている必要がある．
+この検出条件の抽出方法は唯一ではない．
+そこで， <cite>BdEngine</cite> のオプションの <cite>extractor</cite> の値
+としてアルゴリズムを指定する文字列を指定する．
+現時点では可能な文字列は <cite>&quot;simple&quot;</cite> のみである．</p>
+</section>
+<section id="id4">
+<h2>正当化<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
+<p>故障の検出条件として回路内部のノードの値割り当てが与えられた時，
+そのままではテストパタンにはならない．
+ただし，その検出条件は充足可能であることがわかっているので
+充足解が与えられればテストパタン(外部入力における値割り当て)を
+求めることができる．
+この操作を「正当化(Justification)」と呼ぶ．</p>
+<p>正当化の結果は唯一ではない．
+例えば2入力ANDゲートの出力を0にするためにはどちらか一方の入力の値を0にすればよい．
+そこでいくつかのヒューリスティックが考えられる．
+正当化の手法に関しては <cite>StructEngine</cite> のオプション <cite>justifier</cite> の値と
+して指定する．
+現在，有効な値は <cite>&quot;simple&quot;</cite> , <cite>&quot;just1&quot;</cite> , <cite>&quot;just2&quot;</cite> となっている．</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structengine.html">StructEngine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="booldiffenc.html">BoolDiffEnc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bdengine.html">BdEngine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vidmap.html">VidMap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dtpgresult.html">DtpgResult</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dtpgstats.html">DtpgStats</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">目次</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">テスト生成</a><ul>
+<li><a class="reference internal" href="#id2">処理の概要</a></li>
+<li><a class="reference internal" href="#cnf">テスト生成問題を表す CNF の生成</a></li>
+<li><a class="reference internal" href="#sat">SAT問題から値を取り出す．</a></li>
+<li><a class="reference internal" href="#id3">故障の検出条件の抽出</a></li>
+<li><a class="reference internal" href="#id4">正当化</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="../fsim/diffbitsarray.html"
+                          title="前の章へ">DiffBitsArray</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="structengine.html"
+                          title="次の章へ">StructEngine</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/dtpg/dtpg_module.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="structengine.html" title="StructEngine"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="../fsim/diffbitsarray.html" title="DiffBitsArray"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">テスト生成</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

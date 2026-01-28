@@ -1,0 +1,5 @@
+TpgFault
+==========
+
+.. doxygenclass:: TpgFault
+   :members:

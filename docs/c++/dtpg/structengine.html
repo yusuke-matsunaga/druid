@@ -1,0 +1,408 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>StructEngine &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="BoolDiffEnc" href="booldiffenc.html" />
+    <link rel="prev" title="テスト生成" href="dtpg_module.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="booldiffenc.html" title="BoolDiffEnc"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="dtpg_module.html" title="テスト生成"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="dtpg_module.html" accesskey="U">テスト生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">StructEngine</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="structengine">
+<h1>StructEngine<a class="headerlink" href="#structengine" title="この見出しへのパーマリンク">¶</a></h1>
+<p><cite>StructEngine</cite> は内部に SAT ソルバを持つ．
+基本的にはコンストラクタで与えられた <cite>network</cite> 内のノードの入出力
+関係を表すCNFをそのSATソルバに追加することになるが，
+無駄なCNFを追加する必要はないのでどのノードを使用するかを指定する必要がある．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="nf">add_cur_node</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgNode</span><span class="o">&amp;</span><span class="w"> </span><span class="n">node</span>
+<span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">add_cur_node_list</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgNodeList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">node_list</span>
+<span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">add_prev_node</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgNode</span><span class="o">&amp;</span><span class="w"> </span><span class="n">node</span>
+<span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">add_prev_node_list</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgNodeList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">node_list</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p><cite>add_cur_node()</cite> と <cite>add_cur_node_list()</cite>
+では指定されたノードの推移的ファンアウトの推移的ファンインを
+対象のノードに追加する．
+もちろん重複した追加は無視される．</p>
+<p><cite>add_prev_node()</cite> と <cite>add_prev_node_list()</cite>
+では指定されたノードの推移的ファンインを1時刻前のノードの
+対象に追加する．
+もちろん重複した追加は無視される．
+こちらは遷移故障の1時刻前の条件に用いられる．</p>
+<p>これらの関数は処理を行うべきノードのリストに追加しているだけで
+実際の処理は行わない．
+未処理のノードは SATソルバを起動する時には処理されるようになっているが，
+明示的に処理済みにするためには以下の関数を呼び出す．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="nf">update</span><span class="p">();</span>
+</pre></div>
+</div>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv412StructEngine">
+<span id="_CPPv312StructEngine"></span><span id="_CPPv212StructEngine"></span><span id="StructEngine"></span><span class="target" id="d2/d36/classStructEngine"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StructEngine</span></span></span><a class="headerlink" href="#_CPPv412StructEngine" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DTPG 用の基本的なエンコードを行うクラス </p>
+<p>SATソルバとノード用の変数マップを持つ． 具体的な仕事は SubEnc の継承クラスを登録することで行う． </p>
+<p>Subclassed by <a class="reference internal" href="bdengine.html#d8/d45/classBdEngine"><span class="std std-ref">BdEngine</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine12StructEngineERK10TpgNetworkRK9JsonValue">
+<span id="_CPPv3N12StructEngine12StructEngineERK10TpgNetworkRK9JsonValue"></span><span id="_CPPv2N12StructEngine12StructEngineERK10TpgNetworkRK9JsonValue"></span><span id="StructEngine::StructEngine__TpgNetworkCR.JsonValueCR"></span><span class="target" id="d2/d36/classStructEngine_1a3063e06d28f0a690f43afca6b211bbe8"></span><span class="sig-name descname"><span class="n"><span class="pre">StructEngine</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnetwork.html#_CPPv410TpgNetwork" title="TpgNetwork"><span class="n"><span class="pre">TpgNetwork</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">option</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine12StructEngineERK10TpgNetworkRK9JsonValue" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> -- [in] 対象のネットワーク </p></li>
+<li><p><strong>option</strong> -- [in] 初期化オプション &quot;sat_param&quot;: JsonValue SATソルバの初期化パラメータ &quot;justifier&quot;: string Justifier の初期化パラメータ </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngineD0Ev">
+<span id="_CPPv3N12StructEngineD0Ev"></span><span id="_CPPv2N12StructEngineD0Ev"></span><span id="StructEngine::~StructEngine"></span><span class="target" id="d2/d36/classStructEngine_1ac2f47a37d6ace2ec2e0ff1de8ce821f2"></span><span class="sig-name descname"><span class="n"><span class="pre">~StructEngine</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngineD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+<p>保持している SubEnc はここで開放される． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine10add_subencERRNSt10unique_ptrI6SubEncEE">
+<span id="_CPPv3N12StructEngine10add_subencERRNSt10unique_ptrI6SubEncEE"></span><span id="_CPPv2N12StructEngine10add_subencERRNSt10unique_ptrI6SubEncEE"></span><span id="StructEngine::add_subenc__std::unique_ptr:SubEnc:RR"></span><span class="target" id="d2/d36/classStructEngine_1adeb6b3772e50df784eb4c988cfeb2f4c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add_subenc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unique_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SubEnc</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">enc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine10add_subencERRNSt10unique_ptrI6SubEncEE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SubEnc を追加する． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine12add_cur_nodeERK7TpgNode">
+<span id="_CPPv3N12StructEngine12add_cur_nodeERK7TpgNode"></span><span id="_CPPv2N12StructEngine12add_cur_nodeERK7TpgNode"></span><span id="StructEngine::add_cur_node__TpgNodeCR"></span><span class="target" id="d2/d36/classStructEngine_1a062e5faa4337cdddb050c13d176ae1fd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add_cur_node</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine12add_cur_nodeERK7TpgNode" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>現時刻で考慮するノードを追加する． </p>
+<p>実際にはこのノードのTFOのTFIを対象にする． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine17add_cur_node_listERK11TpgNodeList">
+<span id="_CPPv3N12StructEngine17add_cur_node_listERK11TpgNodeList"></span><span id="_CPPv2N12StructEngine17add_cur_node_listERK11TpgNodeList"></span><span id="StructEngine::add_cur_node_list__TpgNodeListCR"></span><span class="target" id="d2/d36/classStructEngine_1a821ce3fe3072ce28f317309c534ceee4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add_cur_node_list</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine17add_cur_node_listERK11TpgNodeList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>現時刻で考慮するノードのリストを追加する． </p>
+<p>実際にはこのノードのTFOのTFIを対象にする． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine13add_prev_nodeERK7TpgNode">
+<span id="_CPPv3N12StructEngine13add_prev_nodeERK7TpgNode"></span><span id="_CPPv2N12StructEngine13add_prev_nodeERK7TpgNode"></span><span id="StructEngine::add_prev_node__TpgNodeCR"></span><span class="target" id="d2/d36/classStructEngine_1a6314c1cd31c8e0cc5a3e645c5584583d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add_prev_node</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine13add_prev_nodeERK7TpgNode" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1時刻前で考慮するノードを追加する． </p>
+<p>実際にはこのノードのTFIを対象にする． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine18add_prev_node_listERK11TpgNodeList">
+<span id="_CPPv3N12StructEngine18add_prev_node_listERK11TpgNodeList"></span><span id="_CPPv2N12StructEngine18add_prev_node_listERK11TpgNodeList"></span><span id="StructEngine::add_prev_node_list__TpgNodeListCR"></span><span class="target" id="d2/d36/classStructEngine_1a66051b2415e1fc9c4ab52998b572e8a5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add_prev_node_list</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine18add_prev_node_listERK11TpgNodeList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1時刻前で考慮するノードのリストを追加する． </p>
+<p>実際にはこのノードのTFIを対象にする． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine6updateEv">
+<span id="_CPPv3N12StructEngine6updateEv"></span><span id="_CPPv2N12StructEngine6updateEv"></span><span id="StructEngine::update"></span><span class="target" id="d2/d36/classStructEngine_1a805a1813057b924866f34b82ae1b6f8f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">update</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine6updateEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>未処理のノードを処理する． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine7justifyERK10AssignList">
+<span id="_CPPv3N12StructEngine7justifyERK10AssignList"></span><span id="_CPPv2N12StructEngine7justifyERK10AssignList"></span><span id="StructEngine::justify__AssignListCR"></span><span class="target" id="d2/d36/classStructEngine_1a019c6f3f9b42270874d383b0dbd03633"></span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">justify</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assign_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine7justifyERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>与えられた割り当てを満足する外部入力の割り当てを求める． </p>
+<p><ul class="simple">
+<li><p>事前にSAT問題の充足解が求められている必要がある．</p></li>
+<li><p>必要な値割り当てのみが記録される． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>assign_list</strong> -- [in] 値割り当てのリスト </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>外部入力の割り当てリストを返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine13get_pi_assignEv">
+<span id="_CPPv3N12StructEngine13get_pi_assignEv"></span><span id="_CPPv2N12StructEngine13get_pi_assignEv"></span><span id="StructEngine::get_pi_assign"></span><span class="target" id="d2/d36/classStructEngine_1a73671abcbf5f576f5fa163dae3ca3a0d"></span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_pi_assign</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine13get_pi_assignEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>現在の外部入力の割当を得る． </p>
+<p><ul class="simple">
+<li><p>事前にSAT問題の充足解が求められている必要がある．</p></li>
+<li><p>すべての外部入力になんらかの値が入る </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">戻り値<span class="colon">:</span></dt>
+<dd class="field-odd"><p>外部入力の割り当てリストを返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine15conv_to_literalE6Assign">
+<span id="_CPPv3N12StructEngine15conv_to_literalE6Assign"></span><span id="_CPPv2N12StructEngine15conv_to_literalE6Assign"></span><span id="StructEngine::conv_to_literal__Assign"></span><span class="target" id="d2/d36/classStructEngine_1a0ba610e27f1324212ea8d63f0d46daa3"></span><span class="n"><span class="pre">SatLiteral</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">conv_to_literal</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../types/assign.html#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">assign</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine15conv_to_literalE6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値割り当てを対応するリテラルに変換する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>assign</strong> -- [in] 値割り当て </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine20conv_to_literal_listERK10AssignList">
+<span id="_CPPv3N12StructEngine20conv_to_literal_listERK10AssignList"></span><span id="_CPPv2N12StructEngine20conv_to_literal_listERK10AssignList"></span><span id="StructEngine::conv_to_literal_list__AssignListCR"></span><span class="target" id="d2/d36/classStructEngine_1a72895ff1ff3a8ec0bb643a7b25557758"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SatLiteral</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">conv_to_literal_list</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assign_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine20conv_to_literal_listERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値割り当てのリストを対応するリテラルのリストに変換する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>assign_list</strong> -- [in] 値割り当てのリスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine11expr_to_cnfERK4Expr">
+<span id="_CPPv3N12StructEngine11expr_to_cnfERK4Expr"></span><span id="_CPPv2N12StructEngine11expr_to_cnfERK4Expr"></span><span id="StructEngine::expr_to_cnf__ExprCR"></span><span class="target" id="d2/d36/classStructEngine_1a842dadf3c999dcabcb09aafe11875a51"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SatLiteral</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">expr_to_cnf</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Expr</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">expr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine11expr_to_cnfERK4Expr" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>与えられた論理式を充足させるCNF式を作る． </p>
+<p>
+論理式中の変数番号は TpgNode-&gt;id() * 2 + time に対応している． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>expr</strong> -- [in] 論理式 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>条件を表すリテラルのリストを返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12StructEngine7networkEv">
+<span id="_CPPv3NK12StructEngine7networkEv"></span><span id="_CPPv2NK12StructEngine7networkEv"></span><span id="StructEngine::networkC"></span><span class="target" id="d2/d36/classStructEngine_1a72ec906e98b154db4f16d8e0befd4534"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnetwork.html#_CPPv410TpgNetwork" title="TpgNetwork"><span class="n"><span class="pre">TpgNetwork</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">network</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12StructEngine7networkEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>対象のネットワークを得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12StructEngine13cur_node_listEv">
+<span id="_CPPv3NK12StructEngine13cur_node_listEv"></span><span id="_CPPv2NK12StructEngine13cur_node_listEv"></span><span id="StructEngine::cur_node_listC"></span><span class="target" id="d2/d36/classStructEngine_1a8ebb1bb36ad8bceea794d52417e56e14"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">cur_node_list</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12StructEngine13cur_node_listEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>関連するノードのリスト </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12StructEngine14prev_node_listEv">
+<span id="_CPPv3NK12StructEngine14prev_node_listEv"></span><span id="_CPPv2NK12StructEngine14prev_node_listEv"></span><span id="StructEngine::prev_node_listC"></span><span class="target" id="d2/d36/classStructEngine_1a4c3072dcaf267b0229e33bc5578f1e6d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">prev_node_list</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12StructEngine14prev_node_listEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1時刻前の値に関連するノードのリスト </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine12new_variableEb">
+<span id="_CPPv3N12StructEngine12new_variableEb"></span><span id="_CPPv2N12StructEngine12new_variableEb"></span><span id="StructEngine::new_variable__b"></span><span class="target" id="d2/d36/classStructEngine_1a945402e3b8b389d08a8266ce53d5cf23"></span><span class="n"><span class="pre">SatLiteral</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">new_variable</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">decision</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine12new_variableEb" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>変数を作る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>decision</strong> -- [in] 決定変数のときに true とする． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine5solveERKNSt6vectorI10SatLiteralEE">
+<span id="_CPPv3N12StructEngine5solveERKNSt6vectorI10SatLiteralEE"></span><span id="_CPPv2N12StructEngine5solveERKNSt6vectorI10SatLiteralEE"></span><span id="StructEngine::solve__std::vector:SatLiteral:CR"></span><span class="target" id="d2/d36/classStructEngine_1a17f1d72a600734ed779d461e3ed5b032"></span><span class="n"><span class="pre">SatBool3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">solve</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SatLiteral</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assumptions</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine5solveERKNSt6vectorI10SatLiteralEE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SAT問題を解く </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>assumptions</strong> -- [in] アサートするリテラルのリスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12StructEngine9get_statsEv">
+<span id="_CPPv3NK12StructEngine9get_statsEv"></span><span id="_CPPv2NK12StructEngine9get_statsEv"></span><span id="StructEngine::get_statsC"></span><span class="target" id="d2/d36/classStructEngine_1a7e69c03a64fcd46933e4e37ed4134947"></span><span class="n"><span class="pre">SatStats</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_stats</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12StructEngine9get_statsEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>現在の内部状態を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine6solverEv">
+<span id="_CPPv3N12StructEngine6solverEv"></span><span id="_CPPv2N12StructEngine6solverEv"></span><span id="StructEngine::solver"></span><span class="target" id="d2/d36/classStructEngine_1ab52538c3523899ad08dcb69890418c50"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SatSolver</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">solver</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine6solverEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SATソルバを返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine4gvarERK7TpgNode">
+<span id="_CPPv3N12StructEngine4gvarERK7TpgNode"></span><span id="_CPPv2N12StructEngine4gvarERK7TpgNode"></span><span id="StructEngine::gvar__TpgNodeCR"></span><span class="target" id="d2/d36/classStructEngine_1a1a7ed62cb8c7c5ee8dd9514218346d6e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SatLiteral</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gvar</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine4gvarERK7TpgNode" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードの値を表す変数を返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node</strong> -- [in] 対象のノード </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine8gvar_mapEv">
+<span id="_CPPv3N12StructEngine8gvar_mapEv"></span><span id="_CPPv2N12StructEngine8gvar_mapEv"></span><span id="StructEngine::gvar_map"></span><span class="target" id="d2/d36/classStructEngine_1a05c855d8bef7a1d937718e5d9ae2bc3f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="vidmap.html#_CPPv46VidMap" title="VidMap"><span class="n"><span class="pre">VidMap</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">gvar_map</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine8gvar_mapEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードの値を表す変数の辞書を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine4hvarERK7TpgNode">
+<span id="_CPPv3N12StructEngine4hvarERK7TpgNode"></span><span id="_CPPv2N12StructEngine4hvarERK7TpgNode"></span><span id="StructEngine::hvar__TpgNodeCR"></span><span class="target" id="d2/d36/classStructEngine_1aa799c06a0f350ae60bac62d93be5b895"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SatLiteral</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hvar</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine4hvarERK7TpgNode" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードの1時刻前の値を表す変数を返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node</strong> -- [in] 対象のノード </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12StructEngine3valERK7TpgNodei">
+<span id="_CPPv3N12StructEngine3valERK7TpgNodei"></span><span id="_CPPv2N12StructEngine3valERK7TpgNodei"></span><span id="StructEngine::val__TpgNodeCR.i"></span><span class="target" id="d2/d36/classStructEngine_1a0dd294d8f36bc640c1f693cf41b6f963"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">val</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12StructEngine3valERK7TpgNodei" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を返す． </p>
+<p>直前に <a class="reference internal" href="#d2/d36/classStructEngine_1ab52538c3523899ad08dcb69890418c50"><span class="std std-ref">solver()</span></a>.<a class="reference internal" href="#d2/d36/classStructEngine_1a17f1d72a600734ed779d461e3ed5b032"><span class="std std-ref">solve()</span></a> を呼んでいる必要がある． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> -- [in] 対象のノード </p></li>
+<li><p><strong>time</strong> -- [in] 時刻(0 or 1) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12StructEngine8cnf_timeEv">
+<span id="_CPPv3NK12StructEngine8cnf_timeEv"></span><span id="_CPPv2NK12StructEngine8cnf_timeEv"></span><span id="StructEngine::cnf_timeC"></span><span class="target" id="d2/d36/classStructEngine_1ae7373bfe070fb9562c26b35c4480bc66"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cnf_time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12StructEngine8cnf_timeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>CNF の生成時間を返す． </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="dtpg_module.html"
+                          title="前の章へ">テスト生成</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="booldiffenc.html"
+                          title="次の章へ">BoolDiffEnc</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/dtpg/structengine.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="booldiffenc.html" title="BoolDiffEnc"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="dtpg_module.html" title="テスト生成"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="dtpg_module.html" >テスト生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">StructEngine</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

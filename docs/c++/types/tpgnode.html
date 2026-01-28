@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>TpgNode &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="TpgNodeList" href="tpgnodelist.html" />
+    <link rel="prev" title="TpgNetwork" href="tpgnetwork.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="tpgnodelist.html" title="TpgNodeList"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="tpgnetwork.html" title="TpgNetwork"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TpgNode</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tpgnode">
+<h1>TpgNode<a class="headerlink" href="#tpgnode" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv47TpgNode">
+<span id="_CPPv37TpgNode"></span><span id="_CPPv27TpgNode"></span><span id="TpgNode"></span><span class="target" id="dd/d13/classTpgNode"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TpgNode</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TpgObjBase</span></span><a class="headerlink" href="#_CPPv47TpgNode" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DRUID 用のノードを表すクラス </p>
+<p>
+基本的には一つのゲート(セル)に対応しているが， もとのゲートが組み込み型でない場合には複数の <a class="reference internal" href="#dd/d13/classTpgNode"><span class="std std-ref">TpgNode</span></a> を組み合わ せてもとのゲートを表す．<div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="tpgnetwork.html#d9/d58/classTpgNetwork"><span class="std std-ref">TpgNetwork</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="tpgmffc.html#d7/d08/classTpgMFFC"><span class="std std-ref">TpgMFFC</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="tpgffr.html#d8/d9a/classTpgFFR"><span class="std std-ref">TpgFFR</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="tpgnodelist.html#d9/dad/classTpgNodeList"><span class="std std-ref">TpgNodeList</span></a></p>
+</div>
+</p>
+<p>そうする理由は side input の値に対する controlling value， non-controlling value が定まっていたほうがバックトレースが やりやすいから．SAT に関しては complex タイプでも問題なく 処理できる．</p>
+<p>そのため，場合によってはファンインの故障を表すための仮想的な ノードを挿入する場合もある． </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7TpgNode7TpgNodeEv">
+<span id="_CPPv3N7TpgNode7TpgNodeEv"></span><span id="_CPPv2N7TpgNode7TpgNodeEv"></span><span id="TpgNode::TpgNode"></span><span class="target" id="dd/d13/classTpgNode_1a92762fccc437ba4d229e23aa1a8318b9"></span><span class="sig-name descname"><span class="n"><span class="pre">TpgNode</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7TpgNode7TpgNodeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+<p>不正な値となる． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7TpgNode7TpgNodeERKNSt10shared_ptrI10NetworkRepEE8SizeType">
+<span id="_CPPv3N7TpgNode7TpgNodeERKNSt10shared_ptrI10NetworkRepEE8SizeType"></span><span id="_CPPv2N7TpgNode7TpgNodeERKNSt10shared_ptrI10NetworkRepEE8SizeType"></span><span id="TpgNode::TpgNode__std::shared_ptr:NetworkRep:CR.SizeType"></span><span class="target" id="dd/d13/classTpgNode_1af010387be92bb017c972014472000578"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TpgNode</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">NetworkRep</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7TpgNode7TpgNodeERKNSt10shared_ptrI10NetworkRepEE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を指定したコンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> -- [in] 親のネットワーク </p></li>
+<li><p><strong>id</strong> -- [in] ノード番号 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7TpgNodeD0Ev">
+<span id="_CPPv3N7TpgNodeD0Ev"></span><span id="_CPPv2N7TpgNodeD0Ev"></span><span id="TpgNode::~TpgNode"></span><span class="target" id="dd/d13/classTpgNode_1adad8d130b213642ba813f5f4b8be954c"></span><span class="sig-name descname"><span class="n"><span class="pre">~TpgNode</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7TpgNodeD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode9fanin_numEv">
+<span id="_CPPv3NK7TpgNode9fanin_numEv"></span><span id="_CPPv2NK7TpgNode9fanin_numEv"></span><span id="TpgNode::fanin_numC"></span><span class="target" id="dd/d13/classTpgNode_1a95a065958b6ff689f7b4746201e2512d"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fanin_num</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode9fanin_numEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ファンイン数を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode5faninE8SizeType">
+<span id="_CPPv3NK7TpgNode5faninE8SizeType"></span><span id="_CPPv2NK7TpgNode5faninE8SizeType"></span><span id="TpgNode::fanin__SizeTypeC"></span><span class="target" id="dd/d13/classTpgNode_1a61bf72ab4c8cc2121e3905d039151aa4"></span><a class="reference internal" href="#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fanin</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode5faninE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ファンインを得る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> -- [in] 位置番号 ( 0 &lt;= index &lt; <a class="reference internal" href="#dd/d13/classTpgNode_1a95a065958b6ff689f7b4746201e2512d"><span class="std std-ref">fanin_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode10fanin_listEv">
+<span id="_CPPv3NK7TpgNode10fanin_listEv"></span><span id="_CPPv2NK7TpgNode10fanin_listEv"></span><span id="TpgNode::fanin_listC"></span><span class="target" id="dd/d13/classTpgNode_1a5b1088994dc53048e49841752a9fb9b1"></span><a class="reference internal" href="tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fanin_list</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode10fanin_listEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ファンインのリストを得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode10fanout_numEv">
+<span id="_CPPv3NK7TpgNode10fanout_numEv"></span><span id="_CPPv2NK7TpgNode10fanout_numEv"></span><span id="TpgNode::fanout_numC"></span><span class="target" id="dd/d13/classTpgNode_1a6d1731a98b58ffb85ba00a176fa99ac6"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fanout_num</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode10fanout_numEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ファンアウト数を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode6fanoutE8SizeType">
+<span id="_CPPv3NK7TpgNode6fanoutE8SizeType"></span><span id="_CPPv2NK7TpgNode6fanoutE8SizeType"></span><span id="TpgNode::fanout__SizeTypeC"></span><span class="target" id="dd/d13/classTpgNode_1a05fb818cf0bebcdf10a7c12628e0b46d"></span><a class="reference internal" href="#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fanout</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode6fanoutE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ファンアウトを得る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> -- [in] 位置番号 ( 0 &lt;= index &lt; <a class="reference internal" href="#dd/d13/classTpgNode_1a6d1731a98b58ffb85ba00a176fa99ac6"><span class="std std-ref">fanout_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode11fanout_listEv">
+<span id="_CPPv3NK7TpgNode11fanout_listEv"></span><span id="_CPPv2NK7TpgNode11fanout_listEv"></span><span id="TpgNode::fanout_listC"></span><span class="target" id="dd/d13/classTpgNode_1a26c99fff9e097dfe9b5384fe5d80497b"></span><a class="reference internal" href="tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fanout_list</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode11fanout_listEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ファンアウトのリストを得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode8ffr_rootEv">
+<span id="_CPPv3NK7TpgNode8ffr_rootEv"></span><span id="_CPPv2NK7TpgNode8ffr_rootEv"></span><span id="TpgNode::ffr_rootC"></span><span class="target" id="dd/d13/classTpgNode_1ae771b7d24343f863df1214447cc0a778"></span><a class="reference internal" href="#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ffr_root</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode8ffr_rootEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>FFR の根のノードを得る． </p>
+<p>自分が根の場合には自分自身を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode9mffc_rootEv">
+<span id="_CPPv3NK7TpgNode9mffc_rootEv"></span><span id="_CPPv2NK7TpgNode9mffc_rootEv"></span><span id="TpgNode::mffc_rootC"></span><span class="target" id="dd/d13/classTpgNode_1a1a2bfc27f5bd9bf9ef6af309d81bca9b"></span><a class="reference internal" href="#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mffc_root</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode9mffc_rootEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>MFFCの根のノードを得る． </p>
+<p>自分が根の場合には自分自身を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode7imm_domEv">
+<span id="_CPPv3NK7TpgNode7imm_domEv"></span><span id="_CPPv2NK7TpgNode7imm_domEv"></span><span id="TpgNode::imm_domC"></span><span class="target" id="dd/d13/classTpgNode_1a7a7dfe22428f76b5e459012e99a9037e"></span><a class="reference internal" href="#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">imm_dom</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode7imm_domEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>直近の dominator を得る． </p>
+<p>これが不正値の場合は MFFC の根のノードだということ． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode16is_primary_inputEv">
+<span id="_CPPv3NK7TpgNode16is_primary_inputEv"></span><span id="_CPPv2NK7TpgNode16is_primary_inputEv"></span><span id="TpgNode::is_primary_inputC"></span><span class="target" id="dd/d13/classTpgNode_1ab17c903e986c59f4d590b71b65a3e8c7"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_primary_input</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode16is_primary_inputEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>外部入力タイプの時 true を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode13is_dff_outputEv">
+<span id="_CPPv3NK7TpgNode13is_dff_outputEv"></span><span id="_CPPv2NK7TpgNode13is_dff_outputEv"></span><span id="TpgNode::is_dff_outputC"></span><span class="target" id="dd/d13/classTpgNode_1a9fd2bd9db86f2c8c755e8b2c1e44db5e"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_dff_output</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode13is_dff_outputEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DFF の出力に接続している入力タイプの時 true を返す． </p>
+<p>紛らわしいが is_pseudo_input() でもある． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode6is_ppiEv">
+<span id="_CPPv3NK7TpgNode6is_ppiEv"></span><span id="_CPPv2NK7TpgNode6is_ppiEv"></span><span id="TpgNode::is_ppiC"></span><span class="target" id="dd/d13/classTpgNode_1a1c189c25e880beb7abd05291d47d1a9c"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_ppi</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode6is_ppiEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>入力タイプの時 true を返す． </p>
+<p>具体的には <a class="reference internal" href="#dd/d13/classTpgNode_1ab17c903e986c59f4d590b71b65a3e8c7"><span class="std std-ref">is_primary_input()</span></a> || <a class="reference internal" href="#dd/d13/classTpgNode_1a9fd2bd9db86f2c8c755e8b2c1e44db5e"><span class="std std-ref">is_dff_output()</span></a></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode17is_primary_outputEv">
+<span id="_CPPv3NK7TpgNode17is_primary_outputEv"></span><span id="_CPPv2NK7TpgNode17is_primary_outputEv"></span><span id="TpgNode::is_primary_outputC"></span><span class="target" id="dd/d13/classTpgNode_1aed7da595ebc604a5e8262dca72464695"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_primary_output</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode17is_primary_outputEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>外部出力タイプの時 true を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode12is_dff_inputEv">
+<span id="_CPPv3NK7TpgNode12is_dff_inputEv"></span><span id="_CPPv2NK7TpgNode12is_dff_inputEv"></span><span id="TpgNode::is_dff_inputC"></span><span class="target" id="dd/d13/classTpgNode_1ac0c3673134933dc7df1e91aacc73d266"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_dff_input</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode12is_dff_inputEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DFF の入力に接続している出力タイプの時 true を返す． </p>
+<p>紛らわしいが is_pseudo_output() でもある． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode6is_ppoEv">
+<span id="_CPPv3NK7TpgNode6is_ppoEv"></span><span id="_CPPv2NK7TpgNode6is_ppoEv"></span><span id="TpgNode::is_ppoC"></span><span class="target" id="dd/d13/classTpgNode_1a82432fbe56a19550566f083b671915ca"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_ppo</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode6is_ppoEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>出力タイプの時 true を返す． </p>
+<p>具体的には <a class="reference internal" href="#dd/d13/classTpgNode_1aed7da595ebc604a5e8262dca72464695"><span class="std std-ref">is_primary_output()</span></a> || <a class="reference internal" href="#dd/d13/classTpgNode_1ac0c3673134933dc7df1e91aacc73d266"><span class="std std-ref">is_dff_input()</span></a></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode8input_idEv">
+<span id="_CPPv3NK7TpgNode8input_idEv"></span><span id="_CPPv2NK7TpgNode8input_idEv"></span><span id="TpgNode::input_idC"></span><span class="target" id="dd/d13/classTpgNode_1ac1209676eb9ff499f47fca07d45352ad"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">input_id</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode8input_idEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>外部入力タイプの時に入力番号を返す． </p>
+<p>node = <a class="reference internal" href="tpgnetwork.html#d9/d58/classTpgNetwork_1aad234775dac251c83b32c50c67a2fb7d"><span class="std std-ref">TpgNetwork::ppi</span></a>(node-&gt;<a class="reference internal" href="#dd/d13/classTpgNode_1ac1209676eb9ff499f47fca07d45352ad"><span class="std std-ref">input_id()</span></a>) の関係を満たす． <a class="reference internal" href="#dd/d13/classTpgNode_1a1c189c25e880beb7abd05291d47d1a9c"><span class="std std-ref">is_ppi()</span></a> が false の場合の返り値は不定 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode9output_idEv">
+<span id="_CPPv3NK7TpgNode9output_idEv"></span><span id="_CPPv2NK7TpgNode9output_idEv"></span><span id="TpgNode::output_idC"></span><span class="target" id="dd/d13/classTpgNode_1afda465e3e28f1192a79f61aeae25de78"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">output_id</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode9output_idEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>外部出力タイプの時に出力番号を返す． </p>
+<p>node = <a class="reference internal" href="tpgnetwork.html#d9/d58/classTpgNetwork_1ac31ac0f3b7eba9e0824381ee3a6c94c9"><span class="std std-ref">TpgNetwork::ppo</span></a>(node-&gt;<a class="reference internal" href="#dd/d13/classTpgNode_1afda465e3e28f1192a79f61aeae25de78"><span class="std std-ref">output_id()</span></a>) の関係を満たす． <a class="reference internal" href="#dd/d13/classTpgNode_1a82432fbe56a19550566f083b671915ca"><span class="std std-ref">is_ppo()</span></a> が false の場合の返り値は不定 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode10output_id2Ev">
+<span id="_CPPv3NK7TpgNode10output_id2Ev"></span><span id="_CPPv2NK7TpgNode10output_id2Ev"></span><span id="TpgNode::output_id2C"></span><span class="target" id="dd/d13/classTpgNode_1a4052906552f99093e06672e178f507f4"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">output_id2</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode10output_id2Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>TFIサイズの昇順に並べた時の出力番号を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode6dff_idEv">
+<span id="_CPPv3NK7TpgNode6dff_idEv"></span><span id="_CPPv2NK7TpgNode6dff_idEv"></span><span id="TpgNode::dff_idC"></span><span class="target" id="dd/d13/classTpgNode_1aeef88feab7d7fdc90155200ee012fb5a"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dff_id</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode6dff_idEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>接続している DFF 番号を返す． </p>
+<p><a class="reference internal" href="#dd/d13/classTpgNode_1ac0c3673134933dc7df1e91aacc73d266"><span class="std std-ref">is_dff_input()</span></a> | <a class="reference internal" href="#dd/d13/classTpgNode_1a9fd2bd9db86f2c8c755e8b2c1e44db5e"><span class="std std-ref">is_dff_output()</span></a> の時に意味を持つ． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode8alt_nodeEv">
+<span id="_CPPv3NK7TpgNode8alt_nodeEv"></span><span id="_CPPv2NK7TpgNode8alt_nodeEv"></span><span id="TpgNode::alt_nodeC"></span><span class="target" id="dd/d13/classTpgNode_1a2658b858c6c7627b17ad6ed98d69fc43"></span><a class="reference internal" href="#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">alt_node</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode8alt_nodeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DFFに関する相方のノードを返す． </p>
+<p><a class="reference internal" href="#dd/d13/classTpgNode_1ac0c3673134933dc7df1e91aacc73d266"><span class="std std-ref">is_dff_input()</span></a> | <a class="reference internal" href="#dd/d13/classTpgNode_1a9fd2bd9db86f2c8c755e8b2c1e44db5e"><span class="std std-ref">is_dff_output()</span></a> の時に意味を持つ． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode8is_logicEv">
+<span id="_CPPv3NK7TpgNode8is_logicEv"></span><span id="_CPPv2NK7TpgNode8is_logicEv"></span><span id="TpgNode::is_logicC"></span><span class="target" id="dd/d13/classTpgNode_1ade0c5f50cba63ea5bf925708328183fb"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_logic</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode8is_logicEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>logic タイプの時 true を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode9gate_typeEv">
+<span id="_CPPv3NK7TpgNode9gate_typeEv"></span><span id="_CPPv2NK7TpgNode9gate_typeEv"></span><span id="TpgNode::gate_typeC"></span><span class="target" id="dd/d13/classTpgNode_1a31dad30b1b8a43d2fc39c5c7faf49261"></span><span class="n"><span class="pre">PrimType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gate_type</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode9gate_typeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ゲートタイプを得る． </p>
+<p><ul class="simple">
+<li><p><a class="reference internal" href="#dd/d13/classTpgNode_1ade0c5f50cba63ea5bf925708328183fb"><span class="std std-ref">is_logic()</span></a> が true の時はゲートタイプを返す．</p></li>
+<li><p><a class="reference internal" href="#dd/d13/classTpgNode_1a82432fbe56a19550566f083b671915ca"><span class="std std-ref">is_ppo()</span></a> が true の時は PrimType::Buff を返す．</p></li>
+<li><p>それ以外の時は PrimType::None を返す． </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode4cvalEv">
+<span id="_CPPv3NK7TpgNode4cvalEv"></span><span id="_CPPv2NK7TpgNode4cvalEv"></span><span id="TpgNode::cvalC"></span><span class="target" id="dd/d13/classTpgNode_1ac8384d607b8b51536e206264f406c890"></span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cval</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode4cvalEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>controling value を得る． </p>
+<p><a class="reference internal" href="#dd/d13/classTpgNode_1ade0c5f50cba63ea5bf925708328183fb"><span class="std std-ref">is_logic()</span></a> が false の場合の返り値は不定 ない場合は Val3::_X を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode4nvalEv">
+<span id="_CPPv3NK7TpgNode4nvalEv"></span><span id="_CPPv2NK7TpgNode4nvalEv"></span><span id="TpgNode::nvalC"></span><span class="target" id="dd/d13/classTpgNode_1a3156ec55f4efa6408a296f5c69a63565"></span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nval</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode4nvalEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>noncontroling valueを得る． </p>
+<p><a class="reference internal" href="#dd/d13/classTpgNode_1ade0c5f50cba63ea5bf925708328183fb"><span class="std std-ref">is_logic()</span></a> が false の場合の返り値は不定 ない場合は Val3::_X を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode5covalEv">
+<span id="_CPPv3NK7TpgNode5covalEv"></span><span id="_CPPv2NK7TpgNode5covalEv"></span><span id="TpgNode::covalC"></span><span class="target" id="dd/d13/classTpgNode_1a49da0346e273d6a6b84d8f998ae03e6b"></span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">coval</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode5covalEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>controling output value を得る． </p>
+<p><a class="reference internal" href="#dd/d13/classTpgNode_1ade0c5f50cba63ea5bf925708328183fb"><span class="std std-ref">is_logic()</span></a> が false の場合の返り値は不定 ない場合は Val3::_X を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode5novalEv">
+<span id="_CPPv3NK7TpgNode5novalEv"></span><span id="_CPPv2NK7TpgNode5novalEv"></span><span id="TpgNode::novalC"></span><span class="target" id="dd/d13/classTpgNode_1a2ed8b6f8e9c18b7985057e612d0b160d"></span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">noval</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode5novalEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>noncontroling output value を得る． </p>
+<p><a class="reference internal" href="#dd/d13/classTpgNode_1ade0c5f50cba63ea5bf925708328183fb"><span class="std std-ref">is_logic()</span></a> が false の場合の返り値は不定 ない場合は Val3::_X を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7TpgNode3strEv">
+<span id="_CPPv3NK7TpgNode3strEv"></span><span id="_CPPv2NK7TpgNode3strEv"></span><span id="TpgNode::strC"></span><span class="target" id="dd/d13/classTpgNode_1a068299c0b199c3add3b14eea5c0548f4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">str</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7TpgNode3strEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノード名を表す文字列(Node::id)を返す． </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="tpgnetwork.html"
+                          title="前の章へ">TpgNetwork</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="tpgnodelist.html"
+                          title="次の章へ">TpgNodeList</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/tpgnode.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="tpgnodelist.html" title="TpgNodeList"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="tpgnetwork.html" title="TpgNetwork"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TpgNode</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

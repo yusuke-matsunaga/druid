@@ -1,0 +1,5 @@
+DetCond
+========
+
+.. doxygenclass:: DetCond
+   :members:

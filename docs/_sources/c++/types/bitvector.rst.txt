@@ -1,0 +1,5 @@
+BitVector
+==========
+
+.. doxygenclass:: BitVector
+   :members:

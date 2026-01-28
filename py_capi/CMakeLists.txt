@@ -102,6 +102,7 @@ target_link_libraries( druid_d
   ${YM_LIB_DEPENDS}
   ${Python3_LIBRARIES}
   )
+
 add_library( druidlib
   SHARED
   druid.cc
@@ -133,6 +134,18 @@ set_target_properties( druidlib
   OUTPUT_NAME "druid"
   )
 
+
+# ===================================================================
+# インストールターゲット
+# ===================================================================
+
+install ( TARGETS druid druid_d
+  DESTINATION bin
+  )
+
+install ( TARGETS druidlib
+  DESTINATION lib
+  )
 
 # ===================================================================
 # テストターゲット

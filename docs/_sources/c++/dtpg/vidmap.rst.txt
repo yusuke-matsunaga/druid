@@ -1,0 +1,5 @@
+VidMap
+=======
+
+.. doxygenclass:: VidMap
+   :members:

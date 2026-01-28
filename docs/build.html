@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ビルドとインストール &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/translations.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="検索" href="search.html" />
+    <link rel="next" title="C++ API" href="c%2B%2B/intro.html" />
+    <link rel="prev" title="Welcome to Druid&#39;s documentation!" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="c%2B%2B/intro.html" title="C++ API"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Druid&#39;s documentation!"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ビルドとインストール</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>ビルドとインストール<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
+<section id="id2">
+<h2>必要な外部ソフトウェア<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<p>Druid のビルドには以下のソフトウェアが必要となる．</p>
+<ul>
+<li><p>cmake</p>
+<p>3.14 以上を仮定</p>
+</li>
+<li><p>ninja</p>
+<p>なければ make で代用も可</p>
+</li>
+<li><p>python3</p>
+<ul class="simple">
+<li><p>pytest もテストで使用する．</p></li>
+</ul>
+</li>
+<li><p>doxygen</p>
+<p>APIドキュメントの自動生成に使用</p>
+</li>
+</ul>
+</section>
+<section id="druid">
+<h2>Druid の取得<a class="headerlink" href="#druid" title="この見出しへのパーマリンク">¶</a></h2>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>https:://github.com/yusuke-matsunaga/druid.git
+</pre></div>
+</div>
+<p>内部で ymworks.git というサブモジュールを使用しているので
+<cite>--recurse-submodules</cite>
+オプションが必要となる．
+もしもこのオプションを付け忘れて druid.git を取得した場合は
+展開されたソースディレクトリに行って以下のコマンドを実行すればよい．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>&lt;druidのソースディレクトリ&gt;
+$<span class="w"> </span>git<span class="w"> </span>submodule<span class="w"> </span>init
+$<span class="w"> </span>git<span class="w"> </span>submodule<span class="w"> </span>update
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h2>ビルド環境の準備1<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
+<p>druid のソースディレクトリを <cite>DRUID_SRC</cite> とする．
+このディレクトリは git で管理されているのでここで
+コンパイル作業を行うことはあまり好ましくない．
+そこで別のビルド用ディレクトリを用意する．
+ここでそのビルド用ディレクトリを <cite>DRUID_BUILD</cite> とする．
+このディレクトリは今の時点では存在していなくてもよい．
+以下のコマンドでビルド用ディレクトリが作られる．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="nv">$DRUID_SRC</span>
+$<span class="w"> </span>./mk_builddir.sh<span class="w"> </span><span class="nv">$DRUID_BUILD</span>
+</pre></div>
+</div>
+<p>すると以下のようなプロンプトが表示される．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>***
+<span class="nb">source</span><span class="w">  </span>directory:<span class="w"> </span>&lt;DRUID_SRC&gt;
+build<span class="w">   </span>directory:<span class="w"> </span>&lt;DRUID_BUILD&gt;
+***
+<span class="k">continue</span><span class="w"> </span>?<span class="w"> </span><span class="o">(</span>yes/no<span class="o">)</span>:_
+</pre></div>
+</div>
+<p>この内容で問題がなければ <cite>yes</cite> とタイプしてエンターキーを押す．
+やり直す場合には <cite>no</cite> と入力する．
+なお，MacOS の場合にはシェルの <cite>echo -n</cite> で改行無効の動作とならない
+ため表示が少しことなる．</p>
+</section>
+<section id="id4">
+<h2>ビルド環境の準備2<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
+<p>次に <cite>DRUID_BUILD</cite> ディレクトリに移動して以下のコマンドを実行する．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="nv">$DRUID_BUILD</span>
+$<span class="w"> </span>./boot.sh
+.
+.
+.
+.
+--<span class="w"> </span>Configuring<span class="w"> </span><span class="k">done</span><span class="w"> </span><span class="o">(</span>*.*s<span class="o">)</span>
+--<span class="w"> </span>Generating<span class="w"> </span><span class="k">done</span><span class="w"> </span><span class="o">(</span>*.*s<span class="o">)</span>
+--<span class="w"> </span>Build<span class="w"> </span>files<span class="w"> </span>have<span class="w"> </span>been<span class="w"> </span>wrtten<span class="w"> </span>to:<span class="w"> </span>*****
+<span class="nb">set</span><span class="w"> </span>up<span class="w"> </span>completed,<span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">type</span><span class="w"> </span><span class="s1">&#39;ninja&#39;</span><span class="w"> </span>to<span class="w"> </span>make<span class="w"> </span>all<span class="w"> </span>staffs.
+</pre></div>
+</div>
+<p>ninja がインストールされていない場合には最後の行の <cite>ninja</cite> は <cite>make</cite>
+になっている．
+通常はこの後 ninja か make を実行することでビルド作業が開始される．</p>
+<p>もしも必要なパッケージがインストールされていない場合や，cmake が
+それを見つけられなかった場合にはなんらかのエラーメッセージが出力
+される．</p>
+<p><cite>boot.sh</cite> はその名前が示すとおりシェルスクリプトであり，中身は
+適切な設定を行って cmake を起動するだけのものである．
+なので cmake の使用法がわかっている場合には直接 cmake を実行してもよい．
+このスクリプトを用意した理由は特に開発時に同じ設定を毎回手で打ち込む
+ことを回避するためのものである．</p>
+<p>ただし， <cite>boot.sh</cite> は上記の <cite>mk_builddir.sh</cite> で自動的にコピーされるた
+め， <cite>boot.sh</cite> の内容を書き換えてもその後に <cite>mk_builddir.sh</cite> を再実行
+してしまうと上書きされてしまう．
+そのため， <cite>boot.sh</cite> は内部で <cite>boot-opt.sh</cite> という名前のファイルをイン
+クルードしている．
+このファイルも <cite>mk_builddir.sh</cite> で自動的にコピーされるが，
+すでに同名のファイルが存在している場合には上書きするか既存のファイルを
+残すかの選択ができるようになっている．
+以下は <cite>mk_builddir.sh</cite> で指定したビルドディレクトリに既に
+<cite>boot-opt.sh</cite> ファイルが存在したときの出力である．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>Try<span class="w"> </span>to<span class="w"> </span>copy<span class="w"> </span>boot-opt.sh<span class="w"> </span>to<span class="w"> </span>&lt;DRUID_BUILD&gt;
+&lt;DRUID_BUILD&gt;/boot-opt.sh<span class="w"> </span>already<span class="w"> </span>exists.
+Would<span class="w"> </span>you<span class="w"> </span>overwrite<span class="w"> </span><span class="k">if</span>?<span class="w"> </span><span class="o">(</span>yes/no<span class="o">)</span>:_
+</pre></div>
+</div>
+<p>表示の通り <cite>yes</cite> で上書きを行う．</p>
+<p>初期状態の <cite>boot-opt.sh</cite> はコメントのみのファイルである</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># @file  boot-opt.sh</span>
+<span class="c1"># @brief boot.sh に追加で設定する内容を記述するファイル</span>
+<span class="c1"># @author Yusuke Matsunaga (松永 裕介)</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2016, 2017 Yusuke Matsunaga (松永 裕介)</span>
+<span class="c1"># All rights reserved</span>
+
+<span class="c1"># オプション文字列を追加する場合は以下のように</span>
+<span class="c1"># 既存のoptions変数に追加すること．</span>
+<span class="c1"># options=&quot;$options -DXXX=YYY&quot;</span>
+
+<span class="c1"># 環境変数の設定は以下のように行う．</span>
+<span class="c1"># export PATH=&quot;/usr/local/bin:$PATH&quot;</span>
+</pre></div>
+</div>
+<p>このファイルはただのシェルスクリプトなので自由に変更可能だが，
+主な使い方は以下の2つである．</p>
+<ul class="simple">
+<li><p>シェル変数 <cite>$options</cite> の設定</p></li>
+<li><p>実行パス <cite>$PATH</cite> の設定</p></li>
+</ul>
+<p><cite>$options</cite> は <cite>boot.sh</cite> 中で cmake を起動する時にそのままオプションと
+して渡される．
+そこで cmake に渡すオプションをここで記述する．
+最も一般的なオプションは cmake の CMakeLists.txt 中の変数の値を
+設定するもので， <cite>-DXXX=YYY</cite> の形で cmake 変数 <cite>XXX</cite> の値を
+<cite>YYY</cite> に設定する．</p>
+<p>実行パスの指定は外部ソフトウェアを標準的な場所以外にインストールした
+場合に必要となる．
+たとえば MacOS で homebrew を使ってインストールされたパッケージは
+<cite>/usr/bin</cite> や <cite>/usr/local/bin</cite> にはインストールされない．
+そこでそれらの実行ファイルを cmake が見つけられるように実行パス
+の設定を行う．
+場合によってはライブラリの検索パスの設定が必要となることもある．</p>
+<section id="id5">
+<h3>インストール<a class="headerlink" href="#id5" title="この見出しへのパーマリンク">¶</a></h3>
+<p>ビルドが完了したあとで以下のコマンドを実行するとビルド結果がインストー
+ルされる．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>ninja<span class="w"> </span>install
+</pre></div>
+</div>
+<p>とはいっても昨今はライブラリなどのファイルを標準的な場所にインストール
+するのはバージョン管理などの面で不都合が多いのでここでは
+<cite>DRUID_BUILD/stage</cite>
+というディレクトリを作成し，その下に必要なファイルをコピーするようにし
+ている．
+現時点では druid の python 拡張モジュール <cite>lib/druid.so</cite> と druid モ
+ジュールを組み込んだ python インタプリタ <cite>bin/druid</cite> と <cite>bin/druid_d</cite>
+がインストールされる．</p>
+<p><cite>bin/druid</cite> は <cite>lib/druid.so</cite> と同等のライブラリを既にスタティックリン
+クした python インタプリタで， <cite>$PYTHONPATH</cite> に <cite>lib/druid.so</cite> の場所
+をついかした通常の python とほぼ同様のものとなる．</p>
+<p><cite>bin/druid_d</cite> はデバッグオプションをオンにしてコンパイルしたもので
+デバッガを用いて起動するとシンボル情報を取得することができる．</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">目次</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">ビルドとインストール</a><ul>
+<li><a class="reference internal" href="#id2">必要な外部ソフトウェア</a></li>
+<li><a class="reference internal" href="#druid">Druid の取得</a></li>
+<li><a class="reference internal" href="#id3">ビルド環境の準備1</a></li>
+<li><a class="reference internal" href="#id4">ビルド環境の準備2</a><ul>
+<li><a class="reference internal" href="#id5">インストール</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="index.html"
+                          title="前の章へ">Welcome to Druid's documentation!</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="c%2B%2B/intro.html"
+                          title="次の章へ">C++ API</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/build.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="c%2B%2B/intro.html" title="C++ API"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Druid&#39;s documentation!"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ビルドとインストール</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

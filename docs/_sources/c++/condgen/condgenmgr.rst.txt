@@ -1,0 +1,5 @@
+CondGenMgr
+===========
+
+.. doxygenclass:: CondGenMgr
+   :members:

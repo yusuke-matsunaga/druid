@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>PackedVal3 &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="Assign" href="assign.html" />
+    <link rel="prev" title="PackedVal" href="packedval.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="assign.html" title="Assign"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="packedval.html" title="PackedVal"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">PackedVal3</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="packedval3">
+<h1>PackedVal3<a class="headerlink" href="#packedval3" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv410PackedVal3">
+<span id="_CPPv310PackedVal3"></span><span id="_CPPv210PackedVal3"></span><span id="PackedVal3"></span><span class="target" id="da/de9/classPackedVal3"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PackedVal3</span></span></span><a class="headerlink" href="#_CPPv410PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>PackedVal2つで3値のビットベクタを表すクラス </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal310PackedVal3Ev">
+<span id="_CPPv3N10PackedVal310PackedVal3Ev"></span><span id="_CPPv2N10PackedVal310PackedVal3Ev"></span><span id="PackedVal3::PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1ad4a60afae810813563c7a7de4fdbffaf"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PackedVal3</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal310PackedVal3Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+<p>不定値になる． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal310PackedVal3ERK10PackedVal3">
+<span id="_CPPv3N10PackedVal310PackedVal3ERK10PackedVal3"></span><span id="_CPPv2N10PackedVal310PackedVal3ERK10PackedVal3"></span><span id="PackedVal3::PackedVal3__PackedVal3CR"></span><span class="target" id="da/de9/classPackedVal3_1aa4e13a573f2d31426e0769f44ac209d0"></span><span class="sig-name descname"><span class="n"><span class="pre">PackedVal3</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N10PackedVal310PackedVal3ERK10PackedVal3" title="PackedVal3::PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10PackedVal310PackedVal3ERK10PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピーコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal310PackedVal3E9PackedVal9PackedVal">
+<span id="_CPPv3N10PackedVal310PackedVal3E9PackedVal9PackedVal"></span><span id="_CPPv2N10PackedVal310PackedVal3E9PackedVal9PackedVal"></span><span id="PackedVal3::PackedVal3__PackedVal.PackedVal"></span><span class="target" id="da/de9/classPackedVal3_1a3c1572c8054086b443c85808a2d67b8b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PackedVal3</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val0</span></span>, <span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal310PackedVal3E9PackedVal9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ </p>
+<p>val0 と val1 の両方のビットが1になったら不正 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val0</strong> -- [in] 0を表すビットベクタ </p></li>
+<li><p><strong>val1</strong> -- [in] 1を表すビットベクタ </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal310PackedVal3E9PackedVal">
+<span id="_CPPv3N10PackedVal310PackedVal3E9PackedVal"></span><span id="_CPPv2N10PackedVal310PackedVal3E9PackedVal"></span><span id="PackedVal3::PackedVal3__PackedVal"></span><span class="target" id="da/de9/classPackedVal3_1a3291b6aacdaba671730fcc502fe3a3e3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PackedVal3</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal310PackedVal3E9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>2値の PackedVal からの変換コンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>val</strong> -- [in] 値 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3D0Ev">
+<span id="_CPPv3N10PackedVal3D0Ev"></span><span id="_CPPv2N10PackedVal3D0Ev"></span><span id="PackedVal3::~PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1a07a5a83d344e67538cf8e13959f8e2b0"></span><span class="sig-name descname"><span class="n"><span class="pre">~PackedVal3</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10PackedVal3D0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10PackedVal34val0Ev">
+<span id="_CPPv3NK10PackedVal34val0Ev"></span><span id="_CPPv2NK10PackedVal34val0Ev"></span><span id="PackedVal3::val0C"></span><span class="target" id="da/de9/classPackedVal3_1a83c0a8d11d12ed4d21a8e6378840898d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">val0</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10PackedVal34val0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>0 のワードを取り出す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10PackedVal34val1Ev">
+<span id="_CPPv3NK10PackedVal34val1Ev"></span><span id="_CPPv2NK10PackedVal34val1Ev"></span><span id="PackedVal3::val1C"></span><span class="target" id="da/de9/classPackedVal3_1aaa46c8035e34202e9186ac222de5adcb"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">val1</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10PackedVal34val1Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1 のワードを取り出す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10PackedVal35val01Ev">
+<span id="_CPPv3NK10PackedVal35val01Ev"></span><span id="_CPPv2NK10PackedVal35val01Ev"></span><span id="PackedVal3::val01C"></span><span class="target" id="da/de9/classPackedVal3_1a8116fe03d50baff1a22112f73340a1b6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">val01</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10PackedVal35val01Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>0|1 か X かを区別するワードを取り出す． </p>
+<p>1のビットはもとの値が0か1 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3aSE9PackedVal">
+<span id="_CPPv3N10PackedVal3aSE9PackedVal"></span><span id="_CPPv2N10PackedVal3aSE9PackedVal"></span><span id="PackedVal3::assign-operator__PackedVal"></span><span class="target" id="da/de9/classPackedVal3_1aadd3c1671b62988be75f0411d5aa409c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3aSE9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>2値の代入演算子 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>val</strong> -- [in] 値 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>代入後の自身への参照を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3aSERK10PackedVal3">
+<span id="_CPPv3N10PackedVal3aSERK10PackedVal3"></span><span id="_CPPv2N10PackedVal3aSERK10PackedVal3"></span><span id="PackedVal3::assign-operator__PackedVal3CR"></span><span class="target" id="da/de9/classPackedVal3_1ae8f46d0b223a0201bb98b6d6405de158"></span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10PackedVal3aSERK10PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>普通の代入演算子 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>val</strong> -- [in] 値 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>代入後の自身への参照を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal33setE9PackedVal9PackedVal">
+<span id="_CPPv3N10PackedVal33setE9PackedVal9PackedVal"></span><span id="_CPPv2N10PackedVal33setE9PackedVal9PackedVal"></span><span id="PackedVal3::set__PackedVal.PackedVal"></span><span class="target" id="da/de9/classPackedVal3_1a24c4fb3c204a6399610bdd6849c9990b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val0</span></span>, <span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal33setE9PackedVal9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値をセットする． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val0</strong> -- [in] 値0 </p></li>
+<li><p><strong>val1</strong> -- [in] 値1 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal313set_with_maskE10PackedVal39PackedVal">
+<span id="_CPPv3N10PackedVal313set_with_maskE10PackedVal39PackedVal"></span><span id="_CPPv2N10PackedVal313set_with_maskE10PackedVal39PackedVal"></span><span id="PackedVal3::set_with_mask__PackedVal3.PackedVal"></span><span class="target" id="da/de9/classPackedVal3_1a555dc9ba782e47d32e7863563a87cb2a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_with_mask</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span>, <span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal313set_with_maskE10PackedVal39PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マスク付きで値をセットする． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+<li><p><strong>mask</strong> -- [in] マスク </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal313set_with_maskE9PackedVal9PackedVal">
+<span id="_CPPv3N10PackedVal313set_with_maskE9PackedVal9PackedVal"></span><span id="_CPPv2N10PackedVal313set_with_maskE9PackedVal9PackedVal"></span><span id="PackedVal3::set_with_mask__PackedVal.PackedVal"></span><span class="target" id="da/de9/classPackedVal3_1a6312a4f1568425d7d17953c4ec30153f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_with_mask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span>, <span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal313set_with_maskE9PackedVal9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マスク付きで値をセットする． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+<li><p><strong>mask</strong> -- [in] マスク </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal36negateEv">
+<span id="_CPPv3N10PackedVal36negateEv"></span><span id="_CPPv2N10PackedVal36negateEv"></span><span id="PackedVal3::negate"></span><span class="target" id="da/de9/classPackedVal3_1a9409ef70fe037b99bd6706bbb031645e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">negate</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal36negateEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>自身を否定する演算 </p>
+<dl class="field-list simple">
+<dt class="field-odd">戻り値<span class="colon">:</span></dt>
+<dd class="field-odd"><p>演算後の自身の参照を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3aNE10PackedVal3">
+<span id="_CPPv3N10PackedVal3aNE10PackedVal3"></span><span id="_CPPv2N10PackedVal3aNE10PackedVal3"></span><span id="PackedVal3::and-assign-operator__PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1acb466039845ec841bb2ba5d33ba41aea"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&amp;=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3aNE10PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>AND付き代入 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>演算後の自身の参照を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3oRE10PackedVal3">
+<span id="_CPPv3N10PackedVal3oRE10PackedVal3"></span><span id="_CPPv2N10PackedVal3oRE10PackedVal3"></span><span id="PackedVal3::or-assign-operator__PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1a907f50bc65ba4ca4408ae356308e5b60"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">|=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3oRE10PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>OR付き代入 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>演算後の自身の参照を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3eOE10PackedVal3">
+<span id="_CPPv3N10PackedVal3eOE10PackedVal3"></span><span id="_CPPv2N10PackedVal3eOE10PackedVal3"></span><span id="PackedVal3::xor-assign-operator__PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1abb8e38adb59e7589ab4693fb4d737ec9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">^=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3eOE10PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>XOR付き代入 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>演算後の自身の参照を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3eOE9PackedVal">
+<span id="_CPPv3N10PackedVal3eOE9PackedVal"></span><span id="_CPPv2N10PackedVal3eOE9PackedVal"></span><span id="PackedVal3::xor-assign-operator__PackedVal"></span><span class="target" id="da/de9/classPackedVal3_1a0827e7e19b531c1d8aa6ce8f93113d18"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">^=</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3eOE9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>XOR付き代入 </p>
+<p>
+right が2値のバージョン </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>演算後の自身の参照を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-related">Related</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3eqE10PackedVal310PackedVal3">
+<span id="_CPPv3N10PackedVal3eqE10PackedVal310PackedVal3"></span><span id="_CPPv2N10PackedVal3eqE10PackedVal310PackedVal3"></span><span id="PackedVal3::eq-operator__PackedVal3.PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1ac426bd7e89d34c48b439917c1e73fec8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3eqE10PackedVal310PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>比較演算子 (EQ) </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3neE10PackedVal310PackedVal3">
+<span id="_CPPv3N10PackedVal3neE10PackedVal310PackedVal3"></span><span id="_CPPv2N10PackedVal3neE10PackedVal310PackedVal3"></span><span id="PackedVal3::neq-operator__PackedVal3.PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1a89533d2e026e9816705f222e85e93096"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">!=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3neE10PackedVal310PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>比較演算子 (NE) </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3coE10PackedVal3">
+<span id="_CPPv3N10PackedVal3coE10PackedVal3"></span><span id="_CPPv2N10PackedVal3coE10PackedVal3"></span><span id="PackedVal3::inv-operator__PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1a394597c74cb5d1877e474883ffe0a9c0"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">~</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3coE10PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>否定演算 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3anE10PackedVal310PackedVal3">
+<span id="_CPPv3N10PackedVal3anE10PackedVal310PackedVal3"></span><span id="_CPPv2N10PackedVal3anE10PackedVal310PackedVal3"></span><span id="PackedVal3::and-operator__PackedVal3.PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1a34d63ebfc8319346e1522f1387e0b632"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&amp;</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3anE10PackedVal310PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>AND演算 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3orE10PackedVal310PackedVal3">
+<span id="_CPPv3N10PackedVal3orE10PackedVal310PackedVal3"></span><span id="_CPPv2N10PackedVal3orE10PackedVal310PackedVal3"></span><span id="PackedVal3::or-operator__PackedVal3.PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1a785bb1cc12947030d0a6056d18bb7ecf"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">|</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3orE10PackedVal310PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>OR演算 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3eoE10PackedVal310PackedVal3">
+<span id="_CPPv3N10PackedVal3eoE10PackedVal310PackedVal3"></span><span id="_CPPv2N10PackedVal3eoE10PackedVal310PackedVal3"></span><span id="PackedVal3::xor-operator__PackedVal3.PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1a34b55f751a1b670d393d5a0b00051637"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">^</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3eoE10PackedVal310PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>XOR演算 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal3eoE10PackedVal39PackedVal">
+<span id="_CPPv3N10PackedVal3eoE10PackedVal39PackedVal"></span><span id="_CPPv2N10PackedVal3eoE10PackedVal39PackedVal"></span><span id="PackedVal3::xor-operator__PackedVal3.PackedVal"></span><span class="target" id="da/de9/classPackedVal3_1ae0b99e796e4ece2be1a6fbc1bc0275ac"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">^</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal3eoE10PackedVal39PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>XOR演算 </p>
+<p>right が2値のバージョン </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10PackedVal34diffE10PackedVal310PackedVal3">
+<span id="_CPPv3N10PackedVal34diffE10PackedVal310PackedVal3"></span><span id="_CPPv2N10PackedVal34diffE10PackedVal310PackedVal3"></span><span id="PackedVal3::diff__PackedVal3.PackedVal3"></span><span class="target" id="da/de9/classPackedVal3_1a5463a15dd5ffd2c9ab1f71e308e8b4b8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">diff</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <a class="reference internal" href="#_CPPv410PackedVal3" title="PackedVal3"><span class="n"><span class="pre">PackedVal3</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10PackedVal34diffE10PackedVal310PackedVal3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DIFF演算 </p>
+<p>どちらかが 0 で他方が 1 のビットに1を立てたビットベクタを返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="packedval.html"
+                          title="前の章へ">PackedVal</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="assign.html"
+                          title="次の章へ">Assign</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/packedval3.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="assign.html" title="Assign"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="packedval.html" title="PackedVal"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">PackedVal3</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

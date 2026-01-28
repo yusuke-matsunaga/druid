@@ -1,0 +1,5 @@
+CondGenStats
+==============
+
+.. doxygenclass:: CondGenStats
+   :members:

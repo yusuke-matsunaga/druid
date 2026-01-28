@@ -1,0 +1,5 @@
+BoolDiffEnc
+=============
+
+.. doxygenclass:: BoolDiffEnc
+   :members:

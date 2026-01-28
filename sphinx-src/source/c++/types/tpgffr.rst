@@ -1,0 +1,5 @@
+TpgFFR
+=======
+
+.. doxygenclass:: TpgFFR
+   :members:

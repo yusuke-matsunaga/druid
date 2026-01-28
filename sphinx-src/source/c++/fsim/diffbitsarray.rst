@@ -1,0 +1,5 @@
+DiffBitsArray
+==============
+
+.. doxygenclass:: DiffBitsArray
+   :members:

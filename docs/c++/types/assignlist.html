@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>AssignList &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="BitVector" href="bitvector.html" />
+    <link rel="prev" title="Assign" href="assign.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="bitvector.html" title="BitVector"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="assign.html" title="Assign"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">AssignList</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="assignlist">
+<h1>AssignList<a class="headerlink" href="#assignlist" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv410AssignList">
+<span id="_CPPv310AssignList"></span><span id="_CPPv210AssignList"></span><span id="AssignList"></span><span class="target" id="d2/dfa/classAssignList"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AssignList</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="tpgbase.html#_CPPv47TpgBase" title="TpgBase"><span class="n"><span class="pre">TpgBase</span></span></a><a class="headerlink" href="#_CPPv410AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードに対する値の割当を記録するクラス </p>
+<p><ul class="simple">
+<li><p>概念的には vector&lt;Assign&gt; と同じ</p></li>
+<li><p>このクラスのメソッドはすべてソートされていると仮定している．</p></li>
+<li><p>実際には内部で mDirty というフラグを用意して内容が変更されたら mDirty を true にしておく． 内容を参照する際に mDirty が true なら _sort() を呼ぶ． </p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="assign.html#d9/d95/classAssign"><span class="std std-ref">Assign</span></a></p>
+</div>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList10AssignListEv">
+<span id="_CPPv3N10AssignList10AssignListEv"></span><span id="_CPPv2N10AssignList10AssignListEv"></span><span id="AssignList::AssignList"></span><span class="target" id="d2/dfa/classAssignList_1a60f6fbca970cc679602bd0c3ef0b3a86"></span><span class="sig-name descname"><span class="n"><span class="pre">AssignList</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10AssignList10AssignListEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ </p>
+<p>不正な値となる． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList10AssignListERKNSt10shared_ptrI10NetworkRepEERKNSt6vectorI8SizeTypeEE">
+<span id="_CPPv3N10AssignList10AssignListERKNSt10shared_ptrI10NetworkRepEERKNSt6vectorI8SizeTypeEE"></span><span id="_CPPv2N10AssignList10AssignListERKNSt10shared_ptrI10NetworkRepEERKNSt6vectorI8SizeTypeEE"></span><span id="AssignList::AssignList__std::shared_ptr:NetworkRep:CR.std::vector:SizeType:CR"></span><span class="target" id="d2/dfa/classAssignList_1a63613fe1e82b9cd80b7747f07f134c97"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AssignList</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">NetworkRep</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SizeType</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">as_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignList10AssignListERKNSt10shared_ptrI10NetworkRepEERKNSt6vectorI8SizeTypeEE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のリストを作るコンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> -- [in] 親のネットワーク </p></li>
+<li><p><strong>as_list</strong> -- [in] パックした割り当て情報のリスト </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList10AssignListERK10AssignList">
+<span id="_CPPv3N10AssignList10AssignListERK10AssignList"></span><span id="_CPPv2N10AssignList10AssignListERK10AssignList"></span><span id="AssignList::AssignList__AssignListCR"></span><span class="target" id="d2/dfa/classAssignList_1aeb48b4ea44b3a73ed54d1e74022503f8"></span><span class="sig-name descname"><span class="n"><span class="pre">AssignList</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N10AssignList10AssignListERK10AssignList" title="AssignList::AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10AssignList10AssignListERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピーコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList10AssignListERR10AssignList">
+<span id="_CPPv3N10AssignList10AssignListERR10AssignList"></span><span id="_CPPv2N10AssignList10AssignListERR10AssignList"></span><span id="AssignList::AssignList__AssignListRR"></span><span class="target" id="d2/dfa/classAssignList_1a969b33532a05094d71d728d26e487510"></span><span class="sig-name descname"><span class="n"><span class="pre">AssignList</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N10AssignList10AssignListERR10AssignList" title="AssignList::AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10AssignList10AssignListERR10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ムーブコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignListaSERK10AssignList">
+<span id="_CPPv3N10AssignListaSERK10AssignList"></span><span id="_CPPv2N10AssignListaSERK10AssignList"></span><span id="AssignList::assign-operator__AssignListCR"></span><span class="target" id="d2/dfa/classAssignList_1adfb7be859a0bb0fb72298acbc0606946"></span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10AssignListaSERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピー代入演算子 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignListaSERR10AssignList">
+<span id="_CPPv3N10AssignListaSERR10AssignList"></span><span id="_CPPv2N10AssignListaSERR10AssignList"></span><span id="AssignList::assign-operator__AssignListRR"></span><span class="target" id="d2/dfa/classAssignList_1ad20e4362556d6036857f971d5fa2fb4f"></span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10AssignListaSERR10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ムーブ代入演算子 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignListD0Ev">
+<span id="_CPPv3N10AssignListD0Ev"></span><span id="_CPPv2N10AssignListD0Ev"></span><span id="AssignList::~AssignList"></span><span class="target" id="d2/dfa/classAssignList_1a1afc669e3d5ddee672c1314160376b99"></span><span class="sig-name descname"><span class="n"><span class="pre">~AssignList</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10AssignListD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList5clearEv">
+<span id="_CPPv3N10AssignList5clearEv"></span><span id="_CPPv2N10AssignList5clearEv"></span><span id="AssignList::clear"></span><span class="target" id="d2/dfa/classAssignList_1ab8744b524a15aac9ffa462b469d76335"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignList5clearEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容を空にする． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList3addERK7TpgNodeib">
+<span id="_CPPv3N10AssignList3addERK7TpgNodeib"></span><span id="_CPPv2N10AssignList3addERK7TpgNodeib"></span><span id="AssignList::add__TpgNodeCR.i.b"></span><span class="target" id="d2/dfa/classAssignList_1ad0bc25c03d9a7e23ac22a4634147d231"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignList3addERK7TpgNodeib" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を追加する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> -- [in] ノード </p></li>
+<li><p><strong>val</strong> -- /&lt; [in] 時刻 ( 0 or 1 ) [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList3addERK6Assign">
+<span id="_CPPv3N10AssignList3addERK6Assign"></span><span id="_CPPv2N10AssignList3addERK6Assign"></span><span id="AssignList::add__AssignCR"></span><span class="target" id="d2/dfa/classAssignList_1af732cf536bba4f8c692e43354b5a8272"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="assign.html#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assign</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignList3addERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を追加する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>assign</strong> -- [in] 値の割り当て情報 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList5mergeERK10AssignList">
+<span id="_CPPv3N10AssignList5mergeERK10AssignList"></span><span id="_CPPv2N10AssignList5mergeERK10AssignList"></span><span id="AssignList::merge__AssignListCR"></span><span class="target" id="d2/dfa/classAssignList_1af86cad8d9842131ec8afce8b954e375e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">merge</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignList5mergeERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マージする． </p>
+<p>矛盾する割当があった場合の動作は不定 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src_list</strong> -- [in] マージするリスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList4diffERK10AssignList">
+<span id="_CPPv3N10AssignList4diffERK10AssignList"></span><span id="_CPPv2N10AssignList4diffERK10AssignList"></span><span id="AssignList::diff__AssignListCR"></span><span class="target" id="d2/dfa/classAssignList_1a1b8c6ed57cb5aea9265dafa1c4e41f2c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">diff</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignList4diffERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>差分を計算する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src_list</strong> -- [in] 差分の対象のリスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignList4diffERK6Assign">
+<span id="_CPPv3N10AssignList4diffERK6Assign"></span><span id="_CPPv2N10AssignList4diffERK6Assign"></span><span id="AssignList::diff__AssignCR"></span><span class="target" id="d2/dfa/classAssignList_1a2ccdc697697aab2fd9eaee146250ad2d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">diff</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="assign.html#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignList4diffERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>差分を計算する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src</strong> -- [in] 差分の対象 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10AssignList4sizeEv">
+<span id="_CPPv3NK10AssignList4sizeEv"></span><span id="_CPPv2NK10AssignList4sizeEv"></span><span id="AssignList::sizeC"></span><span class="target" id="d2/dfa/classAssignList_1a886a0b250153007c7fb2da3dd5f4f407"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10AssignList4sizeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>要素数を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10AssignList4elemE8SizeType">
+<span id="_CPPv3NK10AssignList4elemE8SizeType"></span><span id="_CPPv2NK10AssignList4elemE8SizeType"></span><span id="AssignList::elem__SizeTypeC"></span><span class="target" id="d2/dfa/classAssignList_1a5cb70af082dc1be45e50e8ed35707dff"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="assign.html#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">elem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10AssignList4elemE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>要素を返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> -- [in] 位置 ( 0 &lt;= index &lt; <a class="reference internal" href="#d2/dfa/classAssignList_1a886a0b250153007c7fb2da3dd5f4f407"><span class="std std-ref">size()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignListpLE6Assign">
+<span id="_CPPv3N10AssignListpLE6Assign"></span><span id="_CPPv2N10AssignListpLE6Assign"></span><span id="AssignList::add-assign-operator__Assign"></span><span class="target" id="d2/dfa/classAssignList_1a4b1f4610ff3636e3c216390038eb871b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">+=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="assign.html#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">node_val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignListpLE6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>add(Assign) の別名 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node_val</strong> -- [in] 追加する要素 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignListpLERK10AssignList">
+<span id="_CPPv3N10AssignListpLERK10AssignList"></span><span id="_CPPv2N10AssignListpLERK10AssignList"></span><span id="AssignList::add-assign-operator__AssignListCR"></span><span class="target" id="d2/dfa/classAssignList_1af7f2ed28ce93471229daad82b86df950"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">+=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignListpLERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#d2/dfa/classAssignList_1af86cad8d9842131ec8afce8b954e375e"><span class="std std-ref">merge()</span></a> の別名 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src_list</strong> -- [in] 追加する要素のリスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignListmIERK10AssignList">
+<span id="_CPPv3N10AssignListmIERK10AssignList"></span><span id="_CPPv2N10AssignListmIERK10AssignList"></span><span id="AssignList::sub-assign-operator__AssignListCR"></span><span class="target" id="d2/dfa/classAssignList_1ac260c127548bcdd2b7cbe7563263b8aa"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">-=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignListmIERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#d2/dfa/classAssignList_1a1b8c6ed57cb5aea9265dafa1c4e41f2c"><span class="std std-ref">diff()</span></a> の別名 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src_list</strong> -- [in] 差分の対象のリスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10AssignListmIERK6Assign">
+<span id="_CPPv3N10AssignListmIERK6Assign"></span><span id="_CPPv2N10AssignListmIERK6Assign"></span><span id="AssignList::sub-assign-operator__AssignCR"></span><span class="target" id="d2/dfa/classAssignList_1ad182020be23d6b99f15fefecd13d4b17"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">-=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="assign.html#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10AssignListmIERK6Assign" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#d2/dfa/classAssignList_1a1b8c6ed57cb5aea9265dafa1c4e41f2c"><span class="std std-ref">diff()</span></a> の別名 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src</strong> -- [in] 差分の対象 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10AssignListixEi">
+<span id="_CPPv3NK10AssignListixEi"></span><span id="_CPPv2NK10AssignListixEi"></span><span id="AssignList::subscript-operator__iC"></span><span class="target" id="d2/dfa/classAssignList_1ac852655f4b8c0b6c3047690b23de5226"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="assign.html#_CPPv46Assign" title="Assign"><span class="n"><span class="pre">Assign</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10AssignListixEi" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#d2/dfa/classAssignList_1a5cb70af082dc1be45e50e8ed35707dff"><span class="std std-ref">elem()</span></a> の別名 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] 位置 ( 0 &lt;= pos &lt; <a class="reference internal" href="#d2/dfa/classAssignList_1a886a0b250153007c7fb2da3dd5f4f407"><span class="std std-ref">size()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10AssignList12sanity_checkEv">
+<span id="_CPPv3NK10AssignList12sanity_checkEv"></span><span id="_CPPv2NK10AssignList12sanity_checkEv"></span><span id="AssignList::sanity_checkC"></span><span class="target" id="d2/dfa/classAssignList_1aed57535bf211ad77a7b4a7b88d2323ed"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sanity_check</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10AssignList12sanity_checkEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>矛盾した内容になっていないかチェックする． </p>
+<p>
+具体的には同じノードで異なる値がある場合にエラーとなる． この関数はソートされている前提で動作する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">戻り値<span class="colon">:</span></dt>
+<dd class="field-odd"><p>正しければ true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10AssignList5beginEv">
+<span id="_CPPv3NK10AssignList5beginEv"></span><span id="_CPPv2NK10AssignList5beginEv"></span><span id="AssignList::beginC"></span><span class="target" id="d2/dfa/classAssignList_1a4b4db8e37bd5a939b1ba3dec97a1da51"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">AssignIter</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">begin</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10AssignList5beginEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>先頭の反復子を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10AssignList3endEv">
+<span id="_CPPv3NK10AssignList3endEv"></span><span id="_CPPv2NK10AssignList3endEv"></span><span id="AssignList::endC"></span><span class="target" id="d2/dfa/classAssignList_1af6b5821bf3de10e5d16aad5a155524ce"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">AssignIter</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">end</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10AssignList3endEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>末尾の反復子を返す． </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="assign.html"
+                          title="前の章へ">Assign</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="bitvector.html"
+                          title="次の章へ">BitVector</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/assignlist.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="bitvector.html" title="BitVector"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="assign.html" title="Assign"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">AssignList</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

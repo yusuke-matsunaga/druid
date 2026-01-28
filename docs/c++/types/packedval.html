@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>PackedVal &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="PackedVal3" href="packedval3.html" />
+    <link rel="prev" title="AssignList" href="assignlist.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="packedval3.html" title="PackedVal3"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="assignlist.html" title="AssignList"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">PackedVal</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="packedval">
+<h1>PackedVal<a class="headerlink" href="#packedval" title="この見出しへのパーマリンク">¶</a></h1>
+<p>1ワードにパックしたビットベクタ型の定義ファイル </p>
+<p>
+Copyright (C) 2025 Yusuke Matsunaga All rights reserved. <dl class="simple">
+<dt><strong>Author</strong></dt><dd><p>Yusuke Matsunaga (松永 裕介)</p>
+</dd>
+</dl>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-typedefs">Typedefs</p>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv49PackedVal">
+<span id="_CPPv39PackedVal"></span><span id="_CPPv29PackedVal"></span><span class="target" id="d8/db3/group__TypesGroup_1ga1a5557911ce057d42d83118eaaf9314d"></span><span class="k"><span class="pre">using</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PackedVal</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint64_t</span></span><a class="headerlink" href="#_CPPv49PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1ワードのビットベクタを表す型 </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv44diff9PackedVal9PackedVal">
+<span id="_CPPv34diff9PackedVal9PackedVal"></span><span id="_CPPv24diff9PackedVal9PackedVal"></span><span id="diff__PackedVal.PackedVal"></span><span class="target" id="dd/dae/PackedVal_8h_1a172e914a355ea4c163f7781022de3c6b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49PackedVal" title="PackedVal"><span class="n"><span class="pre">PackedVal</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">diff</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49PackedVal" title="PackedVal"><span class="n"><span class="pre">PackedVal</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <a class="reference internal" href="#_CPPv49PackedVal" title="PackedVal"><span class="n"><span class="pre">PackedVal</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44diff9PackedVal9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>2つのビットベクタの差分を求める． </p>
+<p>異なっているビットに1を立てた2値のビットベクタを返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv410count_ones9PackedVal">
+<span id="_CPPv310count_ones9PackedVal"></span><span id="_CPPv210count_ones9PackedVal"></span><span id="count_ones__PackedVal"></span><span class="target" id="dd/dae/PackedVal_8h_1aebf36db31aca6ae0e56659c5a29a5626"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">count_ones</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49PackedVal" title="PackedVal"><span class="n"><span class="pre">PackedVal</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">word</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410count_ones9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>word 中の1のビット数を数える． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>word</strong> -- </p></li>
+<li><p><strong>対象のワード</strong> -- <strong>[in]</strong> </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>word 中の1のビット数 </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv47PV_ALL0">
+<span id="_CPPv37PV_ALL0"></span><span id="_CPPv27PV_ALL0"></span><span id="PV_ALL0__PackedValC"></span><span class="target" id="dd/dae/PackedVal_8h_1a202c48a4d827ef3318e161228e898182"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49PackedVal" title="PackedVal"><span class="n"><span class="pre">PackedVal</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PV_ALL0</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0UL</span></span><a class="headerlink" href="#_CPPv47PV_ALL0" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>全てのビットが0の定数 </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv47PV_ALL1">
+<span id="_CPPv37PV_ALL1"></span><span id="_CPPv27PV_ALL1"></span><span id="PV_ALL1__PackedValC"></span><span class="target" id="dd/dae/PackedVal_8h_1a6c2627eb2c299ba14d2946a2b8cc7d37"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49PackedVal" title="PackedVal"><span class="n"><span class="pre">PackedVal</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PV_ALL1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">~</span></span><span class="m"><span class="pre">0UL</span></span><a class="headerlink" href="#_CPPv47PV_ALL1" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>全てのビットが1の定数 </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv49PV_BITLEN">
+<span id="_CPPv39PV_BITLEN"></span><span id="_CPPv29PV_BITLEN"></span><span id="PV_BITLEN__iC"></span><span class="target" id="dd/dae/PackedVal_8h_1a71779524b71cb98910582cdca36c6109"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PV_BITLEN</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">64</span></span><a class="headerlink" href="#_CPPv49PV_BITLEN" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>PackedVal のビット長 </p>
+</dd></dl>
+
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="assignlist.html"
+                          title="前の章へ">AssignList</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="packedval3.html"
+                          title="次の章へ">PackedVal3</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/packedval.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="packedval3.html" title="PackedVal3"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="assignlist.html" title="AssignList"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">PackedVal</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

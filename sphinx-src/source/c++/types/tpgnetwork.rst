@@ -1,0 +1,5 @@
+TpgNetwork
+===========
+
+.. doxygenclass:: TpgNetwork
+   :members:

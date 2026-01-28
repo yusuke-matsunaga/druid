@@ -10,6 +10,10 @@ Welcome to Druid's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   build
+   c++/intro
+   python/intro
+
 .. automodule:: druid
    :members:
    :show-inheritance:

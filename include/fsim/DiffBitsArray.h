@@ -19,7 +19,8 @@ BEGIN_NAMESPACE_DRUID
 /// @class DiffBitsArray DiffBitsArray.h "DiffBitsArray.h"
 /// @brief DiffBits の配列
 /// @ingroup FsimGroup
-/// @sa DiffBits
+/// @sa Fsim, DiffBits
+/// @sa PackedVal
 ///
 /// 実際には非ゼロの出力要素ごとに PackedVal を持つ．
 //////////////////////////////////////////////////////////////////////

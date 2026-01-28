@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>DetCond &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="Python インターフェイス" href="../../python/intro.html" />
+    <link rel="prev" title="CondGenStats" href="condgenstats.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="../../python/intro.html" title="Python インターフェイス"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="condgenstats.html" title="CondGenStats"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="condgen_module.html" accesskey="U">故障検出条件生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DetCond</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="detcond">
+<h1>DetCond<a class="headerlink" href="#detcond" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv47DetCond">
+<span id="_CPPv37DetCond"></span><span id="_CPPv27DetCond"></span><span id="DetCond"></span><span class="target" id="df/db2/classDetCond"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DetCond</span></span></span><a class="headerlink" href="#_CPPv47DetCond" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>故障検出条件を表すクラス </p>
+<p>mandatory_condition &amp; (cube_1 | cube_2 | ... | cube_n) の形で表される． mandatory_condition, cube_i はそれぞれ <a class="reference internal" href="../types/assignlist.html#d2/dfa/classAssignList"><span class="std std-ref">AssignList</span></a> で表される． </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-types">Public Types</p>
+<dl class="cpp enum">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond4TypeE">
+<span id="_CPPv3N7DetCond4TypeE"></span><span id="_CPPv2N7DetCond4TypeE"></span><span class="target" id="df/db2/classDetCond_1a38b4f4c8329a96f8087c19dd63f6f3a1"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Type</span></span></span><a class="headerlink" href="#_CPPv4N7DetCond4TypeE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>結果の種類 </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond4Type10UndetectedE">
+<span id="_CPPv3N7DetCond4Type10UndetectedE"></span><span id="_CPPv2N7DetCond4Type10UndetectedE"></span><span class="target" id="df/db2/classDetCond_1a38b4f4c8329a96f8087c19dd63f6f3a1ad2517e56a859729d95bb086262d425ea"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Undetected</span></span></span><a class="headerlink" href="#_CPPv4N7DetCond4Type10UndetectedE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>検出できなかった． </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond4Type8DetectedE">
+<span id="_CPPv3N7DetCond4Type8DetectedE"></span><span id="_CPPv2N7DetCond4Type8DetectedE"></span><span class="target" id="df/db2/classDetCond_1a38b4f4c8329a96f8087c19dd63f6f3a1aac0fb502a053108331ded04d54d99044"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Detected</span></span></span><a class="headerlink" href="#_CPPv4N7DetCond4Type8DetectedE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>検出された． </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond4Type15PartialDetectedE">
+<span id="_CPPv3N7DetCond4Type15PartialDetectedE"></span><span id="_CPPv2N7DetCond4Type15PartialDetectedE"></span><span class="target" id="df/db2/classDetCond_1a38b4f4c8329a96f8087c19dd63f6f3a1a6b5aca20b948baeb14de57ebd33c13a2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PartialDetected</span></span></span><a class="headerlink" href="#_CPPv4N7DetCond4Type15PartialDetectedE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>部分的に検出された． </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond4Type8OverflowE">
+<span id="_CPPv3N7DetCond4Type8OverflowE"></span><span id="_CPPv2N7DetCond4Type8OverflowE"></span><span class="target" id="df/db2/classDetCond_1a38b4f4c8329a96f8087c19dd63f6f3a1a29a44ec147c1690ff171c8bd20e010bd"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Overflow</span></span></span><a class="headerlink" href="#_CPPv4N7DetCond4Type8OverflowE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>繰り返し回数をオーバーした． </p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond7DetCondEv">
+<span id="_CPPv3N7DetCond7DetCondEv"></span><span id="_CPPv2N7DetCond7DetCondEv"></span><span id="DetCond::DetCond"></span><span class="target" id="df/db2/classDetCond_1a9f312ff8cdef7a7add5b006aa0b3dd38"></span><span class="sig-name descname"><span class="n"><span class="pre">DetCond</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7DetCond7DetCondEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCondD0Ev">
+<span id="_CPPv3N7DetCondD0Ev"></span><span id="_CPPv2N7DetCondD0Ev"></span><span id="DetCond::~DetCond"></span><span class="target" id="df/db2/classDetCond_1aaf78b7cb60f3b027288e832a64c364c1"></span><span class="sig-name descname"><span class="n"><span class="pre">~DetCond</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7DetCondD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7DetCond6ffr_idEv">
+<span id="_CPPv3NK7DetCond6ffr_idEv"></span><span id="_CPPv2NK7DetCond6ffr_idEv"></span><span id="DetCond::ffr_idC"></span><span class="target" id="df/db2/classDetCond_1abaeb91ad4e8b4faa5adfdfc683a0a673"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ffr_id</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7DetCond6ffr_idEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>FFR 番号を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7DetCond4rootEv">
+<span id="_CPPv3NK7DetCond4rootEv"></span><span id="_CPPv2NK7DetCond4rootEv"></span><span id="DetCond::rootC"></span><span class="target" id="df/db2/classDetCond_1ab5a88e72a18cee3cc1a4b6537b90dcda"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">root</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7DetCond4rootEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>根のノードを返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7DetCond4typeEv">
+<span id="_CPPv3NK7DetCond4typeEv"></span><span id="_CPPv2NK7DetCond4typeEv"></span><span id="DetCond::typeC"></span><span class="target" id="df/db2/classDetCond_1a5a8628343e3a9e69e863fd9998cab87a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7DetCond4TypeE" title="DetCond::Type"><span class="n"><span class="pre">Type</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7DetCond4typeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>タイプを返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7DetCond4condEv">
+<span id="_CPPv3NK7DetCond4condEv"></span><span id="_CPPv2NK7DetCond4condEv"></span><span id="DetCond::condC"></span><span class="target" id="df/db2/classDetCond_1ae8547235bd6ffd0e96bf7795c399bacd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7DetCond8CondDataE" title="DetCond::CondData"><span class="n"><span class="pre">CondData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">cond</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7DetCond4condEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>全体の条件を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7DetCond9cond_listEv">
+<span id="_CPPv3NK7DetCond9cond_listEv"></span><span id="_CPPv2NK7DetCond9cond_listEv"></span><span id="DetCond::cond_listC"></span><span class="target" id="df/db2/classDetCond_1a285659958bdaaecb0519309203557dd0"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N7DetCond8CondDataE" title="DetCond::CondData"><span class="n"><span class="pre">CondData</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">cond_list</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7DetCond9cond_listEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>個々の出力ごとの条件を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7DetCond11output_listEv">
+<span id="_CPPv3NK7DetCond11output_listEv"></span><span id="_CPPv2NK7DetCond11output_listEv"></span><span id="DetCond::output_listC"></span><span class="target" id="df/db2/classDetCond_1ab8bdc9771e0e15b7e447966793ba9cce"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">output_list</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7DetCond11output_listEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>オーバーフローした出力のリスト </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7DetCond5printERNSt7ostreamE">
+<span id="_CPPv3NK7DetCond5printERNSt7ostreamE"></span><span id="_CPPv2NK7DetCond5printERNSt7ostreamE"></span><span id="DetCond::print__osRC"></span><span class="target" id="df/db2/classDetCond_1a3b5917ac9669cda1900f6d5a88670fa1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">s</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7DetCond5printERNSt7ostreamE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容を出力する． </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond10undetectedE8SizeTypeRK7TpgNode">
+<span id="_CPPv3N7DetCond10undetectedE8SizeTypeRK7TpgNode"></span><span id="_CPPv2N7DetCond10undetectedE8SizeTypeRK7TpgNode"></span><span id="DetCond::undetected__SizeType.TpgNodeCR"></span><span class="target" id="df/db2/classDetCond_1ae6dc92ab6931c7ccadd00b123bd62d12"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47DetCond" title="DetCond"><span class="n"><span class="pre">DetCond</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">undetected</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">root</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7DetCond10undetectedE8SizeTypeRK7TpgNode" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>Undetected を返すクラスメソッド </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> -- [in] FFR 番号 </p></li>
+<li><p><strong>root</strong> -- [in] 根のノード </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond8detectedE8SizeTypeRK7TpgNodeRK8CondData">
+<span id="_CPPv3N7DetCond8detectedE8SizeTypeRK7TpgNodeRK8CondData"></span><span id="_CPPv2N7DetCond8detectedE8SizeTypeRK7TpgNodeRK8CondData"></span><span id="DetCond::detected__SizeType.TpgNodeCR.CondDataCR"></span><span class="target" id="df/db2/classDetCond_1ada31c7ac4869aa0e1a9eeb92b0004f74"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47DetCond" title="DetCond"><span class="n"><span class="pre">DetCond</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">detected</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">root</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7DetCond8CondDataE" title="DetCond::CondData"><span class="n"><span class="pre">CondData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cond</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7DetCond8detectedE8SizeTypeRK7TpgNodeRK8CondData" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>Detected タイプを返すクラスメソッド </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> -- [in] FFR 番号 </p></li>
+<li><p><strong>root</strong> -- [in] 根のノード </p></li>
+<li><p><strong>cond</strong> -- [in] 全体の条件 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond16partial_detectedE8SizeTypeRK7TpgNodeRKNSt6vectorI8CondDataEERK11TpgNodeList">
+<span id="_CPPv3N7DetCond16partial_detectedE8SizeTypeRK7TpgNodeRKNSt6vectorI8CondDataEERK11TpgNodeList"></span><span id="_CPPv2N7DetCond16partial_detectedE8SizeTypeRK7TpgNodeRKNSt6vectorI8CondDataEERK11TpgNodeList"></span><span id="DetCond::partial_detected__SizeType.TpgNodeCR.std::vector:CondData:CR.TpgNodeListCR"></span><span class="target" id="df/db2/classDetCond_1a4bd7de978cbeab6c63e409be39a37efd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47DetCond" title="DetCond"><span class="n"><span class="pre">DetCond</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">partial_detected</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">root</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N7DetCond8CondDataE" title="DetCond::CondData"><span class="n"><span class="pre">CondData</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cond_list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">output_list</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7DetCond16partial_detectedE8SizeTypeRK7TpgNodeRKNSt6vectorI8CondDataEERK11TpgNodeList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>PartialDetected を返すクラスメソッド </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> -- [in] FFR 番号 </p></li>
+<li><p><strong>root</strong> -- [in] 根のノード </p></li>
+<li><p><strong>cond_list</strong> -- [in] 個々の出力ごとの条件のリスト </p></li>
+<li><p><strong>output_list</strong> -- [in] オーバーフローした出力のリスト </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond8overflowE8SizeTypeRK7TpgNodeRK11TpgNodeList">
+<span id="_CPPv3N7DetCond8overflowE8SizeTypeRK7TpgNodeRK11TpgNodeList"></span><span id="_CPPv2N7DetCond8overflowE8SizeTypeRK7TpgNodeRK11TpgNodeList"></span><span id="DetCond::overflow__SizeType.TpgNodeCR.TpgNodeListCR"></span><span class="target" id="df/db2/classDetCond_1adcd877ecf7cf1e4bcb9d0fd5c557015e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47DetCond" title="DetCond"><span class="n"><span class="pre">DetCond</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">overflow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">root</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnodelist.html#_CPPv411TpgNodeList" title="TpgNodeList"><span class="n"><span class="pre">TpgNodeList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">output_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7DetCond8overflowE8SizeTypeRK7TpgNodeRK11TpgNodeList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>Overflow を返すクラスメソッド </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> -- [in] FFR 番号 </p></li>
+<li><p><strong>root</strong> -- [in] 根のノード </p></li>
+<li><p><strong>output_list</strong> -- [in] オーバーフローした出力のリスト </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond8CondDataE">
+<span id="_CPPv3N7DetCond8CondDataE"></span><span id="_CPPv2N7DetCond8CondDataE"></span><span id="DetCond::CondData"></span><span class="target" id="d9/d17/structDetCond_1_1CondData"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CondData</span></span></span><a class="headerlink" href="#_CPPv4N7DetCond8CondDataE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>条件を表す構造体 </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond8CondData9mand_condE">
+<span id="_CPPv3N7DetCond8CondData9mand_condE"></span><span id="_CPPv2N7DetCond8CondData9mand_condE"></span><span id="DetCond::CondData::mand_cond__std::vector:Literal:"></span><span class="target" id="d9/d17/structDetCond_1_1CondData_1a95e921a1ea3cb7f6629b9fda9d1e8504"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Literal</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mand_cond</span></span></span><a class="headerlink" href="#_CPPv4N7DetCond8CondData9mand_condE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>必要条件 </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7DetCond8CondData9cube_listE">
+<span id="_CPPv3N7DetCond8CondData9cube_listE"></span><span id="_CPPv2N7DetCond8CondData9cube_listE"></span><span id="DetCond::CondData::cube_list__std::vector:std::vector:Literal::"></span><span class="target" id="d9/d17/structDetCond_1_1CondData_1a69ed75965cbef4ce7120025dfd0c2a73"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Literal</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cube_list</span></span></span><a class="headerlink" href="#_CPPv4N7DetCond8CondData9cube_listE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>十分条件のリスト </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="condgenstats.html"
+                          title="前の章へ">CondGenStats</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="../../python/intro.html"
+                          title="次の章へ">Python インターフェイス</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/condgen/detcond.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="../../python/intro.html" title="Python インターフェイス"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="condgenstats.html" title="CondGenStats"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="condgen_module.html" >故障検出条件生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DetCond</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

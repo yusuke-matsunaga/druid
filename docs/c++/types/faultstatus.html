@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FaultStatus &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="TpgFault" href="tpgfault.html" />
+    <link rel="prev" title="FaultType" href="faulttype.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="tpgfault.html" title="TpgFault"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="faulttype.html" title="FaultType"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FaultStatus</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="faultstatus">
+<h1>FaultStatus<a class="headerlink" href="#faultstatus" title="この見出しへのパーマリンク">¶</a></h1>
+<p>FaultStatus のヘッダファイル </p>
+<p>
+Copyright (C) 2025 Yusuke Matsunaga All rights reserved. <dl class="simple">
+<dt><strong>Author</strong></dt><dd><p>Yusuke Matsunaga (松永 裕介)</p>
+</dd>
+</dl>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv411FaultStatus">
+<span id="_CPPv311FaultStatus"></span><span id="_CPPv211FaultStatus"></span><span class="target" id="d8/db3/group__TypesGroup_1ga2bc36114b680ef7bb63b146f54719c66"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FaultStatus</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint8_t</span></span><a class="headerlink" href="#_CPPv411FaultStatus" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>故障の状態 </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N11FaultStatus10UndetectedE">
+<span id="_CPPv3N11FaultStatus10UndetectedE"></span><span id="_CPPv2N11FaultStatus10UndetectedE"></span><span class="target" id="d8/db3/group__TypesGroup_1gga2bc36114b680ef7bb63b146f54719c66aa97c7b5b7ec9dcbd93b4506b4763350f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Undetected</span></span></span><a class="headerlink" href="#_CPPv4N11FaultStatus10UndetectedE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>未検出 </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N11FaultStatus8DetectedE">
+<span id="_CPPv3N11FaultStatus8DetectedE"></span><span id="_CPPv2N11FaultStatus8DetectedE"></span><span class="target" id="d8/db3/group__TypesGroup_1gga2bc36114b680ef7bb63b146f54719c66a495ede3d060199c507c8708600b51784"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Detected</span></span></span><a class="headerlink" href="#_CPPv4N11FaultStatus8DetectedE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>検出 </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N11FaultStatus10UntestableE">
+<span id="_CPPv3N11FaultStatus10UntestableE"></span><span id="_CPPv2N11FaultStatus10UntestableE"></span><span class="target" id="d8/db3/group__TypesGroup_1gga2bc36114b680ef7bb63b146f54719c66a619370099672e2dbba5da0378b02830d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Untestable</span></span></span><a class="headerlink" href="#_CPPv4N11FaultStatus10UntestableE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>テスト不能 (冗長) </p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv43str11FaultStatus">
+<span id="_CPPv33str11FaultStatus"></span><span id="_CPPv23str11FaultStatus"></span><span id="str__FaultStatus"></span><span class="target" id="db/d35/FaultStatus_8h_1a04e9c3e7328889e61d8e75d6fd50cbdd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">str</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv411FaultStatus" title="FaultStatus"><span class="n"><span class="pre">FaultStatus</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">fault_status</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv43str11FaultStatus" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容を表す文字列を返す． </p>
+</dd></dl>
+
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="faulttype.html"
+                          title="前の章へ">FaultType</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="tpgfault.html"
+                          title="次の章へ">TpgFault</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/faultstatus.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="tpgfault.html" title="TpgFault"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="faulttype.html" title="FaultType"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FaultStatus</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

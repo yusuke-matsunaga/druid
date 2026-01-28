@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>TpgFaultList &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="PackedVal" href="packedval.html" />
+    <link rel="prev" title="TpgFault" href="tpgfault.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="packedval.html" title="PackedVal"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="tpgfault.html" title="TpgFault"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TpgFaultList</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tpgfaultlist">
+<h1>TpgFaultList<a class="headerlink" href="#tpgfaultlist" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv412TpgFaultList">
+<span id="_CPPv312TpgFaultList"></span><span id="_CPPv212TpgFaultList"></span><span id="TpgFaultList"></span><span class="target" id="db/db0/classTpgFaultList"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TpgFaultList</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TpgListBase</span></span><a class="headerlink" href="#_CPPv412TpgFaultList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>故障のリストを表すクラス </p>
+<p>
+NetworkRep への共有ポインタと故障番号のリストを持つ． <div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="tpgfault.html#d3/d59/classTpgFault"><span class="std std-ref">TpgFault</span></a>, TpgFaultIter</p>
+</div>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TpgFaultList12TpgFaultListEv">
+<span id="_CPPv3N12TpgFaultList12TpgFaultListEv"></span><span id="_CPPv2N12TpgFaultList12TpgFaultListEv"></span><span id="TpgFaultList::TpgFaultList"></span><span class="target" id="db/db0/classTpgFaultList_1a47e48e72714dfcbb5f53ac32d0338a76"></span><span class="sig-name descname"><span class="n"><span class="pre">TpgFaultList</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12TpgFaultList12TpgFaultListEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+<p>不正な値となる． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TpgFaultList12TpgFaultListERKNSt10shared_ptrI10NetworkRepEERKNSt6vectorI8SizeTypeEE">
+<span id="_CPPv3N12TpgFaultList12TpgFaultListERKNSt10shared_ptrI10NetworkRepEERKNSt6vectorI8SizeTypeEE"></span><span id="_CPPv2N12TpgFaultList12TpgFaultListERKNSt10shared_ptrI10NetworkRepEERKNSt6vectorI8SizeTypeEE"></span><span id="TpgFaultList::TpgFaultList__std::shared_ptr:NetworkRep:CR.std::vector:SizeType:CR"></span><span class="target" id="db/db0/classTpgFaultList_1ae9f301739d421e540df59b1b88f7e447"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TpgFaultList</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">NetworkRep</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">SizeType</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">id_list</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12TpgFaultList12TpgFaultListERKNSt10shared_ptrI10NetworkRepEERKNSt6vectorI8SizeTypeEE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を指定したコンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> -- [in] 親のネットワーク </p></li>
+<li><p><strong>id_list</strong> -- [in] 故障番号のリスト </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TpgFaultList12TpgFaultListERKNSt6vectorI8TpgFaultEE">
+<span id="_CPPv3N12TpgFaultList12TpgFaultListERKNSt6vectorI8TpgFaultEE"></span><span id="_CPPv2N12TpgFaultList12TpgFaultListERKNSt6vectorI8TpgFaultEE"></span><span id="TpgFaultList::TpgFaultList__std::vector:TpgFault:CR"></span><span class="target" id="db/db0/classTpgFaultList_1a149969c88a82f9d4d5b1fdeb6ef432f3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TpgFaultList</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12TpgFaultList12TpgFaultListERKNSt6vectorI8TpgFaultEE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>vector&lt;TpgFault&gt; からの変換コンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TpgFaultListD0Ev">
+<span id="_CPPv3N12TpgFaultListD0Ev"></span><span id="_CPPv2N12TpgFaultListD0Ev"></span><span id="TpgFaultList::~TpgFaultList"></span><span class="target" id="db/db0/classTpgFaultList_1ae773cf737616fab527513eb471588c7c"></span><span class="sig-name descname"><span class="n"><span class="pre">~TpgFaultList</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12TpgFaultListD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TpgFaultListixE8SizeType">
+<span id="_CPPv3NK12TpgFaultListixE8SizeType"></span><span id="_CPPv2NK12TpgFaultListixE8SizeType"></span><span id="TpgFaultList::subscript-operator__SizeTypeC"></span><span class="target" id="db/db0/classTpgFaultList_1ab6f7dc1f7bfa7426080697a7ba928efd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12TpgFaultListixE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>要素を返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> -- [in] インデックス （ 0 &lt;= index &lt; size() ); </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TpgFaultList7max_fidEv">
+<span id="_CPPv3NK12TpgFaultList7max_fidEv"></span><span id="_CPPv2NK12TpgFaultList7max_fidEv"></span><span id="TpgFaultList::max_fidC"></span><span class="target" id="db/db0/classTpgFaultList_1a3e2ba1a2d565cc129eaf896cbad39e9c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">max_fid</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12TpgFaultList7max_fidEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>最大の故障番号を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TpgFaultList5beginEv">
+<span id="_CPPv3NK12TpgFaultList5beginEv"></span><span id="_CPPv2NK12TpgFaultList5beginEv"></span><span id="TpgFaultList::beginC"></span><span class="target" id="db/db0/classTpgFaultList_1af8b66312ca69440d19fd20fe3d1301d7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">iterator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">begin</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12TpgFaultList5beginEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>先頭の反復子を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TpgFaultList3endEv">
+<span id="_CPPv3NK12TpgFaultList3endEv"></span><span id="_CPPv2NK12TpgFaultList3endEv"></span><span id="TpgFaultList::endC"></span><span class="target" id="db/db0/classTpgFaultList_1a0d31912ffe3d3335180f44fb060b18a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">iterator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">end</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12TpgFaultList3endEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>末尾の反復子を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TpgFaultList9push_backERK8TpgFault">
+<span id="_CPPv3N12TpgFaultList9push_backERK8TpgFault"></span><span id="_CPPv2N12TpgFaultList9push_backERK8TpgFault"></span><span id="TpgFaultList::push_back__TpgFaultCR"></span><span class="target" id="db/db0/classTpgFaultList_1a9717c3bd1c08696114c4ef62a3449e29"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">push_back</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12TpgFaultList9push_backERK8TpgFault" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>要素を末尾に追加する． </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="tpgfault.html"
+                          title="前の章へ">TpgFault</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="packedval.html"
+                          title="次の章へ">PackedVal</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/tpgfaultlist.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="packedval.html" title="PackedVal"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="tpgfault.html" title="TpgFault"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TpgFaultList</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

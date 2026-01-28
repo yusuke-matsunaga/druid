@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>基本的なデータ構造 &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="TpgBase" href="tpgbase.html" />
+    <link rel="prev" title="C++ API" href="../intro.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="tpgbase.html" title="TpgBase"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="../intro.html" title="C++ API"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" accesskey="U">C++ API</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">基本的なデータ構造</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>基本的なデータ構造<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
+<section id="id2">
+<h2>回路構造を表すクラス<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<p>回路全体は <cite>TpgNetwork</cite> で表す．
+予め対象となる故障の種類を指定する必要がある．</p>
+<p>縮退故障を対象として <cite>blif</cite> ファイルを読み込む場合には
+以下のようなコードを用いる．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">network</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TpgNetwork</span><span class="o">::</span><span class="n">read_blif</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="n">FaultType</span><span class="o">::</span><span class="n">StuckAt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>もとの <cite>blif</cite> ファイルが D-FF を含む( <cite>.latch</cite> 文を含む)場合にも
+D-FF の出力を擬似入力，D-FF の入力を擬似出力とみなした回路となる．</p>
+<p>遷移故障を対象として <cite>.bench</cite> ( <cite>iscas89</cite> )ファイルを読み込む場合には
+以下のようなコードを用いる．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">network</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TpgNetwork</span><span class="o">::</span><span class="n">read_iscas89</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="n">FaultType</span><span class="o">::</span><span class="n">TransitionDelay</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><cite>blif</cite> ファイルの <cite>.names</cite> 文および <cite>.bench</cite> ファイルのゲートは
+<cite>TpgGate</cite> に対応する．
+論理的には <cite>TpgNetwork</cite> は <cite>TpgGate</cite> を節点とした有向グラフで表される．
+縮退故障および遷移故障は <cite>TpgGate</cite> の入力および出力に対して
+設定される．</p>
+<p>ただし，テスト生成や故障シミュレーションを効率よく行うためには
+各々の節点が単純な論理ゲートであることが望ましい．
+そこで， <cite>BUF</cite>, <cite>NOT</cite>, <cite>AND</cite>, <cite>NAND</cite>, <cite>OR</cite>, <cite>NOR</cite>, <cite>XOR</cite>, <cite>XNOR</cite>
+の機能を持つ <cite>TpgNode</cite> を用意する．
+もしも <cite>TpgGate</cite> の実現している機能が複雑な論理式で表されている
+場合には複数の <cite>TpgNode</cite> に分解する．
+そこで，実際には <cite>TpgNetwork</cite> は <cite>TpgNode</cite> の有向グラフとして
+表されている．
+故障の定義は <cite>TpgGate</cite> を対象に行われる．</p>
+<p>互いに連結したファンアウト数が1の <cite>TpgNode</cite> で構成される
+部分グラフを「ファンアウトフリー領域(Fanout Free Region: FFR)」
+と呼ぶ．
+FFR は <cite>TpgFFR</cite> で表される．</p>
+<p>ある節点 u と v に対して，節点 u から外部出力へ至るいかなる経路も節点 v
+を含む時，v は u の支配節点(dominator)であると言う．
+節点 v を支配節点とするような節点 u の集合から誘導される部分グラフを
+節点 v を根とした「ファンアウトフリーコーン(Fanout Free Cone: FFC)」
+と呼ぶ，ファンアウトフリーコーンのなかで極大なものを
+「極大ファンアウトフリーコーン(Maximal Fanout Free Cone: MFFC)」
+と呼ぶ．
+明らかに MFFC の根の節点は自分自身以外に支配節点を持たない．
+MFFC は <cite>TpgMFFC</cite> で表される．
+MFFC は１つもしくは複数の FFR から構成される．</p>
+<p><cite>TpgNetwork</cite> や <cite>TpgNode</cite> はすべて <cite>TpgBase</cite> の派生クラスとなっている．
+<cite>TpgBase</cite> は内部で <cite>NetworkRep</cite> というクラスへの共有ポインタを持ってい
+る．
+この <cite>NetworkRep</cite> が実際の回路構造を持っており，
+すべての <cite>NetworkRep</cite> への参照がなくなった時にそのオブジェクトは破棄さ
+れる仕組みになっている．
+これはネットワーク本体のオブジェクトが破棄されたあとで内部のノードに対
+するポインタが参照されるバグを予防するためのものである．</p>
+<p>そのため <cite>TpgNode</cite> や <cite>TpgFault</cite> はコピーや代入も実際には
+内部の <cite>NetworkRep</cite> の共有ポインタをコピーするだけの
+簡単な操作で実現できる．</p>
+<p>そのため <cite>TpgNode</cite> のリストを表すためには <cite>std::vector&lt;TpgNode&gt;</cite>
+で実装することも可能で問題なく動作するが，
+例えば回路全体のノードのリストを取得しようと思った場合，
+ノードごとに共有ポインタのコピーが発生するのはあまり効率的ではない．
+そこで <cite>TpgNodeList</cite> では <cite>NetworkRep</cite> の共有ポインタを1つだけ持ち，
+残りはノード番号のリストを保持することで意味的には
+<cite>std::vector&lt;TpgNode&gt;</cite> と同等の操作を行えるようにしている．
+<cite>TpgXXXList</cite> はすべて同様の実装方法で作られている．</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tpgbase.html">TpgBase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgnetwork.html">TpgNetwork</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgnode.html">TpgNode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgnodelist.html">TpgNodeList</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpggate.html">TpgGate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpggatelist.html">TpgGateList</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgffr.html">TpgFFR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgffrlist.html">TpgFFRList</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgmffc.html">TpgMFFC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgmffclist.html">TpgMFFCList</a></li>
+</ul>
+</div>
+</section>
+<section id="id3">
+<h2>故障を表すクラス<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
+<p>druid では縮退故障と遷移故障をあつかう．
+ゲート遷移故障も対応可能となっている．
+故障の種類は <cite>FaultType</cite> で表す．
+縮退故障および遷移故障の場合は故障箇所
+と故障値を定める必要がある．</p>
+<p>故障箇所は <cite>TpgGate</cite> の出力もしくは入力
+である．出力の場合，「ステム(Stem)」の故障，
+入力の場合，「ブランチ(Branch)」の故障となる．
+ブランチの故障の場合には <cite>TpgGate</cite> だけではなく
+入力番号も必要となる．</p>
+<p>縮退故障の故障値は 0 か 1 なのでそれぞれ
+<cite>Fval2::zero</cite> および <cite>Fval2::one</cite> で表す．
+遷移故障も同様に表すが，立ち上がり遅延と
+立ち下がり遅延を 0 と 1 で区別するのは
+わかりにくいため関数 <cite>is_rise_transition()</cite>
+および <cite>is_fall_transition()</cite> を用意している．</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fval2.html">Fval2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faulttype.html">FaultType</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faultstatus.html">FaultStatus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgfault.html">TpgFault</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpgfaultlist.html">TpgFaultList</a></li>
+</ul>
+</div>
+</section>
+<section id="id4">
+<h2>値の割り当てを表すクラス<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
+<p>テストパタンや部分的な値の割り当てを表すために
+いくつかのデータ構造を用意している．</p>
+<p>まず，単独の <cite>TpgNode</cite> (の出力)に対する値割り当てを表すクラスとして
+<cite>Assign</cite> を用いる．
+単純には <cite>TpgNode</cite> と値(0 か 1)の組だが，
+遷移故障を扱う場合には前の時刻の値と現在の時刻の値の2種類が
+あるので <cite>TpgNode</cite> ，時刻(0 か 1)，値(0 か 1) の3つ組
+で表される．
+<cite>AssignList</cite> は <cite>Assign</cite> のリストである．</p>
+<p>ワード(現代のアーキテクチャでは64ビット)内に
+ビットを詰め込むために <cite>PackedVal</cite> という型を定義している．
+これは c++ の標準ライブラリの <cite>std::uint64_t</cite> の別名である．
+<cite>PackedVal</cite> を2つ使って3値のベクタを表すクラスが
+<cite>PackedVal3</cite> である．
+通常の整数型と同様のビットワイズ論理演算をサポートしている．</p>
+<p><cite>PackedVal3</cite> を複数用いてテストベクタ全体を表すクラスが
+<cite>BitVector</cite> である．
+ただし，関数のシグネチャで型を区別するために
+<cite>InputVector</cite> ， <cite>DffVector</cite> ， <cite>TestVector</cite>
+という異なった継承クラスを定義している．
+中身は全て同じである．</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="assign.html">Assign</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignlist.html">AssignList</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packedval.html">PackedVal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packedval3.html">PackedVal3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bitvector.html">BitVector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dffvector.html">DffVector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputvector.html">InputVector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testvector.html">TestVector</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">目次</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">基本的なデータ構造</a><ul>
+<li><a class="reference internal" href="#id2">回路構造を表すクラス</a></li>
+<li><a class="reference internal" href="#id3">故障を表すクラス</a></li>
+<li><a class="reference internal" href="#id4">値の割り当てを表すクラス</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="../intro.html"
+                          title="前の章へ">C++ API</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="tpgbase.html"
+                          title="次の章へ">TpgBase</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/types_module.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="tpgbase.html" title="TpgBase"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="../intro.html" title="C++ API"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">基本的なデータ構造</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

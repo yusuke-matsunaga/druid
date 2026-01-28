@@ -1,0 +1,5 @@
+DiffBits
+==========
+
+.. doxygenclass:: DiffBits
+   :members:

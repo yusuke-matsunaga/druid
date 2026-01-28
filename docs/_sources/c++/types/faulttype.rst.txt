@@ -1,0 +1,4 @@
+FaultType
+===========
+
+.. doxygenfile:: FaultType.h

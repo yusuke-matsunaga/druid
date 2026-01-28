@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>CondGenStats &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="DetCond" href="detcond.html" />
+    <link rel="prev" title="CondGenMgr" href="condgenmgr.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="detcond.html" title="DetCond"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="condgenmgr.html" title="CondGenMgr"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="condgen_module.html" accesskey="U">故障検出条件生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CondGenStats</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="condgenstats">
+<h1>CondGenStats<a class="headerlink" href="#condgenstats" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv412CondGenStats">
+<span id="_CPPv312CondGenStats"></span><span id="_CPPv212CondGenStats"></span><span id="CondGenStats"></span><span class="target" id="d0/dea/classCondGenStats"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CondGenStats</span></span></span><a class="headerlink" href="#_CPPv412CondGenStats" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="condgenmgr.html#d8/d5e/classCondGenMgr_1afc6720965aec95a6423a2f18ee3c174b"><span class="std std-ref">CondGenMgr::make_cnf()</span></a> の実行時の統計情報を表すクラス </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12CondGenStats12CondGenStatsEv">
+<span id="_CPPv3N12CondGenStats12CondGenStatsEv"></span><span id="_CPPv2N12CondGenStats12CondGenStatsEv"></span><span id="CondGenStats::CondGenStats"></span><span class="target" id="d0/dea/classCondGenStats_1a7a4af5d12f562e98b193bcef63e9407b"></span><span class="sig-name descname"><span class="n"><span class="pre">CondGenStats</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12CondGenStats12CondGenStatsEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+<p>内容は不定 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12CondGenStats12CondGenStatsERK7CnfSizeRK7CnfSizeRK7CnfSize">
+<span id="_CPPv3N12CondGenStats12CondGenStatsERK7CnfSizeRK7CnfSizeRK7CnfSize"></span><span id="_CPPv2N12CondGenStats12CondGenStatsERK7CnfSizeRK7CnfSizeRK7CnfSize"></span><span id="CondGenStats::CondGenStats__CnfSizeCR.CnfSizeCR.CnfSizeCR"></span><span class="target" id="d0/dea/classCondGenStats_1a4c081d184bc06c718c355b649eee795f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CondGenStats</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">CnfSize</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">base</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">CnfSize</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bd</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">CnfSize</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cond</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12CondGenStats12CondGenStatsERK7CnfSizeRK7CnfSizeRK7CnfSize" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を指定したコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12CondGenStatsD0Ev">
+<span id="_CPPv3N12CondGenStatsD0Ev"></span><span id="_CPPv2N12CondGenStatsD0Ev"></span><span id="CondGenStats::~CondGenStats"></span><span class="target" id="d0/dea/classCondGenStats_1af0044350e943464dec8b9d78c818743a"></span><span class="sig-name descname"><span class="n"><span class="pre">~CondGenStats</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12CondGenStatsD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12CondGenStats9base_sizeEv">
+<span id="_CPPv3NK12CondGenStats9base_sizeEv"></span><span id="_CPPv2NK12CondGenStats9base_sizeEv"></span><span id="CondGenStats::base_sizeC"></span><span class="target" id="d0/dea/classCondGenStats_1a1df38113243de6bdb64c1863c861f203"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">CnfSize</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">base_size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12CondGenStats9base_sizeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>正常回路を表すCNFのサイズを返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12CondGenStats7bd_sizeEv">
+<span id="_CPPv3NK12CondGenStats7bd_sizeEv"></span><span id="_CPPv2NK12CondGenStats7bd_sizeEv"></span><span id="CondGenStats::bd_sizeC"></span><span class="target" id="d0/dea/classCondGenStats_1af91aa24119e2bcf254eadbcbd8871eab"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">CnfSize</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bd_size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12CondGenStats7bd_sizeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ブール微分用のCNFのサイズを返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12CondGenStats9cond_sizeEv">
+<span id="_CPPv3NK12CondGenStats9cond_sizeEv"></span><span id="_CPPv2NK12CondGenStats9cond_sizeEv"></span><span id="CondGenStats::cond_sizeC"></span><span class="target" id="d0/dea/classCondGenStats_1af4b7d67d304ea82e3a0625a1d6898017"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">CnfSize</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cond_size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12CondGenStats9cond_sizeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>検出条件から作られたCNFのサイズを返す． </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="condgenmgr.html"
+                          title="前の章へ">CondGenMgr</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="detcond.html"
+                          title="次の章へ">DetCond</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/condgen/condgenstats.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="detcond.html" title="DetCond"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="condgenmgr.html" title="CondGenMgr"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="condgen_module.html" >故障検出条件生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CondGenStats</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

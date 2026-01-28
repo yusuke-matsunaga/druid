@@ -1,0 +1,713 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>TestVector &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="故障シミュレーター" href="../fsim/fsim_module.html" />
+    <link rel="prev" title="InputVector" href="inputvector.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="../fsim/fsim_module.html" title="故障シミュレーター"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="inputvector.html" title="InputVector"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" accesskey="U">基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TestVector</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="testvector">
+<h1>TestVector<a class="headerlink" href="#testvector" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv410TestVector">
+<span id="_CPPv310TestVector"></span><span id="_CPPv210TestVector"></span><span id="TestVector"></span><span class="target" id="db/daf/classTestVector"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><a class="headerlink" href="#_CPPv410TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>テストベクタを表すクラス </p>
+<p>
+基本的には3値(0, 1, X)のベクタを表している．<div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="inputvector.html#d6/dee/classInputVector"><span class="std std-ref">InputVector</span></a>, <a class="reference internal" href="dffvector.html#d9/da1/classDffVector"><span class="std std-ref">DffVector</span></a></p>
+</div>
+</p>
+<p>スキャン方式の縮退故障用ベクタと ブロードサイド方式の遷移故障用ベクタの共用となる． 縮退故障用の時は<ul class="simple">
+<li><p>外部入力(InputVector)</p></li>
+<li><p>DFF(DffVector) の値を持つ．</p></li>
+</ul>
+</p>
+<p>遷移故障用の時は<ul class="simple">
+<li><p>外部入力[1時刻目](<a class="reference internal" href="inputvector.html#d6/dee/classInputVector"><span class="std std-ref">InputVector</span></a>)</p></li>
+<li><p>DFF[1時刻目](<a class="reference internal" href="dffvector.html#d9/da1/classDffVector"><span class="std std-ref">DffVector</span></a>)</p></li>
+<li><p>外部入力[2時刻目](<a class="reference internal" href="inputvector.html#d6/dee/classInputVector"><span class="std std-ref">InputVector</span></a>) の値を持つ． </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector10TestVectorEv">
+<span id="_CPPv3N10TestVector10TestVectorEv"></span><span id="_CPPv2N10TestVector10TestVectorEv"></span><span id="TestVector::TestVector"></span><span class="target" id="db/daf/classTestVector_1a3da60713069278eb0648505103995981"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector10TestVectorEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>空のコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector10TestVectorE8SizeType">
+<span id="_CPPv3N10TestVector10TestVectorE8SizeType"></span><span id="_CPPv2N10TestVector10TestVectorE8SizeType"></span><span id="TestVector::TestVector__SizeType"></span><span class="target" id="db/daf/classTestVector_1a44124df26c645428aa04ae2f90aca1a9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">input_num</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector10TestVectorE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ(組み合わせ回路用) </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_num</strong> -- [in] 入力数 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector10TestVectorE8SizeTypeRK9BitVector">
+<span id="_CPPv3N10TestVector10TestVectorE8SizeTypeRK9BitVector"></span><span id="_CPPv2N10TestVector10TestVectorE8SizeTypeRK9BitVector"></span><span id="TestVector::TestVector__SizeType.BitVectorCR"></span><span class="target" id="db/daf/classTestVector_1ad9a522d74bf0b8a7babd20737eeef135"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">input_num</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="bitvector.html#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector10TestVectorE8SizeTypeRK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ(組み合わせ回路用) </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_num</strong> -- [in] 入力数 </p></li>
+<li><p><strong>src</strong> -- [in] 内容を表すビットベクタ </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector10TestVectorE8SizeType8SizeTypeb">
+<span id="_CPPv3N10TestVector10TestVectorE8SizeType8SizeTypeb"></span><span id="_CPPv2N10TestVector10TestVectorE8SizeType8SizeTypeb"></span><span id="TestVector::TestVector__SizeType.SizeType.b"></span><span class="target" id="db/daf/classTestVector_1ad5fbd6d87507dec31be8e30e7654b1a9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">input_num</span></span>, <span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dff_num</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">has_prev_state</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector10TestVectorE8SizeType8SizeTypeb" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ(順序回路用) </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_num</strong> -- [in] 入力数 </p></li>
+<li><p><strong>dff_num</strong> -- [in] DFF数 </p></li>
+<li><p><strong>has_prev_state</strong> -- [in] 1時刻前の回路を持つ時 true </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector10TestVectorE8SizeType8SizeTypebRK9BitVector">
+<span id="_CPPv3N10TestVector10TestVectorE8SizeType8SizeTypebRK9BitVector"></span><span id="_CPPv2N10TestVector10TestVectorE8SizeType8SizeTypebRK9BitVector"></span><span id="TestVector::TestVector__SizeType.SizeType.b.BitVectorCR"></span><span class="target" id="db/daf/classTestVector_1a8b3d6e728b3751d3f89db440e8e9407e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">input_num</span></span>, <span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dff_num</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">has_prev_state</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="bitvector.html#_CPPv49BitVector" title="BitVector"><span class="n"><span class="pre">BitVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector10TestVectorE8SizeType8SizeTypebRK9BitVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ(順序回路用) </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_num</strong> -- [in] 入力数 </p></li>
+<li><p><strong>dff_num</strong> -- [in] DFF数 </p></li>
+<li><p><strong>has_prev_state</strong> -- [in] 1時刻前の回路を持つ時 true </p></li>
+<li><p><strong>src</strong> -- [in] 内容を表すビットベクタ </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector10TestVectorERK10TpgNetwork">
+<span id="_CPPv3N10TestVector10TestVectorERK10TpgNetwork"></span><span id="_CPPv2N10TestVector10TestVectorERK10TpgNetwork"></span><span id="TestVector::TestVector__TpgNetworkCR"></span><span class="target" id="db/daf/classTestVector_1a3821c0f4def2d79076acce0383ff6acd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="tpgnetwork.html#_CPPv410TpgNetwork" title="TpgNetwork"><span class="n"><span class="pre">TpgNetwork</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector10TestVectorERK10TpgNetwork" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ネットワークから入力数などの諸元を取ってくるコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector10TestVectorERK10TpgNetworkRK10AssignList">
+<span id="_CPPv3N10TestVector10TestVectorERK10TpgNetworkRK10AssignList"></span><span id="_CPPv2N10TestVector10TestVectorERK10TpgNetworkRK10AssignList"></span><span id="TestVector::TestVector__TpgNetworkCR.AssignListCR"></span><span class="target" id="db/daf/classTestVector_1ae0eb743bde2b65c6917e307700a0dd07"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="tpgnetwork.html#_CPPv410TpgNetwork" title="TpgNetwork"><span class="n"><span class="pre">TpgNetwork</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">pi_assign_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector10TestVectorERK10TpgNetworkRK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ネットワークから入力数などの諸元を取ってくるコンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector10TestVectorERK10TestVector">
+<span id="_CPPv3N10TestVector10TestVectorERK10TestVector"></span><span id="_CPPv2N10TestVector10TestVectorERK10TestVector"></span><span id="TestVector::TestVector__TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1acd979e978a1617092406060458ae3b2a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TestVector</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N10TestVector10TestVectorERK10TestVector" title="TestVector::TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector10TestVectorERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピーコンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src</strong> -- [in] コピー元のソース </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVectoraSERK10TestVector">
+<span id="_CPPv3N10TestVectoraSERK10TestVector"></span><span id="_CPPv2N10TestVectoraSERK10TestVector"></span><span id="TestVector::assign-operator__TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1a102b19b9d377cc1a8da401feb99844de"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVectoraSERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピー代入演算子 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>src</strong> -- [in] コピー元のソース </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVectorD0Ev">
+<span id="_CPPv3N10TestVectorD0Ev"></span><span id="_CPPv2N10TestVectorD0Ev"></span><span id="TestVector::~TestVector"></span><span class="target" id="db/daf/classTestVector_1a37a4c59c512b00c0b43eb931f119738b"></span><span class="sig-name descname"><span class="n"><span class="pre">~TestVector</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10TestVectorD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector11vector_sizeEv">
+<span id="_CPPv3NK10TestVector11vector_sizeEv"></span><span id="_CPPv2NK10TestVector11vector_sizeEv"></span><span id="TestVector::vector_sizeC"></span><span class="target" id="db/daf/classTestVector_1aad462e1d22c8cd5f10d3f2ebcff775fd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vector_size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector11vector_sizeEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ベクタ長を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector3valE8SizeType">
+<span id="_CPPv3NK10TestVector3valE8SizeType"></span><span id="_CPPv2NK10TestVector3valE8SizeType"></span><span id="TestVector::val__SizeTypeC"></span><span class="target" id="db/daf/classTestVector_1a7bf9e96d325c9d4b8ddd232d057e14cf"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector3valE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>値を得る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] ビット位置 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1aad462e1d22c8cd5f10d3f2ebcff775fd"><span class="std std-ref">vector_size()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector9input_numEv">
+<span id="_CPPv3NK10TestVector9input_numEv"></span><span id="_CPPv2NK10TestVector9input_numEv"></span><span id="TestVector::input_numC"></span><span class="target" id="db/daf/classTestVector_1a0f39a93cab7620690314012c414fe865"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">input_num</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector9input_numEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>外部入力数を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector7dff_numEv">
+<span id="_CPPv3NK10TestVector7dff_numEv"></span><span id="_CPPv2NK10TestVector7dff_numEv"></span><span id="TestVector::dff_numC"></span><span class="target" id="db/daf/classTestVector_1ad0931345543c2279d2a187bab55db8ec"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dff_num</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector7dff_numEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>DFF数を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector7ppi_numEv">
+<span id="_CPPv3NK10TestVector7ppi_numEv"></span><span id="_CPPv2NK10TestVector7ppi_numEv"></span><span id="TestVector::ppi_numC"></span><span class="target" id="db/daf/classTestVector_1a8188d04897d0fdd4f310202cbd5bd56f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ppi_num</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector7ppi_numEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>PPI数を得る． </p>
+<p>= <a class="reference internal" href="#db/daf/classTestVector_1a0f39a93cab7620690314012c414fe865"><span class="std std-ref">input_num()</span></a> + <a class="reference internal" href="#db/daf/classTestVector_1ad0931345543c2279d2a187bab55db8ec"><span class="std std-ref">dff_num()</span></a></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector13has_aux_inputEv">
+<span id="_CPPv3NK10TestVector13has_aux_inputEv"></span><span id="_CPPv2NK10TestVector13has_aux_inputEv"></span><span id="TestVector::has_aux_inputC"></span><span class="target" id="db/daf/classTestVector_1a4abfae0c89e977a060d9561374d68380"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">has_aux_input</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector13has_aux_inputEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>２時刻目の外部入力を持つ時 true を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector7ppi_valE8SizeType">
+<span id="_CPPv3NK10TestVector7ppi_valE8SizeType"></span><span id="_CPPv2NK10TestVector7ppi_valE8SizeType"></span><span id="TestVector::ppi_val__SizeTypeC"></span><span class="target" id="db/daf/classTestVector_1a46f3d38e1ba785f26f3d83f90c277983"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ppi_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector7ppi_valE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>PPIの値を得る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] PPI の位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1a8188d04897d0fdd4f310202cbd5bd56f"><span class="std std-ref">ppi_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector9input_valE8SizeType">
+<span id="_CPPv3NK10TestVector9input_valE8SizeType"></span><span id="_CPPv2NK10TestVector9input_valE8SizeType"></span><span id="TestVector::input_val__SizeTypeC"></span><span class="target" id="db/daf/classTestVector_1acdd2f0e882685517a3a8a9c4b75d97ae"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">input_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector9input_valE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1時刻目の外部入力の値を得る． </p>
+<p><p>is_td_mode() == true の時のみ有効</p>
+<p>実は ppi_val(pos) と同じ．</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] 入力の位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1a0f39a93cab7620690314012c414fe865"><span class="std std-ref">input_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector7dff_valE8SizeType">
+<span id="_CPPv3NK10TestVector7dff_valE8SizeType"></span><span id="_CPPv2NK10TestVector7dff_valE8SizeType"></span><span id="TestVector::dff_val__SizeTypeC"></span><span class="target" id="db/daf/classTestVector_1addaddf68b311dc553adc955001c79716"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dff_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector7dff_valE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1時刻目のDFFの値を得る． </p>
+<p><p>is_td_mode() == true の時のみ有効</p>
+<p>実は ppi_val(pos +</p>
+<a class="reference internal" href="#db/daf/classTestVector_1a0f39a93cab7620690314012c414fe865"><span class="std std-ref">input_num()</span></a>) と同じ． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] DFFの位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1ad0931345543c2279d2a187bab55db8ec"><span class="std std-ref">dff_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector13aux_input_valE8SizeType">
+<span id="_CPPv3NK10TestVector13aux_input_valE8SizeType"></span><span id="_CPPv2NK10TestVector13aux_input_valE8SizeType"></span><span id="TestVector::aux_input_val__SizeTypeC"></span><span class="target" id="db/daf/classTestVector_1ad1b7089bd421dd91d622bdb5425cb502"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">aux_input_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector13aux_input_valE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>2時刻目の外部入力の値を得る． </p>
+<p>is_td_mode() == true の時のみ有効 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] 入力の位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1a0f39a93cab7620690314012c414fe865"><span class="std std-ref">input_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector7x_countEv">
+<span id="_CPPv3NK10TestVector7x_countEv"></span><span id="_CPPv2NK10TestVector7x_countEv"></span><span id="TestVector::x_countC"></span><span class="target" id="db/daf/classTestVector_1a9f4390e10464314fb26a3a923623e107"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">x_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector7x_countEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>X の個数を得る． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector7bin_strEv">
+<span id="_CPPv3NK10TestVector7bin_strEv"></span><span id="_CPPv2NK10TestVector7bin_strEv"></span><span id="TestVector::bin_strC"></span><span class="target" id="db/daf/classTestVector_1a44ad62ee4ccbb3bf843d4b95e829789b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bin_str</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector7bin_strEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容を BIN 形式で表す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector7hex_strEv">
+<span id="_CPPv3NK10TestVector7hex_strEv"></span><span id="_CPPv2NK10TestVector7hex_strEv"></span><span id="TestVector::hex_strC"></span><span class="target" id="db/daf/classTestVector_1a77b4d1b7e382aceaf4044103487030cf"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hex_str</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector7hex_strEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容を HEX 形式で表す． </p>
+<div class="admonition note">
+<p class="admonition-title">注釈</p>
+<p>X を含む場合の出力は不定 </p>
+</div>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector4initEv">
+<span id="_CPPv3N10TestVector4initEv"></span><span id="_CPPv2N10TestVector4initEv"></span><span id="TestVector::init"></span><span class="target" id="db/daf/classTestVector_1a8e7ad12c64a89f190f4336e450f53b1e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">init</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector4initEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>すべて未定(X) で初期化する． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector20set_from_assign_listERK10AssignList">
+<span id="_CPPv3N10TestVector20set_from_assign_listERK10AssignList"></span><span id="_CPPv2N10TestVector20set_from_assign_listERK10AssignList"></span><span id="TestVector::set_from_assign_list__AssignListCR"></span><span class="target" id="db/daf/classTestVector_1a982e341d2c3bac16b563b4ee05d4166f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_from_assign_list</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assign_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector20set_from_assign_listERK10AssignList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>割当リストから値を設定する． </p>
+<p>assign_list に外部入力とDFF以外の割当が含まれている場合無視する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>assign_list</strong> -- [in] 割当リスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector11set_ppi_valE8SizeType4Val3">
+<span id="_CPPv3N10TestVector11set_ppi_valE8SizeType4Val3"></span><span id="_CPPv2N10TestVector11set_ppi_valE8SizeType4Val3"></span><span id="TestVector::set_ppi_val__SizeType.Val3"></span><span class="target" id="db/daf/classTestVector_1a68fb8c2f74531f21962263de6c793ee8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_ppi_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span>, <span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector11set_ppi_valE8SizeType4Val3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>PPIの値を設定する． </p>
+<p>is_sa_mode() == true の時のみ有効 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos</strong> -- [in] PPIの位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1a8188d04897d0fdd4f310202cbd5bd56f"><span class="std std-ref">ppi_num()</span></a> ) </p></li>
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector13set_input_valE8SizeType4Val3">
+<span id="_CPPv3N10TestVector13set_input_valE8SizeType4Val3"></span><span id="_CPPv2N10TestVector13set_input_valE8SizeType4Val3"></span><span id="TestVector::set_input_val__SizeType.Val3"></span><span class="target" id="db/daf/classTestVector_1ab877ecb219069eee845790d1d2fdc57e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_input_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span>, <span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector13set_input_valE8SizeType4Val3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1時刻目の外部入力の値を設定する． </p>
+<p>is_td_mode() == true の時のみ有効 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos</strong> -- [in] 入力の位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1a0f39a93cab7620690314012c414fe865"><span class="std std-ref">input_num()</span></a> ) </p></li>
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector11set_dff_valE8SizeType4Val3">
+<span id="_CPPv3N10TestVector11set_dff_valE8SizeType4Val3"></span><span id="_CPPv2N10TestVector11set_dff_valE8SizeType4Val3"></span><span id="TestVector::set_dff_val__SizeType.Val3"></span><span class="target" id="db/daf/classTestVector_1a499e864cb1054403506bfeb692083dd3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_dff_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span>, <span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector11set_dff_valE8SizeType4Val3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1時刻目のDFFの値を設定する． </p>
+<p>is_td_mode() == true の時のみ有効 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos</strong> -- [in] DFFの位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1ad0931345543c2279d2a187bab55db8ec"><span class="std std-ref">dff_num()</span></a> ) </p></li>
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector17set_aux_input_valE8SizeType4Val3">
+<span id="_CPPv3N10TestVector17set_aux_input_valE8SizeType4Val3"></span><span id="_CPPv2N10TestVector17set_aux_input_valE8SizeType4Val3"></span><span id="TestVector::set_aux_input_val__SizeType.Val3"></span><span class="target" id="db/daf/classTestVector_1a011d2c9f8e56826eb4eac1de1ea9d502"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_aux_input_val</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span>, <span class="n"><span class="pre">Val3</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector17set_aux_input_valE8SizeType4Val3" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>2時刻目の外部入力の値を設定する． </p>
+<p>is_td_mode() == true の時のみ意味を持つ． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos</strong> -- [in] 入力の位置番号 ( 0 &lt;= pos &lt; <a class="reference internal" href="#db/daf/classTestVector_1a0f39a93cab7620690314012c414fe865"><span class="std std-ref">input_num()</span></a> ) </p></li>
+<li><p><strong>val</strong> -- [in] 値 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN10TestVector15set_from_randomEvR4URNG">
+<span id="_CPPv3I0EN10TestVector15set_from_randomER4URNG"></span><span id="_CPPv2I0EN10TestVector15set_from_randomER4URNG"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">URNG</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="db/daf/classTestVector_1ae3c9bfb7c7ade8e7868fb66f804edcb9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_from_random</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN10TestVector15set_from_randomEvR4URNG" title="TestVector::set_from_random::URNG"><span class="n"><span class="pre">URNG</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">randgen</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN10TestVector15set_from_randomEvR4URNG" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>乱数パタンを設定する． </p>
+<p>結果はかならず 0 か 1 になる．(Xは含まれない) </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>randgen</strong> -- [in] randgen 乱数生成器 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN10TestVector17fix_x_from_randomEvR4URNG">
+<span id="_CPPv3I0EN10TestVector17fix_x_from_randomER4URNG"></span><span id="_CPPv2I0EN10TestVector17fix_x_from_randomER4URNG"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">URNG</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="db/daf/classTestVector_1a93e2d5a0d7120083d10000e7ff22cc85"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fix_x_from_random</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN10TestVector17fix_x_from_randomEvR4URNG" title="TestVector::fix_x_from_random::URNG"><span class="n"><span class="pre">URNG</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">randgen</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN10TestVector17fix_x_from_randomEvR4URNG" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>X の部分を乱数で 0/1 に設定する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>randgen</strong> -- [in] 乱数生成器 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVectoranERK10TestVector">
+<span id="_CPPv3NK10TestVectoranERK10TestVector"></span><span id="_CPPv2NK10TestVectoranERK10TestVector"></span><span id="TestVector::and-operator__TestVectorCRC"></span><span class="target" id="db/daf/classTestVector_1a225cdf89659988a1da80a7349bcf349d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&amp;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVectoranERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マージする． </p>
+<p>
+right がコンフリクトしている時の結果は不定 </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>マージ結果を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVector5mergeERK10TestVector">
+<span id="_CPPv3NK10TestVector5mergeERK10TestVector"></span><span id="_CPPv2NK10TestVector5mergeERK10TestVector"></span><span id="TestVector::merge__TestVectorCRC"></span><span class="target" id="db/daf/classTestVector_1a52e14e2017cd8d138940740b5bc5cb62"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">merge</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVector5mergeERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マージする(operator&amp;の別名)． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVectoraNERK10TestVector">
+<span id="_CPPv3N10TestVectoraNERK10TestVector"></span><span id="_CPPv2N10TestVectoraNERK10TestVector"></span><span id="TestVector::and-assign-operator__TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1a09daa70e89dadd62f6b0e9b5c131966d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&amp;=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVectoraNERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マージして代入する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector9merge_intERK10TestVector">
+<span id="_CPPv3N10TestVector9merge_intERK10TestVector"></span><span id="_CPPv2N10TestVector9merge_intERK10TestVector"></span><span id="TestVector::merge_int__TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1ae6a6a8161d3cd144192bfc5ab121dd55"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">merge_int</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector9merge_intERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>マージして代入する(operator&amp;=の別名)． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVectoraaERK10TestVector">
+<span id="_CPPv3NK10TestVectoraaERK10TestVector"></span><span id="_CPPv2NK10TestVectoraaERK10TestVector"></span><span id="TestVector::sand-operator__TestVectorCRC"></span><span class="target" id="db/daf/classTestVector_1a2c68535a4e49fe55e21d92e6bbeea208"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&amp;&amp;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVectoraaERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>両立関係の比較を行う． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>right が両立する時 true を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVectoreqERK10TestVector">
+<span id="_CPPv3NK10TestVectoreqERK10TestVector"></span><span id="_CPPv2NK10TestVectoreqERK10TestVector"></span><span id="TestVector::eq-operator__TestVectorCRC"></span><span class="target" id="db/daf/classTestVector_1a2f2fcfd0b8e8a36934b5b3a340f94e5f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVectoreqERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>等価関係の比較を行なう． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>right が等しいとき true を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVectorltERK10TestVector">
+<span id="_CPPv3NK10TestVectorltERK10TestVector"></span><span id="_CPPv2NK10TestVectorltERK10TestVector"></span><span id="TestVector::lt-operator__TestVectorCRC"></span><span class="target" id="db/daf/classTestVector_1af899738e6b507f9289714737d776c00b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&lt;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVectorltERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>包含関係の比較を行なう </p>
+<p><ul class="simple">
+<li><p>false だからといって逆に left が right を含むとは限らない． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>minterm の集合として right が left を含んでいたら true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10TestVectorleERK10TestVector">
+<span id="_CPPv3NK10TestVectorleERK10TestVector"></span><span id="_CPPv2NK10TestVectorleERK10TestVector"></span><span id="TestVector::lte-operator__TestVectorCRC"></span><span class="target" id="db/daf/classTestVector_1a3839411eb2e8381c1e8e69e6ecd63a2f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&lt;=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10TestVectorleERK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>包含関係の比較を行なう </p>
+<p><ul class="simple">
+<li><p>こちらは等しい場合も含む．</p></li>
+<li><p>false だからといって逆に left が right を含むとは限らない． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>right</strong> -- [in] オペランド2 </p>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>minterm の集合として right が left を含んでいたら true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector8from_binE8SizeType8SizeTypebRKNSt6stringE">
+<span id="_CPPv3N10TestVector8from_binE8SizeType8SizeTypebRKNSt6stringE"></span><span id="_CPPv2N10TestVector8from_binE8SizeType8SizeTypebRKNSt6stringE"></span><span id="TestVector::from_bin__SizeType.SizeType.b.ssCR"></span><span class="target" id="db/daf/classTestVector_1aedb1d9bf8695982686dcb0726f3ad19b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">from_bin</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">input_num</span></span>, <span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dff_num</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">has_prev_state</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bin_str</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector8from_binE8SizeType8SizeTypebRKNSt6stringE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>2進文字列からオブジェクトを作る． </p>
+<p><ul class="simple">
+<li><p>有効な文字は '0', '1', 'x', 'X'</p></li>
+<li><p>bin_str が不適切な場合には長さ0のベクタを返す． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_num</strong> -- [in] 入力数 </p></li>
+<li><p><strong>dff_num</strong> -- [in] DFF数 </p></li>
+<li><p><strong>has_prev_state</strong> -- [in] 1時刻前の値を持つ時 true </p></li>
+<li><p><strong>bin_str</strong> -- [in] 元となる2進文字列 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector8from_hexE8SizeType8SizeTypebRKNSt6stringE">
+<span id="_CPPv3N10TestVector8from_hexE8SizeType8SizeTypebRKNSt6stringE"></span><span id="_CPPv2N10TestVector8from_hexE8SizeType8SizeTypebRKNSt6stringE"></span><span id="TestVector::from_hex__SizeType.SizeType.b.ssCR"></span><span class="target" id="db/daf/classTestVector_1a9cac3afbe33fdb661d2a51f43ac90dae"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">from_hex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">input_num</span></span>, <span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dff_num</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">has_prev_state</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">hex_str</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector8from_hexE8SizeType8SizeTypebRKNSt6stringE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>HEX文字列からオブジェクトを作る． </p>
+<p><ul class="simple">
+<li><p>有効な文字は '0'〜'9', 'a'〜'f', 'A'〜'F'</p></li>
+<li><p>hex_str が不適切な場合には長さ0のベクタを返す． </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_num</strong> -- [in] 入力数 </p></li>
+<li><p><strong>dff_num</strong> -- [in] DFF数 </p></li>
+<li><p><strong>has_prev_state</strong> -- [in] 1時刻前の値を持つ時 true </p></li>
+<li><p><strong>hex_str</strong> -- [in] 元となるHEX文字列 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-related">Related</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector13is_compatibleERK10TestVectorRK10TestVector">
+<span id="_CPPv3N10TestVector13is_compatibleERK10TestVectorRK10TestVector"></span><span id="_CPPv2N10TestVector13is_compatibleERK10TestVectorRK10TestVector"></span><span id="TestVector::is_compatible__TestVectorCR.TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1af6a861df8faf0a521a0e59cbdc435cb8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_compatible</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tv1</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tv2</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector13is_compatibleERK10TestVectorRK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>operator&amp;&amp; の別名 </p>
+<p>同じビット位置にそれぞれ 0 と 1 を持つ場合が両立しない場合． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tv1</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>tv2</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVector8is_equalERK10TestVectorRK10TestVector">
+<span id="_CPPv3N10TestVector8is_equalERK10TestVectorRK10TestVector"></span><span id="_CPPv2N10TestVector8is_equalERK10TestVectorRK10TestVector"></span><span id="TestVector::is_equal__TestVectorCR.TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1af679bc856f35a2018ed0483f7bc1e3fc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_equal</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">left</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVector8is_equalERK10TestVectorRK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>等価関係の比較を行なう． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>left と right が等しいとき true を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVectorneERK10TestVectorRK10TestVector">
+<span id="_CPPv3N10TestVectorneERK10TestVectorRK10TestVector"></span><span id="_CPPv2N10TestVectorneERK10TestVectorRK10TestVector"></span><span id="TestVector::neq-operator__TestVectorCR.TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1a4a12697840f2dc623ed7fa7ac8013102"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">!=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">left</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVectorneERK10TestVectorRK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>等価関係の比較を行なう． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>left と right が等しくないとき true を返す． </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVectorgtERK10TestVectorRK10TestVector">
+<span id="_CPPv3N10TestVectorgtERK10TestVectorRK10TestVector"></span><span id="_CPPv2N10TestVectorgtERK10TestVectorRK10TestVector"></span><span id="TestVector::gt-operator__TestVectorCR.TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1ab0c28a219454f0572b094c065eeb0358"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&gt;</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">left</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVectorgtERK10TestVectorRK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>包含関係の比較を行なう． </p>
+<p>
+false だからといって逆に right が left を含むとは限らない． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>minterm の集合として left が right を含んでいたら true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10TestVectorgeERK10TestVectorRK10TestVector">
+<span id="_CPPv3N10TestVectorgeERK10TestVectorRK10TestVector"></span><span id="_CPPv2N10TestVectorgeERK10TestVectorRK10TestVector"></span><span id="TestVector::gte-operator__TestVectorCR.TestVectorCR"></span><span class="target" id="db/daf/classTestVector_1a1bb6c9a6d5e77aaf4f548d94dbbd842c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">&gt;=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">left</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10TestVectorgeERK10TestVectorRK10TestVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>包含関係の比較を行なう </p>
+<p>
+こちらは等しい場合も含む． false だからといって逆に right が left を含むとは限らない． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left</strong> -- [in] オペランド1 </p></li>
+<li><p><strong>right</strong> -- [in] オペランド2 </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><p>minterm の集合として left が right を含んでいたら true を返す．</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="inputvector.html"
+                          title="前の章へ">InputVector</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="../fsim/fsim_module.html"
+                          title="次の章へ">故障シミュレーター</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/types/testvector.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="../fsim/fsim_module.html" title="故障シミュレーター"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="inputvector.html" title="InputVector"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="types_module.html" >基本的なデータ構造</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TestVector</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

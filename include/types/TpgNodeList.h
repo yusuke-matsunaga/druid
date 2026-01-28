@@ -19,6 +19,7 @@ BEGIN_NAMESPACE_DRUID
 /// @class TpgNodeIter TpgNodeList.h "TpgNodeList.h"
 /// @brief TpgNodeList の反復子
 /// @ingroup TypesGroup
+/// @sa TpgNode, TpgNodeList
 //////////////////////////////////////////////////////////////////////
 class TpgNodeIter :
   public TpgIterBase
@@ -62,6 +63,7 @@ public:
 /// @class TpgNodeList TpgNodeList.h "TpgNodeList.h"
 /// @brief TpgNode のリスト
 /// @ingroup TypesGroup
+/// @sa TpgNode, TpgNodeIter
 //////////////////////////////////////////////////////////////////////
 class TpgNodeList :
   public TpgListBase

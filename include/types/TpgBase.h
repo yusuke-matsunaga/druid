@@ -25,7 +25,6 @@ class FaultRep;
 /// @brief NetworkRep の共有ポインタを持つ基底クラス
 /// @ingroup TypesGroup
 /// @sa TpgNode
-/// @sa TpgDff
 ///
 /// TpgNetwork, TpgNode, TpgFFR, TpgMFFC, TpgFault などはこのクラス
 /// を継承する．

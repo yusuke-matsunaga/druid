@@ -19,6 +19,7 @@ BEGIN_NAMESPACE_DRUID
 /// @class TpgFFRIter TpgFFRList.h "TpgFFRList.h"
 /// @brief TpgFFRList の反復子
 /// @ingroup TypesGroup
+/// @sa TpgFFR, TpgFFRList
 //////////////////////////////////////////////////////////////////////
 class TpgFFRIter :
   public TpgIterBase
@@ -60,6 +61,7 @@ public:
 /// @class TpgFFRList TpgFFRList.h "TpgFFRList.h"
 /// @brief TpgFFR のリスト
 /// @ingroup TypesGroup
+/// @sa TpgFFR, TpgFFRIter
 //////////////////////////////////////////////////////////////////////
 class TpgFFRList :
   public TpgListBase

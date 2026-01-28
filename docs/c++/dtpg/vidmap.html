@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>VidMap &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="DtpgResult" href="dtpgresult.html" />
+    <link rel="prev" title="BdEngine" href="bdengine.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="dtpgresult.html" title="DtpgResult"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="bdengine.html" title="BdEngine"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="dtpg_module.html" accesskey="U">テスト生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">VidMap</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vidmap">
+<h1>VidMap<a class="headerlink" href="#vidmap" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv46VidMap">
+<span id="_CPPv36VidMap"></span><span id="_CPPv26VidMap"></span><span id="VidMap"></span><span class="target" id="dc/dac/classVidMap"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VidMap</span></span></span><a class="headerlink" href="#_CPPv46VidMap" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードに関連した変数リテラルを返すクラス </p>
+<p>機能的にはノード番号をキーにした連想配列だが ノード番号は連続しているのでただの配列で実装する． </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6VidMap6VidMapE8SizeType">
+<span id="_CPPv3N6VidMap6VidMapE8SizeType"></span><span id="_CPPv2N6VidMap6VidMapE8SizeType"></span><span id="VidMap::VidMap__SizeType"></span><span class="target" id="dc/dac/classVidMap_1ae9f1d7b05b3b128920eff2ae81b3e24f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VidMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">max_id</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6VidMap6VidMapE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>max_id</strong> -- [in] ノード番号の最大値 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6VidMapD0Ev">
+<span id="_CPPv3N6VidMapD0Ev"></span><span id="_CPPv2N6VidMapD0Ev"></span><span id="VidMap::~VidMap"></span><span class="target" id="dc/dac/classVidMap_1aaec86015c942674f329ea2d4731b7837"></span><span class="sig-name descname"><span class="n"><span class="pre">~VidMap</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N6VidMapD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK6VidMapclERK7TpgNode">
+<span id="_CPPv3NK6VidMapclERK7TpgNode"></span><span id="_CPPv2NK6VidMapclERK7TpgNode"></span><span id="VidMap::call-operator__TpgNodeCRC"></span><span class="target" id="dc/dac/classVidMap_1a98d0e7f0efa52babda90177178ce1ff2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SatLiteral</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK6VidMapclERK7TpgNode" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードに関連した変数リテラルを返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node</strong> -- [in] 対象のノード </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6VidMap4initE8SizeType">
+<span id="_CPPv3N6VidMap4initE8SizeType"></span><span id="_CPPv2N6VidMap4initE8SizeType"></span><span id="VidMap::init__SizeType"></span><span class="target" id="dc/dac/classVidMap_1a418b431bf00878c664ac418ec9702635"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">init</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">max_id</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6VidMap4initE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>初期化する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>max_id</strong> -- [in] ノード番号の最大値 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6VidMap7set_vidERK7TpgNode10SatLiteral">
+<span id="_CPPv3N6VidMap7set_vidERK7TpgNode10SatLiteral"></span><span id="_CPPv2N6VidMap7set_vidERK7TpgNode10SatLiteral"></span><span id="VidMap::set_vid__TpgNodeCR.SatLiteral"></span><span class="target" id="dc/dac/classVidMap_1aa4452706d31215c13f1f124fb438056b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_vid</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnode.html#_CPPv47TpgNode" title="TpgNode"><span class="n"><span class="pre">TpgNode</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">node</span></span>, <span class="n"><span class="pre">SatLiteral</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">vid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6VidMap7set_vidERK7TpgNode10SatLiteral" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ノードに関連した変数番号を設定する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> -- [in] 対象のノード </p></li>
+<li><p><strong>vid</strong> -- [in] 変数リテラル </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="bdengine.html"
+                          title="前の章へ">BdEngine</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="dtpgresult.html"
+                          title="次の章へ">DtpgResult</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/dtpg/vidmap.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="dtpgresult.html" title="DtpgResult"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="bdengine.html" title="BdEngine"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="dtpg_module.html" >テスト生成</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">VidMap</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

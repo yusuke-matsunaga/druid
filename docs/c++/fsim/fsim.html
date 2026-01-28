@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Fsim &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="DiffBits" href="diffbits.html" />
+    <link rel="prev" title="故障シミュレーター" href="fsim_module.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="diffbits.html" title="DiffBits"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="fsim_module.html" title="故障シミュレーター"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="fsim_module.html" accesskey="U">故障シミュレーター</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Fsim</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="fsim">
+<h1>Fsim<a class="headerlink" href="#fsim" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv44Fsim">
+<span id="_CPPv34Fsim"></span><span id="_CPPv24Fsim"></span><span id="Fsim"></span><span class="target" id="d7/d2c/classFsim"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Fsim</span></span></span><a class="headerlink" href="#_CPPv44Fsim" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>故障シミュレーションを行うクラス </p>
+<p>
+意味的には対象回路に対して故障シミュレーションを行う関数のみを実現できればよく， 内部に状態を持つ必要はないが，効率化のため故障シミュレーションに特化した回路構造 を表すクラスと故障シミュレーションに特化した故障の情報を表すクラスを持つ． 対象の回路を initialize() で設定すると内部で故障シミュレーション用のデータ構造 に変換される． 対象となる故障も毎回のシミュレーションの際に指定すると効率が悪いので一旦全故障を set_fault_list() で登録しておく． 各故障に'スキップフラグ'を持たせておき，スキップフラグが立っていない故障を対象に 故障シミュレーションを行う． スキップフラグのオン/オフは <a class="reference internal" href="#d7/d2c/classFsim_1ab9d3d2c311f26598394d81adb826ca97"><span class="std std-ref">set_skip()</span></a>/clear_skip() で行う． <div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="diffbits.html#d0/da8/classDiffBits"><span class="std std-ref">DiffBits</span></a>, <a class="reference internal" href="diffbitsarray.html#d5/d2e/classDiffBitsArray"><span class="std std-ref">DiffBitsArray</span></a></p>
+</div>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-types">Public Types</p>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim7cbtype1E">
+<span id="_CPPv3N4Fsim7cbtype1E"></span><span id="_CPPv2N4Fsim7cbtype1E"></span><span class="target" id="d7/d2c/classFsim_1a3ee9e46e6c5dedd14ba454833300ddeb"></span><span class="k"><span class="pre">using</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cbtype1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="diffbits.html#_CPPv48DiffBits" title="DiffBits"><span class="n"><span class="pre">DiffBits</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N4Fsim7cbtype1E" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SPPFP故障シミュレーションで用いるコールバック関数の型定義 </p>
+<p><ul class="simple">
+<li><p>1番目の引数は検出された故障</p></li>
+<li><p>2番目の引数は出力ごとの伝搬状況 </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim7cbtype2E">
+<span id="_CPPv3N4Fsim7cbtype2E"></span><span id="_CPPv2N4Fsim7cbtype2E"></span><span class="target" id="d7/d2c/classFsim_1a136bb45c22871d69e901fceeaff20000"></span><span class="k"><span class="pre">using</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cbtype2</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="diffbitsarray.html#_CPPv413DiffBitsArray" title="DiffBitsArray"><span class="n"><span class="pre">DiffBitsArray</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N4Fsim7cbtype2E" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>PPSFP故障シミュレーションで用いるコールバック関数の型定義 </p>
+<p><ul class="simple">
+<li><p>1番目の引数は検出された故障</p></li>
+<li><p>2番目の引数は出力ごとの伝搬状況 </p></li>
+</ul>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim4FsimERK10TpgNetworkRK12TpgFaultListRK9JsonValue">
+<span id="_CPPv3N4Fsim4FsimERK10TpgNetworkRK12TpgFaultListRK9JsonValue"></span><span id="_CPPv2N4Fsim4FsimERK10TpgNetworkRK12TpgFaultListRK9JsonValue"></span><span id="Fsim::Fsim__TpgNetworkCR.TpgFaultListCR.JsonValueCR"></span><span class="target" id="d7/d2c/classFsim_1aee047fb5b4969f06480c374aef87117c"></span><span class="sig-name descname"><span class="n"><span class="pre">Fsim</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgnetwork.html#_CPPv410TpgNetwork" title="TpgNetwork"><span class="n"><span class="pre">TpgNetwork</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">network</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfaultlist.html#_CPPv412TpgFaultList" title="TpgFaultList"><span class="n"><span class="pre">TpgFaultList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault_list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">JsonValue</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">option</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="p"><span class="pre">}</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim4FsimERK10TpgNetworkRK12TpgFaultListRK9JsonValue" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> -- [in] ネットワーク </p></li>
+<li><p><strong>fault_list</strong> -- [in] 対象の故障のリスト </p></li>
+<li><p><strong>option</strong> -- [in] オプション </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim4FsimERK4Fsim">
+<span id="_CPPv3N4Fsim4FsimERK4Fsim"></span><span id="_CPPv2N4Fsim4FsimERK4Fsim"></span><span id="Fsim::Fsim__FsimCR"></span><span class="target" id="d7/d2c/classFsim_1a41c405f6435fc89aaf9aa66e59940066"></span><span class="sig-name descname"><span class="n"><span class="pre">Fsim</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N4Fsim4FsimERK4Fsim" title="Fsim::Fsim"><span class="n"><span class="pre">Fsim</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N4Fsim4FsimERK4Fsim" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピーコンストラクタは禁止 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim4FsimERR4Fsim">
+<span id="_CPPv3N4Fsim4FsimERR4Fsim"></span><span id="_CPPv2N4Fsim4FsimERR4Fsim"></span><span id="Fsim::Fsim__FsimRR"></span><span class="target" id="d7/d2c/classFsim_1a1071cf301c3013682e40e87ee37f27e4"></span><span class="sig-name descname"><span class="n"><span class="pre">Fsim</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N4Fsim4FsimERR4Fsim" title="Fsim::Fsim"><span class="n"><span class="pre">Fsim</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N4Fsim4FsimERR4Fsim" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ムーブコンストラクタは禁止 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4FsimaSERK4Fsim">
+<span id="_CPPv3N4FsimaSERK4Fsim"></span><span id="_CPPv2N4FsimaSERK4Fsim"></span><span id="Fsim::assign-operator__FsimCR"></span><span class="target" id="d7/d2c/classFsim_1a7f23478c5751b309725200561b5981d9"></span><a class="reference internal" href="#_CPPv44Fsim" title="Fsim"><span class="n"><span class="pre">Fsim</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv44Fsim" title="Fsim"><span class="n"><span class="pre">Fsim</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N4FsimaSERK4Fsim" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コピー代入演算子は禁止 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4FsimaSERR4Fsim">
+<span id="_CPPv3N4FsimaSERR4Fsim"></span><span id="_CPPv2N4FsimaSERR4Fsim"></span><span id="Fsim::assign-operator__FsimRR"></span><span class="target" id="d7/d2c/classFsim_1ab7127cf5aab1c68d59497ee74bc38b50"></span><a class="reference internal" href="#_CPPv44Fsim" title="Fsim"><span class="n"><span class="pre">Fsim</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv44Fsim" title="Fsim"><span class="n"><span class="pre">Fsim</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N4FsimaSERR4Fsim" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ムーブ代入演算子は禁止 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4FsimD0Ev">
+<span id="_CPPv3N4FsimD0Ev"></span><span id="_CPPv2N4FsimD0Ev"></span><span id="Fsim::~Fsim"></span><span class="target" id="d7/d2c/classFsim_1aea5f187abe134dddd15bfbffc72622c0"></span><span class="sig-name descname"><span class="n"><span class="pre">~Fsim</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4FsimD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim12set_skip_allEv">
+<span id="_CPPv3N4Fsim12set_skip_allEv"></span><span id="_CPPv2N4Fsim12set_skip_allEv"></span><span id="Fsim::set_skip_all"></span><span class="target" id="d7/d2c/classFsim_1ad86bc257ccbe5f995cb0aae69e8734ef"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_skip_all</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim12set_skip_allEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>全ての故障にスキップマークをつける． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim8set_skipERK8TpgFault">
+<span id="_CPPv3N4Fsim8set_skipERK8TpgFault"></span><span id="_CPPv2N4Fsim8set_skipERK8TpgFault"></span><span id="Fsim::set_skip__TpgFaultCR"></span><span class="target" id="d7/d2c/classFsim_1ab9d3d2c311f26598394d81adb826ca97"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_skip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim8set_skipERK8TpgFault" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>故障にスキップマークをつける． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fault</strong> -- [in] 対象の故障 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim8set_skipERK12TpgFaultList">
+<span id="_CPPv3N4Fsim8set_skipERK12TpgFaultList"></span><span id="_CPPv2N4Fsim8set_skipERK12TpgFaultList"></span><span id="Fsim::set_skip__TpgFaultListCR"></span><span class="target" id="d7/d2c/classFsim_1a8fb2a8fe18c615936c55e23fd0e6a3e1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_skip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfaultlist.html#_CPPv412TpgFaultList" title="TpgFaultList"><span class="n"><span class="pre">TpgFaultList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim8set_skipERK12TpgFaultList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>複数の故障にスキップマークをつける． </p>
+<p>fault_list に含まれない故障のスキップマークは消される． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fault_list</strong> -- [in] 対象の故障のリスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim14clear_skip_allEv">
+<span id="_CPPv3N4Fsim14clear_skip_allEv"></span><span id="_CPPv2N4Fsim14clear_skip_allEv"></span><span id="Fsim::clear_skip_all"></span><span class="target" id="d7/d2c/classFsim_1aa90b924fab8e84515658e5dd3bc1a410"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear_skip_all</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim14clear_skip_allEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>全ての故障のスキップマークを消す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim10clear_skipERK8TpgFault">
+<span id="_CPPv3N4Fsim10clear_skipERK8TpgFault"></span><span id="_CPPv2N4Fsim10clear_skipERK8TpgFault"></span><span id="Fsim::clear_skip__TpgFaultCR"></span><span class="target" id="d7/d2c/classFsim_1ae8a62b6745d573192b50144da39b8423"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear_skip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim10clear_skipERK8TpgFault" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>故障のスキップマークを消す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fault</strong> -- [in] 対象の故障番号 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim10clear_skipERK12TpgFaultList">
+<span id="_CPPv3N4Fsim10clear_skipERK12TpgFaultList"></span><span id="_CPPv2N4Fsim10clear_skipERK12TpgFaultList"></span><span id="Fsim::clear_skip__TpgFaultListCR"></span><span class="target" id="d7/d2c/classFsim_1a92516d1c214f3cb78b41e378f47b7c03"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear_skip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfaultlist.html#_CPPv412TpgFaultList" title="TpgFaultList"><span class="n"><span class="pre">TpgFaultList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault_list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim10clear_skipERK12TpgFaultList" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>複数の故障のスキップマークを消す． </p>
+<p>fault_list に含まれない故障のスキップマークは付けられる． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fault_list</strong> -- [in] 対象の故障のリスト </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4Fsim8get_skipERK8TpgFault">
+<span id="_CPPv3NK4Fsim8get_skipERK8TpgFault"></span><span id="_CPPv2NK4Fsim8get_skipERK8TpgFault"></span><span id="Fsim::get_skip__TpgFaultCRC"></span><span class="target" id="d7/d2c/classFsim_1a8876625bc5235fb36fc0aa8997fa49a7"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_skip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK4Fsim8get_skipERK8TpgFault" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>故障のスキップマークを得る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fault</strong> -- [in] 対象の故障番号 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim5spsfpERK10TestVectorRK8TpgFaultR8DiffBits">
+<span id="_CPPv3N4Fsim5spsfpERK10TestVectorRK8TpgFaultR8DiffBits"></span><span id="_CPPv2N4Fsim5spsfpERK10TestVectorRK8TpgFaultR8DiffBits"></span><span id="Fsim::spsfp__TestVectorCR.TpgFaultCR.DiffBitsR"></span><span class="target" id="d7/d2c/classFsim_1a248e0b33d9fcd66e3cf20a00e82211df"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">spsfp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/testvector.html#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tv</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault</span></span>, <a class="reference internal" href="diffbits.html#_CPPv48DiffBits" title="DiffBits"><span class="n"><span class="pre">DiffBits</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dbits</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim5spsfpERK10TestVectorRK8TpgFaultR8DiffBits" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SPSFP故障シミュレーションを行う． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tv</strong> -- [in] テストベクタ </p></li>
+<li><p><strong>fault</strong> -- [in] 対象の故障番号 </p></li>
+<li><p><strong>dbits</strong> -- [out] 出力ごとの伝搬状況を表すビットベクタ </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>true</strong> -- 故障の検出が行えた． </p></li>
+<li><p><strong>false</strong> -- 故障の検出が行えなかった． </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim5spsfpERK10AssignListRK8TpgFaultR8DiffBits">
+<span id="_CPPv3N4Fsim5spsfpERK10AssignListRK8TpgFaultR8DiffBits"></span><span id="_CPPv2N4Fsim5spsfpERK10AssignListRK8TpgFaultR8DiffBits"></span><span id="Fsim::spsfp__AssignListCR.TpgFaultCR.DiffBitsR"></span><span class="target" id="d7/d2c/classFsim_1a97a1dc11e6f6a99f8c3c8050b0f39ee8"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">spsfp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assign_list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault</span></span>, <a class="reference internal" href="diffbits.html#_CPPv48DiffBits" title="DiffBits"><span class="n"><span class="pre">DiffBits</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dbits</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim5spsfpERK10AssignListRK8TpgFaultR8DiffBits" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SPSFP故障シミュレーションを行う． </p>
+<p>
+assign_list は外部入力の割り当てでなければならない． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>assign_list</strong> -- [in] 値の割当リスト </p></li>
+<li><p><strong>fault</strong> -- [in] 対象の故障番号 </p></li>
+<li><p><strong>dbits</strong> -- [out] 出力ごとの伝搬状況を表すビットベクタ </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>true</strong> -- 故障の検出が行えた． </p></li>
+<li><p><strong>false</strong> -- 故障の検出が行えなかった．</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim6xspsfpERK10AssignListRK8TpgFaultR8DiffBits">
+<span id="_CPPv3N4Fsim6xspsfpERK10AssignListRK8TpgFaultR8DiffBits"></span><span id="_CPPv2N4Fsim6xspsfpERK10AssignListRK8TpgFaultR8DiffBits"></span><span id="Fsim::xspsfp__AssignListCR.TpgFaultCR.DiffBitsR"></span><span class="target" id="d7/d2c/classFsim_1a0fb5fb17dd21e0c6611c20b88f4c1a12"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">xspsfp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assign_list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/tpgfault.html#_CPPv48TpgFault" title="TpgFault"><span class="n"><span class="pre">TpgFault</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fault</span></span>, <a class="reference internal" href="diffbits.html#_CPPv48DiffBits" title="DiffBits"><span class="n"><span class="pre">DiffBits</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dbits</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim6xspsfpERK10AssignListRK8TpgFaultR8DiffBits" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>SPSFP故障シミュレーションを行う． </p>
+<p><ul class="simple">
+<li><p>assign_list は任意の位置の割り当てでよい．</p></li>
+<li><p>3値のシミュレーションのみ可能 </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>assign_list</strong> -- [in] 値の割当リスト </p></li>
+<li><p><strong>fault</strong> -- [in] 対象の故障番号 </p></li>
+<li><p><strong>dbits</strong> -- [out] 出力ごとの伝搬状況を表すビットベクタ </p></li>
+</ul>
+</dd>
+<dt class="field-even">戻り値<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>true</strong> -- 故障の検出が行えた． </p></li>
+<li><p><strong>false</strong> -- 故障の検出が行えなかった．</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim5sppfpERK10TestVector7cbtype1">
+<span id="_CPPv3N4Fsim5sppfpERK10TestVector7cbtype1"></span><span id="_CPPv2N4Fsim5sppfpERK10TestVector7cbtype1"></span><span id="Fsim::sppfp__TestVectorCR.cbtype1"></span><span class="target" id="d7/d2c/classFsim_1abe918fa1724a2c32a5ceb303830706d7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sppfp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/testvector.html#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tv</span></span>, <a class="reference internal" href="#_CPPv4N4Fsim7cbtype1E" title="Fsim::cbtype1"><span class="n"><span class="pre">cbtype1</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim5sppfpERK10TestVector7cbtype1" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ひとつのパタンで故障シミュレーションを行う． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tv</strong> -- [in] テストベクタ </p></li>
+<li><p><strong>callback</strong> -- [in] コールバック関数 1番目の引数は検出された故障 2番目の引数は出力の伝搬状況 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim5sppfpERK10AssignList7cbtype1">
+<span id="_CPPv3N4Fsim5sppfpERK10AssignList7cbtype1"></span><span id="_CPPv2N4Fsim5sppfpERK10AssignList7cbtype1"></span><span id="Fsim::sppfp__AssignListCR.cbtype1"></span><span class="target" id="d7/d2c/classFsim_1a417c70264d6dc9ed9bbb8724e82123ff"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sppfp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assign_list</span></span>, <a class="reference internal" href="#_CPPv4N4Fsim7cbtype1E" title="Fsim::cbtype1"><span class="n"><span class="pre">cbtype1</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim5sppfpERK10AssignList7cbtype1" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ひとつのパタンで故障シミュレーションを行う． </p>
+<p>assign_list は外部入力の割り当てでなければならない． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>assign_list</strong> -- [in] 値の割当リスト </p></li>
+<li><p><strong>callback</strong> -- [in] コールバック関数 1番目の引数は検出された故障 2番目の引数は出力の伝搬状況 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim6xsppfpERK10AssignList7cbtype1">
+<span id="_CPPv3N4Fsim6xsppfpERK10AssignList7cbtype1"></span><span id="_CPPv2N4Fsim6xsppfpERK10AssignList7cbtype1"></span><span id="Fsim::xsppfp__AssignListCR.cbtype1"></span><span class="target" id="d7/d2c/classFsim_1a4bc51287eafd2e83d70176b47ebe1bfb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">xsppfp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/assignlist.html#_CPPv410AssignList" title="AssignList"><span class="n"><span class="pre">AssignList</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">assign_list</span></span>, <a class="reference internal" href="#_CPPv4N4Fsim7cbtype1E" title="Fsim::cbtype1"><span class="n"><span class="pre">cbtype1</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim6xsppfpERK10AssignList7cbtype1" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ひとつのパタンで故障シミュレーションを行う． </p>
+<p><ul class="simple">
+<li><p>assign_list は任意の位置の割り当てでよい．</p></li>
+<li><p>3値のシミュレーションのみ可能 </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>assign_list</strong> -- [in] 値の割当リスト </p></li>
+<li><p><strong>callback</strong> -- [in] コールバック関数 1番目の引数は検出された故障 2番目の引数は出力の伝搬状況 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim5ppsfpERKNSt6vectorI10TestVectorEE7cbtype2">
+<span id="_CPPv3N4Fsim5ppsfpERKNSt6vectorI10TestVectorEE7cbtype2"></span><span id="_CPPv2N4Fsim5ppsfpERKNSt6vectorI10TestVectorEE7cbtype2"></span><span id="Fsim::ppsfp__std::vector:TestVector:CR.cbtype2"></span><span class="target" id="d7/d2c/classFsim_1a44e72edd448574706fcd1fad1e7b2765"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ppsfp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../types/testvector.html#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tv_list</span></span>, <a class="reference internal" href="#_CPPv4N4Fsim7cbtype2E" title="Fsim::cbtype2"><span class="n"><span class="pre">cbtype2</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim5ppsfpERKNSt6vectorI10TestVectorEE7cbtype2" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>複数のパタンで故障シミュレーションを行う． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tv_list</strong> -- [in] テストベクタのリスト 要素数の最大値は PV_BITLEN </p></li>
+<li><p><strong>callback</strong> -- [in] コールバック関数 1番目の引数は検出された故障 2番目の引数は出力の伝搬状況 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim8calc_wsaERK10TestVectorb">
+<span id="_CPPv3N4Fsim8calc_wsaERK10TestVectorb"></span><span id="_CPPv2N4Fsim8calc_wsaERK10TestVectorb"></span><span id="Fsim::calc_wsa__TestVectorCR.b"></span><span class="target" id="d7/d2c/classFsim_1abc588fbfa161152cbb2e8228e97441e9"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">calc_wsa</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/testvector.html#_CPPv410TestVector" title="TestVector"><span class="n"><span class="pre">TestVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tv</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weighted</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim8calc_wsaERK10TestVectorb" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1クロック分のシミュレーションを行い，遷移回数を数える． </p>
+<p><ul class="simple">
+<li><p>外部入力以外は無視する．</p></li>
+<li><p>時刻1の割り当ても無視する </p></li>
+</ul>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tv</strong> -- [in] テストベクタ </p></li>
+<li><p><strong>weighted</strong> -- [in] 重みフラグ<ul>
+<li><p>false: ゲートの出力の遷移回数の和</p></li>
+<li><p>true : ゲートの出力の遷移回数に (ファンアウト数＋１)を掛けたものの和 </p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim8calc_wsaERK11InputVectorb">
+<span id="_CPPv3N4Fsim8calc_wsaERK11InputVectorb"></span><span id="_CPPv2N4Fsim8calc_wsaERK11InputVectorb"></span><span id="Fsim::calc_wsa__InputVectorCR.b"></span><span class="target" id="d7/d2c/classFsim_1a75a87904ee3d70a038b5e97dc08da76c"></span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">calc_wsa</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/inputvector.html#_CPPv411InputVector" title="InputVector"><span class="n"><span class="pre">InputVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">i_vect</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weighted</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim8calc_wsaERK11InputVectorb" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1クロック分のシミュレーションを行い，遷移回数を数える． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_vect</strong> -- [in] 外部入力のビットベクタ </p></li>
+<li><p><strong>weighted</strong> -- [in] 重みフラグ<ul>
+<li><p>false: ゲートの出力の遷移回数の和</p></li>
+<li><p>true : ゲートの出力の遷移回数に (ファンアウト数＋１)を掛けたものの和 </p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim9set_stateERK11InputVectorRK9DffVector">
+<span id="_CPPv3N4Fsim9set_stateERK11InputVectorRK9DffVector"></span><span id="_CPPv2N4Fsim9set_stateERK11InputVectorRK9DffVector"></span><span id="Fsim::set_state__InputVectorCR.DffVectorCR"></span><span class="target" id="d7/d2c/classFsim_1a153d130d97fe6890242b823598cf469b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_state</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/inputvector.html#_CPPv411InputVector" title="InputVector"><span class="n"><span class="pre">InputVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">i_vect</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../types/dffvector.html#_CPPv49DffVector" title="DffVector"><span class="n"><span class="pre">DffVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">f_vect</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim9set_stateERK11InputVectorRK9DffVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>状態を設定する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_vect</strong> -- [in] 外部入力のビットベクタ </p></li>
+<li><p><strong>f_vect</strong> -- [in] FFの値のビットベクタ </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim9get_stateER11InputVectorR9DffVector">
+<span id="_CPPv3N4Fsim9get_stateER11InputVectorR9DffVector"></span><span id="_CPPv2N4Fsim9get_stateER11InputVectorR9DffVector"></span><span id="Fsim::get_state__InputVectorR.DffVectorR"></span><span class="target" id="d7/d2c/classFsim_1a5fab25a7b1b8e9b57fa8e5eb48af5a24"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_state</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../types/inputvector.html#_CPPv411InputVector" title="InputVector"><span class="n"><span class="pre">InputVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">i_vect</span></span>, <a class="reference internal" href="../types/dffvector.html#_CPPv49DffVector" title="DffVector"><span class="n"><span class="pre">DffVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">f_vect</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4Fsim9get_stateER11InputVectorR9DffVector" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>状態を取得する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_vect</strong> -- [out] 外部入力のビットベクタ </p></li>
+<li><p><strong>f_vect</strong> -- [out] FFの値のビットベクタ </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-attributes">Public Static Attributes</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N4Fsim9PP_BITLENE">
+<span id="_CPPv3N4Fsim9PP_BITLENE"></span><span id="_CPPv2N4Fsim9PP_BITLENE"></span><span id="Fsim::PP_BITLEN__SizeTypeC"></span><span class="target" id="d7/d2c/classFsim_1a70e2dc9167587356f8f5485e3118fa86"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PP_BITLEN</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">PV_BITLEN</span></span><a class="headerlink" href="#_CPPv4N4Fsim9PP_BITLENE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#d7/d2c/classFsim_1a44e72edd448574706fcd1fad1e7b2765"><span class="std std-ref">ppsfp()</span></a> で用いるバッファサイズ </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="fsim_module.html"
+                          title="前の章へ">故障シミュレーター</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="diffbits.html"
+                          title="次の章へ">DiffBits</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/fsim/fsim.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="diffbits.html" title="DiffBits"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="fsim_module.html" title="故障シミュレーター"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="fsim_module.html" >故障シミュレーター</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Fsim</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

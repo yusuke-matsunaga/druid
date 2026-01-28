@@ -1,0 +1,5 @@
+InputVector
+============
+
+.. doxygenclass:: InputVector
+   :members:

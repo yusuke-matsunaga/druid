@@ -1,0 +1,4 @@
+FaultStatus
+=============
+
+.. doxygenfile:: FaultStatus.h

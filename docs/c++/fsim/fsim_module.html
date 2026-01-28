@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>故障シミュレーター &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="Fsim" href="fsim.html" />
+    <link rel="prev" title="TestVector" href="../types/testvector.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="fsim.html" title="Fsim"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="../types/testvector.html" title="TestVector"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" accesskey="U">C++ API</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">故障シミュレーター</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>故障シミュレーター<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
+<section id="id2">
+<h2>故障シミュレーターの初期化<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<p>論理的には故障シミュレーションは与えられた回路とテストパタンに対して
+検出される故障を求めるものなので内部に状態を持つクラスにする必要はない
+が，
+効率的な処理を行うために回路の構造と対象の故障の情報を内部に保持して
+おいたほうが都合がよい．
+そのためのクラスが <cite>Fsim</cite> である．
+<cite>Fsim</cite> は以下の形式で初期化する．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Fsim のコンストラクタ</span>
+<span class="n">Fsim</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgNetwork</span><span class="o">&amp;</span><span class="w"> </span><span class="n">network</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFaultList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault_list</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">JsonValue</span><span class="o">&amp;</span><span class="w"> </span><span class="n">option</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p><cite>fault_list</cite> に含まれる故障はすべて <cite>network</cite>
+の故障でなければならない．</p>
+<p>故障シミュレーターには以下のオプションを指定することができる．
+オプションは <cite>JsonValue</cite> の形で指定する．</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>キーワード</p></th>
+<th class="head"><p>タイプ</p></th>
+<th class="head"><p>説明</p></th>
+<th class="head"><p>デフォルト値</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>has_x</p></td>
+<td><p>bool</p></td>
+<td><p>true の時に3値のシミュレーションを行う．</p></td>
+<td><p>false</p></td>
+</tr>
+<tr class="row-odd"><td><p>multi_thread</p></td>
+<td><p>bool</p></td>
+<td><p>true の時にマルチスレッド実行を行う．</p></td>
+<td><p>false</p></td>
+</tr>
+</tbody>
+</table>
+<p>さらに <cite>TpgNetwork</cite> の故障の種類に応じて1時刻分のみを持つ単純な組み合
+わせ回路用の故障シミュレーターか1時刻前の値も持つブロードサイド方式
+用の故障シミュレーターが自動的に選択される．</p>
+</section>
+<section id="id3">
+<h2>故障のスキップマークに関する操作<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
+<p>故障シミュレーターは基本的にコンストラクタで与えられた故障を対象とする．
+ただし，故障ドロップの動作を行うために内部で故障のスキップマークを
+管理している．
+スキップマークが <cite>true</cite> の故障はシミュレーションの対象から除外される．
+初期状態では全ての故障のスキップマークは <cite>false</cite> となっている．</p>
+<p>スキップマークは以下のメンバ関数で操作される．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// すべての故障にスキップマークをつける．</span>
+<span class="kt">void</span>
+<span class="nf">set_skip_all</span><span class="p">();</span>
+
+<span class="c1">// fault にスキップマークをつける．</span>
+<span class="kt">void</span>
+<span class="nf">set_skip</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFault</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault</span>
+<span class="p">);</span>
+
+<span class="c1">// fault_list に含まれる故障にスキップマークをつける．</span>
+<span class="kt">void</span>
+<span class="nf">set_skip</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFaultList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault_list</span>
+<span class="p">);</span>
+
+<span class="c1">// すべての故障のスキップマークを消す．</span>
+<span class="kt">void</span>
+<span class="nf">clear_skip_all</span><span class="p">();</span>
+
+<span class="c1">// fault のスキップマークを消す．</span>
+<span class="kt">void</span>
+<span class="nf">clear_skip</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFault</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault</span>
+<span class="p">);</span>
+
+<span class="c1">// fault_list に含まれる故障のスキップマークを消す．</span>
+<span class="kt">void</span>
+<span class="nf">clear_skip</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFaultList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault_list</span>
+<span class="p">);</span>
+
+<span class="c1">// fault のスキップマークを返す．</span>
+<span class="kt">bool</span>
+<span class="nf">get_skip</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFault</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h2>単一故障単一パタンの故障シミュレーションを行う．<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
+<p>入力として <cite>TestVector</cite> を用いる関数 <cite>spsfp()</cite> と <cite>AssignList</cite> を用いる関数
+<cite>spsfp()</cite> および <cite>xspsfp()</cite> が用意されている．
+<cite>AssignList</cite> を用いる <cite>spsfp()</cite> の場合はすべて外部入力ノードに対する割り当て
+になっていなければならない．
+<cite>xspsfp()</cite> の場合は回路内部のノードに対する割り当てでもシミュレーショ
+ンをおこなうことができる．
+これらの関数は対象となる故障を指定する．
+スキップマークの有無は無視される．</p>
+<p>故障シミュレーションの結果として故障の検出が行えた場合には
+返り値として <cite>true</cite> が返される．
+検出出来ない場合には <cite>false</cite> が返される．
+さらに各外部出力ごとの故障伝搬の結果を <cite>DiffBits&amp; dbits</cite>
+に格納する．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">bool</span>
+<span class="nf">spsfp</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TestVector</span><span class="o">&amp;</span><span class="w"> </span><span class="n">tv</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFault</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault</span><span class="p">,</span>
+<span class="w">  </span><span class="n">DiffBits</span><span class="o">&amp;</span><span class="w"> </span><span class="n">dbits</span>
+<span class="p">);</span>
+
+<span class="kt">bool</span>
+<span class="nf">spsfp</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">AssignList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">assign_list</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFault</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault</span><span class="p">,</span>
+<span class="w">  </span><span class="n">DiffBits</span><span class="o">&amp;</span><span class="w"> </span><span class="n">dbits</span>
+<span class="p">);</span>
+
+<span class="kt">bool</span>
+<span class="nf">xspsfp</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">AssignList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">assign_list</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TpgFault</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fault</span><span class="p">,</span>
+<span class="w">  </span><span class="n">DiffBits</span><span class="o">&amp;</span><span class="w"> </span><span class="n">dbits</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h2>故障並列シミュレーションを行う．<a class="headerlink" href="#id5" title="この見出しへのパーマリンク">¶</a></h2>
+<p>内部に設定されているスキップマークを参考にして
+故障並列シミュレーションを行う．
+とはいっても純粋な並列処理はできないので
+故障が検出されるたびにコールバック関数が
+呼び出される．
+コールバック関数の型宣言は以下の通り．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="n">cbtype1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">TpgFault</span><span class="o">&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">,</span>
+<span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="n">DiffBits</span><span class="o">&amp;</span><span class="w"> </span><span class="n">dbits</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><cite>f</cite> には検出された故障を，
+<cite>dbits</cite> には各出力ごとの検出状態が与えられる．</p>
+<p>入力パタンとして <cite>TestVector</cite> を用いる関数 <cite>sppfp()</cite>
+と <cite>AssignList</cite> を用いる関数 <cite>sppfp()</cite>
+および <cite>xsppfp()</cite> が用意されている．
+これらの区別は <cite>spsfp()</cite> と同様である．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="nf">sppfp</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">TestVector</span><span class="o">&amp;</span><span class="w"> </span><span class="n">tv</span><span class="p">,</span>
+<span class="w">  </span><span class="n">cbtype1</span><span class="w"> </span><span class="n">callback</span>
+<span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">sppfp</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">AssignList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">assign_list</span><span class="p">,</span>
+<span class="w">  </span><span class="n">cbtype1</span><span class="w"> </span><span class="n">callback</span>
+<span class="p">);</span>
+
+<span class="kt">void</span>
+<span class="nf">xsppfp</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">AssignList</span><span class="o">&amp;</span><span class="w"> </span><span class="n">assign_list</span><span class="p">,</span>
+<span class="w">  </span><span class="n">cbtype1</span><span class="w"> </span><span class="n">callback</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h2>パタン並列シミュレーションを行う．<a class="headerlink" href="#id6" title="この見出しへのパーマリンク">¶</a></h2>
+<p>内部に設定されているスキップマークを参考にして
+パタン並列シミュレーションを行う．
+とはいっても純粋な並列処理はできないので
+故障が検出されるたびにコールバック関数が
+呼び出される．
+コールバック関数の型宣言は以下の通り．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="n">cbtype2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">TpgFault</span><span class="o">&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">,</span>
+<span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="n">DiffBitsArray</span><span class="o">&amp;</span><span class="w"> </span><span class="n">dbits_array</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><cite>f</cite> には検出された故障が，
+<cite>dbits_array</cite> には各出力ごとの検出状態が与えられる．
+<cite>DiffBitsArray</cite> は意味的には <cite>DiffBits</cite> を64個集めたものである．
+実際の実装では非ゼロの要素だけを保持している．</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="nf">ppsfp</span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TestVector</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">tv_list</span><span class="p">,</span>
+<span class="w">  </span><span class="n">cbtype2</span><span class="w"> </span><span class="n">callback</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p><cite>tv_list</cite> にはシミュレーションを行うパタンのリストを指定する．
+<cite>tv_list</cite> の要素数の最大値は <cite>PV_BITLEN</cite> (=64) である．</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fsim.html">Fsim</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffbits.html">DiffBits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffbitsarray.html">DiffBitsArray</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">目次</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">故障シミュレーター</a><ul>
+<li><a class="reference internal" href="#id2">故障シミュレーターの初期化</a></li>
+<li><a class="reference internal" href="#id3">故障のスキップマークに関する操作</a></li>
+<li><a class="reference internal" href="#id4">単一故障単一パタンの故障シミュレーションを行う．</a></li>
+<li><a class="reference internal" href="#id5">故障並列シミュレーションを行う．</a></li>
+<li><a class="reference internal" href="#id6">パタン並列シミュレーションを行う．</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="../types/testvector.html"
+                          title="前の章へ">TestVector</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="fsim.html"
+                          title="次の章へ">Fsim</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/fsim/fsim_module.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="fsim.html" title="Fsim"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="../types/testvector.html" title="TestVector"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">故障シミュレーター</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

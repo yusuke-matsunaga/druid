@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>DiffBitsArray &#8212; Druid 1.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="検索" href="../../search.html" />
+    <link rel="next" title="テスト生成" href="../dtpg/dtpg_module.html" />
+    <link rel="prev" title="DiffBits" href="diffbits.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="../dtpg/dtpg_module.html" title="テスト生成"
+             accesskey="N">次へ</a> |</li>
+        <li class="right" >
+          <a href="diffbits.html" title="DiffBits"
+             accesskey="P">前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="fsim_module.html" accesskey="U">故障シミュレーター</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DiffBitsArray</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="diffbitsarray">
+<h1>DiffBitsArray<a class="headerlink" href="#diffbitsarray" title="この見出しへのパーマリンク">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv413DiffBitsArray">
+<span id="_CPPv313DiffBitsArray"></span><span id="_CPPv213DiffBitsArray"></span><span id="DiffBitsArray"></span><span class="target" id="d5/d2e/classDiffBitsArray"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DiffBitsArray</span></span></span><a class="headerlink" href="#_CPPv413DiffBitsArray" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="diffbits.html#d0/da8/classDiffBits"><span class="std std-ref">DiffBits</span></a> の配列 </p>
+<p>
+実際には非ゼロの出力要素ごとに PackedVal を持つ． <div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p><a class="reference internal" href="fsim.html#d7/d2c/classFsim"><span class="std std-ref">Fsim</span></a>, <a class="reference internal" href="diffbits.html#d0/da8/classDiffBits"><span class="std std-ref">DiffBits</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">参考</p>
+<p>PackedVal</p>
+</div>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13DiffBitsArray13DiffBitsArrayEv">
+<span id="_CPPv3N13DiffBitsArray13DiffBitsArrayEv"></span><span id="_CPPv2N13DiffBitsArray13DiffBitsArrayEv"></span><span id="DiffBitsArray::DiffBitsArray"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a04e666eff434a08931762f9e4bd66d01"></span><span class="sig-name descname"><span class="n"><span class="pre">DiffBitsArray</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N13DiffBitsArray13DiffBitsArrayEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>コンストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13DiffBitsArrayD0Ev">
+<span id="_CPPv3N13DiffBitsArrayD0Ev"></span><span id="_CPPv2N13DiffBitsArrayD0Ev"></span><span id="DiffBitsArray::~DiffBitsArray"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a8c345ea416d2af63397437f6c1238d2a"></span><span class="sig-name descname"><span class="n"><span class="pre">~DiffBitsArray</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N13DiffBitsArrayD0Ev" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>デストラクタ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray8elem_numEv">
+<span id="_CPPv3NK13DiffBitsArray8elem_numEv"></span><span id="_CPPv2NK13DiffBitsArray8elem_numEv"></span><span id="DiffBitsArray::elem_numC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1aa3ec9cb395feff676d7dcc8f38d2bf7f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">elem_num</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray8elem_numEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>非ゼロの要素数を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray6outputE8SizeType">
+<span id="_CPPv3NK13DiffBitsArray6outputE8SizeType"></span><span id="_CPPv2NK13DiffBitsArray6outputE8SizeType"></span><span id="DiffBitsArray::output__SizeTypeC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1aacfdb8687d89c56e85c24d6db7578d89"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">output</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray6outputE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>非ゼロの出力番号を返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> -- [in] 位置番号( 0 &lt;= index &lt; <a class="reference internal" href="#d5/d2e/classDiffBitsArray_1aa3ec9cb395feff676d7dcc8f38d2bf7f"><span class="std std-ref">elem_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray5dbitsE8SizeType">
+<span id="_CPPv3NK13DiffBitsArray5dbitsE8SizeType"></span><span id="_CPPv2NK13DiffBitsArray5dbitsE8SizeType"></span><span id="DiffBitsArray::dbits__SizeTypeC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a152eac7601dec5afb6cbec8766e60537"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dbits</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray5dbitsE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>故障伝搬ビットパタンを返す． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> -- [in] 位置番号( 0 &lt;= index &lt; <a class="reference internal" href="#d5/d2e/classDiffBitsArray_1aa3ec9cb395feff676d7dcc8f38d2bf7f"><span class="std std-ref">elem_num()</span></a> ) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray11dbits_unionEv">
+<span id="_CPPv3NK13DiffBitsArray11dbits_unionEv"></span><span id="_CPPv2NK13DiffBitsArray11dbits_unionEv"></span><span id="DiffBitsArray::dbits_unionC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a129e1535f76bce55e0cb2d957d93921f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dbits_union</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray11dbits_unionEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>全ての出力のビットパタンの OR を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray9get_sliceE8SizeType">
+<span id="_CPPv3NK13DiffBitsArray9get_sliceE8SizeType"></span><span id="_CPPv2NK13DiffBitsArray9get_sliceE8SizeType"></span><span id="DiffBitsArray::get_slice__SizeTypeC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a186c2b6be8ecdf49ef9412c841203275"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="diffbits.html#_CPPv48DiffBits" title="DiffBits"><span class="n"><span class="pre">DiffBits</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_slice</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray9get_sliceE8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ビットスライスを得る． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pos</strong> -- [in] ビット位置 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray7maskingE9PackedVal">
+<span id="_CPPv3NK13DiffBitsArray7maskingE9PackedVal"></span><span id="_CPPv2NK13DiffBitsArray7maskingE9PackedVal"></span><span id="DiffBitsArray::masking__PackedValC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1ac0065710c9035ae33f6341f460d39d70"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413DiffBitsArray" title="DiffBitsArray"><span class="n"><span class="pre">DiffBitsArray</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">masking</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mask</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray7maskingE9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ビットマスクを行う． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13DiffBitsArray5clearEv">
+<span id="_CPPv3N13DiffBitsArray5clearEv"></span><span id="_CPPv2N13DiffBitsArray5clearEv"></span><span id="DiffBitsArray::clear"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a3538abadb4e0721b1804edc3c0b0b3c7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13DiffBitsArray5clearEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容をクリアする． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13DiffBitsArray10add_outputE8SizeType9PackedVal">
+<span id="_CPPv3N13DiffBitsArray10add_outputE8SizeType9PackedVal"></span><span id="_CPPv2N13DiffBitsArray10add_outputE8SizeType9PackedVal"></span><span id="DiffBitsArray::add_output__SizeType.PackedVal"></span><span class="target" id="d5/d2e/classDiffBitsArray_1ab21c0c18d442a4441da8d96032c76ae5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add_output</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">output</span></span>, <span class="n"><span class="pre">PackedVal</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dbits</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13DiffBitsArray10add_outputE8SizeType9PackedVal" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>出力のビットパタンを追加する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output</strong> -- [in] 出力番号 </p></li>
+<li><p><strong>dbits</strong> -- [in] 故障伝搬ビットパタン </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13DiffBitsArray7add_patERK8DiffBits8SizeType">
+<span id="_CPPv3N13DiffBitsArray7add_patERK8DiffBits8SizeType"></span><span id="_CPPv2N13DiffBitsArray7add_patERK8DiffBits8SizeType"></span><span id="DiffBitsArray::add_pat__DiffBitsCR.SizeType"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a09d59a284a804c9930d7fc4f8bd0a1b1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add_pat</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="diffbits.html#_CPPv48DiffBits" title="DiffBits"><span class="n"><span class="pre">DiffBits</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dbits</span></span>, <span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13DiffBitsArray7add_patERK8DiffBits8SizeType" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>1ビット分のパタンを追加する． </p>
+<dl class="field-list simple">
+<dt class="field-odd">パラメータ<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbits</strong> -- [in] ビットパタン </p></li>
+<li><p><strong>pos</strong> -- [in] ビット位置 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13DiffBitsArray4sortEv">
+<span id="_CPPv3N13DiffBitsArray4sortEv"></span><span id="_CPPv2N13DiffBitsArray4sortEv"></span><span id="DiffBitsArray::sort"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a21696b20dc1c3ffffd991d6939671406"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sort</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13DiffBitsArray4sortEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容をソートする． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray6sortedEv">
+<span id="_CPPv3NK13DiffBitsArray6sortedEv"></span><span id="_CPPv2NK13DiffBitsArray6sortedEv"></span><span id="DiffBitsArray::sortedC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1aa322fdeae3be205653186065bd16ee90"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413DiffBitsArray" title="DiffBitsArray"><span class="n"><span class="pre">DiffBitsArray</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sorted</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray6sortedEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ソートした内容を返す． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArrayeqERK13DiffBitsArray">
+<span id="_CPPv3NK13DiffBitsArrayeqERK13DiffBitsArray"></span><span id="_CPPv2NK13DiffBitsArrayeqERK13DiffBitsArray"></span><span id="DiffBitsArray::eq-operator__DiffBitsArrayCRC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a557e8194b0d027b4e671672c43d6aadc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413DiffBitsArray" title="DiffBitsArray"><span class="n"><span class="pre">DiffBitsArray</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArrayeqERK13DiffBitsArray" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>等価比較演算 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArrayneERK13DiffBitsArray">
+<span id="_CPPv3NK13DiffBitsArrayneERK13DiffBitsArray"></span><span id="_CPPv2NK13DiffBitsArrayneERK13DiffBitsArray"></span><span id="DiffBitsArray::neq-operator__DiffBitsArrayCRC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a2feed539195b730825fd2589be2bbf4b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">!=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413DiffBitsArray" title="DiffBitsArray"><span class="n"><span class="pre">DiffBitsArray</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArrayneERK13DiffBitsArray" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>非等価比較演算 </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray5printERNSt7ostreamE">
+<span id="_CPPv3NK13DiffBitsArray5printERNSt7ostreamE"></span><span id="_CPPv2NK13DiffBitsArray5printERNSt7ostreamE"></span><span id="DiffBitsArray::print__osRC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a0b72aa56a722c8489eac9d75a03f1434"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">s</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray5printERNSt7ostreamE" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>内容を出力する． </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13DiffBitsArray4hashEv">
+<span id="_CPPv3NK13DiffBitsArray4hashEv"></span><span id="_CPPv2NK13DiffBitsArray4hashEv"></span><span id="DiffBitsArray::hashC"></span><span class="target" id="d5/d2e/classDiffBitsArray_1a0d8b16dd3458665805c3dbc6c7d1ac3e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">SizeType</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hash</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK13DiffBitsArray4hashEv" title="この定義へのパーマリンク">¶</a><br /></dt>
+<dd><p>ハッシュ関数 </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>前のトピックへ</h4>
+    <p class="topless"><a href="diffbits.html"
+                          title="前の章へ">DiffBits</a></p>
+  </div>
+  <div>
+    <h4>次のトピックへ</h4>
+    <p class="topless"><a href="../dtpg/dtpg_module.html"
+                          title="次の章へ">テスト生成</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>このページ</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/c++/fsim/diffbitsarray.rst.txt"
+            rel="nofollow">ソースコードを表示</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>ナビゲーション</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="総合索引"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Pythonモジュール索引"
+             >モジュール</a> |</li>
+        <li class="right" >
+          <a href="../dtpg/dtpg_module.html" title="テスト生成"
+             >次へ</a> |</li>
+        <li class="right" >
+          <a href="diffbits.html" title="DiffBits"
+             >前へ</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Druid 1.0.0 ドキュメント</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../intro.html" >C++ API</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="fsim_module.html" >故障シミュレーター</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DiffBitsArray</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2026, Yusuke Matsunaga.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>
