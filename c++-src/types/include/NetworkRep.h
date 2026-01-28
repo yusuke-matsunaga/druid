@@ -596,7 +596,7 @@ private:
     std::function<GateType*(SizeType id)> new_func ///< [in] ゲートタイプを生成する関数
   );
 
-  /// @grief ゲートを生成して登録する．
+  /// @brief ゲートを生成して登録する．
   GateRep*
   new_gate(
     std::function<GateRep*(SizeType id)> new_func ///< [in] ゲートを生成する関数

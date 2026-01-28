@@ -20,6 +20,8 @@ class Extractor;
 //////////////////////////////////////////////////////////////////////
 /// @class BoolDiffEnc BoolDiffEnc.h "BoolDiffEnc.h"
 /// @brief ブール微分を表すCNFを生成するクラス
+/// @ingroup DtpgGroup
+/// @sa StructEngine
 ///
 /// StructEngine に部品として組み込んで用いる SubEnc の継承クラス
 ///

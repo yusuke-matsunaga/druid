@@ -21,6 +21,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class TestVector TestVector.h "TestVector.h"
 /// @brief テストベクタを表すクラス
+/// @ingroup TypesGroup
+/// @sa InputVector, DffVector
 ///
 /// 基本的には3値(0, 1, X)のベクタを表している．
 ///
@@ -36,8 +38,6 @@ BEGIN_NAMESPACE_DRUID
 /// - DFF[1時刻目](DffVector)
 /// - 外部入力[2時刻目](InputVector)
 /// の値を持つ．
-///
-/// @sa InputVector, DffVector
 //////////////////////////////////////////////////////////////////////
 class TestVector
 {
@@ -317,7 +317,7 @@ public:
     mVector.set_val(pos, val);
   }
 
-  /// @breif 1時刻目の外部入力の値を設定する．
+  /// @brief 1時刻目の外部入力の値を設定する．
   ///
   /// is_td_mode() == true の時のみ有効
   void
@@ -329,7 +329,7 @@ public:
     mVector.set_val(pos, val);
   }
 
-  /// @breif 1時刻目のDFFの値を設定する．
+  /// @brief 1時刻目のDFFの値を設定する．
   ///
   /// is_td_mode() == true の時のみ有効
   void
@@ -341,7 +341,7 @@ public:
     mVector.set_val(pos + input_num(), val);
   }
 
-  /// @breif 2時刻目の外部入力の値を設定する．
+  /// @brief 2時刻目の外部入力の値を設定する．
   ///
   /// is_td_mode() == true の時のみ意味を持つ．
   void

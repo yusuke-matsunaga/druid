@@ -19,6 +19,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class DetCond DetCond.h "DetCond.h"
 /// @brief 故障検出条件を表すクラス
+/// @ingroup CondgenGroup
 ///
 /// mandatory_condition & (cube_1 | cube_2 | ... | cube_n)
 /// の形で表される．

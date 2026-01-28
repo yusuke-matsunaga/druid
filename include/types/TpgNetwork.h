@@ -26,6 +26,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class TpgNetwork TpgNetwork.h "TpgNetwork.h"
 /// @brief DRUID 用のネットワークを表すクラス
+/// @ingroup TypesGroup
 /// @sa TpgNode
 /// @sa TpgDff
 ///

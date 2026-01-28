@@ -92,7 +92,6 @@ richcompare_func(
   }
 }
 
-// return output ID
 PyObject*
 output(
   PyObject* self,
@@ -122,7 +121,6 @@ output(
   }
 }
 
-// return DIFF bits
 PyObject*
 dbits(
   PyObject* self,
@@ -152,7 +150,6 @@ dbits(
   }
 }
 
-// return union of DIFF bits of all outputs
 PyObject*
 dbits_union(
   PyObject* self,
@@ -171,7 +168,6 @@ dbits_union(
   }
 }
 
-// return bit slice
 PyObject*
 get_slice(
   PyObject* self,
@@ -201,7 +197,6 @@ get_slice(
   }
 }
 
-// return masked DiffBitsArray
 PyObject*
 masking(
   PyObject* self,
@@ -231,7 +226,6 @@ masking(
   }
 }
 
-// clear
 PyObject*
 clear(
   PyObject* self,
@@ -251,7 +245,6 @@ clear(
   }
 }
 
-// add output ID
 PyObject*
 add_output(
   PyObject* self,
@@ -285,7 +278,6 @@ add_output(
   }
 }
 
-// add bit slice
 PyObject*
 add_pat(
   PyObject* self,
@@ -326,7 +318,6 @@ add_pat(
   }
 }
 
-// do sorting
 PyObject*
 sort(
   PyObject* self,
@@ -346,7 +337,6 @@ sort(
   }
 }
 
-// return sorted DiffBitsArray
 PyObject*
 sorted(
   PyObject* self,
@@ -365,7 +355,6 @@ sorted(
   }
 }
 
-// print
 PyObject*
 print(
   PyObject* self,

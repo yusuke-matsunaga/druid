@@ -88,7 +88,6 @@ richcompare_func(
   }
 }
 
-// return node ID
 PyObject*
 node_id(
   PyObject* self,
@@ -107,7 +106,6 @@ node_id(
   }
 }
 
-// return node
 PyObject*
 node(
   PyObject* self,
@@ -126,7 +124,6 @@ node(
   }
 }
 
-// return time
 PyObject*
 time(
   PyObject* self,
@@ -145,7 +142,6 @@ time(
   }
 }
 
-// return the packed value of node_id and time
 PyObject*
 node_time(
   PyObject* self,
@@ -164,7 +160,6 @@ node_time(
   }
 }
 
-// return value
 PyObject*
 val(
   PyObject* self,

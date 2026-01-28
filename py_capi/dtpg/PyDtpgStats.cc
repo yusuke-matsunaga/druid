@@ -45,7 +45,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// clear
 PyObject*
 clear(
   PyObject* self,
@@ -65,7 +64,6 @@ clear(
   }
 }
 
-// update statistics for detected faults
 PyObject*
 update_det(
   PyObject* self,
@@ -99,7 +97,6 @@ update_det(
   }
 }
 
-// update statistics for untestable faults
 PyObject*
 update_untest(
   PyObject* self,
@@ -130,7 +127,6 @@ update_untest(
   }
 }
 
-// update statistics for aborted faults
 PyObject*
 update_abort(
   PyObject* self,
@@ -161,7 +157,6 @@ update_abort(
   }
 }
 
-// update statistics for CNF generation
 PyObject*
 update_cnf(
   PyObject* self,
@@ -192,7 +187,6 @@ update_cnf(
   }
 }
 
-// merge
 PyObject*
 merge(
   PyObject* self,
@@ -230,7 +224,6 @@ merge(
   }
 }
 
-// update SAT statictics
 PyObject*
 update_sat_stats(
   PyObject* self,

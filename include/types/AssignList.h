@@ -18,6 +18,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class AssignIter AssignList.h "AssignList.h"
 /// @brief AssignList の反復子を表すクラス
+/// @ingroup TypesGroup
+/// @sa AssignList
 //////////////////////////////////////////////////////////////////////
 class AssignIter:
   public TpgBase
@@ -52,7 +54,7 @@ public:
     return Assign(_network(), *mIter);
   }
 
-  /// @breif next 演算子
+  /// @brief next 演算子
   AssignIter&
   operator++()
   {
@@ -93,6 +95,8 @@ private:
 //////////////////////////////////////////////////////////////////////
 /// @class AssignList AssignList.h "td/AssignList.h"
 /// @brief ノードに対する値の割当を記録するクラス
+/// @ingroup TypesGroup
+/// @sa Assign
 ///
 /// * 概念的には vector<Assign> と同じ
 /// * このクラスのメソッドはすべてソートされていると仮定している．

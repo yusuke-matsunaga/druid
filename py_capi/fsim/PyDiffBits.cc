@@ -91,7 +91,6 @@ richcompare_func(
   }
 }
 
-// return output ID
 PyObject*
 output(
   PyObject* self,
@@ -121,7 +120,6 @@ output(
   }
 }
 
-// clear
 PyObject*
 clear(
   PyObject* self,
@@ -141,7 +139,6 @@ clear(
   }
 }
 
-// add output ID
 PyObject*
 add_output(
   PyObject* self,
@@ -172,7 +169,6 @@ add_output(
   }
 }
 
-// do sorting
 PyObject*
 sort(
   PyObject* self,
@@ -192,7 +188,6 @@ sort(
   }
 }
 
-// return sorted DiffBits
 PyObject*
 sorted(
   PyObject* self,
@@ -211,7 +206,6 @@ sorted(
   }
 }
 
-// print
 PyObject*
 print(
   PyObject* self,

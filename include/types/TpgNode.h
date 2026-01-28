@@ -18,6 +18,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class TpgNode TpgNode.h "TpgNode.h"
 /// @brief DRUID 用のノードを表すクラス
+/// @ingroup TypesGroup
 /// @sa TpgNetwork
 /// @sa TpgMFFC
 /// @sa TpgFFR

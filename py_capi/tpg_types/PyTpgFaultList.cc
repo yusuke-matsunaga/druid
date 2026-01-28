@@ -93,7 +93,6 @@ PySequenceMethods sequence = {
   .sq_item = sq_item
 };
 
-// True if valid
 PyObject*
 is_valid(
   PyObject* self,

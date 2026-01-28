@@ -45,7 +45,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// True if valid
 PyObject*
 is_valid(
   PyObject* self,
@@ -64,7 +63,6 @@ is_valid(
   }
 }
 
-// return root node
 PyObject*
 root(
   PyObject* self,
@@ -83,7 +81,6 @@ root(
   }
 }
 
-// return input node
 PyObject*
 input(
   PyObject* self,
@@ -113,7 +110,6 @@ input(
   }
 }
 
-// return list of input nodes
 PyObject*
 input_list(
   PyObject* self,
@@ -132,7 +128,6 @@ input_list(
   }
 }
 
-// return node
 PyObject*
 node(
   PyObject* self,
@@ -162,7 +157,6 @@ node(
   }
 }
 
-// return list of nodes
 PyObject*
 node_list(
   PyObject* self,

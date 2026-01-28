@@ -21,6 +21,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class FFREnc FFREnc.h "FFREnc.h"
 /// @brief FFR内の故障伝搬条件を表すCNFを作るクラス
+/// @ingroup DtpgGroup
+/// @sa StructEngine
 ///
 /// FFR内の故障伝搬条件は論理積で表せるのでCNF式を作る必要はないが，
 /// 故障伝搬しない条件を表すために個々の場所ごとに変数を用意する．

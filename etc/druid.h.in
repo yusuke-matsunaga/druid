@@ -11,6 +11,22 @@
 /// Copyright (C) 2025 Yusuke Matsunaga
 /// All rights reserved.
 
+/// @defgroup TypesGroup 基本的なデータ構造
+///
+/// テスト対象の回路と故障を表すためのクラス
+
+/// @defgroup FsimGroup 故障シミュレーション
+///
+/// 故障シミュレーターに関連したクラス
+
+/// @defgroup DtpgGroup テスト生成
+///
+/// SATソルバを用いたテスト生成に関連したクラス
+
+/// @defgroup CondgenGroup 条件生成
+///
+/// 故障検出条件の生成に関連したクラス
+
 #include "ym_config.h"
 
 

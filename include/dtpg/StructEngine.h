@@ -24,11 +24,10 @@ class Justifier;
 //////////////////////////////////////////////////////////////////////
 /// @class StructEngine StructEngine.h "StructEngine.h"
 /// @brief DTPG 用の基本的なエンコードを行うクラス
+/// @ingroup DtpgGroup
 ///
 /// SATソルバとノード用の変数マップを持つ．
 /// 具体的な仕事は SubEnc の継承クラスを登録することで行う．
-///
-/// make_cnf() などの関数
 //////////////////////////////////////////////////////////////////////
 class StructEngine
 {

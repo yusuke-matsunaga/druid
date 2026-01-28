@@ -18,6 +18,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class TpgFault TpgFault.h "TpgFault.h"
 /// @brief 故障を表すクラス
+/// @ingroup TypesGroup
 ///
 /// 実体は TpgFaultImpl が表す．
 /// このクラスは NetworkRep への共有ポインタと故障番号のみを持つ．

@@ -18,6 +18,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgResult DtpgResult.h "DtpgResult.h"
 /// @brief DTPG の結果を表すクラス
+/// @ingroup DtpgGroup
 ///
 /// 具体的には
 /// - パタン生成の結果(検出，冗長，アボート)

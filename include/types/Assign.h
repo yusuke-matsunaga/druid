@@ -18,6 +18,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class Assign Assign.h "td/Assign.h"
 /// @brief ノードに対する値の割当を表すクラス
+/// @ingroup TypesGroup
+/// @sa AssignList
 ///
 /// ノード番号と時刻と値を持つ．
 /// なお，縮退故障モードのときは時刻は 1 となる．
@@ -46,7 +48,7 @@ public:
   {
   }
 
-  /// @grief ノードを指定したコンストラクタ
+  /// @brief ノードを指定したコンストラクタ
   Assign(
     const TpgNode& node, ///< [in] ノード
     int time,	         ///< [in] 時刻 ( 0 or 1 )

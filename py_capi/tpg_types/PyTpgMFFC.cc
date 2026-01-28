@@ -46,7 +46,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// True if valid
 PyObject*
 is_valid(
   PyObject* self,
@@ -65,7 +64,6 @@ is_valid(
   }
 }
 
-// return root node
 PyObject*
 root(
   PyObject* self,
@@ -84,7 +82,6 @@ root(
   }
 }
 
-// return the number of FFRs
 PyObject*
 ffr_num(
   PyObject* self,
@@ -103,7 +100,6 @@ ffr_num(
   }
 }
 
-// return FFR
 PyObject*
 ffr(
   PyObject* self,
@@ -133,7 +129,6 @@ ffr(
   }
 }
 
-// return list of FFRs
 PyObject*
 ffr_list(
   PyObject* self,

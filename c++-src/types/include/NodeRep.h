@@ -49,7 +49,7 @@ public:
     SizeType dff_id    ///< [in] DFF番号
   );
 
-  /// @grief 出力ノードを作る．
+  /// @brief 出力ノードを作る．
   static
   NodeRep*
   new_output(

@@ -50,7 +50,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// True if valid
 PyObject*
 is_valid(
   PyObject* self,
@@ -69,7 +68,6 @@ is_valid(
   }
 }
 
-// return Output Node
 PyObject*
 output_node(
   PyObject* self,
@@ -88,7 +86,6 @@ output_node(
   }
 }
 
-// return the number of inputs
 PyObject*
 input_num(
   PyObject* self,
@@ -107,7 +104,6 @@ input_num(
   }
 }
 
-// return Input Node
 PyObject*
 input_node(
   PyObject* self,
@@ -137,7 +133,6 @@ input_node(
   }
 }
 
-// return BranchInfo
 PyObject*
 branch_info(
   PyObject* self,
@@ -169,7 +164,6 @@ branch_info(
   }
 }
 
-// True if PPI
 PyObject*
 is_ppi(
   PyObject* self,
@@ -188,7 +182,6 @@ is_ppi(
   }
 }
 
-// True if PPO
 PyObject*
 is_ppo(
   PyObject* self,
@@ -207,7 +200,6 @@ is_ppo(
   }
 }
 
-// True if simple type
 PyObject*
 is_simple(
   PyObject* self,
@@ -226,7 +218,6 @@ is_simple(
   }
 }
 
-// True if complex type
 PyObject*
 is_complex(
   PyObject* self,
@@ -245,7 +236,6 @@ is_complex(
   }
 }
 
-// return the controlling value
 PyObject*
 cval(
   PyObject* self,
@@ -285,7 +275,6 @@ cval(
   }
 }
 
-// return Stem Fault
 PyObject*
 stem_fault(
   PyObject* self,
@@ -322,7 +311,6 @@ stem_fault(
   }
 }
 
-// return Stem Fault
 PyObject*
 branch_fault(
   PyObject* self,

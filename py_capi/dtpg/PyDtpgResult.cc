@@ -44,7 +44,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// return DETECTED object
 PyObject*
 detected(
   PyObject* Py_UNUSED(self),
@@ -80,7 +79,6 @@ detected(
   }
 }
 
-// return UNTESTABLE object
 PyObject*
 untestable(
   PyObject* Py_UNUSED(self),
@@ -98,7 +96,6 @@ untestable(
   }
 }
 
-// return UNDETECTED object
 PyObject*
 undetected(
   PyObject* Py_UNUSED(self),
@@ -116,7 +113,6 @@ undetected(
   }
 }
 
-// set status
 PyObject*
 set(
   PyObject* self,

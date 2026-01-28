@@ -56,7 +56,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// add node in the current time
 PyObject*
 add_cur_node(
   PyObject* self,
@@ -94,7 +93,6 @@ add_cur_node(
   }
 }
 
-// add nodes in the current time
 PyObject*
 add_cur_node_list(
   PyObject* self,
@@ -126,7 +124,6 @@ add_cur_node_list(
   }
 }
 
-// add node in the previous time
 PyObject*
 add_prev_node(
   PyObject* self,
@@ -164,7 +161,6 @@ add_prev_node(
   }
 }
 
-// add nodes in the previous time
 PyObject*
 add_prev_node_list(
   PyObject* self,
@@ -196,7 +192,6 @@ add_prev_node_list(
   }
 }
 
-// udpate
 PyObject*
 update(
   PyObject* self,
@@ -216,7 +211,6 @@ update(
   }
 }
 
-// do Justification
 PyObject*
 justify(
   PyObject* self,
@@ -253,7 +247,6 @@ justify(
   }
 }
 
-// return current assignments on Primary Inputs
 PyObject*
 get_pi_assign(
   PyObject* self,
@@ -272,7 +265,6 @@ get_pi_assign(
   }
 }
 
-// return SAT literal related to the assignment
 PyObject*
 conv_to_ltieral(
   PyObject* self,
@@ -309,7 +301,6 @@ conv_to_ltieral(
   }
 }
 
-// return SAT literals related to the assignments
 PyObject*
 conv_to_literal_list(
   PyObject* self,
@@ -346,7 +337,6 @@ conv_to_literal_list(
   }
 }
 
-// make CNF related to the expression
 PyObject*
 expr_to_cnf(
   PyObject* self,
@@ -383,7 +373,6 @@ expr_to_cnf(
   }
 }
 
-// solve the problem
 PyObject*
 solve(
   PyObject* self,
@@ -420,7 +409,6 @@ solve(
   }
 }
 
-// return G Variable for the node
 PyObject*
 gvar(
   PyObject* self,
@@ -457,7 +445,6 @@ gvar(
   }
 }
 
-// return H Variable for the node
 PyObject*
 hvar(
   PyObject* self,
@@ -494,7 +481,6 @@ hvar(
   }
 }
 
-// return the value of the node
 PyObject*
 val(
   PyObject* self,
@@ -534,7 +520,6 @@ val(
   }
 }
 
-// return CPU time for CNF gneration
 PyObject*
 cnf_time(
   PyObject* self,

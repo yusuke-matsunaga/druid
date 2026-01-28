@@ -54,7 +54,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// set \"skip\" mark to all faults
 PyObject*
 set_skip_all(
   PyObject* self,
@@ -74,7 +73,6 @@ set_skip_all(
   }
 }
 
-// set \"skip\" mark
 PyObject*
 set_skip(
   PyObject* self,
@@ -98,7 +96,6 @@ set_skip(
   }
 }
 
-// clear \"skip\" mark to all faults
 PyObject*
 clear_skip_all(
   PyObject* self,
@@ -118,7 +115,6 @@ clear_skip_all(
   }
 }
 
-// clear \"skip\" mark
 PyObject*
 clear_skip(
   PyObject* self,
@@ -142,7 +138,6 @@ clear_skip(
   }
 }
 
-// get \"skip\" mark
 PyObject*
 get_skip(
   PyObject* self,
@@ -179,7 +174,6 @@ get_skip(
   }
 }
 
-// do SPSFP fault simulation
 PyObject*
 spsfp(
   PyObject* self,
@@ -234,7 +228,6 @@ spsfp(
   }
 }
 
-// do SPSFP fault simulation with X values
 PyObject*
 xspsfp(
   PyObject* self,
@@ -284,7 +277,6 @@ xspsfp(
   }
 }
 
-// do SPPFP fault simulation
 PyObject*
 sppfp(
   PyObject* self,
@@ -333,7 +325,6 @@ sppfp(
   }
 }
 
-// do SPPFP fault simulation with X values
 PyObject*
 xsppfp(
   PyObject* self,
@@ -379,7 +370,6 @@ xsppfp(
   }
 }
 
-// do SPPFP fault simulation with X values
 PyObject*
 ppsfp(
   PyObject* self,

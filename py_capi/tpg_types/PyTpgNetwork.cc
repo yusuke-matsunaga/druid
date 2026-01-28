@@ -56,7 +56,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// convert from BnModel
 PyObject*
 from_bn(
   PyObject* Py_UNUSED(self),
@@ -102,7 +101,6 @@ from_bn(
   }
 }
 
-// read BLIF file
 PyObject*
 read_blif(
   PyObject* Py_UNUSED(self),
@@ -145,7 +143,6 @@ read_blif(
   }
 }
 
-// True if valid
 PyObject*
 is_valid(
   PyObject* self,
@@ -164,7 +161,6 @@ is_valid(
   }
 }
 
-// return the number of nodes
 PyObject*
 node_num(
   PyObject* self,
@@ -183,7 +179,6 @@ node_num(
   }
 }
 
-// return node
 PyObject*
 node(
   PyObject* self,
@@ -213,7 +208,6 @@ node(
   }
 }
 
-// return list of nodes
 PyObject*
 node_list(
   PyObject* self,
@@ -232,7 +226,6 @@ node_list(
   }
 }
 
-// return the number input nodes
 PyObject*
 input_num(
   PyObject* self,
@@ -251,7 +244,6 @@ input_num(
   }
 }
 
-// return input node
 PyObject*
 input(
   PyObject* self,
@@ -281,7 +273,6 @@ input(
   }
 }
 
-// return list of input nodes
 PyObject*
 input_list(
   PyObject* self,
@@ -300,7 +291,6 @@ input_list(
   }
 }
 
-// return the number output nodes
 PyObject*
 output_num(
   PyObject* self,
@@ -319,7 +309,6 @@ output_num(
   }
 }
 
-// return output node
 PyObject*
 output(
   PyObject* self,
@@ -349,7 +338,6 @@ output(
   }
 }
 
-// return list of output nodes
 PyObject*
 output_list(
   PyObject* self,
@@ -368,7 +356,6 @@ output_list(
   }
 }
 
-// return output node with another order
 PyObject*
 output2(
   PyObject* self,
@@ -398,7 +385,24 @@ output2(
   }
 }
 
-// return ppi node
+PyObject*
+ppi_num(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto& val = PyTpgNetwork::_get_ref(self);
+  try {
+    return PyUlong::ToPyObject(val.ppi_num());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
 PyObject*
 ppi(
   PyObject* self,
@@ -428,7 +432,6 @@ ppi(
   }
 }
 
-// return ppi name
 PyObject*
 ppi_name(
   PyObject* self,
@@ -458,7 +461,6 @@ ppi_name(
   }
 }
 
-// return list of ppi nodes
 PyObject*
 ppi_list(
   PyObject* self,
@@ -477,7 +479,6 @@ ppi_list(
   }
 }
 
-// return the number ppo nodes
 PyObject*
 ppo_num(
   PyObject* self,
@@ -496,7 +497,6 @@ ppo_num(
   }
 }
 
-// return ppo node
 PyObject*
 ppo(
   PyObject* self,
@@ -526,7 +526,6 @@ ppo(
   }
 }
 
-// return ppo name
 PyObject*
 ppo_name(
   PyObject* self,
@@ -556,7 +555,6 @@ ppo_name(
   }
 }
 
-// return list of ppo nodes
 PyObject*
 ppo_list(
   PyObject* self,
@@ -575,7 +573,6 @@ ppo_list(
   }
 }
 
-// return the number mffc nodes
 PyObject*
 mffc_num(
   PyObject* self,
@@ -594,7 +591,6 @@ mffc_num(
   }
 }
 
-// return mffc node
 PyObject*
 mffc(
   PyObject* self,
@@ -624,7 +620,6 @@ mffc(
   }
 }
 
-// return list of MFFCs
 PyObject*
 mffc_list(
   PyObject* self,
@@ -643,7 +638,6 @@ mffc_list(
   }
 }
 
-// return the number ffr nodes
 PyObject*
 ffr_num(
   PyObject* self,
@@ -662,7 +656,6 @@ ffr_num(
   }
 }
 
-// return ffr node
 PyObject*
 ffr(
   PyObject* self,
@@ -692,7 +685,6 @@ ffr(
   }
 }
 
-// return list of FFRs
 PyObject*
 ffr_list(
   PyObject* self,
@@ -711,7 +703,6 @@ ffr_list(
   }
 }
 
-// return the number dff nodes
 PyObject*
 dff_num(
   PyObject* self,
@@ -730,7 +721,6 @@ dff_num(
   }
 }
 
-// return DFF input node
 PyObject*
 dff_input(
   PyObject* self,
@@ -760,7 +750,6 @@ dff_input(
   }
 }
 
-// return DFF output node
 PyObject*
 dff_output(
   PyObject* self,
@@ -790,7 +779,6 @@ dff_output(
   }
 }
 
-// return the number gate nodes
 PyObject*
 gate_num(
   PyObject* self,
@@ -809,7 +797,6 @@ gate_num(
   }
 }
 
-// return gate
 PyObject*
 gate(
   PyObject* self,
@@ -839,7 +826,6 @@ gate(
   }
 }
 
-// return list of gates
 PyObject*
 gate_list(
   PyObject* self,
@@ -858,7 +844,6 @@ gate_list(
   }
 }
 
-// return fault type
 PyObject*
 fault_type(
   PyObject* self,
@@ -877,7 +862,6 @@ fault_type(
   }
 }
 
-// True if having the previous state
 PyObject*
 has_prev_state(
   PyObject* self,
@@ -896,7 +880,6 @@ has_prev_state(
   }
 }
 
-// return list of representative faults
 PyObject*
 rep_fault_list(
   PyObject* self,
@@ -915,7 +898,6 @@ rep_fault_list(
   }
 }
 
-// return the MAX fault id
 PyObject*
 max_fault_id(
   PyObject* self,
@@ -934,7 +916,6 @@ max_fault_id(
   }
 }
 
-// return fault
 PyObject*
 fault(
   PyObject* self,
@@ -964,7 +945,6 @@ fault(
   }
 }
 
-// print
 PyObject*
 print(
   PyObject* self,
@@ -1001,155 +981,176 @@ PyMethodDef methods[] = {
   {"from_bn",
    reinterpret_cast<PyCFunction>(from_bn),
    METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-   PyDoc_STR("convert from BnModel")},
+   PyDoc_STR("BnModel から変換する．\n"
+             ":param BnModel model: 元となる BnModel")},
   {"read_blif",
    reinterpret_cast<PyCFunction>(read_blif),
    METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-   PyDoc_STR("read BLIF file")},
+   PyDoc_STR("'blif' ファイルを読み込む．\n"
+             ":param str filename: blif ファイル名")},
   {"is_valid",
    is_valid,
    METH_NOARGS,
-   PyDoc_STR("True if valid")},
+   PyDoc_STR("適正な値を持つ時 True を返す．")},
   {"node_num",
    node_num,
    METH_NOARGS,
-   PyDoc_STR("return the number of nodes")},
+   PyDoc_STR("ノード数を返す．")},
   {"node",
    reinterpret_cast<PyCFunction>(node),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return node")},
+   PyDoc_STR("ノード返す．\n"
+             ":param int pos: 位置番号 ( 0 <= pos < node_num() )")},
   {"node_list",
    node_list,
    METH_NOARGS,
-   PyDoc_STR("return list of nodes")},
+   PyDoc_STR("ノードのリストを返す．")},
   {"input_num",
    input_num,
    METH_NOARGS,
-   PyDoc_STR("return the number input nodes")},
+   PyDoc_STR("入力数を返す．")},
   {"input",
    reinterpret_cast<PyCFunction>(input),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return input node")},
+   PyDoc_STR("入力ノードを返す．\n"
+             ":param int pos: 入力番号 ( 0 <= pos < input_num() )")},
   {"input_list",
    input_list,
    METH_NOARGS,
-   PyDoc_STR("return list of input nodes")},
+   PyDoc_STR("入力ノードのリストを返す．")},
   {"output_num",
    output_num,
    METH_NOARGS,
-   PyDoc_STR("return the number output nodes")},
+   PyDoc_STR("出力数を返す．")},
   {"output",
    reinterpret_cast<PyCFunction>(output),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return output node")},
+   PyDoc_STR("出力ノードを返す．\n"
+             ":param int pos: 出力番号 ( 0 <= pos < output_num() )")},
   {"output_list",
    output_list,
    METH_NOARGS,
-   PyDoc_STR("return list of output nodes")},
+   PyDoc_STR("出力ノードのリストを返す．")},
   {"output2",
    reinterpret_cast<PyCFunction>(output2),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return output node with another order")},
+   PyDoc_STR("出力ノードを返す．(サイズの昇順)\n"
+             ":param int pos: 出力番号 ( 0 <= pos < output_num() )")},
+  {"ppi_num",
+   ppi_num,
+   METH_NOARGS,
+   PyDoc_STR("PPI数(入力数+DFF数)を返す．")},
   {"ppi",
    reinterpret_cast<PyCFunction>(ppi),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return ppi node")},
+   PyDoc_STR("PPIノードを返す．\n"
+             ":param int pos: PPI番号 ( 0 <= pos < ppi_num() )")},
   {"ppi_name",
    reinterpret_cast<PyCFunction>(ppi_name),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return ppi name")},
+   PyDoc_STR("PPI名を返す．\n"
+             ":param int pos: PPI番号 ( 0 <= pos < ppi_num() )")},
   {"ppi_list",
    ppi_list,
    METH_NOARGS,
-   PyDoc_STR("return list of ppi nodes")},
+   PyDoc_STR("PPIノードのリストを返す．")},
   {"ppo_num",
    ppo_num,
    METH_NOARGS,
-   PyDoc_STR("return the number ppo nodes")},
+   PyDoc_STR("PPO数(出力数+DFF数)を返す．")},
   {"ppo",
    reinterpret_cast<PyCFunction>(ppo),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return ppo node")},
+   PyDoc_STR("PPOノードを返す．\n"
+             ":param int pos: PPO番号 ( 0 <= pos < ppo_num() )")},
   {"ppo_name",
    reinterpret_cast<PyCFunction>(ppo_name),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return ppo name")},
+   PyDoc_STR("PPO名を返す．\n"
+             ":param int pos: PPO番号 ( 0 <= pos < ppo_num() )")},
   {"ppo_list",
    ppo_list,
    METH_NOARGS,
-   PyDoc_STR("return list of ppo nodes")},
+   PyDoc_STR("PPOノードのリストを返す．")},
   {"mffc_num",
    mffc_num,
    METH_NOARGS,
-   PyDoc_STR("return the number mffc nodes")},
+   PyDoc_STR("MFFC数を返す．")},
   {"mffc",
    reinterpret_cast<PyCFunction>(mffc),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return mffc node")},
+   PyDoc_STR("MFFCを返す．\n"
+             ":param int pos: MFFC番号 ( 0 <= pos < mffc_num() )")},
   {"mffc_list",
    mffc_list,
    METH_NOARGS,
-   PyDoc_STR("return list of MFFCs")},
+   PyDoc_STR("MFFCのリストを返す．")},
   {"ffr_num",
    ffr_num,
    METH_NOARGS,
-   PyDoc_STR("return the number ffr nodes")},
+   PyDoc_STR("FFR数を返す．")},
   {"ffr",
    reinterpret_cast<PyCFunction>(ffr),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return ffr node")},
+   PyDoc_STR("FFRを返す．\n"
+             ":param int pos: FFR番号 ( 0 <= pos < ffr_num() )")},
   {"ffr_list",
    ffr_list,
    METH_NOARGS,
-   PyDoc_STR("return list of FFRs")},
+   PyDoc_STR("FFRのリストを返す．")},
   {"dff_num",
    dff_num,
    METH_NOARGS,
-   PyDoc_STR("return the number dff nodes")},
+   PyDoc_STR("DFF数を返す．")},
   {"dff_input",
    reinterpret_cast<PyCFunction>(dff_input),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return DFF input node")},
+   PyDoc_STR("DFFの入力ノードを返す．\n"
+             ":param int pos: DFF番号 ( 0 <= pos < dff_num() )")},
   {"dff_output",
    reinterpret_cast<PyCFunction>(dff_output),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return DFF output node")},
+   PyDoc_STR("DFFの出力ノードを返す．\n"
+             ":param int pos: DFF番号 ( 0 <= pos < dff_num() )")},
   {"gate_num",
    gate_num,
    METH_NOARGS,
-   PyDoc_STR("return the number gate nodes")},
+   PyDoc_STR("ゲート数を返す．")},
   {"gate",
    reinterpret_cast<PyCFunction>(gate),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return gate")},
+   PyDoc_STR("ゲートを返す．\n"
+             ":param int pos: ゲート番号 ( 0 <= pos < gate_num() )")},
   {"gate_list",
    gate_list,
    METH_NOARGS,
-   PyDoc_STR("return list of gates")},
+   PyDoc_STR("ゲートのリストを返す．")},
   {"fault_type",
    fault_type,
    METH_NOARGS,
-   PyDoc_STR("return fault type")},
+   PyDoc_STR("故障の種類(FaultType)を返す．")},
   {"has_prev_state",
    has_prev_state,
    METH_NOARGS,
-   PyDoc_STR("True if having the previous state")},
+   PyDoc_STR("1時刻前の状態を持つ時 True を返す．")},
   {"rep_fault_list",
    rep_fault_list,
    METH_NOARGS,
-   PyDoc_STR("return list of representative faults")},
+   PyDoc_STR("代表故障のリストを返す．")},
   {"max_fault_id",
    max_fault_id,
    METH_NOARGS,
-   PyDoc_STR("return the MAX fault id")},
+   PyDoc_STR("故障番号の最大値を返す．")},
   {"fault",
    reinterpret_cast<PyCFunction>(fault),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return fault")},
+   PyDoc_STR("故障を返す．\n"
+             ":param int fault_id: 故障番号 ( 0 <= fault_id <= max_fault_id() )")},
   {"print",
    reinterpret_cast<PyCFunction>(print),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("print")},
+   PyDoc_STR("内容を出力する．\n"
+             ":param file_object fout: 出力先のファイルオブジェクト")},
   // end-marker
   {nullptr, nullptr, 0, nullptr}
 };
@@ -1201,7 +1202,15 @@ PyTpgNetwork::init(
   TpgNetwork_Type.tp_itemsize = 0;
   TpgNetwork_Type.tp_dealloc = dealloc_func;
   TpgNetwork_Type.tp_flags = Py_TPFLAGS_DEFAULT;
-  TpgNetwork_Type.tp_doc = PyDoc_STR("Python extended object for TpgNetwork");
+  TpgNetwork_Type.tp_doc = PyDoc_STR("基本的には TpgNode のネットワーク(DAG)を表す．\n"
+                           "\n"
+                           "ただし，フルスキャンの順序回路を扱うためにフリップフロップの入出力をそれぞれ疑似出力，疑似入力としてあつかう．\n"
+                           "\n"
+                           "- 本当の入力と疑似入力をあわせて PPI(Pseudo Primary Input) と呼ぶ．\n"
+                           "- 本当の出力と疑似出力をあわせて PPO(Pseudo Primary Output) と呼ぶ．\n"
+                           "\n"
+                           "フリップフロップのクロック系の回路は無視される．\n"
+                           "セット/リセット系の回路も無視される．");
   TpgNetwork_Type.tp_methods = methods;
   TpgNetwork_Type.tp_new = new_func;
   if ( !PyModule::reg_type(m, "TpgNetwork", &TpgNetwork_Type) ) {

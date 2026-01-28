@@ -17,6 +17,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class TpgFFR TpgFFR.h "TpgFFR.h"
 /// @brief TpgNetwork の FFR の情報を表すクラス
+/// @ingroup TypesGroup
 /// @sa TpgNetwork
 /// @sa TpgNode
 /// @sa TpgMFFC

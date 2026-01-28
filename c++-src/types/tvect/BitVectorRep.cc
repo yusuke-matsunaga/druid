@@ -348,7 +348,7 @@ BitVectorRep::set_from_hex(
   return true;
 }
 
-// @breif ビットベクタをマージする．
+// @brief ビットベクタをマージする．
 bool
 BitVectorRep::merge(
   const BitVectorRep& src

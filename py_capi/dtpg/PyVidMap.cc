@@ -45,7 +45,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// return SAT literal related to the node
 PyObject*
 get(
   PyObject* self,

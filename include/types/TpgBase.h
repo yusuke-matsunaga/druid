@@ -23,6 +23,7 @@ class FaultRep;
 //////////////////////////////////////////////////////////////////////
 /// @class TpgBase TpgBase.h "TpgBase.h"
 /// @brief NetworkRep の共有ポインタを持つ基底クラス
+/// @ingroup TypesGroup
 /// @sa TpgNode
 /// @sa TpgDff
 ///

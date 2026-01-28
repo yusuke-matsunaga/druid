@@ -253,7 +253,7 @@ NetworkRep::new_gate_type(
   return gate_type;
 }
 
-// @grief ゲートを生成して登録する．
+// @brief ゲートを生成して登録する．
 GateRep*
 NetworkRep::new_gate(
   std::function<GateRep*(SizeType id)> new_func

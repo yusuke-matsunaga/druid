@@ -15,7 +15,7 @@ BEGIN_NAMESPACE_DRUID
 // クラス NodeRep
 //////////////////////////////////////////////////////////////////////
 
-// @grief 出力ノードを作る．
+// @brief 出力ノードを作る．
 NodeRep*
 NodeRep::new_output(
   SizeType id,

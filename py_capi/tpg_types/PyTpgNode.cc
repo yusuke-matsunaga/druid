@@ -46,7 +46,6 @@ dealloc_func(
   Py_TYPE(self)->tp_free(self);
 }
 
-// True if valid
 PyObject*
 is_valid(
   PyObject* self,
@@ -65,7 +64,6 @@ is_valid(
   }
 }
 
-// return fanin node
 PyObject*
 fanin(
   PyObject* self,
@@ -95,7 +93,6 @@ fanin(
   }
 }
 
-// return list of fanin nodes
 PyObject*
 fanin_list(
   PyObject* self,
@@ -114,7 +111,6 @@ fanin_list(
   }
 }
 
-// return fanout node
 PyObject*
 fanout(
   PyObject* self,
@@ -144,7 +140,6 @@ fanout(
   }
 }
 
-// return list of fanout nodes
 PyObject*
 fanout_list(
   PyObject* self,
@@ -163,7 +158,6 @@ fanout_list(
   }
 }
 
-// True if Primary Input
 PyObject*
 is_primary_input(
   PyObject* self,
@@ -182,7 +176,6 @@ is_primary_input(
   }
 }
 
-// True if Primary Output
 PyObject*
 is_primary_output(
   PyObject* self,
@@ -201,7 +194,6 @@ is_primary_output(
   }
 }
 
-// True if DFF Input
 PyObject*
 is_dff_input(
   PyObject* self,
@@ -220,7 +212,6 @@ is_dff_input(
   }
 }
 
-// True if DFF Output
 PyObject*
 is_dff_output(
   PyObject* self,
@@ -239,7 +230,6 @@ is_dff_output(
   }
 }
 
-// True if Pseudo Primary Input
 PyObject*
 is_ppi(
   PyObject* self,
@@ -258,7 +248,6 @@ is_ppi(
   }
 }
 
-// True if Pseudo Primary Output
 PyObject*
 is_ppo(
   PyObject* self,
@@ -277,7 +266,6 @@ is_ppo(
   }
 }
 
-// True if Logic type
 PyObject*
 is_logic(
   PyObject* self,

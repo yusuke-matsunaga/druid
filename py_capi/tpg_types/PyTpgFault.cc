@@ -117,7 +117,6 @@ richcompare_func(
   }
 }
 
-// True if valid
 PyObject*
 is_valid(
   PyObject* self,
@@ -136,7 +135,6 @@ is_valid(
   }
 }
 
-// True if stem fault
 PyObject*
 is_stem(
   PyObject* self,
@@ -155,7 +153,6 @@ is_stem(
   }
 }
 
-// True if branch fault
 PyObject*
 is_branch(
   PyObject* self,

@@ -18,6 +18,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class TpgMFFC TpgMFFC.h "TpgMFFC.h"
 /// @brief TpgNetwork の MFFC(Maximal Fanout Free Cone) の情報を表すクラス
+/// @ingroup TypesGroup
 /// @sa TpgNetwork
 /// @sa TpgNode
 /// @sa TpgFFR

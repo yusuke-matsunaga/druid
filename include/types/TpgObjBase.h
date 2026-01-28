@@ -17,6 +17,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class TpgObjBase TpgObjBase.h "TpgObjBase.h"
 /// @brief TpgNetwork の要素を表す基底クラス
+/// @ingroup TypesGroup
 ///
 /// TpgBase の継承クラスであり ID 番号を持つ．
 /// それが何のID番号なのかは継承クラスで決める．

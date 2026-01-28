@@ -65,7 +65,6 @@ richcompare_func(
   }
 }
 
-// return bit value
 PyObject*
 val(
   PyObject* self,
@@ -95,7 +94,6 @@ val(
   }
 }
 
-// True if having aux inputs
 PyObject*
 has_aux_input(
   PyObject* self,
@@ -114,7 +112,6 @@ has_aux_input(
   }
 }
 
-// return bit value of PPI
 PyObject*
 ppi_val(
   PyObject* self,
@@ -144,7 +141,6 @@ ppi_val(
   }
 }
 
-// return bit value of input
 PyObject*
 input_val(
   PyObject* self,
@@ -174,7 +170,6 @@ input_val(
   }
 }
 
-// return bit value of DFF
 PyObject*
 dff_val(
   PyObject* self,
@@ -204,7 +199,6 @@ dff_val(
   }
 }
 
-// return bit value of aux input
 PyObject*
 aux_input_val(
   PyObject* self,
@@ -234,7 +228,6 @@ aux_input_val(
   }
 }
 
-// return X count
 PyObject*
 x_count(
   PyObject* self,
@@ -253,7 +246,6 @@ x_count(
   }
 }
 
-// return BIN string representation
 PyObject*
 bin_str(
   PyObject* self,
@@ -272,7 +264,6 @@ bin_str(
   }
 }
 
-// return HEX string representation
 PyObject*
 hex_str(
   PyObject* self,
@@ -291,7 +282,6 @@ hex_str(
   }
 }
 
-// initialize
 PyObject*
 init(
   PyObject* self,
@@ -311,7 +301,6 @@ init(
   }
 }
 
-// set from AssignList
 PyObject*
 set_from_assign_list(
   PyObject* self,
@@ -349,7 +338,6 @@ set_from_assign_list(
   }
 }
 
-// set bit value of PPI
 PyObject*
 set_ppi_val(
   PyObject* self,
@@ -390,7 +378,6 @@ set_ppi_val(
   }
 }
 
-// set bit value of input
 PyObject*
 set_input_val(
   PyObject* self,
@@ -431,7 +418,6 @@ set_input_val(
   }
 }
 
-// set bit value of DFF
 PyObject*
 set_dff_val(
   PyObject* self,
@@ -472,7 +458,6 @@ set_dff_val(
   }
 }
 
-// set bit value of aux input
 PyObject*
 set_aux_input_val(
   PyObject* self,
@@ -513,7 +498,6 @@ set_aux_input_val(
   }
 }
 
-// set value from random generator
 PyObject*
 set_from_random(
   PyObject* self,
@@ -551,7 +535,6 @@ set_from_random(
   }
 }
 
-// fix X value from random generator
 PyObject*
 fix_x_from_random(
   PyObject* self,
@@ -589,7 +572,6 @@ fix_x_from_random(
   }
 }
 
-// return True if both vectors are compatible
 PyObject*
 check_compatible(
   PyObject* self,
@@ -626,7 +608,6 @@ check_compatible(
   }
 }
 
-// return True if self is contained in right
 PyObject*
 check_containment(
   PyObject* self,
@@ -663,7 +644,6 @@ check_containment(
   }
 }
 
-// return True if self is contained in right or equal
 PyObject*
 check_containment_or_equal(
   PyObject* self,
@@ -700,7 +680,6 @@ check_containment_or_equal(
   }
 }
 
-// merge
 PyObject*
 merge(
   PyObject* self,
