@@ -17,6 +17,7 @@
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/translations.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="検索" href="../../search.html" />
     <link rel="next" title="CondGenMgr" href="condgenmgr.html" />
@@ -50,6 +51,28 @@
             
   <section id="id1">
 <h1>故障検出条件生成<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
+<p>与えられた故障を検出するような外部入力(および疑似入力)の値の割り当ての
+論理積をテストキューブ(Test Cube)と呼ぶ．
+テストキューブの概念を一般化して与えられた故障を検出するような内部信号
+線の値の割り当ての論理積を拡張テストキューブと呼ぶことにする．
+condgen グループはこの拡張テストキューブを求める処理を行う．</p>
+<section id="id2">
+<h2>アルゴリズムの概要<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<p>故障 <span class="math notranslate nohighlight">\(f\)</span> の故障検出条件(故障検出関数) <span class="math notranslate nohighlight">\(D_f\)</span> は以下の式で表され
+る．</p>
+<div class="math notranslate nohighlight">
+\[D_f = L_f \land D_r\]</div>
+<p>ここで <span class="math notranslate nohighlight">\(L_f\)</span> は故障 <span class="math notranslate nohighlight">\(f\)</span> の影響が故障 <span class="math notranslate nohighlight">\(f\)</span> の属する
+ファンアウトフリー領域の根のノード <span class="math notranslate nohighlight">\(r\)</span> まで伝搬する条件，
+<span class="math notranslate nohighlight">\(D_r\)</span> はノード <span class="math notranslate nohighlight">\(r\)</span> における故障の影響がいずれかの外部出力
+まで到達する条件である．
+さらに <span class="math notranslate nohighlight">\(L_f\)</span> はファンアウトフリー領域の性質から常に単純な値割り
+当ての論理積で表すことが可能である．
+そこで，全ての故障に対する <span class="math notranslate nohighlight">\(D_f\)</span> を別個に求める必要はなく，
+個々のファンアウトフリー領域の根のノードの故障伝搬条件 <span class="math notranslate nohighlight">\(D_r\)</span>
+だけを求めればよいことがわかる．</p>
+<p>ファンアウトフリー領域の根のノードの故障伝搬条件は <span class="math notranslate nohighlight">\(L_f\)</span> と異な
+り，単純な論理式で表されるとは限らない．</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="condgenmgr.html">CondGenMgr</a></li>
@@ -57,6 +80,7 @@
 <li class="toctree-l1"><a class="reference internal" href="detcond.html">DetCond</a></li>
 </ul>
 </div>
+</section>
 </section>
 
 
@@ -66,6 +90,16 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">目次</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">故障検出条件生成</a><ul>
+<li><a class="reference internal" href="#id2">アルゴリズムの概要</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
   <div>
     <h4>前のトピックへ</h4>
     <p class="topless"><a href="../dtpg/dtpgstats.html"
