@@ -29,27 +29,33 @@ def dtpg(network, fault_list, *, drop=False, dtpg_option=None):
             fault_list_dict[root.id] = []
         fault_list_dict[root.id].append(fault)
 
+    n_det = 0
+    n_untest = 0
+    n_abort = 0
     # FFR ごとに処理を行う．
     for root in root_list:
         fault_list1 = fault_list_dict[root.id]
         engine = BdEngine(network, root, option=dtpg_option)
 
         for fault in fault_list1:
-            print(f'fault = {fault}')
             prop_cond = fault.ffr_propagate_condition
             assumptions = engine.conv_to_literal_list(prop_cond)
             assumptions.append(engine.prop_var())
             res = engine.solve(assumptions=assumptions)
             if res == SatBool3.true:
-                print('detected')
                 assign_list = engine.extract_sufficient_condition()
                 assign_list.merge(prop_cond)
                 pi_assign_list = engine.justify(assign_list)
+                n_det += 1
             elif res == SatBool3.false:
-                print('untestable')
+                n_untest += 1
             elif res == SatBool3.x:
-                print('aborted')
+                n_abort += 1
 
+    print(f'# of Total Faults:      {n_det + n_untest + n_abort:7}')
+    print(f'# of Detected Faults:   {n_det:7}')
+    print(f'# of Untestable Faults: {n_untest:7}')
+    print(f'# of Aborted Faults:    {n_abort:7}')
 
 if __name__ == '__main__':
 
@@ -75,14 +81,14 @@ if __name__ == '__main__':
     filename = args.filename
 
     # ファイル形式
-    blif = args.blif
-    iscas89 = args.iscas89
-    if blif and iscas89:
-        print("'--blif' and '--iscas89' are mutually exclusive")
-        exit(1)
-    if not blif and not iscas89:
-        # 両方指定されていない場合は blif をデフォルトにする．
-        blif = True
+    format = 'blif'
+    if args.blif:
+        if args.iscas89:
+            print("'--blif' and '--iscas89' are mutually exclusive")
+            exit(1)
+        pass
+    elif args.iscas89:
+        format = 'iscas89'
 
     # 故障の種類
     if args.stuck_at:
@@ -96,7 +102,7 @@ if __name__ == '__main__':
         # 両方指定されていない場合は StuckAt をデフォルトとする．
         fault_type = FaultType.StuckAt
 
-    network = TpgNetwork.read_blif(filename, fault_type)
+    network = TpgNetwork.read_network(filename, format, fault_type)
     fault_list = network.rep_fault_list()
 
     dtpg(network, fault_list)

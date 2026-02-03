@@ -144,6 +144,97 @@ read_blif(
 }
 
 PyObject*
+read_iscas89(
+  PyObject* Py_UNUSED(self),
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "filename",
+    "fault_type",
+    nullptr
+  };
+  const char* filename_tmp = nullptr;
+  PyObject* fault_type_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "sO!",
+                                    const_cast<char**>(kwlist),
+                                    &filename_tmp,
+                                    PyFaultType::_typeobject(), &fault_type_obj) ) {
+    return nullptr;
+  }
+  std::string filename;
+  if ( filename_tmp != nullptr ) {
+    filename = std::string(filename_tmp);
+  }
+  FaultType fault_type = FaultType::None;
+  if ( fault_type_obj != nullptr ) {
+    if ( !PyFaultType::FromPyObject(fault_type_obj, fault_type) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to FaultType");
+      return nullptr;
+    }
+  }
+  try {
+    return PyTpgNetwork::ToPyObject(TpgNetwork::read_iscas89(filename, fault_type));
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+read_network(
+  PyObject* Py_UNUSED(self),
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "filename",
+    "format",
+    "fault_type",
+    nullptr
+  };
+  const char* filename_tmp = nullptr;
+  const char* format_tmp = nullptr;
+  PyObject* fault_type_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "ssO!",
+                                    const_cast<char**>(kwlist),
+                                    &filename_tmp,
+                                    &format_tmp,
+                                    PyFaultType::_typeobject(), &fault_type_obj) ) {
+    return nullptr;
+  }
+  std::string filename;
+  if ( filename_tmp != nullptr ) {
+    filename = std::string(filename_tmp);
+  }
+  std::string format;
+  if ( format_tmp != nullptr ) {
+    format = std::string(format_tmp);
+  }
+  FaultType fault_type = FaultType::None;
+  if ( fault_type_obj != nullptr ) {
+    if ( !PyFaultType::FromPyObject(fault_type_obj, fault_type) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to FaultType");
+      return nullptr;
+    }
+  }
+  try {
+    return PyTpgNetwork::ToPyObject(TpgNetwork::read_network(filename, format, fault_type));
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
 is_valid(
   PyObject* self,
   PyObject* Py_UNUSED(args)
@@ -988,6 +1079,17 @@ PyMethodDef methods[] = {
    METH_VARARGS | METH_KEYWORDS | METH_STATIC,
    PyDoc_STR("'blif' ファイルを読み込む．\n"
              ":param str filename: blif ファイル名")},
+  {"read_iscas89",
+   reinterpret_cast<PyCFunction>(read_iscas89),
+   METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+   PyDoc_STR("'iscas89' ファイルを読み込む．\n"
+             ":param str filename: iscas89 ファイル名")},
+  {"read_network",
+   reinterpret_cast<PyCFunction>(read_network),
+   METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+   PyDoc_STR("'blif'/'iscas89' ファイルを読み込む．\n"
+             ":param str filename: ファイル名\n"
+             ":param str format: ファイルの形式('blif' or 'iscas89')")},
   {"is_valid",
    is_valid,
    METH_NOARGS,

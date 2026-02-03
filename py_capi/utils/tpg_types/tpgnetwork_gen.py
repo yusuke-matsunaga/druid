@@ -72,6 +72,33 @@ class TpgNetworkGen(PyObjGen):
                                doc_str=["'blif' ファイルを読み込む．",
                                         ":param str filename: blif ファイル名"])
 
+        def meth_read_iscas89(writer):
+            writer.gen_return_pyobject('PyTpgNetwork',
+                                       'TpgNetwork::read_iscas89(filename, fault_type)')
+        self.add_static_method('read_iscas89',
+                               func_body=meth_read_iscas89,
+                               arg_list=[StringArg(name='filename',
+                                                   cvarname='filename'),
+                                         FaultTypeArg(name='fault_type',
+                                                      cvarname='fault_type')],
+                               doc_str=["'iscas89' ファイルを読み込む．",
+                                        ":param str filename: iscas89 ファイル名"])
+
+        def meth_read_network(writer):
+            writer.gen_return_pyobject('PyTpgNetwork',
+                                       'TpgNetwork::read_network(filename, format, fault_type)')
+        self.add_static_method('read_network',
+                               func_body=meth_read_network,
+                               arg_list=[StringArg(name='filename',
+                                                   cvarname='filename'),
+                                         StringArg(name='format',
+                                                   cvarname='format'),
+                                         FaultTypeArg(name='fault_type',
+                                                      cvarname='fault_type')],
+                               doc_str=["'blif'/'iscas89' ファイルを読み込む．",
+                                        ":param str filename: ファイル名",
+                                        ":param str format: ファイルの形式('blif' or 'iscas89')"])
+
         def meth_is_valid(writer):
             writer.gen_return_py_bool('val.is_valid()')
         self.add_method('is_valid',
