@@ -18,6 +18,7 @@ class TpgMFFCListGen(PyObjGen):
                          namespace='DRUID',
                          header_include_files=['types/TpgMFFCList.h'],
                          source_include_files=['pym/PyTpgMFFCList.h',
+                                               'pym/PyTpgMFFCIter2.h',
                                                'pym/PyTpgMFFC.h',
                                                'pym/PyUlong.h'])
 
@@ -36,5 +37,10 @@ class TpgMFFCListGen(PyObjGen):
                                        'val[index]')
         self.add_sequence(sq_length=sq_length,
                           sq_item=sq_item)
+
+        def iter_func(writer):
+            writer.gen_return_pyobject('PyTpgMFFCIter2',
+                                       'val.iter()')
+        self.add_iter(iter_func)
 
         self.add_conv('default')

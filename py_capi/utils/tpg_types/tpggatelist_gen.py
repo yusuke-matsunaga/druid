@@ -18,6 +18,7 @@ class TpgGateListGen(PyObjGen):
                          namespace='DRUID',
                          header_include_files=['types/TpgGateList.h'],
                          source_include_files=['pym/PyTpgGateList.h',
+                                               'pym/PyTpgGateIter2.h',
                                                'pym/PyTpgGate.h',
                                                'pym/PyUlong.h'])
 
@@ -36,5 +37,10 @@ class TpgGateListGen(PyObjGen):
                                        'val[index]')
         self.add_sequence(sq_length=sq_length,
                           sq_item=sq_item)
+
+        def iter_func(writer):
+            writer.gen_return_pyobject('PyTpgGateIter2',
+                                       'val.iter()')
+        self.add_iter(iter_func)
 
         self.add_conv('default')

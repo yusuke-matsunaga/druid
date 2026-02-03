@@ -281,7 +281,7 @@ input_list(
 {
   auto& val = PyTpgNetwork::_get_ref(self);
   try {
-    return PyTpgNodeList::ToPyObject(val.node_list());
+    return PyTpgNodeList::ToPyObject(val.input_list());
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -346,7 +346,7 @@ output_list(
 {
   auto& val = PyTpgNetwork::_get_ref(self);
   try {
-    return PyTpgNodeList::ToPyObject(val.node_list());
+    return PyTpgNodeList::ToPyObject(val.output_list());
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -469,7 +469,7 @@ ppi_list(
 {
   auto& val = PyTpgNetwork::_get_ref(self);
   try {
-    return PyTpgNodeList::ToPyObject(val.node_list());
+    return PyTpgNodeList::ToPyObject(val.ppi_list());
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -563,7 +563,7 @@ ppo_list(
 {
   auto& val = PyTpgNetwork::_get_ref(self);
   try {
-    return PyTpgNodeList::ToPyObject(val.node_list());
+    return PyTpgNodeList::ToPyObject(val.ppo_list());
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -628,7 +628,7 @@ mffc_list(
 {
   auto& val = PyTpgNetwork::_get_ref(self);
   try {
-    return PyTpgNodeList::ToPyObject(val.node_list());
+    return PyTpgMFFCList::ToPyObject(val.mffc_list());
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -693,7 +693,7 @@ ffr_list(
 {
   auto& val = PyTpgNetwork::_get_ref(self);
   try {
-    return PyTpgNodeList::ToPyObject(val.node_list());
+    return PyTpgFFRList::ToPyObject(val.ffr_list());
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -834,7 +834,7 @@ gate_list(
 {
   auto& val = PyTpgNetwork::_get_ref(self);
   try {
-    return PyTpgNodeList::ToPyObject(val.node_list());
+    return PyTpgGateList::ToPyObject(val.gate_list());
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -888,7 +888,7 @@ rep_fault_list(
 {
   auto& val = PyTpgNetwork::_get_ref(self);
   try {
-    return PyTpgNodeList::ToPyObject(val.node_list());
+    return PyTpgFaultList::ToPyObject(val.rep_fault_list());
   }
   catch ( std::exception err ) {
     std::ostringstream buf;

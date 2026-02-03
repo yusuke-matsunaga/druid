@@ -121,7 +121,7 @@ class TpgNetworkGen(PyObjGen):
             writer.gen_return_pyobject('PyTpgNodeList',
                                        'val.input_list()')
         self.add_method('input_list',
-                        func_body=meth_node_list,
+                        func_body=meth_input_list,
                         doc_str='入力ノードのリストを返す．')
 
         def meth_output_num(writer):
@@ -144,7 +144,7 @@ class TpgNetworkGen(PyObjGen):
             writer.gen_return_pyobject('PyTpgNodeList',
                                        'val.output_list()')
         self.add_method('output_list',
-                        func_body=meth_node_list,
+                        func_body=meth_output_list,
                         doc_str='出力ノードのリストを返す．')
 
         def meth_output2(writer):
@@ -186,7 +186,7 @@ class TpgNetworkGen(PyObjGen):
             writer.gen_return_pyobject('PyTpgNodeList',
                                        'val.ppi_list()')
         self.add_method('ppi_list',
-                        func_body=meth_node_list,
+                        func_body=meth_ppi_list,
                         doc_str='PPIノードのリストを返す．')
 
         def meth_ppo_num(writer):
@@ -218,7 +218,7 @@ class TpgNetworkGen(PyObjGen):
             writer.gen_return_pyobject('PyTpgNodeList',
                                        'val.ppo_list()')
         self.add_method('ppo_list',
-                        func_body=meth_node_list,
+                        func_body=meth_ppo_list,
                         doc_str='PPOノードのリストを返す．')
 
         def meth_mffc_num(writer):
@@ -241,7 +241,7 @@ class TpgNetworkGen(PyObjGen):
             writer.gen_return_pyobject('PyTpgMFFCList',
                                        'val.mffc_list()')
         self.add_method('mffc_list',
-                        func_body=meth_node_list,
+                        func_body=meth_mffc_list,
                         doc_str='MFFCのリストを返す．')
 
         def meth_ffr_num(writer):
@@ -264,7 +264,7 @@ class TpgNetworkGen(PyObjGen):
             writer.gen_return_pyobject('PyTpgFFRList',
                                        'val.ffr_list()')
         self.add_method('ffr_list',
-                        func_body=meth_node_list,
+                        func_body=meth_ffr_list,
                         doc_str='FFRのリストを返す．')
 
         def meth_dff_num(writer):
@@ -313,7 +313,7 @@ class TpgNetworkGen(PyObjGen):
             writer.gen_return_pyobject('PyTpgGateList',
                                        'val.gate_list()')
         self.add_method('gate_list',
-                        func_body=meth_node_list,
+                        func_body=meth_gate_list,
                         doc_str='ゲートのリストを返す．')
 
         def meth_fault_type(writer):
@@ -333,7 +333,7 @@ class TpgNetworkGen(PyObjGen):
             writer.gen_return_pyobject('PyTpgFaultList',
                                        'val.rep_fault_list()')
         self.add_method('rep_fault_list',
-                        func_body=meth_node_list,
+                        func_body=meth_rep_fault_list,
                         doc_str='代表故障のリストを返す．')
 
         def meth_max_fault_id(writer):

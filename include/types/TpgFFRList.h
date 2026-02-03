@@ -33,7 +33,7 @@ public:
   explicit
   TpgFFRIter(
     const std::shared_ptr<NetworkRep>& network,
-    std::vector<SizeType>::const_iterator iter
+    IdIter iter
   ) : TpgIterBase(network, iter)
   {
   }
@@ -58,6 +58,51 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////
+/// @class TpgFFRIter2 TpgFFRList.h "TpgFFRList.h"
+/// @brief TpgFFRList の反復子2(Python用)
+/// @ingroup TypesGroup
+/// @sa TpgFFR, TpgFFRList
+//////////////////////////////////////////////////////////////////////
+class TpgFFRIter2:
+  public TpgIter2Base
+{
+public:
+
+  /// @brief 空のコンストラクタ
+  TpgFFRIter2() = default;
+
+  /// @brief 値を指定したコンストラクタ
+  TpgFFRIter2(
+    const std::shared_ptr<NetworkRep>& network,
+    IdIter cur,
+    IdIter end
+  ) : TpgIter2Base(network, cur, end)
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFFRIter2() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 次の要素を返す．
+  ///
+  /// has_next() == true と仮定している．
+  TpgFFR
+  next()
+  {
+    auto id = next_id();
+    return TpgBase::ffr(id);
+  }
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
 /// @class TpgFFRList TpgFFRList.h "TpgFFRList.h"
 /// @brief TpgFFR のリスト
 /// @ingroup TypesGroup
@@ -69,6 +114,7 @@ class TpgFFRList :
 public:
 
   using iterator = TpgFFRIter;
+  using iterator2 = TpgFFRIter2;
 
 public:
 
@@ -79,8 +125,7 @@ public:
   explicit
   TpgFFRList(
     const std::shared_ptr<NetworkRep>& network, ///< [in] 親のネットワーク
-    const std::vector<SizeType>& id_list        ///< [in] ノード番号のリスト
-    = {}
+    const IdList& id_list = {}                  ///< [in] ノード番号のリスト
   ) : TpgListBase(network, id_list)
   {
   }
@@ -115,6 +160,13 @@ public:
   end() const
   {
     return iterator(_network(), end_iter());
+  }
+
+  /// @brief Python 用の反復子を返す．
+  iterator2
+  iter() const
+  {
+    return iterator2(_network(), begin_iter(), end_iter());
   }
 
   /// @brief 要素を末尾に追加する．

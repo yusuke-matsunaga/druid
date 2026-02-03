@@ -58,6 +58,51 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////
+/// @class TpgMFFCIter2 TpgMFFCList.h "TpgMFFCList.h"
+/// @brief TpgMFFCList の反復子2(Python用)
+/// @ingroup TypesGroup
+/// @sa TpgMFFC, TpgMFFCList
+//////////////////////////////////////////////////////////////////////
+class TpgMFFCIter2:
+  public TpgIter2Base
+{
+public:
+
+  /// @brief 空のコンストラクタ
+  TpgMFFCIter2() = default;
+
+  /// @brief 値を指定したコンストラクタ
+  TpgMFFCIter2(
+    const std::shared_ptr<NetworkRep>& network,
+    IdIter cur,
+    IdIter end
+  ) : TpgIter2Base(network, cur, end)
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgMFFCIter2() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 次の要素を返す．
+  ///
+  /// has_next() == true と仮定している．
+  TpgMFFC
+  next()
+  {
+    auto id = next_id();
+    return TpgBase::mffc(id);
+  }
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
 /// @class TpgMFFCList TpgMFFCList.h "TpgMFFCList.h"
 /// @brief TpgMFFC のリスト
 /// @ingroup TypesGroup
@@ -69,6 +114,7 @@ class TpgMFFCList :
 public:
 
   using iterator = TpgMFFCIter;
+  using iterator2 = TpgMFFCIter2;
 
 public:
 
@@ -115,6 +161,13 @@ public:
   end() const
   {
     return iterator(_network(), end_iter());
+  }
+
+  /// @brief Python 用の反復子を返す．
+  iterator2
+  iter() const
+  {
+    return iterator2(_network(), begin_iter(), end_iter());
   }
 
   /// @brief 要素を末尾に追加する．

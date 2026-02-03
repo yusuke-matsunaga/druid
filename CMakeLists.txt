@@ -118,6 +118,7 @@ set ( TESTDATA_DIR ${PROJECT_SOURCE_DIR}/testdata )
 add_subdirectory ( ymworks )
 add_subdirectory ( c++-src )
 add_subdirectory ( py_capi )
+add_subdirectory ( py-src )
 add_subdirectory ( dox-src )
 add_subdirectory ( sphinx-src )
 

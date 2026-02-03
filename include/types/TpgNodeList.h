@@ -60,6 +60,51 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////
+/// @class TpgNodeIter2 TpgNodeList.h "TpgNodeList.h"
+/// @brief TpgNodeList の反復子2(Python用)
+/// @ingroup TypesGroup
+/// @sa TpgNode, TpgNodeList
+//////////////////////////////////////////////////////////////////////
+class TpgNodeIter2:
+  public TpgIter2Base
+{
+public:
+
+  /// @brief 空のコンストラクタ
+  TpgNodeIter2() = default;
+
+  /// @brief 値を指定したコンストラクタ
+  TpgNodeIter2(
+    const std::shared_ptr<NetworkRep>& network,
+    IdIter cur,
+    IdIter end
+  ) : TpgIter2Base(network, cur, end)
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgNodeIter2() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 次の要素を返す．
+  ///
+  /// has_next() == true と仮定している．
+  TpgNode
+  next()
+  {
+    auto id = next_id();
+    return TpgBase::node(id);
+  }
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
 /// @class TpgNodeList TpgNodeList.h "TpgNodeList.h"
 /// @brief TpgNode のリスト
 /// @ingroup TypesGroup
@@ -71,6 +116,7 @@ class TpgNodeList :
 public:
 
   using iterator = TpgNodeIter;
+  using iterator2 = TpgNodeIter2;
 
 public:
 
@@ -117,6 +163,13 @@ public:
   end() const
   {
     return iterator(_network(), end_iter());
+  }
+
+  /// @brief Python 用の反復子を返す．
+  iterator2
+  iter() const
+  {
+    return iterator2(_network(), begin_iter(), end_iter());
   }
 
   /// @brief 要素を末尾に追加する．

@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "types/TpgBase.h"
+#include "types/TpgListBase.h"
 #include "Assign.h"
 
 
@@ -19,22 +19,29 @@ BEGIN_NAMESPACE_DRUID
 /// @class AssignIter AssignList.h "AssignList.h"
 /// @brief AssignList の反復子を表すクラス
 /// @ingroup TypesGroup
-/// @sa AssignList
+/// @sa Assign, AssignList
 //////////////////////////////////////////////////////////////////////
 class AssignIter:
   public TpgBase
 {
 public:
 
+  using AsList = std::vector<SizeType>;
+  using AsIter = AsList::const_iterator;
+
+public:
+
   /// @brief 空のコンストラクタ
+  ///
+  /// 不正な値となる．
   AssignIter() = default;
 
   /// @brief 値を指定したコンストラクタ
   AssignIter(
     const std::shared_ptr<NetworkRep>& network,
-    std::vector<SizeType>::const_iterator iter
+    AsIter iter
   ) : TpgBase(network),
-      mIter{iter}
+      mAsIter{iter}
   {
   }
 
@@ -51,15 +58,14 @@ public:
   Assign
   operator*() const
   {
-    return Assign(_network(), *mIter);
+    return Assign(_network(), *mAsIter);
   }
 
-  /// @brief next 演算子
-  AssignIter&
+  //// @brief 次の要素に進む．
+  void
   operator++()
   {
-    ++ mIter;
-    return *this;
+    ++ mAsIter;
   }
 
   /// @brief 等価比較演算子
@@ -68,7 +74,7 @@ public:
     const AssignIter& right
   ) const
   {
-    return _network() == right._network() && mIter == right.mIter;
+    return TpgBase::operator==(right) && mAsIter == right.mAsIter;
   }
 
   /// @brief 非等価比較演算子
@@ -86,8 +92,82 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 反復子の実体
-  std::vector<SizeType>::const_iterator mIter;
+  // AsList の反復子
+  AsIter mAsIter;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class AssignIter2 AssignList.h "AssignList.h"
+/// @brief AssignList の反復子2(Python用)
+/// @ingroup TypesGroup
+/// @sa Assign, AssignList
+//////////////////////////////////////////////////////////////////////
+class AssignIter2:
+  public TpgBase
+{
+public:
+
+  using AsList = std::vector<SizeType>;
+  using AsIter = AsList::const_iterator;
+
+public:
+
+  /// @brief 空のコンストラクタ
+  ///
+  /// 不正な値となる．
+  AssignIter2() = default;
+
+  /// @brief 値を指定したコンストラクタ
+  AssignIter2(
+    const std::shared_ptr<NetworkRep>& network,
+    AsIter cur,
+    AsIter end
+  ) : TpgBase(network),
+      mCurIter{cur},
+      mEndIter{end}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~AssignIter2() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 有効な値を持っているか調べる．
+  bool
+  has_next() const
+  {
+    return mCurIter != mEndIter;
+  }
+
+  /// @brief 次の要素を返す．
+  ///
+  /// has_next() == true と仮定している．
+  Assign
+  next()
+  {
+    auto id = *mCurIter;
+    ++ mCurIter;
+    return Assign(_network(), id);
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 現在の反復子
+  AsIter mCurIter;
+
+  // 末尾の反復子
+  AsIter mEndIter;
 
 };
 
@@ -109,6 +189,12 @@ class AssignList:
 {
 public:
 
+  using AsList = std::vector<SizeType>;
+  using iterator = AssignIter;
+  using iterator2 = AssignIter2;
+
+public:
+
   /// @brief コンストラクタ
   ///
   /// 不正な値となる．
@@ -118,9 +204,8 @@ public:
   explicit
   AssignList(
     const std::shared_ptr<NetworkRep>& network, ///< [in] 親のネットワーク
-    const std::vector<SizeType>& as_list        ///< [in] パックした割り当て情報のリスト
+    const AsList& as_list                       ///< [in] パックした割り当て情報のリスト
   ) : TpgBase(network),
-      mDirty{false},
       mAsList{as_list}
   {
   }
@@ -312,6 +397,14 @@ public:
     return AssignIter(_network(), mAsList.end());
   }
 
+  /// @brief Python 用の反復子を返す．
+  AssignIter2
+  iter() const
+  {
+    _sort();
+    return AssignIter2(_network(), mAsList.begin(), mAsList.end());
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -351,7 +444,7 @@ private:
 
   // 値割り当てのリスト
   mutable
-  std::vector<SizeType> mAsList;
+  AsList mAsList;
 
 };
 

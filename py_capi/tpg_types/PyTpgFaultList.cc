@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "pym/PyTpgFaultList.h"
+#include "pym/PyTpgFaultIter2.h"
 #include "pym/PyTpgFault.h"
 #include "pym/PyList.h"
 #include "pym/PyUlong.h"
@@ -93,6 +94,24 @@ PySequenceMethods sequence = {
   .sq_item = sq_item
 };
 
+// iter 関数
+PyObject*
+iter_func(
+  PyObject* self
+)
+{
+  auto& val = PyTpgFaultList::_get_ref(self);
+  try {
+    return PyTpgFaultIter2::ToPyObject(val.iter());
+  }
+  catch ( std::invalid_argument err ) {
+    std::ostringstream buf;
+    buf << "invalid argument" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
 PyObject*
 is_valid(
   PyObject* self,
@@ -137,6 +156,7 @@ PyTpgFaultList::init(
   TpgFaultList_Type.tp_as_sequence = &sequence;
   TpgFaultList_Type.tp_flags = Py_TPFLAGS_DEFAULT;
   TpgFaultList_Type.tp_doc = PyDoc_STR("Python extended object for TpgFaultList");
+  TpgFaultList_Type.tp_iter = iter_func;
   TpgFaultList_Type.tp_methods = methods;
   if ( !PyModule::reg_type(m, "TpgFaultList", &TpgFaultList_Type) ) {
     goto error;

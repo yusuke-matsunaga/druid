@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "pym/PyAssignList.h"
+#include "pym/PyAssignIter2.h"
 #include "pym/PyAssign.h"
 #include "pym/PyUlong.h"
 #include "pym/PyModule.h"
@@ -81,6 +82,137 @@ PySequenceMethods sequence = {
   .sq_item = sq_item
 };
 
+// iter 関数
+PyObject*
+iter_func(
+  PyObject* self
+)
+{
+  auto& val = PyAssignList::_get_ref(self);
+  try {
+    return PyAssignIter2::ToPyObject(val.iter());
+  }
+  catch ( std::invalid_argument err ) {
+    std::ostringstream buf;
+    buf << "invalid argument" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+clear(
+  PyObject* self,
+  PyObject* Py_UNUSED(args)
+)
+{
+  auto& val = PyAssignList::_get_ref(self);
+  try {
+    val.clear();
+    Py_RETURN_NONE;
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+add(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "assign",
+    nullptr
+  };
+  PyObject* assign_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+                                    const_cast<char**>(kwlist),
+                                    PyAssign::_typeobject(), &assign_obj) ) {
+    return nullptr;
+  }
+  Assign assign;
+  if ( assign_obj != nullptr ) {
+    if ( !PyAssign::FromPyObject(assign_obj, assign) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to Assign");
+      return nullptr;
+    }
+  }
+  auto& val = PyAssignList::_get_ref(self);
+  try {
+    val.add(assign);
+    Py_RETURN_NONE;
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+merge(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "src_list",
+    nullptr
+  };
+  PyObject* src_list_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+                                    const_cast<char**>(kwlist),
+                                    PyAssignList::_typeobject(), &src_list_obj) ) {
+    return nullptr;
+  }
+  AssignList src_list;
+  if ( src_list_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(src_list_obj, src_list) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+      return nullptr;
+    }
+  }
+  auto& val = PyAssignList::_get_ref(self);
+  try {
+    val.merge(src_list);
+    Py_RETURN_NONE;
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+// メソッド定義
+PyMethodDef methods[] = {
+  {"clear",
+   clear,
+   METH_NOARGS,
+   PyDoc_STR("clear")},
+  {"add",
+   reinterpret_cast<PyCFunction>(add),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("add Assign\n"
+             ":param Assign assign: ノードの値")},
+  {"merge",
+   reinterpret_cast<PyCFunction>(merge),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("merge AssignList\n"
+             ":param AssignList src_list: マージ対象のリスト")},
+  // end-marker
+  {nullptr, nullptr, 0, nullptr}
+};
+
 END_NONAMESPACE
 
 
@@ -96,6 +228,8 @@ PyAssignList::init(
   AssignList_Type.tp_as_sequence = &sequence;
   AssignList_Type.tp_flags = Py_TPFLAGS_DEFAULT;
   AssignList_Type.tp_doc = PyDoc_STR("Python extended object for AssignList");
+  AssignList_Type.tp_iter = iter_func;
+  AssignList_Type.tp_methods = methods;
   if ( !PyModule::reg_type(m, "AssignList", &AssignList_Type) ) {
     goto error;
   }

@@ -18,6 +18,7 @@ class TpgFFRListGen(PyObjGen):
                          namespace='DRUID',
                          header_include_files=['types/TpgFFRList.h'],
                          source_include_files=['pym/PyTpgFFRList.h',
+                                               'pym/PyTpgFFRIter2.h',
                                                'pym/PyTpgFFR.h',
                                                'pym/PyUlong.h'])
 
@@ -36,5 +37,10 @@ class TpgFFRListGen(PyObjGen):
                                        'val[index]')
         self.add_sequence(sq_length=sq_length,
                           sq_item=sq_item)
+
+        def iter_func(writer):
+            writer.gen_return_pyobject('PyTpgFFRIter2',
+                                       'val.iter()')
+        self.add_iter(iter_func)
 
         self.add_conv('default')

@@ -17,18 +17,24 @@
 #include "pym/PyTpgNetwork.h"
 #include "pym/PyTpgNode.h"
 #include "pym/PyTpgNodeList.h"
+#include "pym/PyTpgNodeIter2.h"
 #include "pym/PyTpgMFFC.h"
 #include "pym/PyTpgMFFCList.h"
+#include "pym/PyTpgMFFCIter2.h"
 #include "pym/PyTpgFFR.h"
 #include "pym/PyTpgFFRList.h"
+#include "pym/PyTpgFFRIter2.h"
 #include "pym/PyTpgGate.h"
 #include "pym/PyTpgGateList.h"
+#include "pym/PyTpgGateIter2.h"
 #include "pym/PyTpgFault.h"
 #include "pym/PyTpgFaultList.h"
+#include "pym/PyTpgFaultIter2.h"
 #include "pym/PyTestVector.h"
 #include "pym/PyInputVector.h"
 #include "pym/PyAssign.h"
 #include "pym/PyAssignList.h"
+#include "pym/PyAssignIter2.h"
 #include "pym/PyModule.h"
 
 
@@ -82,10 +88,16 @@ PyInit_tpg_types()
   if ( !PyTpgNodeList::init(m) ) {
     goto error;
   }
+  if ( !PyTpgNodeIter2::init(m) ) {
+    goto error;
+  }
   if ( !PyTpgMFFC::init(m) ) {
     goto error;
   }
   if ( !PyTpgMFFCList::init(m) ) {
+    goto error;
+  }
+  if ( !PyTpgMFFCIter2::init(m) ) {
     goto error;
   }
   if ( !PyTpgFFR::init(m) ) {
@@ -94,16 +106,25 @@ PyInit_tpg_types()
   if ( !PyTpgFFRList::init(m) ) {
     goto error;
   }
+  if ( !PyTpgFFRIter2::init(m) ) {
+    goto error;
+  }
   if ( !PyTpgGate::init(m) ) {
     goto error;
   }
   if ( !PyTpgGateList::init(m) ) {
     goto error;
   }
+  if ( !PyTpgGateIter2::init(m) ) {
+    goto error;
+  }
   if ( !PyTpgFault::init(m) ) {
     goto error;
   }
   if ( !PyTpgFaultList::init(m) ) {
+    goto error;
+  }
+  if ( !PyTpgFaultIter2::init(m) ) {
     goto error;
   }
   if ( !PyTestVector::init(m) ) {
@@ -116,6 +137,9 @@ PyInit_tpg_types()
     goto error;
   }
   if ( !PyAssignList::init(m) ) {
+    goto error;
+  }
+  if ( !PyAssignIter2::init(m) ) {
     goto error;
   }
 

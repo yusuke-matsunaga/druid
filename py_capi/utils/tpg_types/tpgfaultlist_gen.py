@@ -18,6 +18,7 @@ class TpgFaultListGen(PyObjGen):
                          namespace='DRUID',
                          header_include_files=['types/TpgFaultList.h'],
                          source_include_files=['pym/PyTpgFaultList.h',
+                                               'pym/PyTpgFaultIter2.h',
                                                'pym/PyTpgFault.h',
                                                'pym/PyList.h',
                                                'pym/PyUlong.h'])
@@ -37,6 +38,11 @@ class TpgFaultListGen(PyObjGen):
                                        'val[index]')
         self.add_sequence(sq_length=sq_length,
                           sq_item=sq_item)
+
+        def iter_func(writer):
+            writer.gen_return_pyobject('PyTpgFaultIter2',
+                                       'val.iter()')
+        self.add_iter(iter_func)
 
         self.add_conv('default')
 

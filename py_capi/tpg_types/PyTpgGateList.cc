@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "pym/PyTpgGateList.h"
+#include "pym/PyTpgGateIter2.h"
 #include "pym/PyTpgGate.h"
 #include "pym/PyUlong.h"
 #include "pym/PyModule.h"
@@ -92,6 +93,24 @@ PySequenceMethods sequence = {
   .sq_item = sq_item
 };
 
+// iter 関数
+PyObject*
+iter_func(
+  PyObject* self
+)
+{
+  auto& val = PyTpgGateList::_get_ref(self);
+  try {
+    return PyTpgGateIter2::ToPyObject(val.iter());
+  }
+  catch ( std::invalid_argument err ) {
+    std::ostringstream buf;
+    buf << "invalid argument" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
 PyObject*
 is_valid(
   PyObject* self,
@@ -136,6 +155,7 @@ PyTpgGateList::init(
   TpgGateList_Type.tp_as_sequence = &sequence;
   TpgGateList_Type.tp_flags = Py_TPFLAGS_DEFAULT;
   TpgGateList_Type.tp_doc = PyDoc_STR("Python extended object for TpgGateList");
+  TpgGateList_Type.tp_iter = iter_func;
   TpgGateList_Type.tp_methods = methods;
   if ( !PyModule::reg_type(m, "TpgGateList", &TpgGateList_Type) ) {
     goto error;

@@ -33,7 +33,7 @@ public:
   explicit
   TpgFaultIter(
     const std::shared_ptr<NetworkRep>& network,
-    std::vector<SizeType>::const_iterator iter
+    IdIter iter
   ) : TpgIterBase(network, iter)
   {
   }
@@ -58,6 +58,51 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////
+/// @class TpgFaultIter2 TpgFaultList.h "TpgFaultList.h"
+/// @brief TpgFaultList の反復子2(Python用)
+/// @ingroup TypesGroup
+/// @sa TpgFault, TpgFaultList
+//////////////////////////////////////////////////////////////////////
+class TpgFaultIter2:
+  public TpgIter2Base
+{
+public:
+
+  /// @brief 空のコンストラクタ
+  TpgFaultIter2() = default;
+
+  /// @brief 値を指定したコンストラクタ
+  TpgFaultIter2(
+    const std::shared_ptr<NetworkRep>& network,
+    IdIter cur,
+    IdIter end
+  ) : TpgIter2Base(network, cur, end)
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgFaultIter2() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 次の要素を返す．
+  ///
+  /// has_next() == true と仮定している．
+  TpgFault
+  next()
+  {
+    auto id = next_id();
+    return TpgBase::fault(id);
+  }
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
 /// @class TpgFaultList TpgFaultList.h "TpgFaultList.h"
 /// @brief 故障のリストを表すクラス
 /// @ingroup TypesGroup
@@ -71,6 +116,7 @@ class TpgFaultList:
 public:
 
   using iterator = TpgFaultIter;
+  using iterator2 = TpgFaultIter2;
 
 public:
 
@@ -142,6 +188,13 @@ public:
   end() const
   {
     return iterator(_network(), end_iter());
+  }
+
+  /// @brief Python 用の反復子を返す．
+  iterator2
+  iter() const
+  {
+    return iterator2(_network(), begin_iter(), end_iter());
   }
 
   /// @brief 要素を末尾に追加する．

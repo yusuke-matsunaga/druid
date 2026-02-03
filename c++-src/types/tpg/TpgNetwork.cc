@@ -447,6 +447,14 @@ TpgNetwork::gate(
   return TpgGate(_network(), gid);
 }
 
+// @brief ゲートのリストを返す．
+TpgGateList
+TpgNetwork::gate_list() const
+{
+  _check_valid();
+  return TpgBase::gate_list(make_id_list(gate_num()));
+}
+
 // @brief 故障の種類を返す．
 FaultType
 TpgNetwork::fault_type() const

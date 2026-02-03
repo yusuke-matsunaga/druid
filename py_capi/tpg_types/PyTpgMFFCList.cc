@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "pym/PyTpgMFFCList.h"
+#include "pym/PyTpgMFFCIter2.h"
 #include "pym/PyTpgMFFC.h"
 #include "pym/PyUlong.h"
 #include "pym/PyModule.h"
@@ -92,6 +93,24 @@ PySequenceMethods sequence = {
   .sq_item = sq_item
 };
 
+// iter 関数
+PyObject*
+iter_func(
+  PyObject* self
+)
+{
+  auto& val = PyTpgMFFCList::_get_ref(self);
+  try {
+    return PyTpgMFFCIter2::ToPyObject(val.iter());
+  }
+  catch ( std::invalid_argument err ) {
+    std::ostringstream buf;
+    buf << "invalid argument" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
 PyObject*
 is_valid(
   PyObject* self,
@@ -136,6 +155,7 @@ PyTpgMFFCList::init(
   TpgMFFCList_Type.tp_as_sequence = &sequence;
   TpgMFFCList_Type.tp_flags = Py_TPFLAGS_DEFAULT;
   TpgMFFCList_Type.tp_doc = PyDoc_STR("Python extended object for TpgMFFCList");
+  TpgMFFCList_Type.tp_iter = iter_func;
   TpgMFFCList_Type.tp_methods = methods;
   if ( !PyModule::reg_type(m, "TpgMFFCList", &TpgMFFCList_Type) ) {
     goto error;

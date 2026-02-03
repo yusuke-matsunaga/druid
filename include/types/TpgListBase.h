@@ -24,6 +24,11 @@ class TpgIterBase :
 {
 public:
 
+  using IdList = std::vector<SizeType>;
+  using IdIter = IdList::const_iterator;
+
+public:
+
   /// @brief 空のコンストラクタ
   ///
   /// 不正な値となる．
@@ -33,7 +38,7 @@ public:
   explicit
   TpgIterBase(
     const std::shared_ptr<NetworkRep>& network,
-    std::vector<SizeType>::const_iterator iter
+    IdIter iter
   ) : TpgBase(network),
       mIdIter{iter}
   {
@@ -93,7 +98,81 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // mIdList の反復子
-  std::vector<SizeType>::const_iterator mIdIter;
+  IdIter mIdIter;
+
+};
+
+
+//////////////////////////////////////////////////////////////////////
+/// @class TpgIter2Base TpgListBase.h "TpgListBase.h"
+/// @brief TpgListBase の反復子
+/// @ingroup TypesGroup
+//////////////////////////////////////////////////////////////////////
+class TpgIter2Base :
+  public TpgBase
+{
+public:
+
+  using IdList = std::vector<SizeType>;
+  using IdIter = IdList::const_iterator;
+
+public:
+
+  /// @brief 空のコンストラクタ
+  ///
+  /// 不正な値となる．
+  TpgIter2Base() = default;
+
+  /// @brief 値を指定したコンストラクタ
+  explicit
+  TpgIter2Base(
+    const std::shared_ptr<NetworkRep>& network,
+    IdIter cur,
+    IdIter end
+  ) : TpgBase(network),
+      mCurIter{cur},
+      mEndIter{end}
+  {
+  }
+
+  /// @brief デストラクタ
+  ~TpgIter2Base() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 有効な値を持っているか調べる．
+  bool
+  has_next() const
+  {
+    return mCurIter != mEndIter;
+  }
+
+  /// @brief 次の要素番号を返す．
+  ///
+  /// has_next() == true と仮定している．
+  SizeType
+  next_id()
+  {
+    auto id = *mCurIter;
+    ++ mCurIter;
+    return id;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 現在の反復子
+  IdIter mCurIter;
+
+  // 末尾の反復子
+  IdIter mEndIter;
 
 };
 
@@ -108,6 +187,11 @@ class TpgListBase :
 {
 public:
 
+  using IdList = std::vector<SizeType>;
+  using IdIter = IdList::const_iterator;
+
+public:
+
   /// @brief 空のコンストラクタ
   TpgListBase() = default;
 
@@ -115,8 +199,7 @@ public:
   explicit
   TpgListBase(
     const std::shared_ptr<NetworkRep>& network, ///< [in] 親のネットワーク
-    const std::vector<SizeType>& id_list        ///< [in] ノード番号のリスト
-    = {}
+    const IdList& id_list = {}                  ///< [in] ノード番号のリスト
   ) : TpgBase(network),
       mIdList{id_list}
   {
@@ -125,9 +208,8 @@ public:
   /// @brief 値を指定したコンストラクタ
   explicit
   TpgListBase(
-    const TpgBase& base,                 ///< [in] 親のネットワーク
-    const std::vector<SizeType>& id_list ///< [in] ノード番号のリスト
-    = {}
+    const TpgBase& base,                ///< [in] 親のネットワーク
+    const IdList& id_list = {}          ///< [in] ノード番号のリスト
   ) : TpgBase(base),
       mIdList{id_list}
   {
@@ -157,7 +239,7 @@ public:
   }
 
   /// @brief ID番号のリストを返す．
-  const std::vector<SizeType>&
+  const IdList&
   id_list() const
   {
     return mIdList;
@@ -198,14 +280,14 @@ protected:
   }
 
   /// @brief mIdList の先頭の反復子を返す．
-  std::vector<SizeType>::const_iterator
+  IdIter
   begin_iter() const
   {
     return mIdList.begin();
   }
 
   /// @brief mIdList の末尾の反復子を返す．
-  std::vector<SizeType>::const_iterator
+  IdIter
   end_iter() const
   {
     return mIdList.end();

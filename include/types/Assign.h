@@ -29,6 +29,7 @@ class Assign:
 {
   friend class AssignList;
   friend class AssignIter;
+  friend class AssignIter2;
 
 public:
 

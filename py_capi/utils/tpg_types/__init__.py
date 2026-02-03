@@ -14,18 +14,24 @@ from .faultstatus_arg import FaultStatusGen
 from .tpgnetwork_gen import TpgNetworkGen
 from .tpgnode_gen import TpgNodeGen
 from .tpgnodelist_gen import TpgNodeListGen
+from .tpgnodeiter2_gen import TpgNodeIter2Gen
 from .tpgmffc_gen import TpgMFFCGen
 from .tpgmffclist_gen import TpgMFFCListGen
+from .tpgmffciter2_gen import TpgMFFCIter2Gen
 from .tpgffr_gen import TpgFFRGen
 from .tpgffrlist_gen import TpgFFRListGen
+from .tpgffriter2_gen import TpgFFRIter2Gen
 from .tpggate_gen import TpgGateGen
 from .tpggatelist_gen import TpgGateListGen
+from .tpggateiter2_gen import TpgGateIter2Gen
 from .tpgfault_gen import TpgFaultGen
 from .tpgfaultlist_gen import TpgFaultListGen
+from .tpgfaultiter2_gen import TpgFaultIter2Gen
 from .testvector_gen import TestVectorGen
 from .inputvector_gen import InputVectorGen
 from .assign_gen import AssignGen
 from .assignlist_gen import AssignListGen
+from .assigniter2_gen import AssignIter2Gen
 from .types_args import Val3Arg, FaultTypeArg, FaultStatusArg
 from .types_args import TpgNetworkRefArg, TpgNodeArg, TpgNodeListArg
 from .types_args import TpgFaultArg, TpgFaultListArg
@@ -42,16 +48,22 @@ gen_list = [
     TpgNetworkGen(),
     TpgNodeGen(),
     TpgNodeListGen(),
+    TpgNodeIter2Gen(),
     TpgMFFCGen(),
     TpgMFFCListGen(),
+    TpgMFFCIter2Gen(),
     TpgFFRGen(),
     TpgFFRListGen(),
+    TpgFFRIter2Gen(),
     TpgGateGen(),
     TpgGateListGen(),
+    TpgGateIter2Gen(),
     TpgFaultGen(),
     TpgFaultListGen(),
+    TpgFaultIter2Gen(),
     TestVectorGen(),
     InputVectorGen(),
     AssignGen(),
     AssignListGen(),
+    AssignIter2Gen(),
 ]
