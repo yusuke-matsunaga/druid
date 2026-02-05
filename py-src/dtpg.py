@@ -8,6 +8,7 @@
 """
 
 from druid.dtpg import BdEngine
+from druid.fsim import Fsim
 from ymworks.sat import SatBool3
 
 
@@ -29,6 +30,8 @@ def dtpg(network, fault_list, *, drop=False, dtpg_option=None):
             fault_list_dict[root.id] = []
         fault_list_dict[root.id].append(fault)
 
+    fsim = Fsim(network, fault_list)
+
     n_det = 0
     n_untest = 0
     n_abort = 0
@@ -46,6 +49,8 @@ def dtpg(network, fault_list, *, drop=False, dtpg_option=None):
                 assign_list = engine.extract_sufficient_condition()
                 assign_list.merge(prop_cond)
                 pi_assign_list = engine.justify(assign_list)
+                res, dbits = fsim.spsfp(pi_assign_list, fault)
+                assert res
                 n_det += 1
             elif res == SatBool3.false:
                 n_untest += 1

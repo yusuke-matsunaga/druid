@@ -16,6 +16,7 @@
 #include "pym/PyDiffBitsArray.h"
 #include "pym/PyJsonValue.h"
 #include "pym/PyList.h"
+#include "pym/PyBool.h"
 #include "pym/PyUlong.h"
 #include "pym/PyModule.h"
 
@@ -207,15 +208,17 @@ spsfp(
       auto& tv = PyTestVector::_get_ref(tv_obj);
       DiffBits dbits;
       auto res = val.spsfp(tv, fault, dbits);
+      auto res_obj = PyBool::ToPyObject(res);
       auto dbits_obj = PyDiffBits::ToPyObject(dbits);
-      return Py_BuildValue("pO", res, dbits_obj);
+      return Py_BuildValue("OO", res_obj, dbits_obj);
     }
     if ( PyAssignList::Check(tv_obj) ) {
       auto& assign_list = PyAssignList::_get_ref(tv_obj);
       DiffBits dbits;
       auto res = val.spsfp(assign_list, fault, dbits);
+      auto res_obj = PyBool::ToPyObject(res);
       auto dbits_obj = PyDiffBits::ToPyObject(dbits);
-      return Py_BuildValue("pO", res, dbits_obj);
+      return Py_BuildValue("OO", res_obj, dbits_obj);
     }
     PyErr_SetString(PyExc_TypeError, "argument 1 should be TestVector or AssignList");
     return nullptr;
@@ -266,8 +269,9 @@ xspsfp(
   try {
     DiffBits dbits;
     auto res = val.xspsfp(assign_list, fault, dbits);
+    auto res_obj = PyBool::ToPyObject(res);
     auto dbits_obj = PyDiffBits::ToPyObject(dbits);
-    return Py_BuildValue("pO", res, dbits_obj);
+    return Py_BuildValue("OO", res_obj, dbits_obj);
   }
   catch ( std::exception err ) {
     std::ostringstream buf;

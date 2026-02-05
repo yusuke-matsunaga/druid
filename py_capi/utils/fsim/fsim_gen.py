@@ -53,6 +53,7 @@ class FsimGen(PyObjGen):
                                                'pym/PyDiffBitsArray.h',
                                                'pym/PyJsonValue.h',
                                                'pym/PyList.h',
+                                               'pym/PyBool.h',
                                                'pym/PyUlong.h'])
         def preamble_body(writer):
             writer.gen_include('parse_faults.cc')
@@ -115,18 +116,20 @@ class FsimGen(PyObjGen):
                         doc_str='get \\"skip\\" mark')
 
         def meth_spsfp(writer):
+            def common(writer):
+                writer.gen_auto_assign('res_obj', 'PyBool::ToPyObject(res)')
+                writer.gen_auto_assign('dbits_obj', 'PyDiffBits::ToPyObject(dbits)')
+                writer.gen_return_buildvalue('OO', ['res_obj', 'dbits_obj'])
             with writer.gen_if_block('PyTestVector::Check(tv_obj)'):
                 writer.gen_autoref_assign('tv', 'PyTestVector::_get_ref(tv_obj)')
                 writer.gen_vardecl(typename='DiffBits', varname='dbits')
                 writer.gen_auto_assign('res', 'val.spsfp(tv, fault, dbits)')
-                writer.gen_auto_assign('dbits_obj', 'PyDiffBits::ToPyObject(dbits)')
-                writer.gen_return_buildvalue('pO', ['res', 'dbits_obj'])
+                common(writer)
             with writer.gen_if_block('PyAssignList::Check(tv_obj)'):
                 writer.gen_autoref_assign('assign_list', 'PyAssignList::_get_ref(tv_obj)')
                 writer.gen_vardecl(typename='DiffBits', varname='dbits')
                 writer.gen_auto_assign('res', 'val.spsfp(assign_list, fault, dbits)')
-                writer.gen_auto_assign('dbits_obj', 'PyDiffBits::ToPyObject(dbits)')
-                writer.gen_return_buildvalue('pO', ['res', 'dbits_obj'])
+                common(writer)
             writer.gen_type_error('"argument 1 should be TestVector or AssignList"')
         self.add_method('spsfp',
                         func_body=meth_spsfp,
@@ -139,8 +142,9 @@ class FsimGen(PyObjGen):
         def meth_xspsfp(writer):
             writer.gen_vardecl(typename='DiffBits', varname='dbits')
             writer.gen_auto_assign('res', 'val.xspsfp(assign_list, fault, dbits)')
+            writer.gen_auto_assign('res_obj', 'PyBool::ToPyObject(res)')
             writer.gen_auto_assign('dbits_obj', 'PyDiffBits::ToPyObject(dbits)')
-            writer.gen_return_buildvalue('pO', ['res', 'dbits_obj'])
+            writer.gen_return_buildvalue('OO', ['res_obj', 'dbits_obj'])
         self.add_method('xspsfp',
                         func_body=meth_xspsfp,
                         arg_list=[AssignListArg(name='assign_list',
