@@ -73,7 +73,7 @@ public:
 
   /// @biref NetworkRep を指定したコンストラクタ
   TpgNetwork(
-    std::shared_ptr<NetworkRep>& network ///< [in] 本体
+    const std::shared_ptr<NetworkRep>& network ///< [in] 本体
   ) : TpgBase(network)
   {
   }

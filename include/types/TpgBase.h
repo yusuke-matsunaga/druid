@@ -13,6 +13,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class TpgNetwork;
 class NetworkRep;
 class NodeRep;
 class GateRep;
@@ -63,6 +64,10 @@ public:
   {
     return mImpl.get() != nullptr;
   }
+
+  /// @brief TpgNetworkを取り出す．
+  TpgNetwork
+  network() const;
 
   /// @brief 等価比較演算子
   bool

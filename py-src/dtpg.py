@@ -7,8 +7,10 @@
 :copyright: Copyright (C) 2026 Yusuke Matsunaga, All rights reserved.
 """
 
+import time
 from druid.dtpg import BdEngine
 from druid.fsim import Fsim
+from druid.tpg_types import TestVector
 from ymworks.sat import SatBool3
 
 
@@ -32,9 +34,11 @@ def dtpg(network, fault_list, *, drop=False, dtpg_option=None):
 
     fsim = Fsim(network, fault_list)
 
+    start_time = time.time()
     n_det = 0
     n_untest = 0
     n_abort = 0
+    tv_list = []
     # FFR ごとに処理を行う．
     for root in root_list:
         fault_list1 = fault_list_dict[root.id]
@@ -49,18 +53,52 @@ def dtpg(network, fault_list, *, drop=False, dtpg_option=None):
                 assign_list = engine.extract_sufficient_condition()
                 assign_list.merge(prop_cond)
                 pi_assign_list = engine.justify(assign_list)
-                res, dbits = fsim.spsfp(pi_assign_list, fault)
-                assert res
+                tv = TestVector()
+                tv.set_from_assign_list(pi_assign_list)
+                tv_list.append(tv)
+                #res, dbits = fsim.spsfp(pi_assign_list, fault)
+                #assert res
                 n_det += 1
             elif res == SatBool3.false:
                 n_untest += 1
             elif res == SatBool3.x:
                 n_abort += 1
-
+    end_time = time.time()
+    dtpg_time = end_time - start_time
     print(f'# of Total Faults:      {n_det + n_untest + n_abort:7}')
     print(f'# of Detected Faults:   {n_det:7}')
     print(f'# of Untestable Faults: {n_untest:7}')
     print(f'# of Aborted Faults:    {n_abort:7}')
+    print(f'DTPG time:              {dtpg_time:10.2f}')
+
+    start_time = time.time()
+    i_base = 0
+    tv_list64 = []
+    det_matrix = []
+    def cb(f, dbits_array):
+        n = dbits_array.elem_num
+        nb = len(tv_list64)
+        for b in range(nb):
+            dbits = dbits_array.get_slice(b)
+            if dbits.elem_num > 0:
+                tv_id = i_base + b
+                det_matrix.append((f, tv_id))
+    for i, tv in enumerate(tv_list):
+        tv_list64.append(tv)
+        if len(tv_list64) == 64:
+            fsim.ppsfp(tv_list64, cb)
+            i_base = i + 1
+            tv_list64 = []
+    if len(tv_list64) > 0:
+        fsim.ppsfp(tv_list64, cb)
+
+    print_pat = False
+    if print_pat:
+        for f, tv_id in det_matrix:
+            print(f'{f}, {tv_id}')
+    end_time = time.time()
+    fsim_time = end_time - start_time
+    print(f'Simulation Time:        {fsim_time:10.2f}')
 
 if __name__ == '__main__':
 

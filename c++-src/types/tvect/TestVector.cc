@@ -48,6 +48,9 @@ TestVector::set_from_assign_list(
   const AssignList& assign_list
 )
 {
+  // サイズを assign_list から取り出す．
+  *this = TestVector(static_cast<const TpgBase&>(assign_list));
+
   for ( auto nv: assign_list ) {
     auto node = nv.node();
     if ( !node.is_ppi() ) {

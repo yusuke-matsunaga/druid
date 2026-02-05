@@ -8,7 +8,7 @@
 """
 
 from mk_py_capi import PyObjGen
-from mk_py_capi import UlongArg
+from mk_py_capi import UlongArg, BoolArg, OptArg, KwdArg
 from misc import Mt19937Arg
 from .types_args import AssignListArg, Val3Arg
 from .types_args import TestVectorArg
@@ -27,6 +27,23 @@ class TestVectorGen(PyObjGen):
                                                'pym/PyVal3.h',
                                                'pym/PyString.h',
                                                'pym/PyUlong.h'])
+
+        def new_func(writer):
+            writer.gen_tp_alloc(objclass='TestVector_Object')
+            writer.gen_stmt('new (&my_obj->mVal) TestVector(input_num, dff_num, has_prev_state)')
+            writer.gen_return_self()
+        self.add_new(func_body=new_func,
+                     arg_list=[OptArg(),
+                               KwdArg(),
+                               UlongArg(name='input_num',
+                                        cvarname='input_num',
+                                        cvardefault='0'),
+                               UlongArg(name='dff_num',
+                                        cvarname='dff_num',
+                                        cvardefault='0'),
+                               BoolArg(name='has_prev_state',
+                                       cvarname='has_prev_state',
+                                       cvardefault='false')])
 
         def get_vector_size(writer):
             writer.gen_return_py_ulong('val.vector_size()')

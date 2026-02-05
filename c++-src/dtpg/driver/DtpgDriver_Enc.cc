@@ -56,7 +56,7 @@ DtpgDriver_Enc::gen_pattern(
   assign_list.merge(prop_cond);
   add_extra_assignments(fault, assign_list);
   auto pi_assign_list = mEngine.justify(assign_list);
-  return TestVector(mEngine.network(), pi_assign_list);
+  return TestVector(pi_assign_list);
 }
 
 // @brief CNF の生成時間を返す．

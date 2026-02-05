@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "types/TpgBase.h"
+#include "types/TpgNetwork.h"
 #include "types/TpgNode.h"
 #include "types/TpgNodeList.h"
 #include "types/TpgGate.h"
@@ -30,6 +31,13 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 // TpgBase
 //////////////////////////////////////////////////////////////////////
+
+// @brief TpgNetworkを取り出す．
+TpgNetwork
+TpgBase::network() const
+{
+  return TpgNetwork(mImpl);
+}
 
 // @brief ノード番号を TpgNode に変換する．
 TpgNode

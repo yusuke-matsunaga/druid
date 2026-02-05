@@ -888,6 +888,54 @@ PyGetSetDef getsets[] = {
   {nullptr, nullptr, nullptr, nullptr}
 };
 
+// new 関数
+PyObject*
+new_func(
+  PyTypeObject* type,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "input_num",
+    "dff_num",
+    "has_prev_state",
+    nullptr
+  };
+  unsigned long input_num = 0;
+  unsigned long dff_num = 0;
+  int has_prev_state_tmp = -1;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "|$kkp",
+                                    const_cast<char**>(kwlist),
+                                    &input_num,
+                                    &dff_num,
+                                    &has_prev_state_tmp) ) {
+    return nullptr;
+  }
+  bool has_prev_state = false;
+  if ( has_prev_state_tmp != -1 ) {
+    has_prev_state = static_cast<bool>(has_prev_state_tmp);
+  }
+  try {
+    auto self = type->tp_alloc(type, 0);
+    auto my_obj = reinterpret_cast<TestVector_Object*>(self);
+    new (&my_obj->mVal) TestVector(input_num, dff_num, has_prev_state);
+    return self;
+  }
+  catch ( std::invalid_argument err ) {
+    std::ostringstream buf;
+    buf << "invalid argument" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+  catch ( std::out_of_range err ) {
+    std::ostringstream buf;
+    buf << "out of range" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
 END_NONAMESPACE
 
 
@@ -905,6 +953,7 @@ PyTestVector::init(
   TestVector_Type.tp_richcompare = richcompare_func;
   TestVector_Type.tp_methods = methods;
   TestVector_Type.tp_getset = getsets;
+  TestVector_Type.tp_new = new_func;
   if ( !PyModule::reg_type(m, "TestVector", &TestVector_Type) ) {
     goto error;
   }

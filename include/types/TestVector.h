@@ -105,12 +105,19 @@ public:
   {
   }
 
+  /// @brief TpgBae(の派生クラス)から入力数などの諸元を取ってくるコンストラクタ
+  explicit
+  TestVector(
+    const TpgBase& base
+  ) : TestVector{base.network()}
+  {
+  }
+
   /// @brief ネットワークから入力数などの諸元を取ってくるコンストラクタ
   explicit
   TestVector(
-    const TpgNetwork& network,
     const AssignList& pi_assign_list
-  ) : TestVector{network}
+  )
   {
     set_from_assign_list(pi_assign_list);
   }
