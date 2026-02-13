@@ -124,6 +124,9 @@ StructEngine::_update()
       if ( has_prev_state && node.is_dff_output() ) {
 	auto alt_node = node.alt_node();
 	new_dff_input_list.push_back(alt_node);
+	if ( new_dff_input_list.network() != alt_node.network() ) {
+	  abort();
+	}
       }
     });
 

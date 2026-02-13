@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "VidMap.h"
+#include "types/TpgNetwork.h"
 #include "types/TpgNodeList.h"
 #include "types/AssignList.h"
 #include "ym/SatSolver.h"
@@ -263,7 +264,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 対象のネットワーク
-  const TpgNetwork& mNetwork;
+  TpgNetwork mNetwork;
 
   // 部品のリスト
   std::vector<std::unique_ptr<SubEnc>> mSubEncList;

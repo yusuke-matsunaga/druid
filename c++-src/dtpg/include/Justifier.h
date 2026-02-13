@@ -121,7 +121,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 対象のネットワーク
-  const TpgNetwork& mNetwork;
+  TpgNetwork mNetwork;
 
   // JustData
   const JustData* mJustDataPtr{nullptr};

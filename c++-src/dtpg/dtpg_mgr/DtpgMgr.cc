@@ -87,9 +87,8 @@ DtpgMgr::run(
   OpBase::get_string(option, "group_mode", group_mode);
   OpBase::get_bool(option, "multi_thread", multi);
 
-  auto network = fault_list.network();
-
   // ノード番号をキーにして関係する故障番号のリストを格納する配列
+  auto network = fault_list.network();
   std::vector<TpgFaultList> node_fault_list_array(network.node_num());
   for ( auto fault: fault_list ) {
     auto node = fault.origin_node();
@@ -121,7 +120,6 @@ DtpgMgr::run(
       if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
 	continue;
       }
-
       auto driver = DtpgDriver::ffr_driver(ffr, option);
       for ( auto fault: fault_list ) {
 	driver.gen_pattern(fault, dtpg_results, stats);
