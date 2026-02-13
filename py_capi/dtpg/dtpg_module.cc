@@ -12,7 +12,7 @@
 #include "druid.h"
 #include "pym/PyStructEngine.h"
 #include "pym/PyBdEngine.h"
-#include "pym/PyDtpgResult.h"
+#include "pym/PyDtpgResults.h"
 #include "pym/PyDtpgStats.h"
 #include "pym/PyVidMap.h"
 #include "pym/PyModule.h"
@@ -53,7 +53,7 @@ PyInit_dtpg()
   if ( !PyBdEngine::init(m) ) {
     goto error;
   }
-  if ( !PyDtpgResult::init(m) ) {
+  if ( !PyDtpgResults::init(m) ) {
     goto error;
   }
   if ( !PyDtpgStats::init(m) ) {

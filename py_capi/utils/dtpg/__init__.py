@@ -9,16 +9,16 @@
 
 from .structengine_gen import StructEngineGen
 from .bdengine_gen import BdEngineGen
-from .dtpgresult_gen import DtpgResultGen
+from .dtpgresults_gen import DtpgResultsGen
 from .dtpgstats_gen import DtpgStatsGen
 from .vidmap_gen import VidMapGen
-from .dtpg_args import StructEngineArg, DtpgResultArg, DtpgStatsArg
+from .dtpg_args import StructEngineArg, DtpgResultsArg, DtpgStatsArg
 
 
 gen_list = [
     StructEngineGen(),
     BdEngineGen(),
-    DtpgResultGen(),
+    DtpgResultsGen(),
     DtpgStatsGen(),
     VidMapGen(),
 ]

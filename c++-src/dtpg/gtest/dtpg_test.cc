@@ -9,6 +9,7 @@
 #include "gtest/gtest.h"
 #include "dtpg/DtpgMgr.h"
 #include "types/TpgNetwork.h"
+#include "fsim/Fsim.h"
 #include "ym/SatInitParam.h"
 
 
@@ -227,27 +228,33 @@ DtpgTestWithParam2::do_test()
   auto fsim_option = JsonValue::parse("{\"has_x\": true}");
   auto fsim = Fsim(network, fault_list, fsim_option);
 
-  DtpgMgr mgr{network, fault_list};
+  DtpgResults dtpg_results;
+  auto stats = DtpgMgr::run(fault_list, dtpg_results, option);
 
+  SizeType TotalCount = 0;
+  SizeType DetectedCount = 0;
+  SizeType UntestableCount = 0;
   SizeType ErrorCount = 0;
-  auto stats = mgr.run(
-    [&](DtpgMgr& mgr, const TpgFault& fault, TestVector tv) {
+  for ( auto fault: fault_list ) {
+    auto fs = dtpg_results.status(fault);
+    if ( fs == FaultStatus::Detected ) {
+      auto tv = dtpg_results.testvector(fault);
       DiffBits dbits;
       bool r = fsim.spsfp(tv, fault, dbits);
       if ( !r ) {
 	++ ErrorCount;
       }
-    },
-    [&](DtpgMgr& mgr, const TpgFault& f) {
-    },
-    [&](DtpgMgr& mgr, const TpgFault& f) {
-    },
-    option);
+      ++ DetectedCount;
+    }
+    else if ( fs == FaultStatus::Untestable ) {
+      ++ UntestableCount;
+    }
+    ++ TotalCount;
+  }
 
-  EXPECT_EQ( total_fault_num(), mgr.total_count() );
-  EXPECT_EQ( detect_fault_num(), mgr.detected_count() );
-  EXPECT_EQ( untest_fault_num(), mgr.untestable_count() );
-  EXPECT_EQ( 0, mgr.undetected_count() );
+  EXPECT_EQ( total_fault_num(), TotalCount );
+  EXPECT_EQ( detect_fault_num(), DetectedCount );
+  EXPECT_EQ( untest_fault_num(), UntestableCount );
   EXPECT_EQ( 0, ErrorCount );
 }
 

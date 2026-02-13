@@ -26,7 +26,6 @@ public:
 
   /// @brief コンストラクタ
   DtpgDriver_MFFCEnc(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
     const TpgMFFC& mffc,       ///< [in] 故障伝搬の起点となる MFFC
     const JsonValue& option    ///< [in] オプション
   );

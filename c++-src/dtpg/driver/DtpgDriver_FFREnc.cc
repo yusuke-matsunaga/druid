@@ -22,10 +22,9 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 DtpgDriver_FFREnc::DtpgDriver_FFREnc(
-  const TpgNetwork& network,
   const TpgFFR& ffr,
   const JsonValue& option
-) : DtpgDriver_Enc(network, ffr.root(), option)
+) : DtpgDriver_Enc(ffr.root(), option)
 {
 }
 

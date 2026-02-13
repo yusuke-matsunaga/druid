@@ -19,10 +19,9 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 DtpgDriver_NodeEnc::DtpgDriver_NodeEnc(
-  const TpgNetwork& network,
   const TpgNode& node,
   const JsonValue& option
-) : DtpgDriver_Enc(network, node, option)
+) : DtpgDriver_Enc(node, option)
 {
 }
 

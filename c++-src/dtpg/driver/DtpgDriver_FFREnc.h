@@ -25,7 +25,6 @@ public:
 
   /// @brief コンストラクタ
   DtpgDriver_FFREnc(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
     const TpgFFR& ffr,	       ///< [in] 故障伝搬の起点となる FFR
     const JsonValue& option    ///< [in] オプション
   );

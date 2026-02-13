@@ -25,7 +25,6 @@ public:
 
   /// @brief コンストラクタ
   DtpgDriver_NodeEnc(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
     const TpgNode& node,       ///< [in] 故障伝搬の起点となるノード
     const JsonValue& option    ///< [in] オプション
   );

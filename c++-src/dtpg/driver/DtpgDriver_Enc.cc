@@ -19,10 +19,9 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 DtpgDriver_Enc::DtpgDriver_Enc(
-  const TpgNetwork& network,
   const TpgNode& node,
   const JsonValue& option
-) : mEngine(network, node, option)
+) : mEngine(node.network(), node, option)
 {
   mEngine.add_prev_node(node);
 }

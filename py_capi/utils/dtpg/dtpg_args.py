@@ -21,15 +21,15 @@ class StructEngineArg(TypedObjConvArg):
                          pyclassname='PyStructEngine')
 
 
-class DtpgResultArg(TypedObjConvArg):
+class DtpgResultsArg(TypedObjConvArg):
 
     def __init__(self, *,
                  name=None,
                  cvarname):
         super().__init__(name=name,
                          cvarname=cvarname,
-                         cvartype='DtpgResult',
-                         pyclassname='PyDtpgResult')
+                         cvartype='DtpgResults',
+                         pyclassname='PyDtpgResults')
 
 
 class DtpgStatsArg(TypedObjConvArg):

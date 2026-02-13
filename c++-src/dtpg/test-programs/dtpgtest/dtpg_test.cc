@@ -30,27 +30,35 @@ usage()
 // @brief 統計情報を出力する．
 void
 print_stats(
-  const DtpgMgr& mgr,
+  const TpgNetwork& network,
+  const TpgFaultList& fault_list,
+  const DtpgResults& results,
   const DtpgStats& stats,
-  const std::vector<TestVector>& tv_list,
   double time
 )
 {
-  auto& network = mgr.network();
-  SizeType fault_num = mgr.total_count();
-  SizeType detect_num = mgr.detected_count();
-  SizeType untest_num = mgr.untestable_count();
-  SizeType tv_num = tv_list.size();
+  SizeType fault_num = 0;
+  SizeType detect_num = 0;
+  SizeType untest_num = 0;
+  for ( auto fault: fault_list ) {
+    auto fs = results.status(fault);
+    switch ( fs ) {
+    case FaultStatus::Detected: ++ detect_num; break;
+    case FaultStatus::Untestable: ++ untest_num; break;
+    default: break;
+    }
+    ++ fault_num;
+  }
   std::cout << "# of inputs             = " << network.input_num() << std::endl
 	    << "# of outputs            = " << network.output_num() << std::endl
 	    << "# of DFFs               = " << network.dff_num() << std::endl
-	    << "# of logic gates        = " << network.node_num() - network.ppi_num() << std::endl
+	    << "# of logic gates        = " << network.node_num() - network.ppi_num()
+	    << std::endl
 	    << "# of MFFCs              = " << network.mffc_num() << std::endl
 	    << "# of FFRs               = " << network.ffr_num() << std::endl
 	    << "# of total faults       = " << fault_num << std::endl
 	    << "# of detected faults    = " << detect_num << std::endl
 	    << "# of untestable faults  = " << untest_num << std::endl
-	    << "# of test vectors       = " << tv_num << std::endl
 	    << "Total CPU time(s)       = " << (time / 1000.0) << std::endl;
 
   auto save = std::cout.flags();
@@ -351,79 +359,24 @@ dtpg_test(
 
   auto fault_list = network.rep_fault_list();
 
-  auto fsim_option = JsonValue::object();
-  fsim_option.add("has_x", true);
-  auto fsim = Fsim(network, fault_list, fsim_option);
-
-  DtpgMgr mgr{network, fault_list};
-
-  std::vector<std::pair<SizeType, TestVector>> ErrorList;
-  std::vector<SizeType> det_fault_list;
-  std::vector<TestVector> tv_list;
-  std::mt19937 rg;
-  auto stats = mgr.run(
-    // detected callback
-    [&](DtpgMgr& mgr, const TpgFault& fault, TestVector tv) {
-      det_fault_list.push_back(fault.id());
-      tv_list.push_back(tv);
-      TestVector tv1{tv};
-      tv1.fix_x_from_random(rg);
-      DiffBits _dummy;
-      bool r = fsim.spsfp(tv1, fault, _dummy);
-      if ( !r ) {
-	ErrorList.push_back({fault.id(), tv});
-      }
-      fsim.set_skip(fault);
-      if ( drop ) {
-	fsim.sppfp(tv, [&](const TpgFault& fault, const DiffBits&) {
-	  mgr.set_dtpg_result(fault, DtpgResult::detected(tv));
-	  fsim.set_skip(fault);
-	});
-      }
-    },
-    // untestable callback
-    [&](DtpgMgr&, const TpgFault&) { },
-    // abort callback
-    [&](DtpgMgr&, const TpgFault&) { },
-    option);
+  DtpgResults results;
+  auto stats = DtpgMgr::run(fault_list, results, option);
 
   timer.stop();
   auto time = timer.get_time();
 
-  if ( !ErrorList.empty() ) {
-    std::cout << "Error!"
-	      << std::endl;
-    for ( auto& p: ErrorList ) {
-      auto fid = p.first;
-      auto tv = p.second;
-      auto fault = network.fault(fid);
-      std::cout << fault << ": " << tv.hex_str()
-		<< std::endl;
-    }
-  }
-
   if ( verbose ) {
-    print_stats(mgr, stats, tv_list, time);
+    print_stats(network, fault_list, results, stats, time);
   }
 
   if ( show_untestable_faults ) {
     std::cout << "Untestabel faults"
 	      << std::endl;
     for ( auto fault: fault_list ) {
-      if ( mgr.dtpg_result(fault).status() == FaultStatus::Untestable ) {
+      if ( results.status(fault) == FaultStatus::Untestable ) {
 	std::cout << fault
 		  << std::endl;
       }
-    }
-  }
-
-  if ( fix ) {
-    std::mt19937 randgen;
-    for ( auto& tv: tv_list ) {
-      TestVector fixed_tv{tv};
-      fixed_tv.fix_x_from_random(randgen);
-      std::cout << fixed_tv.hex_str()
-		<< std::endl;
     }
   }
 

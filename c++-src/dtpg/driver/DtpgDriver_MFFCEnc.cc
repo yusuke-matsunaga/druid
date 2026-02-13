@@ -22,10 +22,9 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 DtpgDriver_MFFCEnc::DtpgDriver_MFFCEnc(
-  const TpgNetwork& network,
   const TpgMFFC& mffc,
   const JsonValue& option
-) : DtpgDriver_Enc(network, mffc.root(), option),
+) : DtpgDriver_Enc(mffc.root(), option),
     mMFFCEnc{new MFFCEnc(mffc)}
 {
   add_subenc(std::unique_ptr<SubEnc>{mMFFCEnc});

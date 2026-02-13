@@ -28,16 +28,10 @@ class DtpgDriver
 {
 public:
 
-  using Callback_Det = DtpgMgr::Callback_Det;
-  using Callback_Undet = DtpgMgr::Callback_Undet;
-
-public:
-
   /// @brief ノード単位をテスト生成を行うオブジェクトを生成する．
   static
   DtpgDriver
   node_driver(
-    DtpgMgr& mgr,           ///< [in] DTPGマネージャ
     const TpgNode& node,    ///< [in] 故障伝搬の起点となるノード
     const JsonValue& option ///< [in] オプション
   );
@@ -46,7 +40,6 @@ public:
   static
   DtpgDriver
   ffr_driver(
-    DtpgMgr& mgr,           ///< [in] DTPGマネージャ
     const TpgFFR& ffr,	    ///< [in] 故障伝搬の起点となる FFR
     const JsonValue& option ///< [in] オプション
   );
@@ -55,7 +48,6 @@ public:
   static
   DtpgDriver
   mffc_driver(
-    DtpgMgr& mgr,           ///< [in] DTPGマネージャ
     const TpgMFFC& mffc,    ///< [in] 故障伝搬の起点となる MFFC
     const JsonValue& option ///< [in] オプション
   );
@@ -70,15 +62,11 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 故障のテストパタンを求める．
-  ///
-  /// - f はコンストラクタで指定した FFR 内の故障でなければならない．
   void
   gen_pattern(
-    const TpgFault& fault,      ///< [in] 対象の故障
-    DtpgStats& stats,           ///< [out] 統計情報
-    Callback_Det det_func,      ///< [in] 検出時のコールバック関数
-    Callback_Undet untest_func, ///< [in] 検出不能時のコールバック関数
-    Callback_Undet abort_func   ///< [in] アボート時のコールバック関数
+    const TpgFault& fault, ///< [in] 対象の故障
+    DtpgResults& results,  ///< [out] テスト生成の結果
+    DtpgStats& stats       ///< [out] 統計情報
   );
 
   /// @brief CNF の生成時間を返す．
@@ -97,7 +85,6 @@ private:
 
   /// @brief コンストラクタ
   DtpgDriver(
-    DtpgMgr& mgr,        ///< [in] DTPGマネージャ
     DtpgDriverImpl* impl ///< [in] 実装クラス
   );
 
@@ -106,9 +93,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // DTPGマネージャ
-  DtpgMgr& mMgr;
 
   // 実装クラスのポインタ
   std::unique_ptr<DtpgDriverImpl> mImpl;

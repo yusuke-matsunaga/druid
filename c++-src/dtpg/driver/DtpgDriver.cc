@@ -11,7 +11,7 @@
 #include "DtpgDriver_FFREnc.h"
 #include "DtpgDriver_MFFCEnc.h"
 #include "types/TestVector.h"
-#include "dtpg/DtpgResult.h"
+#include "dtpg/DtpgResults.h"
 #include "dtpg/DtpgStats.h"
 #include "ym/SatStats.h"
 #include "ym/Timer.h"
@@ -26,45 +26,37 @@ BEGIN_NAMESPACE_DRUID
 // @brief ノード単位をテスト生成を行うオブジェクトを生成する．
 DtpgDriver
 DtpgDriver::node_driver(
-  DtpgMgr& mgr,
   const TpgNode& node,
   const JsonValue& option
 )
 {
-  return DtpgDriver(mgr,
-		    new DtpgDriver_NodeEnc(mgr.network(), node, option));
+  return DtpgDriver(new DtpgDriver_NodeEnc(node, option));
 }
 
 // @brief FFR単位でテスト生成を行うオブジェクトを生成する．
 DtpgDriver
 DtpgDriver::ffr_driver(
-  DtpgMgr& mgr,
   const TpgFFR& ffr,
   const JsonValue& option
 )
 {
-  return DtpgDriver(mgr,
-		    new DtpgDriver_FFREnc(mgr.network(), ffr, option));
+  return DtpgDriver(new DtpgDriver_FFREnc(ffr, option));
 }
 
 // @brief MFFC単位でテスト生成を行うオブジェクトを生成する．
 DtpgDriver
 DtpgDriver::mffc_driver(
-  DtpgMgr& mgr,
   const TpgMFFC& mffc,
   const JsonValue& option
 )
 {
-  return DtpgDriver(mgr,
-		    new DtpgDriver_MFFCEnc(mgr.network(), mffc, option));
+  return DtpgDriver(new DtpgDriver_MFFCEnc(mffc, option));
 }
 
 // @brief コンストラクタ
 DtpgDriver::DtpgDriver(
-  DtpgMgr& mgr,
   DtpgDriverImpl* impl
-) : mMgr{mgr},
-    mImpl{impl}
+) : mImpl{impl}
 {
 }
 
@@ -77,10 +69,8 @@ DtpgDriver::~DtpgDriver()
 void
 DtpgDriver::gen_pattern(
   const TpgFault& fault,
-  DtpgStats& stats,
-  Callback_Det det_func,
-  Callback_Undet untest_func,
-  Callback_Undet abort_func
+  DtpgResults& results,
+  DtpgStats& stats
 )
 {
   Timer timer;
@@ -97,21 +87,17 @@ DtpgDriver::gen_pattern(
     timer.stop();
     auto backtrace_time = timer.get_time();
 
-    mMgr.add_testvector(testvect);
-    mMgr.set_dtpg_result(fault, DtpgResult::detected(testvect));
+    results.set_detected(fault, testvect);
     stats.update_det(sat_time, backtrace_time);
-    det_func(mMgr, fault, testvect);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    mMgr.set_dtpg_result(fault, DtpgResult::untestable());
+    results.set_untestable(fault);
     stats.update_untest(sat_time);
-    untest_func(mMgr, fault);
   }
   else { // SatBool3::X
     // アボート
     stats.update_abort(sat_time);
-    abort_func(mMgr, fault);
   }
 }
 
