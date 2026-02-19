@@ -24,7 +24,6 @@ def make_primitive(model, prim_type, input_num):
     input_list = make_input(model, input_num)
     node = model.new_primitive(prim_type, input_list)
     model.new_output(node, name="output")
-    model.wrap_up()
     return TpgNetwork.from_bn(model, FaultType.StuckAt)
 
 def test_constructor1():
