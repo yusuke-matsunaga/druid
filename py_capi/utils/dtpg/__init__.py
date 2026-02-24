@@ -9,6 +9,7 @@
 
 from .structengine_gen import StructEngineGen
 from .bdengine_gen import BdEngineGen
+from .dtpgmgr_gen import DtpgMgrGen
 from .dtpgresults_gen import DtpgResultsGen
 from .dtpgstats_gen import DtpgStatsGen
 from .vidmap_gen import VidMapGen
@@ -18,6 +19,7 @@ from .dtpg_args import StructEngineArg, DtpgResultsArg, DtpgStatsArg
 gen_list = [
     StructEngineGen(),
     BdEngineGen(),
+    DtpgMgrGen(),
     DtpgResultsGen(),
     DtpgStatsGen(),
     VidMapGen(),

@@ -8,7 +8,7 @@
 """
 
 from mk_py_capi import PyObjGen
-from my_py_capi import OptArg, KwdArg
+from mk_py_capi import OptArg, KwdArg
 from misc import JsonValueArg
 from tpg_types import TpgNetworkRefArg
 from tpg_types import TpgFaultListArg
@@ -22,22 +22,27 @@ class DtpgMgrGen(PyObjGen):
                          namespace='DRUID',
                          header_include_files=['dtpg/DtpgMgr.h'],
                          source_include_files=['pym/PyDtpgMgr.h',
-                                               'pym/PyTpgNetwork.h',
+                                               'pym/PyTpgFaultList.h',
+                                               'pym/PyDtpgResults.h',
+                                               'pym/PyDtpgStats.h',
                                                'pym/PyJsonValue.h'])
 
-        def new_func(writer):
-            writer.gen_tp_alloc(objclass='DtpgMgr_Object')
-            writer.gen_stmt('new (&my_obj->mVal) DtpgMgr(network, fault_list)')
-            writer.gen_return_self()
-        self.add_new(func_body=new_func,
-                     arg_list=[TpgNetworkRefArg(name='network',
-                                                cvarname='network'),
-                               TpgFaultListArg(name='fault_list',
-                                               cvarname='fault_list')])
-
-        self.add_dealloc('default')
-
         def meth_run(writer):
-            if ( untest_obj != nullptr && abort_obj != nullptr ) {
-                    writer.gen_return_pyobject('PyDtpgStats',
-                                               'val.run([](DtpgMgr& mgr, const TpgFault* f, TestVector rv) { det_func, [](DtpgMgr& mgr, const TpgFault
+            writer.gen_vardecl(typename='DtpgResults',
+                               varname='results')
+            writer.gen_auto_assign('stats',
+                                   'DtpgMgr::run(fault_list, results, option)')
+            writer.gen_auto_assign('val1',
+                                   'PyDtpgStats::ToPyObject(stats)')
+            writer.gen_auto_assign('val2',
+                                   'PyDtpgResults::ToPyObject(results)')
+            writer.gen_return_buildvalue('(OO)', ['val1', 'val2'])
+        self.add_static_method('run',
+                               func_body=meth_run,
+                               arg_list=[TpgFaultListArg(name='fault_list',
+                                                         cvarname='fault_list'),
+                                         OptArg(),
+                                         KwdArg(),
+                                         JsonValueArg(name='option',
+                                                      cvarname='option')],
+                               doc_str='do DTPG')

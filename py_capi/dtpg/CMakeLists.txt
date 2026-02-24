@@ -22,6 +22,7 @@ set ( dtpg_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/dtpg_module.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyStructEngine.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyBdEngine.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgMgr.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgResults.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyDtpgStats.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyVidMap.cc
