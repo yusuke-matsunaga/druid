@@ -3,7 +3,6 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-  include
   )
 
 
@@ -11,30 +10,22 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( mgr )
-add_subdirectory( driver )
-add_subdirectory( engine )
-add_subdirectory( ex )
-add_subdirectory( jt )
-add_subdirectory( gtest )
-add_subdirectory( test-programs )
-
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
 
+set ( mgr_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/DtpgMgr.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/DtpgResults.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/ResultRep.cc
+  PARENT_SCOPE
+  )
+
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
-ym_add_object_library ( druid_dtpg
-  ${mgr_SOURCES}
-  ${driver_SOURCES}
-  ${engine_SOURCES}
-  ${ex_SOURCES}
-  ${jt_SOURCES}
-  )
 
 
 # ===================================================================
