@@ -16,9 +16,9 @@
 #include "EventQ.h"
 #include "SimFault.h"
 #include "SimFFR.h"
+#include "SimNodeList.h"
 #include "types/TpgNode.h"
 #include "types/TestVector.h"
-#include "SimNodeList.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -117,43 +117,30 @@ public:
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  void
+  std::shared_ptr<FsimResultsRep>
   sppfp(
-    const TestVector& tv, ///< [in] テストベクタ
-    cbtype1 callback      ///< [in] コールバック関数
-                          ///<      1番目の引数は検出された故障
-                          ///<      2番目の引数は出力の伝搬状況
+    const TestVector& tv ///< [in] テストベクタ
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  void
+  std::shared_ptr<FsimResultsRep>
   sppfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback                    ///< [in] コールバック関数
-                                        ///<      1番目の引数は検出された故障
-                                        ///<      2番目の引数は出力の伝搬状況
+    const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   ///
   /// * assign_list は任意の位置の割り当てでよい．
   /// * 3値のシミュレーションのみ可能
-  void
+  std::shared_ptr<FsimResultsRep>
   xsppfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback               ///< [in] コールバック関数
-                                   ///<      1番目の引数は検出された故障
-                                   ///<      2番目の引数は出力の伝搬状況
+    const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  void
+  std::shared_ptr<FsimResultsRep>
   ppsfp(
-    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    cbtype2 callback                   ///< [in] 1回のシミュレーションごとに
-                                       ///<      呼び出される関数
-                                       ///<      1番目の引数は検出された故障
-                                       ///<      2番目の引数は出力の伝搬状況
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) override;
 
 
@@ -295,26 +282,22 @@ private:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
-  void
-  _sppfp(
-    cbtype1 callback     ///< [in] コールバック関数
-  );
+  std::shared_ptr<FsimResultsRep>
+  _sppfp();
 
   /// @brief sppfp 用のシミュレーションを行う．
   void
   _sppfp_simulation(
     const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
     SizeType ffr_num,         ///< [in] FFR 数
-    cbtype1 callback          ///< [in] コールバック関数
+    FsimResultsRep* res       ///< [in] 結果を格納するオブジェクト
   );
 
   /// @brief PPSFP故障シミュレーションの本体
-  /// @return callback() が false を返したら false を返す．
-  bool
+  void
   _ppsfp(
-    SizeType base,   ///< [in] パタン番号の起点
-    SizeType npat,   ///< [in] パタン数
-    cbtype2 callback ///< [in] コールバック関数
+    SizeType base, ///< [in] パタン番号の起点
+    SizeType npat  ///< [in] パタン数
   );
 
   /// @brief 正常値の計算を行う．
@@ -403,17 +386,17 @@ private:
 
   /// @brief sppfp 用の下請け関数
   void
-  _sppfp_apply_callback(
-    const SimFFR& ffr, ///< [in] 対象の FFR
-    DiffBits dbits,    ///< [in] 出力の故障伝搬ビット
-    cbtype1 callback   ///< [in] コールバック関数
+  _sppfp_sub(
+    const SimFFR& ffr,  ///< [in] 対象の FFR
+    DiffBits dbits,     ///< [in] 出力の故障伝搬ビット
+    FsimResultsRep* res ///< [in] 結果を格納するオブジェクト
   )
   {
     auto& fault_list = ffr.fault_list();
     for ( auto ff: fault_list ) {
       if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	auto fid = ff->id();
-	callback(fid, dbits);
+	res->add(0, fid, dbits);
       }
     }
   }

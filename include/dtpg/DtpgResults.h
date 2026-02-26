@@ -17,6 +17,8 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class ResultRep;
+
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgResults DtpgResults.h "dtpg/DtpgResults.h"
 /// @brief DTPG の結果を表すクラス
@@ -43,7 +45,8 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
+  /// @name 内容を設定する関数
+  /// @{
   //////////////////////////////////////////////////////////////////////
 
   /// @brief クリアする．
@@ -75,6 +78,25 @@ public:
   set_untestable(
     const TpgFault& fault ///< [in] 対象の故障
   );
+
+  /// @brief 内容をマージする．
+  ///
+  /// 両方にデータがある場合は src で上書きされる．
+  void
+  merge(
+    const DtpgResults& src ///< [in] マージする元
+  );
+
+  //////////////////////////////////////////////////////////////////////
+  /// @}
+  //////////////////////////////////////////////////////////////////////
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  /// @name 内容を取得する関数
+  /// @{
+  //////////////////////////////////////////////////////////////////////
 
   /// @brief 結果を返す．
   FaultStatus
@@ -110,52 +132,9 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
-
-public:
   //////////////////////////////////////////////////////////////////////
-  // 内部で用いるデータ構造
+  /// @}
   //////////////////////////////////////////////////////////////////////
-
-  // 結果を表す基底クラス
-  class ResultRep
-  {
-  public:
-
-    // デストラクタ
-    virtual
-    ~ResultRep() = default;
-
-    // 結果を返す．
-    virtual
-    FaultStatus
-    status() const = 0;
-
-    // テストベクタを持つ時 true を返す．
-    virtual
-    bool
-    has_testvector() const;
-
-    // テストベクタを返す．
-    //
-    // has_testvector() == false の場合は std::logic_error 例外を送出する．
-    virtual
-    const TestVector&
-    testvector() const;
-
-    // 値割り当てを持つ時 true を返す．
-    virtual
-    bool
-    has_assign_list() const;
-
-    // 値割り当てを返す．
-    //
-    // has_assign_list() == false の場合は std::logic_error 例外を送出する．
-    virtual
-    const AssignList&
-    assign_list() const;
-
-  };
-
 
 private:
   //////////////////////////////////////////////////////////////////////

@@ -10,10 +10,10 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "fsim/Fsim.h"
 #include "types/FaultType.h"
 #include "types/PackedVal.h"
 #include "fsim/DiffBits.h"
+#include "FsimResultsRep.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -72,12 +72,6 @@ public:
   // 故障シミュレーションを行う関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief sppfp で用いるコールバック関数の型定義
-  using cbtype1 = std::function<void(SizeType, const DiffBits&)>;
-
-  /// @brief ppsfp で用いるコールバック関数の型定義
-  using cbtype2 = std::function<void(SizeType, const DiffBitsArray&)>;
-
   /// @brief SPSFP故障シミュレーションを行う．
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
@@ -116,22 +110,16 @@ public:
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   virtual
-  void
+  std::shared_ptr<FsimResultsRep>
   sppfp(
-    const TestVector& tv, ///< [in] テストベクタ
-    cbtype1 callback      ///< [in] コールバック関数
-                          ///<      1番目の引数は検出された故障
-                          ///<      2番目の引数は出力の伝搬状況
+    const TestVector& tv ///< [in] テストベクタ
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   virtual
-  void
+  std::shared_ptr<FsimResultsRep>
   sppfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback               ///< [in] コールバック関数
-                                   ///<      1番目の引数は検出された故障
-                                   ///<      2番目の引数は出力の伝搬状況
+    const AssignList& assign_list ///< [in] 値の割当リスト
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -139,23 +127,16 @@ public:
   /// * assign_list は任意の位置の割り当てでよい．
   /// * 3値のシミュレーションのみ可能
   virtual
-  void
+  std::shared_ptr<FsimResultsRep>
   xsppfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback               ///< [in] コールバック関数
-                                   ///<      1番目の引数は検出された故障
-                                   ///<      2番目の引数は出力の伝搬状況
+    const AssignList& assign_list ///< [in] 値の割当リスト
   ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   virtual
-  void
+  std::shared_ptr<FsimResultsRep>
   ppsfp(
-    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    cbtype2 callback                   ///< [in] 1回のシミュレーションごとに
-                                       ///<      呼び出される関数
-                                       ///<      1番目の引数は検出された故障
-                                       ///<      2番目の引数は出力ごとの伝搬状況
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) = 0;
 
 

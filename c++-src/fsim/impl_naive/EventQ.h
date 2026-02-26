@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "fsim_nsdef.h"
-#include "fsim/DiffBitsArray.h"
+#include "DiffBitsArray.h"
 #include "SimNode.h"
 #include "ym/Range.h"
 

@@ -222,15 +222,17 @@ SimEngine::ppsfp(
     log("ppsfp() start");
   }
 
-  // 結果のリストをクリアする．
-  mResList2.clear();
+  auto n = tv_list.size();
+
+  // 結果を初期化する．
+  mRes = std::unique_ptr<FsimResultsRep>{new FsimResultsRep(n)};
 
   // 正常値の計算を行う．
   _calc_gval(tv_list);
 
   // データを持っているビットを表すビットマスク
   PackedVal bitmask = 0UL;
-  for ( SizeType i = 0; i < tv_list.size(); ++ i ) {
+  for ( SizeType i = 0; i < n; ++ i ) {
     bitmask |= (1UL << i);
   }
 
@@ -257,9 +259,13 @@ SimEngine::ppsfp(
 	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
 	  // 検出された
 	  auto fid = ff->id();
-	  auto dbits = dbits_array.masking(ff->obs_mask());
-	  dbits.sort();
-	  mResList2.push_back({fid, dbits});
+	  auto dbits_array1 = dbits_array.masking(ff->obs_mask());
+	  for ( SizeType i = 0; i < n; ++ i ) {
+	    auto dbits = dbits_array1.get_slice(i);
+	    if ( dbits.elem_num() > 0 ) {
+	      mRes->add(i, fid, dbits);
+	    }
+	  }
 	}
       }
     }
@@ -312,8 +318,8 @@ SimEngine::_sppfp()
     log("sppfp() start");
   }
 
-  // 結果のリストをクリアする．
-  mResList1.clear();
+  // 結果を初期化する．
+  mRes = std::unique_ptr<FsimResultsRep>{new FsimResultsRep(1)};
 
   auto NFFR = mFsim.ffr_num();
   auto NT = mSyncObj.thread_num();
@@ -338,7 +344,7 @@ SimEngine::_sppfp()
       for ( auto ff: ffr->fault_list() ) {
 	if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	  auto fid = ff->id();
-	  mResList1.push_back({fid, dbits});
+	  mRes->add(0, fid, dbits);
 	}
       }
     }
@@ -377,40 +383,13 @@ SimEngine::sppfp_simulation(
     auto& ffr = *ffr_array[i];
     auto& fault_list = ffr.fault_list();
     auto dbits = dbits_array.get_slice(i);
-    dbits.sort();
     for ( auto f: fault_list ) {
       if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
 	auto fid = f->id();
-	mResList1.push_back({fid, dbits});
+	mRes->add(0, fid, dbits);
       }
     }
     mask <<= 1;
-  }
-}
-
-// @brief SPPFP 法の結果に対してコールバック関数を呼び出す．
-void
-SimEngine::apply_callback1(
-  cbtype1 callback
-)
-{
-  for ( auto& p: mResList1 ) {
-    auto fid = p.first;
-    auto& dbits = p.second;
-    callback(fid, dbits);
-  }
-}
-
-// @brief PPSFP 法の結果に対してコールバック関数を呼び出す．
-void
-SimEngine::apply_callback2(
-  cbtype2 callback
-)
-{
-  for ( auto& p: mResList2 ) {
-    auto fid = p.first;
-    auto& dbits_array = p.second;
-    callback(fid, dbits_array);
   }
 }
 

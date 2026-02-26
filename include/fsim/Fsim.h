@@ -11,9 +11,10 @@
 
 #include "druid.h"
 #include "types/FaultType.h"
-#include "types/PackedVal.h"
+//#include "types/PackedVal.h"
 #include "fsim/DiffBits.h"
-#include "fsim/DiffBitsArray.h"
+//#include "fsim/DiffBitsArray.h"
+#include "fsim/FsimResults.h"
 #include "ym/JsonValue.h"
 
 
@@ -25,7 +26,7 @@ class FsimImpl;
 /// @class Fsim Fsim.h "Fsim.h"
 /// @brief 故障シミュレーションを行うクラス
 /// @ingroup FsimGroup
-/// @sa DiffBits, DiffBitsArray
+/// @sa DiffBits, FsimResults
 ///
 /// 意味的には対象回路に対して故障シミュレーションを行う関数のみを実現できればよく，
 /// 内部に状態を持つ必要はないが，効率化のため故障シミュレーションに特化した回路構造
@@ -120,18 +121,6 @@ public:
   // 故障シミュレーションを行う関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief SPPFP故障シミュレーションで用いるコールバック関数の型定義
-  ///
-  /// * 1番目の引数は検出された故障
-  /// * 2番目の引数は出力ごとの伝搬状況
-  using cbtype1 = std::function<void(const TpgFault&, const DiffBits&)>;
-
-  /// @brief PPSFP故障シミュレーションで用いるコールバック関数の型定義
-  ///
-  /// * 1番目の引数は検出された故障
-  /// * 2番目の引数は出力ごとの伝搬状況
-  using cbtype2 = std::function<void(const TpgFault&, const DiffBitsArray&)>;
-
   /// @brief SPSFP故障シミュレーションを行う．
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
@@ -168,45 +157,38 @@ public:
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  void
+  ///
+  /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
+  FsimResults
   sppfp(
-    const TestVector& tv,  ///< [in] テストベクタ
-    cbtype1 callback       ///< [in] コールバック関数
-                           ///<      1番目の引数は検出された故障
-                           ///<      2番目の引数は出力の伝搬状況
+    const TestVector& tv ///< [in] テストベクタ
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   ///
-  /// assign_list は外部入力の割り当てでなければならない．
-  void
+  /// - assign_list は外部入力の割り当てでなければならない．
+  /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
+  FsimResults
   sppfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback               ///< [in] コールバック関数
-                                   ///<      1番目の引数は検出された故障
-                                   ///<      2番目の引数は出力の伝搬状況
+    const AssignList& assign_list ///< [in] 値の割当リスト
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  void
+  /// - assign_list は任意の位置の割り当てでよい．
+  /// - 3値のシミュレーションのみ可能
+  /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
+  FsimResults
   xsppfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback               ///< [in] コールバック関数
-                                   ///<      1番目の引数は検出された故障
-                                   ///<      2番目の引数は出力の伝搬状況
+    const AssignList& assign_list ///< [in] 値の割当リスト
   );
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  void
+  ///
+  /// - 結果の FsimResults::tv_num() == tv_list.size() が成り立つ．
+  FsimResults
   ppsfp(
-    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-                                            ///<      要素数の最大値は PV_BITLEN
-    cbtype2 callback                        ///< [in] コールバック関数
-                                            ///<      1番目の引数は検出された故障
-                                            ///<      2番目の引数は出力の伝搬状況
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   );
 
 
@@ -251,17 +233,6 @@ public:
     InputVector& i_vect, ///< [out] 外部入力のビットベクタ
     DffVector& f_vect	 ///< [out] FFの値のビットベクタ
   );
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 定数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ppsfp() で用いるバッファサイズ
-  static
-  const SizeType
-  PP_BITLEN = PV_BITLEN;
 
 
 private:

@@ -397,63 +397,67 @@ FSIM_CLASSNAME::xspsfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::sppfp(
-  const TestVector& tv,
-  cbtype1 callback
+  const TestVector& tv
 )
 {
   // SPPFP コマンドを送る．
   mSyncObj.put_sppfp_command(tv);
 
-  for ( auto& engine: mEngineList ) {
-    engine->apply_callback1(callback);
-  }
+  // 結果を集める．
+  return merge_results();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::sppfp(
-  const AssignList& assign_list,
-  cbtype1 callback
+  const AssignList& assign_list
 )
 {
   // SPPFP コマンドを送る．
   mSyncObj.put_sppfp_command(assign_list);
 
-  for ( auto& engine: mEngineList ) {
-    engine->apply_callback1(callback);
-  }
+  // 結果を集める．
+  return merge_results();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::xsppfp(
-  const AssignList& assign_list,
-  cbtype1 callback
+  const AssignList& assign_list
 )
 {
   // SPPFP コマンドを送る．
   mSyncObj.put_xsppfp_command(assign_list);
 
-  for ( auto& engine: mEngineList ) {
-    engine->apply_callback1(callback);
-  }
+  // 結果を集める．
+  return merge_results();
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-void
+std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::ppsfp(
-  const std::vector<TestVector>& tv_list,
-  cbtype2 callback
+  const std::vector<TestVector>& tv_list
 )
 {
   // PPSFP コマンドを送る．
   mSyncObj.put_ppsfp_command(tv_list);
 
+  // 結果を集める．
+  return merge_results();
+}
+
+// @brief 各 engine の結果を集める．
+std::shared_ptr<FsimResultsRep>
+FSIM_CLASSNAME::merge_results()
+{
+  std::vector<const FsimResultsRep*> src_list;
+  src_list.reserve(mEngineList.size());
   for ( auto& engine: mEngineList ) {
-    engine->apply_callback2(callback);
+    src_list.push_back(engine->results());
   }
+  return FsimResultsRep::merge(src_list);
 }
 
 #if FSIM_BSIDE

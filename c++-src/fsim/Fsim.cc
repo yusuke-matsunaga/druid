@@ -144,63 +144,71 @@ Fsim::xspsfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+FsimResults
 Fsim::sppfp(
-  const TestVector& tv,
-  cbtype1 callback
+  const TestVector& tv
 )
 {
-  return mImpl->sppfp(tv,
-		      [&](SizeType fid, const DiffBits& dbits){
-			auto f = mNetwork.fault(fid);
-			callback(f, dbits);
-		      });
+  auto res = mImpl->sppfp(tv);
+  if ( res->tv_num() != 1 ) {
+    throw std::logic_error{"something wrong"};
+  }
+  return FsimResults(res);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+FsimResults
 Fsim::sppfp(
-  const AssignList& assign_list,
-  cbtype1 callback
+  const AssignList& assign_list
 )
 {
-  return mImpl->sppfp(assign_list,
-		      [&](SizeType fid, const DiffBits& dbits){
-			auto f = mNetwork.fault(fid);
-			callback(f, dbits);
-		      });
+  auto res = mImpl->sppfp(assign_list);
+  if ( res->tv_num() != 1 ) {
+    throw std::logic_error{"something wrong"};
+  }
+  return FsimResults(res);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+FsimResults
 Fsim::xsppfp(
-  const AssignList& assign_list,
-  cbtype1 callback
+  const AssignList& assign_list
 )
 {
-  return mImpl->xsppfp(assign_list,
-		      [&](SizeType fid, const DiffBits& dbits){
-			auto f = mNetwork.fault(fid);
-			callback(f, dbits);
-		      });
+  auto res = mImpl->xsppfp(assign_list);
+  if ( res->tv_num() != 1 ) {
+    throw std::logic_error{"something wrong"};
+  }
+  return FsimResults(res);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-void
+FsimResults
 Fsim::ppsfp(
-  const std::vector<TestVector>& tv_list,
-  cbtype2 callback
+  const std::vector<TestVector>& tv_list
 )
 {
-  if ( tv_list.size() > PV_BITLEN ) {
-    throw std::invalid_argument{"tv_list.size() > PV_BITLEN"};
-  }
-  return mImpl->ppsfp(tv_list,
-		      [&](SizeType fid, const DiffBitsArray& dbits_array){
-			auto f = mNetwork.fault(fid);
-			callback(f, dbits_array);
-		      });
+  // 結果を格納するオブジェクト
+  auto res = std::shared_ptr<FsimResultsRep>{new FsimResultsRep(0)};
 
+  // PV_BITLEN ごとに分割して処理を行う．
+  std::vector<TestVector> tv_buff;
+  tv_buff.reserve(PV_BITLEN);
+  SizeType NV = tv_list.size();
+  SizeType base = 0;
+  for ( auto& tv: tv_list ) {
+    tv_buff.push_back(tv);
+    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
+      auto res1 = mImpl->ppsfp(tv_buff);
+      if ( res1->tv_num() != tv_buff.size() ) {
+	throw std::logic_error{"something wrong"};
+      }
+      res->append(res1.get());
+      base += tv_buff.size();
+      tv_buff.clear();
+    }
+  }
+  return FsimResults(res);
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．

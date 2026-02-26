@@ -31,3 +31,14 @@ class DiffBitsArrayArg(TypedObjConvArg):
                          cvartype='DiffBitsArray',
                          cvardefault='{}',
                          pyclassname='PyDiffbitsArray')
+
+class FsimResultsArg(TypedObjConvArg):
+
+    def __init__(self, *,
+                 name=None,
+                 cvarname):
+        super().__init__(name=name,
+                         cvarname=cvarname,
+                         cvartype='FsimResults',
+                         cvardefault='{}',
+                         pyclassname='PyFsimResults')

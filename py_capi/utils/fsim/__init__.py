@@ -8,13 +8,14 @@
 """
 
 from .diffbits_gen import DiffBitsGen
-from .diffbitsarray_gen import DiffBitsArrayGen
 from .fsim_gen import FsimGen
-from .fsim_args import DiffBitsArg, DiffBitsArrayArg
+from .fsimresults_gen import FsimResultsGen
+from .fsim_args import DiffBitsArg
+from .fsim_args import FsimResultsArg
 
 
 gen_list = [
     DiffBitsGen(),
-    DiffBitsArrayGen(),
     FsimGen(),
+    FsimResultsGen(),
 ]

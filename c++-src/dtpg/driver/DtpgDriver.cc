@@ -27,36 +27,44 @@ BEGIN_NAMESPACE_DRUID
 DtpgDriver
 DtpgDriver::node_driver(
   const TpgNode& node,
+  const TpgFaultList& fault_list,
   const JsonValue& option
 )
 {
-  return DtpgDriver(new DtpgDriver_NodeEnc(node, option));
+  return DtpgDriver(new DtpgDriver_NodeEnc(node, option),
+		    fault_list);
 }
 
 // @brief FFR単位でテスト生成を行うオブジェクトを生成する．
 DtpgDriver
 DtpgDriver::ffr_driver(
   const TpgFFR& ffr,
+  const TpgFaultList& fault_list,
   const JsonValue& option
 )
 {
-  return DtpgDriver(new DtpgDriver_FFREnc(ffr, option));
+  return DtpgDriver(new DtpgDriver_FFREnc(ffr, option),
+		    fault_list);
 }
 
 // @brief MFFC単位でテスト生成を行うオブジェクトを生成する．
 DtpgDriver
 DtpgDriver::mffc_driver(
   const TpgMFFC& mffc,
+  const TpgFaultList& fault_list,
   const JsonValue& option
 )
 {
-  return DtpgDriver(new DtpgDriver_MFFCEnc(mffc, option));
+  return DtpgDriver(new DtpgDriver_MFFCEnc(mffc, option),
+		    fault_list);
 }
 
 // @brief コンストラクタ
 DtpgDriver::DtpgDriver(
-  DtpgDriverImpl* impl
-) : mImpl{impl}
+  DtpgDriverImpl* impl,
+  const TpgFaultList& fault_list
+) : mImpl{impl},
+    mFaultList{fault_list}
 {
 }
 
@@ -65,12 +73,23 @@ DtpgDriver::~DtpgDriver()
 {
 }
 
+// @brief 実行する．
+void
+DtpgDriver::run()
+{
+  for ( auto fault: mFaultList ) {
+    gen_pattern(fault);
+  }
+  auto cnf_time = mImpl->cnf_time();
+  mStats.update_cnf(cnf_time);
+  auto sat_stats = mImpl->sat_stats();
+  mStats.update_sat_stats(sat_stats);
+}
+
 // @brief 故障のテストパタンを求める．
 void
 DtpgDriver::gen_pattern(
-  const TpgFault& fault,
-  DtpgResults& results,
-  DtpgStats& stats
+  const TpgFault& fault
 )
 {
   Timer timer;
@@ -87,32 +106,29 @@ DtpgDriver::gen_pattern(
     timer.stop();
     auto backtrace_time = timer.get_time();
 
-    results.set_detected(fault, testvect);
-    stats.update_det(sat_time, backtrace_time);
+    mResults.set_detected(fault, testvect);
+    mStats.update_det(sat_time, backtrace_time);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    results.set_untestable(fault);
-    stats.update_untest(sat_time);
+    mResults.set_untestable(fault);
+    mStats.update_untest(sat_time);
   }
   else { // SatBool3::X
     // アボート
-    stats.update_abort(sat_time);
+    mStats.update_abort(sat_time);
   }
 }
 
-// @brief CNF の生成時間を返す．
-double
-DtpgDriver::cnf_time() const
+// @brief 結果と統計情報をマージする．
+void
+DtpgDriver::merge_results(
+  DtpgResults& results,
+  DtpgStats& stats
+) const
 {
-  return mImpl->cnf_time();
-}
-
-// @brief SATの統計情報を返す．
-SatStats
-DtpgDriver::sat_stats() const
-{
-  return mImpl->sat_stats();
+  results.merge(mResults);
+  stats.merge(mStats);
 }
 
 END_NAMESPACE_DRUID

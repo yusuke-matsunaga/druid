@@ -431,53 +431,51 @@ FSIM_CLASSNAME::_spsfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::sppfp(
-  const TestVector& tv,
-  cbtype1 callback
+  const TestVector& tv
 )
 {
   // 正常値の計算を行う．
   _calc_gval(tv);
 
   // 故障伝搬を行う．
-  _sppfp(callback);
+  return _sppfp();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::sppfp(
-  const AssignList& assign_list,
-  cbtype1 callback
+  const AssignList& assign_list
 )
 {
   // 正常値の計算を行う．
   _calc_gval(assign_list);
 
   // 故障伝搬を行う．
-  _sppfp(callback);
+  return _sppfp();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-void
+std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::xsppfp(
-  const AssignList& assign_list,
-  cbtype1 callback
+  const AssignList& assign_list
 )
 {
   // 正常値の計算を行う．
   _calc_gval2(assign_list);
 
   // 故障伝搬を行う．
-  _sppfp(callback);
+  return _sppfp();
 }
 
 // @brief SPPFP故障シミュレーションの本体
-void
-FSIM_CLASSNAME::_sppfp(
-  cbtype1 callback
-)
+std::shared_ptr<FsimResultsRep>
+FSIM_CLASSNAME::_sppfp()
 {
+  // シミュレーション結果
+  auto res = new FsimResultsRep(1);
+
   const SimFFR* ffr_buff[PV_BITLEN];
   auto bitpos = 0;
   // FFR ごとに処理を行う．
@@ -496,7 +494,7 @@ FSIM_CLASSNAME::_sppfp(
       // 常にこの出力のみで観測可能
       DiffBits dbits;
       dbits.add_output(root->output_id());
-      _sppfp_apply_callback(ffr, dbits, callback);
+      _sppfp_sub(ffr, dbits, res);
     }
     else {
       // キューに積んでおく
@@ -506,14 +504,15 @@ FSIM_CLASSNAME::_sppfp(
       ++ bitpos;
 
       if ( bitpos == PV_BITLEN ) {
-	_sppfp_simulation(ffr_buff, bitpos, callback);
+	_sppfp_simulation(ffr_buff, bitpos, res);
 	bitpos = 0;
       }
     }
   }
   if ( bitpos > 0 ) {
-    _sppfp_simulation(ffr_buff, bitpos, callback);
+    _sppfp_simulation(ffr_buff, bitpos, res);
   }
+  return std::shared_ptr<FsimResultsRep>{res};
 }
 
 // @brief sppfp 用のシミュレーションを行う．
@@ -521,7 +520,7 @@ void
 FSIM_CLASSNAME::_sppfp_simulation(
   const SimFFR* ffr_buff[],
   SizeType ffr_num,
-  cbtype1 callback
+  FsimResultsRep* res
 )
 {
   auto dbits_array = mEventQ.simulate();
@@ -532,26 +531,31 @@ FSIM_CLASSNAME::_sppfp_simulation(
       auto& ffr = *ffr_buff[i];
       auto dbits = dbits_array.get_slice(i);
       dbits.sort();
-      _sppfp_apply_callback(ffr, dbits, callback);
+      _sppfp_sub(ffr, dbits, res);
     }
   }
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-void
+std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::ppsfp(
-  const std::vector<TestVector>& tv_list,
-  cbtype2 callback
+  const std::vector<TestVector>& tv_list
 )
 {
   // 正常値の計算を行う．
   _calc_gval(tv_list);
 
+  // パタン数
+  auto n = tv_list.size();
+
   // データを持っているビットを表すビットマスク
   PackedVal bitmask = 0UL;
-  for ( SizeType i = 0; i < tv_list.size(); ++ i ) {
+  for ( SizeType i = 0; i < n; ++ i ) {
     bitmask |= (1UL << i);
   }
+
+  // 結果
+  auto res = new FsimResultsRep(n);
 
   // FFR ごとに処理を行う．
   for ( auto& ffr: mFFRArray ) {
@@ -577,13 +581,19 @@ FSIM_CLASSNAME::ppsfp(
 	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
 	  // 検出された．
 	  auto fid = ff->id();
-	  auto dbits = dbits_array.masking(ff->obs_mask());
-	  dbits.sort();
-	  callback(fid, dbits);
+	  auto dbits_array1 = dbits_array.masking(ff->obs_mask());
+	  for ( SizeType i = 0; i < n; ++ i ) {
+	    auto dbits = dbits_array1.get_slice(i);
+	    if ( dbits.elem_num() > 0 ) {
+	      res->add(i, fid, dbits);
+	    }
+	  }
 	}
       }
     }
   }
+
+  return std::shared_ptr<FsimResultsRep>{res};
 }
 
 #if FSIM_BSIDE

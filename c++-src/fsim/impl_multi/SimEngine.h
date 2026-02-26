@@ -11,6 +11,7 @@
 #include "fsim_nsdef.h"
 #include "FsimX.h"
 #include "EventQ.h"
+#include "DiffBitsArray.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -23,9 +24,6 @@ class SyncObj;
 //////////////////////////////////////////////////////////////////////
 class SimEngine
 {
-  using cbtype1 = FsimImpl::cbtype1;
-  using cbtype2 = FsimImpl::cbtype2;
-
 public:
 
   /// @brief コンストラクタ
@@ -100,17 +98,12 @@ public:
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   );
 
-  /// @brief SPPFP 法の結果に対してコールバック関数を呼び出す．
-  void
-  apply_callback1(
-    cbtype1 callback ///< [in] コールバック関数
-  );
-
-  /// @brief PPSFP 法の結果に対してコールバック関数を呼び出す．
-  void
-  apply_callback2(
-    cbtype2 callback ///< [in] コールバック関数
-  );
+  /// @brief 結果を得る．
+  const FsimResultsRep*
+  results() const
+  {
+    return mRes.get();
+  }
 
 
 private:
@@ -340,11 +333,8 @@ private:
   // clear 用の情報の配列
   std::vector<RestoreInfo> mClearArray;
 
-  // 結果のリスト(SPPFP)
-  std::vector<std::pair<SizeType, DiffBits>> mResList1;
-
-  // 結果のリスト(PPSFP)
-  std::vector<std::pair<SizeType, DiffBitsArray>> mResList2;
+  // 結果を格納するオブジェクト
+  std::unique_ptr<FsimResultsRep> mRes;
 
   // デバッグフラグ
   bool mDebug{false};

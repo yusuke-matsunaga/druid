@@ -11,8 +11,8 @@
 
 #include "druid.h"
 #include "pym/PyDiffBits.h"
-#include "pym/PyDiffBitsArray.h"
 #include "pym/PyFsim.h"
+#include "pym/PyFsimResults.h"
 #include "pym/PyModule.h"
 
 
@@ -48,10 +48,10 @@ PyInit_fsim()
   if ( !PyDiffBits::init(m) ) {
     goto error;
   }
-  if ( !PyDiffBitsArray::init(m) ) {
+  if ( !PyFsim::init(m) ) {
     goto error;
   }
-  if ( !PyFsim::init(m) ) {
+  if ( !PyFsimResults::init(m) ) {
     goto error;
   }
 

@@ -50,14 +50,13 @@ class FsimGen(PyObjGen):
                                                'pym/PyTestVector.h',
                                                'pym/PyAssignList.h',
                                                'pym/PyDiffBits.h',
-                                               'pym/PyDiffBitsArray.h',
+                                               'pym/PyFsimResults.h',
                                                'pym/PyJsonValue.h',
                                                'pym/PyList.h',
                                                'pym/PyBool.h',
                                                'pym/PyUlong.h'])
         def preamble_body(writer):
             writer.gen_include('parse_faults.cc')
-            writer.gen_include('cbfunc.cc')
         self.add_preamble(preamble_body)
 
         self.add_dealloc('default')
@@ -154,57 +153,39 @@ class FsimGen(PyObjGen):
                         doc_str='do SPSFP fault simulation with X values')
 
         def meth_sppfp(writer):
-            with writer.gen_if_block('!PyCallable_Check(cb_obj)'):
-                writer.gen_type_error('"argument 2 should be callable"')
-            writer.gen_auto_assign('callback',
-                                   'CbFunc1(cb_obj)')
             with writer.gen_if_block('PyTestVector::Check(tv_obj)'):
                 writer.gen_autoref_assign('tv',
                                           'PyTestVector::_get_ref(tv_obj)')
-                writer.gen_stmt('val.sppfp(tv, callback)')
-                writer.gen_return_py_none()
+                writer.gen_return_pyobject('PyFsimResults',
+                                           'val.sppfp(tv)')
             with writer.gen_if_block('PyAssignList::Check(tv_obj)'):
                 writer.gen_autoref_assign('assign_list',
                                           'PyAssignList::_get_ref(tv_obj)')
-                writer.gen_stmt('val.sppfp(assign_list, callback)')
-                writer.gen_return_py_none()
+                writer.gen_return_pyobject('PyFsimResults',
+                                           'val.sppfp(assign_list)')
             writer.gen_type_error('"argument 1 should be TestVector or AssignList"')
         self.add_method('sppfp',
                         func_body=meth_sppfp,
                         arg_list=[RawObjArg(name='tv',
-                                            cvarname='tv_obj'),
-                                  RawObjArg(name='callback',
-                                            cvarname='cb_obj')],
+                                            cvarname='tv_obj')],
                         doc_str='do SPPFP fault simulation')
 
         def meth_xsppfp(writer):
-            with writer.gen_if_block('!PyCallable_Check(cb_obj)'):
-                writer.gen_type_error('"argument 2 should be callable"')
-            writer.gen_auto_assign('callback',
-                                   'CbFunc1(cb_obj)')
-            writer.gen_stmt('val.xsppfp(assign_list, callback)')
-            writer.gen_return_py_none()
+            writer.gen_return_pyobject('PyFsimResults',
+                                       'val.xsppfp(assign_list)')
         self.add_method('xsppfp',
                         func_body=meth_xsppfp,
                         arg_list=[AssignListArg(name='assign_list',
-                                                cvarname='assign_list'),
-                                  RawObjArg(name='callback',
-                                            cvarname='cb_obj')],
+                                                cvarname='assign_list')],
                         doc_str='do SPPFP fault simulation with X values')
 
         def meth_ppsfp(writer):
-            with writer.gen_if_block('!PyCallable_Check(cb_obj)'):
-                writer.gen_type_error('"argument 2 should be callable"')
-            writer.gen_auto_assign('callback',
-                                   'CbFunc2(cb_obj)')
-            writer.gen_stmt('val.ppsfp(tv_list, callback)')
-            writer.gen_return_py_none()
+            writer.gen_return_pyobject('PyFsimResults',
+                                       'val.ppsfp(tv_list)')
         self.add_method('ppsfp',
                         func_body=meth_ppsfp,
                         arg_list=[TestVectorListArg(name='tv_list',
-                                                    cvarname='tv_list'),
-                                  RawObjArg(name='callback',
-                                            cvarname='cb_obj')],
+                                                    cvarname='tv_list')],
                         doc_str='do SPPFP fault simulation with X values')
 
         def meth_calc_wsa(writer):

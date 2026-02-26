@@ -118,43 +118,31 @@ public:
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  void
+  std::shared_ptr<FsimResultsRep>
   sppfp(
-    const TestVector& tv, ///< [in] テストベクタ
-    cbtype1 callback      ///< [in] コールバック関数
+    const TestVector& tv ///< [in] テストベクタ
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
-  void
+  std::shared_ptr<FsimResultsRep>
   sppfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback               ///< [in] コールバック関数
+    const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   ///
   /// * assign_list は任意の位置の割り当てでよい．
   /// * 3値のシミュレーションのみ可能
-  void
+  std::shared_ptr<FsimResultsRep>
   xsppfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    cbtype1 callback               ///< [in] コールバック関数
-                                   ///<      1番目の引数は検出された故障
-                                   ///<      2番目の引数は出力の伝搬状況
+    const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 全パタンシミュレーションした場合に true を返す．
-  ///
-  /// callback 関数が false を返した場合にはこの関数も false を返す．
-  void
+  std::shared_ptr<FsimResultsRep>
   ppsfp(
-    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    cbtype2 callback                   ///< [in] 1回のシミュレーションごとに
-                                       ///<      呼び出される関数
-                                       ///<      1番目の引数は検出された故障
-                                       ///<      2番目の引数は出力の伝搬状況
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) override;
 
 
@@ -363,6 +351,10 @@ private:
   set_fault_list(
     const TpgFaultList& fault_list ///< [in] 対象の故障番号のリスト
   );
+
+  /// @brief 各 engine の結果を集める．
+  std::shared_ptr<FsimResultsRep>
+  merge_results();
 
 
 private:

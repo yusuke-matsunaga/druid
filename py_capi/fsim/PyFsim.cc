@@ -13,7 +13,7 @@
 #include "pym/PyTestVector.h"
 #include "pym/PyAssignList.h"
 #include "pym/PyDiffBits.h"
-#include "pym/PyDiffBitsArray.h"
+#include "pym/PyFsimResults.h"
 #include "pym/PyJsonValue.h"
 #include "pym/PyList.h"
 #include "pym/PyBool.h"
@@ -42,7 +42,6 @@ PyTypeObject Fsim_Type = {
   // 残りは PyFsim::init() 中で初期化する．
 };
 #include "parse_faults.cc"
-#include "cbfunc.cc"
 
 // 終了関数
 void
@@ -290,33 +289,23 @@ sppfp(
 {
   static const char* kwlist[] = {
     "tv",
-    "callback",
     nullptr
   };
   PyObject* tv_obj = nullptr;
-  PyObject* cb_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "OO",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
                                     const_cast<char**>(kwlist),
-                                    &tv_obj,
-                                    &cb_obj) ) {
+                                    &tv_obj) ) {
     return nullptr;
   }
   auto& val = PyFsim::_get_ref(self);
   try {
-    if ( !PyCallable_Check(cb_obj) ) {
-      PyErr_SetString(PyExc_TypeError, "argument 2 should be callable");
-      return nullptr;
-    }
-    auto callback = CbFunc1(cb_obj);
     if ( PyTestVector::Check(tv_obj) ) {
       auto& tv = PyTestVector::_get_ref(tv_obj);
-      val.sppfp(tv, callback);
-      Py_RETURN_NONE;
+      return PyFsimResults::ToPyObject(val.sppfp(tv));
     }
     if ( PyAssignList::Check(tv_obj) ) {
       auto& assign_list = PyAssignList::_get_ref(tv_obj);
-      val.sppfp(assign_list, callback);
-      Py_RETURN_NONE;
+      return PyFsimResults::ToPyObject(val.sppfp(assign_list));
     }
     PyErr_SetString(PyExc_TypeError, "argument 1 should be TestVector or AssignList");
     return nullptr;
@@ -338,15 +327,12 @@ xsppfp(
 {
   static const char* kwlist[] = {
     "assign_list",
-    "callback",
     nullptr
   };
   PyObject* assign_list_obj = nullptr;
-  PyObject* cb_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
                                     const_cast<char**>(kwlist),
-                                    PyAssignList::_typeobject(), &assign_list_obj,
-                                    &cb_obj) ) {
+                                    PyAssignList::_typeobject(), &assign_list_obj) ) {
     return nullptr;
   }
   AssignList assign_list;
@@ -358,13 +344,7 @@ xsppfp(
   }
   auto& val = PyFsim::_get_ref(self);
   try {
-    if ( !PyCallable_Check(cb_obj) ) {
-      PyErr_SetString(PyExc_TypeError, "argument 2 should be callable");
-      return nullptr;
-    }
-    auto callback = CbFunc1(cb_obj);
-    val.xsppfp(assign_list, callback);
-    Py_RETURN_NONE;
+    return PyFsimResults::ToPyObject(val.xsppfp(assign_list));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -383,15 +363,12 @@ ppsfp(
 {
   static const char* kwlist[] = {
     "tv_list",
-    "callback",
     nullptr
   };
   PyObject* tv_list_obj = nullptr;
-  PyObject* cb_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "OO",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
                                     const_cast<char**>(kwlist),
-                                    &tv_list_obj,
-                                    &cb_obj) ) {
+                                    &tv_list_obj) ) {
     return nullptr;
   }
   std::vector<TestVector> tv_list;
@@ -403,13 +380,7 @@ ppsfp(
   }
   auto& val = PyFsim::_get_ref(self);
   try {
-    if ( !PyCallable_Check(cb_obj) ) {
-      PyErr_SetString(PyExc_TypeError, "argument 2 should be callable");
-      return nullptr;
-    }
-    auto callback = CbFunc2(cb_obj);
-    val.ppsfp(tv_list, callback);
-    Py_RETURN_NONE;
+    return PyFsimResults::ToPyObject(val.ppsfp(tv_list));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;

@@ -86,22 +86,23 @@ sppfp_test(
   std::vector<bool> det_array(max_fid, false);
   for ( auto tv: tv_list ) {
     bool detected = false;
-    fsim.sppfp(tv,
-	       [&](
-		 const TpgFault& fault,
-		 const DiffBits& dbits
-	       )
-	       {
-		 if ( !det_array[fault.id()] ) {
-		   det_array[fault.id()] = true;
-		   ++ det_num;
-		   if ( drop ) {
-		     fsim.set_skip(fault);
-		   }
-		   print_fault(fault, i);
-		   detected = true;
-		 }
-	       });
+    auto res = fsim.sppfp(tv);
+    if ( res.tv_num() != 1 ) {
+      throw std::logic_error{"something wrong"};
+    }
+    for ( auto fid: res.fault_list(0) ) {
+      auto dbits = res.diffbits(0, fid);
+      if ( !det_array[fid] ) {
+	det_array[fid] = true;
+	++ det_num;
+	auto fault = network.fault(fid);
+	if ( drop ) {
+	  fsim.set_skip(fault);
+	}
+	print_fault(fault, i);
+	detected = true;
+      }
+    }
     if ( detected ) {
       ++ nepat;
     }
@@ -133,31 +134,24 @@ ppsfp_test(
   for ( auto& tv: tv_list ) {
     tv_buff.push_back(tv);
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
-      fsim.ppsfp(tv_buff,
-		 [&](
-		   const TpgFault& fault,
-		   const DiffBitsArray& dbits_array
-		 )
-		 {
-		   if ( !det_array[fault.id()] ) {
-		     det_array[fault.id()] = true;
-		     ++ det_num;
-		     if ( drop ) {
-		       fsim.set_skip(fault);
-		     }
-		     auto obs = dbits_array.dbits_union();
-		     for ( SizeType lindex = 0; lindex < tv_buff.size(); ++ lindex ) {
-		       if ( obs & (1UL << lindex) ) {
-			 SizeType index = base + index;
-			 if ( pat_dict.count(index) == 0 ) {
-			   pat_dict.emplace(index);
-			   ++ nepat;
-			 }
-			 print_fault(fault, index);
-		       }
-		     }
-		   }
-		 });
+      auto res = fsim.ppsfp(tv_buff);
+      for ( SizeType tv_id = 0; tv_id < tv_buff.size(); ++ tv_id ) {
+	for ( auto fid: res.fault_list(tv_id) ) {
+	  auto dbits = res.diffbits(tv_id, fid);
+	  det_array[fid] = true;
+	  ++ det_num;
+	  auto fault = network.fault(fid);
+	  if ( drop ) {
+	    fsim.set_skip(fault);
+	  }
+	  auto index = base + tv_id;
+	  if ( pat_dict.count(index) == 0 ) {
+	    pat_dict.emplace(index);
+	    ++ nepat;
+	  }
+	  print_fault(fault, index);
+	}
+      }
       base += tv_buff.size();
       tv_buff.clear();
     }

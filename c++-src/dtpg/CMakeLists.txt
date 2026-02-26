@@ -26,6 +26,7 @@ add_subdirectory( test-programs )
 set ( mgr_SOURCES
   dtpg_mgr/DtpgMgr.cc
   dtpg_mgr/DtpgResults.cc
+  dtpg_mgr/ResultRep.cc
   )
 
 

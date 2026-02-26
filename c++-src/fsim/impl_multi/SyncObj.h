@@ -54,9 +54,6 @@ operator<<(
 //////////////////////////////////////////////////////////////////////
 class SyncObj
 {
-  using cbtype1 = FsimImpl::cbtype1;
-  using cbtype2 = FsimImpl::cbtype2;
-
 public:
 
   /// @brief コンストラクタ

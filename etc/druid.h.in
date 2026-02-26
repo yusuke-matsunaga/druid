@@ -98,11 +98,13 @@ class DffVector;
 class TestVector;
 
 class DtpgMgr;
-class DtpgResult;
+class DtpgResults;
 class DtpgStats;
 class VidMap;
 
 class Fsim;
+class FsimResults;
+class DiffBits;
 
 enum class FaultType : std::uint8_t;
 enum class Val3 : std::uint8_t;

@@ -73,6 +73,21 @@ DtpgResults::set_untestable(
   mResultDict.emplace(fault.id(), r);
 }
 
+// @brief 内容をマージする．
+void
+DtpgResults::merge(
+  const DtpgResults& src
+)
+{
+  for ( auto& p: src.mResultDict ) {
+    auto fid = p.first;
+    auto src_rep = p.second;
+    auto rep = src_rep->duplicate();
+    mResultDict.erase(fid);
+    mResultDict.emplace(fid, rep);
+  }
+}
+
 // @brief 結果を返す．
 FaultStatus
 DtpgResults::status(
@@ -140,103 +155,6 @@ DtpgResults::assign_list(
   }
   auto r = mResultDict.at(fault.id());
   return r->assign_list();
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス DtpgResults::ResultRep
-//////////////////////////////////////////////////////////////////////
-
-// テストベクタを持つ時 true を返す．
-bool
-DtpgResults::ResultRep::has_testvector() const
-{
-  return false;
-}
-
-// テストベクタを返す．
-const TestVector&
-DtpgResults::ResultRep::testvector() const
-{
-  throw std::logic_error{"No TestVector"};
-}
-
-// 値割り当てを持つ時 true を返す．
-bool
-DtpgResults::ResultRep::has_assign_list() const
-{
-  return false;
-}
-
-// 値割り当てを返す．
-const AssignList&
-DtpgResults::ResultRep::assign_list() const
-{
-  throw std::logic_error{"No AssignList"};
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス ResultRep_TV
-//////////////////////////////////////////////////////////////////////
-
-// 結果を返す．
-FaultStatus
-ResultRep_TV::status() const
-{
-  return FaultStatus::Detected;
-}
-
-// テストベクタを持つ時 true を返す．
-bool
-ResultRep_TV::has_testvector() const
-{
-  return true;
-}
-
-// テストベクタを返す．
-const TestVector&
-ResultRep_TV::testvector() const
-{
-  return mTestVector;
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス ResultRep_AL
-//////////////////////////////////////////////////////////////////////
-
-// 結果を返す．
-FaultStatus
-ResultRep_AL::status() const
-{
-  return FaultStatus::Detected;
-}
-
-// 値割り当てを持つ時 true を返す．
-bool
-ResultRep_AL::has_assign_list() const
-{
-  return true;
-}
-
-// 値割り当てを返す．
-const AssignList&
-ResultRep_AL::assign_list() const
-{
-  return mAssignList;
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス ResultRep_UT
-//////////////////////////////////////////////////////////////////////
-
-// 結果を返す．
-FaultStatus
-ResultRep_UT::status() const
-{
-  return FaultStatus::Untestable;
 }
 
 END_NAMESPACE_DRUID

@@ -30,6 +30,7 @@ ym_add_object_library ( druid_fsim
   Fsim.cc
   Fsim_naive.cc
   Fsim_multi.cc
+  FsimResults.cc
   )
 
 

@@ -14,6 +14,10 @@
 #include "types/TpgNode.h"
 #include "types/OpBase.h"
 #include "ym/Timer.h"
+#include "ym/MtMgr.h"
+#include "ym/IdPool.h"
+#include "ym/ExLock.h"
+#include <thread>
 
 
 BEGIN_NAMESPACE_DRUID
@@ -81,11 +85,9 @@ DtpgMgr::run(
   const JsonValue& option
 )
 {
-  std::string group_mode = "ffr";
-  bool multi = false;
   // option の解析
-  OpBase::get_string(option, "group_mode", group_mode);
-  OpBase::get_bool(option, "multi_thread", multi);
+  auto group_mode = get_string(option, "group_mode", "ffr");
+  auto multi = get_bool(option, "multi_thread", false);
 
   // ノード番号をキーにして関係する故障番号のリストを格納する配列
   auto network = fault_list.network();
@@ -99,36 +101,71 @@ DtpgMgr::run(
   dtpg_results.clear();
 
   DtpgStats stats;
-  if ( group_mode == "node" ) {
-    // ノード単位で処理を行う．
+  if ( group_mode == "node" ) { // ノード単位で処理を行う．
     for ( auto node: network.node_list() ) {
-      auto driver = DtpgDriver::node_driver(node, option);
-      for ( auto fault: node_fault_list_array[node.id()] ) {
-	driver.gen_pattern(fault, dtpg_results, stats);
-      }
-      auto cnf_time = driver.cnf_time();
-      stats.update_cnf(cnf_time);
-      auto sat_stats = driver.sat_stats();
-      stats.update_sat_stats(sat_stats);
+      auto& fault_list = node_fault_list_array[node.id()];
+      auto driver = DtpgDriver::node_driver(node, fault_list, option);
+      driver.run();
+      driver.merge_results(dtpg_results, stats);
     }
   }
-  else if ( group_mode == "ffr" ) {
-    // FFR 単位で処理を行う．
+  else if ( group_mode == "node_mt" ) { // ノード単位でマルチスレッド実行を行う．
+    SizeType thread_num = get_int(option, "thread_num", 0);
+    IdPool id_pool(network.node_num());
+    ExLock r_lock;
+    MtMgr::run(
+      [&](){
+	for ( ; ; ) {
+	  SizeType id;
+	  if ( !id_pool.get(id) ) {
+	    // 終わり
+	    break;
+	  }
+	  auto node = network.node(id);
+	  auto& fault_list = node_fault_list_array[node.id()];
+	  auto driver = DtpgDriver::node_driver(node, fault_list, option);
+	  driver.run();
+	  r_lock.run([&](){ driver.merge_results(dtpg_results, stats); });
+	}
+      }, thread_num
+    );
+  }
+  else if ( group_mode == "ffr" ) { // FFR 単位で処理を行う．
     for ( auto ffr: network.ffr_list() ) {
       // ffr に関係する故障を集める．
       TpgFaultList fault_list;
       if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
 	continue;
       }
-      auto driver = DtpgDriver::ffr_driver(ffr, option);
-      for ( auto fault: fault_list ) {
-	driver.gen_pattern(fault, dtpg_results, stats);
-      }
-      auto cnf_time = driver.cnf_time();
-      stats.update_cnf(cnf_time);
-      auto sat_stats = driver.sat_stats();
-      stats.update_sat_stats(sat_stats);
+      auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
+      driver.run();
+      driver.merge_results(dtpg_results, stats);
     }
+  }
+  else if ( group_mode == "ffr_mt" ) { // FFR 単位でマルチスレッド実行を行う．
+    // スレッド数
+    SizeType thread_num = get_int(option, "thread_num", 0);
+    IdPool id_pool(network.ffr_num());
+    ExLock r_lock;
+    MtMgr::run(
+      [&](){
+	for ( ; ; ) {
+	  SizeType id;
+	  if ( !id_pool.get(id) ) {
+	    // 終わり
+	    break;
+	  }
+	  auto ffr = network.ffr(id);
+	  TpgFaultList fault_list;
+	  if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
+	    continue;
+	  }
+	  auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
+	  driver.run();
+	  r_lock.run([&](){ driver.merge_results(dtpg_results, stats); });
+	}
+      }, thread_num
+    );
   }
   else if ( group_mode == "mffc" ) {
     // MFFC 単位で処理を行う．
@@ -139,26 +176,48 @@ DtpgMgr::run(
 	continue;
       }
       if ( ffr.is_valid() ) {
-	auto driver = DtpgDriver::ffr_driver(ffr, option);
-	for ( auto fault: fault_list ) {
-	  driver.gen_pattern(fault, dtpg_results, stats);
-	}
-	auto cnf_time = driver.cnf_time();
-	stats.update_cnf(cnf_time);
-	auto sat_stats = driver.sat_stats();
-	stats.update_sat_stats(sat_stats);
+	auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
+	driver.run();
+	driver.merge_results(dtpg_results, stats);
       }
       else {
-	auto driver = DtpgDriver::mffc_driver(mffc, option);
-	for ( auto fault: fault_list ) {
-	  driver.gen_pattern(fault, dtpg_results, stats);
-	}
-	auto cnf_time = driver.cnf_time();
-	stats.update_cnf(cnf_time);
-	auto sat_stats = driver.sat_stats();
-	stats.update_sat_stats(sat_stats);
+	auto driver = DtpgDriver::mffc_driver(mffc, fault_list, option);
+	driver.run();
+	driver.merge_results(dtpg_results, stats);
       }
     }
+  }
+  else if ( group_mode == "mffc_mt" ) {
+    SizeType thread_num = get_int(option, "thread_num", 0);
+    IdPool id_pool(network.mffc_num());
+    ExLock r_lock;
+    MtMgr::run(
+      [&](){
+	for ( ; ; ) {
+	  SizeType id;
+	  if ( !id_pool.get(id) ) {
+	    // 終わり
+	    break;
+	  }
+	  auto mffc = network.mffc(id);
+	  TpgFaultList fault_list;
+	  auto ffr = get_faults(mffc, node_fault_list_array, fault_list);
+	  if ( fault_list.empty() ) {
+	    continue;
+	  }
+	  if ( ffr.is_valid() ) {
+	    auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
+	    driver.run();
+	    r_lock.run([&](){ driver.merge_results(dtpg_results, stats); });
+	  }
+	  else {
+	    auto driver = DtpgDriver::mffc_driver(mffc, fault_list, option);
+	    driver.run();
+	    r_lock.run([&](){ driver.merge_results(dtpg_results, stats); });
+	  }
+	}
+      }, thread_num
+    );
   }
   else {
     std::ostringstream buf;

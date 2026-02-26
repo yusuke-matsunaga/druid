@@ -21,8 +21,8 @@
 set ( fsim_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/fsim_module.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyDiffBits.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/PyDiffBitsArray.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PyFsim.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PyFsimResults.cc
   PARENT_SCOPE
   )
 

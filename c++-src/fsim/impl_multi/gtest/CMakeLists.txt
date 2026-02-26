@@ -25,6 +25,7 @@ include_directories(
 ym_add_gtest ( druid_SimNodeSA2Test
   SimNodeVal2Test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
+  $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_bside2_obj_d>
@@ -43,6 +44,7 @@ target_compile_definitions ( druid_SimNodeSA2Test
 ym_add_gtest ( druid_SimNodeSA3Test
   SimNodeVal3Test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
+  $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_bside2_obj_d>
@@ -61,6 +63,7 @@ target_compile_definitions ( druid_SimNodeSA3Test
 ym_add_gtest ( druid_SimNodeTD2Test
   SimNodeVal2Test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
+  $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_bside2_obj_d>
@@ -79,6 +82,7 @@ target_compile_definitions ( druid_SimNodeTD2Test
 ym_add_gtest ( druid_SimNodeTD3Test
   SimNodeVal3Test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
+  $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_bside2_obj_d>
