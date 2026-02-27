@@ -10,7 +10,6 @@
 #include "ExprGen_Naive.h"
 #include "ExprGen_Factor.h"
 #include "LocalMap.h"
-#include "types/OpBase.h"
 #include "ym/SopCover.h"
 
 
@@ -22,8 +21,7 @@ ExprGen::new_obj(
   const JsonValue& option
 )
 {
-  auto method = std::string{"sop"};
-  OpBase::get_string(option, "method", method);
+  auto method = get_string(option, "method", "sop");
 
   if ( method == "sop" ) {
     // ナイーブなやり方

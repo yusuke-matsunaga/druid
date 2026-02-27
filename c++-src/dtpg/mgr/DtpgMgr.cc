@@ -12,7 +12,6 @@
 #include "types/TpgFFR.h"
 #include "types/TpgMFFC.h"
 #include "types/TpgNode.h"
-#include "types/OpBase.h"
 #include "ym/Timer.h"
 #include "ym/MtMgr.h"
 #include "ym/IdPool.h"

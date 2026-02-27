@@ -16,7 +16,6 @@
 #include "types/TpgFault.h"
 #include "dtpg/StructEngine.h"
 #include "dtpg/BoolDiffEnc.h"
-#include "types/OpBase.h"
 #include "ExprGen.h"
 #include "ym/AigMgr.h"
 #include "ym/Timer.h"
@@ -42,9 +41,7 @@ get_loop_limit(
 )
 {
   const char* KEY = "loop_limit";
-  int val = DEFAULT_LOOP_LIMIT;
-  OpBase::get_int(option, KEY, val);
-  return val;
+  return get_int(option, KEY, DEFAULT_LOOP_LIMIT);
 }
 
 END_NONAMESPACE
@@ -61,16 +58,14 @@ CondGenMgr::make_cond(
 )
 {
   auto limit = get_loop_limit(option);
-  bool multi_thread = false;
-  OpBase::get_bool(option, "multi_thread", multi_thread);
+  bool multi_thread = get_bool(option, "multi_thread", false);
 
   // ffr.id() をキーとして個々のFFRの伝搬条件を記録する配列
   std::vector<DetCond> cond_list(network.ffr_num());
 
   if ( multi_thread ) {
     // スレッド数
-    int thread_num = 0;
-    OpBase::get_int(option, "thread_num", thread_num);
+    SizeType thread_num = get_int(option, "thread_num", 0);
     if ( thread_num == 0 ) {
       thread_num = std::thread::hardware_concurrency();
     }
@@ -216,8 +211,7 @@ CondGenMgr::make_expr(
 {
   auto expr_gen = ExprGen::new_obj(option);
 
-  auto multi_thread = false;
-  OpBase::get_bool(option, "multi_thread", multi_thread);
+  auto multi_thread = get_bool(option, "multi_thread", false);
 
   auto cond_num = cond_list.size();
   // 結果の配列
@@ -225,8 +219,7 @@ CondGenMgr::make_expr(
 
   if ( multi_thread ) {
     // スレッド数
-    int thread_num = 0;
-    OpBase::get_int(option, "thread_num", thread_num);
+    SizeType thread_num = get_int(option, "thread_num", 0);
     if ( thread_num == 0 ) {
       thread_num = std::thread::hardware_concurrency();
     }
@@ -303,8 +296,7 @@ CondGenMgr::expr_to_cnf(
     lit_map.emplace(input_id, lit);
   }
 
-  auto method = std::string{"naive"};
-  OpBase::get_string(option, "method", method);
+  auto method = get_string(option, "method", "naive");
   if ( method == "aig" ) {
     // 一旦 AIG に変換する．
     AigMgr mgr;
@@ -321,8 +313,7 @@ CondGenMgr::expr_to_cnf(
 	}
       }
     }
-    bool rewrite = false;
-    OpBase::get_bool(option, "rewrite", rewrite);
+    bool rewrite = get_bool(option, "rewrite", false);
     if ( rewrite ) {
       // 簡単化を行う．
       mgr.rewrite();

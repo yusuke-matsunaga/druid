@@ -11,7 +11,6 @@
 #include "types/TpgFFR.h"
 #include "types/TpgNode.h"
 #include "types/TpgFault.h"
-#include "types/OpBase.h"
 #include "dtpg/BdEngine.h"
 
 
