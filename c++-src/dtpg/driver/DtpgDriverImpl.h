@@ -5,7 +5,7 @@
 /// @brief DtpgDriverImpl のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
-/// Copyright (C) 2024 Yusuke Matsunaga
+/// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
@@ -46,11 +46,12 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   ) = 0;
 
-  /// @brief テストパタン生成を行う．
+  /// @brief 故障に対する処理を行う．
   virtual
-  TestVector
-  gen_pattern(
-    const TpgFault& fault ///< [in] 対象の故障
+  void
+  fault_op(
+    const TpgFault& fault, ///< [in] 対象の故障
+    DtpgResults& results   ///< [in] 結果を格納するオブジェクト
   ) = 0;
 
   /// @brief CNF の生成時間を返す．

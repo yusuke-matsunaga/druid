@@ -7,6 +7,7 @@
 :copyright: Copyright (C) 2026 Yusuke Matsunaga, All rights reserved.
 """
 
+import sys
 import time
 from druid.dtpg import BdEngine, DtpgMgr
 from druid.fsim import Fsim
@@ -17,7 +18,31 @@ from ymworks.combopt import MinCov
 from ymworks.misc import JsonValue
 
 
-def dtpg(network, fault_list, *, option=None):
+def verify_xsim(network, det_fault_list, results, fsim):
+    for fault in det_fault_list:
+        gtc = results.assign_list(fault)
+        tv = results.testvector(fault)
+        fsim_res_gtc = fsim.xsppfp(gtc)
+        fsim_res_tv = fsim.sppfp(testvector=tv)
+        fid_list1 = fsim_res_gtc.fault_list(0)
+        fid_list2 = fsim_res_tv.fault_list(0)
+        if fid_list1 != fid_list2:
+            network.print(sys.stdout)
+            print(f'Target Fault: {fault}')
+            print(f' GTC:', end='')
+            for fid1 in fsim_res_gtc.fault_list(0):
+                fault1 = network.fault(fid1)
+                print(f' {fault1}', end='')
+            print()
+            print(f' TV: ', end='')
+            for fid1 in fsim_res_tv.fault_list(0):
+                fault1 = network.fault(fid1)
+                print(f' {fault1}', end='')
+            print()
+            exit(1)
+
+
+def dtpg(network, fault_list, *, use_gtc=False, option=None):
     """テストパタン生成を行う．
     :param TpgNetwork network: 対象のネットワーク
     :param list[TpgFault] fault_list: 故障のリスト
@@ -40,7 +65,7 @@ def dtpg(network, fault_list, *, option=None):
     else:
         fsim_option = None
 
-    stats, results = DtpgMgr.run(fault_list, option=dtpg_option)
+    results = DtpgMgr.run(fault_list, option=dtpg_option)
     end_time = time.time()
     dtpg_time = end_time - start_time
 
@@ -48,15 +73,20 @@ def dtpg(network, fault_list, *, option=None):
     n_det = 0
     n_untest = 0
     n_abort = 0
+    det_fault_list = []
     tv_list = []
+    gtc_list = []
     for fault in fault_list:
-        result = results.status(fault)
-        if result == FaultStatus.Detected:
+        status = results.status(fault)
+        if status == FaultStatus.Detected:
             f_id_map[fault.id] = n_det
+            det_fault_list.append(fault)
             n_det += 1
             tv = results.testvector(fault)
             tv_list.append(tv)
-        elif result == FaultStatus.Untestable:
+            gtc = results.assign_list(fault)
+            gtc_list.append(gtc)
+        elif status == FaultStatus.Untestable:
             n_untest += 1
         else:
             n_abort += 1
@@ -72,24 +102,42 @@ def dtpg(network, fault_list, *, option=None):
         det_count_dict[fault.id] = 0
 
     fsim = Fsim(network, fault_list, option=fsim_option)
+
+    # テスト
+    #verify_xsim(network, det_fault_list, results, fsim)
+
     start_time = time.time()
     mincov = MinCov()
     n = len(tv_list)
-    for base in range(0, n, 64):
-        end = min(base + 64, n)
-        tv_buff64 = tv_list[base: end]
-        fsim_res = fsim.ppsfp(tv_buff64)
-        for tv_id in range(len(tv_buff64)):
-            for fid in fsim_res.fault_list(tv_id):
+    if use_gtc:
+        for i, gtc in enumerate(gtc_list):
+            fsim_res = fsim.xsppfp(gtc)
+            for fid in fsim_res.fault_list(0):
                 det_count_dict[fid] += 1
-                mincov.insert_elem(row_pos=fid, col_pos=(tv_id + base))
+                row_id = f_id_map[fid]
+                mincov.insert_elem(row_pos=row_id, col_pos=i)
                 if drop_limit > 0 and det_count_dict[fid] >= drop_limit:
                     fsim.set_skip(network.fault(fid))
+    else:
+        for base in range(0, n, 64):
+            end = min(base + 64, n)
+            tv_buff64 = tv_list[base: end]
+            fsim_res = fsim.ppsfp(tv_buff64)
+            for tv_id in range(len(tv_buff64)):
+                for fid in fsim_res.fault_list(tv_id):
+                    det_count_dict[fid] += 1
+                    row_id = f_id_map[fid]
+                    mincov.insert_elem(row_pos=row_id, col_pos=(tv_id + base))
+                    if drop_limit > 0 and det_count_dict[fid] >= drop_limit:
+                        fsim.set_skip(network.fault(fid))
     end_time = time.time()
     fsim_time = end_time - start_time
     print(f'Simulation Time:        {fsim_time:10.2f}')
 
     # 最小被覆問題を解く．
+    print(f'MINCOV: {mincov.row_size} X {mincov.col_size}')
+    ratio = float(mincov.elem_num) / (mincov.row_size * mincov.col_size)
+    print(f'  {ratio * 100.0:4.2f}%')
     start_time = time.time()
     option = JsonValue.object()
     option.add_with_key('algorithm', 'greedy')
@@ -119,6 +167,7 @@ if __name__ == '__main__':
     parser.add_argument('--stuck-at', action='store_true')
     parser.add_argument('--transition-delay', action='store_true')
     parser.add_argument('--mode', type=str)
+    parser.add_argument('--gtc', action='store_true')
     parser.add_argument('--drop-limit', type=int)
     parser.add_argument('--fsim-mt', action='store_true')
     parser.add_argument('--debug', type=int)
@@ -165,11 +214,19 @@ if __name__ == '__main__':
     if args.drop_limit:
         option.add_with_key('drop_limit', args.drop_limit)
     if args.fsim_mt:
-        fsim_option = JsonValue({"multi_thread": JsonValue(True)})
-        option.add_with_key("fsim", fsim_option)
+        fsim_mt = True
+    else:
+        fsim_mt = False
+    fsim_option = JsonValue({"multi_thread": fsim_mt,
+                             "has_x": True})
+    option.add_with_key("fsim", fsim_option)
     if args.debug:
         option.add_with_key('debug', args.debug)
     dtpg_option = JsonValue.object()
     dtpg_option.add_with_key("group_mode", mode);
+    if args.gtc:
+        use_gtc = True
+    else:
+        use_gtc = False
     option.add_with_key("dtpg", dtpg_option)
-    dtpg(network, fault_list, option=option)
+    dtpg(network, fault_list, use_gtc=use_gtc, option=option)

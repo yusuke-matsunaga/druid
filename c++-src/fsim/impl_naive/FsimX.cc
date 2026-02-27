@@ -825,6 +825,7 @@ FSIM_CLASSNAME::_calc_gval(
     }
     auto iid = nv.node().input_id();
     auto simnode = ppi(iid);
+    auto val = nv.val();
     simnode->set_val(bool_to_packedval(nv.val()));
   }
 
@@ -840,23 +841,28 @@ FSIM_CLASSNAME::_calc_gval2(
 {
   // 値をクリアする．
   auto x_val = init_val();
+  for ( auto node: mPPIList ) {
+    node->set_val(x_val);
+  }
   for ( auto node: mLogicArray ) {
     node->set_val(x_val);
   }
 
   // 値をセットする．
+  std::vector<bool> lock_array(mNodeArray.size(), false);
   for ( auto nv: assign_list ) {
     if ( nv.time() != 1 ) {
       throw std::logic_error{"nv.time() != 1"};
     }
-    auto node = nv.node();
+    auto node_id = nv.node().id();
     auto val = nv.val();
-    auto simnode = mSimNodeMap[node.id()];
+    auto simnode = mSimNodeMap[node_id];
     simnode->set_val(bool_to_packedval(val));
+    lock_array[simnode->id()] = true;
   }
 
   // 正常値の計算を行う．
-  _calc_val();
+  _calc_val2(lock_array);
 }
 #endif
 
@@ -1013,22 +1019,28 @@ FSIM_CLASSNAME::_calc_gval2(
 {
   // 値をクリアする．
   auto x_val = init_val();
+  for ( auto node: mPPIList ) {
+    node->set_val(x_val);
+  }
   for ( auto node: mLogicArray ) {
     node->set_val(x_val);
   }
 
-  // 1時刻目の値をセットする．
-  for ( auto nv: assign_list ) {
-    if ( nv.time() == 0 ) {
-      auto node_id = nv.node_id();
-      auto val = nv.val();
-      auto simnode = mSimNodeMap[node_id];
-      simnode->set_val(bool_to_packedval(val));
+  { // 1時刻目の値をセットする．
+    std::vector<bool> lock_array(mNodeArray.size(), false);
+    for ( auto nv: assign_list ) {
+      if ( nv.time() == 0 ) {
+	auto node_id = nv.node_id();
+	auto val = nv.val();
+	auto simnode = mSimNodeMap[node_id];
+	simnode->set_val(bool_to_packedval(val));
+	lock_array[simnode->id()] = true;
+      }
     }
-  }
 
-  // 1時刻目の正常値の計算を行う．
-  _calc_val();
+    // 1時刻目の正常値の計算を行う．
+    _calc_val2(lock_array);
+  }
 
   // 1時刻シフトする．
   for ( auto& node: mNodeArray ) {
@@ -1047,18 +1059,21 @@ FSIM_CLASSNAME::_calc_gval2(
     node->set_val(x_val);
   }
 
-  // 2時刻目の値をセットする．
-  for ( auto nv: assign_list ) {
-    if ( nv.time() == 1 ) {
-      auto node = nv.node();
-      auto val = nv.val();
-      auto simnode = mSimNodeMap[node.id()];
-      simnode->set_val(bool_to_packedval(val));
+  { // 2時刻目の値をセットする．
+    std::vector<bool> lock_array(mNodeArray.size(), false);
+    for ( auto nv: assign_list ) {
+      if ( nv.time() == 1 ) {
+	auto node = nv.node();
+	auto val = nv.val();
+	auto simnode = mSimNodeMap[node.id()];
+	simnode->set_val(bool_to_packedval(val));
+	lock_array[simnode->id()] = true;
+      }
     }
-  }
 
-  // 2時刻目の正常値の計算を行う．
-  _calc_val();
+    // 2時刻目の正常値の計算を行う．
+    _calc_val2(lock_array);
+  }
 }
 #endif
 

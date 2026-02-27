@@ -11,6 +11,9 @@
 #include "pym/PyTestVector.h"
 #include "pym/PyAssignList.h"
 #include "pym/PyFaultStatus.h"
+#include "pym/PySatStats.h"
+#include "pym/PyUlong.h"
+#include "pym/PyFloat.h"
 #include "pym/PyModule.h"
 
 
@@ -74,14 +77,17 @@ set_detected(
 {
   static const char* kwlist[] = {
     "fault",
+    "assign_list",
     "testvect",
     nullptr
   };
   PyObject* fault_obj = nullptr;
+  PyObject* as_list_obj = nullptr;
   PyObject* testvect_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!",
                                     const_cast<char**>(kwlist),
                                     PyTpgFault::_typeobject(), &fault_obj,
+                                    PyAssignList::_typeobject(), &as_list_obj,
                                     PyTestVector::_typeobject(), &testvect_obj) ) {
     return nullptr;
   }
@@ -89,6 +95,13 @@ set_detected(
   if ( fault_obj != nullptr ) {
     if ( !PyTpgFault::FromPyObject(fault_obj, fault) ) {
       PyErr_SetString(PyExc_TypeError, "could not convert to TpgFault");
+      return nullptr;
+    }
+  }
+  AssignList as_list;
+  if ( as_list_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(as_list_obj, as_list) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
       return nullptr;
     }
   }
@@ -101,7 +114,7 @@ set_detected(
   }
   auto& val = PyDtpgResults::_get_ref(self);
   try {
-    val.set_detected(fault, testvect);
+    val.set_detected(fault, as_list, testvect);
     Py_RETURN_NONE;
   }
   catch ( std::exception err ) {
@@ -186,7 +199,7 @@ status(
 }
 
 PyObject*
-has_testvector(
+assign_list(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -211,7 +224,7 @@ has_testvector(
   }
   auto& val = PyDtpgResults::_get_ref(self);
   try {
-    return PyBool_FromLong(val.has_testvector(fault));
+    return PyAssignList::ToPyObject(val.assign_list(fault));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -258,32 +271,29 @@ testvector(
 }
 
 PyObject*
-has_assign_list(
+update_det(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
 )
 {
   static const char* kwlist[] = {
-    "fault",
+    "sat_time",
+    "backtrace_time",
     nullptr
   };
-  PyObject* fault_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+  double sat_time;
+  double backtrace_time;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "dd",
                                     const_cast<char**>(kwlist),
-                                    PyTpgFault::_typeobject(), &fault_obj) ) {
+                                    &sat_time,
+                                    &backtrace_time) ) {
     return nullptr;
-  }
-  TpgFault fault;
-  if ( fault_obj != nullptr ) {
-    if ( !PyTpgFault::FromPyObject(fault_obj, fault) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to TpgFault");
-      return nullptr;
-    }
   }
   auto& val = PyDtpgResults::_get_ref(self);
   try {
-    return PyBool_FromLong(val.has_assign_list(fault));
+    val.update_det(sat_time, backtrace_time);
+    Py_RETURN_NONE;
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -294,32 +304,123 @@ has_assign_list(
 }
 
 PyObject*
-assign_list(
+update_untest(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
 )
 {
   static const char* kwlist[] = {
-    "fault",
+    "time",
     nullptr
   };
-  PyObject* fault_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+  double time;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "d",
                                     const_cast<char**>(kwlist),
-                                    PyTpgFault::_typeobject(), &fault_obj) ) {
+                                    &time) ) {
     return nullptr;
   }
-  TpgFault fault;
-  if ( fault_obj != nullptr ) {
-    if ( !PyTpgFault::FromPyObject(fault_obj, fault) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to TpgFault");
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    val.update_untest(time);
+    Py_RETURN_NONE;
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+update_abort(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "time",
+    nullptr
+  };
+  double time;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "d",
+                                    const_cast<char**>(kwlist),
+                                    &time) ) {
+    return nullptr;
+  }
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    val.update_abort(time);
+    Py_RETURN_NONE;
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+update_cnf(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "time",
+    nullptr
+  };
+  double time;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "d",
+                                    const_cast<char**>(kwlist),
+                                    &time) ) {
+    return nullptr;
+  }
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    val.update_cnf(time);
+    Py_RETURN_NONE;
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+update_sat_stats(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "src_stats",
+    nullptr
+  };
+  PyObject* src_stats_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+                                    const_cast<char**>(kwlist),
+                                    PySatStats::_typeobject(), &src_stats_obj) ) {
+    return nullptr;
+  }
+  SatStats src_stats;
+  if ( src_stats_obj != nullptr ) {
+    if ( !PySatStats::FromPyObject(src_stats_obj, src_stats) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to SatStats");
       return nullptr;
     }
   }
   auto& val = PyDtpgResults::_get_ref(self);
   try {
-    return PyAssignList::ToPyObject(val.assign_list(fault));
+    val.update_sat_stats(src_stats);
+    Py_RETURN_NONE;
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -347,24 +448,270 @@ PyMethodDef methods[] = {
    reinterpret_cast<PyCFunction>(status),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("get status")},
-  {"has_testvector",
-   reinterpret_cast<PyCFunction>(has_testvector),
-   METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return True if having a TestVector")},
-  {"testvector",
-   reinterpret_cast<PyCFunction>(testvector),
-   METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return TestVector of the fault")},
-  {"has_assign_list",
-   reinterpret_cast<PyCFunction>(has_assign_list),
-   METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return True if having a AssignList")},
   {"assign_list",
    reinterpret_cast<PyCFunction>(assign_list),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("return AssignList of the fault")},
+  {"testvector",
+   reinterpret_cast<PyCFunction>(testvector),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("return TestVector of the fault")},
+  {"update_det",
+   reinterpret_cast<PyCFunction>(update_det),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("update statistics for detected faults")},
+  {"update_untest",
+   reinterpret_cast<PyCFunction>(update_untest),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("update statistics for untestable faults")},
+  {"update_abort",
+   reinterpret_cast<PyCFunction>(update_abort),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("update statistics for aborted faults")},
+  {"update_cnf",
+   reinterpret_cast<PyCFunction>(update_cnf),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("update statistics for CNF generation")},
+  {"update_sat_stats",
+   reinterpret_cast<PyCFunction>(update_sat_stats),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("update SAT statictics")},
   // end-marker
   {nullptr, nullptr, 0, nullptr}
+};
+
+PyObject*
+get_total_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyUlong::ToPyObject(val.total_count());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_detect_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyUlong::ToPyObject(val.detect_count());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_detect_time(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyFloat::ToPyObject(val.detect_time());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_untest_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyUlong::ToPyObject(val.untest_count());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_untest_time(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyFloat::ToPyObject(val.untest_time());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_abort_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyUlong::ToPyObject(val.abort_count());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_abort_time(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyFloat::ToPyObject(val.abort_time());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_cnfgen_count(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyUlong::ToPyObject(val.cnfgen_count());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_cnfgen_time(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyFloat::ToPyObject(val.cnfgen_time());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_sat_stats(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PySatStats::ToPyObject(val.sat_stats());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_sat_stats_max(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PySatStats::ToPyObject(val.sat_stats_max());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+get_backtrace_time(
+  PyObject* self,
+  void* Py_UNUSED(closure)
+)
+{
+  auto& val = PyDtpgResults::_get_ref(self);
+  try {
+    return PyFloat::ToPyObject(val.backtrace_time());
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+// getter/setter定義
+PyGetSetDef getsets[] = {
+  {"total_count", get_total_count, nullptr, PyDoc_STR("the number of total faults"), nullptr},
+  {"detect_count", get_detect_count, nullptr, PyDoc_STR("the number of detected faults"), nullptr},
+  {"detect_time", get_detect_time, nullptr, PyDoc_STR("CPU time for detected faults"), nullptr},
+  {"untest_count", get_untest_count, nullptr, PyDoc_STR("the number of untestable faults"), nullptr},
+  {"untest_time", get_untest_time, nullptr, PyDoc_STR("CPU time for untestable faults"), nullptr},
+  {"abort_count", get_abort_count, nullptr, PyDoc_STR("the number of aborted faults"), nullptr},
+  {"abort_time", get_abort_time, nullptr, PyDoc_STR("CPU time for aborted faults"), nullptr},
+  {"cnfgen_count", get_cnfgen_count, nullptr, PyDoc_STR("CNF generation count"), nullptr},
+  {"cnfgen_time", get_cnfgen_time, nullptr, PyDoc_STR("CPU time for CNF generation"), nullptr},
+  {"sat_stats", get_sat_stats, nullptr, PyDoc_STR("SAT statictics"), nullptr},
+  {"sat_stats_max", get_sat_stats_max, nullptr, PyDoc_STR("max SAT statictics"), nullptr},
+  {"backtrace_time", get_backtrace_time, nullptr, PyDoc_STR("CPU time for backtrace"), nullptr},
+  // end-marker
+  {nullptr, nullptr, nullptr, nullptr}
 };
 
 END_NONAMESPACE
@@ -383,6 +730,7 @@ PyDtpgResults::init(
   DtpgResults_Type.tp_flags = Py_TPFLAGS_DEFAULT;
   DtpgResults_Type.tp_doc = PyDoc_STR("Python extended object for DtpgResults");
   DtpgResults_Type.tp_methods = methods;
+  DtpgResults_Type.tp_getset = getsets;
   if ( !PyModule::reg_type(m, "DtpgResults", &DtpgResults_Type) ) {
     goto error;
   }

@@ -9,7 +9,6 @@
 #include "pym/PyDtpgMgr.h"
 #include "pym/PyTpgFaultList.h"
 #include "pym/PyDtpgResults.h"
-#include "pym/PyDtpgStats.h"
 #include "pym/PyJsonValue.h"
 #include "pym/PyModule.h"
 
@@ -71,10 +70,7 @@ run(
   }
   try {
     DtpgResults results;
-    auto stats = DtpgMgr::run(fault_list, results, option);
-    auto val1 = PyDtpgStats::ToPyObject(stats);
-    auto val2 = PyDtpgResults::ToPyObject(results);
-    return Py_BuildValue("(OO)", val1, val2);
+    return PyDtpgResults::ToPyObject(DtpgMgr::run(fault_list, option));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;

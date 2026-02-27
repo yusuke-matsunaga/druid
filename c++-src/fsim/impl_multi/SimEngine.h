@@ -231,7 +231,7 @@ private:
 
   /// @brief 正常値の計算を行う．
   void
-  _xcalc_gval(
+  _calc_gval2(
     const AssignList& assign_list ///< [in] 入力割り当てのリスト
   );
 

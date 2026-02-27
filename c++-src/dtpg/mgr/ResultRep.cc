@@ -15,11 +15,11 @@ BEGIN_NAMESPACE_DRUID
 // クラス ResultRep
 //////////////////////////////////////////////////////////////////////
 
-// テストベクタを持つ時 true を返す．
-bool
-ResultRep::has_testvector() const
+// 値割り当てを返す．
+const AssignList&
+ResultRep::assign_list() const
 {
-  return false;
+  throw std::logic_error{"No AssignList"};
 }
 
 // テストベクタを返す．
@@ -29,84 +29,37 @@ ResultRep::testvector() const
   throw std::logic_error{"No TestVector"};
 }
 
-// 値割り当てを持つ時 true を返す．
-bool
-ResultRep::has_assign_list() const
-{
-  return false;
-}
-
-// 値割り当てを返す．
-const AssignList&
-ResultRep::assign_list() const
-{
-  throw std::logic_error{"No AssignList"};
-}
-
 
 //////////////////////////////////////////////////////////////////////
-// クラス ResultRep_TV
+// クラス ResultRep_DT
 //////////////////////////////////////////////////////////////////////
 
 // @brief 複製を作る．
 ResultRep*
-ResultRep_TV::duplicate() const
+ResultRep_DT::duplicate() const
 {
-  return new ResultRep_TV(mTestVector);
+  return new ResultRep_DT(mAssignList, mTestVector);
 }
 
 // 結果を返す．
 FaultStatus
-ResultRep_TV::status() const
+ResultRep_DT::status() const
 {
   return FaultStatus::Detected;
 }
 
-// テストベクタを持つ時 true を返す．
-bool
-ResultRep_TV::has_testvector() const
+// 値割り当てを返す．
+const AssignList&
+ResultRep_DT::assign_list() const
 {
-  return true;
+  return mAssignList;
 }
 
 // テストベクタを返す．
 const TestVector&
-ResultRep_TV::testvector() const
+ResultRep_DT::testvector() const
 {
   return mTestVector;
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス ResultRep_AL
-//////////////////////////////////////////////////////////////////////
-
-// @brief 複製を作る．
-ResultRep*
-ResultRep_AL::duplicate() const
-{
-  return new ResultRep_AL(mAssignList);
-}
-
-// 結果を返す．
-FaultStatus
-ResultRep_AL::status() const
-{
-  return FaultStatus::Detected;
-}
-
-// 値割り当てを持つ時 true を返す．
-bool
-ResultRep_AL::has_assign_list() const
-{
-  return true;
-}
-
-// 値割り当てを返す．
-const AssignList&
-ResultRep_AL::assign_list() const
-{
-  return mAssignList;
 }
 
 

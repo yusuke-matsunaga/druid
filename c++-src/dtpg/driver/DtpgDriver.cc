@@ -12,7 +12,6 @@
 #include "DtpgDriver_MFFCEnc.h"
 #include "types/TestVector.h"
 #include "dtpg/DtpgResults.h"
-#include "dtpg/DtpgStats.h"
 #include "ym/SatStats.h"
 #include "ym/Timer.h"
 
@@ -81,9 +80,9 @@ DtpgDriver::run()
     gen_pattern(fault);
   }
   auto cnf_time = mImpl->cnf_time();
-  mStats.update_cnf(cnf_time);
+  mResults.update_cnf(cnf_time);
   auto sat_stats = mImpl->sat_stats();
-  mStats.update_sat_stats(sat_stats);
+  mResults.update_sat_stats(sat_stats);
 }
 
 // @brief 故障のテストパタンを求める．
@@ -102,33 +101,20 @@ DtpgDriver::gen_pattern(
     // パタンが求まった．
     timer.reset();
     timer.start();
-    auto testvect = mImpl->gen_pattern(fault);
+    mImpl->fault_op(fault, mResults);
     timer.stop();
     auto backtrace_time = timer.get_time();
-
-    mResults.set_detected(fault, testvect);
-    mStats.update_det(sat_time, backtrace_time);
+    mResults.update_det(sat_time, backtrace_time);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
     mResults.set_untestable(fault);
-    mStats.update_untest(sat_time);
+    mResults.update_untest(sat_time);
   }
   else { // SatBool3::X
     // アボート
-    mStats.update_abort(sat_time);
+    mResults.update_abort(sat_time);
   }
-}
-
-// @brief 結果と統計情報をマージする．
-void
-DtpgDriver::merge_results(
-  DtpgResults& results,
-  DtpgStats& stats
-) const
-{
-  results.merge(mResults);
-  stats.merge(mStats);
 }
 
 END_NAMESPACE_DRUID

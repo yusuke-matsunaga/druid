@@ -11,7 +11,6 @@
 #include "druid.h"
 #include "types/TpgFaultList.h"
 #include "dtpg/DtpgResults.h"
-#include "dtpg/DtpgStats.h"
 #include "ym/JsonValue.h"
 
 
@@ -40,10 +39,9 @@ public:
   ///   * mffc: MFFC単位
   /// - "multi_thread"(bool): マルチスレッド実行を行う時 true にする．
   static
-  DtpgStats
+  DtpgResults
   run(
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
-    DtpgResults& dtpg_results,      ///< [out] テスト生成の結果を格納する変数
     const JsonValue& option         ///< [in] オプションを表す JSON オブジェクト
     = JsonValue{}
   );

@@ -30,10 +30,10 @@ usage()
 // @brief 統計情報を出力する．
 void
 print_stats(
+  const std::string& mode,
   const TpgNetwork& network,
   const TpgFaultList& fault_list,
   const DtpgResults& results,
-  const DtpgStats& stats,
   double time
 )
 {
@@ -49,7 +49,8 @@ print_stats(
     }
     ++ fault_num;
   }
-  std::cout << "# of inputs             = " << network.input_num() << std::endl
+  std::cout << " DTPG mode              = " << mode << std::endl
+	    << "# of inputs             = " << network.input_num() << std::endl
 	    << "# of outputs            = " << network.output_num() << std::endl
 	    << "# of DFFs               = " << network.dff_num() << std::endl
 	    << "# of logic gates        = " << network.node_num() - network.ppi_num()
@@ -63,59 +64,59 @@ print_stats(
 
   auto save = std::cout.flags();
   std::cout.setf(std::ios::fixed, std::ios::floatfield);
-  if ( stats.detect_count() > 0 ) {
+  if ( results.detect_count() > 0 ) {
     std::cout << std::endl
-	      << "*** SAT instances (" << stats.detect_count() << ") ***" << std::endl
+	      << "*** SAT instances (" << results.detect_count() << ") ***" << std::endl
 	      << "Total CPU time  (s)            = "
-	      << std::setw(10) << (stats.detect_time() / 1000.0) << std::endl
+	      << std::setw(10) << (results.detect_time() / 1000.0) << std::endl
 	      << "Average CPU time (ms)          = "
-	      << std::setw(10) << (stats.detect_time() / stats.detect_count()) << std::endl;
+	      << std::setw(10) << (results.detect_time() / results.detect_count()) << std::endl;
   }
-  if ( stats.untest_count() > 0 ) {
+  if ( results.untest_count() > 0 ) {
     std::cout << std::endl
-	      << "*** UNSAT instances (" << stats.untest_count() << ") ***" << std::endl
+	      << "*** UNSAT instances (" << results.untest_count() << ") ***" << std::endl
 	      << "Total CPU time  (s)            = "
-	      << std::setw(10) << (stats.untest_time() / 1000.0) << std::endl
+	      << std::setw(10) << (results.untest_time() / 1000.0) << std::endl
 	      << "Average CPU time (ms)          = "
-	      << std::setw(10) << stats.untest_time() / stats.untest_count() << std::endl;
+	      << std::setw(10) << results.untest_time() / results.untest_count() << std::endl;
   }
-  if ( stats.abort_count() > 0 ) {
+  if ( results.abort_count() > 0 ) {
     std::cout << std::endl
 	      << "*** ABORT instances ***" << std::endl
-	      << "  " << std::setw(10) << stats.abort_count()
-	      << "  " << stats.abort_time()
-	      << "  " << std::setw(8) << stats.abort_time() / stats.abort_count() << std::endl;
+	      << "  " << std::setw(10) << results.abort_count()
+	      << "  " << results.abort_time()
+	      << "  " << std::setw(8) << results.abort_time() / results.abort_count() << std::endl;
   }
 
   std::cout << std::endl
 	    << "SAT statistics" << std::endl
 	    << std::endl
 	    << "CNF generation" << std::endl
-	    << "  " << std::setw(10) << stats.cnfgen_count()
-	    << "  " << (stats.cnfgen_time() / 1000.0)
-	    << "  " << std::setw(8) << stats.cnfgen_time() / stats.cnfgen_count()
+	    << "  " << std::setw(10) << results.cnfgen_count()
+	    << "  " << (results.cnfgen_time() / 1000.0)
+	    << "  " << std::setw(8) << results.cnfgen_time() / results.cnfgen_count()
 	    << std::endl
 	    << std::endl
 	    << "# of restarts (Ave./Max)       = "
-	    << std::setw(10) << (double) stats.sat_stats().mRestart / stats.total_count()
-	    << " / " << std::setw(8) << stats.sat_stats_max().mRestart << std::endl
+	    << std::setw(10) << (double) results.sat_stats().mRestart / results.total_count()
+	    << " / " << std::setw(8) << results.sat_stats_max().mRestart << std::endl
 
 	    << "# of conflicts (Ave./Max)      = "
-	    << std::setw(10) << (double) stats.sat_stats().mConflictNum / stats.total_count()
-	    << " / " << std::setw(8) << stats.sat_stats_max().mConflictNum << std::endl
+	    << std::setw(10) << (double) results.sat_stats().mConflictNum / results.total_count()
+	    << " / " << std::setw(8) << results.sat_stats_max().mConflictNum << std::endl
 
 	    << "# of decisions (Ave./Max)      = "
-	    << std::setw(10) << (double) stats.sat_stats().mDecisionNum / stats.total_count()
-	    << " / " << std::setw(8) << stats.sat_stats_max().mDecisionNum << std::endl
+	    << std::setw(10) << (double) results.sat_stats().mDecisionNum / results.total_count()
+	    << " / " << std::setw(8) << results.sat_stats_max().mDecisionNum << std::endl
 
 	    << "# of implications (Ave./Max)   = "
-	    << std::setw(10) << (double) stats.sat_stats().mPropagationNum / stats.total_count()
-	    << " / " << std::setw(8) << stats.sat_stats_max().mPropagationNum << std::endl;
+	    << std::setw(10) << (double) results.sat_stats().mPropagationNum / results.total_count()
+	    << " / " << std::setw(8) << results.sat_stats_max().mPropagationNum << std::endl;
 
   std::cout << std::endl
 	    << "*** backtrace time ***" << std::endl
-	    << "  " << (stats.backtrace_time() / 1000.0)
-	    << "  " << std::setw(8) << stats.backtrace_time() / stats.detect_count() << std::endl;
+	    << "  " << (results.backtrace_time() / 1000.0)
+	    << "  " << std::setw(8) << results.backtrace_time() / results.detect_count() << std::endl;
   std::cout.flags(save);
 }
 
@@ -133,9 +134,9 @@ dtpg_test(
   bool sa_mode = false;
   bool td_mode = false;
   std::string mode{};
-  std::string driver{};
   bool drop = false;
   bool fix = false;
+  bool gtc = false;
   bool multi = false;
   bool dump = false;
   bool verbose = false;
@@ -171,38 +172,6 @@ dtpg_test(
 	  return -1;
 	}
 	mode = "node";
-      }
-      else if ( strcmp(argv[pos], "--engine") == 0 ) {
-	if ( !driver.empty() ) {
-	  std::cerr << "--engine  and --" << driver << " are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	driver = "engine";
-      }
-      else if ( strcmp(argv[pos], "--struct_enc") == 0 ) {
-	if ( !driver.empty() ) {
-	  std::cerr << "--struct_enc and --" << mode << " are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	driver = "struct_enc";
-      }
-      else if ( strcmp(argv[pos], "--enc") == 0 ) {
-	if ( !driver.empty() ) {
-	  std::cerr << "--enc and --" << mode << " are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	driver = "enc";
-      }
-      else if ( strcmp(argv[pos], "--enc2") == 0 ) {
-	if ( !driver.empty() ) {
-	  std::cerr << "--enc2 and --" << mode << " are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	driver = "enc2";
       }
       else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
 	++ pos;
@@ -270,6 +239,9 @@ dtpg_test(
       else if ( strcmp(argv[pos], "--multi") == 0 ) {
 	multi = true;
       }
+      else if ( strcmp(argv[pos], "--gtc") == 0 ) {
+	gtc = true;
+      }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
       }
@@ -311,10 +283,6 @@ dtpg_test(
     // ffr をデフォルトにする．
     mode = "ffr";
   }
-  if ( driver.empty() ) {
-    // engine をデフォルトにする．
-    driver = "engine";
-  }
 
   if ( !sa_mode && !td_mode ) {
     // sa_mode をデフォルトにする．
@@ -331,7 +299,7 @@ dtpg_test(
 
   auto option = JsonValue::object();
   option.add("group_mode",  mode);
-  option.add("driver_type", driver);
+  option.add("gtc", gtc);
   if ( !just_type.empty() ) {
     option.add("justifier", just_type);
   }
@@ -359,14 +327,13 @@ dtpg_test(
 
   auto fault_list = network.rep_fault_list();
 
-  DtpgResults results;
-  auto stats = DtpgMgr::run(fault_list, results, option);
+  auto results = DtpgMgr::run(fault_list, option);
 
   timer.stop();
   auto time = timer.get_time();
 
   if ( verbose ) {
-    print_stats(network, fault_list, results, stats, time);
+    print_stats(mode, network, fault_list, results, time);
   }
 
   if ( show_untestable_faults ) {

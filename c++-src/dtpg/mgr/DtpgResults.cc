@@ -16,6 +16,12 @@ BEGIN_NAMESPACE_DRUID
 // クラス DtpgResults
 //////////////////////////////////////////////////////////////////////
 
+// @brief 空のコンストラクタ
+DtpgResults::DtpgResults()
+{
+  clear();
+}
+
 // @brief クリアする．
 void
 DtpgResults::clear()
@@ -24,12 +30,30 @@ DtpgResults::clear()
     delete p.second;
   }
   mResultDict.clear();
+
+  mDetCount = 0;
+  mDetTime = 0.0;
+
+  mUntestCount = 0;
+  mUntestTime = 0.0;
+
+  mAbortCount = 0;
+  mAbortTime = 0.0;
+
+  mCnfGenCount = 0;
+  mCnfGenTime = 0.0;
+
+  mSatStats.clear();
+  mSatStatsMax.clear();
+
+  mBackTraceTime = 0.0;
 }
 
 /// @brief 検出済みに設定する．
 void
 DtpgResults::set_detected(
   const TpgFault& fault,
+  const AssignList& assign_list,
   const TestVector& testvect
 )
 {
@@ -38,23 +62,7 @@ DtpgResults::set_detected(
     buf << fault.str() << " has already set";
     throw std::invalid_argument{buf.str()};
   }
-  auto r = new ResultRep_TV(testvect);
-  mResultDict.emplace(fault.id(), r);
-}
-
-// @brief 検出済みに設定する．
-void
-DtpgResults::set_detected(
-  const TpgFault& fault,
-  const AssignList& assign_list
-)
-{
-  if ( mResultDict.count(fault.id()) > 0 ) {
-    std::ostringstream buf;
-    buf << fault.str() << " has already set";
-    throw std::invalid_argument{buf.str()};
-  }
-  auto r = new ResultRep_AL(assign_list);
+  auto r = new ResultRep_DT(assign_list, testvect);
   mResultDict.emplace(fault.id(), r);
 }
 
@@ -86,6 +94,17 @@ DtpgResults::merge(
     mResultDict.erase(fid);
     mResultDict.emplace(fid, rep);
   }
+  mDetCount += src.mDetCount;
+  mDetTime += src.mDetTime;
+  mUntestCount += src.mUntestCount;
+  mUntestTime += src.mUntestTime;
+  mAbortCount += src.mAbortCount;
+  mAbortTime += src.mAbortTime;
+  mCnfGenCount += src.mCnfGenCount;
+  mCnfGenTime += src.mCnfGenTime;
+  mSatStats += src.mSatStats;
+  mSatStatsMax.max_assign(src.mSatStatsMax);
+  mBackTraceTime += src.mBackTraceTime;
 }
 
 // @brief 結果を返す．
@@ -101,17 +120,14 @@ DtpgResults::status(
   return r->status();
 }
 
-// @brief テストベクタを持つ時 true を返す．
-bool
-DtpgResults::has_testvector(
+// @brief 値割り当てを返す．
+const AssignList&
+DtpgResults::assign_list(
   const TpgFault& fault
 ) const
 {
-  if ( mResultDict.count(fault.id()) == 0 ) {
-    return false;
-  }
   auto r = mResultDict.at(fault.id());
-  return r->has_testvector();
+  return r->assign_list();
 }
 
 // @brief テストベクタを返す．
@@ -120,41 +136,8 @@ DtpgResults::testvector(
   const TpgFault& fault
 ) const
 {
-  if ( !has_testvector(fault) ) {
-    std::ostringstream buf;
-    buf << fault.str() << "does not have a TestVector";
-    throw std::logic_error{buf.str()};
-  }
   auto r = mResultDict.at(fault.id());
   return r->testvector();
-}
-
-// @brief 値割り当てを持つ時 true を返す．
-bool
-DtpgResults::has_assign_list(
-  const TpgFault& fault
-) const
-{
-  if ( mResultDict.count(fault.id()) == 0 ) {
-    return false;
-  }
-  auto r = mResultDict.at(fault.id());
-  return r->has_assign_list();
-}
-
-// @brief 値割り当てを返す．
-const AssignList&
-DtpgResults::assign_list(
-  const TpgFault& fault
-) const
-{
-  if ( !has_assign_list(fault) ) {
-    std::ostringstream buf;
-    buf << fault.str() << "does not have an AssignList";
-    throw std::logic_error{buf.str()};
-  }
-  auto r = mResultDict.at(fault.id());
-  return r->assign_list();
 }
 
 END_NAMESPACE_DRUID

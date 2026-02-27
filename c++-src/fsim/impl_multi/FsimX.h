@@ -306,6 +306,15 @@ public:
     return mPPIList[id + mInputNum];
   }
 
+  /// @brief TpgNode のノード番号から対応するノードを得る．
+  SimNode*
+  node(
+    SizeType tpg_id ///< [in] TpgNode のノード番号
+  ) const
+  {
+    return mSimNodeMap[tpg_id];
+  }
+
   /// @brief FFR数を得る．
   SizeType
   ffr_num() const

@@ -24,19 +24,13 @@ class DtpgMgrGen(PyObjGen):
                          source_include_files=['pym/PyDtpgMgr.h',
                                                'pym/PyTpgFaultList.h',
                                                'pym/PyDtpgResults.h',
-                                               'pym/PyDtpgStats.h',
                                                'pym/PyJsonValue.h'])
 
         def meth_run(writer):
             writer.gen_vardecl(typename='DtpgResults',
                                varname='results')
-            writer.gen_auto_assign('stats',
-                                   'DtpgMgr::run(fault_list, results, option)')
-            writer.gen_auto_assign('val1',
-                                   'PyDtpgStats::ToPyObject(stats)')
-            writer.gen_auto_assign('val2',
-                                   'PyDtpgResults::ToPyObject(results)')
-            writer.gen_return_buildvalue('(OO)', ['val1', 'val2'])
+            writer.gen_return_pyobject('PyDtpgResults',
+                                       'DtpgMgr::run(fault_list, option)')
         self.add_static_method('run',
                                func_body=meth_run,
                                arg_list=[TpgFaultListArg(name='fault_list',

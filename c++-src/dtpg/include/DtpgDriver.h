@@ -15,7 +15,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class DtpgStats;
 class DtpgDriverImpl;
 
 //////////////////////////////////////////////////////////////////////
@@ -72,14 +71,12 @@ public:
   void
   run();
 
-  /// @brief 結果と統計情報をマージする．
-  ///
-  /// - シングルスレッドで run() の終了後に用いられる．
-  void
-  merge_results(
-    DtpgResults& results, ///< [out] 結果を格納する変数
-    DtpgStats& stats      ///< [out] 統計情報を格納する変数
-  ) const;
+  /// @brief 直前の run() の実行結果を得る．
+  const DtpgResults&
+  results() const
+  {
+    return mResults;
+  }
 
 
 private:
@@ -93,7 +90,7 @@ private:
     const TpgFaultList& fault_list ///< [in] 故障のリスト
   );
 
-  /// @brief 故障のテストパタンを求める．
+  /// @brief 故障に対する処理を行う．
   void
   gen_pattern(
     const TpgFault& fault ///< [in] 対象の故障
@@ -113,9 +110,6 @@ private:
 
   // テスト生成の結果
   DtpgResults mResults;
-
-  // 統計情報
-  DtpgStats mStats;
 
 };
 

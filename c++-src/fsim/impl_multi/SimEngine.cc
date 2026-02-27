@@ -177,7 +177,7 @@ SimEngine::xspsfp(
 )
 {
   // 正常値の計算を行う．
-  _xcalc_gval(assign_list);
+  _calc_gval2(assign_list);
 
   // 故障シミュレーションを行う．
   return _spsfp(f, dbits);
@@ -306,7 +306,7 @@ SimEngine::xsppfp(
 )
 {
   // 正常値の計算を行う．
-  _xcalc_gval(assign_list);
+  _calc_gval2(assign_list);
 
   _sppfp();
 }
@@ -472,26 +472,25 @@ SimEngine::_calc_gval(
 
 // @brief 正常値の計算を行う．
 void
-SimEngine::_xcalc_gval(
+SimEngine::_calc_gval2(
     const AssignList& assign_list
 )
 {
   // デフォルト値で初期化する．
-  auto val0 = init_val();
-  for ( auto simnode: mFsim.ppi_list() ) {
-    mValArray[simnode->id()] = val0;
-  }
+  auto x_val = init_val();
   for ( auto simnode: mFsim.logic_list() ) {
-    mValArray[simnode->id()] = val0;
+    mValArray[simnode->id()] = x_val;
   }
 
+  // 値をセットする．
   for ( auto nv: assign_list ) {
     if ( nv.time() != 1 ) {
       throw std::logic_error{"nv.time() != 1"};
     }
-    SizeType iid = nv.node().input_id();
-    auto simnode = mFsim.ppi(iid);
-    mValArray[simnode->id()] = bool_to_packedval(nv.val());
+    auto node_id = nv.node().id();
+    auto val = nv.val();
+    auto simnode = mFsim.node(node_id);
+    mValArray[simnode->id()] = bool_to_packedval(val);
   }
 
   // 正常値の計算を行う．
@@ -633,23 +632,20 @@ SimEngine::_calc_gval(
 
 // @brief 正常値の計算を行う．
 void
-SimEngine::_xcalc_gval(
+SimEngine::_calc_gval2(
     const AssignList& assign_list
 )
 {
   // 1時刻目の入力を設定する．
-  auto val0 = init_val();
-  for ( auto simnode: mFsim.ppi_list() ) {
-    mPrevValArray[simnode->id()] = val0;
-  }
+  auto x_val = init_val();
   for ( auto simnode: mFsim.logic_list() ) {
-    mPrevValArray[simnode->id()] = val0;
+    mPrevValArray[simnode->id()] = x_val;
   }
 
   for ( auto nv: assign_list ) {
     if ( nv.time() == 0 ) {
-      SizeType iid = nv.node().input_id();
-      auto simnode = mFsim.ppi(iid);
+      auto node_id = nv.node().id();
+      auto simnode = mFsim.node(node_id);
       mPrevValArray[simnode->id()] = bool_to_packedval(nv.val());
     }
   }
@@ -666,17 +662,14 @@ SimEngine::_xcalc_gval(
   }
 
   // 2時刻目の入力を設定する．
-  for ( auto simnode: mFsim.input_list() ) {
-    mValArray[simnode->id()] = val0;
-  }
   for ( auto simnode: mFsim.logic_list() ) {
-    mValArray[simnode->id()] = val0;
+    mValArray[simnode->id()] = x_val;
   }
 
   for ( auto nv: assign_list ) {
     if ( nv.time() == 1 ) {
-      SizeType iid = nv.node().input_id();
-      auto simnode = mFsim.ppi(iid);
+      auto node_id = nv.node().id();
+      auto simnode = mFsim.node(node_id);
       mValArray[simnode->id()] = bool_to_packedval(nv.val());
     }
   }

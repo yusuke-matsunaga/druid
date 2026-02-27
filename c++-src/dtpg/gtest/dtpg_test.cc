@@ -228,8 +228,7 @@ DtpgTestWithParam2::do_test()
   auto fsim_option = JsonValue::parse("{\"has_x\": true}");
   auto fsim = Fsim(network, fault_list, fsim_option);
 
-  DtpgResults dtpg_results;
-  auto stats = DtpgMgr::run(fault_list, dtpg_results, option);
+  auto dtpg_results = DtpgMgr::run(fault_list, option);
 
   SizeType TotalCount = 0;
   SizeType DetectedCount = 0;

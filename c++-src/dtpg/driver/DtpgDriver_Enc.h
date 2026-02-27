@@ -48,10 +48,11 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   ) override;
 
-  /// @brief テストパタン生成を行う．
-  TestVector
-  gen_pattern(
-    const TpgFault& fault ///< [in] 対象の故障
+  /// @brief 故障に対する処理を行う．
+  void
+  fault_op(
+    const TpgFault& fault, ///< [in] 対象の故障
+    DtpgResults& result    ///< [in] 結果を格納するオブジェクト
   ) override;
 
   /// @brief CNF の生成時間を返す．

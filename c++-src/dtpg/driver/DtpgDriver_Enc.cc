@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "DtpgDriver_Enc.h"
+#include "dtpg/DtpgResults.h"
 #include "types/TpgFault.h"
 #include "types/TestVector.h"
 
@@ -44,10 +45,11 @@ DtpgDriver_Enc::solve(
   return mEngine.solve(assumptions);
 }
 
-// @brief テストパタン生成を行う．
-TestVector
-DtpgDriver_Enc::gen_pattern(
-  const TpgFault& fault
+// @brief 故障に対する処理を行う．
+void
+DtpgDriver_Enc::fault_op(
+  const TpgFault& fault,
+  DtpgResults& results
 )
 {
   auto assign_list = mEngine.extract_sufficient_condition();
@@ -55,7 +57,8 @@ DtpgDriver_Enc::gen_pattern(
   assign_list.merge(prop_cond);
   add_extra_assignments(fault, assign_list);
   auto pi_assign_list = mEngine.justify(assign_list);
-  return TestVector(pi_assign_list);
+  auto tv = TestVector(pi_assign_list);
+  results.set_detected(fault, assign_list, tv);
 }
 
 // @brief CNF の生成時間を返す．

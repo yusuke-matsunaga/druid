@@ -47,51 +47,39 @@ public:
   FaultStatus
   status() const = 0;
 
-  /// @brief テストベクタを持つ時 true を返す．
-  virtual
-  bool
-  has_testvector() const;
-
-  /// @brief テストベクタを返す．
-  ///
-  /// has_testvector() == false の場合は std::logic_error 例外を送出する．
-  virtual
-  const TestVector&
-  testvector() const;
-
-  /// @brief 値割り当てを持つ時 true を返す．
-  virtual
-  bool
-  has_assign_list() const;
-
   /// @brief 値割り当てを返す．
-  ///
-  /// has_assign_list() == false の場合は std::logic_error 例外を送出する．
   virtual
   const AssignList&
   assign_list() const;
+
+  /// @brief テストベクタを返す．
+  virtual
+  const TestVector&
+  testvector() const;
 
 };
 
 
 //////////////////////////////////////////////////////////////////////
-/// @class ResultRep_TV ResultRep_TV.h "ResultRep_TV.h"
-/// @brief TestVector を持つ ResultRep
+/// @class ResultRep_DT ResultRep.h "ResultRep.h"
+/// @brief AssignList/TestVector を持つ ResultRep
 //////////////////////////////////////////////////////////////////////
-class ResultRep_TV:
+class ResultRep_DT:
   public ResultRep
 {
 public:
 
   /// @brief コンストラクタ
-  ResultRep_TV(
+  ResultRep_DT(
+    const AssignList& assign_list,
     const TestVector& testvector
-  ) : mTestVector{testvector}
+  ) : mAssignList{assign_list},
+      mTestVector{testvector}
   {
   }
 
   /// @brief デストラクタ
-  ~ResultRep_TV() = default;
+  ~ResultRep_DT() = default;
 
   /// @brief 複製を作る．
   ResultRep*
@@ -101,9 +89,9 @@ public:
   FaultStatus
   status() const override;
 
-  /// @brief テストベクタを持つ時 true を返す．
-  bool
-  has_testvector() const override;
+  // 値割り当てを返す．
+  const AssignList&
+  assign_list() const override;
 
   /// @brief テストベクタを返す．
   const TestVector&
@@ -115,55 +103,11 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // テストベクタ
-  TestVector mTestVector;
-
-};
-
-
-//////////////////////////////////////////////////////////////////////
-/// @class ResultRep_AL ResultRep_AL.h "ResultRep_AL.h"
-/// @brief AssignList を持つ ResultRep
-//////////////////////////////////////////////////////////////////////
-class ResultRep_AL:
-  public ResultRep
-{
-public:
-
-  // コンストラクタ
-  ResultRep_AL(
-    const AssignList& assign_list
-  ) : mAssignList{assign_list}
-  {
-  }
-
-  // デストラクタ
-  ~ResultRep_AL() = default;
-
-  /// @brief 複製を作る．
-  ResultRep*
-  duplicate() const override;
-
-  // 結果を返す．
-  FaultStatus
-  status() const override;
-
-  // 値割り当てを持つ時 true を返す．
-  bool
-  has_assign_list() const override;
-
-  // 値割り当てを返す．
-  const AssignList&
-  assign_list() const override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
   // 値割り当て
   AssignList mAssignList;
+
+  // テストベクタ
+  TestVector mTestVector;
 
 };
 

@@ -318,6 +318,17 @@ private:
     const AssignList& assign_list ///< [in] 外部入力の値割り当てのリスト
   );
 
+  /// @brief 値の計算を行う．
+  ///
+  /// 入力ノードに値の設定は済んでいるものとする．
+  void
+  _calc_val()
+  {
+    for ( auto node: mLogicArray ) {
+      node->calc_val();
+    }
+  }
+
   /// @brief 正常値の計算を行う．
   void
   _calc_gval2(
@@ -328,10 +339,14 @@ private:
   ///
   /// 入力ノードに値の設定は済んでいるものとする．
   void
-  _calc_val()
+  _calc_val2(
+    const std::vector<bool>& lock_array
+  )
   {
     for ( auto node: mLogicArray ) {
-      node->calc_val();
+      if ( !lock_array[node->id()] ) {
+	node->calc_val();
+      }
     }
   }
 
@@ -364,7 +379,6 @@ private:
   {
     // 故障の活性化条件を求める．
     auto cval = fault->excitation_condition();
-
     // FFR 内の故障伝搬を行う．
     auto lobs = PV_ALL1;
     auto f_node = fault->origin_node();

@@ -182,16 +182,19 @@ spsfp(
 )
 {
   static const char* kwlist[] = {
-    "tv",
     "fault",
+    "testvector",
+    "assign_list",
     nullptr
   };
-  PyObject* tv_obj = nullptr;
   PyObject* fault_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "OO!",
+  PyObject* tv_obj = nullptr;
+  PyObject* as_list_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!|$O!O!",
                                     const_cast<char**>(kwlist),
-                                    &tv_obj,
-                                    PyTpgFault::_typeobject(), &fault_obj) ) {
+                                    PyTpgFault::_typeobject(), &fault_obj,
+                                    PyTestVector::_typeobject(), &tv_obj,
+                                    PyAssignList::_typeobject(), &as_list_obj) ) {
     return nullptr;
   }
   TpgFault fault;
@@ -201,25 +204,37 @@ spsfp(
       return nullptr;
     }
   }
+  TestVector tv;
+  if ( tv_obj != nullptr ) {
+    if ( !PyTestVector::FromPyObject(tv_obj, tv) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to TestVector");
+      return nullptr;
+    }
+  }
+  AssignList as_list;
+  if ( as_list_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(as_list_obj, as_list) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+      return nullptr;
+    }
+  }
   auto& val = PyFsim::_get_ref(self);
   try {
-    if ( PyTestVector::Check(tv_obj) ) {
-      auto& tv = PyTestVector::_get_ref(tv_obj);
+    if ( tv.vector_size() > 0 ) {
       DiffBits dbits;
       auto res = val.spsfp(tv, fault, dbits);
       auto res_obj = PyBool::ToPyObject(res);
       auto dbits_obj = PyDiffBits::ToPyObject(dbits);
       return Py_BuildValue("OO", res_obj, dbits_obj);
     }
-    if ( PyAssignList::Check(tv_obj) ) {
-      auto& assign_list = PyAssignList::_get_ref(tv_obj);
+    if ( as_list.size() > 0 ) {
       DiffBits dbits;
-      auto res = val.spsfp(assign_list, fault, dbits);
+      auto res = val.spsfp(as_list, fault, dbits);
       auto res_obj = PyBool::ToPyObject(res);
       auto dbits_obj = PyDiffBits::ToPyObject(dbits);
       return Py_BuildValue("OO", res_obj, dbits_obj);
     }
-    PyErr_SetString(PyExc_TypeError, "argument 1 should be TestVector or AssignList");
+    PyErr_SetString(PyExc_TypeError, "either testvector or assign_list must be given");
     return nullptr;
   }
   catch ( std::exception err ) {
@@ -238,24 +253,17 @@ xspsfp(
 )
 {
   static const char* kwlist[] = {
-    "assign_list",
     "fault",
+    "assign_list",
     nullptr
   };
-  PyObject* assign_list_obj = nullptr;
   PyObject* fault_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
+  PyObject* as_list_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!$O!",
                                     const_cast<char**>(kwlist),
-                                    PyAssignList::_typeobject(), &assign_list_obj,
-                                    PyTpgFault::_typeobject(), &fault_obj) ) {
+                                    PyTpgFault::_typeobject(), &fault_obj,
+                                    PyAssignList::_typeobject(), &as_list_obj) ) {
     return nullptr;
-  }
-  AssignList assign_list;
-  if ( assign_list_obj != nullptr ) {
-    if ( !PyAssignList::FromPyObject(assign_list_obj, assign_list) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
-      return nullptr;
-    }
   }
   TpgFault fault;
   if ( fault_obj != nullptr ) {
@@ -264,10 +272,17 @@ xspsfp(
       return nullptr;
     }
   }
+  AssignList as_list;
+  if ( as_list_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(as_list_obj, as_list) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+      return nullptr;
+    }
+  }
   auto& val = PyFsim::_get_ref(self);
   try {
     DiffBits dbits;
-    auto res = val.xspsfp(assign_list, fault, dbits);
+    auto res = val.xspsfp(as_list, fault, dbits);
     auto res_obj = PyBool::ToPyObject(res);
     auto dbits_obj = PyDiffBits::ToPyObject(dbits);
     return Py_BuildValue("OO", res_obj, dbits_obj);
@@ -288,26 +303,41 @@ sppfp(
 )
 {
   static const char* kwlist[] = {
-    "tv",
+    "testvector",
+    "assign_list",
     nullptr
   };
   PyObject* tv_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
+  PyObject* as_list_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "|$O!O!",
                                     const_cast<char**>(kwlist),
-                                    &tv_obj) ) {
+                                    PyTestVector::_typeobject(), &tv_obj,
+                                    PyAssignList::_typeobject(), &as_list_obj) ) {
     return nullptr;
+  }
+  TestVector tv;
+  if ( tv_obj != nullptr ) {
+    if ( !PyTestVector::FromPyObject(tv_obj, tv) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to TestVector");
+      return nullptr;
+    }
+  }
+  AssignList as_list;
+  if ( as_list_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(as_list_obj, as_list) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+      return nullptr;
+    }
   }
   auto& val = PyFsim::_get_ref(self);
   try {
-    if ( PyTestVector::Check(tv_obj) ) {
-      auto& tv = PyTestVector::_get_ref(tv_obj);
+    if ( tv.vector_size() > 0 ) {
       return PyFsimResults::ToPyObject(val.sppfp(tv));
     }
-    if ( PyAssignList::Check(tv_obj) ) {
-      auto& assign_list = PyAssignList::_get_ref(tv_obj);
-      return PyFsimResults::ToPyObject(val.sppfp(assign_list));
+    if ( as_list.size() > 0 ) {
+      return PyFsimResults::ToPyObject(val.sppfp(as_list));
     }
-    PyErr_SetString(PyExc_TypeError, "argument 1 should be TestVector or AssignList");
+    PyErr_SetString(PyExc_TypeError, "eighter testvector or assign_list must be given");
     return nullptr;
   }
   catch ( std::exception err ) {

@@ -77,10 +77,9 @@ END_NONAMESPACE
 //////////////////////////////////////////////////////////////////////
 
 // @brief テスト生成を行う．
-DtpgStats
+DtpgResults
 DtpgMgr::run(
   const TpgFaultList& fault_list,
-  DtpgResults& dtpg_results,
   const JsonValue& option
 )
 {
@@ -96,16 +95,15 @@ DtpgMgr::run(
     node_fault_list_array[node.id()].push_back(fault);
   }
 
-  // 結果をクリアしておく．
-  dtpg_results.clear();
+  // 結果を格納するオブジェクト
+  DtpgResults dtpg_results;
 
-  DtpgStats stats;
   if ( group_mode == "node" ) { // ノード単位で処理を行う．
     for ( auto node: network.node_list() ) {
       auto& fault_list = node_fault_list_array[node.id()];
       auto driver = DtpgDriver::node_driver(node, fault_list, option);
       driver.run();
-      driver.merge_results(dtpg_results, stats);
+      dtpg_results.merge(driver.results());
     }
   }
   else if ( group_mode == "node_mt" ) { // ノード単位でマルチスレッド実行を行う．
@@ -124,7 +122,7 @@ DtpgMgr::run(
 	  auto& fault_list = node_fault_list_array[node.id()];
 	  auto driver = DtpgDriver::node_driver(node, fault_list, option);
 	  driver.run();
-	  r_lock.run([&](){ driver.merge_results(dtpg_results, stats); });
+	  r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	}
       }, thread_num
     );
@@ -138,7 +136,7 @@ DtpgMgr::run(
       }
       auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
       driver.run();
-      driver.merge_results(dtpg_results, stats);
+      dtpg_results.merge(driver.results());
     }
   }
   else if ( group_mode == "ffr_mt" ) { // FFR 単位でマルチスレッド実行を行う．
@@ -161,7 +159,7 @@ DtpgMgr::run(
 	  }
 	  auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
 	  driver.run();
-	  r_lock.run([&](){ driver.merge_results(dtpg_results, stats); });
+	  r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	}
       }, thread_num
     );
@@ -177,12 +175,12 @@ DtpgMgr::run(
       if ( ffr.is_valid() ) {
 	auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
 	driver.run();
-	driver.merge_results(dtpg_results, stats);
+	dtpg_results.merge(driver.results());
       }
       else {
 	auto driver = DtpgDriver::mffc_driver(mffc, fault_list, option);
 	driver.run();
-	driver.merge_results(dtpg_results, stats);
+	dtpg_results.merge(driver.results());
       }
     }
   }
@@ -207,12 +205,12 @@ DtpgMgr::run(
 	  if ( ffr.is_valid() ) {
 	    auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
 	    driver.run();
-	    r_lock.run([&](){ driver.merge_results(dtpg_results, stats); });
+	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	  }
 	  else {
 	    auto driver = DtpgDriver::mffc_driver(mffc, fault_list, option);
 	    driver.run();
-	    r_lock.run([&](){ driver.merge_results(dtpg_results, stats); });
+	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	  }
 	}
       }, thread_num
@@ -224,7 +222,7 @@ DtpgMgr::run(
     throw std::invalid_argument{buf.str()};
   }
 
-  return stats;
+  return dtpg_results;
 }
 
 END_NAMESPACE_DRUID
