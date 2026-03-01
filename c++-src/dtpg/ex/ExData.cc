@@ -94,6 +94,10 @@ ExData::backtrace(
   std::vector<std::vector<TpgNode>>& cgroup_list
 )
 {
+  if ( node == mRoot ) {
+    // 自身が根のノードなら side input はない．
+    return {};
+  }
   std::vector<std::vector<TpgNode>> tmp_cgroup_list;
   auto tmp_node_list = backtrace1(node, tmp_cgroup_list);
 
