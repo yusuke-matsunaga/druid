@@ -127,9 +127,7 @@ public:
     PackedVal mask  ///< [in] マスク
   )
   {
-    mVal0 &= ~mask;
     mVal0 |= val.mVal0 & mask;
-    mVal1 &= ~mask;
     mVal1 |= val.mVal1 & mask;
 }
 
