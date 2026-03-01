@@ -17,6 +17,8 @@
 
 BEGIN_NAMESPACE_DRUID
 
+static bool debug = true;
+
 // @brief コンストラクタ
 RefSim::RefSim(
   const TpgNetwork& network
@@ -105,6 +107,7 @@ RefSim::simulate_sa(
   // 正常値を計算する．
   for ( auto node: mLogicList ) {
     auto val = node->calc_gval();
+    node->set_fval(val);
   }
 
   // 故障値を計算する．
@@ -115,6 +118,7 @@ RefSim::simulate_sa(
     }
     node->set_fval(val);
   }
+
   for ( auto node: mDffOutList ) {
     auto val = node->get_gval();
     if ( check_fault_cond(fid, node) ) {
@@ -131,18 +135,52 @@ RefSim::simulate_sa(
     node->set_fval(val);
   }
 
+  if ( debug ) {
+    std::vector<int> outmap(mNetwork.node_num(), -1);
+    int oid = 0;
+    for ( auto node: mNetwork.output_list() ) {
+      outmap[node.id()] = oid;
+      ++ oid;
+    }
+    std::cout << "RefSim" << std::endl;
+    auto fault = mNetwork.fault(fid);
+    std::cout << fault.str() << std::endl;
+    for ( auto node: mNetwork.node_list() ) {
+      auto refnode = mNodeMap[node.id()];
+      if ( outmap[node.id()] >= 0 ) {
+	std::cout << "O#" << std::setw(4) << outmap[node.id()]
+		  << "|";
+      }
+      else {
+	std::cout << "       ";
+      }
+      std::cout << "Node#" << node.id()
+		<< ": " << value_name1(refnode->get_gval())
+		<< " / " << value_name1(refnode->get_fval()) << std::endl;
+    }
+    std::cout << std::endl;
+  }
+
   // 出力結果を比較する．
   SizeType no = mOutputList.size();
   DiffBits dbits;
   for ( SizeType i = 0; i < no; ++ i ) {
     auto node = mOutputList[i];
-    if ( node->get_gval() != node->get_fval() ) {
+    auto gval = node->get_gval();
+    auto fval = node->get_fval();
+    if ( gval != Val3::_X &&
+	 fval != Val3::_X &&
+	 gval != fval ) {
       dbits.add_output(i);
     }
   }
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto node = mDffInList[i];
-    if ( node->get_gval() != node->get_fval() ) {
+    auto gval = node->get_gval();
+    auto fval = node->get_fval();
+    if ( gval != Val3::_X &&
+	 fval != Val3::_X &&
+	 gval != fval ) {
       dbits.add_output(i + no);
     }
   }
@@ -226,13 +264,21 @@ RefSim::simulate_td(
   DiffBits dbits;
   for ( SizeType i = 0; i < no; ++ i ) {
     auto node = mOutputList[i];
-    if ( node->get_gval() != node->get_fval() ) {
+    auto gval = node->get_gval();
+    auto fval = node->get_fval();
+    if ( gval != Val3::_X &&
+	 fval != Val3::_X &&
+	 gval != fval ) {
       dbits.add_output(i);
     }
   }
   for ( SizeType i = 0; i < nd; ++ i ) {
     auto node = mDffInList[i];
-    if ( node->get_gval() != node->get_fval() ) {
+    auto gval = node->get_gval();
+    auto fval = node->get_fval();
+    if ( gval != Val3::_X &&
+	 fval != Val3::_X &&
+	 gval != fval ) {
       dbits.add_output(i + no);
     }
   }
@@ -247,7 +293,7 @@ RefSim::make_node(
 {
   auto node = mNodeMap[tpg_node.id()];
   if ( node == nullptr ) {
-    // 未生成
+    // 新規に作る．
     SizeType ni = tpg_node.fanin_num();
     std::vector<RefNode*> fanin_list(ni);
     for ( SizeType i = 0; i < ni; ++ i ) {
@@ -258,6 +304,154 @@ RefSim::make_node(
     mLogicList.push_back(node);
   }
   return node;
+}
+
+// @brief 故障シミュレーションを行う．
+DiffBits
+RefSim::simulate(
+  const AssignList& assign_list,
+  SizeType fid
+)
+{
+  switch ( mFaultType ) {
+  case FaultType::StuckAt: return simulate_sa(assign_list, fid);
+  case FaultType::TransitionDelay: return simulate_td(assign_list, fid);
+  default: break;
+  }
+  // ダミー
+  return DiffBits{};
+}
+
+// @brief 縮退故障用の故障シミュレーションを行う．
+DiffBits
+RefSim::simulate_sa(
+  const AssignList& assign_list,
+  SizeType fid
+)
+{
+  // 全てのノードを不定値に初期化する．
+  std::vector<Val3> src_array(mNetwork.node_num(), Val3::_X);
+  for ( auto nv: assign_list ) {
+    auto node_id = nv.node().id();
+    auto val = nv.val();
+    auto refnode = mNodeMap[node_id];
+    auto val3 = val ? Val3::_1 : Val3::_0;
+    src_array[node_id] = val3;
+  }
+
+  // 正常値を計算する．
+  for ( auto node: mInputList ) {
+    auto val3 = src_array[node->id()];
+    node->set_gval(val3);
+  }
+  for ( auto node: mDffOutList ) {
+    auto val3 = src_array[node->id()];
+    node->set_gval(val3);
+  }
+  for ( auto node: mLogicList ) {
+    auto val3 = src_array[node->id()];
+    if ( val3 == Val3::_X ) {
+      node->calc_gval();
+    }
+    else {
+      node->set_gval(val3);
+    }
+  }
+
+  // 故障値を計算する．
+  for ( auto node: mInputList ) {
+    auto val = node->get_gval();
+    if ( check_fault_cond(fid, node) ) {
+      val = ~val;
+    }
+    node->set_fval(val);
+  }
+  for ( auto node: mDffOutList ) {
+    auto val = node->get_gval();
+    if ( check_fault_cond(fid, node) ) {
+      val = ~val;
+    }
+    node->set_fval(val);
+  }
+  for ( auto node: mLogicList ) {
+    auto val = src_array[node->id()];
+    if ( val == Val3::_X ) {
+      val = node->calc_fval();
+    }
+    if ( check_fault_cond(fid, node) ) {
+      val = ~val;
+    }
+    node->set_fval(val);
+  }
+  for ( auto node: mOutputList ) {
+    auto val = node->calc_fval();
+    if ( check_fault_cond(fid, node) ) {
+      val = ~val;
+      node->set_fval(val);
+    }
+  }
+
+  if ( debug ) {
+    std::vector<int> outmap(mNetwork.node_num(), -1);
+    int oid = 0;
+    for ( auto node: mNetwork.output_list() ) {
+      outmap[node.id()] = oid;
+      ++ oid;
+    }
+    std::cout << "RefSim" << std::endl;
+    auto fault = mNetwork.fault(fid);
+    std::cout << fault.str() << std::endl;
+    for ( auto node: mNetwork.node_list() ) {
+      auto refnode = mNodeMap[node.id()];
+      if ( outmap[node.id()] >= 0 ) {
+	std::cout << "O#" << std::setw(4) << outmap[node.id()]
+		  << "|";
+      }
+      else {
+	std::cout << "       ";
+      }
+      std::cout << "Node#" << node.id()
+		<< ": " << value_name1(refnode->get_gval())
+		<< " / " << value_name1(refnode->get_fval()) << std::endl;
+    }
+    std::cout << std::endl;
+  }
+
+  // 出力結果を比較する．
+  SizeType no = mOutputList.size();
+  DiffBits dbits;
+  for ( SizeType i = 0; i < no; ++ i ) {
+    auto node = mOutputList[i];
+    auto gval = node->get_gval();
+    auto fval = node->get_fval();
+    if ( gval != Val3::_X &&
+	 fval != Val3::_X &&
+	 gval != fval ) {
+      dbits.add_output(i);
+    }
+  }
+  SizeType nd = mDffOutList.size();
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto node = mDffInList[i];
+    auto gval = node->get_gval();
+    auto fval = node->get_fval();
+    if ( gval != Val3::_X &&
+	 fval != Val3::_X &&
+	 gval != fval ) {
+      dbits.add_output(i + no);
+    }
+  }
+  return dbits;
+}
+
+// @brief 遷移故障用の故障シミュレーションを行う．
+DiffBits
+RefSim::simulate_td(
+  const AssignList& assign_list,
+  SizeType fid
+)
+{
+  return DiffBits{};
 }
 
 // @brief 故障の活性化条件をチェックする．
@@ -293,6 +487,59 @@ RefSim::check_fault_cond(
     }
   }
   return true;
+}
+
+// @brief 部分的な割り当てを取り出す．
+AssignList
+RefSim::extract(
+  const TestVector& tv,
+  const TpgNode& root
+)
+{
+  // 入力に値を設定する．
+  SizeType ni = mInputList.size();
+  for ( SizeType i = 0; i < ni; ++ i ) {
+    auto node = mInputList[i];
+    auto val = tv.ppi_val(i);
+    node->set_gval(val);
+  }
+  SizeType nd = mDffOutList.size();
+  for ( SizeType i = 0; i < nd; ++ i ) {
+    auto node = mDffOutList[i];
+    auto val = tv.ppi_val(i + ni);
+    node->set_gval(val);
+   }
+
+  // 正常値を計算する．
+  for ( auto node: mLogicList ) {
+    auto val = node->calc_gval();
+  }
+
+  // 境界のノードを探して割り当てを記録する．
+  AssignList assign_list;
+  std::unordered_set<SizeType> mark;
+  for ( auto node: mNetwork.get_tfo_list(root) ) {
+    mark.emplace(node.id());
+  }
+  for ( auto node: mNetwork.node_list() ) {
+    if ( mark.count(node.id()) > 0 ) {
+      continue;
+    }
+    bool found = false;
+    for ( auto onode: node.fanout_list() ) {
+      if ( mark.count(onode.id()) > 0 ) {
+	found = true;
+	break;
+      }
+    }
+    if ( found ) {
+      auto refnode = mNodeMap[node.id()];
+      auto val = refnode->get_gval();
+      auto bval = val == Val3::_1;
+      assign_list.add(node, 1, bval);
+    }
+  }
+  return assign_list;
 }
 
 END_NAMESPACE_DRUID

@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "types/TpgNetwork.h"
 #include "fsim/DiffBits.h"
 
 
@@ -61,6 +62,34 @@ public:
     SizeType fid          ///< [in] 対象の故障番号
   );
 
+  /// @brief 故障シミュレーションを行う．
+  DiffBits
+  simulate(
+    const AssignList& assign_list, ///< [in] 割り当てリスト
+    SizeType fid                   ///< [in] 対象の故障番号
+  );
+
+  /// @brief 縮退故障用の故障シミュレーションを行う．
+  DiffBits
+  simulate_sa(
+    const AssignList& assign_list, ///< [in] 割り当てリスト
+    SizeType fid                   ///< [in] 対象の故障番号
+  );
+
+  /// @brief 遷移故障用の故障シミュレーションを行う．
+  DiffBits
+  simulate_td(
+    const AssignList& assign_list, ///< [in] 割り当てリスト
+    SizeType fid                   ///< [in] 対象の故障番号
+  );
+
+  /// @brief 部分的な割り当てを取り出す．
+  AssignList
+  extract(
+    const TestVector& tv, ///< [in] 元となるテストベクタ
+    const TpgNode& node   ///< [in] 起点となるノード
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -87,7 +116,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 対象のネットワーク
-  const TpgNetwork& mNetwork;
+  TpgNetwork mNetwork;
 
   // 故障の種類
   FaultType mFaultType;
