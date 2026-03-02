@@ -10,6 +10,7 @@
 #include "dtpg/DtpgMgr.h"
 #include "types/TpgFault.h"
 #include "types/TpgFaultList.h"
+#include "fsim/Fsim.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
 #include <libgen.h>
@@ -136,8 +137,6 @@ dtpg_test(
   std::string mode{};
   bool drop = false;
   bool fix = false;
-  bool gtc = false;
-  bool multi = false;
   bool dump = false;
   bool verbose = false;
   std::string sat_log;
@@ -157,6 +156,14 @@ dtpg_test(
 	}
 	mode = "ffr";
       }
+      else if ( strcmp(argv[pos], "--ffr-mt") == 0 ) {
+	if ( !mode.empty() ) {
+	  std::cerr << "--ffr-mt and --" << mode << " are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	mode = "ffr_mt";
+      }
       else if ( strcmp(argv[pos], "--mffc") == 0 ) {
 	if ( !mode.empty() ) {
 	  std::cerr << "--mffc and --" << mode << " are mutually exclusive"
@@ -165,6 +172,14 @@ dtpg_test(
 	}
 	mode = "mffc";
       }
+      else if ( strcmp(argv[pos], "--mffc-mt") == 0 ) {
+	if ( !mode.empty() ) {
+	  std::cerr << "--mffc-mt and --" << mode << " are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	mode = "mffc_mt";
+      }
       else if ( strcmp(argv[pos], "--node") == 0 ) {
 	if ( !mode.empty() ) {
 	  std::cerr << "--node and --" << mode << " are mutually exclusive"
@@ -172,6 +187,14 @@ dtpg_test(
 	  return -1;
 	}
 	mode = "node";
+      }
+      else if ( strcmp(argv[pos], "--node-mt") == 0 ) {
+	if ( !mode.empty() ) {
+	  std::cerr << "--node and --" << mode << " are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	mode = "node_mt";
       }
       else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
 	++ pos;
@@ -236,12 +259,6 @@ dtpg_test(
       else if ( strcmp(argv[pos], "--fix") == 0 ) {
 	fix = true;
       }
-      else if ( strcmp(argv[pos], "--multi") == 0 ) {
-	multi = true;
-      }
-      else if ( strcmp(argv[pos], "--gtc") == 0 ) {
-	gtc = true;
-      }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
       }
@@ -299,7 +316,6 @@ dtpg_test(
 
   auto option = JsonValue::object();
   option.add("group_mode",  mode);
-  option.add("gtc", gtc);
   if ( !just_type.empty() ) {
     option.add("justifier", just_type);
   }
@@ -331,6 +347,42 @@ dtpg_test(
 
   timer.stop();
   auto time = timer.get_time();
+
+  { // 検証
+    auto fsim_option = JsonValue::object();
+    fsim_option.add("has_x", JsonValue(true));
+    Fsim fsim(network, fault_list, fsim_option);
+    bool ng = false;
+    for ( auto fault: fault_list ) {
+      auto stats = results.status(fault);
+      if ( stats != FaultStatus::Detected ) {
+	continue;
+      }
+      DiffBits _;
+      std::string error;
+      int error_type = 0;
+      auto assign_list = results.assign_list(fault);
+      if ( !fsim.xspsfp(assign_list, fault, _) ) {
+	error += " assign_list";
+	error_type |= 1;
+      }
+      auto tv = results.testvector(fault);
+      if ( !fsim.spsfp(tv, fault, _) ) {
+	error += " testvector";
+	error_type |= 2;
+      }
+      if ( error_type ) {
+	std::cout << fault.str() << " is not detected(" << error << ")" << std::endl;
+	ng = true;
+	if ( error_type & 1 ) {
+	  std::cout << assign_list << std::endl;
+	}
+      }
+    }
+    if ( ng ) {
+      network.print(std::cout);
+    }
+  }
 
   if ( verbose ) {
     print_stats(mode, network, fault_list, results, time);

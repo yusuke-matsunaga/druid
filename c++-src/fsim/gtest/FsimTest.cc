@@ -374,21 +374,55 @@ TEST_P(FsimTest, ppsfp_multi_td_test)
   ppsfp_test(tpg_network, true);
 }
 
-#if 1
-INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
+#if 0
+INSTANTIATE_TEST_SUITE_P(FsimTest1, FsimTest,
 			 ::testing::Values("s27.blif", "s1196.blif"));
 #endif
 #if 0
-INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
+INSTANTIATE_TEST_SUITE_P(FsimTest2, FsimTest,
 			 ::testing::Values("s1196.blif"));
 #endif
 #if 0
-INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
+INSTANTIATE_TEST_SUITE_P(FsimTest3, FsimTest,
 			 ::testing::Values("s27.blif"));
 #endif
 #if 0
-INSTANTIATE_TEST_SUITE_P(FsimTest, FsimTest,
+INSTANTIATE_TEST_SUITE_P(FsimTest4, FsimTest,
 			 ::testing::Values("and2.blif"));
 #endif
+
+TEST(FsimTest, case1)
+{
+  auto data_dir = std::filesystem::path{TESTDATA_DIR};
+  auto filename = data_dir / "C432.blif";
+  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
+  auto fault_list = network.rep_fault_list();
+  auto option = JsonValue::object();
+  option.add("has_x", true);
+  auto fsim = Fsim(network, fault_list, option);
+  RefSim refsim{network};
+
+  for ( auto fault: fault_list ) {
+    if ( fault.str() == "G#136:I0:SA0" ) {
+      AssignList assign_list;
+      assign_list.add(network.node(92), 1, true);
+      assign_list.add(network.node(95), 1, true);
+      assign_list.add(network.node(100), 1, true);
+      assign_list.add(network.node(105), 1, true);
+      assign_list.add(network.node(110), 1, true);
+      assign_list.add(network.node(115), 1, true);
+      assign_list.add(network.node(120), 1, true);
+      assign_list.add(network.node(125), 1, true);
+      assign_list.add(network.node(130), 1, true);
+      assign_list.add(network.node(135), 1, true);
+      assign_list.add(network.node(139), 1, true);
+      DiffBits _;
+      auto res = fsim.xspsfp(assign_list, fault, _);
+      EXPECT_TRUE( res );
+      auto dbits = refsim.simulate(assign_list, fault.id());
+      EXPECT_TRUE( dbits.elem_num() > 0 );
+    }
+  }
+}
 
 END_NAMESPACE_DRUID

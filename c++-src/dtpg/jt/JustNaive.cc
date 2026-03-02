@@ -43,6 +43,10 @@ JustNaive::_justify(
   const AssignList& assign_list ///< [in] 割当リスト
 )
 {
+  // 単純に assign_list に含まれるノードの TFI を訪問して
+  // PPI ならばその値を記録する．
+  // 実際には不要な割り当ても含まれる可能性がある．
+
   // 時刻1の割り当てを持つノードのリスト
   TpgNodeList cur_list;
   // 時刻0の割り当てを持つノードのリスト

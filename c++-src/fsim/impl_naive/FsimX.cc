@@ -456,6 +456,7 @@ FSIM_CLASSNAME::xsppfp(
   // 正常値の計算を行う．
   _calc_gval2(assign_list);
 
+#if 0
   // 故障伝搬を行う．
   auto res = _sppfp();
 
@@ -463,6 +464,42 @@ FSIM_CLASSNAME::xsppfp(
   _clear_init();
 
   return res;
+#else
+  // 中で spsfp を呼ぶ．
+  // シミュレーション結果
+  auto res = new FsimResultsRep(1);
+
+  // FFR ごとに処理を行う．
+  for ( auto& ffr: mFFRArray ) {
+    // FFR 内の故障伝搬を行う．
+    // 結果は SimFault.mObsMask に保存される．
+    // FFR 内の全ての obs マスクを ffr_req に入れる．
+    auto ffr_req = _foreach_faults(ffr);
+    if ( ffr_req == PV_ALL0 ) {
+      // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
+      continue;
+    }
+
+    auto root = ffr.root();
+    if ( root->is_output() ) {
+      // 常にこの出力のみで観測可能
+      DiffBits dbits;
+      dbits.add_output(root->output_id());
+      _sppfp_sub(ffr, dbits, res);
+    }
+    else {
+      // シミュレーションを行う．
+      mEventQ.put_event(root, PV_ALL1);
+      const SimFFR* ffr_buf[1] = {&ffr};
+      _sppfp_simulation(ffr_buf, 1, res);
+    }
+  }
+
+  // init フラグを元に戻す．
+  _clear_init();
+
+  return std::shared_ptr<FsimResultsRep>{res};
+#endif
 }
 
 // @brief SPPFP故障シミュレーションの本体

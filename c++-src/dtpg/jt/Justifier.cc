@@ -28,8 +28,12 @@ Justifier::new_obj(
 )
 {
   if ( option.is_null() ) {
+#if 0
     // デフォルトフォールバックは Just2
     return new Just2(network);
+#else
+    return new JustNaive(network);
+#endif
   }
   if ( option.is_string() ) {
     auto just_type = option.get_string();

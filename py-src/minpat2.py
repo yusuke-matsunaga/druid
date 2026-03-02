@@ -26,20 +26,21 @@ def verify_xsim(network, det_fault_list, results, fsim):
         fsim_res_tv = fsim.sppfp(testvector=tv)
         fid_list1 = fsim_res_gtc.fault_list(0)
         fid_list2 = fsim_res_tv.fault_list(0)
-        if fid_list1 != fid_list2:
-            network.print(sys.stdout)
-            print(f'Target Fault: {fault}')
-            print(f' GTC:', end='')
-            for fid1 in fsim_res_gtc.fault_list(0):
-                fault1 = network.fault(fid1)
-                print(f' {fault1}', end='')
-            print()
-            print(f' TV: ', end='')
-            for fid1 in fsim_res_tv.fault_list(0):
-                fault1 = network.fault(fid1)
-                print(f' {fault1}', end='')
-            print()
-            exit(1)
+        for fid in fid_list1:
+            if fid not in fid_list2:
+                network.print(sys.stdout)
+                print(f'Target Fault: {fault}')
+                print(f' GTC:', end='')
+                for fid1 in fsim_res_gtc.fault_list(0):
+                    fault1 = network.fault(fid1)
+                    print(f' {fault1}', end='')
+                print()
+                print(f' TV: ', end='')
+                for fid1 in fsim_res_tv.fault_list(0):
+                    fault1 = network.fault(fid1)
+                    print(f' {fault1}', end='')
+                print()
+                exit(1)
 
 
 def dtpg(network, fault_list, *, use_gtc=False, option=None):

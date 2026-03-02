@@ -69,7 +69,8 @@ operator<<(
 }
 
 TestData mydata0[] = {
-  TestData{"s27.blif",     32,   32,   32,   0,    0}
+  TestData{"s27.blif",     32,   32,   32,   0,    0},
+  TestData{"C432.blif",   524,  520,  520,   4,    4}
 };
 
 TestData mydata1[] = {
