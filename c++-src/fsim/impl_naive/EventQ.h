@@ -51,22 +51,22 @@ public:
   /// @brief 初期イベントを追加する．
   void
   put_event(
-    SimNode* node,    ///< [in] 対象のノード
-    PackedVal valmask ///< [in] 反転マスク
+    SimNode* node,      ///< [in] 対象のノード
+    PackedVal flip_mask ///< [in] 反転マスク
   )
   {
     if ( node->gate_type() == PrimType::None ) {
       // 入力の場合，他のイベントの干渉は受けないので
       // 今計算してしまう．
       auto old_val = node->val();
-      node->set_val(old_val ^ valmask);
+      node->set_val(old_val ^ flip_mask);
       add_to_clear_list(node, old_val);
       put_fanouts(node);
     }
     else {
       // 複数のイベントを登録する場合があるので
       // ここでは計算せずに反転マスクのみをセットする．
-      set_flip_mask(node, valmask);
+      set_flip_mask(node, flip_mask);
       put(node);
     }
   }
@@ -90,11 +90,13 @@ private:
   {
     auto no = node->fanout_num();
     if ( no == 1 ) {
-      put(node->fanout_top());
+      auto onode = node->fanout_top();
+      put(onode);
     }
     else {
       for ( auto i: Range(0, no) ) {
-	put(node->fanout(i));
+	auto onode = node->fanout(i);
+	put(onode);
       }
     }
   }

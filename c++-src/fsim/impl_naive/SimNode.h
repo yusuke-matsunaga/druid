@@ -28,6 +28,7 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 class SimNode
 {
+  friend class FSIM_CLASSNAME;
   friend class EventQ;
 
 protected:
@@ -219,6 +220,37 @@ public:
   // 故障シミュレーションに関する情報の取得/設定
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 初期化が必要な時 true を返す．
+  bool
+  need_init() const
+  {
+    return mFlags.test(INIT);
+  }
+
+  /// @brief 初期値を返す．
+  FSIM_VALTYPE
+  init_val() const
+  {
+    return mInitVal;
+  }
+
+  /// @brief 初期値を設定する．
+  void
+  set_init_val(
+    FSIM_VALTYPE val
+  )
+  {
+    mInitVal = val;
+    _set_init();
+  }
+
+  /// @brief 出力値を初期化する．
+  void
+  do_init()
+  {
+    mVal = mInitVal;
+  }
+
   /// @brief 出力値を得る．
   FSIM_VALTYPE
   val() const
@@ -251,8 +283,15 @@ public:
   }
 
   /// @brief 出力値を計算する．
-  void
+  FSIM_VALTYPE
   calc_val()
+  {
+    return _calc_val();
+  }
+
+  /// @brief 出力値を計算する．
+  void
+  set_calc_val()
   {
     set_val(_calc_val());
   }
@@ -261,7 +300,7 @@ public:
   ///
   /// mask で1の立っているビットだけ更新する．
   void
-  calc_val(
+  set_calc_val(
     PackedVal mask ///< [in] マスク
   )
   {
@@ -363,6 +402,20 @@ private:
     mFlags.reset(FLIP);
   }
 
+  /// @brief init フラグをセットする．
+  void
+  _set_init()
+  {
+    mFlags.set(INIT);
+  }
+
+  /// @brief init フラグをクリアする．
+  void
+  clear_init()
+  {
+    mFlags.reset(INIT);
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -377,7 +430,8 @@ private:
   static const int FFR_ROOT = 1;
   static const int IN_Q = 2;
   static const int FLIP = 3;
-  static const int NFLAGS = 4;
+  static const int INIT = 4;
+  static const int NFLAGS = 5;
 
   // 種々のフラグ
   std::bitset<NFLAGS> mFlags;
@@ -395,6 +449,9 @@ private:
 
   // イベントキューの次の要素
   SimNode* mLink;
+
+  // 初期化用の値
+  FSIM_VALTYPE mInitVal;
 
   // 出力値
   FSIM_VALTYPE mVal;

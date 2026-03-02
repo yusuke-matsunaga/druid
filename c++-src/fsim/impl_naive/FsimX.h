@@ -25,6 +25,35 @@ BEGIN_NAMESPACE_DRUID_FSIM
 
 class SimNode;
 
+BEGIN_NONAMESPACE
+
+inline
+std::string
+val_str(
+  FSIM_VALTYPE val,
+  SizeType bitpos = 0
+)
+{
+  PackedVal bit = 1UL << bitpos;
+#if FSIM_VAL2
+  if ( val & bit ) {
+    return "1";
+  }
+  return "0";
+#elif FSIM_VAL3
+  if ( val.val0() & bit ) {
+    return "0";
+  }
+  if ( val.val1() & bit ) {
+    return "1";
+  }
+  return "X";
+#endif
+}
+
+
+END_NONAMESPACE
+
 //////////////////////////////////////////////////////////////////////
 /// @class FSIM_CLASSNAME FsimX.h "FsimX.h"
 /// @brief 故障シミュレーションを行うモジュール
@@ -325,7 +354,7 @@ private:
   _calc_val()
   {
     for ( auto node: mLogicArray ) {
-      node->calc_val();
+      node->set_calc_val();
     }
   }
 
@@ -335,20 +364,44 @@ private:
     const AssignList& assign_list ///< [in] 値割り当てのリスト
   );
 
-  /// @brief 値の計算を行う．
-  ///
-  /// 入力ノードに値の設定は済んでいるものとする．
+  /// @brief _calc_val2() 用に初期値の設定を行う．
   void
-  _calc_val2(
-    const std::vector<bool>& lock_array
+  _set_init(
+    SizeType node_id, ///< [in] ノード番号
+    FSIM_VALTYPE val  ///< [in] 設定する値
   )
   {
+    auto simnode = mSimNodeMap[node_id];
+    simnode->set_init_val(val);
+    mInitNodeList.push_back(simnode);
+  }
+
+  /// @brief 値の計算を行う．
+  void
+  _calc_val2()
+  {
+    auto init_val = FSIM_INITVAL;
+    for ( auto node: mPPIList ) {
+      if ( node->need_init() ) {
+	node->do_init();
+      }
+      else {
+	node->set_val(init_val);
+      }
+    }
     for ( auto node: mLogicArray ) {
-      if ( !lock_array[node->id()] ) {
-	node->calc_val();
+      if ( node->need_init() ) {
+	node->do_init();
+      }
+      else {
+	node->set_calc_val();
       }
     }
   }
+
+  /// @brief init フラグを元に戻す．
+  void
+  _clear_init();
 
   /// @brief ノードの出力の(重み付き)信号遷移回数を求める．
   SizeType
@@ -505,6 +558,9 @@ private:
 
   // SimNode のノード番号をキーにして対応する SimFFR を格納する配列
   std::vector<SimFFR*> mFFRMap;
+
+  // 初期化用のノードリスト
+  std::vector<SimNode*> mInitNodeList;
 
   // イベントキュー
   EventQ mEventQ;

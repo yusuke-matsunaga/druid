@@ -26,6 +26,7 @@ ym_add_gtest ( druid_fsim_Test
   FsimTest.cc
   RefSim.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
+  $<TARGET_OBJECTS:druid_dtpg_obj_d>
   $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>
