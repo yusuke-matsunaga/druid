@@ -83,13 +83,6 @@ public:
     SizeType fid                   ///< [in] 対象の故障番号
   );
 
-  /// @brief 部分的な割り当てを取り出す．
-  AssignList
-  extract(
-    const TestVector& tv, ///< [in] 元となるテストベクタ
-    const TpgNode& node   ///< [in] 起点となるノード
-  );
-
 
 private:
   //////////////////////////////////////////////////////////////////////

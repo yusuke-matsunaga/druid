@@ -17,7 +17,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
-static bool debug = true;
+static bool debug = false;
 
 // @brief コンストラクタ
 RefSim::RefSim(
@@ -135,32 +135,6 @@ RefSim::simulate_sa(
     node->set_fval(val);
   }
 
-  if ( debug ) {
-    std::vector<int> outmap(mNetwork.node_num(), -1);
-    int oid = 0;
-    for ( auto node: mNetwork.output_list() ) {
-      outmap[node.id()] = oid;
-      ++ oid;
-    }
-    std::cout << "RefSim" << std::endl;
-    auto fault = mNetwork.fault(fid);
-    std::cout << fault.str() << std::endl;
-    for ( auto node: mNetwork.node_list() ) {
-      auto refnode = mNodeMap[node.id()];
-      if ( outmap[node.id()] >= 0 ) {
-	std::cout << "O#" << std::setw(4) << outmap[node.id()]
-		  << "|";
-      }
-      else {
-	std::cout << "       ";
-      }
-      std::cout << "Node#" << node.id()
-		<< ": " << value_name1(refnode->get_gval())
-		<< " / " << value_name1(refnode->get_fval()) << std::endl;
-    }
-    std::cout << std::endl;
-  }
-
   // 出力結果を比較する．
   SizeType no = mOutputList.size();
   DiffBits dbits;
@@ -183,6 +157,32 @@ RefSim::simulate_sa(
 	 gval != fval ) {
       dbits.add_output(i + no);
     }
+  }
+  if ( debug && dbits.elem_num() > 0 ) {
+    std::vector<int> outmap(mNetwork.node_num(), -1);
+    int oid = 0;
+    for ( auto node: mNetwork.output_list() ) {
+      outmap[node.id()] = oid;
+      ++ oid;
+    }
+    std::cout << "RefSim" << std::endl;
+    auto fault = mNetwork.fault(fid);
+    std::cout << fault.str() << std::endl
+	      << tv.bin_str() << std::endl;
+    for ( auto node: mNetwork.node_list() ) {
+      auto refnode = mNodeMap[node.id()];
+      if ( outmap[node.id()] >= 0 ) {
+	std::cout << "O#" << std::setw(4) << outmap[node.id()]
+		  << "|";
+      }
+      else {
+	std::cout << "       ";
+      }
+      std::cout << "Node#" << node.id()
+		<< ": " << value_name1(refnode->get_gval())
+		<< " / " << value_name1(refnode->get_fval()) << std::endl;
+    }
+    std::cout << std::endl;
   }
   return dbits;
 }
@@ -391,32 +391,6 @@ RefSim::simulate_sa(
     }
   }
 
-  if ( debug ) {
-    std::vector<int> outmap(mNetwork.node_num(), -1);
-    int oid = 0;
-    for ( auto node: mNetwork.output_list() ) {
-      outmap[node.id()] = oid;
-      ++ oid;
-    }
-    std::cout << "RefSim" << std::endl;
-    auto fault = mNetwork.fault(fid);
-    std::cout << fault.str() << std::endl;
-    for ( auto node: mNetwork.node_list() ) {
-      auto refnode = mNodeMap[node.id()];
-      if ( outmap[node.id()] >= 0 ) {
-	std::cout << "O#" << std::setw(4) << outmap[node.id()]
-		  << "|";
-      }
-      else {
-	std::cout << "       ";
-      }
-      std::cout << "Node#" << node.id()
-		<< ": " << value_name1(refnode->get_gval())
-		<< " / " << value_name1(refnode->get_fval()) << std::endl;
-    }
-    std::cout << std::endl;
-  }
-
   // 出力結果を比較する．
   SizeType no = mOutputList.size();
   DiffBits dbits;
@@ -440,6 +414,33 @@ RefSim::simulate_sa(
 	 gval != fval ) {
       dbits.add_output(i + no);
     }
+  }
+
+  if ( debug && dbits.elem_num() > 0 ) {
+    std::vector<int> outmap(mNetwork.node_num(), -1);
+    int oid = 0;
+    for ( auto node: mNetwork.output_list() ) {
+      outmap[node.id()] = oid;
+      ++ oid;
+    }
+    std::cout << "RefSim" << std::endl;
+    auto fault = mNetwork.fault(fid);
+    std::cout << fault.str() << std::endl
+	      << assign_list << std::endl;
+    for ( auto node: mNetwork.node_list() ) {
+      auto refnode = mNodeMap[node.id()];
+      if ( outmap[node.id()] >= 0 ) {
+	std::cout << "O#" << std::setw(4) << outmap[node.id()]
+		  << "|";
+      }
+      else {
+	std::cout << "       ";
+      }
+      std::cout << "Node#" << node.id()
+		<< ": " << value_name1(refnode->get_gval())
+		<< " / " << value_name1(refnode->get_fval()) << std::endl;
+    }
+    std::cout << std::endl;
   }
   return dbits;
 }
@@ -487,59 +488,6 @@ RefSim::check_fault_cond(
     }
   }
   return true;
-}
-
-// @brief 部分的な割り当てを取り出す．
-AssignList
-RefSim::extract(
-  const TestVector& tv,
-  const TpgNode& root
-)
-{
-  // 入力に値を設定する．
-  SizeType ni = mInputList.size();
-  for ( SizeType i = 0; i < ni; ++ i ) {
-    auto node = mInputList[i];
-    auto val = tv.ppi_val(i);
-    node->set_gval(val);
-  }
-  SizeType nd = mDffOutList.size();
-  for ( SizeType i = 0; i < nd; ++ i ) {
-    auto node = mDffOutList[i];
-    auto val = tv.ppi_val(i + ni);
-    node->set_gval(val);
-   }
-
-  // 正常値を計算する．
-  for ( auto node: mLogicList ) {
-    auto val = node->calc_gval();
-  }
-
-  // 境界のノードを探して割り当てを記録する．
-  AssignList assign_list;
-  std::unordered_set<SizeType> mark;
-  for ( auto node: mNetwork.get_tfo_list(root) ) {
-    mark.emplace(node.id());
-  }
-  for ( auto node: mNetwork.node_list() ) {
-    if ( mark.count(node.id()) > 0 ) {
-      continue;
-    }
-    bool found = false;
-    for ( auto onode: node.fanout_list() ) {
-      if ( mark.count(onode.id()) > 0 ) {
-	found = true;
-	break;
-      }
-    }
-    if ( found ) {
-      auto refnode = mNodeMap[node.id()];
-      auto val = refnode->get_gval();
-      auto bval = val == Val3::_1;
-      assign_list.add(node, 1, bval);
-    }
-  }
-  return assign_list;
 }
 
 END_NAMESPACE_DRUID
