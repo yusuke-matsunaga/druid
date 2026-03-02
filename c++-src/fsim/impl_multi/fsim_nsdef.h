@@ -33,6 +33,7 @@
 #    error "Neither FSIM_COMBI nor FSIM_BSIDE are not set"
 #  endif
 #  define FSIM_VALTYPE PackedVal
+#  define FSIM_INITVAL PV_ALL0
 #elif FSIM_VAL3
 #  if FSIM_COMBI
 #    define FSIM_NAMESPACE nsFsimCombi3
@@ -44,6 +45,7 @@
 #    error "Neither FSIM_COMBI nor FSIM_BSIDE are not set"
 #  endif
 #  define FSIM_VALTYPE PackedVal3
+#  define FSIM_INITVAL PackedVal3(PV_ALL0, PV_ALL0)
 #else
 #  error "Neither FSIM_VAL2 nor FSIM_VAL3 are not set"
 #endif
