@@ -41,7 +41,8 @@ private:
   /// @brief justify の実際の処理
   AssignList
   _justify(
-    const AssignList& assign_list ///< [in] 割当リスト
+    const AssignList& assign_list,     ///< [in] 割当リスト
+    const TpgNodeList& aux_side_inputs ///< [in] 値割当が必要なノードのリスト
   ) override;
 
 

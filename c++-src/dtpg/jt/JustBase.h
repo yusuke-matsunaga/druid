@@ -48,7 +48,8 @@ private:
   /// @brief justify の実際の処理
   AssignList
   _justify(
-    const AssignList& assign_list ///< [in] 割当リスト
+    const AssignList& assign_list,     ///< [in] 割当リスト
+    const TpgNodeList& aux_side_inputs ///< [in] 値割当が必要なノードのリスト
   ) override;
 
 
@@ -61,8 +62,9 @@ private:
   virtual
   void
   just_init(
-    const AssignList& assign_list ///< [in] 割当リスト
-  ) = 0;
+    const AssignList& assign_list,     ///< [in] 割当リスト
+    const TpgNodeList& aux_side_inputs ///< [in] 値割当が必要なノードのリスト
+  );
 
   /// @brief 正当化処理
   void
@@ -84,7 +86,7 @@ private:
   /// @brief 終了処理
   virtual
   void
-  just_end() = 0;
+  just_end();
 
 
 private:

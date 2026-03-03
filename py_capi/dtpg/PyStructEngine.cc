@@ -220,12 +220,15 @@ justify(
 {
   static const char* kwlist[] = {
     "assign_list",
+    "aux_side_inputs",
     nullptr
   };
   PyObject* assign_list_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+  PyObject* aux_side_inputs_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
                                     const_cast<char**>(kwlist),
-                                    PyAssignList::_typeobject(), &assign_list_obj) ) {
+                                    PyAssignList::_typeobject(), &assign_list_obj,
+                                    PyTpgNodeList::_typeobject(), &aux_side_inputs_obj) ) {
     return nullptr;
   }
   AssignList assign_list;
@@ -235,9 +238,10 @@ justify(
       return nullptr;
     }
   }
+  auto& aux_side_inputs = PyTpgNodeList::_get_ref(aux_side_inputs_obj);
   auto& val = PyStructEngine::_get_ref(self);
   try {
-    return PyAssignList::ToPyObject(val.justify(assign_list));
+    return PyAssignList::ToPyObject(val.justify(assign_list, aux_side_inputs));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;

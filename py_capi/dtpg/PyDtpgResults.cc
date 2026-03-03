@@ -8,6 +8,7 @@
 
 #include "pym/PyDtpgResults.h"
 #include "pym/PyTpgFault.h"
+#include "pym/PyTpgNodeList.h"
 #include "pym/PyTestVector.h"
 #include "pym/PyAssignList.h"
 #include "pym/PyFaultStatus.h"
@@ -78,16 +79,19 @@ set_detected(
   static const char* kwlist[] = {
     "fault",
     "assign_list",
+    "aux_side_inputs",
     "testvect",
     nullptr
   };
   PyObject* fault_obj = nullptr;
   PyObject* as_list_obj = nullptr;
+  PyObject* aux_side_inputs_obj = nullptr;
   PyObject* testvect_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!O!",
                                     const_cast<char**>(kwlist),
                                     PyTpgFault::_typeobject(), &fault_obj,
                                     PyAssignList::_typeobject(), &as_list_obj,
+                                    PyTpgNodeList::_typeobject(), &aux_side_inputs_obj,
                                     PyTestVector::_typeobject(), &testvect_obj) ) {
     return nullptr;
   }
@@ -105,6 +109,7 @@ set_detected(
       return nullptr;
     }
   }
+  auto& aux_side_inputs = PyTpgNodeList::_get_ref(aux_side_inputs_obj);
   TestVector testvect;
   if ( testvect_obj != nullptr ) {
     if ( !PyTestVector::FromPyObject(testvect_obj, testvect) ) {
@@ -114,7 +119,7 @@ set_detected(
   }
   auto& val = PyDtpgResults::_get_ref(self);
   try {
-    val.set_detected(fault, as_list, testvect);
+    val.set_detected(fault, as_list, aux_side_inputs, testvect);
     Py_RETURN_NONE;
   }
   catch ( std::exception err ) {

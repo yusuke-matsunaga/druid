@@ -42,4 +42,13 @@ DtpgDriver_FFREnc::fault_prop_condition(
   return fault.ffr_propagate_condition();
 }
 
+// @biref 値割当が必要なノードのリストを返す．
+TpgNodeList
+DtpgDriver_FFREnc::get_aux_side_inputs(
+  const TpgFault& fault
+)
+{
+  return fault.aux_side_inputs();
+}
+
 END_NAMESPACE_DRUID

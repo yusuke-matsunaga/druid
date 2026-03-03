@@ -35,15 +35,6 @@ Just1::~Just1()
 {
 }
 
-// @brief 初期化処理
-void
-Just1::just_init(
-  const AssignList& assign_list
-)
-{
-  // なにもしない．
-}
-
 // @brief 制御値を持つファンインを一つ選ぶ．
 TpgNode
 Just1::select_cval_node(
@@ -60,13 +51,6 @@ Just1::select_cval_node(
     }
   }
   throw std::logic_error{"never happend"};
-}
-
-// @brief 終了処理
-void
-Just1::just_end()
-{
-  // なにもしない．
 }
 
 END_NAMESPACE_DRUID

@@ -84,7 +84,8 @@ MinPat::run(
     if ( res != SatBool3::True ) {
       throw std::logic_error{"assign_list is not satisfiable"};
     }
-    auto pi_assign_list = mEngine.justify(assign_list);
+    auto pi_assign_list = mEngine.get_pi_assign();
+    //auto pi_assign_list = mEngine.justify(assign_list, aux_side_inputs);
     auto tv = TestVector(pi_assign_list);
     tv_list.push_back(tv);
   }

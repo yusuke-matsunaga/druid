@@ -1,0 +1,7 @@
+.model xor2
+.inputs a b
+.outputs o
+.names a b o
+10 1
+01 1
+.end

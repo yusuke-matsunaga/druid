@@ -44,6 +44,12 @@ private:
     const TpgFault& fault ///< [in] 対象の故障
   ) override;
 
+  /// @biref 値割当が必要なノードのリストを返す．
+  TpgNodeList
+  get_aux_side_inputs(
+    const TpgFault& fault ///< [in] 対象の故障
+  ) override;
+
 };
 
 END_NAMESPACE_DRUID

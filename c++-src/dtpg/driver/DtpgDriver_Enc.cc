@@ -56,9 +56,10 @@ DtpgDriver_Enc::fault_op(
   auto prop_cond = fault_prop_condition(fault);
   assign_list.merge(prop_cond);
   add_extra_assignments(fault, assign_list);
-  auto pi_assign_list = mEngine.justify(assign_list);
+  auto aux_side_inputs = get_aux_side_inputs(fault);
+  auto pi_assign_list = mEngine.justify(assign_list, aux_side_inputs);
   auto tv = TestVector(pi_assign_list);
-  results.set_detected(fault, assign_list, tv);
+  results.set_detected(fault, assign_list, aux_side_inputs, tv);
 }
 
 // @brief CNF の生成時間を返す．
@@ -91,6 +92,15 @@ DtpgDriver_Enc::add_extra_assignments(
   AssignList& assign_list
 )
 {
+}
+
+// @biref 値割当が必要なノードのリストを返す．
+TpgNodeList
+DtpgDriver_Enc::get_aux_side_inputs(
+  const TpgFault& fault
+)
+{
+  return TpgNodeList();
 }
 
 END_NAMESPACE_DRUID

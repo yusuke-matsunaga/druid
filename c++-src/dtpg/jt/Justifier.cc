@@ -28,12 +28,8 @@ Justifier::new_obj(
 )
 {
   if ( option.is_null() ) {
-#if 0
     // デフォルトフォールバックは Just2
     return new Just2(network);
-#else
-    return new JustNaive(network);
-#endif
   }
   if ( option.is_string() ) {
     auto just_type = option.get_string();
@@ -69,19 +65,21 @@ Justifier::Justifier(
 AssignList
 Justifier::justify(
   const AssignList& assign_list,
+  const TpgNodeList& aux_side_inputs,
   const VidMap& var_map,
   const SatModel& model
 )
 {
   JustData jd{var_map, model};
   mJustDataPtr = &jd;
-  return _justify(assign_list);
+  return _justify(assign_list, aux_side_inputs);
 }
 
 // @brief 正当化に必要な割当を求める(遷移故障用)．
 AssignList
 Justifier::justify(
   const AssignList& assign_list,
+  const TpgNodeList& aux_side_inputs,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model
@@ -89,7 +87,7 @@ Justifier::justify(
 {
   JustData jd{var1_map, var2_map, model};
   mJustDataPtr = &jd;
-  return _justify(assign_list);
+  return _justify(assign_list, aux_side_inputs);
 }
 
 END_NAMESPACE_DRUID

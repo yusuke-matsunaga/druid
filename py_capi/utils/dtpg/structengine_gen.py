@@ -65,11 +65,13 @@ def init_common(self):
 
     def meth_justify(writer):
         writer.gen_return_pyobject('PyAssignList',
-                                   'val.justify(assign_list)')
+                                   'val.justify(assign_list, aux_side_inputs)')
     self.add_method('justify',
                     func_body=meth_justify,
                     arg_list=[AssignListArg(name='assign_list',
-                                            cvarname='assign_list')],
+                                            cvarname='assign_list'),
+                              TpgNodeListArg(name='aux_side_inputs',
+                                             cvarname='aux_side_inputs')],
                     doc_str='do Justification')
 
     def meth_get_pi_assign(writer):

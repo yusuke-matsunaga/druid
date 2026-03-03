@@ -29,6 +29,13 @@ ResultRep::testvector() const
   throw std::logic_error{"No TestVector"};
 }
 
+// @brief 値の固定が必要なノードのリストを返す．
+TpgNodeList
+ResultRep::aux_side_inputs() const
+{
+  throw std::logic_error{"No Aux Side Inputs"};
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス ResultRep_DT
@@ -38,7 +45,7 @@ ResultRep::testvector() const
 ResultRep*
 ResultRep_DT::duplicate() const
 {
-  return new ResultRep_DT(mAssignList, mTestVector);
+  return new ResultRep_DT(mAssignList, mAuxSideInputs, mTestVector);
 }
 
 // 結果を返す．
@@ -53,6 +60,13 @@ const AssignList&
 ResultRep_DT::assign_list() const
 {
   return mAssignList;
+}
+
+// @brief 値の固定が必要なノードのリストを返す．
+TpgNodeList
+ResultRep_DT::aux_side_inputs() const
+{
+  return mAuxSideInputs;
 }
 
 // テストベクタを返す．

@@ -40,7 +40,8 @@ private:
   /// @brief 初期化処理
   void
   just_init(
-    const AssignList& assign_list ///< [in] 割当リスト
+    const AssignList& assign_list,     ///< [in] 割当リスト
+    const TpgNodeList& aux_side_inputs ///< [in] 値割当が必要なノードのリスト
   ) override;
 
   /// @brief 制御値を持つファンインを一つ選ぶ．
@@ -64,15 +65,15 @@ private:
   /// @brief 重みの計算を行う．
   void
   add_weight(
-    const TpgNode& node, ///< [in] タイムフレーム ( 0 or 1 )
-    int time
+    const TpgNode& node, ///< [in] 対象のノード
+    int time		 ///< [in] タイムフレーム ( 0 or 1 )
   );
 
   /// @brief 見積もり値の計算を行う．
   void
   calc_value(
-    const TpgNode& node, ///< [in] タイムフレーム ( 0 or 1 )
-    int time
+    const TpgNode& node, ///< [in] 対象のノード
+    int time		 ///< [in] タイムフレーム ( 0 or 1 )
   );
 
   /// @brief 重みを考えた価値を返す．
@@ -83,7 +84,9 @@ private:
   ) const
   {
     SizeType index = node.id() * 2 + time;
-    ASSERT_COND ( mWeightArray[index] > 0 );
+    if ( mWeightArray[index] == 0 ) {
+      throw std::invalid_argument{"mWeightArray[index] <= 0"};
+    }
 
     return mTmpArray[index] / mWeightArray[index];
   }

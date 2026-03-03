@@ -41,7 +41,8 @@ JustBase::~JustBase()
 // @brief justify の実際の処理
 AssignList
 JustBase::_justify(
-  const AssignList& assign_list
+  const AssignList& assign_list,
+  const TpgNodeList& aux_side_inputs
 )
 {
   // マークをクリアする．
@@ -49,13 +50,16 @@ JustBase::_justify(
     m = 0U;
   }
 
-  just_init(assign_list);
+  just_init(assign_list, aux_side_inputs);
 
   mQueue.clear();
   for ( auto nv: assign_list ) {
     auto node = nv.node();
     int time = nv.time();
     put_queue(node, time);
+  }
+  for ( auto node: aux_side_inputs ) {
+    put_queue(node, 1);
   }
 
   AssignList pi_assign_list;
@@ -69,6 +73,15 @@ JustBase::_justify(
   just_end();
 
   return pi_assign_list;
+}
+
+// @brief 初期化処理
+void
+JustBase::just_init(
+  const AssignList& assign_list,
+  const TpgNodeList& aux_side_inputs
+)
+{
 }
 
 // @brief 正当化に必要な割当を求める．
@@ -117,6 +130,12 @@ JustBase::just_main(
       put_queue(inode, time);
     }
   }
+}
+
+// @brief 終了処理
+void
+JustBase::just_end()
+{
 }
 
 END_NAMESPACE_DRUID

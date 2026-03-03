@@ -57,6 +57,11 @@ public:
   const TestVector&
   testvector() const;
 
+  /// @brief 値の固定が必要なノードのリストを返す．
+  virtual
+  TpgNodeList
+  aux_side_inputs() const;
+
 };
 
 
@@ -72,8 +77,10 @@ public:
   /// @brief コンストラクタ
   ResultRep_DT(
     const AssignList& assign_list,
+    const TpgNodeList& aux_side_inputs,
     const TestVector& testvector
   ) : mAssignList{assign_list},
+      mAuxSideInputs{aux_side_inputs},
       mTestVector{testvector}
   {
   }
@@ -93,6 +100,10 @@ public:
   const AssignList&
   assign_list() const override;
 
+  /// @brief 値の固定が必要なノードのリストを返す．
+  TpgNodeList
+  aux_side_inputs() const override;
+
   /// @brief テストベクタを返す．
   const TestVector&
   testvector() const override;
@@ -108,6 +119,9 @@ private:
 
   // テストベクタ
   TestVector mTestVector;
+
+  // 値割当が必要なノードのリスト
+  TpgNodeList mAuxSideInputs;
 
 };
 

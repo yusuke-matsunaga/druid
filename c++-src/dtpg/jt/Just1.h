@@ -38,12 +38,6 @@ private:
   // JustImpl の仮想関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 初期化処理
-  void
-  just_init(
-    const AssignList& assign_list ///< [in] 割当リスト
-  ) override;
-
   /// @brief 制御値を持つファンインを一つ選ぶ．
   /// @return 選んだファンインのノードを返す．
   TpgNode
@@ -51,10 +45,6 @@ private:
     const TpgNode& node, ///< [in] 対象のノード
     int time		 ///< [in] 時刻 ( 0 or 1 )
   ) override;
-
-  /// @brief 終了処理
-  void
-  just_end() override;
 
 };
 

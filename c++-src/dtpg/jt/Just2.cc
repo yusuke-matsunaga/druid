@@ -44,7 +44,8 @@ Just2::~Just2()
 // @brief 初期化処理
 void
 Just2::just_init(
-  const AssignList& assign_list
+  const AssignList& assign_list,
+  const TpgNodeList& aux_side_inputs
 )
 {
   // ヒューリスティックで用いる重みを計算する．
@@ -53,6 +54,9 @@ Just2::just_init(
   }
   for ( auto nv: assign_list ) {
     add_weight(nv.node(), nv.time());
+  }
+  for ( auto node: aux_side_inputs ) {
+    add_weight(node, 1);
   }
   for ( auto time: {0, 1} ) {
     for ( auto node: mNodeList[time] ) {
@@ -68,7 +72,7 @@ Just2::select_cval_node(
   int time
 )
 {
-  double min_val = DBL_MAX;
+  auto min_val = std::numeric_limits<double>::max();
   TpgNode min_node;
   auto cval = node.cval();
   for ( auto inode: node.fanin_list() ) {
@@ -184,7 +188,7 @@ Just2::calc_value(
     auto oval = just_data().val(node, time);
     if ( oval == node.coval() ) {
       // cval を持つファンインのうち最小の値を求める．
-      double min_val = DBL_MAX;
+      auto min_val = std::numeric_limits<double>::max();
       auto cval = node.cval();
       for ( auto inode: node.fanin_list() ) {
 	auto ival = just_data().val(inode, time);
@@ -192,12 +196,14 @@ Just2::calc_value(
 	  continue;
 	}
 	calc_value(inode, time);
-	double val1 = node_value(inode, time);
+	auto val1 = node_value(inode, time);
 	if ( min_val > val1 ) {
 	  min_val = val1;
 	}
       }
-      ASSERT_COND ( min_val < DBL_MAX );
+      if ( min_val == std::numeric_limits<double>::max() ) {
+	throw std::logic_error{"min_val not found"};
+      }
 
       val = min_val;
     }

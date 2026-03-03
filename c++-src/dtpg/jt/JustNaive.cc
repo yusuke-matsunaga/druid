@@ -40,7 +40,8 @@ JustNaive::~JustNaive()
 // @brief justify の実際の処理
 AssignList
 JustNaive::_justify(
-  const AssignList& assign_list ///< [in] 割当リスト
+  const AssignList& assign_list,
+  const TpgNodeList& aux_side_inputs
 )
 {
   // 単純に assign_list に含まれるノードの TFI を訪問して
@@ -59,6 +60,9 @@ JustNaive::_justify(
     else {
       prev_list.push_back(node);
     }
+  }
+  for ( auto node: aux_side_inputs ) {
+    cur_list.push_back(node);
   }
 
   AssignList pi_assign_list;

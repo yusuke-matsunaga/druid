@@ -61,9 +61,10 @@ public:
   /// 既に結果が登録されている場合には std::invalid_argument 例外が送出される．
   void
   set_detected(
-    const TpgFault& fault,         ///< [in] 対象の故障
-    const AssignList& assign_list, ///< [in] 値割り当てのリスト
-    const TestVector& testvect     ///< [in] testvect テストベクタ
+    const TpgFault& fault,              ///< [in] 対象の故障
+    const AssignList& assign_list,      ///< [in] 値割り当てのリスト
+    const TpgNodeList& aux_side_inputs, ///< [in] 値の割当が必要なノードのリスト
+    const TestVector& testvect          ///< [in] testvect テストベクタ
   );
 
   /// @brief テスト不能に設定する．
@@ -151,33 +152,24 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
-  /// @brief テストベクタを持つ時 true を返す．
-  bool
-  has_testvector(
+  /// @brief 値割り当てを返す．
+  const AssignList&
+  assign_list(
+    const TpgFault& fault ///< [in] 対象の故障
+  ) const;
+
+  /// @brief 価を固定する必要のあるノードのリストを返す．
+  TpgNodeList
+  aux_side_inputs(
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
   /// @brief テストベクタを返す．
-  ///
-  /// has_testvector() == false の場合は std::logic_error 例外を送出する．
   const TestVector&
   testvector(
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
-  /// @brief 値割り当てを持つ時 true を返す．
-  bool
-  has_assign_list(
-    const TpgFault& fault ///< [in] 対象の故障
-  ) const;
-
-  /// @brief 値割り当てを返す．
-  ///
-  /// has_assign_list() == false の場合は std::logic_error 例外を送出する．
-  const AssignList&
-  assign_list(
-    const TpgFault& fault ///< [in] 対象の故障
-  ) const;
 
   //////////////////////////////////////////////////////////////////////
   /// @}

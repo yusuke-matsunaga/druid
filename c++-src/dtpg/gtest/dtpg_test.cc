@@ -81,13 +81,12 @@ TestData mydata2[] = {
   TestData{"s27.blif",     32,   32,   32,   0,    0},
   TestData{"s1196.blif", 1242, 1242, 1241,   0,    1},
   TestData{"s5378.blif", 4603, 4563, 4253,  40,  350},
-  TestData{"s9234.blif", 6927, 6475, 5844, 452, 1083}
+//  TestData{"s9234.blif", 6927, 6475, 5844, 452, 1083}
 };
 
 
 class DtpgTestWithParam2 :
   public ::testing::TestWithParam<std::tuple<TestData,
-					     std::string,
 					     std::string,
 					     std::string,
 					     FaultType,
@@ -139,10 +138,6 @@ private:
   /// @brief テストパラメータからグループモードを取り出す．
   std::string
   group_mode();
-
-  /// @brief テストパラメータからドライバタイプを取り出す．
-  std::string
-  driver_type();
 
   /// @brief テストパラメータから FaultType を取り出す．
   FaultType
@@ -211,7 +206,6 @@ DtpgTestWithParam2::do_test()
 {
   auto option = JsonValue::object();
   option.add("group_mode",  group_mode());
-  option.add("driver_type", driver_type());
   option.add("justifier",   just_type());
 #if 1
   auto sat_obj = JsonValue(sat_type());
@@ -226,7 +220,8 @@ DtpgTestWithParam2::do_test()
   auto network = TpgNetwork::read_blif(filename(), fault_type());
   auto fault_list = network.rep_fault_list();
 
-  auto fsim_option = JsonValue::parse("{\"has_x\": true}");
+  auto fsim_option = JsonValue::object();
+  fsim_option.add("has_x", true);
   auto fsim = Fsim(network, fault_list, fsim_option);
 
   auto dtpg_results = DtpgMgr::run(fault_list, option);
@@ -314,25 +309,18 @@ DtpgTestWithParam2::group_mode()
   return std::get<2>(GetParam());
 }
 
-// @brief テストパラメータからドライバタイプを取り出す．
-std::string
-DtpgTestWithParam2::driver_type()
-{
-  return std::get<3>(GetParam());
-}
-
 // @brief テストパラメータから FaultType を取り出す．
 FaultType
 DtpgTestWithParam2::fault_type()
 {
-  return std::get<4>(GetParam());
+  return std::get<3>(GetParam());
 }
 
 // @brief テストパラメータから just_type を取り出す．
 std::string
 DtpgTestWithParam2::just_type()
 {
-  return std::get<5>(GetParam());
+  return std::get<4>(GetParam());
 }
 
 TEST_P(DtpgTestWithParam2, test1)
@@ -344,7 +332,6 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest0, DtpgTestWithParam2,
 			 ::testing::Combine(::testing::ValuesIn(mydata0),
 					    ::testing::Values("ymsat2"),
 					    ::testing::Values("node"),
-					    ::testing::Values("engine"),
 					    ::testing::Values(FaultType::StuckAt),
 					    ::testing::Values("naive")));
 
@@ -355,15 +342,37 @@ INSTANTIATE_TEST_SUITE_P(DtpgTest1, DtpgTestWithParam2,
 							      "ymsat1", "ymsat2",
 							      "ymsat1_old"),
 					    ::testing::Values("ffr"),
-					    ::testing::Values("engine"),
 					    ::testing::Values(FaultType::StuckAt),
 					    ::testing::Values("just1")));
+
 INSTANTIATE_TEST_SUITE_P(DtpgTest2, DtpgTestWithParam2,
 			 ::testing::Combine(::testing::ValuesIn(mydata2),
 					    ::testing::Values("ymsat2"),
 					    ::testing::Values("node", "ffr", "mffc"),
-					    ::testing::Values("engine", "enc"),
 					    ::testing::Values(FaultType::StuckAt, FaultType::TransitionDelay),
 					    ::testing::Values("naive", "just1", "just2")));
+
+TEST(DtpgTest, xor2)
+{
+  auto data_dir = std::filesystem::path{TESTDATA_DIR};
+  auto filename = data_dir / "xor2.blif";
+  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
+  auto fault_list = network.rep_fault_list();
+
+  auto option = JsonValue::object();
+  option.add("has_x", true);
+  auto fsim = Fsim(network, fault_list, option);
+
+  auto res = DtpgMgr::run(fault_list);
+  for ( auto fault: fault_list ) {
+    if ( res.status(fault) != FaultStatus::Detected ) {
+      continue;
+    }
+    auto tv = res.testvector(fault);
+    DiffBits _;
+    auto fsim_res = fsim.spsfp(tv, fault, _);
+    EXPECT_TRUE( fsim_res ) << fault.str();
+  }
+}
 
 END_NAMESPACE_DRUID

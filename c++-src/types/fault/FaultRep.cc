@@ -74,6 +74,22 @@ FaultRep::ffr_propagate_condition() const
   return assign_list;
 }
 
+// @brief 故障伝播条件ではないが値の固定が必要なノードのリストを返す．
+std::vector<const NodeRep*>
+FaultRep::aux_side_inputs() const
+{
+  std::vector<const NodeRep*> node_list;
+  for ( auto node = origin_node(); node->fanout_num() == 1; ) {
+    auto fonode = node->fanout(0);
+    auto val = fonode->nval();
+    if ( val == Val3::_X ) {
+      node_list.push_back(fonode);
+    }
+    node = fonode;
+  }
+  return node_list;
+}
+
 // @brief ハッシュ用の値を返す．
 SizeType
 FaultRep::hash() const

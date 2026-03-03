@@ -54,6 +54,7 @@ void
 DtpgResults::set_detected(
   const TpgFault& fault,
   const AssignList& assign_list,
+  const TpgNodeList& aux_side_inputs,
   const TestVector& testvect
 )
 {
@@ -62,7 +63,7 @@ DtpgResults::set_detected(
     buf << fault.str() << " has already set";
     throw std::invalid_argument{buf.str()};
   }
-  auto r = new ResultRep_DT(assign_list, testvect);
+  auto r = new ResultRep_DT(assign_list, aux_side_inputs, testvect);
   mResultDict.emplace(fault.id(), r);
 }
 
@@ -128,6 +129,16 @@ DtpgResults::assign_list(
 {
   auto r = mResultDict.at(fault.id());
   return r->assign_list();
+}
+
+// @brief 価を固定する必要のあるノードのリストを返す．
+TpgNodeList
+DtpgResults::aux_side_inputs(
+  const TpgFault& fault
+) const
+{
+  auto r = mResultDict.at(fault.id());
+  return r->aux_side_inputs();
 }
 
 // @brief テストベクタを返す．

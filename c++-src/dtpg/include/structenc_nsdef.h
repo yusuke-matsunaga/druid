@@ -1,6 +1,8 @@
 #ifndef STRUCT_ENC_NSDEF_H
 #define STRUCT_ENC_NSDEF_H
 
+#error "obsolete"
+
 /// @file struct_enc_nsdef.h
 /// @brief StructEnc 用の名前空間の定義ファイル
 /// @author Yusuke Matsunaga (松永 裕介)

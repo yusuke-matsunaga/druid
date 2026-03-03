@@ -122,6 +122,10 @@ public:
   AssignList
   ffr_propagate_condition() const;
 
+  /// @brief 故障伝播には必要ないが，故障シミュレーションのために固定しなければならないノードを求める．
+  TpgNodeList
+  aux_side_inputs() const;
+
 
 public:
   //////////////////////////////////////////////////////////////////////

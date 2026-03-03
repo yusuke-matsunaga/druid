@@ -8,7 +8,7 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('/home/yusuke/var/build/druid/py_capi'))
+sys.path.insert(0, os.path.abspath('/Users/yusuke/var/build/druid/py_capi'))
 
 project = 'Druid'
 copyright = '2026, Yusuke Matsunaga'
@@ -26,7 +26,7 @@ extensions = [
 ]
 
 breathe_projects = {
-    "ymworks": "/home/yusuke/var/build/druid/dox-src/xml"
+    "ymworks": "/Users/yusuke/var/build/druid/dox-src/xml"
 }
 
 breathe_default_project = "ymworks"

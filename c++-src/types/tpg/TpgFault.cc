@@ -8,6 +8,7 @@
 
 #include "types/TpgFault.h"
 #include "types/TpgGate.h"
+#include "types/TpgNodeList.h"
 #include "FaultRep.h"
 #include "GateRep.h"
 #include "NodeRep.h"
@@ -108,6 +109,13 @@ AssignList
 TpgFault::ffr_propagate_condition() const
 {
   return AssignList(_network(), _fault()->ffr_propagate_condition());
+}
+
+// @brief 故障伝播には必要ないが，故障シミュレーションのために固定しなければならないノードを求める．
+TpgNodeList
+TpgFault::aux_side_inputs() const
+{
+  return TpgBase::node_list(_fault()->aux_side_inputs());
 }
 
 // @brief ハッシュ用の値を返す．

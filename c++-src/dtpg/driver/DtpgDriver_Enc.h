@@ -107,6 +107,13 @@ private:
     AssignList& assign_list ///< [inout] 追加する対象のリスト
   );
 
+  /// @biref 値割当が必要なノードのリストを返す．
+  virtual
+  TpgNodeList
+  get_aux_side_inputs(
+    const TpgFault& fault ///< [in] 対象の故障
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////

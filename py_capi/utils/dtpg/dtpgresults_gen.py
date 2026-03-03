@@ -11,7 +11,7 @@ from mk_py_capi import PyObjGen
 from mk_py_capi import OptArg, KwdArg, TypedRawObjArg
 from mk_py_capi import DoubleArg, UlongArg
 from sat import SatStatsArg
-from tpg_types import TpgFaultArg
+from tpg_types import TpgFaultArg, TpgNodeListArg
 from tpg_types import TestVectorArg, AssignListArg, FaultStatusArg
 
 
@@ -24,6 +24,7 @@ class DtpgResultsGen(PyObjGen):
                          header_include_files=['dtpg/DtpgResults.h'],
                          source_include_files=['pym/PyDtpgResults.h',
                                                'pym/PyTpgFault.h',
+                                               'pym/PyTpgNodeList.h',
                                                'pym/PyTestVector.h',
                                                'pym/PyAssignList.h',
                                                'pym/PyFaultStatus.h',
@@ -41,7 +42,7 @@ class DtpgResultsGen(PyObjGen):
                         doc_str='clear')
 
         def meth_set_detected(writer):
-            writer.gen_stmt('val.set_detected(fault, as_list, testvect)')
+            writer.gen_stmt('val.set_detected(fault, as_list, aux_side_inputs, testvect)')
             writer.gen_return_py_none();
         self.add_method('set_detected',
                         func_body=meth_set_detected,
@@ -49,6 +50,8 @@ class DtpgResultsGen(PyObjGen):
                                               cvarname='fault'),
                                   AssignListArg(name='assign_list',
                                                 cvarname='as_list'),
+                                  TpgNodeListArg(name='aux_side_inputs',
+                                                 cvarname='aux_side_inputs'),
                                   TestVectorArg(name='testvect',
                                                 cvarname='testvect')],
                         doc_str='set DETECTED')

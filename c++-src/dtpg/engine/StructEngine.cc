@@ -237,15 +237,16 @@ StructEngine::get_stats() const
 // @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
 AssignList
 StructEngine::justify(
-  const AssignList& assign_list
+  const AssignList& assign_list,
+  const TpgNodeList& aux_side_inputs
 )
 {
   auto& model = mSolver.model();
   if ( mNetwork.has_prev_state() ) {
-    return mJustifier->justify(assign_list, mHvarMap, mGvarMap, model);
+    return mJustifier->justify(assign_list, aux_side_inputs, mHvarMap, mGvarMap, model);
   }
   else {
-    return mJustifier->justify(assign_list, mGvarMap, model);
+    return mJustifier->justify(assign_list, aux_side_inputs, mGvarMap, model);
   }
 }
 
