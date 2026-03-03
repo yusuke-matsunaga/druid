@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "MinPat.h"
+#include "dtpg/DtpgMgr.h"
 #include "dtpg/StructEngine.h"
 #include "fsim/Fsim.h"
 #include "types/TestVector.h"
@@ -21,21 +22,10 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 MinPat::MinPat(
-  const TpgNetwork& network,
-  const TpgFaultList& fault_list,
-  const std::vector<AssignList>& init_list
+  const TpgNetwork& network
 ) : mNetwork{network},
-    mFaultList{fault_list},
-    mInitList{init_list},
     mEngine{mNetwork}
 {
-  mFidList.reserve(mFaultList.size());
-  for ( auto fault: mFaultList ) {
-    auto fid = fault.id();
-    SizeType lid = mFidList.size();
-    mFidList.push_back(fid);
-    mFidMap.emplace(fid, lid);
-  }
   for ( auto node: mNetwork.node_list() ) {
     mEngine.add_cur_node(node);
   }
@@ -45,18 +35,52 @@ MinPat::MinPat(
 // @brief パタン圧縮を行う．
 std::vector<TestVector>
 MinPat::run(
+  const TpgFaultList& fault_list,
   const JsonValue& option
 )
 {
-  { // 初期解が正しいかチェックする．
+  // 初期解を生成する．
+  JsonValue dtpg_option;
+  if ( option.is_object() && option.has_key("dtpg") ) {
+    dtpg_option = option.at("dtpg");
+  }
+  auto results = DtpgMgr::run(fault_list, dtpg_option);
+  mDetFaultList.reserve(fault_list.size());
+  std::vector<AssignList> pat_list;
+  pat_list.reserve(fault_list.size());
+
+  // 検出された故障のリストを作る．
+  // 同時に初期パタンを作る．
+  mFidList.reserve(fault_list.size());
+  for ( auto fault: fault_list ) {
+    auto status = results.status(fault);
+    if ( status != FaultStatus::Detected ) {
+      continue;
+    }
+    mDetFaultList.push_back(fault);
+    auto fid = fault.id();
+    SizeType lid = mFidList.size();
+    mFidList.push_back(fid);
+    mFidMap.emplace(fid, lid);
+    auto pat = results.assign_list(fault);
+    auto aux_pat = results.aux_side_inputs(fault);
+    auto assign_list = pat + aux_pat;
+    pat_list.push_back(assign_list);
+  }
+
+  std::cout << "DTPG end" << std::endl
+	    << "# of detected faults: " << mDetFaultList.size() << std::endl
+	    << "# of initial patterns: " << pat_list.size() << std::endl;
+
+  { // 初期解を検証する．
     auto fsim_option = JsonValue::object();
     fsim_option.add("has_x", JsonValue(true));
-    Fsim fsim(mNetwork, mFaultList, fsim_option);
-    auto n = mFaultList.size();
+    Fsim fsim(mNetwork, mDetFaultList, fsim_option);
+    auto n = mDetFaultList.size();
     bool ok = true;
     for ( SizeType i = 0; i < n; ++ i ) {
-      auto fault = mFaultList[i];
-      auto& assign_list = mInitList[i];
+      auto fault = mDetFaultList[i];
+      auto assign_list = pat_list[i];
       DiffBits dbits;
       auto res = fsim.xspsfp(assign_list, fault, dbits);
       if ( !res ) {
@@ -70,10 +94,10 @@ MinPat::run(
   }
 
   // 最小被覆を求める．
-  auto pat_list = mincov();
+  auto pat_list1 = mincov(pat_list);
 
   // パタン圧縮を行う．
-  auto pat_list2 = packing(pat_list);
+  auto pat_list2 = packing(pat_list1);
 
   // TestVector に変換する．
   std::vector<TestVector> tv_list;
@@ -85,14 +109,13 @@ MinPat::run(
       throw std::logic_error{"assign_list is not satisfiable"};
     }
     auto pi_assign_list = mEngine.get_pi_assign();
-    //auto pi_assign_list = mEngine.justify(assign_list, aux_side_inputs);
     auto tv = TestVector(pi_assign_list);
     tv_list.push_back(tv);
   }
   { // 最終チェック
     auto fsim_option = JsonValue::object();
     fsim_option.add("has_x", true);
-    Fsim fsim(mNetwork, mFaultList, fsim_option);
+    Fsim fsim(mNetwork, mDetFaultList, fsim_option);
     std::vector<bool> det_mark(mNetwork.max_fault_id(), false);
     for ( auto& tv: tv_list ) {
       auto res = fsim.sppfp(tv);
@@ -110,21 +133,26 @@ MinPat::run(
       }
     }
   }
+
+  std::cout << "# of final patterns: " << tv_list.size() << std::endl;
+
   return tv_list;
 }
 
 std::vector<AssignList>
-MinPat::mincov()
+MinPat::mincov(
+  const std::vector<AssignList>& pat_list
+)
 {
   auto fsim_option = JsonValue::object();
   fsim_option.add("has_x", true);
-  Fsim fsim(mNetwork, mFaultList, fsim_option);
+  Fsim fsim(mNetwork, mDetFaultList, fsim_option);
 
   SizeType drop_limit = 4000;
   std::vector<SizeType> det_count(mNetwork.max_fault_id(), 0);
   MinCov mincov;
   SizeType col_pos = 0;
-  for ( auto& assign_list: mInitList ) {
+  for ( auto& assign_list: pat_list ) {
 #if 1
     auto res = fsim.xsppfp(assign_list);
     for ( auto fid: res.fault_list(0) ) {
@@ -161,7 +189,7 @@ MinPat::mincov()
   std::vector<AssignList> new_list;
   new_list.reserve(nc);
   for ( auto i: solution ) {
-    new_list.push_back(mInitList[i]);
+    new_list.push_back(pat_list[i]);
   }
   return new_list;
 }

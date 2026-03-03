@@ -70,8 +70,8 @@ def init_common(self):
                     func_body=meth_justify,
                     arg_list=[AssignListArg(name='assign_list',
                                             cvarname='assign_list'),
-                              TpgNodeListArg(name='aux_side_inputs',
-                                             cvarname='aux_side_inputs')],
+                              AssignListArg(name='aux_side_inputs',
+                                            cvarname='aux_side_inputs')],
                     doc_str='do Justification')
 
     def meth_get_pi_assign(writer):

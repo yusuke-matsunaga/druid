@@ -228,7 +228,7 @@ justify(
   if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
                                     const_cast<char**>(kwlist),
                                     PyAssignList::_typeobject(), &assign_list_obj,
-                                    PyTpgNodeList::_typeobject(), &aux_side_inputs_obj) ) {
+                                    PyAssignList::_typeobject(), &aux_side_inputs_obj) ) {
     return nullptr;
   }
   AssignList assign_list;
@@ -238,7 +238,13 @@ justify(
       return nullptr;
     }
   }
-  auto& aux_side_inputs = PyTpgNodeList::_get_ref(aux_side_inputs_obj);
+  AssignList aux_side_inputs;
+  if ( aux_side_inputs_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(aux_side_inputs_obj, aux_side_inputs) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+      return nullptr;
+    }
+  }
   auto& val = PyBdEngine::_get_ref(self);
   try {
     return PyAssignList::ToPyObject(val.justify(assign_list, aux_side_inputs));

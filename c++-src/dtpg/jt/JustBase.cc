@@ -42,7 +42,7 @@ JustBase::~JustBase()
 AssignList
 JustBase::_justify(
   const AssignList& assign_list,
-  const TpgNodeList& aux_side_inputs
+  const AssignList& aux_side_inputs
 )
 {
   // マークをクリアする．
@@ -58,8 +58,10 @@ JustBase::_justify(
     int time = nv.time();
     put_queue(node, time);
   }
-  for ( auto node: aux_side_inputs ) {
-    put_queue(node, 1);
+  for ( auto nv: aux_side_inputs ) {
+    auto node = nv.node();
+    int time = nv.time();
+    put_queue(node, time);
   }
 
   AssignList pi_assign_list;
@@ -79,7 +81,7 @@ JustBase::_justify(
 void
 JustBase::just_init(
   const AssignList& assign_list,
-  const TpgNodeList& aux_side_inputs
+  const AssignList& aux_side_inputs
 )
 {
 }

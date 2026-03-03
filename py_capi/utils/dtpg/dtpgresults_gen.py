@@ -11,7 +11,7 @@ from mk_py_capi import PyObjGen
 from mk_py_capi import OptArg, KwdArg, TypedRawObjArg
 from mk_py_capi import DoubleArg, UlongArg
 from sat import SatStatsArg
-from tpg_types import TpgFaultArg, TpgNodeListArg
+from tpg_types import TpgFaultArg
 from tpg_types import TestVectorArg, AssignListArg, FaultStatusArg
 
 
@@ -50,8 +50,8 @@ class DtpgResultsGen(PyObjGen):
                                               cvarname='fault'),
                                   AssignListArg(name='assign_list',
                                                 cvarname='as_list'),
-                                  TpgNodeListArg(name='aux_side_inputs',
-                                                 cvarname='aux_side_inputs'),
+                                  AssignListArg(name='aux_side_inputs',
+                                                cvarname='aux_side_inputs'),
                                   TestVectorArg(name='testvect',
                                                 cvarname='testvect')],
                         doc_str='set DETECTED')

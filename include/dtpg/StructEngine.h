@@ -125,8 +125,8 @@ public:
   /// * 必要な値割り当てのみが記録される．
   AssignList
   justify(
-    const AssignList& assign_list,     ///< [in] 割当リスト
-    const TpgNodeList& aux_side_inputs ///< [in] 値割当が必要なノードのリスト
+    const AssignList& assign_list,    ///< [in] 割当リスト
+    const AssignList& aux_side_inputs ///< [in] 補助的な割り当てリスト
   );
 
   /// @brief 現在の外部入力の割当を得る．

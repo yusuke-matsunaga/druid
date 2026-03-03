@@ -238,7 +238,7 @@ StructEngine::get_stats() const
 AssignList
 StructEngine::justify(
   const AssignList& assign_list,
-  const TpgNodeList& aux_side_inputs
+  const AssignList& aux_side_inputs
 )
 {
   auto& model = mSolver.model();

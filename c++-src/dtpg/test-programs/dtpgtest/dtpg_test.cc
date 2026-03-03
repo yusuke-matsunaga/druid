@@ -362,6 +362,8 @@ dtpg_test(
       std::string error;
       int error_type = 0;
       auto assign_list = results.assign_list(fault);
+      auto aux_list = results.aux_side_inputs(fault);
+      assign_list.merge(aux_list);
       if ( !fsim.xspsfp(assign_list, fault, _) ) {
 	error += " assign_list";
 	error_type |= 1;

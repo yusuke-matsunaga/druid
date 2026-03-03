@@ -91,7 +91,7 @@ set_detected(
                                     const_cast<char**>(kwlist),
                                     PyTpgFault::_typeobject(), &fault_obj,
                                     PyAssignList::_typeobject(), &as_list_obj,
-                                    PyTpgNodeList::_typeobject(), &aux_side_inputs_obj,
+                                    PyAssignList::_typeobject(), &aux_side_inputs_obj,
                                     PyTestVector::_typeobject(), &testvect_obj) ) {
     return nullptr;
   }
@@ -109,7 +109,13 @@ set_detected(
       return nullptr;
     }
   }
-  auto& aux_side_inputs = PyTpgNodeList::_get_ref(aux_side_inputs_obj);
+  AssignList aux_side_inputs;
+  if ( aux_side_inputs_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(aux_side_inputs_obj, aux_side_inputs) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+      return nullptr;
+    }
+  }
   TestVector testvect;
   if ( testvect_obj != nullptr ) {
     if ( !PyTestVector::FromPyObject(testvect_obj, testvect) ) {

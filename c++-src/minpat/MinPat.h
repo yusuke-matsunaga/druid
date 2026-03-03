@@ -28,9 +28,7 @@ public:
 
   /// @brief コンストラクタ
   MinPat(
-    const TpgNetwork& network,
-    const TpgFaultList& fault_list,
-    const std::vector<AssignList>& init_list
+    const TpgNetwork& network
   );
 
   /// @brief デストラクタ
@@ -45,6 +43,7 @@ public:
   /// @brief パタン圧縮を行う．
   std::vector<TestVector>
   run(
+    const TpgFaultList& fault_list,
     const JsonValue& option = {}
   );
 
@@ -55,7 +54,9 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   std::vector<AssignList>
-  mincov();
+  mincov(
+    const std::vector<AssignList>& pat_list
+  );
 
   std::vector<AssignList>
   packing(
@@ -71,8 +72,8 @@ private:
   // 対象のネットワーク
   TpgNetwork mNetwork;
 
-  // 故障リスト
-  TpgFaultList mFaultList;
+  // 検出可能な故障リスト
+  TpgFaultList mDetFaultList;
 
   // 故障番号のリスト
   std::vector<SizeType> mFidList;
@@ -80,9 +81,6 @@ private:
   // 故障番号からローカルな位置番号を各方した辞書
   // mFidList の逆関数になっている．
   std::unordered_map<SizeType, SizeType> mFidMap;
-
-  // 初期パタンリスト
-  std::vector<AssignList> mInitList;
 
   // 構造推論エンジン
   StructEngine mEngine;

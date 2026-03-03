@@ -78,6 +78,13 @@ protected:
     mEngine.add_subenc(std::move(enc));
   }
 
+  /// @brief 値割り当てを返す．
+  Assign
+  get_assign(
+    const TpgNode& node, ///< [in] 対象のノード
+    int time             ///< [in] タイムフレーム ( 0 or 1 )
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -107,9 +114,9 @@ private:
     AssignList& assign_list ///< [inout] 追加する対象のリスト
   );
 
-  /// @biref 値割当が必要なノードのリストを返す．
+  /// @biref 補助的な値割り当てを得る．
   virtual
-  TpgNodeList
+  AssignList
   get_aux_side_inputs(
     const TpgFault& fault ///< [in] 対象の故障
   );

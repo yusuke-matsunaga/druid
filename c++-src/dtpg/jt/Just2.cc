@@ -45,7 +45,7 @@ Just2::~Just2()
 void
 Just2::just_init(
   const AssignList& assign_list,
-  const TpgNodeList& aux_side_inputs
+  const AssignList& aux_side_inputs
 )
 {
   // ヒューリスティックで用いる重みを計算する．
@@ -55,8 +55,8 @@ Just2::just_init(
   for ( auto nv: assign_list ) {
     add_weight(nv.node(), nv.time());
   }
-  for ( auto node: aux_side_inputs ) {
-    add_weight(node, 1);
+  for ( auto nv: aux_side_inputs ) {
+    add_weight(nv.node(), nv.time());
   }
   for ( auto time: {0, 1} ) {
     for ( auto node: mNodeList[time] ) {

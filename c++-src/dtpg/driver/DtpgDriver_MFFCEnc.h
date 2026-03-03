@@ -60,7 +60,7 @@ private:
   ) override;
 
   /// @biref 値割当が必要なノードのリストを返す．
-  TpgNodeList
+  AssignList
   get_aux_side_inputs(
     const TpgFault& fault ///< [in] 対象の故障
   ) override;

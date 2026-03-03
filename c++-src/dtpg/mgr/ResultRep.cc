@@ -22,18 +22,18 @@ ResultRep::assign_list() const
   throw std::logic_error{"No AssignList"};
 }
 
+// @brief 保持的な値割り当てを返す．
+const AssignList&
+ResultRep::aux_side_inputs() const
+{
+  throw std::logic_error{"No Aux Side Inputs"};
+}
+
 // テストベクタを返す．
 const TestVector&
 ResultRep::testvector() const
 {
   throw std::logic_error{"No TestVector"};
-}
-
-// @brief 値の固定が必要なノードのリストを返す．
-TpgNodeList
-ResultRep::aux_side_inputs() const
-{
-  throw std::logic_error{"No Aux Side Inputs"};
 }
 
 
@@ -62,8 +62,8 @@ ResultRep_DT::assign_list() const
   return mAssignList;
 }
 
-// @brief 値の固定が必要なノードのリストを返す．
-TpgNodeList
+// @brief 補助的な値割り当てを返す．
+const AssignList&
 ResultRep_DT::aux_side_inputs() const
 {
   return mAuxSideInputs;

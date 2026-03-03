@@ -95,12 +95,22 @@ DtpgDriver_Enc::add_extra_assignments(
 }
 
 // @biref 値割当が必要なノードのリストを返す．
-TpgNodeList
+AssignList
 DtpgDriver_Enc::get_aux_side_inputs(
   const TpgFault& fault
 )
 {
-  return TpgNodeList();
+  return AssignList();
+}
+
+// @brief 値割り当てを返す．
+Assign
+DtpgDriver_Enc::get_assign(
+  const TpgNode& node,
+  int time
+)
+{
+  return Assign(node, time, mEngine.val(node, time));
 }
 
 END_NAMESPACE_DRUID

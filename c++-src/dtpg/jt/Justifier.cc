@@ -65,7 +65,7 @@ Justifier::Justifier(
 AssignList
 Justifier::justify(
   const AssignList& assign_list,
-  const TpgNodeList& aux_side_inputs,
+  const AssignList& aux_side_inputs,
   const VidMap& var_map,
   const SatModel& model
 )
@@ -79,7 +79,7 @@ Justifier::justify(
 AssignList
 Justifier::justify(
   const AssignList& assign_list,
-  const TpgNodeList& aux_side_inputs,
+  const AssignList& aux_side_inputs,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model

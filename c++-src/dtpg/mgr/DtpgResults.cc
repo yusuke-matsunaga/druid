@@ -54,7 +54,7 @@ void
 DtpgResults::set_detected(
   const TpgFault& fault,
   const AssignList& assign_list,
-  const TpgNodeList& aux_side_inputs,
+  const AssignList& aux_side_inputs,
   const TestVector& testvect
 )
 {
@@ -131,8 +131,8 @@ DtpgResults::assign_list(
   return r->assign_list();
 }
 
-// @brief 価を固定する必要のあるノードのリストを返す．
-TpgNodeList
+// @brief 補助的な値割り当てを返す．
+const AssignList&
 DtpgResults::aux_side_inputs(
   const TpgFault& fault
 ) const

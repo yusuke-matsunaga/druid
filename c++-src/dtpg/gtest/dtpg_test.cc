@@ -372,6 +372,39 @@ TEST(DtpgTest, xor2)
     DiffBits _;
     auto fsim_res = fsim.spsfp(tv, fault, _);
     EXPECT_TRUE( fsim_res ) << fault.str();
+    auto assign_list = res.assign_list(fault);
+    auto aux_assign_list = res.aux_side_inputs(fault);
+    auto assign_list2 = assign_list + aux_assign_list;
+    auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
+    EXPECT_TRUE( fsim_res2 ) << fault.str();
+  }
+}
+
+TEST(DtpgTest, c432)
+{
+  auto data_dir = std::filesystem::path{TESTDATA_DIR};
+  auto filename = data_dir / "C432.blif";
+  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
+  auto fault_list = network.rep_fault_list();
+
+  auto option = JsonValue::object();
+  option.add("has_x", true);
+  auto fsim = Fsim(network, fault_list, option);
+
+  auto res = DtpgMgr::run(fault_list);
+  for ( auto fault: fault_list ) {
+    if ( res.status(fault) != FaultStatus::Detected ) {
+      continue;
+    }
+    auto tv = res.testvector(fault);
+    DiffBits _;
+    auto fsim_res = fsim.spsfp(tv, fault, _);
+    EXPECT_TRUE( fsim_res ) << fault.str();
+    auto assign_list = res.assign_list(fault);
+    auto aux_assign_list = res.aux_side_inputs(fault);
+    auto assign_list2 = assign_list + aux_assign_list;
+    auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
+    EXPECT_TRUE( fsim_res2 ) << fault.str();
   }
 }
 
