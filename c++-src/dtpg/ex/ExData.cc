@@ -172,10 +172,14 @@ ExData::backtrace1(
       case 3:
 	// inode が fcone 外のノードの場合
 	// node が XOR/XNOR 以外なら非制御値になっているはず．
+#if 0
 	if ( node.gate_type() != PrimType::Xor &&
 	     node.gate_type() != PrimType::Xnor ) {
 	  ncnode_list.push_back(inode);
 	}
+#else
+	ncnode_list.push_back(inode);
+#endif
       }
     }
   }

@@ -9,6 +9,7 @@
 #include "gtest/gtest.h"
 #include "dtpg/DtpgMgr.h"
 #include "types/TpgNetwork.h"
+#include "types/AssignList.h"
 #include "fsim/Fsim.h"
 #include "ym/SatInitParam.h"
 
@@ -377,6 +378,7 @@ TEST(DtpgTest, xor2)
     auto assign_list2 = assign_list + aux_assign_list;
     auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
     EXPECT_TRUE( fsim_res2 ) << fault.str();
+    EXPECT_TRUE( DtpgMgr::check(fault, assign_list) );
   }
 }
 
@@ -397,14 +399,15 @@ TEST(DtpgTest, c432)
       continue;
     }
     auto tv = res.testvector(fault);
-    DiffBits _;
-    auto fsim_res = fsim.spsfp(tv, fault, _);
-    EXPECT_TRUE( fsim_res ) << fault.str();
     auto assign_list = res.assign_list(fault);
     auto aux_assign_list = res.aux_side_inputs(fault);
+    EXPECT_TRUE( DtpgMgr::check(fault, assign_list) ) << fault.str() << " check";
+    DiffBits _;
+    auto fsim_res = fsim.spsfp(tv, fault, _);
+    EXPECT_TRUE( fsim_res ) << fault.str() << " testvector";
     auto assign_list2 = assign_list + aux_assign_list;
     auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
-    EXPECT_TRUE( fsim_res2 ) << fault.str();
+    EXPECT_TRUE( fsim_res2 ) << fault.str() << " assign_list";
   }
 }
 

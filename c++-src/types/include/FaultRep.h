@@ -184,6 +184,7 @@ public:
   ffr_propagate_condition() const;
 
   /// @brief 故障伝播条件ではないが値の固定が必要なノードのリストを返す．
+  virtual
   std::vector<const NodeRep*>
   aux_side_inputs() const;
 

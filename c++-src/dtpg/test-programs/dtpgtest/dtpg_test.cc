@@ -363,6 +363,10 @@ dtpg_test(
       int error_type = 0;
       auto assign_list = results.assign_list(fault);
       auto aux_list = results.aux_side_inputs(fault);
+      if ( !DtpgMgr::check(fault, assign_list) ) {
+	error += " check";
+	error_type |= 4;
+      }
       assign_list.merge(aux_list);
       if ( !fsim.xspsfp(assign_list, fault, _) ) {
 	error += " assign_list";
@@ -376,7 +380,7 @@ dtpg_test(
       if ( error_type ) {
 	std::cout << fault.str() << " is not detected(" << error << ")" << std::endl;
 	ng = true;
-	if ( error_type & 1 ) {
+	if ( error_type & 5 ) {
 	  std::cout << assign_list << std::endl;
 	}
       }

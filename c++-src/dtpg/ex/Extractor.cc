@@ -16,7 +16,7 @@
 BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
-int debug = 0;
+int debug = 2;
 END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////

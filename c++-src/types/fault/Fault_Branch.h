@@ -53,6 +53,10 @@ public:
   const NodeRep*
   origin_node() const override;
 
+  /// @brief 故障伝播条件ではないが値の固定が必要なノードのリストを返す．
+  std::vector<const NodeRep*>
+  aux_side_inputs() const override;
+
 
 protected:
   //////////////////////////////////////////////////////////////////////

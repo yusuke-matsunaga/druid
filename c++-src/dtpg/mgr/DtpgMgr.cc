@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "dtpg/DtpgMgr.h"
+#include "dtpg/BdEngine.h"
 #include "DtpgDriver.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgFFR.h"
@@ -223,6 +224,56 @@ DtpgMgr::run(
   }
 
   return dtpg_results;
+}
+
+// @brief 検出可能かチェックする．
+std::vector<bool>
+DtpgMgr::check(
+  const TpgFault& fault,
+  const std::vector<AssignList>& assign_list_array
+)
+{
+  auto network = fault.network();
+  auto root = fault.ffr_root();
+  BdEngine engine(network, root);
+
+  { // assign_list_array に含まれるノードを登録しておく．
+    for ( auto& assign_list: assign_list_array ) {
+      for ( auto nv: assign_list ) {
+	auto node = nv.node();
+	auto time = nv.time();
+	if ( time == 1 ) {
+	  engine.add_cur_node(node);
+	}
+	else {
+	  engine.add_prev_node(node);
+	}
+      }
+    }
+    engine.update();
+  }
+
+  // 故障の伝搬しない条件を作る．
+  auto pvar = engine.prop_var();
+  auto prop_cond = fault.ffr_propagate_condition();
+  auto prop_lits = engine.conv_to_literal_list(prop_cond);
+  std::vector<SatLiteral> tmp_lits;
+  tmp_lits.reserve(prop_lits.size() + 1);
+  tmp_lits.push_back(~pvar);
+  for ( auto lit: prop_lits ) {
+    tmp_lits.push_back(~lit);
+  }
+  engine.solver().add_clause(tmp_lits);
+
+  std::vector<bool> res_array;
+  res_array.reserve(assign_list_array.size());
+  for ( auto& assign_list: assign_list_array ) {
+    auto assumptions = engine.conv_to_literal_list(assign_list);
+    auto res = engine.solve(assumptions);
+    auto ok = (res == SatBool3::False);
+    res_array.push_back(ok);
+  }
+  return res_array;
 }
 
 END_NAMESPACE_DRUID

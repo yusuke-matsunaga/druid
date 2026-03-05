@@ -83,9 +83,13 @@ FaultRep::aux_side_inputs() const
     auto fonode = node->fanout(0);
     auto val = fonode->nval();
     if ( val == Val3::_X ) {
-      node_list.push_back(fonode);
+      for ( auto inode: fonode->fanin_list() ) {
+	if ( inode != node ) {
+	  node_list.push_back(inode);
+	}
+      }
     }
-    node = fonode;
+    node = node->fanout(0);
   }
   return node_list;
 }

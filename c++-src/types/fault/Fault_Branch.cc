@@ -80,6 +80,22 @@ Fault_Branch::origin_node() const
   return gate()->branch_info(ipos()).node;
 }
 
+// @brief 故障伝播条件ではないが値の固定が必要なノードのリストを返す．
+std::vector<const NodeRep*>
+Fault_Branch::aux_side_inputs() const
+{
+  auto node_list = FaultRep::aux_side_inputs();
+  auto node = origin_node();
+  auto ni = node->fanin_num();
+  for ( SizeType i = 0; i < ni; ++ i ) {
+    if ( i != ipos() ) {
+      auto inode = node->fanin(i);
+      node_list.push_back(inode);
+    }
+  }
+  return node_list;
+}
+
 // @brief 故障の伝搬条件を追加する．
 void
 Fault_Branch::add_gate_propagation_condition(

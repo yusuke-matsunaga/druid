@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "types/TpgFaultList.h"
+#include "types/AssignList.h"
 #include "dtpg/DtpgResults.h"
 #include "ym/JsonValue.h"
 
@@ -44,6 +45,26 @@ public:
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
     const JsonValue& option         ///< [in] オプションを表す JSON オブジェクト
     = JsonValue{}
+  );
+
+  /// @brief 検出可能かチェックする．
+  static
+  bool
+  check(
+    const TpgFault& fault,        ///< [in] 対象の故障
+    const AssignList& assign_list ///< [in] 値割り当て
+  )
+  {
+    auto res_array = check(fault, std::vector<AssignList>{assign_list});
+    return res_array[0];
+  }
+
+  /// @brief 検出可能かチェックする．
+  static
+  std::vector<bool>
+  check(
+    const TpgFault& fault,                           ///< [in] 対象の故障
+    const std::vector<AssignList>& assign_list_array ///< [in] 値割り当ての配列
   );
 
 };

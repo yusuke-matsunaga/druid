@@ -63,9 +63,7 @@ MinPat::run(
     mFidList.push_back(fid);
     mFidMap.emplace(fid, lid);
     auto pat = results.assign_list(fault);
-    auto aux_pat = results.aux_side_inputs(fault);
-    auto assign_list = pat + aux_pat;
-    pat_list.push_back(assign_list);
+    pat_list.push_back(pat);
   }
 
   std::cout << "DTPG end" << std::endl
@@ -73,17 +71,12 @@ MinPat::run(
 	    << "# of initial patterns: " << pat_list.size() << std::endl;
 
   { // 初期解を検証する．
-    auto fsim_option = JsonValue::object();
-    fsim_option.add("has_x", JsonValue(true));
-    Fsim fsim(mNetwork, mDetFaultList, fsim_option);
     auto n = mDetFaultList.size();
     bool ok = true;
     for ( SizeType i = 0; i < n; ++ i ) {
       auto fault = mDetFaultList[i];
-      auto assign_list = pat_list[i];
-      DiffBits dbits;
-      auto res = fsim.xspsfp(assign_list, fault, dbits);
-      if ( !res ) {
+      auto pat = pat_list[i];
+      if ( !DtpgMgr::check(fault, pat) ) {
 	std::cout << fault.str() << " is not detected" << std::endl;
 	ok = false;
       }
@@ -97,7 +90,12 @@ MinPat::run(
   auto pat_list1 = mincov(pat_list);
 
   // パタン圧縮を行う．
+  Timer timer;
+
+  timer.start();
   auto pat_list2 = packing(pat_list1);
+  timer.stop();
+  std::cout << "packing end: " << timer.get_time() << std::endl;
 
   // TestVector に変換する．
   std::vector<TestVector> tv_list;
@@ -144,46 +142,36 @@ MinPat::mincov(
   const std::vector<AssignList>& pat_list
 )
 {
-  auto fsim_option = JsonValue::object();
-  fsim_option.add("has_x", true);
-  Fsim fsim(mNetwork, mDetFaultList, fsim_option);
+  Timer timer;
 
+  timer.start();
   SizeType drop_limit = 4000;
   std::vector<SizeType> det_count(mNetwork.max_fault_id(), 0);
   MinCov mincov;
-  SizeType col_pos = 0;
-  for ( auto& assign_list: pat_list ) {
-#if 1
-    auto res = fsim.xsppfp(assign_list);
-    for ( auto fid: res.fault_list(0) ) {
+  {
+    auto nc = pat_list.size();
+    for ( auto fault: mDetFaultList ) {
+      auto fid = fault.id();
       auto row_pos = mFidMap.at(fid);
-      mincov.insert_elem(row_pos, col_pos);
-      ++ det_count[fid];
-      if ( det_count[fid] >= drop_limit ) {
-	auto fault = mNetwork.fault(fid);
-	fsim.set_skip(fault);
-      }
-    }
-#else
-    for ( auto fault: mFaultList ) {
-      if ( fsim.get_skip(fault) ) {
-	continue;
-      }
-      DiffBits dbits;
-      if ( fsim.xspsfp(assign_list, fault, dbits) ) {
-	auto fid = fault.id();
-	auto row_pos = mFidMap.at(fid);
-	mincov.insert_elem(row_pos, col_pos);
-	++ det_count[fid];
-	if ( det_count[fid] >= drop_limit ) {
-	  auto fault = mNetwork.fault(fid);
-	  fsim.set_skip(fault);
+      for ( SizeType col_pos = 0; col_pos < nc; ++ col_pos ) {
+	auto& assign_list = pat_list[col_pos];
+	auto res = DtpgMgr::check(fault, assign_list);
+	if ( res ) {
+	  mincov.insert_elem(row_pos, col_pos);
+	  ++ det_count[fid];
+	  if ( det_count[fid] >= drop_limit ) {
+	    auto fault = mNetwork.fault(fid);
+	  }
 	}
       }
     }
-#endif
-    ++ col_pos;
   }
+  timer.stop();
+
+  std::cout << "simulation end: " << timer.get_time() << std::endl;
+
+  timer.reset();
+  timer.start();
   std::vector<SizeType> solution;
   auto nc = mincov.solve(solution);
   std::vector<AssignList> new_list;
@@ -191,6 +179,10 @@ MinPat::mincov(
   for ( auto i: solution ) {
     new_list.push_back(pat_list[i]);
   }
+  timer.stop();
+  std::cout << "minimum cover end: " << timer.get_time() << std::endl
+	    << "# of pats:         " << new_list.size() << std::endl;
+
   return new_list;
 }
 
@@ -199,11 +191,9 @@ MinPat::packing(
   const std::vector<AssignList>& pat_list
 )
 {
-  //return pat_list;
   auto np = pat_list.size();
 
-  // n^2 で両立ペアを求める．
-  std::cout << "enumerating compatible pairs start" << std::endl;
+  // np^2 で両立ペアを求める．
   std::vector<std::vector<SizeType>> compat_list(np);
   for ( SizeType i1 = 0; i1 < np - 1; ++ i1 ) {
     auto& pat1 = pat_list[i1];
@@ -225,7 +215,6 @@ MinPat::packing(
       }
     }
   }
-  std::cout << "enumerating compatible pairs end" << std::endl;
 
   // 両立する数が最大のパタンを選ぶ．
   SizeType max_num = 0;
