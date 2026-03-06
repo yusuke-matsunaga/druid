@@ -55,7 +55,8 @@ private:
 
   std::vector<AssignList>
   mincov(
-    const std::vector<AssignList>& pat_list
+    const std::vector<AssignList>& pat_list,
+    const std::vector<AssignList>& aux_list
   );
 
   std::vector<AssignList>

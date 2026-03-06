@@ -411,4 +411,35 @@ TEST(DtpgTest, c432)
   }
 }
 
+TEST(DtpgTest, c499)
+{
+  auto data_dir = std::filesystem::path{TESTDATA_DIR};
+  auto filename = data_dir / "C499.blif";
+  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
+  auto fault_list = network.rep_fault_list();
+
+  auto option = JsonValue::object();
+  option.add("has_x", true);
+  auto fsim = Fsim(network, fault_list, option);
+
+  auto dtpg_option = JsonValue::object();
+  dtpg_option.add("extractor", JsonValue("std"));
+  auto res = DtpgMgr::run(fault_list, dtpg_option);
+  for ( auto fault: fault_list ) {
+    if ( res.status(fault) != FaultStatus::Detected ) {
+      continue;
+    }
+    auto tv = res.testvector(fault);
+    auto assign_list = res.assign_list(fault);
+    auto aux_assign_list = res.aux_side_inputs(fault);
+    EXPECT_TRUE( DtpgMgr::check(fault, assign_list) ) << fault.str() << " check";
+    DiffBits _;
+    auto fsim_res = fsim.spsfp(tv, fault, _);
+    EXPECT_TRUE( fsim_res ) << fault.str() << " testvector";
+    auto assign_list2 = assign_list + aux_assign_list;
+    auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
+    EXPECT_TRUE( fsim_res2 ) << fault.str() << " assign_list";
+  }
+}
+
 END_NAMESPACE_DRUID

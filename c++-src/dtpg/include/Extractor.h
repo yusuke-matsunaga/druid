@@ -18,6 +18,8 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class ExData;
+
 //////////////////////////////////////////////////////////////////////
 /// @class Extractor Extractor.h "Extractor.h"
 /// @brief 十分割当を求めるクラス
@@ -68,7 +70,7 @@ public:
 
   /// @brief 値割り当てを１つ求める．
   /// @return 値の割当リスト
-  AssignList
+  std::pair<AssignList, AssignList>
   operator()(
     const TpgNode& root,    ///< [in] 起点となるノード
     const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
@@ -78,26 +80,27 @@ public:
 
   /// @brief 値割り当てを１つ求める．
   /// @return 値の割当リスト
-  AssignList
+  std::pair<AssignList, AssignList>
   operator()(
     const TpgNode& root,    ///< [in] 起点となるノード
     const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
     const VidMap& fvar_map, ///< [in] 故障値の変数番号のマップ
-    const TpgNode& output,  ///< [in] 故障の永久が伝搬している外部出力
+    const TpgNode& output,  ///< [in] 故障の影響が伝搬している外部出力
     const SatModel& model   ///< [in] SATソルバの作ったモデル
   );
 
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // 動作結果に影響を及ぼすヒューリスティックを実現する関数
+  // Extractor の仮想関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 制御値を持つ入力を選ぶ．
+  /// @brief 指定された出力からバックトレースを行う．
   virtual
-  std::vector<TpgNode>
-  select_cnode(
-    const std::vector<std::vector<TpgNode>>& choice_list ///< [in] 選択ノードのリスト
+  std::pair<AssignList, AssignList>
+  backtrace(
+    const ExData& data,   ///< [in] 故障伝搬の情報
+    const TpgNode& output ///< [in] 対象の出力ノード
   ) = 0;
 
 };

@@ -135,6 +135,7 @@ dtpg_test(
   bool sa_mode = false;
   bool td_mode = false;
   std::string mode{};
+  bool ex_std = false;
   bool drop = false;
   bool fix = false;
   bool dump = false;
@@ -253,6 +254,9 @@ dtpg_test(
 	}
 	just_type = "just2";
       }
+      else if ( strcmp(argv[pos], "--ex-std") == 0 ) {
+	ex_std = true;
+      }
       else if ( strcmp(argv[pos], "--drop") == 0 ) {
 	drop = true;
       }
@@ -318,6 +322,9 @@ dtpg_test(
   option.add("group_mode",  mode);
   if ( !just_type.empty() ) {
     option.add("justifier", just_type);
+  }
+  if ( ex_std ) {
+    option.add("extractor", JsonValue("std"));
   }
   auto sat_option = JsonValue::object();
   if ( !sat_type.empty() ) {

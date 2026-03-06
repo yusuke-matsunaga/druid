@@ -574,7 +574,10 @@ extract_sufficient_condition(
 {
   auto& val = PyBdEngine::_get_ref(self);
   try {
-    return PyAssignList::ToPyObject(val.extract_sufficient_condition());
+    auto p = val.extract_sufficient_condition();
+    auto obj1 = PyAssignList::ToPyObject(p.first);
+    auto obj2 = PyAssignList::ToPyObject(p.second);
+    return Py_BuildValue("(OO)", obj1, obj2);
   }
   catch ( std::exception err ) {
     std::ostringstream buf;

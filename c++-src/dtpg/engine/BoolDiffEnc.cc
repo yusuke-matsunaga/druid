@@ -256,7 +256,7 @@ BoolDiffEnc::make_dchain_cnf(
 }
 
 // @brief 直前の check() が成功したときの十分条件を求める．
-AssignList
+std::pair<AssignList, AssignList>
 BoolDiffEnc::extract_sufficient_condition()
 {
   return (*mExtractor)(root_node(),
@@ -266,7 +266,7 @@ BoolDiffEnc::extract_sufficient_condition()
 }
 
 // @brief 直前の check() が成功したときの十分条件を求める．
-AssignList
+std::pair<AssignList, AssignList>
 BoolDiffEnc::extract_sufficient_condition(
   SizeType pos
 )

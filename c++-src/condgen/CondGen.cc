@@ -96,7 +96,8 @@ CondGen::root_cond(
     }
 
     // 最初の十分条件を求める．
-    auto suff_cond = engine.extract_sufficient_condition();
+    auto cond_pair = engine.extract_sufficient_condition();
+    auto suff_cond = cond_pair.first;
     // 必要条件を求める．
     for ( auto as: suff_cond ) {
       auto lit = engine.conv_to_literal(as);
@@ -155,7 +156,8 @@ CondGen::root_cond(
 	// どうする？
 	break;
       }
-      suff_cond = engine.extract_sufficient_condition();
+      auto cond_pair = engine.extract_sufficient_condition();
+      auto suff_cond = cond_pair.first;
       suff_cond.diff(mand_cond);
       if ( suff_cond.size() == 0 ) {
 	// 最初に生成された suff_cond が冗長だった．
@@ -197,7 +199,8 @@ CondGen::root_cond(
       continue;
     }
     // 最初の十分条件を求める．
-    auto suff_cond = engine.extract_sufficient_condition(pos);
+    auto cond_pair = engine.extract_sufficient_condition(pos);
+    auto suff_cond = cond_pair.first;
     suff_cond.diff(mand_cond);
 
     // 必要条件を求める．
@@ -243,7 +246,8 @@ CondGen::root_cond(
       if ( res == SatBool3::X ) {
 	break;
       }
-      suff_cond = engine.extract_sufficient_condition(pos);
+      auto cond_pair = engine.extract_sufficient_condition(pos);
+      auto suff_cond = cond_pair.first;
       suff_cond.diff(mand_cond1);
       if ( suff_cond.size() == 0 ) {
 	cube_list.clear();

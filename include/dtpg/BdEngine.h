@@ -86,14 +86,14 @@ public:
   }
 
   /// @brief 直前の check() が成功したときの十分条件を求める．
-  AssignList
+  std::pair<AssignList, AssignList>
   extract_sufficient_condition()
   {
     return mBdEnc->extract_sufficient_condition();
   }
 
   /// @brief 直前の check() が成功したときの十分条件を求める．
-  AssignList
+  std::pair<AssignList, AssignList>
   extract_sufficient_condition(
     SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
   )

@@ -91,15 +91,16 @@ ExData::ExData(
 std::vector<TpgNode>
 ExData::backtrace(
   const TpgNode& node,
-  std::vector<std::vector<TpgNode>>& cgroup_list
-)
+  std::vector<std::vector<TpgNode>>& cgroup_list,
+  std::vector<TpgNode>& aux_side_inputs
+) const
 {
   if ( node == mRoot ) {
     // 自身が根のノードなら side input はない．
     return {};
   }
   std::vector<std::vector<TpgNode>> tmp_cgroup_list;
-  auto tmp_node_list = backtrace1(node, tmp_cgroup_list);
+  auto tmp_node_list = backtrace1(node, tmp_cgroup_list, aux_side_inputs);
 
   // step1: node_list 中の重複を取り除く
 
@@ -149,8 +150,9 @@ ExData::backtrace(
 std::vector<TpgNode>
 ExData::backtrace1(
   const TpgNode& node,
-  std::vector<std::vector<TpgNode>>& cgroup_list
-)
+  std::vector<std::vector<TpgNode>>& cgroup_list,
+  std::vector<TpgNode>& aux_side_inputs
+) const
 {
   std::vector<TpgNode> ncnode_list;
   Queue queue;
@@ -171,15 +173,13 @@ ExData::backtrace1(
 
       case 3:
 	// inode が fcone 外のノードの場合
-	// node が XOR/XNOR 以外なら非制御値になっているはず．
-#if 0
-	if ( node.gate_type() != PrimType::Xor &&
-	     node.gate_type() != PrimType::Xnor ) {
+	if ( gval(inode) == node.nval() ) {
+	  // 非制御値なら固定する．
 	  ncnode_list.push_back(inode);
 	}
-#else
-	ncnode_list.push_back(inode);
-#endif
+	else {
+	  aux_side_inputs.push_back(inode);
+	}
       }
     }
   }
@@ -192,7 +192,7 @@ ExData::backtrace2(
   const TpgNode& node,
   std::vector<TpgNode>& ncnode_list,
   std::vector<std::vector<TpgNode>>& cgroup_list
-)
+) const
 {
   Queue queue;
   queue.put(node);

@@ -8,6 +8,7 @@
 
 #include "Extractor.h"
 #include "ExtSimple.h"
+#include "ExtStd.h"
 #include "ExData.h"
 
 
@@ -38,6 +39,9 @@ Extractor::new_impl(
     if ( mode == "simple" ) {
       return new ExtSimple;
     }
+    if ( mode == "std" ) {
+      return new ExtStd;
+    }
     // 知らない型だった．
     std::ostringstream buf;
     buf << mode << ": unknown value for 'extractor'";
@@ -51,7 +55,7 @@ Extractor::new_impl(
 }
 
 // @brief 値割り当てを１つ求める．
-AssignList
+std::pair<AssignList, AssignList>
 Extractor::operator()(
   const TpgNode& root,
   const VidMap& gvar_map,
@@ -59,35 +63,26 @@ Extractor::operator()(
   const SatModel& model
 )
 {
-  ExData data{root, gvar_map, fvar_map, model};
+  ExData data(root, gvar_map, fvar_map, model);
 
-  // 故障差の伝搬している経路を探す．
-  ASSERT_COND( !data.sensitized_output_list().empty() );
-
-  AssignList min_assign_list;
+  std::pair<AssignList, AssignList> min_assign_pair;
   SizeType min_val = std::numeric_limits<SizeType>::max();
   for ( auto po: data.sensitized_output_list() ) {
-    std::vector<std::vector<TpgNode>> choice_list;
-    auto node_list = data.backtrace(po, choice_list);
-    auto cnode_list = select_cnode(choice_list);
-    node_list.insert(node_list.end(), cnode_list.begin(), cnode_list.end());
-    // AssignList に変換する．
-    AssignList assign_list;
-    for ( auto& node: node_list ) {
-      auto bval = (data.gval(node) == Val3::_1);
-      assign_list.add(node, 1, bval);
-    }
+    // 各出力に対する割り当てを求める．
+    auto assign_pair = backtrace(data, po);
+    auto& assign_list = assign_pair.first;
     SizeType val = assign_list.size();
     if ( min_val > val ) {
+      // 要素数が最小のものを選ぶ．
       min_val = val;
-      min_assign_list = assign_list;
+      min_assign_pair = assign_pair;
     }
   }
-  return min_assign_list;
+  return min_assign_pair;
 }
 
 // @brief 値割り当てを１つ求める．
-AssignList
+std::pair<AssignList, AssignList>
 Extractor::operator()(
   const TpgNode& root,
   const VidMap& gvar_map,
@@ -96,33 +91,8 @@ Extractor::operator()(
   const SatModel& model
 )
 {
-  ExData data{root, gvar_map, fvar_map, model};
-
-  // 故障差の伝搬している経路を探す．
-  if ( data.sensitized_output_list().empty() ) {
-    throw std::logic_error{"sensitized_output_list is empty"};
-  }
-
-  AssignList min_assign_list;
-  SizeType min_val = std::numeric_limits<SizeType>::max();
-  {
-    std::vector<std::vector<TpgNode>> choice_list;
-    auto node_list = data.backtrace(output, choice_list);
-    auto cnode_list = select_cnode(choice_list);
-    node_list.insert(node_list.end(), cnode_list.begin(), cnode_list.end());
-    // AssignList に変換する．
-    AssignList assign_list;
-    for ( auto& node: node_list ) {
-      auto bval = (data.gval(node) == Val3::_1);
-      assign_list.add(node, 1, bval);
-    }
-    SizeType val = assign_list.size();
-    if ( min_val > val ) {
-      min_val = val;
-      min_assign_list = assign_list;
-    }
-  }
-  return min_assign_list;
+  ExData data(root, gvar_map, fvar_map, model);
+  return backtrace(data, output);
 }
 
 END_NAMESPACE_DRUID

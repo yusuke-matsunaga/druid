@@ -48,6 +48,7 @@ MinPat::run(
   mDetFaultList.reserve(fault_list.size());
   std::vector<AssignList> pat_list;
   pat_list.reserve(fault_list.size());
+  std::vector<AssignList> aux_list;
 
   // 検出された故障のリストを作る．
   // 同時に初期パタンを作る．
@@ -64,6 +65,8 @@ MinPat::run(
     mFidMap.emplace(fid, lid);
     auto pat = results.assign_list(fault);
     pat_list.push_back(pat);
+    auto aux = results.aux_side_inputs(fault);
+    aux_list.push_back(aux);
   }
 
   std::cout << "DTPG end" << std::endl
@@ -87,7 +90,7 @@ MinPat::run(
   }
 
   // 最小被覆を求める．
-  auto pat_list1 = mincov(pat_list);
+  auto pat_list1 = mincov(pat_list, aux_list);
 
   // パタン圧縮を行う．
   Timer timer;
@@ -139,7 +142,8 @@ MinPat::run(
 
 std::vector<AssignList>
 MinPat::mincov(
-  const std::vector<AssignList>& pat_list
+  const std::vector<AssignList>& pat_list,
+  const std::vector<AssignList>& aux_list
 )
 {
   Timer timer;
@@ -150,10 +154,31 @@ MinPat::mincov(
   MinCov mincov;
   {
     auto nc = pat_list.size();
+    // 楽観的な故障シミュレーションでスクリーニングを行う．
+    auto fsim_option = JsonValue::object();
+    fsim_option.add("has_x", true);
+    Fsim fsim(mNetwork, mDetFaultList, fsim_option);
+    std::unordered_set<SizeType> fault_set;
+    for ( SizeType col_pos = 0; col_pos < nc; ++ col_pos ) {
+      auto& assign_list = pat_list[col_pos];
+      auto& aux = aux_list[col_pos];
+      auto assign_list2 = assign_list + aux;
+      auto fsim_res = fsim.xsppfp(assign_list2);
+      auto fault_list = fsim_res.fault_list(0);
+      for ( auto fid: fault_list ) {
+	fault_set.emplace(fid * nc + col_pos);
+      }
+    }
     for ( auto fault: mDetFaultList ) {
       auto fid = fault.id();
       auto row_pos = mFidMap.at(fid);
       for ( SizeType col_pos = 0; col_pos < nc; ++ col_pos ) {
+	if ( aux_list[col_pos].size() == 0 ) {
+	  continue;
+	}
+	if ( fault_set.count(fid * nc + col_pos) == 0 ) {
+	  continue;
+	}
 	auto& assign_list = pat_list[col_pos];
 	auto res = DtpgMgr::check(fault, assign_list);
 	if ( res ) {

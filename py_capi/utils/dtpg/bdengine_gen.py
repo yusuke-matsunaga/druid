@@ -66,8 +66,12 @@ class BdEngineGen(PyObjGen):
                         doc_str='return Propagation Variable')
 
         def meth_extract_sufficient_condition(writer):
-            writer.gen_return_pyobject('PyAssignList',
-                                       'val.extract_sufficient_condition()')
+            writer.gen_auto_assign('p', 'val.extract_sufficient_condition()')
+            writer.gen_auto_assign('obj1',
+                                   'PyAssignList::ToPyObject(p.first)')
+            writer.gen_auto_assign('obj2',
+                                   'PyAssignList::ToPyObject(p.second)')
+            writer.gen_return_buildvalue('(OO)', ['obj1', 'obj2'])
         self.add_method('extract_sufficient_condition',
                         func_body=meth_extract_sufficient_condition,
                         doc_str='return sufficient condition')

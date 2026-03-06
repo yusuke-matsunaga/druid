@@ -52,11 +52,14 @@ DtpgDriver_Enc::fault_op(
   DtpgResults& results
 )
 {
-  auto assign_list = mEngine.extract_sufficient_condition();
+  auto assign_pair = mEngine.extract_sufficient_condition();
+  auto& assign_list = assign_pair.first;
   auto prop_cond = fault_prop_condition(fault);
   assign_list.merge(prop_cond);
   add_extra_assignments(fault, assign_list);
-  auto aux_side_inputs = get_aux_side_inputs(fault);
+  auto& aux_side_inputs = assign_pair.second;
+  auto aux_side_inputs1 = get_aux_side_inputs(fault);
+  aux_side_inputs.merge(aux_side_inputs1);
   auto pi_assign_list = mEngine.justify(assign_list, aux_side_inputs);
   auto tv = TestVector(pi_assign_list);
   results.set_detected(fault, assign_list, aux_side_inputs, tv);
