@@ -34,9 +34,10 @@ minpat(
   auto dtpg_option = JsonValue::object();
   dtpg_option.add("group_mode", JsonValue("ffr_mt"));
   auto fault_list = network.rep_fault_list();
+  auto option = JsonValue::object();
+  option.add("dtpg", dtpg_option);
 
-  MinPat minpat(network);
-  auto tv_list = minpat.run(fault_list);
+  auto tv_list = MinPat::run(network, fault_list, option);
 
   return 0;
 }
