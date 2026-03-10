@@ -27,6 +27,7 @@ set ( minpat_SOURCES
   FFRDomChecker.cc
   MpComp.cc
   MpComp_Simple.cc
+  PatAnalyzer.cc
   )
 
 

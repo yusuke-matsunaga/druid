@@ -172,7 +172,10 @@ MpComp_Simple::_run(
   // 最小彩色を行う．
   auto tv_list2 = packing(tv_list1);
 
-  return tv_list2;
+  // 再度最小被覆を行う．
+  auto tv_list3 = mincov(tv_list2, fault_list, drop_limit);
+
+  return tv_list3;
 }
 
 END_NAMESPACE_DRUID

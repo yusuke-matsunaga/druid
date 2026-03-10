@@ -13,6 +13,7 @@
 #include "MpInit.h"
 #include "MpReducer.h"
 #include "MpComp.h"
+#include "PatAnalyzer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -48,6 +49,17 @@ MinPat::run(
   auto comp_type = get_string(option, "comp", "simple");
   std::unique_ptr<MpComp> comp = MpComp::new_obj(comp_type);
   auto tv_list2 = comp->run(tv_list, fault_list, option);
+
+  {
+    PatAnalyzer analyzer(tv_list2, fault_list);
+    auto ex_num_array = analyzer.exclusive_num_array();
+    std::sort(ex_num_array.begin(), ex_num_array.end(), std::greater<>());
+    for ( SizeType i = 0; i < tv_list2.size(); ++ i ) {
+      std::cout << std::setw(5) << i
+		<< ": "
+		<< std::setw(6) << ex_num_array[i] << std::endl;
+    }
+  }
 
   // 結果の検証を行う．
   {
