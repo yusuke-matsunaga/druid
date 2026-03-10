@@ -36,8 +36,8 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief テストパタンのリストを求める．
-  std::vector<TestVector>
+  /// @brief 対象の故障リストとテストパタンのリストを求める．
+  std::pair<TpgFaultList, std::vector<TestVector>>
   run(
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
     const JsonValue& option = {}    ///< [in] オプション

@@ -22,7 +22,9 @@ add_subdirectory( test-programs )
 set ( minpat_SOURCES
   MinPat.cc
   MpInit.cc
-  MpInit_Naive.cc
+  MpReducer.cc
+  ffr_reduction.cc
+  FFRDomChecker.cc
   MpComp.cc
   MpComp_Simple.cc
   )

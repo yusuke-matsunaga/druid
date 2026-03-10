@@ -11,6 +11,7 @@
 #include "fsim/Fsim.h"
 #include "types/TestVector.h"
 #include "MpInit.h"
+#include "MpReducer.h"
 #include "MpComp.h"
 
 
@@ -24,19 +25,56 @@ BEGIN_NAMESPACE_DRUID
 std::vector<TestVector>
 MinPat::run(
   const TpgNetwork& network,
-  const TpgFaultList& fault_list,
+  const TpgFaultList& init_fault_list,
   const JsonValue& option
 )
 {
-  auto init_type = get_string(option, "init", "naive");
-  std::unique_ptr<MpInit> init = MpInit::new_obj(init_type, network);
+  // 初期解を作る．
+  JsonValue init_option;
+  if ( option.is_object() && option.has_key("init") ) {
+    init_option = option.at("init");
+  }
+  MpInit init(network, init_fault_list, init_option);
 
-  auto tv_list = init->run(fault_list, option);
-  auto det_fault_list = init->fault_list();
+  // 故障を削減する．
+  JsonValue reduce_option;
+  if ( option.is_object() && option.has_key("reduce") ) {
+    reduce_option = option.at("reduce");
+  }
+  auto fault_list = MpReducer::run(init.det_fault_list(), reduce_option);
+
+  auto tv_list = init.tv_list();
 
   auto comp_type = get_string(option, "comp", "simple");
   std::unique_ptr<MpComp> comp = MpComp::new_obj(comp_type);
-  auto tv_list2 = comp->run(tv_list, det_fault_list, option);
+  auto tv_list2 = comp->run(tv_list, fault_list, option);
+
+  // 結果の検証を行う．
+  {
+    auto fsim_option = JsonValue::object();
+    fsim_option.add("has_x", true);
+    Fsim fsim(network, init.det_fault_list(), fsim_option);
+    std::unordered_set<SizeType> det_mark;
+    for ( auto& tv: tv_list2 ) {
+      auto res = fsim.sppfp(tv);
+      for ( auto fid: res.fault_list(0) ) {
+	det_mark.insert(fid);
+	auto fault = network.fault(fid);
+	fsim.set_skip(fault);
+      }
+    }
+    bool ng = false;
+    for ( auto fault: init.det_fault_list() ) {
+      if ( det_mark.count(fault.id()) == 0 ) {
+	std::cout << fault.str()
+		  << " is not detected" << std::endl;
+	ng = true;
+      }
+    }
+    if ( ng ) {
+      throw std::logic_error{"new_tv_list is imcomplete"};
+    }
+  }
 
   return tv_list2;
 }

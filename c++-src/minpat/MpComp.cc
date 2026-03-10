@@ -41,33 +41,14 @@ MpComp::run(
   const JsonValue& option
 )
 {
-  auto new_tv_list = _run(tv_list, fault_list, option);
+  std::cout << std::left << std::setw(20)
+	    << "Compaction start:" << std::endl
+	    << std::left << std::setw(20)
+	    << "# of faults: " << fault_list.size() << std::endl
+	    << std::left << std::setw(20)
+	    << "# of initial pats: " << tv_list.size() << std::endl;
 
-  // 結果の検証を行う．
-  auto fsim_option = JsonValue::object();
-  fsim_option.add("has_x", true);
-  auto network = fault_list.network();
-  Fsim fsim(network, fault_list, fsim_option);
-  std::unordered_set<SizeType> det_mark;
-  for ( auto& tv: new_tv_list ) {
-    auto res = fsim.sppfp(tv);
-    for ( auto fid: res.fault_list(0) ) {
-      det_mark.insert(fid);
-      auto fault = network.fault(fid);
-      fsim.set_skip(fault);
-    }
-  }
-  bool ng = false;
-  for ( auto fault: fault_list ) {
-    if ( det_mark.count(fault.id()) == 0 ) {
-      std::cout << fault.str()
-		<< " is not detected" << std::endl;
-      ng = true;
-    }
-  }
-  if ( ng ) {
-    throw std::logic_error{"new_tv_list is imcomplete"};
-  }
+  auto new_tv_list = _run(tv_list, fault_list, option);
 
   return new_tv_list;
 }

@@ -13,9 +13,21 @@
 #include "types/TestVector.h"
 #include "fsim/Fsim.h"
 #include "ym/JsonValue.h"
+#include <unistd.h> // getopt
+#include <libgen.h> // basename
 
 
 BEGIN_NAMESPACE_DRUID
+
+static char* argv0;
+
+void
+usage()
+{
+  std::cerr << "USAGE: " << basename(argv0)
+	    << " [--blif|--iscas89] [--ffr-reduction] <file>"
+	    << std::endl;
+}
 
 int
 minpat(
@@ -23,19 +35,64 @@ minpat(
   char** argv
 )
 {
-  if ( argc != 2 ) {
+
+  std::string format = "blif";
+  FaultType ftype = FaultType::StuckAt;
+  bool ffr_reduction = false;
+  SizeType argpos = 1;
+  for ( ; argpos < argc; ++ argpos ) {
+    if ( argv[argpos][0] != '-' ) {
+      break;
+    }
+    std::string arg = argv[argpos];
+    if ( arg == "--blif" ) {
+      format = "blif";
+    }
+    else if ( arg == "--iscas89" ) {
+      format = "iscas89";
+    }
+    else if ( arg == "--stuck-at" ) {
+      ftype = FaultType::StuckAt;
+    }
+    else if ( arg == "--transition-delay" ) {
+      ftype = FaultType::TransitionDelay;
+    }
+    else if ( arg == "--ffr-reduction" ) {
+      ffr_reduction = true;
+    }
+    else {
+      std::cerr << arg << ": Unknown option" << std::endl;
+      usage();
+      return 1;
+    }
+  }
+  if ( argpos != argc - 1 ) {
+    usage();
     std::cout << "Usage: minpat <filename>" << std::endl;
     return 1;
   }
 
-  std::string filename = argv[1];
+  std::string filename = argv[argpos];
 
-  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
+  TpgNetwork network;
+  try {
+    network = TpgNetwork::read_network(filename, format, ftype);
+  }
+  catch ( std::invalid_argument error ) {
+    std::cerr << error.what() << std::endl;
+    return 1;
+  }
+  auto fault_list = network.rep_fault_list();
+
   auto dtpg_option = JsonValue::object();
   dtpg_option.add("group_mode", JsonValue("ffr_mt"));
-  auto fault_list = network.rep_fault_list();
+
+  auto reduce_option = JsonValue::object();
+  reduce_option.add("ffr", ffr_reduction);
+
   auto option = JsonValue::object();
-  option.add("dtpg", dtpg_option);
+  option.add("init", dtpg_option);
+  option.add("reduce", reduce_option);
 
   auto tv_list = MinPat::run(network, fault_list, option);
 

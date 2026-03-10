@@ -77,7 +77,8 @@ mincov(
     }
 
     timer.stop();
-    std::cout << "simulation end: " << timer.get_time() << std::endl;
+    std::cout << std::left << std::setw(20)
+	      << "simulation end: " << timer.get_time() << std::endl;
   }
 
   std::vector<TestVector> new_list;
@@ -91,8 +92,10 @@ mincov(
       new_list.push_back(tv_list[i]);
     }
     timer.stop();
-    std::cout << "minimum cover end: " << timer.get_time() << std::endl
-	      << "# of pats:         " << new_list.size() << std::endl;
+    std::cout << std::left << std::setw(20)
+	      << "minimum cover end: " << timer.get_time() << std::endl
+	      << std::left << std::setw(20)
+	      << "# of pats: " << new_list.size() << std::endl;
   }
   return new_list;
 }
@@ -143,8 +146,10 @@ packing(
     new_tv_list.push_back(tv);
   }
   timer.stop();
-  std::cout << "packing end: " << timer.get_time() << std::endl
-	    << "# of pats:   " << new_tv_list.size() << std::endl;
+  std::cout << std::left << std::setw(20)
+	    << "packing end: " << timer.get_time() << std::endl
+	    << std::left << std::setw(20)
+	    << "# of pats: " << new_tv_list.size() << std::endl;
 
   return new_tv_list;
 }

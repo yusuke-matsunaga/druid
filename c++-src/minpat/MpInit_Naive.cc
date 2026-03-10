@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "MpInit_Naive.h"
-#include "dtpg/DtpgMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -23,26 +22,15 @@ MpInit_Naive::MpInit_Naive(
 {
 }
 
-// @brief テストパタンのリストを求める．
-std::vector<TestVector>
+// @brief 対象の故障リストとテストパタンのリストを求める．
+std::pair<TpgFaultList, std::vector<TestVector>>
 MpInit_Naive::run(
   const TpgFaultList& fault_list,
   const JsonValue& option
 )
 {
-  // 検出可能な故障を求める．
-  auto res = DtpgMgr::run(fault_list, option);
-  std::vector<TestVector> tv_list;
-  tv_list.reserve(fault_list.size());
-  for ( auto fault: fault_list ) {
-    auto status = res.status(fault);
-    if ( status == FaultStatus::Detected ) {
-      add_fault(fault);
-      auto tv = res.testvector(fault);
-      tv_list.push_back(tv);
-    }
-  }
-  return tv_list;
+  auto tv_list = init(fault_list, option);
+  return std::make_pair(det_fault_list(), tv_list);
 }
 
 END_NAMESPACE_DRUID
