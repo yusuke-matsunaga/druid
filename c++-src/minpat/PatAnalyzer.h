@@ -56,30 +56,17 @@ public:
     return mDetListArray[tv_id];
   }
 
-  /// @brief 各テストベクタが唯一検出する故障の数を得る．
-  SizeType
-  exclusive_num(
+  /// @brief 各テストベクタが唯一検出する故障番号のリストを得る．
+  const std::vector<SizeType>&
+  exclusive_list(
     SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
   ) const
   {
     if ( tv_id >= tv_num() ) {
       throw std::out_of_range{"tv_id is out of range"};
     }
-    return mExNumArray[tv_id];
+    return mExListArray[tv_id];
   }
-
-  /// @brief 各テストベクタが唯一検出する故障の数のリストを得る．
-  const std::vector<SizeType>&
-  exclusive_num_array() const
-  {
-    return mExNumArray;
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
 
 
 private:
@@ -90,8 +77,8 @@ private:
   // 各ベクタが検出する故障番号のリスト
   std::vector<std::vector<SizeType>> mDetListArray;
 
-  // 各テストベクタが唯一検出する故障数
-  std::vector<SizeType> mExNumArray;
+  // 各テストベクタが唯一検出する故障番号のリスト
+  std::vector<std::vector<SizeType>> mExListArray;
 
 };
 

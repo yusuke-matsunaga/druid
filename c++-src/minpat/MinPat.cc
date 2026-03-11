@@ -52,7 +52,13 @@ MinPat::run(
 
   {
     PatAnalyzer analyzer(tv_list2, fault_list);
-    auto ex_num_array = analyzer.exclusive_num_array();
+    auto ntv = tv_list2.size();
+    std::vector<SizeType> ex_num_array;
+    ex_num_array.reserve(ntv);
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      auto n = analyzer.exclusive_list(i).size();
+      ex_num_array.push_back(n);
+    }
     std::sort(ex_num_array.begin(), ex_num_array.end(), std::greater<>());
     for ( SizeType i = 0; i < tv_list2.size(); ++ i ) {
       std::cout << std::setw(5) << i

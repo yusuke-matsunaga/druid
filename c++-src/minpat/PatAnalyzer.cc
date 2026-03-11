@@ -91,7 +91,7 @@ PatAnalyzer::PatAnalyzer(
   Fsim fsim(network, fault_list, fsim_option);
   auto ntv = tv_list.size();
   mDetListArray.reserve(ntv);
-  mExNumArray.reserve(ntv);
+  mExListArray.reserve(ntv);
 
   // Phase1:
   // 各テストベクタの検出する故障のリストを mDetListArray
@@ -128,15 +128,26 @@ PatAnalyzer::PatAnalyzer(
 
   // Phase4:
   // acc_fault_list1[i] と acc_fault_list2[i]
-  // で検出されていない故障数を求め mExNumArray[i]
+  // で検出されていない故障を求め mExListArray[i]
   // に格納する．
-  auto nf = fault_list.size();
   for ( SizeType i = 0; i < ntv; ++ i ) {
     auto acc_list1 = acc_fault_list1[i];
     auto acc_list2 = acc_fault_list2[i];
-    auto acc_list3 = merge(acc_list1, acc_list2);
-    auto n = nf - acc_list3.size();
-    mExNumArray.push_back(n);
+    std::vector<bool> mark(network.max_fault_id(), false);
+    for ( auto id: acc_fault_list1[i] ) {
+      mark[id] = true;
+    }
+    for ( auto id: acc_fault_list2[i] ) {
+      mark[id] = true;
+    }
+    std::vector<SizeType> ex_list;
+    for ( auto fault: fault_list ) {
+      auto id = fault.id();
+      if ( !mark[id] ) {
+	ex_list.push_back(id);
+      }
+    }
+    mExListArray.push_back(ex_list);
   }
 }
 
