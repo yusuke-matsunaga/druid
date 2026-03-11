@@ -358,7 +358,7 @@ dtpg_test(
   { // 検証
     auto fsim_option = JsonValue::object();
     fsim_option.add("has_x", JsonValue(true));
-    Fsim fsim(network, fault_list, fsim_option);
+    Fsim fsim(fault_list, fsim_option);
     bool ng = false;
     for ( auto fault: fault_list ) {
       auto stats = results.status(fault);

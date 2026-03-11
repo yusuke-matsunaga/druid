@@ -71,6 +71,8 @@ public:
   tv_num() const;
 
   /// @brief 指定されたテストベクタ番号で検出された故障番号のリストを返す．
+  ///
+  /// 故障番号のリストは昇順にソートされている．
   std::vector<SizeType>
   fault_list(
     SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )

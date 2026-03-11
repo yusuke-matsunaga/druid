@@ -64,12 +64,10 @@ class FsimGen(PyObjGen):
         def new_body(writer):
             writer.gen_auto_assign('self', 'type->tp_alloc(type, 0)')
             self.gen_obj_conv(writer, objname='self', varname='my_obj')
-            writer.gen_stmt('new (&my_obj->mVal) Fsim(network, fault_list, option)')
+            writer.gen_stmt('new (&my_obj->mVal) Fsim(fault_list, option)')
             writer.gen_return_self()
         self.add_new(new_body,
-                     arg_list=[TpgNetworkRefArg(name='network',
-                                                cvarname='network'),
-                               TpgFaultListArg(name='fault_list',
+                     arg_list=[TpgFaultListArg(name='fault_list',
                                                cvarname='fault_list'),
                                OptArg(),
                                KwdArg(),

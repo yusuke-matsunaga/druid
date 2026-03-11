@@ -335,7 +335,7 @@ fsim2test(
   auto option = JsonValue::object();
   option.add("has_x", fsim3);
   option.add("multi_thread", multi);
-  auto fsim = Fsim(network, fault_list, option);
+  auto fsim = Fsim(fault_list, option);
 
   SizeType max_fid = fault_list.max_fid();
   ++ max_fid;

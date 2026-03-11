@@ -15,28 +15,24 @@ BEGIN_NAMESPACE_DRUID
 
 namespace nsFsimCombi2 {
   std::unique_ptr<FsimImpl> new_Fsim(
-    const TpgNetwork& network,
     const TpgFaultList& fault_list
   );
 }
 
 namespace nsFsimCombi3 {
   std::unique_ptr<FsimImpl> new_Fsim(
-    const TpgNetwork& network,
     const TpgFaultList& fault_list
   );
 }
 
 namespace nsFsimBside2 {
   std::unique_ptr<FsimImpl> new_Fsim(
-    const TpgNetwork& network,
     const TpgFaultList& fault_list
   );
 }
 
 namespace nsFsimBside3 {
   std::unique_ptr<FsimImpl> new_Fsim(
-    const TpgNetwork& network,
     const TpgFaultList& fault_list
   );
 }
@@ -46,7 +42,6 @@ BEGIN_NONAMESPACE
 inline
 std::unique_ptr<FsimImpl>
 new_impl(
-  const TpgNetwork& network,
   const TpgFaultList& fault_list,
   bool has_previous_state,
   bool has_x
@@ -55,19 +50,19 @@ new_impl(
   if ( has_x ) {
     // 3値バージョン
     if ( has_previous_state ) {
-      return nsFsimBside3::new_Fsim(network, fault_list);
+      return nsFsimBside3::new_Fsim(fault_list);
     }
     else {
-      return nsFsimCombi3::new_Fsim(network, fault_list);
+      return nsFsimCombi3::new_Fsim(fault_list);
     }
   }
   else {
     // 2値バージョン
     if ( has_previous_state ) {
-      return nsFsimBside2::new_Fsim(network, fault_list);
+      return nsFsimBside2::new_Fsim(fault_list);
     }
     else {
-      return nsFsimCombi2::new_Fsim(network, fault_list);
+      return nsFsimCombi2::new_Fsim(fault_list);
     }
   }
 }
@@ -82,13 +77,12 @@ END_NONAMESPACE
 // @brief 初期化
 void
 Fsim::initialize_multi(
-  const TpgNetwork& network,
   const TpgFaultList& fault_list,
   bool has_previous_state,
   bool has_x
 )
 {
-  mImpl = new_impl(network, fault_list, has_previous_state, has_x);
+  mImpl = new_impl(fault_list, has_previous_state, has_x);
 }
 
 END_NAMESPACE_DRUID

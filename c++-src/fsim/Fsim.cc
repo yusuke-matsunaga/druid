@@ -22,22 +22,19 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 Fsim::Fsim(
-  const TpgNetwork& network,
   const TpgFaultList& fault_list,
   const JsonValue& option
-) : mNetwork{network}
+)
 {
-  if ( !TpgBase::check_eq(network, fault_list) ) {
-    throw std::invalid_argument{"fault_list does not match with network"};
-  }
+  auto network = fault_list.network();
   bool has_x = get_bool(option, "has_x", false);
   bool multi = get_bool(option, "multi_thread", false);
   bool has_previous_state = network.fault_type() == FaultType::TransitionDelay;
   if ( multi ) {
-    initialize_multi(network, fault_list, has_previous_state, has_x);
+    initialize_multi(fault_list, has_previous_state, has_x);
   }
   else {
-    initialize_naive(network, fault_list, has_previous_state, has_x);
+    initialize_naive(fault_list, has_previous_state, has_x);
   }
 }
 
@@ -114,6 +111,17 @@ Fsim::get_skip(
 bool
 Fsim::spsfp(
   const TestVector& tv,
+  const TpgFault& fault
+)
+{
+  DiffBits _;
+  return mImpl->spsfp(tv, fault.id(), _);
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+bool
+Fsim::spsfp(
+  const TestVector& tv,
   const TpgFault& fault,
   DiffBits& dbits
 )
@@ -125,11 +133,33 @@ Fsim::spsfp(
 bool
 Fsim::spsfp(
   const AssignList& assign_list,
+  const TpgFault& fault
+)
+{
+  DiffBits _;
+  return mImpl->spsfp(assign_list, fault.id(), _);
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+bool
+Fsim::spsfp(
+  const AssignList& assign_list,
   const TpgFault& fault,
   DiffBits& dbits
 )
 {
   return mImpl->spsfp(assign_list, fault.id(), dbits);
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+bool
+Fsim::xspsfp(
+  const AssignList& assign_list,
+  const TpgFault& fault
+)
+{
+  DiffBits _;
+  return mImpl->xspsfp(assign_list, fault.id(), _);
 }
 
 // @brief SPSFP故障シミュレーションを行う．

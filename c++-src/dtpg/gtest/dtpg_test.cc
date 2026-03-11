@@ -223,7 +223,7 @@ DtpgTestWithParam2::do_test()
 
   auto fsim_option = JsonValue::object();
   fsim_option.add("has_x", true);
-  auto fsim = Fsim(network, fault_list, fsim_option);
+  auto fsim = Fsim(fault_list, fsim_option);
 
   auto dtpg_results = DtpgMgr::run(fault_list, option);
 
@@ -362,7 +362,7 @@ TEST(DtpgTest, xor2)
 
   auto option = JsonValue::object();
   option.add("has_x", true);
-  auto fsim = Fsim(network, fault_list, option);
+  auto fsim = Fsim(fault_list, option);
 
   auto res = DtpgMgr::run(fault_list);
   for ( auto fault: fault_list ) {
@@ -391,7 +391,7 @@ TEST(DtpgTest, c432)
 
   auto option = JsonValue::object();
   option.add("has_x", true);
-  auto fsim = Fsim(network, fault_list, option);
+  auto fsim = Fsim(fault_list, option);
 
   auto res = DtpgMgr::run(fault_list);
   for ( auto fault: fault_list ) {
@@ -420,7 +420,7 @@ TEST(DtpgTest, c499)
 
   auto option = JsonValue::object();
   option.add("has_x", true);
-  auto fsim = Fsim(network, fault_list, option);
+  auto fsim = Fsim(fault_list, option);
 
   auto dtpg_option = JsonValue::object();
   dtpg_option.add("extractor", JsonValue("std"));

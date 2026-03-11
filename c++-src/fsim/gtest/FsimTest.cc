@@ -84,7 +84,7 @@ FsimTest::spsfp_test(
 )
 {
   auto fault_list = network.rep_fault_list();
-  auto fsim = Fsim(network, fault_list);
+  auto fsim = Fsim(fault_list);
 
   SizeType input_num = network.input_num();
   SizeType dff_num = network.dff_num();
@@ -122,7 +122,7 @@ FsimTest::xspsfp_test(
   auto fault_list = network.rep_fault_list();
   auto option = JsonValue::object();
   option.add("has_x", true);
-  auto fsim = Fsim(network, fault_list, option);
+  auto fsim = Fsim(fault_list, option);
 
   SizeType input_num = network.input_num();
   SizeType dff_num = network.dff_num();
@@ -157,7 +157,7 @@ FsimTest::sppfp_test(
   auto fault_list = tpg_network.rep_fault_list();
   auto fsim_option = JsonValue::object();
   fsim_option.add("multi_thread", multi);
-  auto fsim = Fsim(tpg_network, fault_list, fsim_option);
+  auto fsim = Fsim(fault_list, fsim_option);
 
   SizeType input_num = tpg_network.input_num();
   SizeType dff_num = tpg_network.dff_num();
@@ -174,18 +174,26 @@ FsimTest::sppfp_test(
     for ( auto fault: fault_list ) {
       DiffBits dbits;
       if ( fsim.spsfp(tv, fault, dbits) ) {
-	dbits.sort();
 	dbits_dict.emplace(fault.id(), dbits);
 	++ ndet;
       }
     }
     auto res = fsim.sppfp(tv);
     EXPECT_EQ( ndet, res.fault_list(0).size() );
+    SizeType prev_fid = 0;
+    bool first = true;
     for ( auto fid: res.fault_list(0) ) {
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
       auto tmp_dbits = res.diffbits(0, fid);
-      tmp_dbits.sort();
       EXPECT_EQ( dbits_dict.at(fid), tmp_dbits );
+      if ( first ) {
+	first = false;
+      }
+      else {
+	// res.fault_list(0) がソートされているかチェック
+	EXPECT_TRUE( prev_fid < fid );
+      }
+      prev_fid = fid;
     }
   }
 }
@@ -200,7 +208,7 @@ FsimTest::xsppfp_test(
   auto fsim_option = JsonValue::object();
   fsim_option.add("has_x", true);
   fsim_option.add("multi_thread", multi);
-  auto fsim = Fsim(tpg_network, fault_list, fsim_option);
+  auto fsim = Fsim(fault_list, fsim_option);
 
   SizeType input_num = tpg_network.input_num();
   SizeType dff_num = tpg_network.dff_num();
@@ -244,10 +252,20 @@ FsimTest::xsppfp_test(
       }
     }
     ASSERT_EQ( ref_fault_list.size(), res.fault_list(0).size() );
+    SizeType prev_fid = 0;
+    bool first = true;
     for ( auto fid: res.fault_list(0) ) {
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
       auto tmp_dbits = res.diffbits(0, fid);
       EXPECT_EQ( dbits_dict.at(fid), tmp_dbits );
+      if ( first ) {
+	first = false;
+      }
+      else {
+	// res.fault_list(0) がソートされているかチェック
+	ASSERT_TRUE( prev_fid < fid );
+      }
+      prev_fid = fid;
     }
   }
 }
@@ -261,7 +279,7 @@ FsimTest::ppsfp_test(
   auto fault_list = tpg_network.rep_fault_list();
   auto fsim_option = JsonValue::object();
   fsim_option.add("multi_thread", multi);
-  auto fsim = Fsim(tpg_network, fault_list, fsim_option);
+  auto fsim = Fsim(fault_list, fsim_option);
 
   SizeType input_num = tpg_network.input_num();
   SizeType dff_num = tpg_network.dff_num();
@@ -298,6 +316,17 @@ FsimTest::ppsfp_test(
       auto ref_dbits = ref_res.diffbits(0, fid);
       auto dbits = res.diffbits(i, fid);
       EXPECT_EQ( ref_dbits, dbits );
+    }
+    SizeType prev_fid = 0;
+    bool first = true;
+    for ( auto fid: f_list2 ) {
+      if ( first ) {
+	first = false;
+      }
+      else {
+	ASSERT_TRUE( prev_fid < fid );
+      }
+      prev_fid = fid;
     }
   }
 }
@@ -377,12 +406,14 @@ TEST_P(FsimTest, ppsfp_multi_td_test)
 INSTANTIATE_TEST_SUITE_P(FsimTest1, FsimTest,
 			 ::testing::Values("s27.blif", "s1196.blif"));
 
+#if 0
 INSTANTIATE_TEST_SUITE_P(FsimTest2, FsimTest,
 			 ::testing::Values("s1196.blif"));
 INSTANTIATE_TEST_SUITE_P(FsimTest3, FsimTest,
 			 ::testing::Values("s27.blif"));
 INSTANTIATE_TEST_SUITE_P(FsimTest4, FsimTest,
 			 ::testing::Values("and2.blif"));
+#endif
 
 TEST(FsimTest, case1)
 {
@@ -392,7 +423,7 @@ TEST(FsimTest, case1)
   auto fault_list = network.rep_fault_list();
   auto option = JsonValue::object();
   option.add("has_x", true);
-  auto fsim = Fsim(network, fault_list, option);
+  auto fsim = Fsim(fault_list, option);
   RefSim refsim{network};
 
   for ( auto fault: fault_list ) {

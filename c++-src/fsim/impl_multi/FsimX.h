@@ -39,7 +39,6 @@ public:
 
   /// @brief コンストラクタ
   FSIM_CLASSNAME (
-    const TpgNetwork& network,     ///< [in] ネットワーク
     const TpgFaultList& fault_list ///< [in] 対象の故障のリスト
   );
 

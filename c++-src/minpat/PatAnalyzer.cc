@@ -88,7 +88,7 @@ PatAnalyzer::PatAnalyzer(
   auto network = fault_list.network();
   auto fsim_option = JsonValue::object();
   fsim_option.add("has_x", true);
-  Fsim fsim(network, fault_list, fsim_option);
+  Fsim fsim(fault_list, fsim_option);
   auto ntv = tv_list.size();
   mDetListArray.reserve(ntv);
   mExListArray.reserve(ntv);
@@ -99,7 +99,6 @@ PatAnalyzer::PatAnalyzer(
   for ( auto& tv: tv_list ) {
     auto res = fsim.sppfp(tv);
     auto det_list = res.fault_list(0);
-    std::sort(det_list.begin(), det_list.end());
     mDetListArray.push_back(det_list);
   }
 

@@ -475,22 +475,18 @@ new_func(
 )
 {
   static const char* kwlist[] = {
-    "network",
     "fault_list",
     "option",
     nullptr
   };
-  PyObject* network_obj = nullptr;
   PyObject* fault_list_obj = nullptr;
   PyObject* option_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!|$O",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!|$O",
                                     const_cast<char**>(kwlist),
-                                    PyTpgNetwork::_typeobject(), &network_obj,
                                     PyTpgFaultList::_typeobject(), &fault_list_obj,
                                     &option_obj) ) {
     return nullptr;
   }
-  auto& network = PyTpgNetwork::_get_ref(network_obj);
   TpgFaultList fault_list;
   if ( fault_list_obj != nullptr ) {
     if ( !PyTpgFaultList::FromPyObject(fault_list_obj, fault_list) ) {
@@ -508,7 +504,7 @@ new_func(
   try {
     auto self = type->tp_alloc(type, 0);
     auto my_obj = reinterpret_cast<Fsim_Object*>(self);
-    new (&my_obj->mVal) Fsim(network, fault_list, option);
+    new (&my_obj->mVal) Fsim(fault_list, option);
     return self;
   }
   catch ( std::invalid_argument err ) {

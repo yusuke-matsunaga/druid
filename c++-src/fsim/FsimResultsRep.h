@@ -57,6 +57,7 @@ public:
 	_merge_elem(res->mElemList[i], src->mElemList[i]);
       }
     }
+    res->sort();
     return res;
   }
 

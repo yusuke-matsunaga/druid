@@ -71,7 +71,7 @@ MinPat::run(
   {
     auto fsim_option = JsonValue::object();
     fsim_option.add("has_x", true);
-    Fsim fsim(network, init.det_fault_list(), fsim_option);
+    Fsim fsim(init.det_fault_list(), fsim_option);
     std::unordered_set<SizeType> det_mark;
     for ( auto& tv: tv_list2 ) {
       auto res = fsim.sppfp(tv);

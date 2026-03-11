@@ -59,7 +59,7 @@ mincov(
     auto nc = tv_list.size();
     auto fsim_option = JsonValue::object();
     fsim_option.add("has_x", true);
-    Fsim fsim(network, fault_list, fsim_option);
+    Fsim fsim(fault_list, fsim_option);
     std::unordered_set<SizeType> fault_set;
     for ( SizeType col_pos = 0; col_pos < nc; ++ col_pos ) {
       auto& tv = tv_list[col_pos];

@@ -11,9 +11,7 @@
 
 #include "druid.h"
 #include "types/FaultType.h"
-//#include "types/PackedVal.h"
 #include "fsim/DiffBits.h"
-//#include "fsim/DiffBitsArray.h"
 #include "fsim/FsimResults.h"
 #include "ym/JsonValue.h"
 
@@ -31,12 +29,11 @@ class FsimImpl;
 /// 意味的には対象回路に対して故障シミュレーションを行う関数のみを実現できればよく，
 /// 内部に状態を持つ必要はないが，効率化のため故障シミュレーションに特化した回路構造
 /// を表すクラスと故障シミュレーションに特化した故障の情報を表すクラスを持つ．
-/// 対象の回路を initialize() で設定すると内部で故障シミュレーション用のデータ構造
-/// に変換される．
-/// 対象となる故障も毎回のシミュレーションの際に指定すると効率が悪いので一旦全故障を
-/// set_fault_list() で登録しておく．
-/// 各故障に'スキップフラグ'を持たせておき，スキップフラグが立っていない故障を対象に
-/// 故障シミュレーションを行う．
+/// コンストラクタで設定された故障リストに応じて内部で故障シミュレーション用の
+/// データ構造に変換される．
+///
+/// 設定された故障は内部に'スキップフラグ'を持っている．
+/// スキップフラグが立っていない故障を対象に故障シミュレーションを行う．
 /// スキップフラグのオン/オフは set_skip()/clear_skip() で行う．
 //////////////////////////////////////////////////////////////////////
 class Fsim
@@ -45,7 +42,6 @@ public:
 
   /// @brief コンストラクタ
   Fsim(
-    const TpgNetwork& network,      ///< [in] ネットワーク
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
     const JsonValue& option = {}    ///< [in] オプション
   );
@@ -126,6 +122,15 @@ public:
   /// @retval false 故障の検出が行えなかった．
   bool
   spsfp(
+    const TestVector& tv, ///< [in] テストベクタ
+    const TpgFault& fault ///< [in] 対象の故障番号
+  );
+
+  /// @brief SPSFP故障シミュレーションを行う(DibbBits付き)．
+  /// @retval true 故障の検出が行えた．
+  /// @retval false 故障の検出が行えなかった．
+  bool
+  spsfp(
     const TestVector& tv,  ///< [in] テストベクタ
     const TpgFault& fault, ///< [in] 対象の故障番号
     DiffBits& dbits        ///< [out] 出力ごとの伝搬状況を表すビットベクタ
@@ -139,11 +144,34 @@ public:
   bool
   spsfp(
     const AssignList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault& fault          ///< [in] 対象の故障番号
+  );
+
+  /// @brief SPSFP故障シミュレーションを行う(DiffBits付き)．
+  /// @retval true 故障の検出が行えた．
+  /// @retval false 故障の検出が行えなかった．
+  ///
+  /// assign_list は外部入力の割り当てでなければならない．
+  bool
+  spsfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
     const TpgFault& fault,         ///< [in] 対象の故障番号
     DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 
   /// @brief SPSFP故障シミュレーションを行う．
+  /// @retval true 故障の検出が行えた．
+  /// @retval false 故障の検出が行えなかった．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  bool
+  xspsfp(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault& fault          ///< [in] 対象の故障番号
+  );
+
+  /// @brief SPSFP故障シミュレーションを行う(DiffBits付き)．
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
   ///
@@ -243,7 +271,6 @@ private:
   /// @brief 初期化を行う．
   void
   initialize_multi(
-    const TpgNetwork& network,      ///< [in] ネットワーク
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
     bool has_previous_state,        ///< [in] 1時刻前の値を持つ時 true にする．
     bool has_x                      ///< [in] 3値のシミュレーションを行う時 true にする．
@@ -252,7 +279,6 @@ private:
   /// @brief 初期化を行う．
   void
   initialize_naive(
-    const TpgNetwork& network,      ///< [in] ネットワーク
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
     bool has_previous_state,        ///< [in] 1時刻前の値を持つ時 true にする．
     bool has_x                      ///< [in] 3値のシミュレーションを行う時 true にする．
@@ -263,9 +289,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 対象のネットワーク
-  const TpgNetwork& mNetwork;
 
   // 実装クラス
   std::unique_ptr<FsimImpl> mImpl;
