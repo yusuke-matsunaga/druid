@@ -60,9 +60,9 @@ DtpgDriver::run()
   for ( auto fault: mFaultList ) {
     gen_pattern(fault);
   }
-  auto cnf_time = mEngine.engine().cnf_time();
+  auto cnf_time = mEngine.cnf_time();
   mResults.update_cnf(cnf_time);
-  auto sat_stats = mEngine.engine().get_stats();
+  auto sat_stats = mEngine.get_stats();
   mResults.update_sat_stats(sat_stats);
 }
 
@@ -85,7 +85,7 @@ DtpgDriver::gen_pattern(
     timer.start();
     auto model = mEngine.solver().model();
     auto cond = mEngine.extract_sufficient_condition(fault, model);
-    auto pi_assign_list = mEngine.engine().justify(cond, model);
+    auto pi_assign_list = mEngine.justify(cond, model);
     auto tv = TestVector(pi_assign_list);
     mResults.set_detected(fault, cond, tv);
     timer.stop();

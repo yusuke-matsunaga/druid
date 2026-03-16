@@ -58,13 +58,6 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief BdEngine を返す．
-  BdEngine&
-  engine()
-  {
-    return mEngine;
-  }
-
   /// @brief SATソルバを返す．
   SatSolver&
   solver()
@@ -92,6 +85,36 @@ public:
     SizeType pos,          ///< [in] 出力番号
     const SatModel& model  ///< [in] SATの解
   );
+
+  /// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
+  /// @return 外部入力の割り当てリストを返す．
+  ///
+  /// * 必要な値割り当てのみが記録される．
+  AssignList
+  justify(
+    const SuffCond& suff_cond, ///< [in] 割当リスト
+    const SatModel& model      ///< [in] SAT問題の解
+  );
+
+  /// @brief 値割り当てを対応するリテラルに変換する．
+  SatLiteral
+  conv_to_literal(
+    Assign assign ///< [in] 値割り当て
+  );
+
+  /// @brief 値割り当てのリストを対応するリテラルのリストに変換する．
+  std::vector<SatLiteral>
+  conv_to_literal_list(
+    const AssignList& assign_list ///< [in] 値割り当てのリスト
+  );
+
+  /// @brief 現在の内部状態を得る．
+  SatStats
+  get_stats() const;
+
+  /// @brief CNF の生成時間を返す．
+  double
+  cnf_time() const;
 
 
 private:

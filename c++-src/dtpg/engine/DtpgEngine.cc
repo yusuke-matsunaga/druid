@@ -84,4 +84,46 @@ DtpgEngine::extract_sufficient_condition(
   return mFaultEnc->extract_sufficient_condition(mEngine, fault, cond, model);
 }
 
+// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
+AssignList
+DtpgEngine::justify(
+  const SuffCond& suff_cond,
+  const SatModel& model
+)
+{
+  return mEngine.justify(suff_cond, model);
+}
+
+// @brief 値割り当てを対応するリテラルに変換する．
+SatLiteral
+DtpgEngine::conv_to_literal(
+  Assign assign
+)
+{
+  return mEngine.conv_to_literal(assign);
+}
+
+// @brief 値割り当てのリストを対応するリテラルのリストに変換する．
+std::vector<SatLiteral>
+DtpgEngine::conv_to_literal_list(
+  const AssignList& assign_list
+)
+{
+  return mEngine.conv_to_literal_list(assign_list);
+}
+
+// @brief 現在の内部状態を得る．
+SatStats
+DtpgEngine::get_stats() const
+{
+  return mEngine.get_stats();
+}
+
+// @brief CNF の生成時間を返す．
+double
+DtpgEngine::cnf_time() const
+{
+  return mEngine.cnf_time();
+}
+
 END_NAMESPACE_DRUID
