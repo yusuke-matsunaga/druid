@@ -10,6 +10,7 @@
 #include "dtpg/DtpgMgr.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgFFR.h"
+#include "types/FaultType.h"
 #include "condgen/CondGenMgr.h"
 #include "CondGen.h"
 #include "CondGenChecker.h"

@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "StructEngine.h"
+#include "dtpg/StructEngine.h"
 #include "types/TpgMFFC.h"
 
 
@@ -53,10 +53,11 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   );
 
-  /// @brief 直前の check() が成功したときの十分条件を求める．
-  AssignList
+  /// @brief SATの解から十分条件を求める．
+  SuffCond
   extract_sufficient_condition(
-    const TpgFault& fault ///< [in] 対象の故障
+    const TpgFault& fault, ///< [in] 対象の故障
+    const SatModel& model  ///< [in] SAT問題の解
   );
 
 
@@ -79,6 +80,9 @@ private:
 
 
 private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられるデータ構造
+  //////////////////////////////////////////////////////////////////////
 
   // FFR に関する情報
   struct FFRInfo {
@@ -124,13 +128,8 @@ private:
     const TpgNode& end_node,      ///< [in] 終点のノード
     const std::unordered_set<SizeType>& fmark,
     AssignList& assign_list,      ///< [out] 割り当て結果を格納するオブジェクト
-    std::unordered_set<SizeType>& mark ///< [inout] 処理済みの印
-  );
-
-  /// @brief 故障伝搬ノードの時 true を返す．
-  bool
-  is_in_fcone(
-    const TpgNode& node ///< [in] 対象のノード
+    std::unordered_set<SizeType>& mark, ///< [inout] 処理済みの印
+    const SatModel& model         ///< [in] SAT問題の解
   );
 
 

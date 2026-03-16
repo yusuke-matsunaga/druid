@@ -111,11 +111,11 @@ TpgFault::ffr_propagate_condition() const
   return AssignList(_network(), _fault()->ffr_propagate_condition());
 }
 
-// @brief 故障伝播には必要ないが，故障シミュレーションのために固定しなければならないノードを求める．
+// @brief 故障が励起してFFRの根まで伝搬する補助的な条件のノードを求める．
 TpgNodeList
-TpgFault::aux_side_inputs() const
+TpgFault::ffr_aux_side_inputs() const
 {
-  return TpgBase::node_list(_fault()->aux_side_inputs());
+  return TpgBase::node_list(_fault()->ffr_aux_side_inputs());
 }
 
 // @brief ハッシュ用の値を返す．

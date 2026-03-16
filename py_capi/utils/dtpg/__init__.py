@@ -11,8 +11,9 @@ from .structengine_gen import StructEngineGen
 from .bdengine_gen import BdEngineGen
 from .dtpgmgr_gen import DtpgMgrGen
 from .dtpgresults_gen import DtpgResultsGen
+from .suffcond_gen import SuffCondGen
 from .vidmap_gen import VidMapGen
-from .dtpg_args import StructEngineArg, DtpgResultsArg, DtpgStatsArg
+from .dtpg_args import StructEngineArg, DtpgResultsArg, DtpgStatsArg, SuffCondArg
 
 
 gen_list = [
@@ -20,5 +21,6 @@ gen_list = [
     BdEngineGen(),
     DtpgMgrGen(),
     DtpgResultsGen(),
+    SuffCondGen(),
     VidMapGen(),
 ]

@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "dtpg/DtpgResults.h"
+#include "types/TpgFault.h"
 #include "ResultRep.h"
 
 
@@ -53,8 +54,7 @@ DtpgResults::clear()
 void
 DtpgResults::set_detected(
   const TpgFault& fault,
-  const AssignList& assign_list,
-  const AssignList& aux_side_inputs,
+  const SuffCond& cond,
   const TestVector& testvect
 )
 {
@@ -63,7 +63,7 @@ DtpgResults::set_detected(
     buf << fault.str() << " has already set";
     throw std::invalid_argument{buf.str()};
   }
-  auto r = new ResultRep_DT(assign_list, aux_side_inputs, testvect);
+  auto r = new ResultRep_DT(cond, testvect);
   mResultDict.emplace(fault.id(), r);
 }
 
@@ -122,23 +122,13 @@ DtpgResults::status(
 }
 
 // @brief 値割り当てを返す．
-const AssignList&
-DtpgResults::assign_list(
+const SuffCond&
+DtpgResults::cond(
   const TpgFault& fault
 ) const
 {
   auto r = mResultDict.at(fault.id());
-  return r->assign_list();
-}
-
-// @brief 補助的な値割り当てを返す．
-const AssignList&
-DtpgResults::aux_side_inputs(
-  const TpgFault& fault
-) const
-{
-  auto r = mResultDict.at(fault.id());
-  return r->aux_side_inputs();
+  return r->cond();
 }
 
 // @brief テストベクタを返す．

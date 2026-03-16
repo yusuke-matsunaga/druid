@@ -16,17 +16,10 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // 値割り当てを返す．
-const AssignList&
-ResultRep::assign_list() const
+const SuffCond&
+ResultRep::cond() const
 {
   throw std::logic_error{"No AssignList"};
-}
-
-// @brief 保持的な値割り当てを返す．
-const AssignList&
-ResultRep::aux_side_inputs() const
-{
-  throw std::logic_error{"No Aux Side Inputs"};
 }
 
 // テストベクタを返す．
@@ -45,7 +38,7 @@ ResultRep::testvector() const
 ResultRep*
 ResultRep_DT::duplicate() const
 {
-  return new ResultRep_DT(mAssignList, mAuxSideInputs, mTestVector);
+  return new ResultRep_DT(mCond, mTestVector);
 }
 
 // 結果を返す．
@@ -56,17 +49,10 @@ ResultRep_DT::status() const
 }
 
 // 値割り当てを返す．
-const AssignList&
-ResultRep_DT::assign_list() const
+const SuffCond&
+ResultRep_DT::cond() const
 {
-  return mAssignList;
-}
-
-// @brief 補助的な値割り当てを返す．
-const AssignList&
-ResultRep_DT::aux_side_inputs() const
-{
-  return mAuxSideInputs;
+  return mCond;
 }
 
 // テストベクタを返す．

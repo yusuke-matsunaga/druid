@@ -42,3 +42,15 @@ class DtpgStatsArg(TypedObjConvArg):
                          cvardefault=None,
                          cvartype='DtpgStats',
                          pyclassname='PyDtpgStats')
+
+
+class SuffCondArg(TypedObjConvArg):
+
+    def __init__(self, *,
+                 name=None,
+                 cvarname):
+        super().__init__(name=name,
+                         cvarname=cvarname,
+                         cvardefault=None,
+                         cvartype='SuffCond',
+                         pyclassname='PySuffCond')

@@ -36,7 +36,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 指定された出力からバックトレースを行う．
-  std::pair<AssignList, AssignList>
+  SuffCond
   backtrace(
     const ExData& data,   ///< [in] 故障伝搬の情報
     const TpgNode& output ///< [in] 対象の出力ノード

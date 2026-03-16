@@ -12,7 +12,8 @@ from mk_py_capi import OptArg, KwdArg, TypedRawObjArg
 from mk_py_capi import DoubleArg, UlongArg
 from sat import SatStatsArg
 from tpg_types import TpgFaultArg
-from tpg_types import TestVectorArg, AssignListArg, FaultStatusArg
+from tpg_types import TestVectorArg, FaultStatusArg
+from .dtpg_args import SuffCondArg
 
 
 class DtpgResultsGen(PyObjGen):
@@ -27,6 +28,7 @@ class DtpgResultsGen(PyObjGen):
                                                'pym/PyTpgNodeList.h',
                                                'pym/PyTestVector.h',
                                                'pym/PyAssignList.h',
+                                               'pym/PySuffCond.h',
                                                'pym/PyFaultStatus.h',
                                                'pym/PySatStats.h',
                                                'pym/PyUlong.h',
@@ -42,16 +44,14 @@ class DtpgResultsGen(PyObjGen):
                         doc_str='clear')
 
         def meth_set_detected(writer):
-            writer.gen_stmt('val.set_detected(fault, as_list, aux_side_inputs, testvect)')
+            writer.gen_stmt('val.set_detected(fault, cond, testvect)')
             writer.gen_return_py_none();
         self.add_method('set_detected',
                         func_body=meth_set_detected,
                         arg_list=[TpgFaultArg(name='fault',
                                               cvarname='fault'),
-                                  AssignListArg(name='assign_list',
-                                                cvarname='as_list'),
-                                  AssignListArg(name='aux_side_inputs',
-                                                cvarname='aux_side_inputs'),
+                                  SuffCondArg(name='cond',
+                                              cvarname='cond'),
                                   TestVectorArg(name='testvect',
                                                 cvarname='testvect')],
                         doc_str='set DETECTED')
@@ -74,14 +74,14 @@ class DtpgResultsGen(PyObjGen):
                                               cvarname='fault')],
                         doc_str='get status')
 
-        def meth_assign_list(writer):
-            writer.gen_return_pyobject('PyAssignList',
-                                       'val.assign_list(fault)')
-        self.add_method('assign_list',
-                        func_body=meth_assign_list,
+        def meth_cond(writer):
+            writer.gen_return_pyobject('PySuffCond',
+                                       'val.cond(fault)')
+        self.add_method('cond',
+                        func_body=meth_cond,
                         arg_list=[TpgFaultArg(name='fault',
                                               cvarname='fault')],
-                        doc_str='return AssignList of the fault')
+                        doc_str='return detect condition of the fault')
 
         def meth_testvector(writer):
             writer.gen_return_pyobject('PyTestVector',

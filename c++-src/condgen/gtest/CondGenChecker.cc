@@ -22,7 +22,7 @@ END_NONAMESPACE
 CondGenChecker::CondGenChecker(
   const TpgNetwork& network,
   const DetCond& cond
-) : mEngine(network, cond.root()),
+) : mEngine(cond.root()),
     mCond{cond}
 {
   mEngine.add_prev_node(cond.root());
@@ -119,12 +119,11 @@ CondGenChecker::make_cnf()
       }
       return olit;
     }
-    auto bd_enc = new BoolDiffEnc(mCond.root(), mCond.output_list());
-    mEngine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+    auto pvar = mEngine.add_bdenc(mCond.root(), mCond.output_list());
     mEngine.add_prev_node(mCond.root());
     auto tmp_lit = olit;
     olit = mEngine.new_variable(false);
-    mEngine.solver().add_orgate(olit, tmp_lit, bd_enc->prop_var());
+    mEngine.solver().add_orgate(olit, tmp_lit, pvar);
     if ( olit == SatLiteral::X ) {
       std::cout << "olit == SatLiteral::X"
 		<< std::endl;
@@ -134,11 +133,8 @@ CondGenChecker::make_cnf()
     return olit;
   }
   if ( mCond.type() == DetCond::Overflow ) {
-    auto bd_enc = new BoolDiffEnc(mCond.root(), mCond.output_list());
-    //auto bd_enc = new BoolDiffEnc(mCond.root());
-    mEngine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
+    auto lit = mEngine.add_bdenc(mCond.root(), mCond.output_list());
     mEngine.add_prev_node(mCond.root());
-    auto lit = bd_enc->prop_var();
     return lit;
   }
   throw std::logic_error{"cond.type() == Undetected"};

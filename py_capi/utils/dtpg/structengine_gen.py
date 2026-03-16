@@ -11,9 +11,10 @@ from mk_py_capi import PyObjGen
 from mk_py_capi import OptArg, KwdArg, IntArg
 from misc import JsonValueArg
 from logic import ExprArg
-from sat import SatLiteralArg, SatLiteralListArg
+from sat import SatLiteralArg, SatLiteralListArg, SatModelArg
 from tpg_types import TpgNetworkRefArg, TpgNodeArg, TpgNodeListArg
 from tpg_types import AssignArg, AssignListArg
+from .dtpg_args import SuffCondArg
 
 
 def init_common(self):
@@ -65,20 +66,22 @@ def init_common(self):
 
     def meth_justify(writer):
         writer.gen_return_pyobject('PyAssignList',
-                                   'val.justify(assign_list, aux_side_inputs)')
+                                   'val.justify(cond, model)')
     self.add_method('justify',
                     func_body=meth_justify,
-                    arg_list=[AssignListArg(name='assign_list',
-                                            cvarname='assign_list'),
-                              AssignListArg(name='aux_side_inputs',
-                                            cvarname='aux_side_inputs')],
+                    arg_list=[SuffCondArg(name='cond',
+                                          cvarname='cond'),
+                              SatModelArg(name='model',
+                                          cvarname='model')],
                     doc_str='do Justification')
 
     def meth_get_pi_assign(writer):
         writer.gen_return_pyobject('PyAssignList',
-                                   'val.get_pi_assign()')
+                                   'val.get_pi_assign(model)')
     self.add_method('get_pi_assign',
                     func_body=meth_get_pi_assign,
+                    arg_list=[SatModelArg(name='model',
+                                          cvarname='model')],
                     doc_str='return current assignments on Primary Inputs')
 
     def meth_conv_to_literal(writer):
@@ -165,13 +168,15 @@ def init_common(self):
                     doc_str='return H Variable for the node')
 
     def meth_val(writer):
-        writer.gen_return_py_bool('val.val(node, time)')
+        writer.gen_return_py_bool('val.val(node, time, model)')
     self.add_method('val',
                     func_body=meth_val,
                     arg_list=[TpgNodeArg(name='node',
                                          cvarname='node'),
                               IntArg(name='time',
-                                     cvarname='time')],
+                                     cvarname='time'),
+                              SatModelArg(name='model',
+                                          cvarname='model')],
                 doc_str='return the value of the node')
 
     def meth_cnf_time(writer):
@@ -194,10 +199,12 @@ class StructEngineGen(PyObjGen):
                                                'pym/PyTpgNodeList.h',
                                                'pym/PyAssign.h',
                                                'pym/PyAssignList.h',
+                                               'pym/PySuffCond.h',
                                                'pym/PySatBool3.h',
                                                'pym/PySatLiteral.h',
                                                'pym/PySatLiteralList.h',
                                                'pym/PySatStats.h',
+                                               'pym/PySatModel.h',
                                                'pym/PyExpr.h',
                                                'pym/PyList.h',
                                                'pym/PyFloat.h',

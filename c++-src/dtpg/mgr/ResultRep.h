@@ -9,6 +9,8 @@
 /// All rights reserved.
 
 #include "dtpg/DtpgResults.h"
+#include "dtpg/SuffCond.h"
+#include "types/TestVector.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -49,13 +51,8 @@ public:
 
   /// @brief 値割り当てを返す．
   virtual
-  const AssignList&
-  assign_list() const;
-
-  /// @brief 補助的な値割り当てを返す．
-  virtual
-  const AssignList&
-  aux_side_inputs() const;
+  const SuffCond&
+  cond() const;
 
   /// @brief テストベクタを返す．
   virtual
@@ -76,11 +73,9 @@ public:
 
   /// @brief コンストラクタ
   ResultRep_DT(
-    const AssignList& assign_list,
-    const AssignList& aux_side_inputs,
+    const SuffCond& cond,
     const TestVector& testvector
-  ) : mAssignList{assign_list},
-      mAuxSideInputs{aux_side_inputs},
+  ) : mCond(cond),
       mTestVector{testvector}
   {
   }
@@ -97,12 +92,8 @@ public:
   status() const override;
 
   // 値割り当てを返す．
-  const AssignList&
-  assign_list() const override;
-
-  /// @brief 補助的な値割り当てを返す．
-  const AssignList&
-  aux_side_inputs() const override;
+  const SuffCond&
+  cond() const override;
 
   /// @brief テストベクタを返す．
   const TestVector&
@@ -115,10 +106,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 値割り当て
-  AssignList mAssignList;
-
-  // 補助的な値割り当て
-  AssignList mAuxSideInputs;
+  SuffCond mCond;
 
   // テストベクタ
   TestVector mTestVector;

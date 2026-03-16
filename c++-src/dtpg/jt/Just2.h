@@ -40,8 +40,7 @@ private:
   /// @brief 初期化処理
   void
   just_init(
-    const AssignList& assign_list,    ///< [in] 割当リスト
-    const AssignList& aux_side_inputs ///< [in] 値割当が必要なノードのリスト
+    const SuffCond& cond ///< [in] 割当リスト
   ) override;
 
   /// @brief 制御値を持つファンインを一つ選ぶ．

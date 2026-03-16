@@ -9,6 +9,7 @@
 #include "dtpg/StructEngine.h"
 #include "types/TpgNetwork.h"
 #include "GateEnc.h"
+#include "BoolDiffEnc.h"
 #include "Justifier.h"
 
 
@@ -83,6 +84,31 @@ StructEngine::add_subenc(
   }
   mSubEncList.push_back(std::move(enc));
   mState = DIRTY;
+}
+
+// @brief BoolDiffEnc を追加する．
+SatLiteral
+StructEngine::add_bdenc(
+  const TpgNode& node,
+  const JsonValue& option
+)
+{
+  auto enc = new BoolDiffEnc(node, option);
+  add_subenc(std::unique_ptr<SubEnc>{enc});
+  return enc->prop_var();
+}
+
+// @brief BoolDiffEnc を追加する．
+SatLiteral
+StructEngine::add_bdenc(
+  const TpgNode& node,
+  const TpgNodeList& output_list,
+  const JsonValue& option
+)
+{
+  auto enc = new BoolDiffEnc(node, output_list, option);
+  add_subenc(std::unique_ptr<SubEnc>{enc});
+  return enc->prop_var();
 }
 
 // @brief 現時刻で考慮するノードを追加する．
@@ -237,37 +263,38 @@ StructEngine::get_stats() const
 // @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
 AssignList
 StructEngine::justify(
-  const AssignList& assign_list,
-  const AssignList& aux_side_inputs
+  const SuffCond& cond,
+  const SatModel& model
 )
 {
-  auto& model = mSolver.model();
   if ( mNetwork.has_prev_state() ) {
-    return mJustifier->justify(assign_list, aux_side_inputs, mHvarMap, mGvarMap, model);
+    return mJustifier->justify(cond, mHvarMap, mGvarMap, model);
   }
   else {
-    return mJustifier->justify(assign_list, aux_side_inputs, mGvarMap, model);
+    return mJustifier->justify(cond, mGvarMap, model);
   }
 }
 
 // @brief 現在の外部入力の割当を得る．
 AssignList
-StructEngine::get_pi_assign()
+StructEngine::get_pi_assign(
+  const SatModel& model
+)
 {
   AssignList pi_assign;
   if ( mNetwork.has_prev_state() ) {
     for ( auto node: mNetwork.ppi_list() ) {
-      auto v = val(node, 0);
+      auto v = val(node, 0, model);
       pi_assign.add(node, 0, v);
     }
     for ( auto node: mNetwork.input_list() ) {
-      auto v = val(node, 1);
+      auto v = val(node, 1, model);
       pi_assign.add(node, 1, v);
     }
   }
   else {
     for ( auto node: mNetwork.ppi_list() ) {
-      auto v = val(node, 1);
+      auto v = val(node, 1, model);
       pi_assign.add(node, 1, v);
     }
   }
@@ -285,7 +312,10 @@ StructEngine::conv_to_literal(
   bool inv = !assign.val(); // 0 の時が inv = true
   auto vid = (assign.time() == 0) ? hvar(node) : gvar(node);
   if ( vid == SatLiteral::X ) {
-    abort();
+    { // *DD*
+      std::cout << assign << " is not registered" << std::endl;
+      abort();
+    }
     throw std::invalid_argument{"assign is not registered"};
   }
   return vid * inv;
@@ -355,11 +385,24 @@ StructEngine::expr_to_cnf(
 bool
 StructEngine::val(
   const TpgNode& node,
-  int time
+  int time,
+  const SatModel& model
 )
 {
   auto lit = (time == 0) ? hvar(node) : gvar(node);
-  return mSolver.model()[lit] == SatBool3::True;
+  return model[lit] == SatBool3::True;
+}
+
+// @brief 値を Assign の形で返す．
+Assign
+StructEngine::assign(
+  const TpgNode& node,
+  int time,
+  const SatModel& model
+)
+{
+  auto bval = val(node, time, model);
+  return Assign(node, time, bval);
 }
 
 

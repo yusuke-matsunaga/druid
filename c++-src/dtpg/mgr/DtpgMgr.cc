@@ -102,7 +102,7 @@ DtpgMgr::run(
   if ( group_mode == "node" ) { // ノード単位で処理を行う．
     for ( auto node: network.node_list() ) {
       auto& fault_list = node_fault_list_array[node.id()];
-      auto driver = DtpgDriver::node_driver(node, fault_list, option);
+      auto driver = DtpgDriver(node, fault_list, option);
       driver.run();
       dtpg_results.merge(driver.results());
     }
@@ -121,7 +121,7 @@ DtpgMgr::run(
 	  }
 	  auto node = network.node(id);
 	  auto& fault_list = node_fault_list_array[node.id()];
-	  auto driver = DtpgDriver::node_driver(node, fault_list, option);
+	  auto driver = DtpgDriver(node, fault_list, option);
 	  driver.run();
 	  r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	}
@@ -135,7 +135,7 @@ DtpgMgr::run(
       if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
 	continue;
       }
-      auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
+      auto driver = DtpgDriver(ffr, fault_list, option);
       driver.run();
       dtpg_results.merge(driver.results());
     }
@@ -158,7 +158,7 @@ DtpgMgr::run(
 	  if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
 	    continue;
 	  }
-	  auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
+	  auto driver = DtpgDriver(ffr, fault_list, option);
 	  driver.run();
 	  r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	}
@@ -174,12 +174,12 @@ DtpgMgr::run(
 	continue;
       }
       if ( ffr.is_valid() ) {
-	auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
+	auto driver = DtpgDriver(ffr, fault_list, option);
 	driver.run();
 	dtpg_results.merge(driver.results());
       }
       else {
-	auto driver = DtpgDriver::mffc_driver(mffc, fault_list, option);
+	auto driver = DtpgDriver(mffc, fault_list, option);
 	driver.run();
 	dtpg_results.merge(driver.results());
       }
@@ -204,12 +204,12 @@ DtpgMgr::run(
 	    continue;
 	  }
 	  if ( ffr.is_valid() ) {
-	    auto driver = DtpgDriver::ffr_driver(ffr, fault_list, option);
+	    auto driver = DtpgDriver(ffr, fault_list, option);
 	    driver.run();
 	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	  }
 	  else {
-	    auto driver = DtpgDriver::mffc_driver(mffc, fault_list, option);
+	    auto driver = DtpgDriver(mffc, fault_list, option);
 	    driver.run();
 	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	  }
@@ -235,7 +235,7 @@ DtpgMgr::check(
 {
   auto network = fault.network();
   auto root = fault.ffr_root();
-  BdEngine engine(network, root);
+  BdEngine engine(root);
 
   { // assign_list_array に含まれるノードを登録しておく．
     for ( auto& assign_list: assign_list_array ) {

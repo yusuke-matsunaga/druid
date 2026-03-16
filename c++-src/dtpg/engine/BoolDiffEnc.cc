@@ -6,7 +6,8 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "dtpg/BoolDiffEnc.h"
+#include "BoolDiffEnc.h"
+#include "dtpg/SuffCond.h"
 #include "types/TpgNetwork.h"
 #include "GateEnc.h"
 #include "Extractor.h"
@@ -89,11 +90,15 @@ END_NONAMESPACE
 void
 BoolDiffEnc::init()
 {
-  mFvarMap.init(engine().network().node_num());
-  mDvarMap.init(engine().network().node_num());
+  if ( network().has_prev_state() ) {
+    engine().add_prev_node(mRoot);
+  }
+
+  mFvarMap.init(network().node_num());
+  mDvarMap.init(network().node_num());
 
   if ( mOutputList.empty() ) {
-    mTfoList = engine().network().get_tfo_list(
+    mTfoList = network().get_tfo_list(
       mRoot,
       [&](const TpgNode& node) {
 	if ( node.is_ppo() ) {
@@ -255,20 +260,23 @@ BoolDiffEnc::make_dchain_cnf(
   }
 }
 
-// @brief 直前の check() が成功したときの十分条件を求める．
-std::pair<AssignList, AssignList>
-BoolDiffEnc::extract_sufficient_condition()
+// @brief SAT問題の解から十分条件を求める．
+SuffCond
+BoolDiffEnc::extract_sufficient_condition(
+  const SatModel& model
+)
 {
   return (*mExtractor)(root_node(),
 		       engine().gvar_map(),
 		       mFvarMap,
-		       solver().model());
+		       model);
 }
 
-// @brief 直前の check() が成功したときの十分条件を求める．
-std::pair<AssignList, AssignList>
+// @brief SAT問題の解から十分条件を求める．
+SuffCond
 BoolDiffEnc::extract_sufficient_condition(
-  SizeType pos
+  SizeType pos,
+  const SatModel& model
 )
 {
   if ( pos >= output_num() ) {
@@ -278,7 +286,7 @@ BoolDiffEnc::extract_sufficient_condition(
 		       engine().gvar_map(),
 		       mFvarMap,
 		       mOutputList[pos],
-		       solver().model());
+		       model);
 }
 
 END_NAMESPACE_DRUID

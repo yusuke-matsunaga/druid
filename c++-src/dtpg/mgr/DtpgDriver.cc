@@ -7,11 +7,7 @@
 /// All rights reserved.
 
 #include "DtpgDriver.h"
-#include "DtpgDriver_NodeEnc.h"
-#include "DtpgDriver_FFREnc.h"
-#include "DtpgDriver_MFFCEnc.h"
 #include "types/TestVector.h"
-#include "dtpg/DtpgResults.h"
 #include "ym/SatStats.h"
 #include "ym/Timer.h"
 
@@ -22,47 +18,32 @@ BEGIN_NAMESPACE_DRUID
 // クラス DtpgDriver
 //////////////////////////////////////////////////////////////////////
 
-// @brief ノード単位をテスト生成を行うオブジェクトを生成する．
-DtpgDriver
-DtpgDriver::node_driver(
+// @brief ノード単位をテスト生成を行うコンストラクタ
+DtpgDriver::DtpgDriver(
   const TpgNode& node,
   const TpgFaultList& fault_list,
   const JsonValue& option
-)
+) : mEngine{node, option},
+    mFaultList{fault_list}
 {
-  return DtpgDriver(new DtpgDriver_NodeEnc(node, option),
-		    fault_list);
 }
 
-// @brief FFR単位でテスト生成を行うオブジェクトを生成する．
-DtpgDriver
-DtpgDriver::ffr_driver(
+// @brief FFR単位でテスト生成を行うコンストラクタ
+DtpgDriver::DtpgDriver(
   const TpgFFR& ffr,
   const TpgFaultList& fault_list,
   const JsonValue& option
-)
+) : mEngine{ffr, option},
+    mFaultList{fault_list}
 {
-  return DtpgDriver(new DtpgDriver_FFREnc(ffr, option),
-		    fault_list);
 }
 
-// @brief MFFC単位でテスト生成を行うオブジェクトを生成する．
-DtpgDriver
-DtpgDriver::mffc_driver(
+// @brief MFFC単位でテスト生成を行うコンストラクタ
+DtpgDriver::DtpgDriver(
   const TpgMFFC& mffc,
   const TpgFaultList& fault_list,
   const JsonValue& option
-)
-{
-  return DtpgDriver(new DtpgDriver_MFFCEnc(mffc, option),
-		    fault_list);
-}
-
-// @brief コンストラクタ
-DtpgDriver::DtpgDriver(
-  DtpgDriverImpl* impl,
-  const TpgFaultList& fault_list
-) : mImpl{impl},
+) : mEngine{mffc, option},
     mFaultList{fault_list}
 {
 }
@@ -79,9 +60,9 @@ DtpgDriver::run()
   for ( auto fault: mFaultList ) {
     gen_pattern(fault);
   }
-  auto cnf_time = mImpl->cnf_time();
+  auto cnf_time = mEngine.engine().cnf_time();
   mResults.update_cnf(cnf_time);
-  auto sat_stats = mImpl->sat_stats();
+  auto sat_stats = mEngine.engine().get_stats();
   mResults.update_sat_stats(sat_stats);
 }
 
@@ -93,7 +74,8 @@ DtpgDriver::gen_pattern(
 {
   Timer timer;
   timer.start();
-  auto ans = mImpl->solve(fault);
+  auto lits = mEngine.make_detect_condition(fault);
+  auto ans = mEngine.solver().solve(lits);
   timer.stop();
   auto sat_time = timer.get_time();
 
@@ -101,7 +83,11 @@ DtpgDriver::gen_pattern(
     // パタンが求まった．
     timer.reset();
     timer.start();
-    mImpl->fault_op(fault, mResults);
+    auto model = mEngine.solver().model();
+    auto cond = mEngine.extract_sufficient_condition(fault, model);
+    auto pi_assign_list = mEngine.engine().justify(cond, model);
+    auto tv = TestVector(pi_assign_list);
+    mResults.set_detected(fault, cond, tv);
     timer.stop();
     auto backtrace_time = timer.get_time();
     mResults.update_det(sat_time, backtrace_time);

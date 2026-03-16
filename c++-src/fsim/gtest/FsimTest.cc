@@ -10,6 +10,7 @@
 #include "fsim/Fsim.h"
 #include "RefSim.h"
 #include "dtpg/DtpgMgr.h"
+#include "dtpg/SuffCond.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgFault.h"
 #include "types/TpgFaultList.h"
@@ -137,7 +138,9 @@ FsimTest::xspsfp_test(
     if ( results.status(fault) != FaultStatus::Detected ) {
       continue;
     }
-    auto assign_list = results.assign_list(fault);
+    auto cond = results.cond(fault);
+    auto assign_list = cond.main_cond();
+    assign_list.merge(cond.aux_cond());
     auto ref_dbits = refsim.simulate(assign_list, fault.id());
     DiffBits dbits;
     auto diff = fsim.xspsfp(assign_list, fault, dbits);
@@ -224,7 +227,9 @@ FsimTest::xsppfp_test(
     if ( results.status(fault) != FaultStatus::Detected ) {
       continue;
     }
-    auto assign_list = results.assign_list(fault);
+    auto cond = results.cond(fault);
+    auto assign_list = cond.main_cond();
+    assign_list.merge(cond.aux_cond());
     std::unordered_map<SizeType, DiffBits> dbits_dict;
     std::vector<TpgFault> ref_fault_list;
     for ( auto fault1: fault_list ) {

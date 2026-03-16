@@ -70,7 +70,7 @@ public:
 
   /// @brief 値割り当てを１つ求める．
   /// @return 値の割当リスト
-  std::pair<AssignList, AssignList>
+  SuffCond
   operator()(
     const TpgNode& root,    ///< [in] 起点となるノード
     const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
@@ -80,7 +80,7 @@ public:
 
   /// @brief 値割り当てを１つ求める．
   /// @return 値の割当リスト
-  std::pair<AssignList, AssignList>
+  SuffCond
   operator()(
     const TpgNode& root,    ///< [in] 起点となるノード
     const VidMap& gvar_map, ///< [in] 正常値の変数番号のマップ
@@ -97,7 +97,7 @@ private:
 
   /// @brief 指定された出力からバックトレースを行う．
   virtual
-  std::pair<AssignList, AssignList>
+  SuffCond
   backtrace(
     const ExData& data,   ///< [in] 故障伝搬の情報
     const TpgNode& output ///< [in] 対象の出力ノード

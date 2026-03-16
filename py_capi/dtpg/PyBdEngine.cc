@@ -12,10 +12,12 @@
 #include "pym/PyTpgNodeList.h"
 #include "pym/PyAssign.h"
 #include "pym/PyAssignList.h"
+#include "pym/PySuffCond.h"
 #include "pym/PySatBool3.h"
 #include "pym/PySatLiteral.h"
 #include "pym/PySatLiteralList.h"
 #include "pym/PySatStats.h"
+#include "pym/PySatModel.h"
 #include "pym/PyExpr.h"
 #include "pym/PyList.h"
 #include "pym/PyFloat.h"
@@ -219,35 +221,35 @@ justify(
 )
 {
   static const char* kwlist[] = {
-    "assign_list",
-    "aux_side_inputs",
+    "cond",
+    "model",
     nullptr
   };
-  PyObject* assign_list_obj = nullptr;
-  PyObject* aux_side_inputs_obj = nullptr;
+  PyObject* cond_obj = nullptr;
+  PyObject* model_obj = nullptr;
   if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!",
                                     const_cast<char**>(kwlist),
-                                    PyAssignList::_typeobject(), &assign_list_obj,
-                                    PyAssignList::_typeobject(), &aux_side_inputs_obj) ) {
+                                    PySuffCond::_typeobject(), &cond_obj,
+                                    PySatModel::_typeobject(), &model_obj) ) {
     return nullptr;
   }
-  AssignList assign_list;
-  if ( assign_list_obj != nullptr ) {
-    if ( !PyAssignList::FromPyObject(assign_list_obj, assign_list) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+  SuffCond cond;
+  if ( cond_obj != nullptr ) {
+    if ( !PySuffCond::FromPyObject(cond_obj, cond) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to SuffCond");
       return nullptr;
     }
   }
-  AssignList aux_side_inputs;
-  if ( aux_side_inputs_obj != nullptr ) {
-    if ( !PyAssignList::FromPyObject(aux_side_inputs_obj, aux_side_inputs) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+  SatModel model;
+  if ( model_obj != nullptr ) {
+    if ( !PySatModel::FromPyObject(model_obj, model) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to SatModel");
       return nullptr;
     }
   }
   auto& val = PyBdEngine::_get_ref(self);
   try {
-    return PyAssignList::ToPyObject(val.justify(assign_list, aux_side_inputs));
+    return PyAssignList::ToPyObject(val.justify(cond, model));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -260,12 +262,30 @@ justify(
 PyObject*
 get_pi_assign(
   PyObject* self,
-  PyObject* Py_UNUSED(args)
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kwlist[] = {
+    "model",
+    nullptr
+  };
+  PyObject* model_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+                                    const_cast<char**>(kwlist),
+                                    PySatModel::_typeobject(), &model_obj) ) {
+    return nullptr;
+  }
+  SatModel model;
+  if ( model_obj != nullptr ) {
+    if ( !PySatModel::FromPyObject(model_obj, model) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to SatModel");
+      return nullptr;
+    }
+  }
   auto& val = PyBdEngine::_get_ref(self);
   try {
-    return PyAssignList::ToPyObject(val.get_pi_assign());
+    return PyAssignList::ToPyObject(val.get_pi_assign(model));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -501,14 +521,17 @@ val(
   static const char* kwlist[] = {
     "node",
     "time",
+    "model",
     nullptr
   };
   PyObject* node_obj = nullptr;
   int time;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!i",
+  PyObject* model_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!iO!",
                                     const_cast<char**>(kwlist),
                                     PyTpgNode::_typeobject(), &node_obj,
-                                    &time) ) {
+                                    &time,
+                                    PySatModel::_typeobject(), &model_obj) ) {
     return nullptr;
   }
   TpgNode node;
@@ -518,9 +541,16 @@ val(
       return nullptr;
     }
   }
+  SatModel model;
+  if ( model_obj != nullptr ) {
+    if ( !PySatModel::FromPyObject(model_obj, model) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to SatModel");
+      return nullptr;
+    }
+  }
   auto& val = PyBdEngine::_get_ref(self);
   try {
-    return PyBool_FromLong(val.val(node, time));
+    return PyBool_FromLong(val.val(node, time, model));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -569,14 +599,32 @@ prop_var(
 PyObject*
 extract_sufficient_condition(
   PyObject* self,
-  PyObject* Py_UNUSED(args)
+  PyObject* args,
+  PyObject* kwds
 )
 {
+  static const char* kwlist[] = {
+    "model",
+    nullptr
+  };
+  PyObject* model_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
+                                    const_cast<char**>(kwlist),
+                                    PySatModel::_typeobject(), &model_obj) ) {
+    return nullptr;
+  }
+  SatModel model;
+  if ( model_obj != nullptr ) {
+    if ( !PySatModel::FromPyObject(model_obj, model) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to SatModel");
+      return nullptr;
+    }
+  }
   auto& val = PyBdEngine::_get_ref(self);
   try {
-    auto p = val.extract_sufficient_condition();
-    auto obj1 = PyAssignList::ToPyObject(p.first);
-    auto obj2 = PyAssignList::ToPyObject(p.second);
+    auto p = val.extract_sufficient_condition(model);
+    auto obj1 = PyAssignList::ToPyObject(p.main_cond());
+    auto obj2 = PyAssignList::ToPyObject(p.aux_cond());
     return Py_BuildValue("(OO)", obj1, obj2);
   }
   catch ( std::exception err ) {
@@ -614,8 +662,8 @@ PyMethodDef methods[] = {
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do Justification")},
   {"get_pi_assign",
-   get_pi_assign,
-   METH_NOARGS,
+   reinterpret_cast<PyCFunction>(get_pi_assign),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("return current assignments on Primary Inputs")},
   {"conv_to_ltieral",
    reinterpret_cast<PyCFunction>(conv_to_ltieral),
@@ -654,8 +702,8 @@ PyMethodDef methods[] = {
    METH_NOARGS,
    PyDoc_STR("return Propagation Variable")},
   {"extract_sufficient_condition",
-   extract_sufficient_condition,
-   METH_NOARGS,
+   reinterpret_cast<PyCFunction>(extract_sufficient_condition),
+   METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("return sufficient condition")},
   // end-marker
   {nullptr, nullptr, 0, nullptr}
@@ -733,22 +781,18 @@ new_func(
 )
 {
   static const char* kwlist[] = {
-    "network",
     "node",
     "option",
     nullptr
   };
-  PyObject* network_obj = nullptr;
   PyObject* node_obj = nullptr;
   PyObject* option_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!|$O",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!|$O",
                                     const_cast<char**>(kwlist),
-                                    PyTpgNetwork::_typeobject(), &network_obj,
                                     PyTpgNode::_typeobject(), &node_obj,
                                     &option_obj) ) {
     return nullptr;
   }
-  auto& network = PyTpgNetwork::_get_ref(network_obj);
   TpgNode node;
   if ( node_obj != nullptr ) {
     if ( !PyTpgNode::FromPyObject(node_obj, node) ) {
@@ -766,7 +810,7 @@ new_func(
   try {
     auto self = type->tp_alloc(type, 0);
     auto my_obj = reinterpret_cast<BdEngine_Object*>(self);
-    new (&my_obj->mVal) BdEngine(network, node, option);
+    new (&my_obj->mVal) BdEngine(node, option);
     return self;
   }
   catch ( std::invalid_argument err ) {

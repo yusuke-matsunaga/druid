@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "StructEngine.h"
+#include "dtpg/StructEngine.h"
 #include "ym/CnfSize.h"
 
 
@@ -120,14 +120,17 @@ public:
     return mPropVarList[pos];
   }
 
-  /// @brief 直前の check() が成功したときの十分条件を求める．
-  std::pair<AssignList, AssignList>
-  extract_sufficient_condition();
-
-  /// @brief 直前の check() が成功したときの十分条件を求める．
-  std::pair<AssignList, AssignList>
+  /// @brief SAT問題の解から十分条件を求める．
+  SuffCond
   extract_sufficient_condition(
-    SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
+    const SatModel& model ///< [in] SAT問題の解
+  );
+
+  /// @brief SAT問題の解から十分条件を求める．
+  SuffCond
+  extract_sufficient_condition(
+    SizeType pos,          ///< [in] 出力番号 ( 0 <= pos < output_num() )
+    const SatModel& model ///< [in] SAT問題の解
   );
 
 

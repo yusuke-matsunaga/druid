@@ -8,8 +8,10 @@
 
 #include "types/TpgNetwork.h"
 #include "dtpg/DtpgMgr.h"
+#include "dtpg/SuffCond.h"
 #include "types/TpgFault.h"
 #include "types/TpgFaultList.h"
+#include "types/TestVector.h"
 #include "fsim/Fsim.h"
 #include "ym/SatInitParam.h"
 #include "ym/Timer.h"
@@ -368,8 +370,9 @@ dtpg_test(
       DiffBits _;
       std::string error;
       int error_type = 0;
-      auto assign_list = results.assign_list(fault);
-      auto aux_list = results.aux_side_inputs(fault);
+      auto cond = results.cond(fault);
+      auto assign_list = cond.main_cond();
+      auto aux_list = cond.aux_cond();
       if ( !DtpgMgr::check(fault, assign_list) ) {
 	error += " check";
 	error_type |= 4;

@@ -8,8 +8,10 @@
 
 #include "gtest/gtest.h"
 #include "dtpg/DtpgMgr.h"
+#include "dtpg/SuffCond.h"
 #include "types/TpgNetwork.h"
 #include "types/AssignList.h"
+#include "types/TestVector.h"
 #include "fsim/Fsim.h"
 #include "ym/SatInitParam.h"
 
@@ -225,6 +227,11 @@ DtpgTestWithParam2::do_test()
   fsim_option.add("has_x", true);
   auto fsim = Fsim(fault_list, fsim_option);
 
+  {
+    std::cout << "filename:   " << filename() << std::endl
+	      << "fault type: " << fault_type() << std::endl
+	      << "option:     " << option.to_json() << std::endl;
+  }
   auto dtpg_results = DtpgMgr::run(fault_list, option);
 
   SizeType TotalCount = 0;
@@ -373,8 +380,9 @@ TEST(DtpgTest, xor2)
     DiffBits _;
     auto fsim_res = fsim.spsfp(tv, fault, _);
     EXPECT_TRUE( fsim_res ) << fault.str();
-    auto assign_list = res.assign_list(fault);
-    auto aux_assign_list = res.aux_side_inputs(fault);
+    auto cond = res.cond(fault);
+    auto assign_list = cond.main_cond();
+    auto aux_assign_list = cond.aux_cond();
     auto assign_list2 = assign_list + aux_assign_list;
     auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
     EXPECT_TRUE( fsim_res2 ) << fault.str();
@@ -399,8 +407,9 @@ TEST(DtpgTest, c432)
       continue;
     }
     auto tv = res.testvector(fault);
-    auto assign_list = res.assign_list(fault);
-    auto aux_assign_list = res.aux_side_inputs(fault);
+    auto cond = res.cond(fault);
+    auto assign_list = cond.main_cond();
+    auto aux_assign_list = cond.aux_cond();
     EXPECT_TRUE( DtpgMgr::check(fault, assign_list) ) << fault.str() << " check";
     DiffBits _;
     auto fsim_res = fsim.spsfp(tv, fault, _);
@@ -430,8 +439,9 @@ TEST(DtpgTest, c499)
       continue;
     }
     auto tv = res.testvector(fault);
-    auto assign_list = res.assign_list(fault);
-    auto aux_assign_list = res.aux_side_inputs(fault);
+    auto cond = res.cond(fault);
+    auto assign_list = cond.main_cond();
+    auto aux_assign_list = cond.aux_cond();
     EXPECT_TRUE( DtpgMgr::check(fault, assign_list) ) << fault.str() << " check";
     DiffBits _;
     auto fsim_res = fsim.spsfp(tv, fault, _);

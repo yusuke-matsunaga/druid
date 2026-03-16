@@ -1,0 +1,62 @@
+#ifndef MPCOMP_MERGE_H
+#define MPCOMP_MERGE_H
+
+/// @file MpComp_Merge.h
+/// @brief MpComp_Merge のヘッダファイル
+/// @author Yusuke Matsunaga (松永 裕介)
+///
+/// Copyright (C) 2026 Yusuke Matsunaga
+/// All rights reserved.
+
+#include "MpComp.h"
+
+
+BEGIN_NAMESPACE_DRUID
+
+//////////////////////////////////////////////////////////////////////
+/// @class MpComp_Merge MpComp_Merge.h "MpComp_Merge.h"
+/// @brief 故障を他のパタンにマージさせることでパタンの削減を行う．
+//////////////////////////////////////////////////////////////////////
+class MpComp_Merge :
+  public MpComp
+{
+public:
+
+  /// @brief コンストラクタ
+  MpComp_Merge();
+
+  /// @brief デストラクタ
+  ~MpComp_Merge();
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief パタン圧縮の本体
+  std::vector<TestVector>
+  _run(
+    const std::vector<TestVector>& tv_list, ///< [in] 初期パタンリスト
+    const TpgFaultList& fault_list,         ///< [in] 対象の故障リスト
+    const JsonValue& option                 ///< [in] オプション
+  ) override;
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+
+};
+
+END_NAMESPACE_DRUID
+
+#endif // MPCOMP_MERGE_H

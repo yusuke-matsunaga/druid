@@ -8,6 +8,7 @@
 
 #include "JustBase.h"
 #include "JustData.h"
+#include "dtpg/SuffCond.h"
 
 #define DEBUG_OUT std::cout
 
@@ -41,8 +42,7 @@ JustBase::~JustBase()
 // @brief justify の実際の処理
 AssignList
 JustBase::_justify(
-  const AssignList& assign_list,
-  const AssignList& aux_side_inputs
+  const SuffCond& cond
 )
 {
   // マークをクリアする．
@@ -50,15 +50,15 @@ JustBase::_justify(
     m = 0U;
   }
 
-  just_init(assign_list, aux_side_inputs);
+  just_init(cond);
 
   mQueue.clear();
-  for ( auto nv: assign_list ) {
+  for ( auto nv: cond.main_cond() ) {
     auto node = nv.node();
     int time = nv.time();
     put_queue(node, time);
   }
-  for ( auto nv: aux_side_inputs ) {
+  for ( auto nv: cond.aux_cond() ) {
     auto node = nv.node();
     int time = nv.time();
     put_queue(node, time);
@@ -80,8 +80,7 @@ JustBase::_justify(
 // @brief 初期化処理
 void
 JustBase::just_init(
-  const AssignList& assign_list,
-  const AssignList& aux_side_inputs
+  const SuffCond& cond
 )
 {
 }

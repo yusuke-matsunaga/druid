@@ -22,7 +22,7 @@ BEGIN_NAMESPACE_DRUID
 DtpgDriver_Enc::DtpgDriver_Enc(
   const TpgNode& node,
   const JsonValue& option
-) : mEngine(node.network(), node, option)
+) : mEngine(node, option)
 {
   mEngine.add_prev_node(node);
 }

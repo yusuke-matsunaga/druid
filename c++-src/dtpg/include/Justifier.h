@@ -59,21 +59,19 @@ public:
   /// @return 外部入力上の値の割当リスト
   AssignList
   justify(
-    const AssignList& assign_list,     ///< [in] 値の割り当てリスト
-    const AssignList& aux_side_inputs, ///< [in] 値割当が必要なノードのリスト
-    const VidMap& var_map,	       ///< [in] 変数番号のマップ
-    const SatModel& model	       ///< [in] SAT問題の解
+    const SuffCond& cond,  ///< [in] 値の割り当て
+    const VidMap& var_map, ///< [in] 変数番号のマップ
+    const SatModel& model  ///< [in] SAT問題の解
   );
 
   /// @brief 正当化に必要な割当を求める(遷移故障用)．
   /// @return 外部入力上の値の割当リスト
   AssignList
   justify(
-    const AssignList& assign_list,     ///< [in] 値の割り当てリスト
-    const AssignList& aux_side_inputs, ///< [in] 値割当が必要なノードのリスト
-    const VidMap& var1_map,	       ///< [in] 1時刻目の変数番号のマップ
-    const VidMap& var2_map,	       ///< [in] 2時刻目の変数番号のマップ
-    const SatModel& model	       ///< [in] SAT問題の解
+    const SuffCond& cond,   ///< [in] 値の割り当て
+    const VidMap& var1_map, ///< [in] 1時刻目の変数番号のマップ
+    const VidMap& var2_map, ///< [in] 2時刻目の変数番号のマップ
+    const SatModel& model   ///< [in] SAT問題の解
   );
 
 
@@ -113,8 +111,7 @@ private:
   virtual
   AssignList
   _justify(
-    const AssignList& assign_list,    ///< [in] 割当リスト
-    const AssignList& aux_side_inputs ///< [in] 値割当が必要なノードのリスト
+    const SuffCond& cond ///< [in] 割り当てリスト
   ) = 0;
 
 

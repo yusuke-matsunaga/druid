@@ -12,7 +12,7 @@ include_directories (
 # ===================================================================
 
 add_subdirectory( mgr )
-add_subdirectory( driver )
+#add_subdirectory( driver )
 add_subdirectory( engine )
 add_subdirectory( ex )
 add_subdirectory( jt )

@@ -74,9 +74,9 @@ FaultRep::ffr_propagate_condition() const
   return assign_list;
 }
 
-// @brief 故障伝播条件ではないが値の固定が必要なノードのリストを返す．
+// @brief 故障が励起してFFRの根まで伝搬する補助的な条件のノードを求める．
 std::vector<const NodeRep*>
-FaultRep::aux_side_inputs() const
+FaultRep::ffr_aux_side_inputs() const
 {
   std::vector<const NodeRep*> node_list;
   for ( auto node = origin_node(); node->fanout_num() == 1; ) {

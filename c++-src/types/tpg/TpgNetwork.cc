@@ -14,6 +14,8 @@
 #include "types/TpgFFR.h"
 #include "types/TpgFault.h"
 #include "types/TpgFaultList.h"
+#include "types/TestVector.h"
+#include "types/AssignList.h"
 #include "ym/BnModel.h"
 
 
@@ -487,12 +489,51 @@ TpgNetwork::fault(
   return TpgBase::fault(fault_id);
 }
 
+// @brief 故障リストを得る．
+TpgFaultList
+TpgNetwork::fault_list(
+  const std::vector<SizeType>& fault_id_list ///< [in] 故障番号のリスト
+) const
+{
+  return TpgBase::fault_list(fault_id_list);
+}
+
 // @brief 故障番号の最大値を返す．
 SizeType
 TpgNetwork::max_fault_id() const
 {
   _check_valid();
   return _network()->max_fault_id();
+}
+
+// @brief TestVector を AssignList に変換する．
+AssignList
+TpgNetwork::assign_list(
+  const TestVector& testvector
+) const
+{
+  AssignList assign_list;
+  auto npi = ppi_num();
+  for ( SizeType i = 0; i < npi; ++ i ) {
+    auto val = testvector.val(i);
+    if ( val != Val3::_X ) {
+      auto bval = val == Val3::_1;
+      auto node = ppi(i);
+      assign_list.add(node, 1, bval);
+    }
+  }
+  if ( testvector.has_aux_input() ) {
+    auto ni = input_num();
+    for ( SizeType i = 0; i < ni; ++ i ) {
+      auto val = testvector.val(i + npi);
+      if ( val != Val3::_X ) {
+	auto bval = val == Val3::_1;
+	auto node = input(i);
+	assign_list.add(node, 0, bval);
+      }
+    }
+  }
+  return assign_list;
 }
 
 // @brief TpgNetwork の内容を出力する関数

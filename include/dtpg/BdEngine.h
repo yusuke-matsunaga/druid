@@ -9,14 +9,17 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "StructEngine.h"
-#include "BoolDiffEnc.h"
+#include "dtpg/StructEngine.h"
+#include "dtpg/SuffCond.h"
+#include "types/TpgNode.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
+class BoolDiffEnc;
+
 //////////////////////////////////////////////////////////////////////
-/// @class BdEngine BdEngine.h "BdEngine.h"
+/// @class BdEngine BdEngine.h "dtpg/BdEngine.h"
 /// @brief BoolDiffEnc を一つ組み込んだ StructEngine
 /// @ingroup DtpgGroup
 //////////////////////////////////////////////////////////////////////
@@ -27,15 +30,10 @@ public:
 
   /// @brief コンストラクタ
   BdEngine(
-    const TpgNetwork& network, ///< [in] ネットワーク
     const TpgNode& node,       ///< [in] 対象のノード
     const JsonValue& option    ///< [in] オプション
     = JsonValue{}
-  ) : StructEngine(network, option),
-      mBdEnc{new BoolDiffEnc(node, option)}
-  {
-    add_subenc(std::unique_ptr<SubEnc>{mBdEnc});
-  }
+  );
 
   /// @brief デストラクタ
   ~BdEngine() = default;
@@ -48,58 +46,40 @@ public:
 
   /// @brief root_node() から到達可能な外部出力のリストを返す．
   const TpgNodeList&
-  output_list() const
-  {
-    return mBdEnc->output_list();
-  }
+  output_list() const;
 
   /// @brief root_node() から到達可能な外部出力の数を返す．
   SizeType
-  output_num() const
-  {
-    return mBdEnc->output_num();
-  }
+  output_num() const;
 
   /// @brief root_node() から到達可能な外部出力を返す．
   TpgNode
   output(
     SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
-  ) const
-  {
-    return mBdEnc->output(pos);
-  }
+  ) const;
 
   /// @brief 伝搬変数
   SatLiteral
-  prop_var() const
-  {
-    return mBdEnc->prop_var();
-  }
+  prop_var() const;
 
   /// @brief 微分結果を表す変数を返す．
   SatLiteral
   prop_var(
     SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
-  ) const
-  {
-    return mBdEnc->prop_var(pos);
-  }
+  ) const;
 
-  /// @brief 直前の check() が成功したときの十分条件を求める．
-  std::pair<AssignList, AssignList>
-  extract_sufficient_condition()
-  {
-    return mBdEnc->extract_sufficient_condition();
-  }
-
-  /// @brief 直前の check() が成功したときの十分条件を求める．
-  std::pair<AssignList, AssignList>
+  /// @brief SAT問題の解から十分条件を求める．
+  SuffCond
   extract_sufficient_condition(
-    SizeType pos ///< [in] 出力番号 ( 0 <= pos < output_num() )
-  )
-  {
-    return mBdEnc->extract_sufficient_condition(pos);
-  }
+    const SatModel& model ///< [in] SAT問題の解
+  );
+
+  /// @brief SAT問題の解から十分条件を求める．
+  SuffCond
+  extract_sufficient_condition(
+    SizeType pos,          ///< [in] 出力番号 ( 0 <= pos < output_num() )
+    const SatModel& model ///< [in] SAT問題の解
+  );
 
 
 private:

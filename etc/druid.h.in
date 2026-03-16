@@ -92,7 +92,6 @@ class TpgFaultList;
 
 class Assign;
 class AssignList;
-class AssignExpr;
 class InputVector;
 class DffVector;
 class TestVector;
@@ -100,6 +99,10 @@ class TestVector;
 class DtpgMgr;
 class DtpgResults;
 class DtpgStats;
+class SuffCond;
+class StructEngine;
+class BdEngine;
+class FaultEnc;
 class VidMap;
 
 class Fsim;

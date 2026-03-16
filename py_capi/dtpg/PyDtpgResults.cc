@@ -11,6 +11,7 @@
 #include "pym/PyTpgNodeList.h"
 #include "pym/PyTestVector.h"
 #include "pym/PyAssignList.h"
+#include "pym/PySuffCond.h"
 #include "pym/PyFaultStatus.h"
 #include "pym/PySatStats.h"
 #include "pym/PyUlong.h"
@@ -78,20 +79,17 @@ set_detected(
 {
   static const char* kwlist[] = {
     "fault",
-    "assign_list",
-    "aux_side_inputs",
+    "cond",
     "testvect",
     nullptr
   };
   PyObject* fault_obj = nullptr;
-  PyObject* as_list_obj = nullptr;
-  PyObject* aux_side_inputs_obj = nullptr;
+  PyObject* cond_obj = nullptr;
   PyObject* testvect_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!O!",
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!",
                                     const_cast<char**>(kwlist),
                                     PyTpgFault::_typeobject(), &fault_obj,
-                                    PyAssignList::_typeobject(), &as_list_obj,
-                                    PyAssignList::_typeobject(), &aux_side_inputs_obj,
+                                    PySuffCond::_typeobject(), &cond_obj,
                                     PyTestVector::_typeobject(), &testvect_obj) ) {
     return nullptr;
   }
@@ -102,17 +100,10 @@ set_detected(
       return nullptr;
     }
   }
-  AssignList as_list;
-  if ( as_list_obj != nullptr ) {
-    if ( !PyAssignList::FromPyObject(as_list_obj, as_list) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
-      return nullptr;
-    }
-  }
-  AssignList aux_side_inputs;
-  if ( aux_side_inputs_obj != nullptr ) {
-    if ( !PyAssignList::FromPyObject(aux_side_inputs_obj, aux_side_inputs) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+  SuffCond cond;
+  if ( cond_obj != nullptr ) {
+    if ( !PySuffCond::FromPyObject(cond_obj, cond) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to SuffCond");
       return nullptr;
     }
   }
@@ -125,7 +116,7 @@ set_detected(
   }
   auto& val = PyDtpgResults::_get_ref(self);
   try {
-    val.set_detected(fault, as_list, aux_side_inputs, testvect);
+    val.set_detected(fault, cond, testvect);
     Py_RETURN_NONE;
   }
   catch ( std::exception err ) {
@@ -210,7 +201,7 @@ status(
 }
 
 PyObject*
-assign_list(
+cond(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -235,7 +226,7 @@ assign_list(
   }
   auto& val = PyDtpgResults::_get_ref(self);
   try {
-    return PyAssignList::ToPyObject(val.assign_list(fault));
+    return PySuffCond::ToPyObject(val.cond(fault));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -459,10 +450,10 @@ PyMethodDef methods[] = {
    reinterpret_cast<PyCFunction>(status),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("get status")},
-  {"assign_list",
-   reinterpret_cast<PyCFunction>(assign_list),
+  {"cond",
+   reinterpret_cast<PyCFunction>(cond),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return AssignList of the fault")},
+   PyDoc_STR("return detect condition of the fault")},
   {"testvector",
    reinterpret_cast<PyCFunction>(testvector),
    METH_VARARGS | METH_KEYWORDS,

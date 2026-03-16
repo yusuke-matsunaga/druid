@@ -64,22 +64,20 @@ Justifier::Justifier(
 // @brief 正当化に必要な割当を求める(縮退故障用)．
 AssignList
 Justifier::justify(
-  const AssignList& assign_list,
-  const AssignList& aux_side_inputs,
+  const SuffCond& cond,
   const VidMap& var_map,
   const SatModel& model
 )
 {
   JustData jd{var_map, model};
   mJustDataPtr = &jd;
-  return _justify(assign_list, aux_side_inputs);
+  return _justify(cond);
 }
 
 // @brief 正当化に必要な割当を求める(遷移故障用)．
 AssignList
 Justifier::justify(
-  const AssignList& assign_list,
-  const AssignList& aux_side_inputs,
+  const SuffCond& cond,
   const VidMap& var1_map,
   const VidMap& var2_map,
   const SatModel& model
@@ -87,7 +85,7 @@ Justifier::justify(
 {
   JustData jd{var1_map, var2_map, model};
   mJustDataPtr = &jd;
-  return _justify(assign_list, aux_side_inputs);
+  return _justify(cond);
 }
 
 END_NAMESPACE_DRUID

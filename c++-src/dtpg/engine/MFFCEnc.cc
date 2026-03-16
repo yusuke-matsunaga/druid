@@ -6,7 +6,8 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "dtpg/MFFCEnc.h"
+#include "MFFCEnc.h"
+#include "dtpg/SuffCond.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgMFFC.h"
 #include "types/TpgFault.h"
@@ -54,14 +55,15 @@ MFFCEnc::MFFCEnc(
     mFFRInfoArray(mMFFC.ffr_num())
 {
   // MFFC 内の FFR に対してローカルな番号を割り当てる．
-  SizeType ffr_id = 0;
-  for ( auto ffr: mMFFC.ffr_list() ) {
-    mFFRIdMap.emplace(ffr.id(), ffr_id);
-    auto& info = mFFRInfoArray[ffr_id];
+  auto ffr_list = mMFFC.ffr_list();
+  auto nffr = ffr_list.size();
+  for ( SizeType local_id = 0; local_id < nffr; ++ local_id ) {
+    auto ffr = ffr_list[local_id];
+    mFFRIdMap.emplace(ffr.id(), local_id);
+    auto& info = mFFRInfoArray[local_id];
     info.mFFR = ffr;
     auto root = ffr.root();
-    mRootIdMap.emplace(root.id(), ffr_id);
-    ++ ffr_id;
+    mRootIdMap.emplace(root.id(), local_id);
   }
 
   // mRootArray[] のノードと MFFC の出力の間にあるノードを
@@ -72,7 +74,7 @@ MFFCEnc::MFFCEnc(
   auto root = mMFFC.root();
   mark.emplace(root.id());
   mNodeList.push_back(root);
-  for ( auto ffr: mMFFC.ffr_list() ) {
+  for ( auto ffr: ffr_list ) {
     auto node = ffr.root();
     if ( node != root ) {
       dfs(node, mark, mNodeList);
@@ -88,13 +90,13 @@ MFFCEnc::cvar_assumptions(
 {
   // fault に該当する FFR の cvar のみ true にする．
   auto node = fault.ffr_root();
-  auto ffr_id = mRootIdMap.at(node.id());
+  auto local_id = mRootIdMap.at(node.id());
 
   auto nffr = mFFRInfoArray.size();
   std::vector<SatLiteral> assumptions(nffr);
   for ( SizeType i = 0; i < nffr; ++ i ) {
     auto clit = mFFRInfoArray[i].mCvar;
-    if ( i == ffr_id ) {
+    if ( i == local_id ) {
       assumptions[i] = clit;
     }
     else {
@@ -106,6 +108,8 @@ MFFCEnc::cvar_assumptions(
 
 BEGIN_NONAMESPACE
 
+// node の TFO を深さ優先探索し mark に入れる．
+// ただし end_node で止まる．
 void
 dfs(
   const TpgNode& node,
@@ -127,10 +131,11 @@ dfs(
 
 END_NONAMESPACE
 
-// @brief 直前の check() が成功したときの十分条件を求める．
-AssignList
+// @brief SATの解から十分条件を求める．
+SuffCond
 MFFCEnc::extract_sufficient_condition(
-  const TpgFault& fault
+  const TpgFault& fault,
+  const SatModel& model
 )
 {
   auto start = mMFFC.root();
@@ -143,8 +148,8 @@ MFFCEnc::extract_sufficient_condition(
   dfs(end, start, fmark);
   AssignList assign_list;
   std::unordered_set<SizeType> mark;
-  ex_sub(start, end, fmark, assign_list, mark);
-  return assign_list;
+  ex_sub(start, end, fmark, assign_list, mark, model);
+  return SuffCond(assign_list, {});
 }
 
 // @brief extract_sufficient_condition() の下請け関数
@@ -154,7 +159,8 @@ MFFCEnc::ex_sub(
   const TpgNode& end_node,
   const std::unordered_set<SizeType>& fmark,
   AssignList& assign_list,
-  std::unordered_set<SizeType>& mark
+  std::unordered_set<SizeType>& mark,
+  const SatModel& model
 )
 {
   if ( node == end_node ) {
@@ -168,27 +174,15 @@ MFFCEnc::ex_sub(
   // node は sensitized node のはず．
   for ( auto inode: node.fanin_list() ) {
     if ( fmark.count(inode.id()) > 0 ) {
-      ex_sub(inode, end_node, fmark, assign_list, mark);
+      // inode も sensitized node だった．
+      ex_sub(inode, end_node, fmark, assign_list, mark, model);
     }
     else {
-      auto& model = solver().model();
-      auto glit = gvar(node);
-      auto val = model[glit];
-      bool bval = val == SatBool3::True ? true : false;
-      assign_list.add(inode, 1, bval);
+      // inode は side input だった．
+      // 値を記録する．
+      assign_list.add(engine().assign(inode, 1, model));
     }
   }
-}
-
-// @brief 故障伝搬ノードの時 true を返す．
-bool
-MFFCEnc::is_in_fcone(
-  const TpgNode& node
-)
-{
-  auto glit = gvar(node);
-  auto flit = fvar(node);
-  return glit != flit;
 }
 
 // @brief データ構造の初期化を行う．

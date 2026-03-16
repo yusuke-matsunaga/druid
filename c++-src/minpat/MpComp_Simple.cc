@@ -10,6 +10,8 @@
 #include "types/TpgNetwork.h"
 #include "types/TpgFaultList.h"
 #include "fsim/Fsim.h"
+#include "dtpg/DtpgEngine.h"
+#include "FaultGroup.h"
 #include "ym/MinCov.h"
 #include "ym/UdGraph.h"
 #include "ym/Timer.h"
@@ -100,6 +102,61 @@ mincov(
   return new_list;
 }
 
+TestVector
+expand_tv(
+  const TestVector& tv,
+  const TpgFaultList& fault_list
+)
+{
+  auto network = fault_list.network();
+  auto tv_assign_list = network.assign_list(tv);
+  TestVector new_tv;
+  for ( auto fault: fault_list ) {
+    auto root = fault.ffr_root();
+    BdEngine engine(root);
+    auto pvar = engine.prop_var();
+    auto ffr_cond = fault.ffr_propagate_condition();
+  }
+  return new_tv;
+}
+
+std::vector<TestVector>
+expand(
+  const std::vector<TestVector>& tv_list,
+  const TpgFaultList& fault_list
+)
+{
+  // 各テストベクタの検出する故障リストを求める．
+  auto fg_list = FaultGroup::make_list(tv_list, fault_list);
+
+  // 検出故障数の降順に並べる．
+  std::sort(fg_list.begin(), fg_list.end(),
+	    [](const FaultGroup& a, const FaultGroup& b) -> bool {
+	      return a.fault_list().size() > b.fault_list().size();
+	    });
+
+  // この順番に故障検出の担当するベクタを決める．
+  // -> 担当でない故障を削除する．
+  // -> 結果，テストベクタを更新する．
+  auto network = fault_list.network();
+  std::vector<bool> mark(network.max_fault_id(), false);
+  std::vector<TestVector> new_tv_list;
+  new_tv_list.reserve(fg_list.size());
+  for ( auto& fg: fg_list ) {
+    TpgFaultList new_fault_list;
+    for ( auto fault: fg.fault_list() ) {
+      auto fid = fault.id();
+      if ( !mark[fid] ) {
+	mark[fid] = true;
+	new_fault_list.push_back(fault);
+      }
+    }
+    auto new_tv = expand_tv(fg.testvector(), new_fault_list);
+    new_tv_list.push_back(new_tv);
+  }
+  return new_tv_list;
+}
+
 std::vector<TestVector>
 packing(
   const std::vector<TestVector>& tv_list
@@ -169,13 +226,16 @@ MpComp_Simple::_run(
   // 最小被覆を求める．
   auto tv_list1 = mincov(tv_list, fault_list, drop_limit);
 
+  // テストキューブの拡大を行う．
+  auto tv_list2 = expand(tv_list1, fault_list);
+
   // 最小彩色を行う．
-  auto tv_list2 = packing(tv_list1);
+  auto tv_list3 = packing(tv_list2);
 
   // 再度最小被覆を行う．
-  auto tv_list3 = mincov(tv_list2, fault_list, drop_limit);
+  auto tv_list4 = mincov(tv_list3, fault_list, drop_limit);
 
-  return tv_list3;
+  return tv_list4;
 }
 
 END_NAMESPACE_DRUID

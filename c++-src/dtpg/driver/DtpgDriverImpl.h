@@ -43,7 +43,9 @@ public:
   virtual
   SatBool3
   solve(
-    const TpgFault& fault ///< [in] 対象の故障
+    const TpgFault& fault,                     ///< [in] 対象の故障
+    const std::vector<SatLiteral>& assumptions ///< [in] 付加的な条件
+    = {}
   ) = 0;
 
   /// @brief 故障に対する処理を行う．

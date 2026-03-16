@@ -108,7 +108,7 @@ CondGenTestWithParam::do_test()
   SizeType limit = 1000;
 
   for ( auto ffr: network.ffr_list() ) {
-    BdEngine engine(network, ffr.root(), option);
+    BdEngine engine(ffr.root(), option);
     engine.add_prev_node(ffr.root());
     auto cond = CondGen::root_cond(network, ffr, limit, option);
     if ( cond.type() == DetCond::Undetected ) {

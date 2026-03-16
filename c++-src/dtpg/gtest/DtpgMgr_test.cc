@@ -8,6 +8,7 @@
 
 #include <gtest/gtest.h>
 #include "dtpg/DtpgMgr.h"
+#include "dtpg/SuffCond.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgFault.h"
 #include "types/TpgFaultList.h"
@@ -29,10 +30,10 @@ TEST(DtpgMgrTest, test1)
     }
     auto results = DtpgMgr::run(TpgFaultList({fault}));
     ASSERT_EQ( FaultStatus::Detected, results.status(fault) );
-    auto assign_list = results.assign_list(fault);
+    auto cond = results.cond(fault);
     {
       std::cout << "assign_list = ";
-      for ( auto nv: assign_list ) {
+      for ( auto nv: cond.main_cond() ) {
 	std::cout << " " << nv;
       }
       std::cout << std::endl;

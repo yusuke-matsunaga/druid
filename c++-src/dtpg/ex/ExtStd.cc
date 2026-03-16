@@ -9,6 +9,7 @@
 #include "ExtStd.h"
 #include "ExData.h"
 #include "MkBdd.h"
+#include "dtpg/SuffCond.h"
 #include "ym/BddLit.h"
 #include "ym/BddCube.h"
 
@@ -20,7 +21,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief 指定された出力からバックトレースを行う．
-std::pair<AssignList, AssignList>
+SuffCond
 ExtStd::backtrace(
   const ExData& data,
   const TpgNode& output
@@ -76,7 +77,7 @@ ExtStd::backtrace(
     }
   }
 
-  return std::make_pair(assign_list, aux_side_inputs2);
+  return SuffCond(assign_list, aux_side_inputs2);
 }
 
 // @brief 制御値を持つ side input を選ぶ．

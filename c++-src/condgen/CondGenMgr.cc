@@ -15,7 +15,6 @@
 #include "types/TpgFFR.h"
 #include "types/TpgFault.h"
 #include "dtpg/StructEngine.h"
-#include "dtpg/BoolDiffEnc.h"
 #include "ExprGen.h"
 #include "ym/AigMgr.h"
 #include "ym/Timer.h"
@@ -347,9 +346,7 @@ CondGenMgr::make_bd(
     auto& cond = cond_list[id];
     if ( cond.type() == DetCond::PartialDetected ||
 	 cond.type() == DetCond::Overflow ) {
-      auto bd_enc = new BoolDiffEnc(cond.root(), cond.output_list());
-      engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
-      auto lit = bd_enc->prop_var();
+      auto lit = engine.add_bdenc(cond.root(), cond.output_list());
       lit_list[id] = lit;
     }
   }
@@ -371,9 +368,7 @@ CondGenMgr::make_cnf_naive(
   auto ffr_num = network.ffr_num();
   std::vector<std::vector<SatLiteral>> lits_array(ffr_num);
   for ( auto ffr: network.ffr_list() ) {
-    auto bd_enc = new BoolDiffEnc(ffr.root());
-    engine.add_subenc(std::unique_ptr<SubEnc>{bd_enc});
-    auto lit = bd_enc->prop_var();
+    auto lit = engine.add_bdenc(ffr.root());
     lits_array[ffr.id()] = std::vector<SatLiteral>{lit};
   }
 

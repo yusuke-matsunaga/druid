@@ -82,7 +82,7 @@ CondGen::root_cond(
   AssignList mand_cond;
   SizeType output_num;
   {
-    BdEngine engine(network, root, option);
+    BdEngine engine(root, option);
     engine.add_prev_node(root);
     output_num = engine.output_num();
 
@@ -96,8 +96,9 @@ CondGen::root_cond(
     }
 
     // 最初の十分条件を求める．
-    auto cond_pair = engine.extract_sufficient_condition();
-    auto suff_cond = cond_pair.first;
+    auto model = engine.solver().model();
+    auto cond = engine.extract_sufficient_condition(model);
+    auto suff_cond = cond.main_cond();
     // 必要条件を求める．
     for ( auto as: suff_cond ) {
       auto lit = engine.conv_to_literal(as);
@@ -156,8 +157,9 @@ CondGen::root_cond(
 	// どうする？
 	break;
       }
-      auto cond_pair = engine.extract_sufficient_condition();
-      auto suff_cond = cond_pair.first;
+      auto model = solver.model();
+      auto cond_pair = engine.extract_sufficient_condition(model);
+      auto suff_cond = cond_pair.main_cond();
       suff_cond.diff(mand_cond);
       if ( suff_cond.size() == 0 ) {
 	// 最初に生成された suff_cond が冗長だった．
@@ -186,7 +188,7 @@ CondGen::root_cond(
   output_list.reserve(output_num);
   std::vector<DetCond::CondData> cond_list;
   for ( SizeType pos = 0; pos < output_num; ++ pos ) {
-    BdEngine engine(network, root, option);
+    BdEngine engine(root, option);
     engine.add_prev_node(root);
     auto output = engine.output(pos);
     auto& solver = engine.solver();
@@ -199,8 +201,9 @@ CondGen::root_cond(
       continue;
     }
     // 最初の十分条件を求める．
-    auto cond_pair = engine.extract_sufficient_condition(pos);
-    auto suff_cond = cond_pair.first;
+    auto model = solver.model();
+    auto cond_pair = engine.extract_sufficient_condition(pos, model);
+    auto suff_cond = cond_pair.main_cond();
     suff_cond.diff(mand_cond);
 
     // 必要条件を求める．
@@ -246,8 +249,9 @@ CondGen::root_cond(
       if ( res == SatBool3::X ) {
 	break;
       }
-      auto cond_pair = engine.extract_sufficient_condition(pos);
-      auto suff_cond = cond_pair.first;
+      auto model = solver.model();
+      auto cond_pair = engine.extract_sufficient_condition(pos, model);
+      auto suff_cond = cond_pair.main_cond();
       suff_cond.diff(mand_cond1);
       if ( suff_cond.size() == 0 ) {
 	cube_list.clear();

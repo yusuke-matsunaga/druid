@@ -235,7 +235,7 @@ count_test(
   total_timer.start();
 
   for ( auto ffr: network.ffr_list() ) {
-    BdEngine engine(network, ffr.root(), option);
+    BdEngine engine(ffr.root(), option);
     engine.add_prev_node(ffr.root());
     auto cond = CondGen::root_cond(network, ffr, 1000, cg_option);
     if ( cond.type() == DetCond::Undetected ) {

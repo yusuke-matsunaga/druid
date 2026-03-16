@@ -8,6 +8,7 @@
 
 #include "Just2.h"
 #include "JustData.h"
+#include "dtpg/SuffCond.h"
 
 #define DEBUG_OUT std::cout
 
@@ -44,18 +45,17 @@ Just2::~Just2()
 // @brief 初期化処理
 void
 Just2::just_init(
-  const AssignList& assign_list,
-  const AssignList& aux_side_inputs
+  const SuffCond& cond
 )
 {
   // ヒューリスティックで用いる重みを計算する．
   for ( auto time: {0, 1} ) {
     mNodeList[time].clear();
   }
-  for ( auto nv: assign_list ) {
+  for ( auto nv: cond.main_cond() ) {
     add_weight(nv.node(), nv.time());
   }
-  for ( auto nv: aux_side_inputs ) {
+  for ( auto nv: cond.aux_cond() ) {
     add_weight(nv.node(), nv.time());
   }
   for ( auto time: {0, 1} ) {

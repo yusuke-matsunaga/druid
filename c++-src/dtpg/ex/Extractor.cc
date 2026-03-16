@@ -10,6 +10,7 @@
 #include "ExtSimple.h"
 #include "ExtStd.h"
 #include "ExData.h"
+#include "dtpg/SuffCond.h"
 
 
 #define DBG_OUT cerr
@@ -55,7 +56,7 @@ Extractor::new_impl(
 }
 
 // @brief 値割り当てを１つ求める．
-std::pair<AssignList, AssignList>
+SuffCond
 Extractor::operator()(
   const TpgNode& root,
   const VidMap& gvar_map,
@@ -65,24 +66,24 @@ Extractor::operator()(
 {
   ExData data(root, gvar_map, fvar_map, model);
 
-  std::pair<AssignList, AssignList> min_assign_pair;
+  SuffCond min_cond;
   SizeType min_val = std::numeric_limits<SizeType>::max();
   for ( auto po: data.sensitized_output_list() ) {
     // 各出力に対する割り当てを求める．
-    auto assign_pair = backtrace(data, po);
-    auto& assign_list = assign_pair.first;
+    auto cond = backtrace(data, po);
+    auto& assign_list = cond.main_cond();
     SizeType val = assign_list.size();
     if ( min_val > val ) {
       // 要素数が最小のものを選ぶ．
       min_val = val;
-      min_assign_pair = assign_pair;
+      min_cond = cond;
     }
   }
-  return min_assign_pair;
+  return min_cond;
 }
 
 // @brief 値割り当てを１つ求める．
-std::pair<AssignList, AssignList>
+SuffCond
 Extractor::operator()(
   const TpgNode& root,
   const VidMap& gvar_map,

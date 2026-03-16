@@ -8,7 +8,7 @@
 /// Copyright (C) 2024 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DtpgDriver_Enc.h"
+#include "DtpgDriverImpl.h"
 #include "ym/JsonValue.h"
 
 
@@ -16,7 +16,7 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DtpgDriver_FFREnc DtpgDriver_FFREnc.h "DtpgDriver_FFREnc.h"
-/// @brief FFR 単位で処理を行う DtpgDriver_Enc
+/// @brief FFREngine を用いた DtpgDriverImpl
 //////////////////////////////////////////////////////////////////////
 class DtpgDriver_FFREnc :
   public DtpgDriver_Enc

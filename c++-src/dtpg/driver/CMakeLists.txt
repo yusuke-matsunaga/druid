@@ -17,10 +17,10 @@ include_directories (
 
 set ( driver_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver_Enc.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver_NodeEnc.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver_FFREnc.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver_MFFCEnc.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver_Enc.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver_NodeEnc.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver_FFREnc.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver_MFFCEnc.cc
   PARENT_SCOPE
   )
 

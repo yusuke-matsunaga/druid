@@ -454,6 +454,24 @@ public:
     SizeType fault_id ///< [in] 故障番号 ( 0 <= fault_id < max_fault_id() )
   ) const;
 
+  /// @brief 故障リストを得る．
+  TpgFaultList
+  fault_list(
+    const std::vector<SizeType>& fault_id_list ///< [in] 故障番号のリスト
+  ) const;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // TestVector を AssignList に変換する関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief TestVector を AssignList に変換する．
+  AssignList
+  assign_list(
+    const TestVector& testvector ///< [in] テストベクタ
+  ) const;
+
 
 public:
   //////////////////////////////////////////////////////////////////////

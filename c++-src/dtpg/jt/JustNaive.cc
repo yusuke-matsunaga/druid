@@ -8,6 +8,7 @@
 
 #include "JustNaive.h"
 #include "JustData.h"
+#include "dtpg/SuffCond.h"
 
 #define DEBUG_OUT std::cout
 
@@ -40,8 +41,7 @@ JustNaive::~JustNaive()
 // @brief justify の実際の処理
 AssignList
 JustNaive::_justify(
-  const AssignList& assign_list,
-  const AssignList& aux_side_inputs
+  const SuffCond& cond
 )
 {
   // 単純に assign_list に含まれるノードの TFI を訪問して
@@ -52,7 +52,7 @@ JustNaive::_justify(
   TpgNodeList cur_list;
   // 時刻0の割り当てを持つノードのリスト
   TpgNodeList prev_list;
-  for ( auto nv: assign_list ) {
+  for ( auto nv: cond.main_cond() ) {
     auto node = nv.node();
     if ( nv.time() == 1 ) {
       cur_list.push_back(node);
@@ -61,7 +61,7 @@ JustNaive::_justify(
       prev_list.push_back(node);
     }
   }
-  for ( auto nv: aux_side_inputs ) {
+  for ( auto nv: cond.aux_cond() ) {
     auto node = nv.node();
     if ( nv.time() == 1 ) {
       cur_list.push_back(node);

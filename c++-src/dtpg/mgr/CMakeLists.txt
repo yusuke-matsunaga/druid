@@ -17,6 +17,7 @@ include_directories (
 
 set ( mgr_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/DtpgMgr.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/DtpgDriver.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/DtpgResults.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultRep.cc
   PARENT_SCOPE

@@ -183,10 +183,10 @@ public:
   std::vector<SizeType>
   ffr_propagate_condition() const;
 
-  /// @brief 故障伝播条件ではないが値の固定が必要なノードのリストを返す．
+  /// @brief 故障が励起してFFRの根まで伝搬する補助的な条件のノードを求める．
   virtual
   std::vector<const NodeRep*>
-  aux_side_inputs() const;
+  ffr_aux_side_inputs() const;
 
 
 public:

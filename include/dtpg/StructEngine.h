@@ -61,6 +61,27 @@ public:
     std::unique_ptr<SubEnc>&& enc
   );
 
+  /// @brief BoolDiffEnc を追加する．
+  ///
+  /// node の影響が外部出力に伝搬する条件を表す変数(リテラル)を返す．
+  SatLiteral
+  add_bdenc(
+    const TpgNode& node,    ///< [in] 起点のノード
+    const JsonValue& option ///< [in] オプション
+    = {}
+  );
+
+  /// @brief BoolDiffEnc を追加する．
+  ///
+  /// node の影響が output_list に伝搬する条件を表す変数(リテラル)を返す．
+  SatLiteral
+  add_bdenc(
+    const TpgNode& node,            ///< [in] 起点のノード
+    const TpgNodeList& output_list, ///< [in] 出力ノードのリスト
+    const JsonValue& option         ///< [in] オプション
+    = {}
+  );
+
   /// @brief 現時刻で考慮するノードを追加する．
   ///
   /// 実際にはこのノードのTFOのTFIを対象にする．
@@ -121,21 +142,21 @@ public:
   /// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
   /// @return 外部入力の割り当てリストを返す．
   ///
-  /// * 事前にSAT問題の充足解が求められている必要がある．
   /// * 必要な値割り当てのみが記録される．
   AssignList
   justify(
-    const AssignList& assign_list,    ///< [in] 割当リスト
-    const AssignList& aux_side_inputs ///< [in] 補助的な割り当てリスト
+    const SuffCond& suff_cond, ///< [in] 割当リスト
+    const SatModel& model      ///< [in] SAT問題の解
   );
 
   /// @brief 現在の外部入力の割当を得る．
   /// @return 外部入力の割り当てリストを返す．
   ///
-  /// * 事前にSAT問題の充足解が求められている必要がある．
   /// * すべての外部入力になんらかの値が入る
   AssignList
-  get_pi_assign();
+  get_pi_assign(
+    const SatModel& model ///< [in] SAT問題の解
+  );
 
   /// @brief 値割り当てを対応するリテラルに変換する．
   SatLiteral
@@ -233,12 +254,19 @@ public:
   }
 
   /// @brief 値を返す．
-  ///
-  /// 直前に solver().solve() を呼んでいる必要がある．
   bool
   val(
-    const TpgNode& node, ///< [in] 対象のノード
-    int time             ///< [in] 時刻(0 or 1)
+    const TpgNode& node,  ///< [in] 対象のノード
+    int time,             ///< [in] 時刻(0 or 1)
+    const SatModel& model ///< [in] SAT問題の解
+  );
+
+  /// @brief 値を Assign の形で返す．
+  Assign
+  assign(
+    const TpgNode& node,  ///< [in] 対象のノード
+    int time,             ///< [in] 時刻(0 or 1)
+    const SatModel& model ///< [in] SAT問題の解
   );
 
   /// @brief CNF の生成時間を返す．

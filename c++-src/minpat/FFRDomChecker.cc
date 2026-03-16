@@ -25,7 +25,7 @@ FFRDomChecker::FFRDomChecker(
   const JsonValue& option
 ) : mFaultList{fault_list},
     mDelMark{del_mark},
-    mEngine(ffr.network(), ffr.root(), option)
+    mEngine(ffr.root(), option)
 {
   auto pvar = mEngine.prop_var();
   mEngine.solver().add_clause(pvar);

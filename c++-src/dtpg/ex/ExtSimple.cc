@@ -8,6 +8,7 @@
 
 #include "ExtSimple.h"
 #include "ExData.h"
+#include "dtpg/SuffCond.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -17,7 +18,7 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief 指定された出力からバックトレースを行う．
-std::pair<AssignList, AssignList>
+SuffCond
 ExtSimple::backtrace(
   const ExData& data,
   const TpgNode& output
@@ -38,7 +39,7 @@ ExtSimple::backtrace(
     auto bval = (data.gval(node) == Val3::_1);
     assign_list.add(node, 1, bval);
   }
-  return std::make_pair(assign_list, AssignList());
+  return SuffCond(assign_list, AssignList());
 }
 
 // @brief 制御値を持つ side input を選ぶ．
