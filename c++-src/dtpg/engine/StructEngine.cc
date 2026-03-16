@@ -131,6 +131,22 @@ StructEngine::add_prev_node(
   mState = DIRTY;
 }
 
+// @brief Assign に関係するノードを登録する．
+void
+StructEngine::_add_assign(
+  Assign assign
+)
+{
+  auto node = assign.node();
+  int time = assign.time();
+  if ( time == 0 ) {
+    add_prev_node(node);
+  }
+  else {
+    add_cur_node(node);
+  }
+}
+
 // @brief 回路の構造を表すCNFを生成する．
 void
 StructEngine::_update()
@@ -307,6 +323,7 @@ StructEngine::conv_to_literal(
   Assign assign
 )
 {
+  _add_assign(assign);
   update();
   auto node = assign.node();
   bool inv = !assign.val(); // 0 の時が inv = true
@@ -327,6 +344,10 @@ StructEngine::conv_to_literal_list(
   const AssignList& assign_list
 )
 {
+  for ( auto nv: assign_list ) {
+    _add_assign(nv);
+  }
+  update();
   std::vector<SatLiteral> ans_list;
   ans_list.reserve(assign_list.size());
   for ( auto nv: assign_list ) {
