@@ -110,13 +110,24 @@ expand_tv(
 {
   auto network = fault_list.network();
   auto tv_assign_list = network.assign_list(tv);
-  TestVector new_tv;
+  AssignList new_assign_list;
   for ( auto fault: fault_list ) {
     auto root = fault.ffr_root();
-    BdEngine engine(root);
-    auto pvar = engine.prop_var();
-    auto ffr_cond = fault.ffr_propagate_condition();
+    auto ffr = network.ffr(root);
+    DtpgEngine engine(ffr);
+    auto lits = engine.make_detect_condition(fault);
+    auto tv_lits = engine.conv_to_literal_list(tv_assign_list);
+    lits.insert(lits.end(), tv_lits.begin(), tv_lits.end());
+    auto res = engine.solver().solve(lits);
+    if ( res != SatBool3::True ) {
+      throw std::logic_error{"something wrong"};
+    }
+    auto& model = engine.solver().model();
+    auto cond = engine.extract_sufficient_condition(fault, model);
+    auto pi_assign = engine.justify(cond, model);
+    new_assign_list.merge(pi_assign);
   }
+  auto new_tv = TestVector(new_assign_list);
   return new_tv;
 }
 
