@@ -27,8 +27,8 @@ Fsim::Fsim(
 )
 {
   auto network = fault_list.network();
-  bool has_x = get_bool(option, "has_x", false);
-  bool multi = get_bool(option, "multi_thread", false);
+  bool has_x = option.get_bool_elem("has_x", false);
+  bool multi = option.get_bool_elem("multi_thread", false);
   bool has_previous_state = network.fault_type() == FaultType::TransitionDelay;
   if ( multi ) {
     initialize_multi(fault_list, has_previous_state, has_x);

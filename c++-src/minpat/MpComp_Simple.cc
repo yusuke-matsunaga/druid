@@ -232,7 +232,7 @@ MpComp_Simple::_run(
   const JsonValue& option
 )
 {
-  SizeType drop_limit = get_int(option, "drop_limit", 4000);
+  SizeType drop_limit = option.get_int_elem("drop_limit", 4000);
 
   // 最小被覆を求める．
   auto tv_list1 = mincov(tv_list, fault_list, drop_limit);

@@ -32,31 +32,15 @@ BEGIN_NAMESPACE_DRUID
 // クラス StructEngine
 //////////////////////////////////////////////////////////////////////
 
-BEGIN_NONAMESPACE
-
-JsonValue
-get_option(
-  const JsonValue& option,
-  const char* keyword
-)
-{
-  if ( option.is_object() && option.has_key(keyword) ) {
-    return option.get(keyword);
-  }
-  return JsonValue{};
-}
-
-END_NONAMESPACE
-
 // @brief コンストラクタ
 StructEngine::StructEngine(
   const TpgNetwork& network,
   const JsonValue& option
 ) : mNetwork{network},
-    mSolver(SatInitParam(get_option(option, "sat_param"))),
+    mSolver(SatInitParam(option.get_elem("sat_param"))),
     mGvarMap(network.node_num()),
     mHvarMap(network.node_num()),
-    mJustifier{Justifier::new_obj(network, get_option(option, "justifier"))}
+    mJustifier{Justifier::new_obj(network, option.get_elem("justifier"))}
 {
 }
 

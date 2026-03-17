@@ -31,39 +31,38 @@ MinPat::run(
 )
 {
   // 初期解を作る．
-  JsonValue init_option;
-  if ( option.is_object() && option.has_key("init") ) {
-    init_option = option.at("init");
-  }
+  auto init_option = option.get_object_elem("init");
   MpInit init(network, init_fault_list, init_option);
 
   // 故障を削減する．
-  JsonValue reduce_option;
-  if ( option.is_object() && option.has_key("reduce") ) {
-    reduce_option = option.at("reduce");
-  }
+  auto reduce_option = option.get_object_elem("reduce");
   auto fault_list = MpReducer::run(init.det_fault_list(), reduce_option);
 
   auto tv_list = init.tv_list();
 
-  auto comp_type = get_string(option, "comp", "simple");
+  auto comp_type = option.get_string_elem("comp", "simple");
   std::unique_ptr<MpComp> comp = MpComp::new_obj(comp_type);
   auto tv_list2 = comp->run(tv_list, fault_list, option);
 
   {
     PatAnalyzer analyzer(tv_list2, fault_list);
     auto ntv = tv_list2.size();
-    std::vector<SizeType> ex_num_array;
-    ex_num_array.reserve(ntv);
+    std::vector<SizeType> pos_array(ntv);
     for ( SizeType i = 0; i < ntv; ++ i ) {
-      auto n = analyzer.exclusive_list(i).size();
-      ex_num_array.push_back(n);
+      pos_array[i] = i;
     }
-    std::sort(ex_num_array.begin(), ex_num_array.end(), std::greater<>());
-    for ( SizeType i = 0; i < tv_list2.size(); ++ i ) {
-      std::cout << std::setw(5) << i
+    std::sort(pos_array.begin(), pos_array.end(),
+	      [&](SizeType a, SizeType b) -> bool {
+		return analyzer.exclusive_num(a) > analyzer.exclusive_num(b);
+	      });
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      auto pos = pos_array[i];
+      std::cout << std::right << std::setw(5) << i
 		<< ": "
-		<< std::setw(6) << ex_num_array[i] << std::endl;
+		<< std::setw(6) << analyzer.exclusive_num(pos)
+		<< " | "
+		<< std::setw(6) << analyzer.det_num(pos)
+		<< std::endl;
     }
   }
 

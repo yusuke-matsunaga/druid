@@ -15,33 +15,12 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-/// @brief キーワードに対応するオプションを取り出す．
-///
-/// option がオブジェクト型でない場合とキーワードに対応する値がない
-/// 場合には JsonValue::null() が返される．
-inline
-JsonValue
-get_option(
-  const JsonValue& option, ///< [in] オプションを表すJSONオブジェクト
-  const char* keyword	   ///< [in] キーワード
-)
-{
-  if ( option.is_object() && option.has_key(keyword) ) {
-    return option.get(keyword);
-  }
-  return JsonValue::null();
-}
-
-END_NONAMESPACE
-
 // @brief コンストラクタ
 BoolDiffEnc::BoolDiffEnc(
   const TpgNode& root,
   const JsonValue& option
 ) : mRoot{root},
-    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
+    mExtractor{Extractor::new_impl(option.get_elem("extractor"))}
 {
 }
 
@@ -52,7 +31,7 @@ BoolDiffEnc::BoolDiffEnc(
   const JsonValue& option
 ) : mRoot{root},
     mOutputList{output_list},
-    mExtractor{Extractor::new_impl(get_option(option, "extractor"))}
+    mExtractor{Extractor::new_impl(option.get_elem("extractor"))}
 {
 }
 

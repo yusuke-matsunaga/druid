@@ -28,7 +28,7 @@ ffr_reduction(
   Timer timer;
   timer.start();
 
-  bool multi_thread = get_bool(option, "multi_thread", false);
+  bool multi_thread = option.get_bool_elem("multi_thread", false);
 
   auto network = fault_list.network();
 
@@ -44,7 +44,7 @@ ffr_reduction(
   // FFR ごとに支配関係を調べる．
   std::vector<bool> del_mark(network.max_fault_id(), false);
   if ( multi_thread ) {
-    SizeType thread_num = get_int(option, "thread_num", 0);
+    SizeType thread_num = option.get_int_elem("thread_num", 0);
     IdPool id_pool(network.ffr_num());
     ExLock r_lock;
     MtMgr::run(

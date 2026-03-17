@@ -50,10 +50,18 @@ public:
     SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
   ) const
   {
-    if ( tv_id >= tv_num() ) {
-      throw std::out_of_range{"tv_id is out of range"};
-    }
+    _check_tv_id(tv_id);
     return mDetListArray[tv_id];
+  }
+
+  /// @brief 各テストベクタが検出する故障数を返す．
+  SizeType
+  det_num(
+    SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
+  ) const
+  {
+    _check_tv_id(tv_id);
+    return mDetListArray[tv_id].size();
   }
 
   /// @brief 各テストベクタが唯一検出する故障番号のリストを得る．
@@ -62,10 +70,35 @@ public:
     SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
   ) const
   {
+    _check_tv_id(tv_id);
+    return mExListArray[tv_id];
+  }
+
+  /// @brief 各テストベクタが唯一検出する故障数を返す．
+  SizeType
+  exclusive_num(
+    SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
+  ) const
+  {
+    _check_tv_id(tv_id);
+    return mExListArray[tv_id].size();
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で使用する関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief tv_id をチェックする．
+  void
+  _check_tv_id(
+    SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
+  ) const
+  {
     if ( tv_id >= tv_num() ) {
       throw std::out_of_range{"tv_id is out of range"};
     }
-    return mExListArray[tv_id];
   }
 
 

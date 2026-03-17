@@ -21,8 +21,7 @@ ExprGen::new_obj(
   const JsonValue& option
 )
 {
-  auto method = get_string(option, "method", "sop");
-
+  auto method = option.get_string_elem("method", "sop");
   if ( method == "sop" ) {
     // ナイーブなやり方
     // キューブごとにリテラルを割り当て，その OR 条件を作る．

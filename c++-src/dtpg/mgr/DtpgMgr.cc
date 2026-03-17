@@ -85,8 +85,8 @@ DtpgMgr::run(
 )
 {
   // option の解析
-  auto group_mode = get_string(option, "group_mode", "ffr");
-  auto multi = get_bool(option, "multi_thread", false);
+  auto group_mode = option.get_string_elem("group_mode", "ffr");
+  auto multi = option.get_bool_elem("multi_thread", false);
 
   // ノード番号をキーにして関係する故障番号のリストを格納する配列
   auto network = fault_list.network();
@@ -108,7 +108,7 @@ DtpgMgr::run(
     }
   }
   else if ( group_mode == "node_mt" ) { // ノード単位でマルチスレッド実行を行う．
-    SizeType thread_num = get_int(option, "thread_num", 0);
+    SizeType thread_num = option.get_int_elem("thread_num", 0);
     IdPool id_pool(network.node_num());
     ExLock r_lock;
     MtMgr::run(
@@ -142,7 +142,7 @@ DtpgMgr::run(
   }
   else if ( group_mode == "ffr_mt" ) { // FFR 単位でマルチスレッド実行を行う．
     // スレッド数
-    SizeType thread_num = get_int(option, "thread_num", 0);
+    SizeType thread_num = option.get_int_elem("thread_num", 0);
     IdPool id_pool(network.ffr_num());
     ExLock r_lock;
     MtMgr::run(
@@ -186,7 +186,7 @@ DtpgMgr::run(
     }
   }
   else if ( group_mode == "mffc_mt" ) {
-    SizeType thread_num = get_int(option, "thread_num", 0);
+    SizeType thread_num = option.get_int_elem("thread_num", 0);
     IdPool id_pool(network.mffc_num());
     ExLock r_lock;
     MtMgr::run(

@@ -27,21 +27,7 @@ BEGIN_NAMESPACE_DRUID
 BEGIN_NONAMESPACE
 
 // デフォルトのループ回数
-static const SizeType DEFAULT_LOOP_LIMIT = 1000;
-
-// @brief オプション中から "loop_limit" 属性を取り出す．
-//
-// * "loop_limit" の値を持たなければデフォルト値を返す．
-// * "loop_limit" の値が int ならそのまま返す．
-// * それ以外は例外を送出する．
-SizeType
-get_loop_limit(
-  const JsonValue& option ///< [in] オプション
-)
-{
-  const char* KEY = "loop_limit";
-  return get_int(option, KEY, DEFAULT_LOOP_LIMIT);
-}
+const SizeType DEFAULT_LOOP_LIMIT = 1000;
 
 END_NONAMESPACE
 
@@ -56,15 +42,15 @@ CondGenMgr::make_cond(
   const JsonValue& option
 )
 {
-  auto limit = get_loop_limit(option);
-  bool multi_thread = get_bool(option, "multi_thread", false);
+  auto limit = option.get_int_elem("loop_limit", DEFAULT_LOOP_LIMIT);
+  bool multi_thread = option.get_bool_elem("multi_thread", false);
 
   // ffr.id() をキーとして個々のFFRの伝搬条件を記録する配列
   std::vector<DetCond> cond_list(network.ffr_num());
 
   if ( multi_thread ) {
     // スレッド数
-    SizeType thread_num = get_int(option, "thread_num", 0);
+    SizeType thread_num = option.get_int_elem("thread_num", 0);
     if ( thread_num == 0 ) {
       thread_num = std::thread::hardware_concurrency();
     }
@@ -210,7 +196,7 @@ CondGenMgr::make_expr(
 {
   auto expr_gen = ExprGen::new_obj(option);
 
-  auto multi_thread = get_bool(option, "multi_thread", false);
+  auto multi_thread = option.get_bool_elem("multi_thread", false);
 
   auto cond_num = cond_list.size();
   // 結果の配列
@@ -218,7 +204,7 @@ CondGenMgr::make_expr(
 
   if ( multi_thread ) {
     // スレッド数
-    SizeType thread_num = get_int(option, "thread_num", 0);
+    SizeType thread_num = option.get_int_elem("thread_num", 0);
     if ( thread_num == 0 ) {
       thread_num = std::thread::hardware_concurrency();
     }
@@ -295,7 +281,7 @@ CondGenMgr::expr_to_cnf(
     lit_map.emplace(input_id, lit);
   }
 
-  auto method = get_string(option, "method", "naive");
+  auto method = option.get_string_elem("method", "naive");
   if ( method == "aig" ) {
     // 一旦 AIG に変換する．
     AigMgr mgr;
@@ -312,7 +298,7 @@ CondGenMgr::expr_to_cnf(
 	}
       }
     }
-    bool rewrite = get_bool(option, "rewrite", false);
+    bool rewrite = option.get_bool_elem("rewrite", false);
     if ( rewrite ) {
       // 簡単化を行う．
       mgr.rewrite();

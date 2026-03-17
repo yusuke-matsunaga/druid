@@ -32,7 +32,7 @@ MpReducer::run(
 {
   auto fault_list = init_fault_list;
 
-  auto do_ffr = get_bool(option, "ffr", false);
+  auto do_ffr = option.get_bool_elem("ffr", false);
   if ( do_ffr ) {
     fault_list = ffr_reduction(fault_list, option);
   }
