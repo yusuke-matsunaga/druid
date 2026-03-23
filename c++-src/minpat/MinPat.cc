@@ -11,9 +11,10 @@
 #include "fsim/Fsim.h"
 #include "types/TestVector.h"
 #include "MpInit.h"
-#include "MpReducer.h"
+#include "MpReduce.h"
 #include "MpComp.h"
-#include "PatAnalyzer.h"
+#include "MpAnalyze.h"
+#include "MpVerify.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -30,23 +31,22 @@ MinPat::run(
   const JsonValue& option
 )
 {
+  auto config = ConfigParam(option);
+
   // 初期解を作る．
-  auto init_option = option.get_object_elem("init");
+  auto init_option = config.get_param("init");
   MpInit init(network, init_fault_list, init_option);
 
   // 故障を削減する．
-  auto reduce_option = option.get_object_elem("reduce");
-  auto fault_list = MpReducer::run(init.det_fault_list(), reduce_option);
+  auto reduce_option = config.get_param("reduce");
+  auto fault_list = MpReduce::run(init.det_fault_list(), reduce_option);
 
-  auto tv_list = init.tv_list();
-
-  auto comp_type = option.get_string_elem("comp", "simple");
-  std::unique_ptr<MpComp> comp = MpComp::new_obj(comp_type);
-  auto tv_list2 = comp->run(tv_list, fault_list, option);
+  auto comp_option = config.get_param("comp");
+  auto tv_list = MpComp::run(init.tv_list(), fault_list, comp_option);
 
   {
-    PatAnalyzer analyzer(tv_list2, fault_list);
-    auto ntv = tv_list2.size();
+    MpAnalyze analyzer(tv_list, fault_list);
+    auto ntv = tv_list.size();
     std::vector<SizeType> pos_array(ntv);
     for ( SizeType i = 0; i < ntv; ++ i ) {
       pos_array[i] = i;
@@ -68,32 +68,18 @@ MinPat::run(
 
   // 結果の検証を行う．
   {
-    auto fsim_option = JsonValue::object();
-    fsim_option.add("has_x", true);
-    Fsim fsim(init.det_fault_list(), fsim_option);
-    std::unordered_set<SizeType> det_mark;
-    for ( auto& tv: tv_list2 ) {
-      auto res = fsim.sppfp(tv);
-      for ( auto fid: res.fault_list(0) ) {
-	det_mark.insert(fid);
-	auto fault = network.fault(fid);
-	fsim.set_skip(fault);
-      }
+    auto verify_option = config.get_param("verify");
+    auto undet_list = MpVerify::run(tv_list, init.det_fault_list(), verify_option);
+    for ( auto fault: undet_list ) {
+      std::cout << fault.str()
+		<< " is not detected" << std::endl;
     }
-    bool ng = false;
-    for ( auto fault: init.det_fault_list() ) {
-      if ( det_mark.count(fault.id()) == 0 ) {
-	std::cout << fault.str()
-		  << " is not detected" << std::endl;
-	ng = true;
-      }
-    }
-    if ( ng ) {
-      throw std::logic_error{"new_tv_list is imcomplete"};
+    if ( !undet_list.empty() ) {
+      throw std::logic_error{"tv_list is imcomplete"};
     }
   }
 
-  return tv_list2;
+  return tv_list;
 }
 
 END_NAMESPACE_DRUID

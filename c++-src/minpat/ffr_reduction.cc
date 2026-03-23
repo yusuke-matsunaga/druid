@@ -22,7 +22,7 @@ BEGIN_NAMESPACE_DRUID
 TpgFaultList
 ffr_reduction(
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 )
 {
   Timer timer;

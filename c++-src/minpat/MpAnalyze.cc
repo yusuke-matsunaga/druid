@@ -1,12 +1,12 @@
 
-/// @file PatAnalyzer.cc
-/// @brief PatAnalyzer の実装ファイル
+/// @file MpAnalyze.cc
+/// @brief MpAnalyze の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "PatAnalyzer.h"
+#include "MpAnalyze.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgFaultList.h"
 #include "types/TestVector.h"
@@ -80,7 +80,7 @@ merge(
 END_NONAMESPACE
 
 // @brief コンストラクタ
-PatAnalyzer::PatAnalyzer(
+MpAnalyze::MpAnalyze(
   const std::vector<TestVector>& tv_list,
   const TpgFaultList& fault_list
 )

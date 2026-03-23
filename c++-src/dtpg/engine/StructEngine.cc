@@ -35,12 +35,12 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 StructEngine::StructEngine(
   const TpgNetwork& network,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mNetwork{network},
-    mSolver(SatInitParam(option.get_elem("sat_param"))),
+    mSolver(SatInitParam(JsonValue(option.get_value("sat_param")))),
     mGvarMap(network.node_num()),
     mHvarMap(network.node_num()),
-    mJustifier{Justifier::new_obj(network, option.get_elem("justifier"))}
+    mJustifier{Justifier::new_obj(network, JsonValue(option.get_value("justifier")))}
 {
 }
 

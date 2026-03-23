@@ -19,26 +19,12 @@ BEGIN_NAMESPACE_DRUID
 // クラス MpComp
 //////////////////////////////////////////////////////////////////////
 
-// @brief 派生クラスのオブジェクトを生成するクラスメソッド
-std::unique_ptr<MpComp>
-MpComp::new_obj(
-  const std::string& type
-)
-{
-  if ( type == "simple" ) {
-    return std::unique_ptr<MpComp>{new MpComp_Simple};
-  }
-  std::ostringstream buf;
-  buf << type << ": Unknown type name";
-  throw std::invalid_argument{buf.str()};
-}
-
 // @brief テストパタンの圧縮を行う．
 std::vector<TestVector>
 MpComp::run(
   const std::vector<TestVector>& tv_list,
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 )
 {
   std::cout << std::left << std::setw(20)
@@ -48,8 +34,8 @@ MpComp::run(
 	    << std::left << std::setw(20)
 	    << "# of initial pats: " << tv_list.size() << std::endl;
 
-  auto new_tv_list = _run(tv_list, fault_list, option);
-
+  auto obj = MpCompImpl::new_obj(option);
+  auto new_tv_list = obj->_run(tv_list, fault_list, option);
   return new_tv_list;
 }
 

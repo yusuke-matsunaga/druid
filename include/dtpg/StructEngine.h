@@ -13,6 +13,7 @@
 #include "types/TpgNetwork.h"
 #include "types/TpgNodeList.h"
 #include "types/AssignList.h"
+#include "misc/ConfigParam.h"
 #include "ym/SatSolver.h"
 #include "ym/Timer.h"
 
@@ -36,12 +37,12 @@ public:
 
   /// @brief コンストラクタ
   StructEngine(
-    const TpgNetwork& network, ///< [in] 対象のネットワーク
-    const JsonValue& option    ///< [in] 初期化オプション
-    = JsonValue{}              ///<      "sat_param": JsonValue
-                               ///<      SATソルバの初期化パラメータ
-                               ///<      "justifier": string
-                               ///<      Justifier の初期化パラメータ
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    const ConfigParam& option = {} ///< [in] 初期化オプション
+                                   ///<      "sat_param": JsonValue
+                                   ///<      SATソルバの初期化パラメータ
+                                   ///<      "justifier": string
+                                   ///<      Justifier の初期化パラメータ
   );
 
   /// @brief デストラクタ

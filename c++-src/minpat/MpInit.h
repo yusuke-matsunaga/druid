@@ -12,7 +12,7 @@
 #include "types/TpgNetwork.h"
 #include "types/TpgFaultList.h"
 #include "types/TestVector.h"
-#include "ym/JsonValue.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -32,7 +32,7 @@ public:
   MpInit(
     const TpgNetwork& network,      ///< [in] 対象のネットワーク
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
-    const JsonValue& option = {}    ///< [in] オプション
+    const ConfigParam& option = {}  ///< [in] オプション
   );
 
   /// @brief デストラクタ

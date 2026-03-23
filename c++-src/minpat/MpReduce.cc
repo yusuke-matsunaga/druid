@@ -1,12 +1,12 @@
 
-/// @file MpReducer.cc
-/// @brief MpReducer の実装ファイル
+/// @file MpReduce.cc
+/// @brief MpReduce の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "MpReducer.h"
+#include "MpReduce.h"
 #include "types/TpgFaultList.h"
 
 
@@ -16,18 +16,18 @@ extern
 TpgFaultList
 ffr_reduction(
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 );
 
 //////////////////////////////////////////////////////////////////////
-// クラス MpReducer
+// クラス MpReduce
 //////////////////////////////////////////////////////////////////////
 
 // @brief 故障の削減を行う．
 TpgFaultList
-MpReducer::run(
+MpReduce::run(
   const TpgFaultList& init_fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 )
 {
   auto fault_list = init_fault_list;

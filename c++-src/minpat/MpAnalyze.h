@@ -1,8 +1,8 @@
-#ifndef PATANALYZER_H
-#define PATANALYZER_H
+#ifndef MPANALYZE_H
+#define MPANALYZE_H
 
-/// @file PatAnalyzer.h
-/// @brief PatAnalyzer のヘッダファイル
+/// @file MpAnalyze.h
+/// @brief MpAnalyze のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -14,21 +14,21 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class PatAnalyzer PatAnalyzer.h "PatAnalyzer.h"
+/// @class MpAnalyze MpAnalyze.h "MpAnalyze.h"
 /// @brief テストパタンを評価するクラス
 //////////////////////////////////////////////////////////////////////
-class PatAnalyzer
+class MpAnalyze
 {
 public:
 
   /// @brief コンストラクタ
-  PatAnalyzer(
+  MpAnalyze(
     const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
     const TpgFaultList& fault_list          ///< [in] 故障のリスト
   );
 
   /// @brief デストラクタ
-  ~PatAnalyzer() = default;
+  ~MpAnalyze() = default;
 
 
 public:
@@ -117,4 +117,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // PATANALYZER_H
+#endif // MPANALYZE_H

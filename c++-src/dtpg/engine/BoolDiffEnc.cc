@@ -18,9 +18,9 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 BoolDiffEnc::BoolDiffEnc(
   const TpgNode& root,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mRoot{root},
-    mExtractor{Extractor::new_impl(option.get_elem("extractor"))}
+    mExtractor{Extractor::new_impl(JsonValue(option.get_value("extractor")))}
 {
 }
 
@@ -28,10 +28,10 @@ BoolDiffEnc::BoolDiffEnc(
 BoolDiffEnc::BoolDiffEnc(
   const TpgNode& root,
   const TpgNodeList& output_list,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mRoot{root},
     mOutputList{output_list},
-    mExtractor{Extractor::new_impl(option.get_elem("extractor"))}
+    mExtractor{Extractor::new_impl(JsonValue(option.get_value("extractor")))}
 {
 }
 

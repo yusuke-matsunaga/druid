@@ -10,7 +10,7 @@
 
 #include "druid.h"
 #include "dtpg/BdEngine.h"
-#include "ym/JsonValue.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -30,23 +30,20 @@ public:
 
   /// @brief コンストラクタ(Nodeモード)
   DtpgEngine(
-    const TpgNode& node,    ///< [in] 故障伝搬の起点となるノード
-    const JsonValue& option ///< [in] オプション
-    = JsonValue{}
+    const TpgNode& node,           ///< [in] 故障伝搬の起点となるノード
+    const ConfigParam& option = {} ///< [in] オプション
   );
 
   /// @brief コンストラクタ(FFRモード)
   DtpgEngine(
-    const TpgFFR& ffr,      ///< [in] 故障伝搬の対象のFFR
-    const JsonValue& option ///< [in] オプション
-    = JsonValue{}
+    const TpgFFR& ffr,             ///< [in] 故障伝搬の対象のFFR
+    const ConfigParam& option = {} ///< [in] オプション
   );
 
   /// @brief コンストラクタ(MFFCモード)
   DtpgEngine(
-    const TpgMFFC& mffc,    ///< [in] 故障伝搬の対象のMFFC
-    const JsonValue& option ///< [in] オプション
-    = JsonValue{}
+    const TpgMFFC& mffc,           ///< [in] 故障伝搬の対象のMFFC
+    const ConfigParam& option = {} ///< [in] オプション
   );
 
   /// @brief デストラクタ

@@ -1,26 +1,26 @@
-#ifndef MPREDUCER_H
-#define MPREDUCER_H
+#ifndef MPREDUCE_H
+#define MPREDUCE_H
 
-/// @file MpReducer.h
-/// @brief MpReducer のヘッダファイル
+/// @file MpReduce.h
+/// @brief MpReduce のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "ym/JsonValue.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class MpReducer MpReducer.h "MpReducer.h"
+/// @class MpReduce MpReduce.h "MpReduce.h"
 /// @brief 故障の削減を行うクラス
 ///
 /// 実際にはクラスメソッドしか持たない．
 //////////////////////////////////////////////////////////////////////
-class MpReducer
+class MpReduce
 {
 public:
   //////////////////////////////////////////////////////////////////////
@@ -32,11 +32,11 @@ public:
   TpgFaultList
   run(
     const TpgFaultList& fault_list, ///< [in] 故障のリスト
-    const JsonValue& option = {}    ///< [in] オプション
+    const ConfigParam& option = {}  ///< [in] オプション
   );
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // MPREDUCER_H
+#endif // MPREDUCE_H

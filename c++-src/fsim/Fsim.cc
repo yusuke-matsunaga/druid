@@ -23,12 +23,13 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 Fsim::Fsim(
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 )
 {
-  auto network = fault_list.network();
   bool has_x = option.get_bool_elem("has_x", false);
   bool multi = option.get_bool_elem("multi_thread", false);
+
+  auto network = fault_list.network();
   bool has_previous_state = network.fault_type() == FaultType::TransitionDelay;
   if ( multi ) {
     initialize_multi(fault_list, has_previous_state, has_x);

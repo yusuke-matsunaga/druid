@@ -39,15 +39,15 @@ public:
 
   /// @brief コンストラクタ
   BoolDiffEnc(
-    const TpgNode& root,                  ///< [in] 起点のノード
-    const JsonValue& option = JsonValue{} ///< [in] オプション
+    const TpgNode& root,           ///< [in] 起点のノード
+    const ConfigParam& option = {} ///< [in] オプション
   );
 
   /// @brief コンストラクタ
   BoolDiffEnc(
-    const TpgNode& root,                  ///< [in] 起点のノード
-    const TpgNodeList& output_list,       ///< [in] 出力のリスト
-    const JsonValue& option = JsonValue{} ///< [in] オプション
+    const TpgNode& root,            ///< [in] 起点のノード
+    const TpgNodeList& output_list, ///< [in] 出力のリスト
+    const ConfigParam& option = {}  ///< [in] オプション
   );
 
   /// @brief デストラクタ

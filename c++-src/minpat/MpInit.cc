@@ -17,7 +17,7 @@ BEGIN_NAMESPACE_DRUID
 MpInit::MpInit(
   const TpgNetwork& network,
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mNetwork{network}
 {
   Timer timer;

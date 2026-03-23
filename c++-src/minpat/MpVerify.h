@@ -1,39 +1,36 @@
-#ifndef MPCOMP_H
-#define MPCOMP_H
+#ifndef MPVERIFY_H
+#define MPVERIFY_H
 
-/// @file MpComp.h
-/// @brief MpComp のヘッダファイル
+/// @file MpVerify.h
+/// @brief MpVerify のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "types/TpgFaultList.h"
-#include "types/TestVector.h"
 #include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class MpComp MpComp.h "MpComp.h"
-/// @brief パタン圧縮を行うクラス
-///
-/// このクラスはほぼインターフェイスの定義のみを行う純粋仮想基底クラス
+/// @class MpVerify MpVerify.h "MpVerify.h"
+/// @brief 結果の検証を行うクラス
 //////////////////////////////////////////////////////////////////////
-class MpComp
+class MpVerify
 {
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief テストパタンの圧縮を行う．
+  /// @brief tv_list が fault_list の全ての故障を検出するか調べる．
+  /// @return 未検出の故障のリストを返す．
   static
-  std::vector<TestVector>
+  TpgFaultList
   run(
-    const std::vector<TestVector>& tv_list, ///< [in] 初期パタンリスト
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
     const TpgFaultList& fault_list,         ///< [in] 対象の故障リスト
     const ConfigParam& option = {}          ///< [in] オプション
   );
@@ -42,4 +39,4 @@ public:
 
 END_NAMESPACE_DRUID
 
-#endif // MPCOMP_H
+#endif // MPVERIFY_H

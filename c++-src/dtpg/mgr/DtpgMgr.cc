@@ -81,7 +81,7 @@ END_NONAMESPACE
 DtpgResults
 DtpgMgr::run(
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 )
 {
   // option の解析

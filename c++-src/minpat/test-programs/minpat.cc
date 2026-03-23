@@ -90,9 +90,13 @@ minpat(
   auto reduce_option = JsonValue::object();
   reduce_option.add("ffr", ffr_reduction);
 
+  auto global_option = JsonValue::object();
+  global_option.add("multi_thread", true);
+
   auto option = JsonValue::object();
   option.add("init", dtpg_option);
   option.add("reduce", reduce_option);
+  option.add("*", global_option);
 
   auto tv_list = MinPat::run(network, fault_list, option);
 

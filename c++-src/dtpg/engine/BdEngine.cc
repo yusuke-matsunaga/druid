@@ -19,7 +19,7 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 BdEngine::BdEngine(
   const TpgNode& node,
-  const JsonValue& option
+  const ConfigParam& option
 ) : StructEngine(node.network(), option),
     mBdEnc{new BoolDiffEnc(node, option)}
 {

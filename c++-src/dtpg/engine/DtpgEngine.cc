@@ -19,7 +19,7 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ(Nodeモード)
 DtpgEngine::DtpgEngine(
   const TpgNode& node,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mEngine(node, option),
     mFaultEnc{new FaultEnc_Node}
 {
@@ -28,7 +28,7 @@ DtpgEngine::DtpgEngine(
 // @brief コンストラクタ(FFRモード)
 DtpgEngine::DtpgEngine(
   const TpgFFR& ffr,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mEngine(ffr.root(), option),
     mFaultEnc{new FaultEnc_FFR}
 {
@@ -37,7 +37,7 @@ DtpgEngine::DtpgEngine(
 // @brief コンストラクタ(MFFCモード)
 DtpgEngine::DtpgEngine(
   const TpgMFFC& mffc,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mEngine(mffc.root(), option),
     mFaultEnc{new FaultEnc_MFFC(mEngine, mffc)}
 {

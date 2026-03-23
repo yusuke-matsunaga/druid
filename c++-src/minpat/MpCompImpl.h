@@ -1,32 +1,41 @@
-#ifndef MPCOMP_SIMPLE_H
-#define MPCOMP_SIMPLE_H
+#ifndef MPCOMPIMPL_H
+#define MPCOMPIMPL_H
 
-/// @file MpComp_Simple.h
-/// @brief MpComp_Simple のヘッダファイル
+/// @file MpCompImpl.h
+/// @brief MpCompImpl のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "MpCompImpl.h"
+#include "druid.h"
+#include "types/TpgFaultList.h"
+#include "types/TestVector.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class MpComp_Simple MpComp_Simple.h "MpComp_Simple.h"
-/// @brief 最小被覆と最小彩色を用いたパタン圧縮クラス
+/// @class MpCompImpl MpCompImpl.h "MpCompImpl.h"
+/// @brief MpCompl の実装クラス
+///
+/// このクラスはほぼインターフェイスの定義のみを行う純粋仮想基底クラス
 //////////////////////////////////////////////////////////////////////
-class MpComp_Simple :
-  public MpCompImpl
+class MpCompImpl
 {
 public:
 
-  /// @brief コンストラクタ
-  MpComp_Simple();
+  /// @brief 派生クラスのオブジェクトを生成するクラスメソッド
+  static
+  std::unique_ptr<MpCompImpl>
+  new_obj(
+    const ConfigParam& option ///< [in] オプション
+  );
 
   /// @brief デストラクタ
-  ~MpComp_Simple();
+  virtual
+  ~MpCompImpl() = default;
 
 
 public:
@@ -34,29 +43,17 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
   /// @brief パタン圧縮の本体
+  virtual
   std::vector<TestVector>
   _run(
     const std::vector<TestVector>& tv_list, ///< [in] 初期パタンリスト
     const TpgFaultList& fault_list,         ///< [in] 対象の故障リスト
     const ConfigParam& option               ///< [in] オプション
-  ) override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
+  ) = 0;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // MPCOMP_SIMPLE_H
+#endif // MPCOMPIMPL_H

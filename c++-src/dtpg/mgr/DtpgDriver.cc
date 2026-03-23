@@ -22,7 +22,7 @@ BEGIN_NAMESPACE_DRUID
 DtpgDriver::DtpgDriver(
   const TpgNode& node,
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mEngine{node, option},
     mFaultList{fault_list}
 {
@@ -32,7 +32,7 @@ DtpgDriver::DtpgDriver(
 DtpgDriver::DtpgDriver(
   const TpgFFR& ffr,
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mEngine{ffr, option},
     mFaultList{fault_list}
 {
@@ -42,7 +42,7 @@ DtpgDriver::DtpgDriver(
 DtpgDriver::DtpgDriver(
   const TpgMFFC& mffc,
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 ) : mEngine{mffc, option},
     mFaultList{fault_list}
 {

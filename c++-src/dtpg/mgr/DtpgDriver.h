@@ -31,21 +31,21 @@ public:
   DtpgDriver(
     const TpgNode& node,            ///< [in] 故障伝搬の起点となるノード
     const TpgFaultList& fault_list, ///< [in] 故障のリスト
-    const JsonValue& option         ///< [in] オプション
+    const ConfigParam& option       ///< [in] オプション
   );
 
   /// @brief FFR単位でテスト生成を行うコンストラクタ
   DtpgDriver(
     const TpgFFR& ffr,	            ///< [in] 故障伝搬の起点となる FFR
     const TpgFaultList& fault_list, ///< [in] 故障のリスト
-    const JsonValue& option         ///< [in] オプション
+    const ConfigParam& option       ///< [in] オプション
   );
 
   /// @brief MFFC単位でテスト生成を行うコンストラクタ
   DtpgDriver(
     const TpgMFFC& mffc,            ///< [in] 故障伝搬の起点となる MFFC
     const TpgFaultList& fault_list, ///< [in] 故障のリスト
-    const JsonValue& option         ///< [in] オプション
+    const ConfigParam& option       ///< [in] オプション
   );
 
   /// @brief デストラクタ

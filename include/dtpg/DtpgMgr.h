@@ -12,7 +12,7 @@
 #include "types/TpgFaultList.h"
 #include "types/AssignList.h"
 #include "dtpg/DtpgResults.h"
-#include "ym/JsonValue.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -43,8 +43,7 @@ public:
   DtpgResults
   run(
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
-    const JsonValue& option         ///< [in] オプションを表す JSON オブジェクト
-    = JsonValue{}
+    const ConfigParam& option = {}  ///< [in] オプションを表す JSON オブジェクト
   );
 
   /// @brief 検出可能かチェックする．

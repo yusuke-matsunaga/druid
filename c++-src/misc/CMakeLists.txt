@@ -3,43 +3,28 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-#  include
+  ${CMAKE_CURRENT_SOURCE_DIR}
   )
-
 
 # ===================================================================
 # サブディレクトリの設定
 # ===================================================================
 
-#add_subdirectory( gtest )
-add_subdirectory( test-programs )
+add_subdirectory( gtest )
+#add_subdirectory( test-programs )
 
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
 
-set ( minpat_SOURCES
-  MinPat.cc
-  MpInit.cc
-  MpReduce.cc
-  ffr_reduction.cc
-  FFRDomChecker.cc
-  MpComp.cc
-  MpCompImpl.cc
-  MpComp_Simple.cc
-  FaultGroup.cc
-  MpAnalyze.cc
-  MpVerify.cc
-  )
-
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
-ym_add_object_library ( druid_minpat
-  ${minpat_SOURCES}
-  )
+
+#ym_add_object_library ( druid_misc
+#  )
 
 
 # ===================================================================

@@ -30,9 +30,8 @@ public:
 
   /// @brief コンストラクタ
   BdEngine(
-    const TpgNode& node,       ///< [in] 対象のノード
-    const JsonValue& option    ///< [in] オプション
-    = JsonValue{}
+    const TpgNode& node,           ///< [in] 対象のノード
+    const ConfigParam& option = {} ///< [in] オプション
   );
 
   /// @brief デストラクタ

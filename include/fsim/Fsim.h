@@ -13,7 +13,7 @@
 #include "types/FaultType.h"
 #include "fsim/DiffBits.h"
 #include "fsim/FsimResults.h"
-#include "ym/JsonValue.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -43,7 +43,7 @@ public:
   /// @brief コンストラクタ
   Fsim(
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
-    const JsonValue& option = {}    ///< [in] オプション
+    const ConfigParam& option = {}  ///< [in] オプション
   );
 
   /// @brief コピーコンストラクタは禁止

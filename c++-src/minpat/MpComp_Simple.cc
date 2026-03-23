@@ -39,9 +39,11 @@ std::vector<TestVector>
 mincov(
   const std::vector<TestVector>& tv_list,
   const TpgFaultList& fault_list,
-  SizeType drop_limit
+  const ConfigParam& option
 )
 {
+  SizeType drop_limit = option.get_int_elem("drop_limit", 4000);
+
   auto network = fault_list.network();
 
   MinCov mincov;
@@ -59,7 +61,7 @@ mincov(
     }
     std::vector<SizeType> det_count(network.max_fault_id(), 0);
     auto nc = tv_list.size();
-    auto fsim_option = JsonValue::object();
+    auto fsim_option = option.get_param("fsim");
     fsim_option.add("has_x", true);
     Fsim fsim(fault_list, fsim_option);
     std::unordered_set<SizeType> fault_set;
@@ -229,13 +231,11 @@ std::vector<TestVector>
 MpComp_Simple::_run(
   const std::vector<TestVector>& tv_list,
   const TpgFaultList& fault_list,
-  const JsonValue& option
+  const ConfigParam& option
 )
 {
-  SizeType drop_limit = option.get_int_elem("drop_limit", 4000);
-
   // 最小被覆を求める．
-  auto tv_list1 = mincov(tv_list, fault_list, drop_limit);
+  auto tv_list1 = mincov(tv_list, fault_list, option);
 
   // テストキューブの拡大を行う．
   auto tv_list2 = expand(tv_list1, fault_list);
@@ -244,7 +244,7 @@ MpComp_Simple::_run(
   auto tv_list3 = packing(tv_list2);
 
   // 再度最小被覆を行う．
-  auto tv_list4 = mincov(tv_list3, fault_list, drop_limit);
+  auto tv_list4 = mincov(tv_list3, fault_list, option);
 
   return tv_list4;
 }
