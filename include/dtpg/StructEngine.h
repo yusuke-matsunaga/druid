@@ -146,8 +146,9 @@ public:
   /// * 必要な値割り当てのみが記録される．
   AssignList
   justify(
-    const SuffCond& suff_cond, ///< [in] 割当リスト
-    const SatModel& model      ///< [in] SAT問題の解
+    const SuffCond& suff_cond,         ///< [in] 割当リスト
+    const SatModel& model,             ///< [in] SAT問題の解
+    const AssignList& assign_list = {} ///< [in] 事前の値割り当て
   );
 
   /// @brief 現在の外部入力の割当を得る．

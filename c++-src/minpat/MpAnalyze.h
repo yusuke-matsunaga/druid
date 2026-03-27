@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,7 +25,8 @@ public:
   /// @brief コンストラクタ
   MpAnalyze(
     const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    const TpgFaultList& fault_list          ///< [in] 故障のリスト
+    const TpgFaultList& fault_list,         ///< [in] 故障のリスト
+    const ConfigParam& option = {}          ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -83,6 +85,10 @@ public:
     _check_tv_id(tv_id);
     return mExListArray[tv_id].size();
   }
+
+  /// @brief exclusive_num() の降順の番号リストを返す．
+  std::vector<SizeType>
+  ex_pos_list() const;
 
 
 private:

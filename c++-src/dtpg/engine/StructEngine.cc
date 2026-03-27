@@ -264,14 +264,15 @@ StructEngine::get_stats() const
 AssignList
 StructEngine::justify(
   const SuffCond& cond,
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
   if ( mNetwork.has_prev_state() ) {
-    return mJustifier->justify(cond, mHvarMap, mGvarMap, model);
+    return mJustifier->justify(cond, mHvarMap, mGvarMap, model, assign_list);
   }
   else {
-    return mJustifier->justify(cond, mGvarMap, model);
+    return mJustifier->justify(cond, mGvarMap, model, assign_list);
   }
 }
 

@@ -123,14 +123,16 @@ public:
   /// @brief SAT問題の解から十分条件を求める．
   SuffCond
   extract_sufficient_condition(
-    const SatModel& model ///< [in] SAT問題の解
+    const SatModel& model,        ///< [in] SAT問題の解
+    const AssignList& assign_list ///< [in] 事前の割り当て
   );
 
-  /// @brief SAT問題の解から十分条件を求める．
+  /// @brief SAT問題の解から十分条件を求める(出力の指定あり)．
   SuffCond
   extract_sufficient_condition(
-    SizeType pos,          ///< [in] 出力番号 ( 0 <= pos < output_num() )
-    const SatModel& model ///< [in] SAT問題の解
+    SizeType pos,                 ///< [in] 出力番号 ( 0 <= pos < output_num() )
+    const SatModel& model,        ///< [in] SAT問題の解
+    const AssignList& assign_list ///< [in] 事前の割り当て
   );
 
 

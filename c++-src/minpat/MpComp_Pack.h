@@ -1,41 +1,32 @@
-#ifndef MPCOMPIMPL_H
-#define MPCOMPIMPL_H
+#ifndef MPCOMP_PACK_H
+#define MPCOMP_PACK_H
 
-/// @file MpCompImpl.h
-/// @brief MpCompImpl のヘッダファイル
+/// @file MpComp_Pack.h
+/// @brief MpComp_Pack のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "druid.h"
-#include "types/TpgFaultList.h"
-#include "types/TestVector.h"
-#include "misc/ConfigParam.h"
+#include "MpCompImpl.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class MpCompImpl MpCompImpl.h "MpCompImpl.h"
-/// @brief MpCompl の実装クラス
-///
-/// このクラスはほぼインターフェイスの定義のみを行う純粋仮想基底クラス
+/// @class MpComp_Pack MpComp_Pack.h "MpComp_Pack.h"
+/// @brief 最小彩色を用いたパタン圧縮クラス
 //////////////////////////////////////////////////////////////////////
-class MpCompImpl
+class MpComp_Pack :
+  public MpCompImpl
 {
 public:
 
-  /// @brief 派生クラスのオブジェクトを生成するクラスメソッド
-  static
-  std::unique_ptr<MpCompImpl>
-  new_obj(
-    const ConfigParam& option ///< [in] オプション
-  );
+  /// @brief コンストラクタ
+  MpComp_Pack();
 
   /// @brief デストラクタ
-  virtual
-  ~MpCompImpl() = default;
+  ~MpComp_Pack();
 
 
 public:
@@ -44,16 +35,22 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief パタン圧縮の本体
-  virtual
   std::vector<TestVector>
   run(
     const std::vector<TestVector>& tv_list, ///< [in] 初期パタンリスト
     const TpgFaultList& fault_list,         ///< [in] 対象の故障リスト
     const ConfigParam& option               ///< [in] オプション
-  ) = 0;
+  ) override;
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // MPCOMPIMPL_H
+#endif // MPCOMP_PACK_H

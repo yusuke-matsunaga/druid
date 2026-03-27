@@ -18,9 +18,9 @@ include_directories (
 set ( ex_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/Extractor.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/ExtSimple.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/ExtStd.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/ExData.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/MkBdd.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/ExtStd.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PropGraph.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/MkBdd.cc
   PARENT_SCOPE
   )
 

@@ -66,10 +66,11 @@ AssignList
 Justifier::justify(
   const SuffCond& cond,
   const VidMap& var_map,
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
-  JustData jd{var_map, model};
+  JustData jd(mNetwork, var_map, model, assign_list);
   mJustDataPtr = &jd;
   return _justify(cond);
 }
@@ -80,10 +81,11 @@ Justifier::justify(
   const SuffCond& cond,
   const VidMap& var1_map,
   const VidMap& var2_map,
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
-  JustData jd{var1_map, var2_map, model};
+  JustData jd(mNetwork, var1_map, var2_map, model, assign_list);
   mJustDataPtr = &jd;
   return _justify(cond);
 }

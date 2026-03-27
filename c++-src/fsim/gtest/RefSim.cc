@@ -17,7 +17,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
-static bool debug = false;
+static bool debug = true;
 
 // @brief コンストラクタ
 RefSim::RefSim(

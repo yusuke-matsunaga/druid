@@ -68,20 +68,22 @@ BdEngine::prop_var(
 // @brief SAT問題の解から十分条件を求める．
 SuffCond
 BdEngine::extract_sufficient_condition(
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
-  return mBdEnc->extract_sufficient_condition(model);
+  return mBdEnc->extract_sufficient_condition(model, assign_list);
 }
 
 // @brief SAT問題の解から十分条件を求める．
 SuffCond
 BdEngine::extract_sufficient_condition(
   SizeType pos,
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
-  return mBdEnc->extract_sufficient_condition(pos, model);
+  return mBdEnc->extract_sufficient_condition(pos, model, assign_list);
 }
 
 END_NAMESPACE_DRUID

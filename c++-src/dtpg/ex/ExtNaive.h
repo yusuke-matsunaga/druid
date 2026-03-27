@@ -1,8 +1,8 @@
-﻿#ifndef EXTSIMPLE_H
-#define EXTSIMPLE_H
+﻿#ifndef EXTNAIVE_H
+#define EXTNAIVE_H
 
-/// @file ExtSimple.h
-/// @brief ExtSimple のヘッダファイル
+/// @file ExtNaive.h
+/// @brief ExtNaive のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -14,23 +14,20 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class PropGraph;
-class PgNode;
-
 //////////////////////////////////////////////////////////////////////
-/// @class ExtSimple ExtSimple.h "ExtSimple.h"
+/// @class ExtNaive ExtNaive.h "ExtNaive.h"
 /// @brief Extractor の実装クラス
 //////////////////////////////////////////////////////////////////////
-class ExtSimple :
+class ExtNaive :
   public Extractor
 {
 public:
 
   /// @brief コンストラクタ
-  ExtSimple() = default;
+  ExtNaive() = default;
 
   /// @brief デストラクタ
-  ~ExtSimple() = default;
+  ~ExtNaive() = default;
 
 
 private:
@@ -51,40 +48,14 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-#if 0
   /// @brief 制御値を持つ side input を選ぶ．
   std::vector<TpgNode>
   select_cnode(
     const std::vector<std::vector<TpgNode>>& choice_list ///< [in] 候補のノードのリスト
   );
-#endif
-
-  /// @brief 深さ優先順で探索を行う．
-  void
-  dfs(
-    const TpgNode& node,               ///< [in] ノード
-    bool gf,                           ///< [in] 正常値/故障値フラグ
-    std::unordered_set<SizeType>& mark ///< [in] マーク
-  );
-
-  /// @brief PgNode を取り出す．
-  PgNode*
-  get_node(
-    SizeType id ///< [in] ノード番号
-  );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  const PropGraph* mPropGraph;
-
-  AssignList mAssignList;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // EXTSIMPLE_H
+#endif // EXTNAIVE_H

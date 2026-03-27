@@ -132,7 +132,7 @@ public:
     const Assign& right
   ) const
   {
-    return mPackVal == right.mPackVal;
+    return _network() == right._network() && mPackVal == right.mPackVal;
   }
 
   /// @brief 非等価比較演算子
@@ -241,7 +241,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // パックした値
-  SizeType mPackVal;
+  SizeType mPackVal{0};
 
 };
 

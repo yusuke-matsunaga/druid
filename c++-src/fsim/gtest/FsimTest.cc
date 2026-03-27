@@ -454,4 +454,33 @@ TEST(FsimTest, case1)
   }
 }
 
+TEST(FsimTest, case2)
+{
+  auto data_dir = std::filesystem::path{TESTDATA_DIR};
+  auto filename = data_dir / "s298.blif";
+  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
+  auto fault_list = network.rep_fault_list();
+  auto option = JsonValue::object();
+  option.add("has_x", true);
+  auto fsim = Fsim(fault_list, option);
+  RefSim refsim{network};
+
+  for ( auto fault: fault_list ) {
+    if ( fault.str() == "I#5:O:SA1" ) {
+      AssignList assign_list;
+      assign_list.add(network.node(0), 1, false);
+      assign_list.add(network.node(4), 1, true);
+      assign_list.add(network.node(5), 1, false);
+      assign_list.add(network.node(6), 1, true);
+      assign_list.add(network.node(7), 1, false);
+      assign_list.add(network.node(8), 1, true);
+      assign_list.add(network.node(15), 1, false);
+      auto res = fsim.xspsfp(assign_list, fault);
+      EXPECT_TRUE( res );
+      auto dbits = refsim.simulate(assign_list, fault.id());
+      EXPECT_TRUE( dbits.elem_num() > 0 );
+    }
+  }
+}
+
 END_NAMESPACE_DRUID

@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "types/TpgNetwork.h"
 #include "types/TpgNode.h"
 #include "dtpg/VidMap.h"
 #include "types/AssignList.h"
@@ -28,24 +29,22 @@ public:
 
   /// @brief コンストラクタ(縮退故障用)
   JustData(
-    const VidMap& var_map, ///< [in] 変数番号のマップ
-    const SatModel& model  ///< [in] SATソルバの作ったモデル
-  ) : mVar1Map{var_map},
-      mVar2Map{var_map},
-      mSatModel{model}
+    const TpgNetwork& network,    ///< [in] 対象のネットワーク
+    const VidMap& var_map,        ///< [in] 変数番号のマップ
+    const SatModel& model,        ///< [in] SATソルバの作ったモデル
+    const AssignList& assign_list ///< [in] 事前の値割り当て
+  ) : JustData(network, var_map, var_map, model, assign_list)
   {
   }
 
   /// @brief コンストラクタ(遷移故障用)
   JustData(
-    const VidMap& var1_map, ///< [in] 1時刻目の変数番号のマップ
-    const VidMap& var2_map, ///< [in] 2時刻目の変数番号のマップ
-    const SatModel& model   ///< [in] SATソルバの作ったモデル
-  ) : mVar1Map{var1_map},
-      mVar2Map{var2_map},
-      mSatModel{model}
-  {
-  }
+    const TpgNetwork& network,    ///< [in] 対象のネットワーク
+    const VidMap& var1_map,       ///< [in] 1時刻目の変数番号のマップ
+    const VidMap& var2_map,       ///< [in] 2時刻目の変数番号のマップ
+    const SatModel& model,        ///< [in] SATソルバの作ったモデル
+    const AssignList& assign_list ///< [in] 事前の値割り当て
+  );
 
   /// @brief デストラクタ
   ~JustData() = default;
@@ -56,15 +55,18 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief ノードの正常値を返す．
+  /// @brief ノードの値を返す．
   Val3
   val(
     const TpgNode& node, ///< [in] ノード
     int time		 ///< [in] 時刻 ( 0 or 1 )
   ) const
   {
-    auto& varmap = (time == 0) ? mVar1Map : mVar2Map;
-    return bool3_to_val3(mSatModel[varmap(node)]);
+    auto l = lit(node, time);
+    if ( l == SatLiteral::X ) {
+      return Val3::_X;
+    }
+    return bool3_to_val3(mSatModel[l]);
   }
 
   /// @brief 入力ノードの値を記録する．
@@ -82,6 +84,50 @@ public:
     }
   }
 
+  /// @brief fixed マークを得る．
+  bool
+  fixed_mark(
+    const TpgNode& node, ///< [in] 対象のノード
+    int time             ///< [in] 時刻 ( 0 or 1 )
+  ) const
+  {
+    return mFixedMark[node.id() * 2 + time];
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 値が確定しているか調べる．
+  bool
+  check_fixed(
+    const TpgNode& node, ///< [in] 対象のノード
+    int time             ///< [in] 時刻 ( 0 or 1 )
+  );
+
+  /// @brief fixed マークを付ける．
+  void
+  set_fixed(
+    const TpgNode& node, ///< [in] 対象のノード
+    int time             ///< [in] 時刻 ( 0 or 1 )
+  )
+  {
+    mFixedMark[node.id() * 2 + time] = true;
+  }
+
+  /// @brief 値に対応するリテラルを返す．
+  SatLiteral
+  lit(
+    const TpgNode& node, ///< [in] 対象のノード
+    int time             ///< [in] 時刻 ( 0 or 1 )
+  ) const
+  {
+    auto& varmap = (time == 0) ? mVar1Map : mVar2Map;
+    return varmap(node);
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -96,6 +142,9 @@ private:
 
   // SAT ソルバの解
   const SatModel& mSatModel;
+
+  // fixedマーク
+  std::vector<bool> mFixedMark;
 
 };
 

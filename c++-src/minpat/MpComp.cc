@@ -35,7 +35,7 @@ MpComp::run(
 	    << "# of initial pats: " << tv_list.size() << std::endl;
 
   auto obj = MpCompImpl::new_obj(option);
-  auto new_tv_list = obj->_run(tv_list, fault_list, option);
+  auto new_tv_list = obj->run(tv_list, fault_list, option);
   return new_tv_list;
 }
 

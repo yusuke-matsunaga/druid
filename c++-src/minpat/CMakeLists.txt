@@ -27,10 +27,14 @@ set ( minpat_SOURCES
   FFRDomChecker.cc
   MpComp.cc
   MpCompImpl.cc
+  MpComp_MinCov.cc
+  MpComp_Expand.cc
+  MpComp_Pack.cc
   MpComp_Simple.cc
-  FaultGroup.cc
+  MpComp_Merge.cc
   MpAnalyze.cc
   MpVerify.cc
+  FaultGroup.cc
   )
 
 

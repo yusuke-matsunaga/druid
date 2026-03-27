@@ -100,122 +100,129 @@ DtpgMgr::run(
   DtpgResults dtpg_results;
 
   if ( group_mode == "node" ) { // ノード単位で処理を行う．
-    for ( auto node: network.node_list() ) {
-      auto& fault_list = node_fault_list_array[node.id()];
-      auto driver = DtpgDriver(node, fault_list, option);
-      driver.run();
-      dtpg_results.merge(driver.results());
-    }
-  }
-  else if ( group_mode == "node_mt" ) { // ノード単位でマルチスレッド実行を行う．
-    SizeType thread_num = option.get_int_elem("thread_num", 0);
-    IdPool id_pool(network.node_num());
-    ExLock r_lock;
-    MtMgr::run(
-      [&](){
-	for ( ; ; ) {
-	  SizeType id;
-	  if ( !id_pool.get(id) ) {
-	    // 終わり
-	    break;
+    if ( multi ) {
+      SizeType thread_num = option.get_int_elem("thread_num", 0);
+      IdPool id_pool(network.node_num());
+      ExLock r_lock;
+      MtMgr::run(
+	[&](){
+	  for ( ; ; ) {
+	    SizeType id;
+	    if ( !id_pool.get(id) ) {
+	      // 終わり
+	      break;
+	    }
+	    auto node = network.node(id);
+	    auto& fault_list = node_fault_list_array[node.id()];
+	    auto driver = DtpgDriver(node, fault_list, option);
+	    driver.run();
+	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	  }
-	  auto node = network.node(id);
-	  auto& fault_list = node_fault_list_array[node.id()];
-	  auto driver = DtpgDriver(node, fault_list, option);
-	  driver.run();
-	  r_lock.run([&](){ dtpg_results.merge(driver.results()); });
-	}
-      }, thread_num
-    );
+	}, thread_num
+      );
+    }
+    else {
+      for ( auto node: network.node_list() ) {
+	auto& fault_list = node_fault_list_array[node.id()];
+	auto driver = DtpgDriver(node, fault_list, option);
+	driver.run();
+	dtpg_results.merge(driver.results());
+      }
+    }
   }
   else if ( group_mode == "ffr" ) { // FFR 単位で処理を行う．
-    for ( auto ffr: network.ffr_list() ) {
-      // ffr に関係する故障を集める．
-      TpgFaultList fault_list;
-      if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
-	continue;
-      }
-      auto driver = DtpgDriver(ffr, fault_list, option);
-      driver.run();
-      dtpg_results.merge(driver.results());
-    }
-  }
-  else if ( group_mode == "ffr_mt" ) { // FFR 単位でマルチスレッド実行を行う．
-    // スレッド数
-    SizeType thread_num = option.get_int_elem("thread_num", 0);
-    IdPool id_pool(network.ffr_num());
-    ExLock r_lock;
-    MtMgr::run(
-      [&](){
-	for ( ; ; ) {
-	  SizeType id;
-	  if ( !id_pool.get(id) ) {
-	    // 終わり
-	    break;
-	  }
-	  auto ffr = network.ffr(id);
-	  TpgFaultList fault_list;
-	  if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
-	    continue;
-	  }
-	  auto driver = DtpgDriver(ffr, fault_list, option);
-	  driver.run();
-	  r_lock.run([&](){ dtpg_results.merge(driver.results()); });
-	}
-      }, thread_num
-    );
-  }
-  else if ( group_mode == "mffc" ) {
-    // MFFC 単位で処理を行う．
-    for ( auto mffc: network.mffc_list() ) {
-      TpgFaultList fault_list;
-      auto ffr = get_faults(mffc, node_fault_list_array, fault_list);
-      if ( fault_list.empty() ) {
-	continue;
-      }
-      if ( ffr.is_valid() ) {
-	auto driver = DtpgDriver(ffr, fault_list, option);
-	driver.run();
-	dtpg_results.merge(driver.results());
-      }
-      else {
-	auto driver = DtpgDriver(mffc, fault_list, option);
-	driver.run();
-	dtpg_results.merge(driver.results());
-      }
-    }
-  }
-  else if ( group_mode == "mffc_mt" ) {
-    SizeType thread_num = option.get_int_elem("thread_num", 0);
-    IdPool id_pool(network.mffc_num());
-    ExLock r_lock;
-    MtMgr::run(
-      [&](){
-	for ( ; ; ) {
-	  SizeType id;
-	  if ( !id_pool.get(id) ) {
-	    // 終わり
-	    break;
-	  }
-	  auto mffc = network.mffc(id);
-	  TpgFaultList fault_list;
-	  auto ffr = get_faults(mffc, node_fault_list_array, fault_list);
-	  if ( fault_list.empty() ) {
-	    continue;
-	  }
-	  if ( ffr.is_valid() ) {
+    if ( multi ) {
+      // スレッド数
+      SizeType thread_num = option.get_int_elem("thread_num", 0);
+      IdPool id_pool(network.ffr_num());
+      ExLock r_lock;
+      MtMgr::run(
+	[&](){
+	  for ( ; ; ) {
+	    SizeType id;
+	    if ( !id_pool.get(id) ) {
+	      // 終わり
+	      break;
+	    }
+	    auto ffr = network.ffr(id);
+	    TpgFaultList fault_list;
+	    if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
+	      continue;
+	    }
 	    auto driver = DtpgDriver(ffr, fault_list, option);
 	    driver.run();
 	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	  }
-	  else {
-	    auto driver = DtpgDriver(mffc, fault_list, option);
-	    driver.run();
-	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
-	  }
+	}, thread_num
+      );
+    }
+    else {
+      for ( auto ffr: network.ffr_list() ) {
+	// ffr に関係する故障を集める．
+	TpgFaultList fault_list;
+	if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
+	  continue;
 	}
-      }, thread_num
-    );
+	auto driver = DtpgDriver(ffr, fault_list, option);
+	driver.run();
+	dtpg_results.merge(driver.results());
+      }
+    }
+  }
+  else if ( group_mode == "mffc" ) { // MFFC 単位で処理を行う．
+    if ( multi ) {
+      SizeType thread_num = option.get_int_elem("thread_num", 0);
+      IdPool id_pool(network.mffc_num());
+      ExLock r_lock;
+      MtMgr::run(
+	[&](){
+	  for ( ; ; ) {
+	    SizeType id;
+	    if ( !id_pool.get(id) ) {
+	      // 終わり
+	      break;
+	    }
+	    auto mffc = network.mffc(id);
+	    TpgFaultList fault_list;
+	    auto ffr = get_faults(mffc, node_fault_list_array, fault_list);
+	    if ( fault_list.empty() ) {
+	      continue;
+	    }
+	    if ( ffr.is_valid() ) {
+	      auto driver = DtpgDriver(ffr, fault_list, option);
+	      driver.run();
+	      r_lock.run([&](){ dtpg_results.merge(driver.results()); });
+	    }
+	    else {
+	      auto driver = DtpgDriver(mffc, fault_list, option);
+	      driver.run();
+	      r_lock.run([&](){ dtpg_results.merge(driver.results()); });
+	    }
+	  }
+	}, thread_num
+      );
+    }
+    else {
+      for ( auto mffc: network.mffc_list() ) {
+	TpgFaultList fault_list;
+	auto ffr = get_faults(mffc, node_fault_list_array, fault_list);
+	if ( fault_list.empty() ) {
+	  continue;
+	}
+	if ( ffr.is_valid() ) {
+	  auto driver = DtpgDriver(ffr, fault_list, option);
+	  driver.run();
+	  dtpg_results.merge(driver.results());
+	}
+	else {
+	  auto driver = DtpgDriver(mffc, fault_list, option);
+	  driver.run();
+	  dtpg_results.merge(driver.results());
+	}
+      }
+    }
+  }
+  else if ( group_mode == "mffc_mt" ) {
   }
   else {
     std::ostringstream buf;

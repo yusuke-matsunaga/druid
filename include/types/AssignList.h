@@ -200,15 +200,23 @@ public:
   /// 不正な値となる．
   AssignList() = default;
 
-  /// @brief 空のリストを作るコンストラクタ
+  /// @brief 内容を指定したコンストラクタ
   explicit
   AssignList(
     const std::shared_ptr<NetworkRep>& network, ///< [in] 親のネットワーク
     const AsList& as_list                       ///< [in] パックした割り当て情報のリスト
   ) : TpgBase(network),
+      mDirty{true},
       mAsList{as_list}
   {
   }
+
+  /// @brief TestVector からの変換コンストラクタ
+  explicit
+  AssignList(
+    const TpgNetwork& network, ///< [in] 親のネットワーク
+    const TestVector& tv       ///< [in] テストベクタ
+  );
 
   /// @brief コピーコンストラクタ
   AssignList(const AssignList& src) = default;
@@ -237,7 +245,7 @@ public:
   void
   clear()
   {
-    mDirty = true;
+    mDirty = false;
     mAsList.clear();
   }
 
@@ -255,6 +263,7 @@ public:
       }
     }
     else {
+      // 最初の要素の場合，所有者のネットワークを設定する．
       *(static_cast<TpgBase*>(this)) = node;
     }
     mAsList.push_back(Assign::encode(node.id(), time, val));
@@ -273,6 +282,7 @@ public:
       }
     }
     else {
+      // 最初の要素の場合，所有者のネットワークを設定する．
       *(static_cast<TpgBase*>(this)) = assign;
     }
     mAsList.push_back(assign.mPackVal);
@@ -416,7 +426,7 @@ private:
   _sort() const
   {
     if ( mDirty ) {
-      // 重複した要素を削除する．
+      // ソートして重複した要素を削除する．
       std::sort(mAsList.begin(), mAsList.end());
       std::vector<SizeType> tmp_list;
       tmp_list.reserve(mAsList.size());
@@ -428,10 +438,16 @@ private:
 	}
       }
       std::swap(mAsList, tmp_list);
-      mDirty = false;
+      _update();
     }
   }
 
+  void
+  _update() const
+  {
+    // デバッグ用にソートされているかチェックしてもよい．
+    mDirty = false;
+  }
 
 private:
   //////////////////////////////////////////////////////////////////////

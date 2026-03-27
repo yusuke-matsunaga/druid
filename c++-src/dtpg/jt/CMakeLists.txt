@@ -17,6 +17,7 @@ include_directories (
 
 set (jt_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/Justifier.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/JustData.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/JustNaive.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/JustBase.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/Just1.cc

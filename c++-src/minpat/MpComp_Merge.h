@@ -8,7 +8,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "MpComp.h"
+#include "MpCompImpl.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -18,15 +18,15 @@ BEGIN_NAMESPACE_DRUID
 /// @brief 故障を他のパタンにマージさせることでパタンの削減を行う．
 //////////////////////////////////////////////////////////////////////
 class MpComp_Merge :
-  public MpComp
+  public MpCompImpl
 {
 public:
 
   /// @brief コンストラクタ
-  MpComp_Merge();
+  MpComp_Merge() = default;
 
   /// @brief デストラクタ
-  ~MpComp_Merge();
+  ~MpComp_Merge() = default;
 
 
 public:
@@ -34,26 +34,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
   /// @brief パタン圧縮の本体
   std::vector<TestVector>
-  _run(
+  run(
     const std::vector<TestVector>& tv_list, ///< [in] 初期パタンリスト
     const TpgFaultList& fault_list,         ///< [in] 対象の故障リスト
-    const JsonValue& option                 ///< [in] オプション
+    const ConfigParam& option               ///< [in] オプション
   ) override;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
 
 };
 

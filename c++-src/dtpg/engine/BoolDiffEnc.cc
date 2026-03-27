@@ -242,20 +242,23 @@ BoolDiffEnc::make_dchain_cnf(
 // @brief SAT問題の解から十分条件を求める．
 SuffCond
 BoolDiffEnc::extract_sufficient_condition(
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
   return (*mExtractor)(root_node(),
 		       engine().gvar_map(),
 		       mFvarMap,
-		       model);
+		       model,
+		       assign_list);
 }
 
 // @brief SAT問題の解から十分条件を求める．
 SuffCond
 BoolDiffEnc::extract_sufficient_condition(
   SizeType pos,
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
   if ( pos >= output_num() ) {
@@ -265,7 +268,8 @@ BoolDiffEnc::extract_sufficient_condition(
 		       engine().gvar_map(),
 		       mFvarMap,
 		       mOutputList[pos],
-		       model);
+		       model,
+		       assign_list);
 }
 
 END_NAMESPACE_DRUID

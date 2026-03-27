@@ -78,6 +78,9 @@ Just2::select_cval_node(
   for ( auto inode: node.fanin_list() ) {
     auto ival = just_data().val(inode, time);
     if ( ival == cval ) {
+      if ( just_data().fixed_mark(inode, time) ) {
+	return inode;
+      }
       auto val = node_value(inode, time);
       if ( min_val > val ) {
 	min_val = val;

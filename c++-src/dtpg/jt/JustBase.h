@@ -48,7 +48,7 @@ private:
   /// @brief justify の実際の処理
   AssignList
   _justify(
-    const SuffCond& cond ///< [in] 割当リスト
+    const SuffCond& cond  ///< [in] 割当リスト
   ) override;
 
 

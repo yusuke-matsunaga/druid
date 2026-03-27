@@ -1,41 +1,32 @@
-#ifndef MPCOMPIMPL_H
-#define MPCOMPIMPL_H
+#ifndef MPCOMP_EXPAND_H
+#define MPCOMP_EXPAND_H
 
-/// @file MpCompImpl.h
-/// @brief MpCompImpl のヘッダファイル
+/// @file MpComp_Expand.h
+/// @brief MpComp_Expand のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "druid.h"
-#include "types/TpgFaultList.h"
-#include "types/TestVector.h"
-#include "misc/ConfigParam.h"
+#include "MpCompImpl.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class MpCompImpl MpCompImpl.h "MpCompImpl.h"
-/// @brief MpCompl の実装クラス
-///
-/// このクラスはほぼインターフェイスの定義のみを行う純粋仮想基底クラス
+/// @class MpComp_Expand MpComp_Expand.h "MpComp_Expand.h"
+/// @brief 検出状態を変えずにテストキューブの拡大を行うクラス
 //////////////////////////////////////////////////////////////////////
-class MpCompImpl
+class MpComp_Expand :
+  public MpCompImpl
 {
 public:
 
-  /// @brief 派生クラスのオブジェクトを生成するクラスメソッド
-  static
-  std::unique_ptr<MpCompImpl>
-  new_obj(
-    const ConfigParam& option ///< [in] オプション
-  );
+  /// @brief コンストラクタ
+  MpComp_Expand();
 
   /// @brief デストラクタ
-  virtual
-  ~MpCompImpl() = default;
+  ~MpComp_Expand();
 
 
 public:
@@ -44,16 +35,15 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief パタン圧縮の本体
-  virtual
   std::vector<TestVector>
   run(
     const std::vector<TestVector>& tv_list, ///< [in] 初期パタンリスト
     const TpgFaultList& fault_list,         ///< [in] 対象の故障リスト
     const ConfigParam& option               ///< [in] オプション
-  ) = 0;
+  ) override;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // MPCOMPIMPL_H
+#endif // MPCOMP_EXPAND_H

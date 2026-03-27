@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "MkBdd.h"
-#include "ExData.h"
+#include "PropGraph.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -18,7 +18,7 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 MkBdd::MkBdd(
-  const ExData& data,
+  const PropGraph& data,
   const std::vector<TpgNode>& node_list,
   const std::vector<TpgNode>& aux_side_inputs
 ) : mData{data}

@@ -7,10 +7,48 @@
 /// All rights reserved.
 
 #include "types/AssignList.h"
+#include "types/TpgNetwork.h"
 #include "types/TpgNode.h"
+#include "types/TestVector.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+// @brief TestVector からの変換コンストラクタ
+AssignList::AssignList(
+  const TpgNetwork& network,
+  const TestVector& tv
+) : TpgBase(network)
+{
+  auto ni = tv.input_num();
+  auto npi = tv.ppi_num();
+  for ( SizeType i = 0; i < ni; ++ i ) {
+    auto val = tv.input_val(i);
+    if ( val != Val3::_X ) {
+      auto bval = val == Val3::_1;
+      auto node = network.input(i);
+      add(node, 1, bval);
+    }
+  }
+  for ( SizeType i = ni; i < npi; ++ i ) {
+    auto val = tv.input_val(i);
+    if ( val != Val3::_X ) {
+      auto bval = val == Val3::_1;
+      auto node = network.dff_output(i - ni);
+      add(node, 1, bval);
+    }
+  }
+  if ( tv.has_aux_input() ) {
+    for ( SizeType i = 0; i < ni; ++ i ) {
+      auto val = tv.input_val(i);
+      if ( val != Val3::_X ) {
+	auto bval = val == Val3::_1;
+	auto node = network.input(i);
+	add(node, 0, bval);
+      }
+    }
+  }
+}
 
 // @brief マージする．
 void
@@ -22,9 +60,12 @@ AssignList::merge(
     *this = src_list;
     return;
   }
+  if ( src_list.mAsList.empty() ) {
+    return;
+  }
   _sort();
   src_list._sort();
-  std::vector<SizeType> tmp_list;
+  AsList tmp_list;
   SizeType n1 = mAsList.size();
   SizeType n2 = src_list.mAsList.size();
   tmp_list.reserve(n1 + n2);
@@ -55,9 +96,8 @@ AssignList::merge(
     auto v2 = src_list.mAsList[i2];
     tmp_list.push_back(v2);
   }
-
   mAsList = tmp_list;
-  mDirty = false;
+  _update();
 }
 
 // @brief 差分を計算する．
@@ -95,7 +135,7 @@ AssignList::diff(
   }
 
   mAsList = tmp_list;
-  mDirty = false;
+  _update();
 }
 
 // @brief 差分を計算する．
@@ -118,7 +158,7 @@ AssignList::diff(
   }
 
   mAsList = tmp_list;
-  mDirty = false;
+  _update();
 }
 
 // @brief 矛盾した内容になっていないかチェックする．

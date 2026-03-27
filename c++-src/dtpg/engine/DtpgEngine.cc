@@ -65,10 +65,11 @@ DtpgEngine::make_detect_condition(
 SuffCond
 DtpgEngine::extract_sufficient_condition(
   const TpgFault& fault,
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
-  auto cond = mEngine.extract_sufficient_condition(model);
+  auto cond = mEngine.extract_sufficient_condition(model, assign_list);
   return mFaultEnc->extract_sufficient_condition(mEngine, fault, cond, model);
 }
 
@@ -77,10 +78,11 @@ SuffCond
 DtpgEngine::extract_sufficient_condition(
   const TpgFault& fault,
   SizeType pos,
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
-  auto cond = mEngine.extract_sufficient_condition(pos, model);
+  auto cond = mEngine.extract_sufficient_condition(pos, model, assign_list);
   return mFaultEnc->extract_sufficient_condition(mEngine, fault, cond, model);
 }
 
@@ -88,10 +90,11 @@ DtpgEngine::extract_sufficient_condition(
 AssignList
 DtpgEngine::justify(
   const SuffCond& suff_cond,
-  const SatModel& model
+  const SatModel& model,
+  const AssignList& assign_list
 )
 {
-  return mEngine.justify(suff_cond, model);
+  return mEngine.justify(suff_cond, model, assign_list);
 }
 
 // @brief 値割り当てを対応するリテラルに変換する．

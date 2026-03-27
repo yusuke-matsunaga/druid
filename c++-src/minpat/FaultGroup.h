@@ -10,7 +10,8 @@
 
 #include "druid.h"
 #include "types/TpgFaultList.h"
-#include "types/TestVector.h"
+#include "types/AssignList.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -19,9 +20,7 @@ BEGIN_NAMESPACE_DRUID
 /// @class FaultGroup FaultGroup.h "FaultGroup.h"
 /// @brief パタン圧縮用の故障グループを表すクラス
 ///
-/// - 故障のリストと現在のテストベクタ(テストキューブ)を持つ．
-/// - コンストラクタで与えられた内容を保持するだけなので
-///   Python の named tuple のようなクラス
+/// - 故障のリストと必要条件(拡張テストキューブ)を持つ．
 //////////////////////////////////////////////////////////////////////
 class FaultGroup
 {
@@ -33,22 +32,23 @@ public:
   /// @brief 内容を指定したコンストラクタ
   FaultGroup(
     const TpgFaultList& fault_list, ///< [in] 故障のリスト
-    const TestVector& testvector    ///< [in] テストベクタ
+    const AssignList& gtc           ///< [in] 拡張テストキューブ
   ) : mFaultList{fault_list},
-      mTestVector{testvector}
+      mGTC{gtc}
   {
   }
 
+  /// @brief 故障リストとテストベクタから故障グループを作る．
+  static
+  FaultGroup
+  make(
+    const TpgFaultList& fault_list, ///< [in] 故障のリスト
+    const TestVector& tv,           ///< [in] テストベクタ
+    const ConfigParam& option       ///< [in] オプション
+  );
+
   /// @brief デストラクタ
   ~FaultGroup() = default;
-
-  /// @brief テストベクタのリストから FaultGroup のリストを作る．
-  static
-  std::vector<FaultGroup>
-  make_list(
-    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    const TpgFaultList& fault_list          ///< [in] 対象の故障リスト
-  );
 
 
 public:
@@ -63,11 +63,36 @@ public:
     return mFaultList;
   }
 
-  /// @brief 現在のテストベクタを得る．
-  const TestVector&
-  testvector() const
+  /// @brief 拡張テストキューブを得る．
+  const AssignList&
+  gtc() const
   {
-    return mTestVector;
+    return mGTC;
+  }
+
+  /// @brief 故障を追加する．
+  void
+  add(
+    const TpgFault& fault, ///< [in] 追加する故障
+    const AssignList& cond ///< [in] 追加する条件
+  )
+  {
+    mFaultList.push_back(fault);
+    mGTC.merge(cond);
+  }
+
+  /// @brief 内容を出力する．
+  void
+  print(
+    std::ostream& s ///< [in] 出力ストリーム
+  ) const
+  {
+    s << "faults:";
+    for ( auto fault: fault_list() ) {
+      s << " " << fault.str();
+    }
+    s << std::endl
+      << "GTC: " << gtc() << std::endl;
   }
 
 
@@ -79,8 +104,8 @@ private:
   // 故障のリスト
   TpgFaultList mFaultList;
 
-  // 現在のテストベクタ
-  TestVector mTestVector;
+  // 拡張テストキューブ
+  AssignList mGTC;
 
 };
 

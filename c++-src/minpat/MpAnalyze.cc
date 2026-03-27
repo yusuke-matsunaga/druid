@@ -16,6 +16,10 @@
 BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
+static int debug = 0;
+END_NONAMESPACE
+
+BEGIN_NONAMESPACE
 
 // list1 に list2 をマージする．
 // list1 と list2 は昇順にソートされていると仮定する．
@@ -56,24 +60,6 @@ merge(
     auto v2 = list2[i2];
     new_list.push_back(v2);
   }
-  if ( 0 ) {
-    std::cout << std::endl
-	      << "merge" << std::endl;
-    for ( auto v: list1 ) {
-      std::cout << " " << v;
-    }
-    std::cout << std::endl;
-    for ( auto v: list2 ) {
-      std::cout << " " << v;
-    }
-    std::cout << std::endl;
-    std::cout << "=>" << std::endl;
-    for ( auto v: new_list ) {
-      std::cout << " " << v;
-    }
-    std::cout << std::endl
-	      << std::endl;
-  }
   return new_list;
 }
 
@@ -82,11 +68,12 @@ END_NONAMESPACE
 // @brief コンストラクタ
 MpAnalyze::MpAnalyze(
   const std::vector<TestVector>& tv_list,
-  const TpgFaultList& fault_list
+  const TpgFaultList& fault_list,
+  const ConfigParam& option
 )
 {
   auto network = fault_list.network();
-  auto fsim_option = JsonValue::object();
+  auto fsim_option = option.get_param("fsim");
   fsim_option.add("has_x", true);
   Fsim fsim(fault_list, fsim_option);
   auto ntv = tv_list.size();
@@ -148,6 +135,56 @@ MpAnalyze::MpAnalyze(
     }
     mExListArray.push_back(ex_list);
   }
+  if ( debug ) {
+    std::cout << "MpAnalyze" << std::endl;
+    auto pos_list = ex_pos_list();
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      auto pos = pos_list[i];
+      std::cout << "----------------" << std::endl
+		<< "TV#" << i << ": " << tv_list[pos].bin_str() << std::endl
+		<< "Faults:" << std::endl;
+      auto& fid_list = mDetListArray[pos];
+      auto& ex_list = mExListArray[pos];
+      std::unordered_set<SizeType> mark;
+      for ( auto fid: ex_list ) {
+	mark.insert(fid);
+      }
+      for ( auto fid: fid_list ) {
+	auto fault = network.fault(fid);
+	if ( mark.count(fid) > 0 ) {
+	  std::cout << "*";
+	}
+	else {
+	  std::cout << " ";
+	}
+	std::cout << fault.str() << std::endl;
+      }
+    }
+  }
+}
+
+// @brief exclusive_num() の降順の番号リストを返す．
+std::vector<SizeType>
+MpAnalyze::ex_pos_list() const
+{
+  auto ntv = mExListArray.size();
+  std::vector<SizeType> pos_array(ntv);
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    pos_array[i] = i;
+  }
+  std::sort(pos_array.begin(), pos_array.end(),
+	    [&](SizeType a, SizeType b) -> bool {
+	      auto v1 = exclusive_num(a);
+	      auto v2 = exclusive_num(b);
+	      if ( v1 > v2 ) {
+		return true;
+	      }
+	      else if ( v1 < v2 ) {
+		return false;
+	      }
+	      return det_num(a) > det_num(b);
+	    });
+  return pos_array;
 }
 
 END_NAMESPACE_DRUID

@@ -35,10 +35,12 @@ minpat(
   char** argv
 )
 {
-
   std::string format = "blif";
   FaultType ftype = FaultType::StuckAt;
+  bool random_fix = false;
   bool ffr_reduction = false;
+  std::string comp_type = "simple";
+  bool multi_thread = false;
   SizeType argpos = 1;
   for ( ; argpos < argc; ++ argpos ) {
     if ( argv[argpos][0] != '-' ) {
@@ -57,8 +59,17 @@ minpat(
     else if ( arg == "--transition-delay" ) {
       ftype = FaultType::TransitionDelay;
     }
+    else if ( arg == "--random-fix" ) {
+      random_fix = true;
+    }
     else if ( arg == "--ffr-reduction" ) {
       ffr_reduction = true;
+    }
+    else if ( arg == "--merge" ) {
+      comp_type = "merge";
+    }
+    else if ( arg == "--multi-thread" ) {
+      multi_thread = true;
     }
     else {
       std::cerr << arg << ": Unknown option" << std::endl;
@@ -85,17 +96,26 @@ minpat(
   auto fault_list = network.rep_fault_list();
 
   auto dtpg_option = JsonValue::object();
-  dtpg_option.add("group_mode", JsonValue("ffr_mt"));
+  dtpg_option.add("group_mode", JsonValue("ffr"));
+  dtpg_option.add("extractor", JsonValue("simple"));
+
+  auto init_option = JsonValue::object();
+  init_option.add("dtpg", dtpg_option);
+  init_option.add("random_fix", random_fix);
 
   auto reduce_option = JsonValue::object();
   reduce_option.add("ffr", ffr_reduction);
 
+  auto comp_option = JsonValue::object();
+  comp_option.add("type", comp_type);
+
   auto global_option = JsonValue::object();
-  global_option.add("multi_thread", true);
+  global_option.add("multi_thread", multi_thread);
 
   auto option = JsonValue::object();
-  option.add("init", dtpg_option);
+  option.add("init", init_option);
   option.add("reduce", reduce_option);
+  option.add("comp", comp_option);
   option.add("*", global_option);
 
   auto tv_list = MinPat::run(network, fault_list, option);

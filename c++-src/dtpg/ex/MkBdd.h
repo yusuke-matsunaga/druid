@@ -14,7 +14,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class ExData;
+class PropGraph;
 
 //////////////////////////////////////////////////////////////////////
 /// @class MkBdd MkBdd.h "MkBdd.h"pp
@@ -26,7 +26,7 @@ public:
 
   /// @brief コンストラクタ
   MkBdd(
-    const ExData& data, ///< [in] 故障伝搬の情報
+    const PropGraph& data, ///< [in] 故障伝搬の情報
     const std::vector<TpgNode>& node_list,
     const std::vector<TpgNode>& aux_side_inputs
   );
@@ -69,7 +69,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 故障伝搬の情報
-  const ExData& mData;
+  const PropGraph& mData;
 
   // BDDマネージャ
   BddMgr mMgr;

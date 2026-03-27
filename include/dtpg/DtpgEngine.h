@@ -71,16 +71,18 @@ public:
   /// @brief SATの解から十分条件を得る．
   SuffCond
   extract_sufficient_condition(
-    const TpgFault& fault, ///< [in] 対象の故障
-    const SatModel& model  ///< [in] SATの解
+    const TpgFault& fault,             ///< [in] 対象の故障
+    const SatModel& model,             ///< [in] SATの解
+    const AssignList& assign_list = {} ///< [in] 事前の値割り当て
   );
 
   /// @brief SATの解から十分条件を得る．
   SuffCond
   extract_sufficient_condition(
-    const TpgFault& fault, ///< [in] 対象の故障
-    SizeType pos,          ///< [in] 出力番号
-    const SatModel& model  ///< [in] SATの解
+    const TpgFault& fault,             ///< [in] 対象の故障
+    SizeType pos,                      ///< [in] 出力番号
+    const SatModel& model,             ///< [in] SATの解
+    const AssignList& assign_list = {} ///< [in] 事前の値割り当て
   );
 
   /// @brief 与えられた割り当てを満足する外部入力の割り当てを求める．
@@ -89,8 +91,9 @@ public:
   /// * 必要な値割り当てのみが記録される．
   AssignList
   justify(
-    const SuffCond& suff_cond, ///< [in] 割当リスト
-    const SatModel& model      ///< [in] SAT問題の解
+    const SuffCond& suff_cond,         ///< [in] 割当リスト
+    const SatModel& model,             ///< [in] SAT問題の解
+    const AssignList& assign_list = {} ///< [in] 事前の値割り当て
   );
 
   /// @brief 値割り当てを対応するリテラルに変換する．

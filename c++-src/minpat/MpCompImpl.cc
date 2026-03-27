@@ -8,6 +8,7 @@
 
 #include "MpCompImpl.h"
 #include "MpComp_Simple.h"
+#include "MpComp_Merge.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgFaultList.h"
 #include "fsim/Fsim.h"
@@ -28,6 +29,9 @@ MpCompImpl::new_obj(
   auto type = option.get_string_elem("type", "simple");
   if ( type == "simple" ) {
     return std::unique_ptr<MpCompImpl>{new MpComp_Simple};
+  }
+  if ( type == "merge" ) {
+    return std::unique_ptr<MpCompImpl>{new MpComp_Merge};
   }
   std::ostringstream buf;
   buf << type << ": Unknown type name";

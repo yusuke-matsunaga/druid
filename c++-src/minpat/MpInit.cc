@@ -9,6 +9,7 @@
 #include "MpInit.h"
 #include "dtpg/DtpgMgr.h"
 #include "ym/Timer.h"
+#include <random>
 
 
 BEGIN_NAMESPACE_DRUID
@@ -23,6 +24,10 @@ MpInit::MpInit(
   Timer timer;
   timer.start();
 
+  if ( option.get_bool_elem("random_fix", false) ) {
+    mFlags.set(RANDFIX);
+  }
+
   // 検出可能な故障を求める．
   auto res = DtpgMgr::run(fault_list, option);
   mTvList.reserve(fault_list.size());
@@ -30,8 +35,7 @@ MpInit::MpInit(
     auto status = res.status(fault);
     switch ( status ) {
     case FaultStatus::Detected:
-      add_det_fault(fault);
-      mTvList.push_back(res.testvector(fault));
+      add_det_fault(fault, res.testvector(fault));
       break;
     case FaultStatus::Untestable:
       add_untest_fault(fault);

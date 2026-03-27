@@ -42,15 +42,22 @@ Just1::select_cval_node(
   int time
 )
 {
-  // cval を持つ最初のファンインをたどる．
+  // cval を持つファンインを求める．
   auto cval = node.cval();
+  TpgNodeList inode_list;
   for ( auto inode: node.fanin_list() ) {
     auto ival = just_data().val(inode, time);
     if ( ival == cval ) {
-      return inode;
+      inode_list.push_back(inode);
+      if ( just_data().fixed_mark(inode, time) ) {
+	return inode;
+      }
     }
   }
-  throw std::logic_error{"never happend"};
+  if ( inode_list.size() == 0 ) {
+    throw std::logic_error{"never happend"};
+  }
+  return inode_list[0];
 }
 
 END_NAMESPACE_DRUID
