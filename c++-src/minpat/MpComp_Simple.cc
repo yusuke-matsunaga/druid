@@ -10,6 +10,7 @@
 #include "MpComp_MinCov.h"
 #include "MpComp_Expand.h"
 #include "MpComp_Pack.h"
+#include "MpVerify.h"
 
 
 BEGIN_NAMESPACE_DRUID

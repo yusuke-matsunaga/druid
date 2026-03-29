@@ -429,6 +429,10 @@ RefSim::simulate_sa(
 	      << assign_list << std::endl;
     for ( auto node: mNetwork.node_list() ) {
       auto refnode = mNodeMap[node.id()];
+      if ( refnode->get_gval() == Val3::_X &&
+	   refnode->get_fval() == Val3::_X ) {
+	continue;
+      }
       if ( outmap[node.id()] >= 0 ) {
 	std::cout << "O#" << std::setw(4) << outmap[node.id()]
 		  << "|";

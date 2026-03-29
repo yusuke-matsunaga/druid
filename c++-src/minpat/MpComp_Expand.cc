@@ -61,8 +61,7 @@ expand(
   AssignList new_assign_list;
   bool error = false; /*DD*/
   for ( auto fault: fault_list ) {
-    auto root = fault.ffr_root();
-    auto ffr = network.ffr(root);
+    auto ffr = network.ffr(fault);
     DtpgEngine engine(ffr);
     auto lits = engine.make_detect_condition(fault);
     auto tv_lits = engine.conv_to_literal_list(tv_assign_list);
@@ -79,8 +78,8 @@ expand(
       if ( tmp.size() > 0 ) {
 	std::cout << "--------------------------------" << std::endl;
 	std::cout << "Fault:        " << fault.str() << std::endl
-		  << "pi_assign:    " << pi_assign << std::endl
 		  << "tv_assign:    " << tv_assign_list << std::endl
+		  << "pi_assign:    " << pi_assign << std::endl
 		  << "extra assign: " << tmp << std::endl;
 	std::cout << "--------------------------------" << std::endl;
 	error = true;

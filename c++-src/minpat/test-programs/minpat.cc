@@ -41,6 +41,10 @@ minpat(
   bool ffr_reduction = false;
   std::string comp_type = "simple";
   bool multi_thread = false;
+  bool verbose = false;
+  int debug = 0;
+  bool dump = false;
+
   SizeType argpos = 1;
   for ( ; argpos < argc; ++ argpos ) {
     if ( argv[argpos][0] != '-' ) {
@@ -71,6 +75,15 @@ minpat(
     else if ( arg == "--multi-thread" ) {
       multi_thread = true;
     }
+    else if ( arg == "--verbose" ) {
+      verbose = true;
+    }
+    else if ( arg == "--debug" ) {
+      ++ debug;
+    }
+    else if ( arg == "--dump" ) {
+      dump = true;
+    }
     else {
       std::cerr << arg << ": Unknown option" << std::endl;
       usage();
@@ -93,6 +106,11 @@ minpat(
     std::cerr << error.what() << std::endl;
     return 1;
   }
+
+  if ( dump ) {
+    network.print(std::cout);
+  }
+
   auto fault_list = network.rep_fault_list();
 
   auto dtpg_option = JsonValue::object();
@@ -111,6 +129,8 @@ minpat(
 
   auto global_option = JsonValue::object();
   global_option.add("multi_thread", multi_thread);
+  global_option.add("verbose", verbose);
+  global_option.add("debug", debug);
 
   auto option = JsonValue::object();
   option.add("init", init_option);

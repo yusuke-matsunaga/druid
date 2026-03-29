@@ -14,10 +14,17 @@
 #include "ym/Timer.h"
 #include "FaultGroup.h"
 #include "MpAnalyze.h"
-#include "MpComp_Simple.h"
+#include "MpComp_MinCov.h"
+
+//#define VERIFY_MAKE_FAULT_GROUP 1
+//#define VERIFY_REPLACE 1
 
 
 BEGIN_NAMESPACE_DRUID
+
+BEGIN_NONAMESPACE
+static int debug = 0;
+END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // クラス MpComp_Merge
@@ -143,7 +150,6 @@ make_fault_group(
   auto dtpg_option = option.get_param("dtpg");
   AssignList gtc;
   for ( auto fault: fault_list ) {
-    std::cout << fault.str() << std::endl;
     auto ffr = network.ffr(fault);
     DtpgEngine engine(ffr, dtpg_option);
     auto lits1 = engine.conv_to_literal_list(tv_assign_list);
@@ -155,17 +161,18 @@ make_fault_group(
       throw std::logic_error{"something wrong"};
     }
     auto model = engine.solver().model();
-    auto cond = engine.extract_sufficient_condition(fault, model);
+    auto cond = engine.extract_sufficient_condition(fault, model, tv_assign_list);
     auto cond1 = cond.main_cond() + cond.aux_cond();
-    {
+    if ( debug > 1 ) {
       std::cout << "GTC:     " << gtc << std::endl
 		<< "cond1:   " << cond1 << std::endl;
     }
     gtc.merge(cond1);
-    {
+    if ( debug > 1 ) {
       std::cout << "new GTC: " << gtc << std::endl;
     }
   }
+#ifdef VERIFY_MAKE_FAULT_GROUP
   { // 検証を行う．
     for ( auto fault: fault_list ) {
       {
@@ -198,6 +205,7 @@ make_fault_group(
       }
     }
   }
+#endif
   return FaultGroup(fault_list, gtc);
 }
 
@@ -298,6 +306,7 @@ replace(
 	auto cond1 = cond.main_cond() + cond.aux_cond();
 	auto new_fg = fg;
 	new_fg.add(fault, cond1);
+#ifdef VERIFY_REPLACE
 	{ // 検証を行う．
 	  std::cout << fault.str()
 		    << " is moved to FG#" << i << std::endl;
@@ -316,6 +325,7 @@ replace(
 	    }
 	  }
 	}
+#endif
 	replace_map.emplace(i, new_fg);
 	found = true;
 	break;
@@ -323,13 +333,13 @@ replace(
     }
     if ( !found ) {
       // マージに失敗した．
-      {
+      if ( debug ) {
 	std::cout << "-> Failed" << std::endl;
       }
       return {};
     }
   }
-  {
+  if ( debug ) {
     std::cout << std::endl
 	      << "original fg_list" << std::endl;
     for ( auto& fg: fg_list ) {
@@ -367,7 +377,7 @@ replace(
 	    [](const FaultGroup& a, const FaultGroup& b) -> bool {
 	      return a.fault_list().size() > b.fault_list().size();
 	    });
-  {
+  if ( debug ) {
     std::cout << "-> Succeed" << std::endl;
     for ( auto& fg: new_fg_list ) {
       std::cout << std::endl;
@@ -400,11 +410,12 @@ MpComp_Merge::run(
   const ConfigParam& option
 )
 {
-  MpComp_Simple simple;
-  auto tv_list2 = simple.run(tv_list, fault_list, option);
+  // 最小被覆を求める．
+  MpComp_MinCov mincov;
+  auto tv_list1 = mincov.run(tv_list, fault_list, option);
 
-  auto fg_list = make_fg_list(tv_list2, fault_list, option);
-  if ( 0 ) {
+  auto fg_list = make_fg_list(tv_list1, fault_list, option);
+  if ( debug ) {
     std::cout << std::endl
 	      << "make_fg_list" << std::endl;
     auto nfg = fg_list.size();
@@ -445,13 +456,15 @@ MpComp_Merge::run(
   std::vector<TestVector> new_tv_list;
   new_tv_list.reserve(fg_list.size());
   StructEngine engine(network, dtpg_option);
-  {
+  if ( debug ) {
     std::cout << "=======================" << std::endl;
     std::cout << "final results" << std::endl;
+    for ( auto& fg: fg_list ) {
+      std::cout << std::endl;
+      fg.print(std::cout);
+    }
   }
   for ( auto& fg: fg_list ) {
-    std::cout << std::endl;
-    fg.print(std::cout);
     auto& gtc = fg.gtc();
     auto lits = engine.conv_to_literal_list(gtc);
     auto res = engine.solver().solve(lits);

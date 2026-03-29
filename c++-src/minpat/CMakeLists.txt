@@ -11,7 +11,7 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
-#add_subdirectory( gtest )
+add_subdirectory( gtest )
 add_subdirectory( test-programs )
 
 

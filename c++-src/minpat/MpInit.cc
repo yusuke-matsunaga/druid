@@ -24,6 +24,8 @@ MpInit::MpInit(
   Timer timer;
   timer.start();
 
+  auto debug = option.get_int_elem("debug", 0);
+
   if ( option.get_bool_elem("random_fix", false) ) {
     mFlags.set(RANDFIX);
   }
@@ -47,7 +49,8 @@ MpInit::MpInit(
   }
 
   timer.stop();
-  {
+
+  if ( debug ) {
     std::cout << std::left << std::setw(20)
 	      << "DTPG end: " << timer.get_time() << std::endl
 	      << std::left << std::setw(20)

@@ -29,6 +29,7 @@ ffr_reduction(
   timer.start();
 
   bool multi_thread = option.get_bool_elem("multi_thread", false);
+  bool verbose = option.get_bool_elem("verbose", false);
 
   auto network = fault_list.network();
 
@@ -86,7 +87,7 @@ ffr_reduction(
   }
   timer.stop();
 
-  {
+  if ( verbose ) {
     std::cout << std::left << std::setw(20)
 	      << "ffr_reduction end:" << timer.get_time() << std::endl
 	      << std::left << std::setw(20)

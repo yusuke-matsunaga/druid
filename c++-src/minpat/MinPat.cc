@@ -33,6 +33,8 @@ MinPat::run(
 {
   auto config = ConfigParam(option);
 
+  bool verbose = config.get_bool_elem("verbose", false);
+
   // 初期解を作る．
   auto init_option = config.get_param("init");
   MpInit init(network, init_fault_list, init_option);
@@ -44,7 +46,7 @@ MinPat::run(
   auto comp_option = config.get_param("comp");
   auto tv_list = MpComp::run(init.tv_list(), fault_list, comp_option);
 
-  {
+  if ( verbose ) {
     MpAnalyze analyzer(tv_list, fault_list);
     auto ntv = tv_list.size();
     std::vector<SizeType> pos_array(ntv);

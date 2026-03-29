@@ -483,4 +483,56 @@ TEST(FsimTest, case2)
   }
 }
 
+TEST(FsimTest, case3)
+{
+  auto data_dir = std::filesystem::path{TESTDATA_DIR};
+  auto filename = data_dir / "b15.bench";
+  auto network = TpgNetwork::read_iscas89(filename, FaultType::StuckAt);
+  auto fault_list = network.rep_fault_list();
+  auto option = JsonValue::object();
+  option.add("has_x", true);
+  auto fsim = Fsim(fault_list, option);
+  RefSim refsim{network};
+
+  TpgFault fault1;
+  TpgFault fault2;
+  for ( auto fault: fault_list ) {
+    if ( fault.str() == "G#3464:I0:SA1" ) {
+      fault1 = fault;
+    }
+    else if ( fault.str() == "G#3462:I0:SA1" ) {
+      fault2 = fault;
+    }
+  }
+  AssignList assign_list;
+  assign_list.add(network.node(106), 1, true);
+  assign_list.add(network.node(107), 1, false);
+  assign_list.add(network.node(108), 1, true);
+  assign_list.add(network.node(218), 1, false);
+  assign_list.add(network.node(219), 1, false);
+  assign_list.add(network.node(220), 1, true);
+  assign_list.add(network.node(221), 1, true);
+  assign_list.add(network.node(222), 1, true);
+  assign_list.add(network.node(223), 1, true);
+  assign_list.add(network.node(224), 1, false);
+  assign_list.add(network.node(225), 1, true);
+  assign_list.add(network.node(226), 1, false);
+  assign_list.add(network.node(227), 1, false);
+  assign_list.add(network.node(228), 1, true);
+  assign_list.add(network.node(237), 1, false);
+  assign_list.add(network.node(238), 1, false);
+  assign_list.add(network.node(239), 1, false);
+  assign_list.add(network.node(240), 1, false);
+  assign_list.add(network.node(241), 1, true);
+  assign_list.add(network.node(242), 1, true);
+  assign_list.add(network.node(243), 1, true);
+  assign_list.add(network.node(247), 1, false);
+  assign_list.add(network.node(248), 1, false);
+  assign_list.add(network.node(249), 1, false);
+  refsim.simulate(assign_list, fault1.id());
+  refsim.simulate(assign_list, fault2.id());
+  auto res = fsim.spsfp(assign_list, fault2);
+  EXPECT_TRUE( res );
+}
+
 END_NAMESPACE_DRUID
