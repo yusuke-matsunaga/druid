@@ -27,6 +27,7 @@ set (types_SOURCES
   tpg/TpgFFR.cc
   tpg/TpgMFFC.cc
   tpg/TpgFault.cc
+  tpg/TpgFaultList.cc
   tpg/AssignList.cc
 
   network/NetworkRep.cc

@@ -33,14 +33,7 @@ ffr_reduction(
 
   auto network = fault_list.network();
 
-  std::unordered_map<SizeType, TpgFaultList> fault_list_dict;
-  for ( auto fault: fault_list ) {
-    auto root_id = fault.ffr_root().id();
-    if ( fault_list_dict.count(root_id) == 0 ) {
-      fault_list_dict.emplace(root_id, TpgFaultList());
-    }
-    fault_list_dict.at(root_id).push_back(fault);
-  }
+  auto ffr_fault_list_array = fault_list.ffr_split();
 
   // FFR ごとに支配関係を調べる．
   std::vector<bool> del_mark(network.max_fault_id(), false);
@@ -57,24 +50,18 @@ ffr_reduction(
 	    break;
 	  }
 	  auto ffr = network.ffr(id);
-	  auto root_id = ffr.root().id();
-	  if ( fault_list_dict.count(root_id) > 0 ) {
-	    auto& fault_list = fault_list_dict.at(root_id);
-	    FFRDomChecker checker(ffr, fault_list, del_mark);
-	    checker.run();
-	  }
+	  auto& fault_list = ffr_fault_list_array[id];
+	  FFRDomChecker checker(ffr, fault_list, del_mark);
+	  checker.run();
 	}
       }, thread_num
     );
   }
   else {
     for ( auto ffr: network.ffr_list() ) {
-      auto root_id = ffr.root().id();
-      if ( fault_list_dict.count(root_id) > 0 ) {
-	auto& fault_list = fault_list_dict.at(root_id);
-	FFRDomChecker checker(ffr, fault_list, del_mark);
-	checker.run();
-      }
+      auto& fault_list = ffr_fault_list_array[ffr.id()];
+      FFRDomChecker checker(ffr, fault_list, del_mark);
+      checker.run();
     }
   }
   // 結果の故障リストを作る．

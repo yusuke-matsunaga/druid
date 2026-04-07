@@ -22,57 +22,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-// FFR に関係する故障を求める．
-bool
-get_faults(
-  const TpgFFR& ffr,
-  const std::vector<TpgFaultList>& node_fault_list_array,
-  TpgFaultList& fault_list
-)
-{
-  bool has_faults = false;
-  for ( auto node: ffr.node_list() ) {
-    for ( auto fault: node_fault_list_array[node.id()] ) {
-      fault_list.push_back(fault);
-      has_faults = true;
-    }
-  }
-  return has_faults;
-}
-
-// MFFC に関係する故障を求める．
-//
-// 故障が唯一のFFR内にのみ存在する場合にはそのFFRを返す．
-TpgFFR
-get_faults(
-  const TpgMFFC& mffc,
-  const std::vector<TpgFaultList>& node_fault_list_array,
-  TpgFaultList& fault_list
-)
-{
-  bool ffr_mode = true;
-  TpgFFR ffr1;
-  for ( auto ffr: mffc.ffr_list() ) {
-    if ( get_faults(ffr, node_fault_list_array, fault_list) ) {
-      if ( !ffr1.is_valid() ) {
-	ffr1 = ffr;
-      }
-      else {
-	ffr_mode = false;
-      }
-    }
-  }
-  if ( !ffr_mode ) {
-    ffr1 = TpgFFR();
-  }
-  return ffr1;
-}
-
-END_NONAMESPACE
-
-
 //////////////////////////////////////////////////////////////////////
 // クラス DtpgMgr
 //////////////////////////////////////////////////////////////////////
@@ -100,6 +49,7 @@ DtpgMgr::run(
   DtpgResults dtpg_results;
 
   if ( group_mode == "node" ) { // ノード単位で処理を行う．
+    auto fault_list_array = fault_list.node_split();
     if ( multi ) {
       SizeType thread_num = option.get_int_elem("thread_num", 0);
       IdPool id_pool(network.node_num());
@@ -113,7 +63,7 @@ DtpgMgr::run(
 	      break;
 	    }
 	    auto node = network.node(id);
-	    auto& fault_list = node_fault_list_array[node.id()];
+	    auto& fault_list = fault_list_array[node.id()];
 	    auto driver = DtpgDriver(node, fault_list, option);
 	    driver.run();
 	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
@@ -123,7 +73,7 @@ DtpgMgr::run(
     }
     else {
       for ( auto node: network.node_list() ) {
-	auto& fault_list = node_fault_list_array[node.id()];
+	auto& fault_list = fault_list_array[node.id()];
 	auto driver = DtpgDriver(node, fault_list, option);
 	driver.run();
 	dtpg_results.merge(driver.results());
@@ -131,6 +81,7 @@ DtpgMgr::run(
     }
   }
   else if ( group_mode == "ffr" ) { // FFR 単位で処理を行う．
+    auto fault_list_array = fault_list.ffr_split();
     if ( multi ) {
       // スレッド数
       SizeType thread_num = option.get_int_elem("thread_num", 0);
@@ -145,10 +96,7 @@ DtpgMgr::run(
 	      break;
 	    }
 	    auto ffr = network.ffr(id);
-	    TpgFaultList fault_list;
-	    if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
-	      continue;
-	    }
+	    auto& fault_lsit = fault_list_array[ffr.id()];
 	    auto driver = DtpgDriver(ffr, fault_list, option);
 	    driver.run();
 	    r_lock.run([&](){ dtpg_results.merge(driver.results()); });
@@ -159,10 +107,7 @@ DtpgMgr::run(
     else {
       for ( auto ffr: network.ffr_list() ) {
 	// ffr に関係する故障を集める．
-	TpgFaultList fault_list;
-	if ( !get_faults(ffr, node_fault_list_array, fault_list) ) {
-	  continue;
-	}
+	auto& fault_list = fault_list_array[ffr.id()];
 	auto driver = DtpgDriver(ffr, fault_list, option);
 	driver.run();
 	dtpg_results.merge(driver.results());
@@ -170,6 +115,7 @@ DtpgMgr::run(
     }
   }
   else if ( group_mode == "mffc" ) { // MFFC 単位で処理を行う．
+    auto fault_list_array = fault_list.mffc_split();
     if ( multi ) {
       SizeType thread_num = option.get_int_elem("thread_num", 0);
       IdPool id_pool(network.mffc_num());
@@ -183,8 +129,9 @@ DtpgMgr::run(
 	      break;
 	    }
 	    auto mffc = network.mffc(id);
+	    TpgFFR ffr;
 	    TpgFaultList fault_list;
-	    auto ffr = get_faults(mffc, node_fault_list_array, fault_list);
+	    std::tie(ffr, fault_list) = fault_list_array[mffc.id()];
 	    if ( fault_list.empty() ) {
 	      continue;
 	    }
@@ -198,14 +145,18 @@ DtpgMgr::run(
 	      driver.run();
 	      r_lock.run([&](){ dtpg_results.merge(driver.results()); });
 	    }
+	    if ( fault_list.empty() ) {
+	      continue;
+	    }
 	  }
 	}, thread_num
       );
     }
     else {
       for ( auto mffc: network.mffc_list() ) {
+	TpgFFR ffr;
 	TpgFaultList fault_list;
-	auto ffr = get_faults(mffc, node_fault_list_array, fault_list);
+	std::tie(ffr, fault_list) = fault_list_array[mffc.id()];
 	if ( fault_list.empty() ) {
 	  continue;
 	}

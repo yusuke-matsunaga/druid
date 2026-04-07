@@ -69,6 +69,12 @@ ym_add_gtest ( druid_TpgNetworkTest2
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
+ym_add_gtest ( druid_TpgNetworkTest3
+  TpgNetworkTest3.cc
+  $<TARGET_OBJECTS:druid_types_obj_d>
+  ${YM_SUBMODULE_OBJ_D_LIST}
+  )
+
 ym_add_gtest( druid_read_blif_test
   read_blif_test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>

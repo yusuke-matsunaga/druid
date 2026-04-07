@@ -35,6 +35,8 @@ set ( minpat_SOURCES
   MpAnalyze.cc
   MpVerify.cc
   FaultGroup.cc
+  Dichotomy.cc
+  DiGroupMgr.cc
   )
 
 

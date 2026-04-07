@@ -176,6 +176,21 @@ public:
     return max_val;
   }
 
+  /// @brief ノードごとに分割した故障リストのリストを返す．
+  std::vector<TpgFaultList>
+  node_split() const;
+
+  /// @brief FFR ごとに分割した故障リストのリストを返す．
+  std::vector<TpgFaultList>
+  ffr_split() const;
+
+  /// @brief MFFC ごとに分割した故障リストのリストを返す．
+  ///
+  /// もしもMFFC内の単一のFFRだけの故障の場合，そのFFRを入れる．
+  /// 複数のFFRにまたがる故障の場合不正な値が入る．
+  std::vector<std::pair<TpgFFR, TpgFaultList>>
+  mffc_split() const;
+
   /// @brief 先頭の反復子を返す．
   iterator
   begin() const

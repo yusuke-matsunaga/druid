@@ -8,8 +8,6 @@
 
 #include <gtest/gtest.h>
 #include "NetBuilder.h"
-#include "NodeRep.h"
-#include "GateRep.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgNode.h"
 
