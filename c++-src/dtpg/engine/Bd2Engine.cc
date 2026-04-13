@@ -21,10 +21,23 @@ Bd2Engine::Bd2Engine(
   const TpgNode& node1,
   const TpgNode& node2,
   const ConfigParam& option
-) : StructEngine(node1.network(), option),
-    mBdEnc1{new BoolDiffEnc(node1, option)},
-    mBdEnc2{new BoolDiffEnc(node2, option)}
+) : StructEngine(node1.network(), option)
 {
+  auto mffc_root1 = node1.mffc_root();
+  auto mffc_root2 = node2.mffc_root();
+  if ( mffc_root1 == mffc_root2 ) {
+    // 同じMFFCに属している場合
+    auto enc0 = new BoolDiffEnc(mffc_root1, option);
+    add_subenc(std::unique_ptr<SubEnc>{enc0});
+    auto pvar = enc0->prop_var();
+    solver().add_clause(pvar);
+    mBdEnc1 = new BoolDiffEnc(node1, mffc_root1, option);
+    mBdEnc2 = new BoolDiffEnc(node2, mffc_root1, option);
+  }
+  else {
+    mBdEnc1 = new BoolDiffEnc(node1, option);
+    mBdEnc2 = new BoolDiffEnc(node2, option);
+  }
   add_subenc(std::unique_ptr<SubEnc>{mBdEnc1});
   add_subenc(std::unique_ptr<SubEnc>{mBdEnc2});
 }

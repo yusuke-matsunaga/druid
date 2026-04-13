@@ -236,7 +236,7 @@ analyze_test(
   }
   std::cout << "=========================================" << std::endl
 	    << "# of initial faults:     " << fault_list.size() << std::endl
-	    << "# of dominannt faults:   " << nd << std::endl
+	    << "# of dominant faults:    " << nd << std::endl
 	    << "Total CPU time:          " << time << "ms" << std::endl;
 
   if ( verify ) {
@@ -306,11 +306,8 @@ analyze_test(
 
   if ( dom_dump ) {
     for ( auto fault: fault_list ) {
-      if ( fault_info.is_dominated(fault) ) {
-	auto dom_fault = fault_info.dominator(fault);
-	std::cout << fault.str()
-		  << ": " << dom_fault.str()
-		  << std::endl;
+      if ( fault_info.is_rep(fault) ) {
+	std::cout << fault.str() << std::endl;
       }
     }
   }

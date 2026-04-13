@@ -96,6 +96,34 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief fault1 の支配故障を登録する．
+  void
+  set_dominator1(
+    SizeType i1,
+    const TpgFault& dom_fault
+  )
+  {
+    mPosList1.push_back(i1);
+    mDomList1[i1] = dom_fault;
+  }
+
+  /// @brief fault1 の支配故障を登録する．
+  void
+  set_dominator2(
+    SizeType i2,
+    const TpgFault& dom_fault
+  )
+  {
+    mPosList2.push_back(i2);
+    mDomList2[i2] = dom_fault;
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 

@@ -29,17 +29,9 @@ DomChecker::DomChecker(
     mDomList1(fault_list1.size()),
     mDomList2(fault_list2.size())
 {
-  mPosList1.reserve(fault_list1.size());
-  mPosList2.reserve(fault_list2.size());
-
   auto multi_thread = option.get_bool_elem("multi_thread", false);
   auto debug = option.get_bool_elem("debug", false);
   auto verbose = option.get_bool_elem("verbose", false);
-
-  auto network = ffr1.network();
-
-  // ２つの BoolDiffEnc を持つSATエンジン
-  Bd2Engine engine(ffr1.root(), ffr2.root(), option);
 
   if ( debug ) {
     std::cout << "DomChecker FFR#" << ffr1.id()
@@ -55,6 +47,14 @@ DomChecker::DomChecker(
     }
     std::cout << std::endl;
   }
+
+  mPosList1.reserve(fault_list1.size());
+  mPosList2.reserve(fault_list2.size());
+
+  auto network = ffr1.network();
+
+  // ２つの BoolDiffEnc を持つSATエンジン
+  Bd2Engine engine(ffr1.root(), ffr2.root(), option);
 
   auto nf1 = fault_list1.size();
   // fault_list1 に含まれる故障の検出条件の配列
@@ -110,6 +110,10 @@ DomChecker::DomChecker(
   // 両立していた場合は支配関係も調べる．
   mCheckCount = 0;
   for ( SizeType i1 = 0; i1 < nf1; ++ i1 ) {
+    if ( mDomList1[i1].is_valid() ) {
+      // すでに支配されている．
+      continue;
+    }
     auto fault1 = fault_list1[i1];
     if ( debug ) {
       std::cout << "fault1 = " << fault1.str()
@@ -140,43 +144,77 @@ DomChecker::DomChecker(
 	}
       }
 
+      bool dom1 = false;
       { // fault1 を検出して fault2 を検出しない条件を調べる．
 	auto tmp_lits = dlits1;
 	tmp_lits.push_back(clit_array2[i2]);
 	auto res1 = engine.solver().solve(tmp_lits);
 	if ( res1 == SatBool3::False ) {
 	  // fault2 は支配されている．
-	  mPosList2.push_back(i2);
-	  mDomList2[i2] = fault1;
-	  if ( debug ) {
-	    std::cout << fault2.str()
-		      << " is dominated by "
-		      << fault1.str()
-		      << std::endl;
-	  }
-	  // fault2 は削除されたので逆は調べない．
+	  dom1 = true;
+#if 0
+	  set_dominator2(i2, fault1);
 	  continue;
+#endif
 	}
       }
 
+      bool dom2 = false;
       { // fault2 を検出して fault1 を検出しない条件を調べる．
 	auto tmp_lits = dlits2;
 	tmp_lits.push_back(clit_array1[i1]);
 	auto res2 = engine.solver().solve(tmp_lits);
 	if ( res2 == SatBool3::False ) {
 	  // fault1 は支配されている．
-	  mPosList1.push_back(i1);
-	  mDomList1[i1] = fault2;
-	  if ( debug ) {
-	    std::cout << fault1.str()
-		      << " is dominated by "
-		      << fault2.str()
-		      << std::endl;
-	  }
-	  // fault1 は削除されたので残りは調べない．
+	  dom2 = true;
+#if 0
+	  set_dominator1(i1, fault2);
 	  break;
+#endif
 	}
       }
+
+#if 1
+      if ( dom1 ) {
+	if ( dom2 ) {
+	  if ( debug ) {
+	    std::cout << fault1.str()
+		      << " and "
+		      << fault2.str()
+		      << " are equivallent"
+		      << std::endl;
+	  }
+	  // fault1 と fault2 は等価だった．
+	  // 番号の若い方を代表とする．
+	  if ( fault1.id() < fault2.id() ) {
+	    set_dominator2(i2, fault1);
+	  }
+	  else {
+	    set_dominator1(i1, fault2);
+	    break;
+	  }
+	}
+	else {
+	  if ( debug ) {
+	    std::cout << fault2.str()
+		      << " is dominated by "
+		      << fault1.str()
+		      << std::endl;
+	  }
+	}
+      }
+      else if ( dom2 ) {
+	// fault1 は fault2 に支配されている．
+	set_dominator1(i1, fault2);
+	if ( debug ) {
+	  std::cout << fault1.str()
+		    << " is dominated by "
+		    << fault2.str()
+		    << std::endl;
+	}
+	break;
+      }
+#endif
     }
   }
 }

@@ -13,7 +13,6 @@ include_directories(
 add_subdirectory ( tpgnetworktest )
 add_subdirectory ( read_blif )
 add_subdirectory ( read_iscas89 )
-add_subdirectory ( ffr_group )
 
 
 # ===================================================================

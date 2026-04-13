@@ -129,16 +129,26 @@ MFFCAnalyze::run(
 	  auto tmp_lits1 = dlits1;
 	  tmp_lits1.push_back(clit2);
 	  auto res1 = engine.solve(tmp_lits1);
-	  if ( res1 == SatBool3::False ) {
-	    // fault2 は fault1 に支配されている．
-	    fault_info.set_dominator(fault2, fault1);
-	    continue;
-	  }
+	  bool dom1 = res1 == SatBool3::False;
 	  // fault2 を検出して fault1 を検出しない条件を調べる．
 	  auto tmp_lits2 = dlits2;
 	  tmp_lits2.push_back(clit1);
 	  auto res2 = engine.solve(tmp_lits2);
-	  if ( res2 == SatBool3::False ) {
+	  bool dom2 = res2 == SatBool3::False;
+	  if ( dom1 ) {
+	    // fault2 は fault1 に支配されている．
+	    if ( dom2 ) {
+	      // fault1 と fault2 は等価故障だった．
+	      if ( fault1.id() < fault2.id() ) {
+		fault_info.set_dominator(fault2, fault1);
+	      }
+	      else {
+		fault_info.set_dominator(fault1, fault2);
+		break;
+	      }
+	    }
+	  }
+	  else if ( dom2 ) {
 	    // fault1 は fault2 に支配されている．
 	    fault_info.set_dominator(fault1, fault2);
 	    break;
