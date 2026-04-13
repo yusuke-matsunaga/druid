@@ -133,6 +133,18 @@ public:
   {
   }
 
+  /// @brief vector<TpgNode> からの変換コンストラクタ
+  explicit
+  TpgNodeList(
+    const std::vector<TpgNode>& node_list
+  )
+  {
+    reserve(node_list.size());
+    for ( auto& node: node_list ) {
+      push_back(node);
+    }
+  }
+
   /// @brief デストラクタ
   ~TpgNodeList() = default;
 

@@ -44,11 +44,14 @@ analyze_test(
   bool sa_mode = false;
   bool td_mode = false;
   bool ffr_reduction = false;
+  bool mffc_reduction = false;
   bool multi_thread = false;
+  bool global_reduction = false;
   bool dump = false;
   bool verify = false;
   bool verbose = false;
   bool debug = false;
+  bool dom_dump = false;
   std::string sat_log;
   bool show_untestable_faults = false;
   std::string just_type;
@@ -58,10 +61,8 @@ analyze_test(
   int pos = 1;
   for ( ; pos < argc; ++ pos) {
     if ( argv[pos][0] == '-' ) {
-      if ( strcmp(argv[pos], "--ffr-reduction") == 0 ) {
-	ffr_reduction = true;
-      }
-      else if ( strcmp(argv[pos], "--sat_type") == 0 ) {
+      auto arg = std::string(argv[pos]);
+      if ( arg == "--sat_type" ) {
 	++ pos;
 	if ( pos < argc ) {
 	  sat_type = argv[pos];
@@ -72,13 +73,13 @@ analyze_test(
 	  return -1;
 	}
       }
-      else if ( strcmp(argv[pos], "--blif") == 0 ) {
+      else if ( arg == "--blif" ) {
 	format = "blif";
       }
       else if ( strcmp(argv[pos], "--iscas89") == 0 ) {
 	format = "iscas89";
       }
-      else if ( strcmp(argv[pos], "--stuck-at") == 0 ) {
+      else if ( arg == "--stuck-at" ) {
 	if ( td_mode ) {
 	  std::cerr << "--stuck-at and --transition-delay are mutually exclusive"
 		    << std::endl;
@@ -86,7 +87,7 @@ analyze_test(
 	}
 	sa_mode = true;
       }
-      else if ( strcmp(argv[pos], "--transition-delay") == 0 ) {
+      else if ( arg == "--transition-delay" ) {
 	if ( td_mode ) {
 	  std::cerr << "--stuck-at and --transition-delay are mutually exclusive"
 		    << std::endl;
@@ -94,7 +95,7 @@ analyze_test(
 	}
 	td_mode = true;
       }
-      else if ( strcmp(argv[pos], "--just_naive") == 0 ) {
+      else if ( arg == "--just_naive" ) {
 	if ( !just_type.empty() ) {
 	  std::cerr << "--just_naive and " << just_type << " are mutually exclusive"
 		    << std::endl;
@@ -118,22 +119,34 @@ analyze_test(
 	}
 	just_type = "just2";
       }
-      else if ( strcmp(argv[pos], "--multi-thread") == 0 ) {
+      else if ( arg == "--multi-thread" ) {
 	multi_thread = true;
       }
-      else if ( strcmp(argv[pos], "--dump") == 0 ) {
+      else if ( arg == "--ffr-reduction" ) {
+	ffr_reduction = true;
+      }
+      else if ( arg == "--mffc-reduction" ) {
+	mffc_reduction = true;
+      }
+      else if ( arg == "--global-reduction" ) {
+	global_reduction = true;
+      }
+      else if ( arg == "--dump" ) {
 	dump = true;
       }
-      else if ( strcmp(argv[pos], "--verify") == 0 ) {
+      else if ( arg == "--verify" ) {
 	verify = true;
       }
-      else if ( strcmp(argv[pos], "--verbose") == 0 ) {
+      else if ( arg == "--verbose" ) {
 	verbose = true;
       }
-      else if ( strcmp(argv[pos], "--debug") == 0 ) {
+      else if ( arg == "--debug" ) {
 	debug = true;
       }
-      else if ( strcmp(argv[pos], "--sat_log") == 0 ) {
+      else if ( arg == "--dom-dump" ) {
+	dom_dump = true;
+      }
+      else if ( arg == "--sat_log" ) {
 	++ pos;
 	if ( pos < argc ) {
 	  sat_log = argv[pos];
@@ -197,10 +210,12 @@ analyze_test(
   }
   global_option.add("sat_param", sat_option);
   global_option.add("multi_thread", multi_thread);
+  global_option.add("ffr_reduction", ffr_reduction);
+  global_option.add("mffc_reduction", mffc_reduction);
+  global_option.add("global_reduction", global_reduction);
   global_option.add("debug", debug);
   global_option.add("verbose", verbose);
   auto option = JsonValue::object();
-  //option.add("ffr_reduction", ffr_reduction);
   option.add("*", global_option);
 
   Timer timer;
@@ -225,77 +240,76 @@ analyze_test(
 	    << "Total CPU time:          " << time << "ms" << std::endl;
 
   if ( verify ) {
+    int error = 0;
     std::vector<TpgFault> det_list;
     std::vector<bool> ref_rep_mark(network.max_fault_id(), false);
     det_list.reserve(fault_list.size());
     for ( auto fault: fault_list ) {
       NaiveDtpgEngine engine(fault);
       auto res = engine.solver().solve();
+      auto ref_status = FaultStatus::Undetected;
+      switch ( res ) {
+      case SatBool3::True: ref_status = FaultStatus::Detected; break;
+      case SatBool3::False: ref_status = FaultStatus::Untestable; break;
+      default: break;
+      }
+      if ( fault_info.status(fault) != ref_status ) {
+	++ error;
+	std::cout << fault.str()
+		  << ": status mismatch"
+		  << "std::endl";
+      }
       if ( res == SatBool3::True ) {
 	det_list.push_back(fault);
 	ref_rep_mark[fault.id()] = true;
       }
     }
     auto nd = det_list.size();
-    for ( SizeType i1 = 0; i1 < nd - 1; ++ i1 ) {
-      auto fault1 = det_list[i1];
-      if ( !ref_rep_mark[fault1.id()] ) {
-	continue;
-      }
-      if ( debug ) {
-	std::cout << "fault1 = " << fault1.str()
-		  << " @FFR#" << network.ffr(fault1).id() << std::endl;
-      }
-      for ( SizeType i2 = i1 + 1; i2 < nd; ++ i2 ) {
-	auto fault2 = det_list[i2];
-	if ( !ref_rep_mark[fault2.id()] ) {
-	  continue;
-	}
-	if ( debug ) {
-	  std::cout << "  fault2 = " << fault2.str()
-		    << " @FFR#" << network.ffr(fault2).id() << std::endl;
-	}
+    for ( auto fault1: det_list ) {
+      if ( fault_info.is_dominated(fault1) ) {
+	auto fault2 = fault_info.dominator(fault1);
 	NaiveDualEngine engine(fault1, fault2);
-	auto res = engine.solve(true, true);
-	if ( res != SatBool3::True ) {
-	  continue;
+	auto res = engine.solve(false, true);
+	if ( res != SatBool3::False ) {
+	  ++ error;
+	  std::cout << "fault1 = " << fault1.str()
+		    << " @FFR#" << network.ffr(fault1).id() << std::endl
+		    << "dominator = " << fault2.str()
+		    << " @FFR#" << network.ffr(fault2).id() << std::endl
+		    << "dominance check failed." << std::endl
+		    << "expected to be dominated" << std::endl;
 	}
-	{ // fault1 を検出して fault2 を検出しない条件
-	  auto res = engine.solve(true, false);
-	  if ( res == SatBool3::False ) {
-	    if ( debug ) {
-	      std::cout << fault2.str()
-			<< " is dominated by "
-			<< fault1.str()
-			<< std::endl;
-	    }
-	    ref_rep_mark[fault2.id()] = false;
+      }
+      else {
+	for ( auto fault2: det_list ) {
+	  if ( fault2 == fault1 ) {
 	    continue;
 	  }
-	}
-	{ // fault2 を検出して fault1 を検出しない条件
+	  NaiveDualEngine engine(fault1, fault2);
 	  auto res = engine.solve(false, true);
-	  if ( res == SatBool3::False ) {
-	    if ( debug ) {
-	      std::cout << fault1.str()
-			<< " is dominated by "
-			<< fault2.str()
-			<< std::endl;
-	    }
-	    ref_rep_mark[fault1.id()] = false;
-	    break;
+	  if ( res != SatBool3::True ) {
+	  ++ error;
+	  std::cout << "fault1 = " << fault1.str()
+		    << " @FFR#" << network.ffr(fault1).id() << std::endl
+		    << "dominator = " << fault2.str()
+		    << " @FFR#" << network.ffr(fault2).id() << std::endl
+		    << "dominance check failed." << std::endl
+		    << "expected not to be dominated" << std::endl;
 	  }
 	}
       }
     }
+    if ( error ) {
+      return error;
+    }
+  }
+
+  if ( dom_dump ) {
     for ( auto fault: fault_list ) {
-      auto rep_mark = fault_info.is_rep(fault);
-      if ( rep_mark != ref_rep_mark[fault.id()] ) {
+      if ( fault_info.is_dominated(fault) ) {
+	auto dom_fault = fault_info.dominator(fault);
 	std::cout << fault.str()
-		  << ": rep_mark = "
-		  << rep_mark
-		  << ", ref_rep_mark = "
-		  << ref_rep_mark[fault.id()]
+		  << ": " << dom_fault.str()
 		  << std::endl;
       }
     }

@@ -13,7 +13,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
-// @brief FFR内の故障の支配関係を調べる．
+// @brief 処理を行うクラスメソッド
 void
 FFRAnalyze::run(
   const TpgFFR& ffr,
@@ -67,6 +67,19 @@ FFRAnalyze::run(
       auto pi_assign = engine.justify(suff_cond1, model);
       auto tv = TestVector(pi_assign);
       fault_info.set_detected(fault, det_cond, tv);
+      AssignList mand_cond;
+      for ( auto as: det_cond ) {
+	auto lit = engine.conv_to_literal(as);
+	auto tmp_lits = lits;
+	tmp_lits.push_back(~lit);
+	auto res = engine.solver().solve(tmp_lits);
+	if ( res == SatBool3::False ) {
+	  // lit(as) を否定したら充足できなくなった．
+	  // -> as は必須条件
+	  mand_cond.add(as);
+	}
+      }
+      fault_info.set_mandatory_condition(fault, mand_cond);
       det_list.push_back(fault);
       dlits_array.push_back(lits);
     }
@@ -100,7 +113,7 @@ FFRAnalyze::run(
   // 両立していた場合は支配関係も調べる．
   for ( SizeType i1 = 0; i1 < ndet - 1; ++ i1 ) {
     auto fault1 = det_list[i1];
-    if ( fault_info.is_dominated(fault1) ) {
+    if ( !fault_info.is_rep(fault1) ) {
       continue;
     }
     if ( debug ) {
@@ -109,7 +122,7 @@ FFRAnalyze::run(
     auto& dlits1 = dlits_array[i1];
     for ( SizeType i2 = i1 + 1; i2 < ndet; ++ i2 ) {
       auto fault2 = det_list[i2];
-      if ( fault_info.is_dominated(fault2) ) {
+      if ( !fault_info.is_rep(fault2) ) {
 	continue;
       }
       if ( debug ) {
@@ -118,10 +131,9 @@ FFRAnalyze::run(
       auto dlits2 = dlits_array[i2];
       auto tmp_lits = concat_lits(dlits1, dlits2);
       auto res = engine.solver().solve(tmp_lits);
-      if ( res != SatBool3::True ) {
+      if  ( res != SatBool3::True ) {
 	continue;
       }
-      fault_info.set_compatible(fault1, fault2);
       if ( ffr_reduction ) {
 	// fault1 を検出して fault2 を検出しない条件を調べる．
 	auto tmp_lits1 = dlits1;
@@ -135,7 +147,7 @@ FFRAnalyze::run(
 		      << std::endl;
 	  }
 	  // fault2 は支配されている．
-	  fault_info.set_dominated(fault2);
+	  fault_info.set_dominator(fault2, fault1);
 	  // fault2 は削除されたので逆は調べない．
 	  continue;
 	}
@@ -151,62 +163,11 @@ FFRAnalyze::run(
 		      << std::endl;
 	  }
 	  // fault1 は支配されている．
-	  fault_info.set_dominated(fault1);
+	  fault_info.set_dominator(fault1, fault2);
 	  // fault1 は削除されたので残りは調べない．
 	  break;
 	}
       }
-    }
-  }
-}
-
-// @brief 代表故障に対して必須条件を求める．
-void
-FFRAnalyze::get_mandatory_condition(
-  const TpgFFR& ffr,
-  const TpgFaultList& fault_list,
-  FaultInfo& fault_info,
-  const ConfigParam& option
-)
-{
-  if ( fault_list.empty() ) {
-    return;
-  }
-
-  auto debug = option.get_bool_elem("debug", false);
-
-  if ( debug ) {
-    std::cout << "FFRAnalyze(FFR#" << ffr.id() << ")" << std::endl
-	      << " fault_list:";
-    for ( auto fault: fault_list ) {
-      std::cout << " " << fault.str();
-    }
-    std::cout << std::endl;
-  }
-
-  // fault_list の FFR に対する故障伝搬条件を表すCNF式を持つSATソルバを作る．
-  BdEngine engine(ffr.root(), option);
-  auto pvar = engine.prop_var();
-  engine.solver().add_clause(pvar);
-
-  for ( auto fault: fault_list ) {
-    if ( fault_info.is_rep(fault) ) {
-      auto cond = fault.ffr_propagate_condition();
-      auto lits = engine.conv_to_literal_list(cond);
-      auto& det_cond = fault_info.detect_cond(fault);
-      AssignList mand_cond;
-      for ( auto as: det_cond ) {
-	auto lit = engine.conv_to_literal(as);
-	auto tmp_lits = lits;
-	tmp_lits.push_back(~lit);
-	auto res = engine.solver().solve(tmp_lits);
-	if ( res == SatBool3::False ) {
-	  // lit(as) を否定したら充足できなくなった．
-	  // -> as は必須条件
-	  mand_cond.add(as);
-	}
-      }
-      fault_info.set_mandatory_condition(fault, mand_cond);
     }
   }
 }

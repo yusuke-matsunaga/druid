@@ -39,16 +39,18 @@ JustData::JustData(
   }
   std::vector<TpgNode> node_list[2];
   network.get_tfo_list(start_list[0],
-		       [&](const TpgNode& node) {
+		       [&](const TpgNode& node)->bool {
 			 node_list[0].push_back(node);
 			 if ( node.is_dff_input() ) {
 			   auto alt_node = node.alt_node();
 			   start_list[1].push_back(alt_node);
 			 }
+			 return true;
 		       });
   network.get_tfo_list(start_list[1],
-		       [&](const TpgNode& node) {
+		       [&](const TpgNode& node)->bool {
 			 node_list[1].push_back(node);
+			 return true;
 		       });
   // 実は TpgNode のノード番号はトポロジカル順になっている．
   for ( auto time: {0, 1} ) {

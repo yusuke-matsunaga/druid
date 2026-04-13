@@ -426,14 +426,15 @@ public:
     const NodeRep* block = nullptr ///< [in] ブロックノード
   ) const
   {
-    return get_tfo_list({root}, block, [](const NodeRep*){});
+    return get_tfo_list({root}, block,
+			[](const NodeRep*)->bool{ return true; });
   }
 
   /// @brief TFO のノードを求める．
   std::vector<const NodeRep*>
   get_tfo_list(
     const NodeRep* root,                   ///< [in] 起点となるノード
-    std::function<void(const NodeRep*)> op ///< [in] ノードに対するファンクタ
+    std::function<bool(const NodeRep*)> op ///< [in] ノードに対するファンクタ
   ) const
   {
     return get_tfo_list(std::vector<const NodeRep*>{root}, op);
@@ -443,7 +444,7 @@ public:
   std::vector<const NodeRep*>
   get_tfo_list(
     const std::vector<const NodeRep*>& root_list, ///< [in] 起点となるノードのリスト
-    std::function<void(const NodeRep*)> op        ///< [in] ノードに対するファンクタ
+    std::function<bool(const NodeRep*)> op        ///< [in] ノードに対するファンクタ
   ) const
   {
     return get_tfo_list(root_list, nullptr, op);
@@ -454,7 +455,7 @@ public:
   get_tfo_list(
     const std::vector<const NodeRep*>& root_list, ///< [in] 起点となるノードのリスト
     const NodeRep* block,                         ///< [in] ブロックノード
-    std::function<void(const NodeRep*)> op        ///< [in] ノードに対するファンクタ
+    std::function<bool(const NodeRep*)> op        ///< [in] ノードに対するファンクタ
   ) const;
 
   /// @brief TFI のノードを求める．
@@ -463,14 +464,15 @@ public:
     const std::vector<const NodeRep*>& root_list ///< [in] 起点となるノード
   ) const
   {
-    return get_tfi_list(root_list, [](const NodeRep*){});
+    return get_tfi_list(root_list,
+			[](const NodeRep*)->bool{ return true; });
   }
 
   /// @brief TFI のノードを求める．
   std::vector<const NodeRep*>
   get_tfi_list(
     const std::vector<const NodeRep*>& root_list, ///< [in] 起点となるノード
-    std::function<void(const NodeRep*)> op        ///< [in] ノードに対するファンクタ
+    std::function<bool(const NodeRep*)> op        ///< [in] ノードに対するファンクタ
   ) const;
 
   /// @brief 出力からの DFS を行う．

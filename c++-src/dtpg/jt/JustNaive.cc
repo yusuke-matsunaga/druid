@@ -75,7 +75,7 @@ JustNaive::_justify(
 
   network().get_tfi_list(
     cur_list,
-    [&](const TpgNode& node) {
+    [&](const TpgNode& node)->bool {
       if ( debug_jt ) {
 	DEBUG_OUT << node
 		  << "@1: " << get_bval(node, 1)
@@ -95,12 +95,13 @@ JustNaive::_justify(
 	  pi_assign_list.add(node, 1, bval);
 	}
       }
+      return true;
     });
 
   if ( has_prev_state() ) {
     network().get_tfi_list(
       prev_list,
-      [&](const TpgNode& node) {
+      [&](const TpgNode& node)->bool {
 	if ( debug_jt ) {
 	  DEBUG_OUT << node
 		    << "@0: " << get_bval(node, 0)
@@ -110,6 +111,7 @@ JustNaive::_justify(
 	  bool bval = get_bval(node, 0);
 	  pi_assign_list.add(node, 0, bval);
 	}
+	return true;
       });
   }
 

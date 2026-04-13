@@ -19,8 +19,16 @@ BEGIN_NAMESPACE_DRUID
 BoolDiffEnc::BoolDiffEnc(
   const TpgNode& root,
   const ConfigParam& option
-) : mRoot{root},
-    mExtractor{Extractor::new_impl(JsonValue(option.get_value("extractor")))}
+) : BoolDiffEnc(root, TpgNodeList(), option)
+{
+}
+
+// @brief コンストラクタ
+BoolDiffEnc::BoolDiffEnc(
+  const TpgNode& root,
+  const TpgNode& output,
+  const ConfigParam& option
+) : BoolDiffEnc(root, TpgNodeList(std::vector<TpgNode>{output}), option)
 {
 }
 
@@ -30,40 +38,32 @@ BoolDiffEnc::BoolDiffEnc(
   const TpgNodeList& output_list,
   const ConfigParam& option
 ) : mRoot{root},
-    mOutputList{output_list},
+    mOutputMark(root.network().node_num(), false),
     mExtractor{Extractor::new_impl(JsonValue(option.get_value("extractor")))}
 {
+  auto network = root.network();
+  for ( auto node: output_list ) {
+    mOutputMark[node.id()] = true;
+  }
+  mTfoList = network.get_tfo_list(
+    mRoot,
+    [&](const TpgNode& node)->bool {
+      if ( node.is_ppo() ) {
+	mOutputMark[node.id()] = true;
+      }
+      if ( mOutputMark[node.id()] ) {
+	mOutputList.push_back(node);
+	return false;
+      }
+      return true;
+    }
+  );
 }
 
 // @brief デストラクタ
 BoolDiffEnc::~BoolDiffEnc()
 {
 }
-
-BEGIN_NONAMESPACE
-
-// node から DFS を行いたどったノードに dfs_mark をつける．
-// ただし，tfo_mark が付いていないノードは除外する．
-void
-dfs(
-  const TpgNode& node,
-  const std::unordered_set<SizeType>& tfo_mark,
-  std::unordered_set<SizeType>& dfs_mark
-)
-{
-  if ( tfo_mark.count(node.id()) == 0 ) {
-    return;
-  }
-  if ( dfs_mark.count(node.id()) > 0 ) {
-    return;
-  }
-  dfs_mark.emplace(node.id());
-  for ( auto inode: node.fanin_list() ) {
-    dfs(inode, tfo_mark, dfs_mark);
-  }
-}
-
-END_NONAMESPACE
 
 // @brief データ構造の初期化を行う．
 void
@@ -75,42 +75,6 @@ BoolDiffEnc::init()
 
   mFvarMap.init(network().node_num());
   mDvarMap.init(network().node_num());
-
-  if ( mOutputList.empty() ) {
-    mTfoList = network().get_tfo_list(
-      mRoot,
-      [&](const TpgNode& node) {
-	if ( node.is_ppo() ) {
-	  mOutputList.push_back(node);
-	}
-      }
-    );
-  }
-  else {
-    // mRoot の TFO ノードを tfo_list に入れる．
-    std::unordered_set<SizeType> tfo_mark;
-    auto tfo_list = engine().network().get_tfo_list(
-      mRoot,
-      [&](const TpgNode& node) {
-	tfo_mark.emplace(node.id());
-      }
-    );
-    // tfo_list に入っているノードのうち，
-    // mOutputList へ到達可能なノードに dfs_mark
-    // を付ける．
-    std::unordered_set<SizeType> dfs_mark;
-    for ( auto output: mOutputList ) {
-      dfs(output, tfo_mark, dfs_mark);
-    }
-    // dfs_mark の付いているノードを mTfoList
-    // に入れる．
-    mTfoList.reserve(dfs_mark.size());
-    for ( auto node: tfo_list ) {
-      if ( dfs_mark.count(node.id()) > 0 ) {
-	mTfoList.push_back(node);
-      }
-    }
-  }
   mPropVarList.resize(output_num());
 }
 
@@ -209,7 +173,7 @@ BoolDiffEnc::make_dchain_cnf(
   solver().add_clause(~glit, ~flit, ~dlit);
   solver().add_clause( glit,  flit, ~dlit);
 
-  if ( node.is_ppo() ) {
+  if ( mOutputMark[node.id()] ) {
     solver().add_clause(~glit,  flit,  dlit);
     solver().add_clause( glit, ~flit,  dlit);
   }

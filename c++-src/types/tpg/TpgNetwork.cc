@@ -364,14 +364,15 @@ TpgNetwork::get_tfo_list(
 ) const
 {
   auto root_list = TpgBase::node_list({root.id()});
-  return get_tfo_list(root_list, block, [](const TpgNode&){});
+  return get_tfo_list(root_list, block,
+		      [](const TpgNode&)->bool{ return true; });
 }
 
 // @brief TFO のノードを求める．
 TpgNodeList
 TpgNetwork::get_tfo_list(
   const TpgNode& root,
-  std::function<void(const TpgNode&)> op
+  NodeFunc op
 ) const
 {
   auto root_list = TpgBase::node_list({root.id()});
@@ -383,14 +384,14 @@ TpgNodeList
 TpgNetwork::get_tfo_list(
   const TpgNodeList& root_list,
   const TpgNode& block,
-  std::function<void(const TpgNode&)> op
+  NodeFunc op
 ) const
 {
   _check_valid();
   auto node_rep_list = _network()->get_tfo_list(_node_list(root_list.id_list()),
 						TpgBase::_node(block),
-						[&](const NodeRep* node_rep){
-						  op(TpgBase::node(node_rep));
+						[&](const NodeRep* node_rep)->bool{
+						  return op(TpgBase::node(node_rep));
 						});
   return TpgBase::node_list(node_rep_list);
 }
@@ -399,13 +400,13 @@ TpgNetwork::get_tfo_list(
 TpgNodeList
 TpgNetwork::get_tfi_list(
   const TpgNodeList& root_list,
-  std::function<void(const TpgNode&)> op
+  NodeFunc op
 ) const
 {
   _check_valid();
   auto node_rep_list = _network()->get_tfi_list(_node_list(root_list.id_list()),
-						[&](const NodeRep* node_rep){
-						  op(TpgBase::node(node_rep));
+						[&](const NodeRep* node_rep)->bool{
+						  return op(TpgBase::node(node_rep));
 						});
   return TpgBase::node_list(node_rep_list);
 }

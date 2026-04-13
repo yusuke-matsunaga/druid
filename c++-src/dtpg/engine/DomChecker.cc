@@ -13,42 +13,25 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
+//////////////////////////////////////////////////////////////////////
+// クラス DomChecker
+//////////////////////////////////////////////////////////////////////
 
-// clit_list 中の pos 番目のみがアサートされたリテラルのリストを返す．
-inline
-std::vector<SatLiteral>
-make_lits(
-  const std::vector<SatLiteral>& clit_array,
-  SizeType pos
-)
-{
-  auto n = clit_array.size();
-  std::vector<SatLiteral> lits(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    if ( i == pos ) {
-      lits[i] = clit_array[i];
-    }
-    else {
-      lits[i] = ~clit_array[i];
-    }
-  }
-  return lits;
-}
-
-END_NONAMESPACE
-
-// @brief ２つのFFRの故障の間の支配関係を調べる．
-DomChecker::Stats
-DomChecker::run(
+// @brief コンストラクタ
+DomChecker::DomChecker(
   const TpgFFR& ffr1,
   const TpgFFR& ffr2,
   const TpgFaultList& fault_list1,
   const TpgFaultList& fault_list2,
-  FaultInfo& fault_info,
   const ConfigParam& option
-)
+) : mFaultList1{fault_list1},
+    mFaultList2{fault_list2},
+    mDomList1(fault_list1.size()),
+    mDomList2(fault_list2.size())
 {
+  mPosList1.reserve(fault_list1.size());
+  mPosList2.reserve(fault_list2.size());
+
   auto multi_thread = option.get_bool_elem("multi_thread", false);
   auto debug = option.get_bool_elem("debug", false);
   auto verbose = option.get_bool_elem("verbose", false);
@@ -125,25 +108,23 @@ DomChecker::run(
 
   // ２つの故障の両立性を調べる．
   // 両立していた場合は支配関係も調べる．
-  auto stats = Stats{0, 0, 0};
+  mCheckCount = 0;
   for ( SizeType i1 = 0; i1 < nf1; ++ i1 ) {
     auto fault1 = fault_list1[i1];
-    if ( !fault_info.is_rep(fault1) ) {
-      continue;
-    }
     if ( debug ) {
       std::cout << "fault1 = " << fault1.str()
 		<< std::endl;
     }
     auto dlits1 = dlits_array1[i1];
     for ( SizeType i2 = 0; i2 < nf2; ++ i2 ) {
-      auto fault2 = fault_list2[i2];
-      if ( !fault_info.is_rep(fault2) ) {
+      if ( mDomList2[i2].is_valid() ) {
+	// すでに支配されている．
 	continue;
       }
+      auto fault2 = fault_list2[i2];
       auto dlits2 = dlits_array2[i2];
 
-      ++ stats.check_count;
+      ++ mCheckCount;
       { // fault1 と fault2 を同時に検出できるか調べる．
 	auto tmp_lits = concat_lits(dlits1, dlits2);
 	auto res = engine.solver().solve(tmp_lits);
@@ -151,20 +132,22 @@ DomChecker::run(
 	  std::cout << "  fault2 = " << fault2.str() << std::endl
 		    << "    res = " << res << std::endl;
 	}
-	if ( res != SatBool3::True ) {
+	if ( res == SatBool3::False ) {
 	  continue;
 	}
-	fault_info.set_compatible(fault1, fault2);
+	if ( res == SatBool3::X ) {
+	  continue;
+	}
       }
 
       { // fault1 を検出して fault2 を検出しない条件を調べる．
-	auto nlits2 = make_lits(clit_array2, i2);
-	auto tmp_lits = concat_lits(dlits1, nlits2);
+	auto tmp_lits = dlits1;
+	tmp_lits.push_back(clit_array2[i2]);
 	auto res1 = engine.solver().solve(tmp_lits);
 	if ( res1 == SatBool3::False ) {
-	  ++ stats.dom1_count;
 	  // fault2 は支配されている．
-	  fault_info.set_dominated(fault2);
+	  mPosList2.push_back(i2);
+	  mDomList2[i2] = fault1;
 	  if ( debug ) {
 	    std::cout << fault2.str()
 		      << " is dominated by "
@@ -177,13 +160,13 @@ DomChecker::run(
       }
 
       { // fault2 を検出して fault1 を検出しない条件を調べる．
-	auto nlits1 = make_lits(clit_array1, i1);
-	auto tmp_lits = concat_lits(nlits1, dlits2);
+	auto tmp_lits = dlits2;
+	tmp_lits.push_back(clit_array1[i1]);
 	auto res2 = engine.solver().solve(tmp_lits);
 	if ( res2 == SatBool3::False ) {
-	  ++ stats.dom2_count;
 	  // fault1 は支配されている．
-	  fault_info.set_dominated(fault1);
+	  mPosList1.push_back(i1);
+	  mDomList1[i1] = fault2;
 	  if ( debug ) {
 	    std::cout << fault1.str()
 		      << " is dominated by "
@@ -196,8 +179,38 @@ DomChecker::run(
       }
     }
   }
+}
 
-  return stats;
+// @brief 故障の情報を fault_info にコピーする．
+void
+DomChecker::copy(
+  FaultInfo& fault_info
+) const
+{
+  for ( auto pos: mPosList1 ) {
+    auto fault1 = mFaultList1[pos];
+    auto fault2 = mDomList1[pos];
+    fault_info.set_dominator(fault1, fault2);
+  }
+  for ( auto pos: mPosList2 ) {
+    auto fault1 = mFaultList2[pos];
+    auto fault2 = mDomList2[pos];
+    fault_info.set_dominator(fault1, fault2);
+  }
+}
+
+// @brief dominator1() 中の有効な故障の数を返す．
+SizeType
+DomChecker::dom1_count() const
+{
+  return mPosList1.size();
+}
+
+// @brief dominator2() 中の有効な故障の数を返す．
+SizeType
+DomChecker::dom2_count() const
+{
+  return mPosList2.size();
 }
 
 END_NAMESPACE_DRUID

@@ -9,6 +9,8 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "types/TpgFault.h"
+#include "types/TpgFaultList.h"
 #include "types/FaultStatus.h"
 #include "types/AssignList.h"
 #include "types/TestVector.h"
@@ -25,8 +27,7 @@ BEGIN_NAMESPACE_DRUID
 ///   * 故障検出条件
 ///   * 故障検出の必須条件
 ///   * テストベクタ
-///   * 他の故障に支配されているか否か
-/// - ２つの故障の両立関係
+///   * 支配されている場合の支配故障
 //////////////////////////////////////////////////////////////////////
 class FaultInfo
 {
@@ -34,11 +35,11 @@ public:
 
   // 故障に関する情報を表す構造体
   struct Cell {
-    FaultStatus fault_status{FaultStatus::Undetected};  ///< 故障の検出状況
-    AssignList detect_cond;                             ///< 故障検出条件
-    AssignList mandatory_cond;                          ///< 故障検出の必須条件
-    TestVector testvector;                              ///< テストベクタ
-    bool dominated{false};                              ///< 被支配フラグ
+    FaultStatus status{FaultStatus::Undetected};  ///< 故障の検出状況
+    AssignList detect_cond;                       ///< 故障検出条件
+    AssignList mandatory_cond;                    ///< 故障検出の必須条件
+    TestVector testvector;                        ///< テストベクタ
+    TpgFault dominator;                           ///< 支配故障
   };
 
 
@@ -46,7 +47,7 @@ public:
 
   /// @brief コンストラクタ
   FaultInfo(
-    SizeType max_fault_id ///< [in] 故障番号の最大値
+    const TpgFaultList& fault_list ///< [in] 対象の故障リスト
   );
 
   /// @brief デストラクタ
@@ -58,9 +59,24 @@ public:
   // 情報を読み出す関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 対象のネットワークを返す．
+  TpgNetwork
+  network() const;
+
+  /// @brief 元の故障のリストを返す．
+  TpgFaultList
+  fault_list() const
+  {
+    return mFaultList;
+  }
+
+  /// @brief 検出可能で他の故障に支配されていない故障のリストを返す．
+  TpgFaultList
+  rep_fault_list() const;
+
   /// @brief 故障の検出状況を調べる．
   FaultStatus
-  fault_status(
+  status(
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
@@ -73,6 +89,12 @@ public:
   /// @brief 支配されている故障の時 true を返す．
   bool
   is_dominated(
+    const TpgFault& fault ///< [in] 対象の故障
+  ) const;
+
+  /// @brief 支配されている故障の時の支配故障を返す．
+  TpgFault
+  dominator(
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
@@ -98,15 +120,6 @@ public:
   const TestVector&
   testvector(
     const TpgFault& fault ///< [in] 対象の故障
-  ) const;
-
-  /// @brief ２つの故障の両立関係を調べる．
-  ///
-  /// fault_status(fault) == Detected の故障のみが対象となる．
-  bool
-  check_compatible(
-    const TpgFault& fault1, ///< [in] 対象の故障1
-    const TpgFault& fault2  ///< [in] 対象の故障2
   ) const;
 
 
@@ -136,17 +149,11 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   );
 
-  /// @brief 支配されている情報をセットする．
+  /// @brief 支配故障をセットする．
   void
-  set_dominated(
-    const TpgFault& fault ///< [in] 対象の故障
-  );
-
-  /// @brief 両立関係をセットする．
-  void
-  set_compatible(
-    const TpgFault& fault1, ///< [in] 対象の故障1
-    const TpgFault& fault2  ///< [in] 対象の故障2
+  set_dominator(
+    const TpgFault& fault,    ///< [in] 対象の故障
+    const TpgFault& dominator ///< [in] 支配故障
   );
 
 
@@ -167,13 +174,6 @@ private:
     const TpgFault& fault ///< [in] 対象の故障
   );
 
-  /// @brief ２つの故障の対からキーを作る．
-  SizeType
-  make_key(
-    const TpgFault& fault1, ///< [in] 対象の故障1
-    const TpgFault& fault2  ///< [in] 対象の故障2
-  ) const;
-
   /// @brief 故障番号のチェックを行う．
   void
   _check_fid(
@@ -186,11 +186,11 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
+  // 元の故障リスト
+  TpgFaultList mFaultList;
+
   // 故障番号をキーとして故障の情報を格納した配列
   std::vector<Cell> mCellArray;
-
-  // 故障の両立関係を表す集合
-  std::unordered_set<SizeType> mCompatibleSet;
 
 };
 

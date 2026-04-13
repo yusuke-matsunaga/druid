@@ -8,13 +8,6 @@
 
 #include "NetworkRep.h"
 #include "NodeRep.h"
-//#include "GateRep.h"
-//#include "MFFCRep.h"
-//#include "FFRRep.h"
-//#include "FaultRep.h"
-//#include "types/FaultType.h"
-//#include "types/Fval2.h"
-//#include "ym/Range.h"
 #include "NodeQueue.h"
 #include "DfsDriver.h"
 
@@ -30,7 +23,7 @@ std::vector<const NodeRep*>
 NetworkRep::get_tfo_list(
   const std::vector<const NodeRep*>& root_list,
   const NodeRep* block,
-  std::function<void(const NodeRep*)> op
+  std::function<bool(const NodeRep*)> op
 ) const
 {
   std::vector<const NodeRep*> node_list;
@@ -40,11 +33,12 @@ NetworkRep::get_tfo_list(
   }
   while ( !queue.empty() ) {
     auto node = queue.get();
-    op(node);
     node_list.push_back(node);
-    if ( node != block ) {
-      for ( auto onode: node->fanout_list() ) {
-	queue.put(onode);
+    if ( op(node) ) {
+      if ( node != block ) {
+	for ( auto onode: node->fanout_list() ) {
+	  queue.put(onode);
+	}
       }
     }
   }
@@ -55,7 +49,7 @@ NetworkRep::get_tfo_list(
 std::vector<const NodeRep*>
 NetworkRep::get_tfi_list(
   const std::vector<const NodeRep*>& root_list,
-  std::function<void(const NodeRep*)> op
+  std::function<bool(const NodeRep*)> op
 ) const
 {
   std::vector<const NodeRep*> node_list;
@@ -65,10 +59,11 @@ NetworkRep::get_tfi_list(
   }
   while ( !queue.empty() ) {
     auto node = queue.get();
-    op(node);
     node_list.push_back(node);
-    for ( auto inode: node->fanin_list() ) {
-      queue.put(inode);
+    if ( op(node) ) {
+      for ( auto inode: node->fanin_list() ) {
+	queue.put(inode);
+      }
     }
   }
   return node_list;

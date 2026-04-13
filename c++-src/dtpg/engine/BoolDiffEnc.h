@@ -46,6 +46,13 @@ public:
   /// @brief コンストラクタ
   BoolDiffEnc(
     const TpgNode& root,            ///< [in] 起点のノード
+    const TpgNode& output,          ///< [in] 出力
+    const ConfigParam& option = {}  ///< [in] オプション
+  );
+
+  /// @brief コンストラクタ
+  BoolDiffEnc(
+    const TpgNode& root,            ///< [in] 起点のノード
     const TpgNodeList& output_list, ///< [in] 出力のリスト
     const ConfigParam& option = {}  ///< [in] オプション
   );
@@ -206,6 +213,10 @@ private:
 
   // mRoot から到達可能な外部出力のリスト
   TpgNodeList mOutputList;
+
+  // mOutputList に含まれるノードのマーク
+  // ノード番号をキーにする．
+  std::vector<bool> mOutputMark;
 
   // 微分結果を表す変数
   SatLiteral mPropVar;

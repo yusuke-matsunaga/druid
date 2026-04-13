@@ -330,6 +330,9 @@ public:
   // TFO/TFI を求める関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @tgif get_tfo_list(), get_tfi_list() で用いられる関数のタイプ
+  using NodeFunc = std::function<bool(const TpgNode&)>;
+
   /// @brief TFO のノードを求める．
   TpgNodeList
   get_tfo_list(
@@ -341,14 +344,14 @@ public:
   TpgNodeList
   get_tfo_list(
     const TpgNode& root,                   ///< [in] 起点となるノード
-    std::function<void(const TpgNode&)> op ///< [in] ノードに対するファンクタ
+    std::function<bool(const TpgNode&)> op ///< [in] ノードに対するファンクタ
   ) const;
 
   /// @brief TFO のノードを求める．
   TpgNodeList
   get_tfo_list(
     const TpgNodeList& root_list,          ///< [in] 起点となるノードのリスト
-    std::function<void(const TpgNode&)> op ///< [in] ノードに対するファンクタ
+    std::function<bool(const TpgNode&)> op ///< [in] ノードに対するファンクタ
   ) const
   {
     return get_tfo_list(root_list, TpgNode{}, op);
@@ -357,9 +360,9 @@ public:
   /// @brief TFO のノードを求める．
   TpgNodeList
   get_tfo_list(
-    const TpgNodeList& root_list,          ///< [in] 起点となるノードのリスト
-    const TpgNode& block,                  ///< [in] ブロックノード
-    std::function<void(const TpgNode&)> op ///< [in] ノードに対するファンクタ
+    const TpgNodeList& root_list, ///< [in] 起点となるノードのリスト
+    const TpgNode& block,         ///< [in] ブロックノード
+    NodeFunc op                   ///< [in] ノードに対するファンクタ
   ) const;
 
   /// @brief TFI のノードを求める．
@@ -368,14 +371,15 @@ public:
     const TpgNodeList& root_list ///< [in] 起点となるノード
   ) const
   {
-    return get_tfi_list(root_list, [](const TpgNode&){});
+    return get_tfi_list(root_list,
+			[](const TpgNode&)->bool{ return true; });
   }
 
   /// @brief TFI のノードを求める．
   TpgNodeList
   get_tfi_list(
-    const TpgNodeList& root_list,          ///< [in] 起点となるノード
-    std::function<void(const TpgNode&)> op ///< [in] ノードに対するファンクタ
+    const TpgNodeList& root_list, ///< [in] 起点となるノード
+    NodeFunc op                   ///< [in] ノードに対するファンクタ
   ) const;
 
   /// @brief 出力からの DFS を行う．

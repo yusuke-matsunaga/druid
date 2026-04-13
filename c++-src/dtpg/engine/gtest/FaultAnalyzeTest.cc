@@ -25,26 +25,32 @@ const bool debug = false;
 END_NONAMESPACE
 
 class FaultAnalyzeTest:
-  public ::testing::Test
+public ::testing::TestWithParam<std::tuple<std::string, bool, bool>>
 {
 public:
 
   void
-  check(
-    const TpgNetwork& network
-  );
+  do_test();
+
 };
 
 void
-FaultAnalyzeTest::check(
-  const TpgNetwork& network
-)
+FaultAnalyzeTest::do_test()
 {
+  auto name = std::get<0>(GetParam());
+  auto multi_thread = std::get<1>(GetParam());
+  auto simple_reduction = std::get<2>(GetParam());
+
+  auto data_dir = std::filesystem::path{TESTDATA_DIR};
+  auto filename = data_dir / name;
+  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
   auto fault_list = network.rep_fault_list();
 
   auto option = JsonValue::object();
   option.add("ffr_reduction", true);
+  option.add("simple_reduction", simple_reduction);
   option.add("global_reduction", true);
+  option.add("multi_thread", multi_thread);
 
   auto fault_info = FaultAnalyze::run(fault_list, option);
 
@@ -60,77 +66,45 @@ FaultAnalyzeTest::check(
     }
   }
   auto nd = det_list.size();
-  for ( SizeType i1 = 0; i1 < nd - 1; ++ i1 ) {
-    auto fault1 = det_list[i1];
-    if ( !ref_rep_mark[fault1.id()] ) {
-      continue;
-    }
-    for ( SizeType i2 = i1 + 1; i2 < nd; ++ i2 ) {
-      auto fault2 = det_list[i2];
-      if ( !ref_rep_mark[fault2.id()] ) {
-	continue;
-      }
+  for ( auto fault1: det_list ) {
+    if ( fault_info.is_dominated(fault1) ) {
+      auto fault2 = fault_info.dominator(fault1);
       NaiveDualEngine engine(fault1, fault2);
-      auto res = engine.solve(true, true);
-      if ( res != SatBool3::True ) {
-	continue;
-      }
-      { // fault1 を検出して fault2 を検出しない条件
-	auto res = engine.solve(true, false);
-	if ( res == SatBool3::False ) {
-	  ref_rep_mark[fault2.id()] = false;
-	  if ( debug ) {
-	    std::cout << fault2.str() << " is dominated by "
-		      << fault1.str() << std::endl;
-	  }
+      auto res = engine.solve(false, true);
+      std::ostringstream buf;
+      buf << fault1.str() << "@FFR#" << network.ffr(fault1).id()
+	  << ", " << fault2.str() << "@FFR#" << network.ffr(fault2).id();
+      EXPECT_EQ( SatBool3::False, res ) << buf.str();
+    }
+    else {
+      for ( auto fault2: det_list ) {
+	if ( fault2 == fault1 ) {
 	  continue;
 	}
-      }
-      { // fault2 を検出して fault1 を検出しない条件
-	auto res = engine.solve(false, true);
-	if ( res == SatBool3::False ) {
-	  ref_rep_mark[fault1.id()] = false;
-	  if ( debug ) {
-	    std::cout << fault1.str() << " is dominated by "
-		      << fault2.str() << std::endl;
-	  }
-	  break;
+	if ( !fault_info.is_rep(fault2) ) {
+	  continue;
 	}
+	NaiveDualEngine engine(fault1, fault2);
+	auto res = engine.solve(false, true);
+	std::ostringstream buf;
+	buf << fault1.str() << "@FFR#" << network.ffr(fault1).id()
+	    << ", " << fault2.str() << "@FFR#" << network.ffr(fault2).id();
+	EXPECT_EQ( SatBool3::True, res ) << buf.str();
       }
     }
   }
-
-  for ( auto fault: fault_list ) {
-    auto rep_mark = fault_info.is_rep(fault);
-    EXPECT_EQ( ref_rep_mark[fault.id()], rep_mark ) << fault.str();
-  }
 }
 
-
-TEST_F(FaultAnalyzeTest, s27)
+TEST_P(FaultAnalyzeTest, test1)
 {
-  auto data_dir = std::filesystem::path{TESTDATA_DIR};
-  auto filename = data_dir / "s27.blif";
-  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
-  check(network);
+  do_test();
 }
 
-
-TEST_F(FaultAnalyzeTest, s298)
-{
-  auto data_dir = std::filesystem::path{TESTDATA_DIR};
-  auto filename = data_dir / "s298.blif";
-  auto network = TpgNetwork::read_blif(filename, FaultType::StuckAt);
-  check(network);
-}
-
-
-TEST_F(FaultAnalyzeTest, b01)
-{
-  auto data_dir = std::filesystem::path{TESTDATA_DIR};
-  auto filename = data_dir / "b01.bench";
-  auto network = TpgNetwork::read_iscas89(filename, FaultType::StuckAt);
-  check(network);
-}
+INSTANTIATE_TEST_SUITE_P(FaultAnalyzeTest, FaultAnalyzeTest,
+			 ::testing::Combine(::testing::Values("s27.blif",
+							      "s298.blif",
+							      "C432.blif"),
+					    ::testing::Values(false, true),
+					    ::testing::Values(false, true)));
 
 END_NAMESPACE_DRUID

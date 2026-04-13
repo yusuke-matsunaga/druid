@@ -146,7 +146,7 @@ StructEngine::_update()
   TpgNodeList new_dff_input_list;
   auto new_node_list = mNetwork.get_tfi_list(
     mCurNodeCandList,
-    [&](const TpgNode& node) {
+    [&](const TpgNode& node)->bool {
       if ( has_prev_state && node.is_dff_output() ) {
 	auto alt_node = node.alt_node();
 	new_dff_input_list.push_back(alt_node);
@@ -154,6 +154,7 @@ StructEngine::_update()
 	  abort();
 	}
       }
+      return true;
     });
 
   TpgNodeList new_prev_node_list;
@@ -314,10 +315,6 @@ StructEngine::conv_to_literal(
   bool inv = !assign.val(); // 0 の時が inv = true
   auto vid = (assign.time() == 0) ? hvar(node) : gvar(node);
   if ( vid == SatLiteral::X ) {
-    { // *DD*
-      std::cout << assign << " is not registered" << std::endl;
-      abort();
-    }
     throw std::invalid_argument{"assign is not registered"};
   }
   return vid * inv;
