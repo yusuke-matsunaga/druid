@@ -8,7 +8,7 @@
 
 #include "FFRAnalyze.h"
 #include "types/TpgFaultList.h"
-#include "dtpg/BdEngine.h"
+#include "dtpg/FFREngine.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -39,33 +39,22 @@ FFRAnalyze::run(
   }
 
   // fault_list の FFR に対する故障伝搬条件を表すCNF式を持つSATソルバを作る．
-  BdEngine engine(ffr.root(), option);
-  auto pvar = engine.prop_var();
-  engine.solver().add_clause(pvar);
+  FFREngine engine(ffr, fault_list, option);
 
   // 個々の故障の検出状況を調べる．
   TpgFaultList det_list;
-  std::vector<std::vector<SatLiteral>> dlits_array;
-  dlits_array.reserve(fault_list.size());
   for ( auto fault: fault_list ) {
-    auto cond = fault.ffr_propagate_condition();
-    auto lits = engine.conv_to_literal_list(cond);
+    auto lits = engine.dlits(fault);
     auto res = engine.solver().solve(lits);
     if ( res == SatBool3::True ) {
       if ( debug ) {
 	std::cout << fault.str() << " is detected" << std::endl;
       }
       auto model = engine.solver().model();
-      auto suff_cond = engine.extract_sufficient_condition(model);
-      auto det_cond = suff_cond.main_cond();
-      det_cond.merge(fault.ffr_propagate_condition());
-      auto aux_cond = suff_cond.aux_cond();
-      for ( auto node: fault.ffr_aux_side_inputs() ) {
-	aux_cond.add(engine.assign(node, 1, model));
-      }
-      auto suff_cond1 = SuffCond(det_cond, aux_cond);
-      auto pi_assign = engine.justify(suff_cond1, model);
+      auto suff_cond = engine.extract_sufficient_condition(fault, model);
+      auto pi_assign = engine.justify(suff_cond, model);
       auto tv = TestVector(pi_assign);
+      auto det_cond = suff_cond.main_cond();
       fault_info.set_detected(fault, det_cond, tv);
       AssignList mand_cond;
       for ( auto as: det_cond ) {
@@ -81,7 +70,6 @@ FFRAnalyze::run(
       }
       fault_info.set_mandatory_condition(fault, mand_cond);
       det_list.push_back(fault);
-      dlits_array.push_back(lits);
     }
     else if ( res == SatBool3::False ) {
       fault_info.set_untestable(fault);
@@ -94,20 +82,6 @@ FFRAnalyze::run(
   // 各故障が検出できない条件を表すリテラルを作る．
   // ただし，もともと検出できなかった故障はスキップする．
   auto ndet = det_list.size();
-  std::vector<SatLiteral> clit_array(ndet, SatLiteral::X);
-  for ( SizeType i = 0; i < ndet; ++ i ) {
-    auto fault = det_list[i];
-    auto dlits = dlits_array[i];
-    auto clit = engine.solver().new_variable(true);
-    clit_array[i] = clit;
-    std::vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(dlits.size() + 1);
-    tmp_lits.push_back(~clit);
-    for ( auto lit: dlits ) {
-      tmp_lits.push_back(~lit);
-    }
-    engine.solver().add_clause(tmp_lits);
-  }
 
   // ２つの故障の両立性を調べる．
   // 両立していた場合は支配関係も調べる．
@@ -119,7 +93,7 @@ FFRAnalyze::run(
     if ( debug ) {
       std::cout << "fault1 = " << fault1.str() << std::endl;
     }
-    auto& dlits1 = dlits_array[i1];
+    auto& dlits1 = engine.dlits(fault1);
     for ( SizeType i2 = i1 + 1; i2 < ndet; ++ i2 ) {
       auto fault2 = det_list[i2];
       if ( !fault_info.is_rep(fault2) ) {
@@ -128,7 +102,7 @@ FFRAnalyze::run(
       if ( debug ) {
 	std::cout << "  fault2 = " << fault2.str() << std::endl;
       }
-      auto dlits2 = dlits_array[i2];
+      auto& dlits2 = engine.dlits(fault2);
       auto tmp_lits = concat_lits(dlits1, dlits2);
       auto res = engine.solver().solve(tmp_lits);
       if  ( res != SatBool3::True ) {
@@ -137,7 +111,8 @@ FFRAnalyze::run(
       if ( ffr_reduction ) {
 	// fault1 を検出して fault2 を検出しない条件を調べる．
 	auto tmp_lits1 = dlits1;
-	tmp_lits1.push_back(clit_array[i2]);
+	auto ulit2 = engine.ulit(fault2);
+	tmp_lits1.push_back(ulit2);
 	auto res1 = engine.solver().solve(tmp_lits1);
 	auto dom1 = res1 == SatBool3::False;
 	if ( dom1 ) {
@@ -154,7 +129,8 @@ FFRAnalyze::run(
 	}
 	// fault2 を検出して fault1 を検出しない条件を調べる．
 	auto tmp_lits2 = dlits2;
-	tmp_lits2.push_back(clit_array[i1]);
+	auto ulit1 = engine.ulit(fault1);
+	tmp_lits2.push_back(ulit1);
 	auto res2 = engine.solver().solve(tmp_lits2);
 	auto dom2 = res2 == SatBool3::False;
 	if ( dom1 ) {

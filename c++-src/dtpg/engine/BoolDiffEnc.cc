@@ -65,6 +65,15 @@ BoolDiffEnc::~BoolDiffEnc()
 {
 }
 
+// @brief 名前を返す．
+std::string
+BoolDiffEnc::name()
+{
+  std::ostringstream buf;
+  buf << "BoolDiffEnc(Node#" << mRoot.id() << ")";
+  return buf.str();
+}
+
 // @brief データ構造の初期化を行う．
 void
 BoolDiffEnc::init()

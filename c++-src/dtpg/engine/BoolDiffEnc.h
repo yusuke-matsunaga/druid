@@ -148,6 +148,10 @@ private:
   // SubEnc の仮想関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 名前を返す．
+  std::string
+  name() override;
+
   /// @brief データ構造の初期化を行う．
   void
   init() override;

@@ -311,13 +311,7 @@ StructEngine::conv_to_literal(
 {
   _add_assign(assign);
   update();
-  auto node = assign.node();
-  bool inv = !assign.val(); // 0 の時が inv = true
-  auto vid = (assign.time() == 0) ? hvar(node) : gvar(node);
-  if ( vid == SatLiteral::X ) {
-    throw std::invalid_argument{"assign is not registered"};
-  }
-  return vid * inv;
+  return _conv_to_literal(assign);
 }
 
 // @brief 値割り当てのリストを対応するリテラルのリストに変換する．
@@ -333,10 +327,25 @@ StructEngine::conv_to_literal_list(
   std::vector<SatLiteral> ans_list;
   ans_list.reserve(assign_list.size());
   for ( auto nv: assign_list ) {
-    auto lit = conv_to_literal(nv);
+    auto lit = _conv_to_literal(nv);
     ans_list.push_back(lit);
   }
   return ans_list;
+}
+
+// @brief 値割り当てを対応するリテラルに変換する．
+SatLiteral
+StructEngine::_conv_to_literal(
+  Assign assign
+)
+{
+  auto node = assign.node();
+  bool inv = !assign.val(); // 0 の時が inv = true
+  auto vid = (assign.time() == 0) ? hvar(node) : gvar(node);
+  if ( vid == SatLiteral::X ) {
+    throw std::invalid_argument{"assign is not registered"};
+  }
+  return vid * inv;
 }
 
 BEGIN_NONAMESPACE

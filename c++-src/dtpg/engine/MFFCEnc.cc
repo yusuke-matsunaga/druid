@@ -185,6 +185,15 @@ MFFCEnc::ex_sub(
   }
 }
 
+// @brief 名前を返す．
+std::string
+MFFCEnc::name()
+{
+  std::ostringstream buf;
+  buf << "MFFCEnc(MFFC#" << mMFFC.id() << ")";
+  return buf.str();
+}
+
 // @brief データ構造の初期化を行う．
 void
 MFFCEnc::init()

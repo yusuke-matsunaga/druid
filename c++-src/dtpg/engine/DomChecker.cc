@@ -79,11 +79,13 @@ DomChecker::DomChecker(
       }
       ++ mCheckCount;
       auto fault2 = fault_list2[i2];
+      if ( debug ) {
+	std::cout << "  fault2 = " << fault2.str() << std::endl;
+      }
       { // fault1 と fault2 を同時に検出できるか調べる．
 	auto res = engine.solve(fault1, fault2, true, true);
 	if ( debug ) {
-	  std::cout << "  fault2 = " << fault2.str() << std::endl
-		    << "    res = " << res << std::endl;
+	  std::cout << "    res = " << res << std::endl;
 	}
 	if ( res == SatBool3::False ) {
 	  continue;
