@@ -78,7 +78,19 @@ FaultInfo::is_rep(
 ) const
 {
   auto& c = _cell(fault);
-  return c.status == FaultStatus::Detected && !c.dominator.is_valid();
+  return c.status == FaultStatus::Detected &&
+    c.rep_fault == fault &&
+    !c.dominator.is_valid();
+}
+
+// @brief 代表故障を返す．
+TpgFault
+FaultInfo::rep_fault(
+  const TpgFault& fault
+) const
+{
+  auto& c = _cell(fault);
+  return c.rep_fault;
 }
 
 // @brief 支配されている故障の時 true を返す．
@@ -142,6 +154,7 @@ FaultInfo::set_detected(
   c.status = FaultStatus::Detected;
   c.detect_cond = detect_condition;
   c.testvector = tv;
+  c.rep_fault = fault; // デフォルトでは自分自身を登録しておく
 }
 
 // @brief 検出の必須条件をセットする．
@@ -163,6 +176,17 @@ FaultInfo::set_untestable(
 {
   auto& c = _cell(fault);
   c.status = FaultStatus::Untestable;
+}
+
+// @brief 代表故障をセットする．
+void
+FaultInfo::set_rep(
+  const TpgFault& fault,
+  const TpgFault& rep
+)
+{
+  auto& c = _cell(fault);
+  c.rep_fault = rep;
 }
 
 // @brief 支配故障をセットする．

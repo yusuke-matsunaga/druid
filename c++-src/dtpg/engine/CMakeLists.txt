@@ -23,6 +23,7 @@ set ( engine_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/StructEngine.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/BdEngine.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/Bd2Engine.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/FFR2Engine.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/DtpgEngine.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/NaiveDtpgEngine.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/NaiveDualEngine.cc

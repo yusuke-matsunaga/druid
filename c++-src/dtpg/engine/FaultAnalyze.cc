@@ -246,33 +246,20 @@ phase3(
   struct FFR_Pair {
     TpgFFR ffr1;
     TpgFFR ffr2;
-    SizeType intersect;
+    SizeType intersect{0};
     SizeType dom1_count{0};
     SizeType dom2_count{0};
   };
 
-  // 各 FFR のサポートを求める．
-  auto nffr = network.ffr_num();
-  std::vector<std::vector<SizeType>> support_array(nffr);
-  for ( SizeType i = 0; i < nffr; ++ i ) {
-    auto ffr = network.ffr(i);
-    std::vector<bool> mark(network.node_num(), false);
-    auto& support = support_array[i];
-    dfs(ffr.root(), support, mark);
-    std::sort(support.begin(), support.end());
-  }
-  // サポートが重なっている FFR のペアを求める．
+  // FFR のペアのリストを求める．
   std::vector<FFR_Pair> pair_list;
+  auto nffr = network.ffr_num();
+  pair_list.reserve( nffr * (nffr - 1) / 2 );
   for ( SizeType i1 = 0; i1 < nffr - 1; ++ i1 ) {
-    auto& sup1 = support_array[i1];
+    auto ffr1 = network.ffr(i1);
     for ( SizeType i2 = i1 + 1; i2 < nffr; ++ i2 ) {
-      auto& sup2 = support_array[i2];
-      auto c = count_intersect(sup1, sup2);
-      if ( c > 0 ) {
-	auto ffr1 = network.ffr(i1);
-	auto ffr2 = network.ffr(i2);
-	pair_list.push_back({ffr1, ffr2, c});
-      }
+      auto ffr2 = network.ffr(i2);
+      pair_list.push_back({ffr1, ffr2});
     }
   }
   SizeType npairs = pair_list.size();

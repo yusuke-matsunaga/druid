@@ -139,7 +139,8 @@ FFRAnalyze::run(
 	auto tmp_lits1 = dlits1;
 	tmp_lits1.push_back(clit_array[i2]);
 	auto res1 = engine.solver().solve(tmp_lits1);
-	if ( res1 == SatBool3::False ) {
+	auto dom1 = res1 == SatBool3::False;
+	if ( dom1 ) {
 	  if ( debug ) {
 	    std::cout << "    " << fault2.str()
 		      << " is dominated by "
@@ -155,16 +156,46 @@ FFRAnalyze::run(
 	auto tmp_lits2 = dlits2;
 	tmp_lits2.push_back(clit_array[i1]);
 	auto res2 = engine.solver().solve(tmp_lits2);
-	if ( res2 == SatBool3::False ) {
+	auto dom2 = res2 == SatBool3::False;
+	if ( dom1 ) {
+	  // fault1 が fault2 を支配している．
+	  if ( dom2 ) {
+	    if ( debug ) {
+	      std::cout << "    " << fault1.str()
+			<< " and "
+			<< fault2.str()
+			<< " are equivalent"
+			<< std::endl;
+	    }
+	    // fault2 が fault1 を支配している．
+	    // -> fault1 と fault2 は等価
+	    if ( fault1.id() < fault2.id() ) {
+	      fault_info.set_rep(fault2, fault1);
+	    }
+	    else {
+	      fault_info.set_rep(fault1, fault2);
+	      break;
+	    }
+	  }
+	  else {
+	    if ( debug ) {
+	      std::cout << "    " << fault2.str()
+			<< " is dominated by "
+			<< fault1.str()
+			<< std::endl;
+	    }
+	    fault_info.set_dominator(fault2, fault1);
+	  }
+	}
+	else if ( dom2 ) {
 	  if ( debug ) {
 	    std::cout << "    " << fault1.str()
 		      << " is dominated by "
 		      << fault2.str()
 		      << std::endl;
 	  }
-	  // fault1 は支配されている．
+	  // fault2 が fault1 を支配している．
 	  fault_info.set_dominator(fault1, fault2);
-	  // fault1 は削除されたので残りは調べない．
 	  break;
 	}
       }

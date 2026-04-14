@@ -185,6 +185,7 @@ analyze_test(
 
   if ( dump ) {
     network.print(std::cout);
+    return 0;
   }
 
   auto global_option = JsonValue::object();
@@ -245,6 +246,7 @@ analyze_test(
     std::vector<bool> ref_rep_mark(network.max_fault_id(), false);
     det_list.reserve(fault_list.size());
     for ( auto fault: fault_list ) {
+      // 単一の検出条件のチェック
       NaiveDtpgEngine engine(fault);
       auto res = engine.solver().solve();
       auto ref_status = FaultStatus::Undetected;
@@ -266,7 +268,85 @@ analyze_test(
     }
     auto nd = det_list.size();
     for ( auto fault1: det_list ) {
-      if ( fault_info.is_dominated(fault1) ) {
+      if ( fault_info.is_rep(fault1) ) {
+	// 代表故障のテスト
+	// 他の故障には支配されない．
+	// もしも他の故障に支配されていたら
+	// その故障と等価でかつ番号が若いはず．
+	for ( auto fault2: det_list ) {
+	  if ( fault2 == fault1 ) {
+	    continue;
+	  }
+	  NaiveDualEngine engine(fault1, fault2);
+	  auto res0 = engine.solve(true, true);
+	  if ( res0 != SatBool3::True ) {
+	    // そもそも両立しない
+	    continue;
+	  }
+	  auto res1 = engine.solve(false, true);
+	  if ( res1 != SatBool3::False ) {
+	    // fault2 は fault1 を支配しない．
+	    continue;
+	  }
+	  auto res2 = engine.solve(true, false);
+	  if ( res2 == SatBool3::False ) {
+	    // fault1 と fault2 は等価
+	    if ( fault2.id() < fault1.id() ) {
+	      ++ error;
+	      std::cout << "fault1 = " << fault1.str()
+			<< " @FFR#" << network.ffr(fault1).id() << std::endl
+			<< "fault2 = " << fault2.str()
+			<< " @FFR#" << network.ffr(fault2).id() << std::endl
+			<< "are equvalent and fault2 should be the representative"
+			<< std::endl;
+	    }
+	  }
+	  else {
+	    // fault2 が fault1 を支配している．
+	    ++ error;
+	    std::cout << "fault1 = " << fault1.str()
+		      << " @FFR#" << network.ffr(fault1).id()
+		      << std::endl
+		      << "fault2 = " << fault2.str()
+		      << " @FFR#" << network.ffr(fault2).id()
+		      << ", rep = " << fault_info.is_rep(fault2)
+		      << std::endl
+		      << "fault2 dominates fault1, "
+		      << "but fault1 is marked as Rep."
+		      << std::endl;
+	  }
+	}
+      }
+      else if ( !fault_info.is_dominated(fault1) ) {
+	// 代表ではない故障
+	auto rep_fault = fault_info.rep_fault(fault1);
+	NaiveDualEngine engine(fault1, rep_fault);
+	auto res0 = engine.solve(true, true);
+	if ( res0 != SatBool3::True ) {
+	  ++ error;
+	  std::cout << "fault1 = " << fault1.str()
+		    << " @FFR#" << network.ffr(fault1).id() << std::endl
+		    << "fault2 = " << rep_fault.str()
+		    << " @FFR#" << network.ffr(rep_fault).id() << std::endl
+		    << "fault1 and fault2 are not equivalent"
+		    << std::endl;
+	}
+	else {
+	  auto res1 = engine.solve(false, true);
+	  auto res2 = engine.solve(true, false);
+	  if ( res1 != SatBool3::False || res2 != SatBool3::False ) {
+	    ++ error;
+	    std::cout << "fault1 = " << fault1.str()
+		      << " @FFR#" << network.ffr(fault1).id() << std::endl
+		      << "fault2 = " << rep_fault.str()
+		      << " @FFR#" << network.ffr(rep_fault).id() << std::endl
+		      << "fault1 and fault2 are not equivalent"
+		      << std::endl;
+	  }
+	}
+      }
+      else {
+	// 支配故障のチェック
 	auto fault2 = fault_info.dominator(fault1);
 	NaiveDualEngine engine(fault1, fault2);
 	auto res = engine.solve(false, true);
@@ -278,24 +358,6 @@ analyze_test(
 		    << " @FFR#" << network.ffr(fault2).id() << std::endl
 		    << "dominance check failed." << std::endl
 		    << "expected to be dominated" << std::endl;
-	}
-      }
-      else {
-	for ( auto fault2: det_list ) {
-	  if ( fault2 == fault1 ) {
-	    continue;
-	  }
-	  NaiveDualEngine engine(fault1, fault2);
-	  auto res = engine.solve(false, true);
-	  if ( res != SatBool3::True ) {
-	  ++ error;
-	  std::cout << "fault1 = " << fault1.str()
-		    << " @FFR#" << network.ffr(fault1).id() << std::endl
-		    << "dominator = " << fault2.str()
-		    << " @FFR#" << network.ffr(fault2).id() << std::endl
-		    << "dominance check failed." << std::endl
-		    << "expected not to be dominated" << std::endl;
-	  }
 	}
       }
     }

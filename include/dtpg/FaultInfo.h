@@ -39,6 +39,7 @@ public:
     AssignList detect_cond;                       ///< 故障検出条件
     AssignList mandatory_cond;                    ///< 故障検出の必須条件
     TestVector testvector;                        ///< テストベクタ
+    TpgFault rep_fault;                           ///< 代表故障
     TpgFault dominator;                           ///< 支配故障
   };
 
@@ -80,9 +81,18 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
-  /// @brief 検出可能で他の故障に支配されていない時 true を返す．
+  /// @brief 代表故障の時 true を返す．
   bool
   is_rep(
+    const TpgFault& fault ///< [in] 対象の故障
+  ) const;
+
+  /// @brief 代表故障を返す．
+  ///
+  /// - 他の故障に支配されている時は意味を持たない．
+  /// - 自分自身の場合もある．
+  TpgFault
+  rep_fault(
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
@@ -147,6 +157,13 @@ public:
   void
   set_untestable(
     const TpgFault& fault ///< [in] 対象の故障
+  );
+
+  /// @brief 代表故障をセットする．
+  void
+  set_rep(
+    const TpgFault& fault, ///< [in] 対象の故障
+    const TpgFault& rep    ///< [in] 支配故障
   );
 
   /// @brief 支配故障をセットする．
