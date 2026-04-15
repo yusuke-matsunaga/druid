@@ -21,7 +21,8 @@ FFREnc::FFREnc(
     mFFR{ffr},
     mFaultList{fault_list},
     mDLitsArray(mFaultList.size()),
-    mULitArray(mFaultList.size())
+    mULitArray(mFaultList.size()),
+    mHasULit{option.get_bool_elem("has_ulit", false)}
 {
   SizeType i = 0;
   for ( auto fault: mFaultList ) {
@@ -47,15 +48,17 @@ FFREnc::make_cond()
     auto dlits = conv_to_literal_list(cond);
     dlits.push_back(pvar);
     mDLitsArray[i] = dlits;
-    auto ulit = solver().new_variable(true);
-    mULitArray[i] = ulit;
-    std::vector<SatLiteral> tmp_lits;
-    tmp_lits.reserve(dlits.size() + 1);
-    tmp_lits.push_back(~ulit);
-    for ( auto lit: dlits ) {
-      tmp_lits.push_back(~lit);
+    if ( mHasULit ) {
+      auto ulit = solver().new_variable(true);
+      mULitArray[i] = ulit;
+      std::vector<SatLiteral> tmp_lits;
+      tmp_lits.reserve(dlits.size() + 1);
+      tmp_lits.push_back(~ulit);
+      for ( auto lit: dlits ) {
+	tmp_lits.push_back(~lit);
+      }
+      solver().add_clause(tmp_lits);
     }
-    solver().add_clause(tmp_lits);
   }
 }
 
@@ -74,6 +77,9 @@ FFREnc::ulit(
   const TpgFault& fault
 ) const
 {
+  if ( !mHasULit ) {
+    throw std::logic_error{"\"has_ulit\" is not specified"};
+  }
   return mULitArray[local_id(fault)];
 }
 

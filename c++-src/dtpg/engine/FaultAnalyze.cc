@@ -352,6 +352,7 @@ FaultAnalyze::run(
     // Phase2: MFFC ごとに故障の支配関係を調べる．
     phase2(fault_info, option);
   }
+
   if ( global_reduction ) {
     // Phase3: 異なる FFR の故障の間の支配関係を調べる．
     phase3(fault_info, option);

@@ -26,8 +26,10 @@ FFR2Engine::FFR2Engine(
   const ConfigParam& option
 ) : StructEngine(ffr1.network(), option)
 {
-  mEnc1 = new FFREnc(ffr1, fault_list1, option);
-  mEnc2 = new FFREnc(ffr2, fault_list2, option);
+  auto enc_option = option;
+  enc_option.add("has_ulit", true);
+  mEnc1 = new FFREnc(ffr1, fault_list1, enc_option);
+  mEnc2 = new FFREnc(ffr2, fault_list2, enc_option);
   add_subenc(std::unique_ptr<SubEnc>{mEnc1});
   add_subenc(std::unique_ptr<SubEnc>{mEnc2});
   mEnc1->make_cond();

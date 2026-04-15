@@ -39,7 +39,9 @@ FFRAnalyze::run(
   }
 
   // fault_list の FFR に対する故障伝搬条件を表すCNF式を持つSATソルバを作る．
-  FFREngine engine(ffr, fault_list, option);
+  auto engine_option = option;
+  engine_option.add("has_ulit", ffr_reduction);
+  FFREngine engine(ffr, fault_list, engine_option);
 
   // 個々の故障の検出状況を調べる．
   TpgFaultList det_list;

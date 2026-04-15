@@ -63,6 +63,12 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   ) const;
 
+  bool
+  has_ulit() const
+  {
+    return mHasULit;
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -103,9 +109,6 @@ private:
   // 故障のリスト
   TpgFaultList mFaultList;
 
-  // 根の故障伝搬条件を表す変数
-  SatLiteral mPropVar;
-
   // 故障番号をキーにして mFaultList 中の位置番号を格納する辞書
   std::unordered_map<SizeType, SizeType> mFaultMap;
 
@@ -116,6 +119,9 @@ private:
   // mFaultList の故障の非検出条件のリテラルの配列
   // キーは mFaultList の位置番号
   std::vector<SatLiteral> mULitArray;
+
+  // mULitArray が適正な値を持つ時 true
+  bool mHasULit;
 
 };
 

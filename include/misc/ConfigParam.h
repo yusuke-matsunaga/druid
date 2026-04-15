@@ -70,6 +70,11 @@ public:
     }
   }
 
+  /// @brief コピーコンストラクタ
+  ConfigParam(
+    const ConfigParam& src
+  ) = default;
+
   /// @brief デストラクタ
   ~ConfigParam() = default;
 
