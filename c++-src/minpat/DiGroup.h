@@ -28,6 +28,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class DiGroup
 {
+  friend class DiGroupMgr;
+
 public:
 
   /// @brief コンストラクタ

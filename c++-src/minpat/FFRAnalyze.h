@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "dtpg/FaultInfo.h"
+#include "minpat/FaultInfo.h"
 #include "misc/ConfigParam.h"
 
 

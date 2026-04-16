@@ -8,7 +8,7 @@
 
 #include "pym/PyFsimResults.h"
 #include "pym/PyDiffBits.h"
-#include "pym/PyList.h"
+#include "pym/PyTpgFaultList.h"
 #include "pym/PyUlong.h"
 #include "pym/PyModule.h"
 
@@ -82,7 +82,7 @@ fault_list(
   }
   auto& val = PyFsimResults::_get_ref(self);
   try {
-    return PyList<SizeType, PyUlong>::ToPyObject(val.fault_list(tv_id));
+    return PyTpgFaultList::ToPyObject(val.fault_list(tv_id));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;

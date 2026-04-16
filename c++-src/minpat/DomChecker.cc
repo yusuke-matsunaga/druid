@@ -32,7 +32,7 @@ DomChecker::DomChecker(
     mDomList2(fault_list2.size())
 {
   auto multi_thread = option.get_bool_elem("multi_thread", false);
-  auto debug = option.get_bool_elem("debug", false);
+  auto debug = option.get_int_elem("debug", 0);
   auto verbose = option.get_bool_elem("verbose", false);
 
   if ( debug ) {

@@ -6,7 +6,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "dtpg/FaultInfo.h"
+#include "minpat/FaultInfo.h"
 #include "types/TpgFault.h"
 
 

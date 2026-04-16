@@ -38,9 +38,9 @@ MpVerify::run(
     auto tv1 = tv;
     tv1.fix_x_from_random(randgen);
     auto res = fsim.sppfp(tv1);
-    for ( auto fid: res.fault_list(0) ) {
+    for ( auto fault: res.fault_list(0) ) {
+      auto fid = fault.id();
       det_mark.insert(fid);
-      auto fault = network.fault(fid);
       fsim.set_skip(fault);
     }
   }

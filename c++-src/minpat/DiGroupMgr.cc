@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "DiGroupMgr.h"
+#include "types/TpgNetwork.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,56 +21,85 @@ DiGroupMgr::DiGroupMgr(
   const TpgFaultList& fault_list
 )
 {
-  auto group = new_group(fault_list);
-  group->set_conflict_list({group});
-  group->set_dominate_list({group});
-  mGroupList.push_back(group);
-  mUndetGroup = group;
+  auto group = _new_group(fault_list);
+  if ( group != nullptr ) {
+    group->set_conflict_list({group});
+    group->set_dominate_list({group});
+    mUndetGroup = group;
+  }
 }
 
-// @brief 細分化したグループを作るコンストラクタ
+// @brief コピーコンストラクタ
 DiGroupMgr::DiGroupMgr(
-  const DiGroupMgr& prev_mgr,
-  const std::unordered_set<SizeType>& fault_set
+  const DiGroupMgr& src
 )
 {
+  _copy(src);
+}
+
+// @brief コピー代入演算子
+DiGroupMgr&
+DiGroupMgr::operator=(
+  const DiGroupMgr& src
+)
+{
+  mGroupArray.clear();
+  mGroupList.clear();
+  mUndetGroup = nullptr;
+  _copy(src);
+  return *this;
+}
+
+// @brief prev_mgr の故障グループを det_list に基づいて細分化する．
+DiGroupMgr
+DiGroupMgr::dichotomy(
+  const DiGroupMgr& mgr,
+  const TpgFaultList& det_list
+)
+{
+  if ( det_list.size() == 0 ) {
+    return mgr;
+  }
+
+  auto network = det_list.network();
+  std::vector<bool> det_mark(network.max_fault_id(), false);
+  for ( auto fault: det_list ) {
+    det_mark[fault.id()] = true;
+  }
+
   // 二分したグループを作る．
-  // 結果は new_group_list と subgroup_list に入れる．
+  // 結果は subgroup_list に入れる．
   // i 番目のグループの検出された部分グループが subgroup_list[i * 2 + 0] に
   // 検出されなかった部分グループが subgroup_list[i * 2 + 1] に入る．
   // ただし，結果が空リストの場合は nullptr となる．
-  auto& prev_group_list = prev_mgr.group_list();
+  auto& prev_group_list = mgr.group_list();
   auto ng = prev_group_list.size();
-  std::vector<DiGroup*> new_group_list;
-  new_group_list.reserve(ng * 2);
   std::vector<DiGroup*> subgroup_list(ng * 2, nullptr);
+
+  // 結果を格納するマネージャ
+  DiGroupMgr new_mgr;
+  new_mgr.mGroupArray.reserve(ng * 2);
+  new_mgr.mGroupList.reserve(ng * 2);
+
   for ( SizeType i = 0; i < ng; ++ i ) {
     auto src_group = prev_group_list[i];
     auto& fault_list = src_group->fault_list();
     TpgFaultList det_list;
     TpgFaultList undet_list;
     for ( auto fault: fault_list ) {
-      if ( fault_set.count(fault.id()) > 0 ) {
+      if ( det_mark[fault.id()] ) {
 	det_list.push_back(fault);
       }
       else {
 	undet_list.push_back(fault);
       }
     }
-    DiGroup* det_group = nullptr;
-    if ( !det_list.empty() ) {
-      det_group = new_group(det_list);
-      new_group_list.push_back(det_group);
-    }
-    DiGroup* undet_group = nullptr;
-    if ( !undet_list.empty() ) {
-      undet_group = new_group(undet_list);
-      new_group_list.push_back(undet_group);
-    }
+    auto det_group = new_mgr._new_group(det_list);
+    auto undet_group = new_mgr._new_group(undet_list);
     subgroup_list[i * 2 + 0] = det_group;
     subgroup_list[i * 2 + 1] = undet_group;
-    if ( src_group == prev_mgr.undet_group() ) {
-      mUndetGroup = undet_group;
+    if ( src_group == mgr.undet_group() ) {
+      new_mgr.mUndetGroup = undet_group;
     }
   }
 
@@ -79,6 +109,7 @@ DiGroupMgr::DiGroupMgr(
     auto det_group = subgroup_list[i * 2 + 0];
     auto undet_group = subgroup_list[i * 2 + 1];
 
+#if 0
     { // 検出された部分グループの conflict_list は親の conflict_list
       // の検出されなかった部分グループとなる．
       // 検出されなかった部分グループの conflict_list は親の conflict_list
@@ -107,6 +138,7 @@ DiGroupMgr::DiGroupMgr(
 	undet_group->set_conflict_list(std::move(undet_conflict_list));
       }
     }
+#endif
 
     { // 検出された部分グループの dominate_list は親の dominate_list
       // の検出された部分グループとなる．
@@ -140,21 +172,80 @@ DiGroupMgr::DiGroupMgr(
       }
     }
   }
-  mGroupList.reserve(new_group_list.size());
-  for ( auto group: new_group_list ) {
-    mGroupList.push_back(group);
+
+  return new_mgr;
+}
+
+// @brief 内容を出力する．
+void
+DiGroupMgr::print(
+  std::ostream& s
+) const
+{
+  SizeType i = 0;
+  SizeType nf = 0;
+  for ( auto group: group_list() ) {
+    s << "Group#" << i << ":";
+    for ( auto fault: group->fault_list() ) {
+      s << " " << fault.str();
+    }
+    s << std::endl;
+    nf += group->fault_list().size();
+    ++ i;
+  }
+  s << "# of faults: " << nf << std::endl;
+}
+
+// @brief 複製する．
+void
+DiGroupMgr::_copy(
+  const DiGroupMgr& src
+)
+{
+  auto ng = src.group_num();
+  mGroupArray.reserve(ng);
+  mGroupList.reserve(ng);
+  for ( auto src_group: src.mGroupList ) {
+    _new_group(src_group->fault_list());
+  }
+
+  for ( SizeType i = 0; i < ng; ++ i ) {
+    auto src_group = src.mGroupList[i];
+    auto dst_group = mGroupArray[i].get(); // mGroupList は const なので使えない．
+#if 0
+    // mConflictList をコピーする．
+    dst_group->mConflictList.reserve(src_group->mConflictList.size());
+    for ( auto src: src_group->mConflictList ) {
+      auto dst = mGroupArray[src->id()].get();
+      dst_group->mConflictList.push_back(dst);
+    }
+#endif
+    // mDominateList をコピーする．
+    dst_group->mDominateList.reserve(src_group->mDominateList.size());
+    for ( auto src: src_group->mDominateList ) {
+      auto dst = mGroupArray[src->id()].get();
+      dst_group->mDominateList.push_back(dst);
+    }
+  }
+  auto src_undet = src.undet_group();
+  if ( src_undet != nullptr ) {
+    mUndetGroup = mGroupArray[src_undet->id()].get();
   }
 }
 
 // @brief 故障グループを作る．
 DiGroup*
-DiGroupMgr::new_group(
+DiGroupMgr::_new_group(
   const TpgFaultList& fault_list
 )
 {
+  if ( fault_list.empty() ) {
+    return nullptr;
+  }
   auto id = mGroupArray.size();
   auto group = new DiGroup(id, fault_list);
   mGroupArray.push_back(std::unique_ptr<DiGroup>{group});
+  mGroupList.push_back(group);
   return group;
  }
 

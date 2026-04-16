@@ -11,7 +11,7 @@
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
 #include "types/TestVector.h"
-#include "dtpg/DtpgMgr.h"
+#include "minpat/FaultAnalyze.h"
 #include "fsim/Fsim.h"
 #include "ym/JsonValue.h"
 #include <unistd.h> // getopt
@@ -19,13 +19,6 @@
 
 
 BEGIN_NAMESPACE_DRUID
-
-extern
-TpgFaultList
-ffr_reduction(
-  const TpgFaultList& fault_list,
-  const ConfigParam& option
-);
 
 static char* argv0;
 
@@ -45,7 +38,7 @@ dichotomy_test(
 {
   std::string format = "blif";
   FaultType ftype = FaultType::StuckAt;
-  bool do_ffr_reduction = false;
+  bool ffr_reduction = false;
   bool multi_thread = false;
   bool verbose = false;
   int debug = 0;
@@ -70,7 +63,7 @@ dichotomy_test(
       ftype = FaultType::TransitionDelay;
     }
     else if ( arg == "--ffr-reduction" ) {
-      do_ffr_reduction = true;
+      ffr_reduction = true;
     }
     else if ( arg == "--multi-thread" ) {
       multi_thread = true;
@@ -111,38 +104,36 @@ dichotomy_test(
     network.print(std::cout);
   }
 
-  auto global_option = JsonValue::object();
-  global_option.add("multi_thread", multi_thread);
-  global_option.add("verbose", verbose);
-  global_option.add("debug", debug);
-
   auto option = JsonValue::object();
-  option.add("*", global_option);
-
-  auto fault_list = network.rep_fault_list();
+  {
+    auto global_option = JsonValue::object();
+    global_option.add("multi_thread", multi_thread);
+    global_option.add("verbose", verbose);
+    global_option.add("debug", debug);
+    option.add("*", global_option);
+  }
+  {
+    auto analyze_option = JsonValue::object();
+    analyze_option.add("ffr_reduction", ffr_reduction);
+    analyze_option.add("global_reduction", false);
+    option.add("analyze", analyze_option);
+  }
 
   std::mt19937 randgen;
 
-  auto res = DtpgMgr::run(fault_list, option);
-  TpgFaultList det_fault_list;
-  std::vector<TestVector> tv_list;
-  for ( auto fault: fault_list ) {
-    if ( res.status(fault) == FaultStatus::Detected ) {
-      det_fault_list.push_back(fault);
-      auto tv = res.testvector(fault);
-      tv.fix_x_from_random(randgen);
-      tv_list.push_back(tv);
-    }
-  }
-  std::swap(fault_list, det_fault_list);
+  auto fault_list = network.rep_fault_list();
+  // fault_list を更新する．
+  auto analyze_option = ConfigParam(option).get_param("analyze");
+  auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
+  auto rep_fault_list = fault_info.rep_fault_list();
+  std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
 
-  if ( do_ffr_reduction ) {
-    fault_list = ffr_reduction(fault_list, option);
-  }
+  Dichotomy::run(fault_info, option);
 
-  auto group_mgr = Dichotomy::run(fault_list, option);
-  auto& group_list = group_mgr.group_list();
+  auto rep_fault_list2 = fault_info.rep_fault_list();
+  std::cout << "# of reduced faults: " << rep_fault_list2.size() << std::endl;
 
+#if 0
   std::vector<std::pair<SizeType, SizeType>> conflict_pair_list;
   { // conflict_list が対称的かチェックする．
     std::unordered_set<SizeType> mark;
@@ -168,59 +159,38 @@ dichotomy_test(
       }
     }
   }
+#endif
 
-  std::cout << "# of faults: " << fault_list.size() << std::endl;
-  std::cout << "# of Groups: " << group_list.size() << std::endl;
+#if 0
+  std::cout << "# of faults:     " << fault_list.size() << std::endl
+	    << "# of rep faults: " << rep_fault_list.size() << std::endl
+	    << "# of Groups:     " << group_list.size() << std::endl;
+  std::vector<std::pair<SizeType, SizeType>> dom_pair_list;
   for ( auto group: group_list ) {
-    if ( group->fault_list().size() == 1 ) {
-      continue;
-    }
-    std::cout << "Group#" << group->id();
-    for ( auto fault: group->fault_list() ) {
-      std::cout << " " << fault.str();
-    }
-#if 0
-    std::cout << std::endl
-	      << "  conflict: ";
-    for ( auto group1: group->conflict_list() ) {
-      for ( auto fault: group1->fault_list() ) {
-	std::cout << " " << fault.str();
-      }
-    }
-#endif
-#if 0
-    std::cout << std::endl
-	      << "  dominate: ";
     for ( auto group1: group->dominate_list() ) {
-      for ( auto fault: group1->fault_list() ) {
-	std::cout << " " << fault.str();
+      for ( auto fault: group->fault_list() ) {
+	for ( auto fault1: group1->fault_list() ) {
+	  dom_pair_list.push_back({fault.id(), fault1.id()});
+	}
       }
     }
-#endif
-    std::cout << std::endl
-	      << std::endl;
   }
+  std::cout << "# of Dominance pairs: "
+	    << dom_pair_list.size()
+	    << std::endl;
 
   if ( group_mgr.undet_group() != nullptr ) {
     std::cout << "# of Undet Groups: "
 	      << group_mgr.undet_group()->fault_list().size()
 	      << std::endl;
-#if 0
     for ( auto fault: group_mgr.undet_group()->fault_list() ) {
       std::cout << " " << fault.str();
     }
     std::cout << std::endl;
-#endif
   }
   std::cout << "# of Conflict pairs: "
 	    << conflict_pair_list.size()
 	    << std::endl;
-#if 0
-  for ( auto& p: conflict_pair_list ) {
-    auto id1 = p.first;
-    auto id2 = p.second;
-    std::cout << "Group#" << id1 << ", Group#" << id2 << std::endl;
-  }
 #endif
 
   return 0;

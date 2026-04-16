@@ -67,8 +67,8 @@ MpComp_MinCov::run(
       auto& tv = tv_list[col_pos];
       auto fsim_res = fsim.sppfp(tv);
       auto tmp_fault_list = fsim_res.fault_list(0);
-      for ( auto fid: tmp_fault_list ) {
-	auto fault = network.fault(fid);
+      for ( auto fault: tmp_fault_list ) {
+	auto fid = fault.id();
 	auto row_pos = fid_map[fid];
 	mincov.insert_elem(row_pos, col_pos);
 	++ det_count[fid];

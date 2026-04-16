@@ -6,7 +6,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "dtpg/FaultAnalyze.h"
+#include "minpat/FaultAnalyze.h"
 #include "types/TpgFaultList.h"
 #include "dtpg/BdEngine.h"
 #include "FFRAnalyze.h"

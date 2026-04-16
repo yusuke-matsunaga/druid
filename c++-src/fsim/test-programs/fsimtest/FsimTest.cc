@@ -90,12 +90,12 @@ sppfp_test(
     if ( res.tv_num() != 1 ) {
       throw std::logic_error{"something wrong"};
     }
-    for ( auto fid: res.fault_list(0) ) {
+    for ( auto fault: res.fault_list(0) ) {
+      auto fid = fault.id();
       auto dbits = res.diffbits(0, fid);
       if ( !det_array[fid] ) {
 	det_array[fid] = true;
 	++ det_num;
-	auto fault = network.fault(fid);
 	if ( drop ) {
 	  fsim.set_skip(fault);
 	}
@@ -136,11 +136,11 @@ ppsfp_test(
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
       auto res = fsim.ppsfp(tv_buff);
       for ( SizeType tv_id = 0; tv_id < tv_buff.size(); ++ tv_id ) {
-	for ( auto fid: res.fault_list(tv_id) ) {
+	for ( auto fault: res.fault_list(tv_id) ) {
+	  auto fid = fault.id();
 	  auto dbits = res.diffbits(tv_id, fid);
 	  det_array[fid] = true;
 	  ++ det_num;
-	  auto fault = network.fault(fid);
 	  if ( drop ) {
 	    fsim.set_skip(fault);
 	  }

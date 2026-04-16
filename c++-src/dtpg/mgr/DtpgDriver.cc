@@ -54,22 +54,28 @@ DtpgDriver::~DtpgDriver()
 }
 
 // @brief 実行する．
-void
-DtpgDriver::run()
+DtpgStats
+DtpgDriver::run(
+  DtpgResults& results
+)
 {
+  DtpgStats stats;
   for ( auto fault: mFaultList ) {
-    gen_pattern(fault);
+    gen_pattern(fault, results, stats);
   }
   auto cnf_time = mEngine.cnf_time();
-  mResults.update_cnf(cnf_time);
+  stats.update_cnf(cnf_time);
   auto sat_stats = mEngine.get_stats();
-  mResults.update_sat_stats(sat_stats);
+  stats.update_sat_stats(sat_stats);
+  return stats;
 }
 
 // @brief 故障のテストパタンを求める．
 void
 DtpgDriver::gen_pattern(
-  const TpgFault& fault
+  const TpgFault& fault,
+  DtpgResults& results,
+  DtpgStats& stats
 )
 {
   Timer timer;
@@ -87,19 +93,19 @@ DtpgDriver::gen_pattern(
     auto cond = mEngine.extract_sufficient_condition(fault, model);
     auto pi_assign_list = mEngine.justify(cond, model);
     auto tv = TestVector(pi_assign_list);
-    mResults.set_detected(fault, cond, tv);
+    results.set_detected(fault, cond, tv);
     timer.stop();
     auto backtrace_time = timer.get_time();
-    mResults.update_det(sat_time, backtrace_time);
+    stats.update_det(sat_time, backtrace_time);
   }
   else if ( ans == SatBool3::False ) {
     // 検出不能と判定された．
-    mResults.set_untestable(fault);
-    mResults.update_untest(sat_time);
+    results.set_untestable(fault);
+    stats.update_untest(sat_time);
   }
   else { // SatBool3::X
     // アボート
-    mResults.update_abort(sat_time);
+    stats.update_abort(sat_time);
   }
 }
 

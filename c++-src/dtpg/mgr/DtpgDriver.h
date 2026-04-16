@@ -59,17 +59,12 @@ public:
 
   /// @brief 実行する．
   ///
-  /// - マルチスレッドで実行可
-  /// - 結果は内部に保存される．
-  void
-  run();
-
-  /// @brief 直前の run() の実行結果を得る．
-  const DtpgResults&
-  results() const
-  {
-    return mResults;
-  }
+  /// - results に格納する故障が重複していない限りマルチスレッドで実行可
+  /// - DtpgStats は重複するので results には設定せずに個別のオブジェクトを返す．
+  DtpgStats
+  run(
+    DtpgResults& results///< [in] 結果を格納するオブジェクト
+  );
 
 
 private:
@@ -80,7 +75,9 @@ private:
   /// @brief 故障に対する処理を行う．
   void
   gen_pattern(
-    const TpgFault& fault ///< [in] 対象の故障
+    const TpgFault& fault, ///< [in] 対象の故障
+    DtpgResults& results,  ///< [in] 結果を格納するオブジェクト
+    DtpgStats& stats       ///< [in] 統計情報を格納するオブジェクト
   );
 
 
@@ -94,9 +91,6 @@ private:
 
   // 対象の故障リスト
   TpgFaultList mFaultList;
-
-  // テスト生成の結果
-  DtpgResults mResults;
 
 };
 

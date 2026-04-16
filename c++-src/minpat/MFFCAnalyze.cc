@@ -21,7 +21,7 @@ MFFCAnalyze::run(
   const ConfigParam& option
 )
 {
-  auto debug = option.get_bool_elem("debug", false);
+  auto debug = option.get_int_elem("debug", 0);
 
   if ( debug ) {
     std::cout << "MFFCAnalyze(MFFC#" << mffc.id()

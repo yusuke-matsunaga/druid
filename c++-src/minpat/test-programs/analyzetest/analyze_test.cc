@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "types/TpgNetwork.h"
-#include "dtpg/FaultAnalyze.h"
+#include "minpat/FaultAnalyze.h"
 #include "dtpg/NaiveDtpgEngine.h"
 #include "dtpg/NaiveDualEngine.h"
 #include "types/TpgFault.h"
@@ -50,7 +50,7 @@ analyze_test(
   bool dump = false;
   bool verify = false;
   bool verbose = false;
-  bool debug = false;
+  int debug = 0;
   bool dom_dump = false;
   std::string sat_log;
   bool show_untestable_faults = false;
@@ -141,7 +141,7 @@ analyze_test(
 	verbose = true;
       }
       else if ( arg == "--debug" ) {
-	debug = true;
+	++ debug;
       }
       else if ( arg == "--dom-dump" ) {
 	dom_dump = true;

@@ -185,7 +185,8 @@ FsimTest::sppfp_test(
     EXPECT_EQ( ndet, res.fault_list(0).size() );
     SizeType prev_fid = 0;
     bool first = true;
-    for ( auto fid: res.fault_list(0) ) {
+    for ( auto fault: res.fault_list(0) ) {
+      auto fid = fault.id();
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
       auto tmp_dbits = res.diffbits(0, fid);
       EXPECT_EQ( dbits_dict.at(fid), tmp_dbits );
@@ -250,8 +251,8 @@ FsimTest::xsppfp_test(
 	}
 	std::cout << std::endl;
 	std::cout << "fsim fault_list:";
-	for ( auto fid: res.fault_list(0) ) {
-	  std::cout << " " << tpg_network.fault(fid).str();
+	for ( auto fault: res.fault_list(0) ) {
+	  std::cout << " " << fault.str();
 	}
 	std::cout << std::endl;
       }
@@ -259,7 +260,8 @@ FsimTest::xsppfp_test(
     ASSERT_EQ( ref_fault_list.size(), res.fault_list(0).size() );
     SizeType prev_fid = 0;
     bool first = true;
-    for ( auto fid: res.fault_list(0) ) {
+    for ( auto fault: res.fault_list(0) ) {
+      auto fid = fault.id();
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
       auto tmp_dbits = res.diffbits(0, fid);
       EXPECT_EQ( dbits_dict.at(fid), tmp_dbits );
@@ -317,14 +319,16 @@ FsimTest::ppsfp_test(
     auto f_list1 = ref_res.fault_list(0);
     auto f_list2 = res.fault_list(i);
     ASSERT_EQ( f_list1, f_list2 );
-    for ( auto fid: f_list1 ) {
+    for ( auto fault: f_list1 ) {
+      auto fid = fault.id();
       auto ref_dbits = ref_res.diffbits(0, fid);
       auto dbits = res.diffbits(i, fid);
       EXPECT_EQ( ref_dbits, dbits );
     }
     SizeType prev_fid = 0;
     bool first = true;
-    for ( auto fid: f_list2 ) {
+    for ( auto fault: f_list2 ) {
+      auto fid = fault.id();
       if ( first ) {
 	first = false;
       }

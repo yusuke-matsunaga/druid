@@ -9,6 +9,8 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "types/TpgBase.h"
+#include "types/TpgFaultList.h"
 #include "fsim/DiffBits.h"
 
 
@@ -32,7 +34,8 @@ class FsimResultsRep;
 /// 内容を設定する際には現在のテストベクタ番号を内部に保持している．
 /// 常に現在のテストベクタに対してのみ要素を追加を行う．
 //////////////////////////////////////////////////////////////////////
-class FsimResults
+class FsimResults:
+  public TpgBase
 {
 public:
 
@@ -42,6 +45,7 @@ public:
   /// @brief 内容を指定するコンストラクタ
   explicit
   FsimResults(
+    const std::shared_ptr<NetworkRep>& impl,
     const std::shared_ptr<FsimResultsRep>& src
   );
 
@@ -70,10 +74,10 @@ public:
   SizeType
   tv_num() const;
 
-  /// @brief 指定されたテストベクタ番号で検出された故障番号のリストを返す．
+  /// @brief 指定されたテストベクタ番号で検出された故障のリストを返す．
   ///
-  /// 故障番号のリストは昇順にソートされている．
-  std::vector<SizeType>
+  /// 故障番号の昇順にソートされている．
+  TpgFaultList
   fault_list(
     SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
   ) const;

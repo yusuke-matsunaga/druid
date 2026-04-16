@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include <gtest/gtest.h>
-#include "dtpg/FaultAnalyze.h"
+#include "minpat/FaultAnalyze.h"
 #include "dtpg/NaiveDtpgEngine.h"
 #include "dtpg/NaiveDualEngine.h"
 #include "dtpg/SuffCond.h"
@@ -75,22 +75,37 @@ FaultAnalyzeTest::do_test()
       buf << fault1.str() << "@FFR#" << network.ffr(fault1).id()
 	  << ", " << fault2.str() << "@FFR#" << network.ffr(fault2).id();
       EXPECT_EQ( SatBool3::False, res ) << buf.str();
+      continue;
     }
-    else {
-      for ( auto fault2: det_list ) {
-	if ( fault2 == fault1 ) {
-	  continue;
-	}
-	if ( !fault_info.is_rep(fault2) ) {
-	  continue;
-	}
-	NaiveDualEngine engine(fault1, fault2);
-	auto res = engine.solve(false, true);
-	std::ostringstream buf;
-	buf << fault1.str() << "@FFR#" << network.ffr(fault1).id()
-	    << ", " << fault2.str() << "@FFR#" << network.ffr(fault2).id();
-	EXPECT_EQ( SatBool3::True, res ) << buf.str();
+    auto rep_fault = fault_info.rep_fault(fault1);
+    if ( rep_fault.is_valid() && rep_fault != fault1 ) {
+      EXPECT_TRUE( rep_fault.id() < fault1.id() );
+      NaiveDualEngine engine(fault1, rep_fault);
+      auto res11 = engine.solve(true, true);
+      EXPECT_EQ( SatBool3::True, res11 );
+      auto res01 = engine.solve(false, true);
+      EXPECT_EQ( SatBool3::False, res01 );
+      auto res10 = engine.solve(true, false);
+      EXPECT_EQ( SatBool3::False, res10 );
+      continue;
+    }
+    for ( auto fault2: det_list ) {
+      if ( fault2 == fault1 ) {
+	continue;
       }
+      if ( !fault_info.is_rep(fault2) ) {
+	continue;
+      }
+      NaiveDualEngine engine(fault1, fault2);
+      auto res11 = engine.solve(true, true);
+      if ( res11 != SatBool3::True ) {
+	continue;
+      }
+      auto res = engine.solve(false, true);
+      std::ostringstream buf;
+      buf << fault1.str() << "@FFR#" << network.ffr(fault1).id()
+	  << ", " << fault2.str() << "@FFR#" << network.ffr(fault2).id();
+      EXPECT_EQ( SatBool3::True, res ) << buf.str();
     }
   }
 }

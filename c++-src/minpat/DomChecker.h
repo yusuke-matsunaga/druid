@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "dtpg/FaultInfo.h"
+#include "minpat/FaultInfo.h"
 #include "misc/ConfigParam.h"
 
 
@@ -50,6 +50,19 @@ public:
     FaultInfo& fault_info ///< [in] 結果をセットするオブジェクト
   ) const;
 
+  /// @brief fault_list1 の故障に対する代表故障を返す．
+  TpgFault
+  rep1(
+    SizeType pos ///< [in] fault_list1 中の位置番号
+  ) const
+  {
+    if ( pos >= mRepList1.size() ) {
+      abort();
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mRepList1[pos];
+  }
+
   /// @brief fault_list1 の故障に対する支配故障を返す．
   ///
   /// 支配されていない場合は不正値を返す．
@@ -62,6 +75,19 @@ public:
       throw std::out_of_range{"pos is out of range"};
     }
     return mDomList1[pos];
+  }
+
+  /// @brief fault_list2 の故障に対する代表故障を返す．
+  TpgFault
+  rep2(
+    SizeType pos ///< [in] fault_list2 中の位置番号
+  ) const
+  {
+    if ( pos >= mRepList2.size() ) {
+      abort();
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mRepList2[pos];
   }
 
   /// @brief fault_list2 の故障に対する支配故障を返す．

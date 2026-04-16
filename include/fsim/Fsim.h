@@ -10,6 +10,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "types/TpgBase.h"
 #include "types/FaultType.h"
 #include "fsim/DiffBits.h"
 #include "fsim/FsimResults.h"
@@ -36,7 +37,8 @@ class FsimImpl;
 /// スキップフラグが立っていない故障を対象に故障シミュレーションを行う．
 /// スキップフラグのオン/オフは set_skip()/clear_skip() で行う．
 //////////////////////////////////////////////////////////////////////
-class Fsim
+class Fsim:
+  public TpgBase
 {
 public:
 

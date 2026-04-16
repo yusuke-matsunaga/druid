@@ -69,7 +69,6 @@ run(
     }
   }
   try {
-    DtpgResults results;
     return PyDtpgResults::ToPyObject(DtpgMgr::run(fault_list, option));
   }
   catch ( std::exception err ) {

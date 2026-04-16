@@ -24,8 +24,10 @@ FsimResults::FsimResults(
 
 // @brief 内容を指定するコンストラクタ
 FsimResults::FsimResults(
+  const std::shared_ptr<NetworkRep>& impl,
   const std::shared_ptr<FsimResultsRep>& src
-) : mPtr{src}
+) : TpgBase{impl},
+    mPtr{src}
 {
 }
 
@@ -36,13 +38,13 @@ FsimResults::tv_num() const
   return mPtr->tv_num();
 }
 
-// @brief 指定されたテストベクタ番号で検出された故障番号のリストを返す．
-std::vector<SizeType>
+// @brief 指定されたテストベクタ番号で検出された故障のリストを返す．
+TpgFaultList
 FsimResults::fault_list(
   SizeType tv_id
 ) const
 {
-  return mPtr->fault_list(tv_id);
+  return TpgBase::fault_list(mPtr->fault_list(tv_id));
 }
 
 // @brief 出力の故障伝搬状態を返す．

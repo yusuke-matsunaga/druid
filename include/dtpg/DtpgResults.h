@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "dtpg/DtpgStats.h"
 #include "types/FaultStatus.h"
 #include "ym/SatStats.h"
 
@@ -37,10 +38,17 @@ public:
   /// @brief 空のコンストラクタ
   ///
   /// 結果が登録されていない故障の状態は未検出となる．
-  DtpgResults();
+  DtpgResults(
+    SizeType size ///< [in] 故障番号の最大値
+  );
+
+  /// @brief コピーコンストラクタ
+  DtpgResults(
+    const DtpgResults& src
+  );
 
   /// @brief デストラクタ
-  ~DtpgResults() = default;
+  ~DtpgResults();
 
 
 public:
@@ -71,64 +79,10 @@ public:
     const TpgFault& fault ///< [in] 対象の故障
   );
 
-  /// @brief DetStats を更新する
+  /// @brief 統計情報をマージする．
   void
-  update_det(
-    double sat_time,      ///< [in] SATにかかった時間
-    double backtrace_time ///< [in] バックトレースにかかった時間
-  )
-  {
-    ++ mDetCount;
-    mDetTime += sat_time;
-    mBackTraceTime += backtrace_time;
-  }
-
-  /// @brief RedStats を更新する
-  void
-  update_untest(
-    double time ///< [in] SATにかかった時間
-  )
-  {
-    ++ mUntestCount;
-    mUntestTime += time;
-  }
-
-  /// @brief AbortStats を更新する
-  void
-  update_abort(
-    double time ///< [in] SATにかかった時間
-  )
-  {
-    ++ mAbortCount;
-    mAbortTime += time;
-  }
-
-  /// @brief CNF 生成の情報を更新する．
-  void
-  update_cnf(
-    double time ///< [in] CNF生成にかかった時間
-  )
-  {
-    ++ mCnfGenCount;
-    mCnfGenTime += time;
-  }
-
-  /// @brief SAT の統計情報を更新する．
-  void
-  update_sat_stats(
-    const SatStats& src_stats
-  )
-  {
-    mSatStats += src_stats;
-    mSatStatsMax.max_assign(src_stats);
-  }
-
-  /// @brief 内容をマージする．
-  ///
-  /// 両方にデータがある場合は src で上書きされる．
-  void
-  merge(
-    const DtpgResults& src ///< [in] マージする元
+  merge_stats(
+    const DtpgStats& stats ///< [in] 統計情報
   );
 
   //////////////////////////////////////////////////////////////////////
@@ -172,56 +126,60 @@ public:
   /// @{
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 統計情報を得る．
+  const DtpgStats&
+  stats() const
+  {
+    return mStats;
+  }
+
   /// @brief トータルの計算回数
   SizeType
-  total_count() const
-  {
-    return mDetCount + mUntestCount + mAbortCount;
-  }
+  total_count() const { return mStats.total_count(); }
 
   /// @brief テスト生成が成功した回数を返す．
   SizeType
-  detect_count() const { return mDetCount; }
+  detect_count() const { return mStats.detect_count(); }
 
   /// @brief テスト生成が成功した時の計算時間の合計を返す．
   double
-  detect_time() const { return mDetTime; }
+  detect_time() const { return mStats.detect_time(); }
 
   /// @brief 冗長故障を特定した回数を返す．
   SizeType
-  untest_count() const { return mUntestCount; }
+  untest_count() const { return mStats.untest_count(); }
 
   /// @brief 冗長故障を特定した時の計算時間の合計を返す．
   double
-  untest_time() const { return mUntestTime; }
+  untest_time() const { return mStats.untest_time(); }
 
   /// @brief アボートした回数を返す．
   SizeType
-  abort_count() const { return mAbortCount; }
+  abort_count() const { return mStats.abort_count(); }
 
   /// @brief アボートした時の計算時間の合計を返す．
   double
-  abort_time() const { return mAbortTime; }
+  abort_time() const { return mStats.abort_time(); }
 
   /// @brief CNF の生成回数を返す．
   SizeType
-  cnfgen_count() const { return mCnfGenCount; }
+  cnfgen_count() const { return mStats.cnfgen_count(); }
 
   /// @brief CNF の生成にかかった計算時間の合計を返す．
   double
-  cnfgen_time() const { return mCnfGenTime; }
+  cnfgen_time() const { return mStats.cnfgen_time(); }
 
   /// @brief SAT の統計情報を返す．
   const SatStats&
-  sat_stats() const { return mSatStats; }
+  sat_stats() const { return mStats.sat_stats(); }
 
   /// @brief SAT の統計情報の最大値を返す．
   const SatStats&
-  sat_stats_max() const { return mSatStatsMax; }
+  sat_stats_max() const { return mStats.sat_stats_max(); }
 
   /// @brief バックトレースにかかった計算時間の合計を返す．
   double
-  backtrace_time() const { return mBackTraceTime; }
+  backtrace_time() const { return mStats.backtrace_time(); }
 
   //////////////////////////////////////////////////////////////////////
   /// @}
@@ -230,47 +188,27 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 結果が未設定かチェックする．
+  void
+  _check_result(
+    const TpgFault& fault
+  ) const;
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 結果の辞書
+  // 結果の配列
   // キーは故障番号
-  std::unordered_map<SizeType, ResultRep*> mResultDict;
+  std::vector<std::unique_ptr<ResultRep>> mResultArray;
 
-  /// @brief テスト生成に成功した回数．
-  SizeType mDetCount;
-
-  /// @brief テスト生成に成功した時の SAT に要した時間
-  double mDetTime;
-
-  /// @brief 冗長故障と判定した回数
-  SizeType mUntestCount;
-
-  /// @brief 冗長故障と判定した時の SAT に要した時間
-  double mUntestTime;
-
-  /// @brief アボートした回数
-  SizeType mAbortCount;
-
-  /// @brief アボートした時の SAT に要した時間
-  double mAbortTime;
-
-  /// @brief CNF 式を生成した回数
-  SizeType mCnfGenCount;
-
-  /// @brief SATソルバの統計情報の和
-  SatStats mSatStats;
-
-  /// @brief SATソルバの統計情報の最大値
-  ///
-  /// 個々の値は同時に起こったわけではない．
-  SatStats mSatStatsMax;
-
-  /// @brief CNF 式の生成に費やした時間
-  double mCnfGenTime;
-
-  /// @brief バックトレースに要した時間
-  double mBackTraceTime;
+  // 統計情報
+  DtpgStats mStats;
 
 };
 

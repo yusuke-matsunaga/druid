@@ -24,7 +24,7 @@ BEGIN_NAMESPACE_DRUID
 Fsim::Fsim(
   const TpgFaultList& fault_list,
   const ConfigParam& option
-)
+) : TpgBase(fault_list)
 {
   bool has_x = option.get_bool_elem("has_x", false);
   bool multi = option.get_bool_elem("multi_thread", false);
@@ -184,7 +184,7 @@ Fsim::sppfp(
   if ( res->tv_num() != 1 ) {
     throw std::logic_error{"something wrong"};
   }
-  return FsimResults(res);
+  return FsimResults(_network(), res);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -197,7 +197,7 @@ Fsim::sppfp(
   if ( res->tv_num() != 1 ) {
     throw std::logic_error{"something wrong"};
   }
-  return FsimResults(res);
+  return FsimResults(_network(), res);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -210,7 +210,7 @@ Fsim::xsppfp(
   if ( res->tv_num() != 1 ) {
     throw std::logic_error{"something wrong"};
   }
-  return FsimResults(res);
+  return FsimResults(_network(), res);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
@@ -239,7 +239,7 @@ Fsim::ppsfp(
       tv_buff.clear();
     }
   }
-  return FsimResults(res);
+  return FsimResults(_network(), res);
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．

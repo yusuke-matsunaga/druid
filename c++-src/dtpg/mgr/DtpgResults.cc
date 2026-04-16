@@ -18,36 +18,44 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief 空のコンストラクタ
-DtpgResults::DtpgResults()
+DtpgResults::DtpgResults(
+  SizeType size
+) : mResultArray(size)
 {
   clear();
+}
+
+// @brief コピーコンストラクタ
+DtpgResults::DtpgResults(
+  const DtpgResults& src
+) : mResultArray(src.mResultArray.size())
+{
+  auto n = mResultArray.size();
+  for ( SizeType i = 0; i < n; ++ i ) {
+    auto src_rep = src.mResultArray[i].get();
+    if ( src_rep == nullptr ) {
+      continue;
+    }
+    auto rep = src_rep->duplicate();
+    mResultArray[i] = std::unique_ptr<ResultRep>{rep};
+  }
+  mStats = src.mStats;
+}
+
+// @brief デストラクタ
+DtpgResults::~DtpgResults()
+{
 }
 
 // @brief クリアする．
 void
 DtpgResults::clear()
 {
-  for ( auto& p: mResultDict ) {
-    delete p.second;
+  auto n = mResultArray.size();
+  for ( SizeType i = 0; i < n; ++ i ) {
+    mResultArray[i] = nullptr;
   }
-  mResultDict.clear();
-
-  mDetCount = 0;
-  mDetTime = 0.0;
-
-  mUntestCount = 0;
-  mUntestTime = 0.0;
-
-  mAbortCount = 0;
-  mAbortTime = 0.0;
-
-  mCnfGenCount = 0;
-  mCnfGenTime = 0.0;
-
-  mSatStats.clear();
-  mSatStatsMax.clear();
-
-  mBackTraceTime = 0.0;
+  mStats.clear();
 }
 
 /// @brief 検出済みに設定する．
@@ -58,13 +66,9 @@ DtpgResults::set_detected(
   const TestVector& testvect
 )
 {
-  if ( mResultDict.count(fault.id()) > 0 ) {
-    std::ostringstream buf;
-    buf << fault.str() << " has already set";
-    throw std::invalid_argument{buf.str()};
-  }
+  _check_result(fault);
   auto r = new ResultRep_DT(cond, testvect);
-  mResultDict.emplace(fault.id(), r);
+  mResultArray[fault.id()] = std::unique_ptr<ResultRep>{r};
 }
 
 // @brief テスト不能に設定する．
@@ -73,39 +77,18 @@ DtpgResults::set_untestable(
   const TpgFault& fault
 )
 {
-  if ( mResultDict.count(fault.id()) > 0 ) {
-    std::ostringstream buf;
-    buf << fault.str() << " has already set";
-    throw std::invalid_argument{buf.str()};
-  }
+  _check_result(fault);
   auto r = new ResultRep_UT();
-  mResultDict.emplace(fault.id(), r);
+  mResultArray[fault.id()] = std::unique_ptr<ResultRep>{r};
 }
 
-// @brief 内容をマージする．
+// @brief 統計情報を更新する．
 void
-DtpgResults::merge(
-  const DtpgResults& src
+DtpgResults::merge_stats(
+  const DtpgStats& stats
 )
 {
-  for ( auto& p: src.mResultDict ) {
-    auto fid = p.first;
-    auto src_rep = p.second;
-    auto rep = src_rep->duplicate();
-    mResultDict.erase(fid);
-    mResultDict.emplace(fid, rep);
-  }
-  mDetCount += src.mDetCount;
-  mDetTime += src.mDetTime;
-  mUntestCount += src.mUntestCount;
-  mUntestTime += src.mUntestTime;
-  mAbortCount += src.mAbortCount;
-  mAbortTime += src.mAbortTime;
-  mCnfGenCount += src.mCnfGenCount;
-  mCnfGenTime += src.mCnfGenTime;
-  mSatStats += src.mSatStats;
-  mSatStatsMax.max_assign(src.mSatStatsMax);
-  mBackTraceTime += src.mBackTraceTime;
+  mStats.merge(stats);
 }
 
 // @brief 結果を返す．
@@ -114,11 +97,11 @@ DtpgResults::status(
   const TpgFault& fault
 ) const
 {
-  if ( mResultDict.count(fault.id()) == 0 ) {
+  auto rep = mResultArray[fault.id()].get();
+  if ( rep == nullptr ) {
     return FaultStatus::Undetected;
   }
-  auto r = mResultDict.at(fault.id());
-  return r->status();
+  return rep->status();
 }
 
 // @brief 値割り当てを返す．
@@ -127,8 +110,8 @@ DtpgResults::cond(
   const TpgFault& fault
 ) const
 {
-  auto r = mResultDict.at(fault.id());
-  return r->cond();
+  auto rep = mResultArray[fault.id()].get();
+  return rep->cond();
 }
 
 // @brief テストベクタを返す．
@@ -137,8 +120,22 @@ DtpgResults::testvector(
   const TpgFault& fault
 ) const
 {
-  auto r = mResultDict.at(fault.id());
-  return r->testvector();
+  auto rep = mResultArray[fault.id()].get();
+  return rep->testvector();
+}
+
+// @brief 結果が未設定かチェックする．
+void
+DtpgResults::_check_result(
+  const TpgFault& fault
+) const
+{
+  if ( mResultArray[fault.id()].get() != nullptr ) {
+    std::ostringstream buf;
+    buf << fault.str() << " has already been set";
+    std::cout << buf.str() << std::endl;
+    throw std::invalid_argument{buf.str()};
+  }
 }
 
 END_NAMESPACE_DRUID

@@ -27,7 +27,7 @@ FFRAnalyze::run(
   }
 
   auto ffr_reduction = option.get_bool_elem("ffr_reduction", true);
-  auto debug = option.get_bool_elem("debug", false);
+  auto debug = option.get_int_elem("debug", 0);
 
   if ( debug ) {
     std::cout << "FFRAnalyze(FFR#" << ffr.id() << ")" << std::endl
@@ -84,6 +84,9 @@ FFRAnalyze::run(
   // 各故障が検出できない条件を表すリテラルを作る．
   // ただし，もともと検出できなかった故障はスキップする．
   auto ndet = det_list.size();
+  if ( ndet == 0 ) {
+    return;
+  }
 
   // ２つの故障の両立性を調べる．
   // 両立していた場合は支配関係も調べる．

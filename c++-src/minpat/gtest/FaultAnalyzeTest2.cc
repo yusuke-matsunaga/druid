@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include <gtest/gtest.h>
-#include "dtpg/FaultAnalyze.h"
+#include "minpat/FaultAnalyze.h"
 #include "dtpg/NaiveDtpgEngine.h"
 #include "dtpg/NaiveDualEngine.h"
 #include "dtpg/SuffCond.h"

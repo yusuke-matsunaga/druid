@@ -23,8 +23,6 @@ set ( minpat_SOURCES
   MinPat.cc
   MpInit.cc
   MpReduce.cc
-  ffr_reduction.cc
-  FFRDomChecker.cc
   MpComp.cc
   MpCompImpl.cc
   MpComp_MinCov.cc
@@ -34,6 +32,11 @@ set ( minpat_SOURCES
   MpComp_Merge.cc
   MpAnalyze.cc
   MpVerify.cc
+  FaultAnalyze.cc
+  FFRAnalyze.cc
+  FaultInfo.cc
+  MFFCAnalyze.cc
+  DomChecker.cc
   FaultGroup.cc
   Dichotomy.cc
   DiGroupMgr.cc

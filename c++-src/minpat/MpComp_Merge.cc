@@ -32,48 +32,48 @@ END_NONAMESPACE
 
 BEGIN_NONAMESPACE
 
-std::vector<SizeType>
+TpgFaultList
 merge(
-  const std::vector<SizeType>& list1,
-  const std::vector<SizeType>& list2
+  const TpgFaultList& list1,
+  const TpgFaultList& list2
 )
 {
   auto n1 = list1.size();
   auto n2 = list2.size();
   SizeType i1 = 0;
   SizeType i2 = 0;
-  std::vector<SizeType> dst_list;
+  TpgFaultList dst_list;
   dst_list.reserve(n1 + n2);
   while ( i1 < n1 && i2 < n2 ) {
-    auto v1 = list1[i1];
-    auto v2 = list2[i2];
-    if ( v1 < v2 ) {
-      dst_list.push_back(v1);
+    auto f1 = list1[i1];
+    auto f2 = list2[i2];
+    if ( f1.id() < f2.id() ) {
+      dst_list.push_back(f1);
       ++ i1;
     }
-    else if ( v1 > v2 ) {
-      dst_list.push_back(v2);
+    else if ( f1.id() > f2.id() ) {
+      dst_list.push_back(f2);
       ++ i2;
     }
     else {
-      dst_list.push_back(v1);
+      dst_list.push_back(f1);
       ++ i1;
       ++ i2;
     }
   }
   for ( ; i1 < n1; ++ i1 ) {
-    auto v1 = list1[i1];
-    dst_list.push_back(v1);
+    auto f1 = list1[i1];
+    dst_list.push_back(f1);
   }
   for ( ; i2 < n2; ++ i2 ) {
-    auto v2 = list2[i2];
-    dst_list.push_back(v2);
+    auto f2 = list2[i2];
+    dst_list.push_back(f2);
   }
   return dst_list;
 }
 
 // 各テストベクタの検出する故障のリストを作る．
-std::vector<std::vector<SizeType>>
+std::vector<TpgFaultList>
 make_fault_list(
   const std::vector<TestVector>& tv_list,
   const TpgFaultList& fault_list,
@@ -83,7 +83,7 @@ make_fault_list(
   auto fsim_option = option.get_param("fsim");
   fsim_option.add("has_x", true);
   Fsim fsim(fault_list, fsim_option);
-  std::vector<std::vector<SizeType>> fault_list_array;
+  std::vector<TpgFaultList> fault_list_array;
   auto ntv = tv_list.size();
   fault_list_array.reserve(ntv);
   for ( auto& tv: tv_list ) {
@@ -94,24 +94,24 @@ make_fault_list(
 }
 
 // 各テストベクタが唯一検出する故障のリストを作る．
-std::vector<std::vector<SizeType>>
+std::vector<TpgFaultList>
 make_ex_list(
   const TpgFaultList& fault_list,
-  const std::vector<std::vector<SizeType>>& fault_list_array
+  const std::vector<TpgFaultList>& fault_list_array
 )
 {
   auto n = fault_list_array.size();
-  std::vector<std::vector<SizeType>> fault_list1(n);
+  std::vector<TpgFaultList> fault_list1(n);
   {
-    std::vector<SizeType> acc_fault_list;
+    TpgFaultList acc_fault_list;
     for ( SizeType i = 0; i < n; ++ i ) {
       fault_list1[i] = acc_fault_list;
       acc_fault_list = merge(acc_fault_list, fault_list_array[i]);
     }
   }
-  std::vector<std::vector<SizeType>> fault_list2(n);
+  std::vector<TpgFaultList> fault_list2(n);
   {
-    std::vector<SizeType> acc_fault_list;
+    TpgFaultList acc_fault_list;
     for ( SizeType i = 0; i < n; ++ i ) {
       auto pos = n - i - 1;
       fault_list1[pos] = acc_fault_list;
@@ -119,18 +119,18 @@ make_ex_list(
     }
   }
   auto network = fault_list.network();
-  std::vector<std::vector<SizeType>> ex_list_array(n);
+  std::vector<TpgFaultList> ex_list_array(n);
   for ( SizeType i = 0; i < n; ++ i ) {
     std::vector<bool> mark(network.max_fault_id(), false);
-    for ( auto id: fault_list1[i] ) {
-      mark[id] = true;
+    for ( auto fault: fault_list1[i] ) {
+      mark[fault.id()] = true;
     }
-    for ( auto id: fault_list2[i] ) {
-      mark[id] = true;
+    for ( auto fault: fault_list2[i] ) {
+      mark[fault.id()] = true;
     }
-    for ( auto fid: fault_list_array[i] ) {
-      if ( !mark[fid] ) {
-	ex_list_array[i].push_back(fid);
+    for ( auto fault: fault_list_array[i] ) {
+      if ( !mark[fault.id()] ) {
+	ex_list_array[i].push_back(fault);
       }
     }
   }
@@ -243,10 +243,10 @@ make_fg_list(
   fg_list.reserve(ntv);
   for ( auto pos: pos_list ) {
     TpgFaultList fault_list1;
-    for ( auto fid: fault_list_array[pos] ) {
+    for ( auto fault: fault_list_array[pos] ) {
+      auto fid = fault.id();
       if ( !det_mark[fid] ) {
 	det_mark[fid] = true;
-	auto fault = network.fault(fid);
 	fault_list1.push_back(fault);
       }
     }

@@ -21,7 +21,7 @@ class FsimResultsGen(PyObjGen):
                          header_include_files=['fsim/FsimResults.h'],
                          source_include_files=['pym/PyFsimResults.h',
                                                'pym/PyDiffBits.h',
-                                               'pym/PyList.h',
+                                               'pym/PyTpgFaultList.h',
                                                'pym/PyUlong.h'])
 
         self.add_dealloc('default')
@@ -33,7 +33,7 @@ class FsimResultsGen(PyObjGen):
                         doc_str='return the number of TestVectors')
 
         def meth_fault_list(writer):
-            writer.gen_return_pyobject('PyList<SizeType, PyUlong>',
+            writer.gen_return_pyobject('PyTpgFaultList',
                                        'val.fault_list(tv_id)')
         self.add_method('fault_list',
                         func_body=meth_fault_list,

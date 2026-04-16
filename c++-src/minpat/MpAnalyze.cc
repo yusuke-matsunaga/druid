@@ -85,7 +85,12 @@ MpAnalyze::MpAnalyze(
   // に入れる．
   for ( auto& tv: tv_list ) {
     auto res = fsim.sppfp(tv);
-    auto det_list = res.fault_list(0);
+    auto src_list = res.fault_list(0);
+    std::vector<SizeType> det_list;
+    det_list.reserve(src_list.size());
+    for ( auto fault: src_list ) {
+      det_list.push_back(fault.id());
+    }
     mDetListArray.push_back(det_list);
   }
 

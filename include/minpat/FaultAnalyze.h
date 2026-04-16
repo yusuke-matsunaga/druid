@@ -1,40 +1,38 @@
-#ifndef MFFCANALYZE_H
-#define MFFCANALYZE_H
+#ifndef FAULTANALYZE_H
+#define FAULTANALYZE_H
 
-/// @file MFFCAnalyze.h
-/// @brief MFFCAnalyze のヘッダファイル
+/// @file FaultAnalyze.h
+/// @brief FaultAnalyze のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "druid.h"
-#include "dtpg/FaultInfo.h"
+#include "minpat/FaultInfo.h"
 #include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class MFFCAnalyze MFFCAnalyze.h "MFFCAnalyze.h"
-/// @brief 同じ MFFC 内の故障の支配関係を調べるクラス
+/// @class FaultAnalyze FaultAnalyze.h "FaultAnalyze.h"
+/// @brief 故障の検出状況の情報を保持するクラス
 ///
-/// 実はただの関数
+/// 結果は引数の fault_info に格納される．
 //////////////////////////////////////////////////////////////////////
-class MFFCAnalyze
+class FaultAnalyze
 {
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 処理を行う関数
+  /// @brief 故障の解析を行う．
   static
-  void
+  FaultInfo
   run(
-    const TpgMFFC& mffc,            ///< [in] MFFC
-    const TpgFaultList& fault_list, ///< [in] 故障リスト
-    FaultInfo& fault_info,          ///< [in] 情報を格納するオブジェクト
+    const TpgFaultList& fault_list, ///< [in] 故障のリスト
     const ConfigParam& option = {}  ///< [in] オプション
   );
 
@@ -42,4 +40,4 @@ public:
 
 END_NAMESPACE_DRUID
 
-#endif // MFFCANALYZE_H
+#endif // FAULTANALYZE_H

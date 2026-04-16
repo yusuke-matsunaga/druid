@@ -27,8 +27,6 @@ class DtpgMgrGen(PyObjGen):
                                                'pym/PyJsonValue.h'])
 
         def meth_run(writer):
-            writer.gen_vardecl(typename='DtpgResults',
-                               varname='results')
             writer.gen_return_pyobject('PyDtpgResults',
                                        'DtpgMgr::run(fault_list, option)')
         self.add_static_method('run',

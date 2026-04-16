@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "DiGroupMgr.h"
+#include "minpat/FaultInfo.h"
 #include "misc/ConfigParam.h"
 
 
@@ -18,11 +18,6 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class Dichotomy Dichotomy.h "Dichotomy.h"
 /// @brief 二分法を用いて故障グループの細分化を行うクラス
-///
-/// 機能的には内部に状態をもたないが，分割結果を表す DiGroup
-/// のリソース管理のためのメンバを持つ．
-/// 逆に言うとこのクラスから返される DiGroup* の寿命は
-/// このクラスの寿命と等しい．
 //////////////////////////////////////////////////////////////////////
 class Dichotomy
 {
@@ -31,12 +26,12 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障グループの細分化を行う．
+  /// @brief 故障グループの細分化を行ってから支配関係を調べる．
   static
-  DiGroupMgr
+  void
   run(
-    const TpgFaultList& fault_list, ///< [in] 元となる故障グループ
-    const ConfigParam& option       ///< [in] オプション
+    FaultInfo& fault_info,    ///< [in] 故障情報を収めたオブジェクト
+    const ConfigParam& option  ///< [in] オプション
   );
 
 };

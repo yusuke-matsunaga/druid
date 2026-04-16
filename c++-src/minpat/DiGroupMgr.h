@@ -33,11 +33,9 @@ public:
     const TpgFaultList& fault_list ///< [in] 故障リスト
   );
 
-  /// @brief 細分化したグループを作るコンストラクタ
-  explicit
+  /// @brief コピーコンストラクタ
   DiGroupMgr(
-    const DiGroupMgr& prev_mgr,                   ///< [in] 元となる故障グループのリスト
-    const std::unordered_set<SizeType>& fault_set ///< [in] 検出された故障番号を表す集合
+    const DiGroupMgr& src
   );
 
   /// @brief ムーブコンストラクタ
@@ -45,11 +43,25 @@ public:
     DiGroupMgr&& right
   ) = default;
 
+  /// @brief コピー代入演算子
+  DiGroupMgr&
+  operator=(
+    const DiGroupMgr& src
+  );
+
   /// @brief ムーブ代入演算子
   DiGroupMgr&
   operator=(
     DiGroupMgr&& right
   ) = default;
+
+  /// @brief prev_mgr の故障グループを det_list に基づいて細分化する．
+  static
+  DiGroupMgr
+  dichotomy(
+    const DiGroupMgr& mgr,       ///< [in] 元となる故障グループのリスト
+    const TpgFaultList& det_list ///< [in] 検出された故障のリスト
+  );
 
   /// @brief デストラクタ
   ~DiGroupMgr() = default;
@@ -82,6 +94,12 @@ public:
   {
     return mUndetGroup;
   }
+
+  /// @brief 内容を出力する．
+  void
+  print(
+    std::ostream& s ///< [in] 出力ストリーム
+  ) const;
 
   /// @brief 等価比較演算子
   ///
@@ -118,9 +136,20 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 空のコンストラクタ
+  DiGroupMgr() = default;
+
+  /// @brief 複製する．
+  void
+  _copy(
+    const DiGroupMgr& src
+  );
+
   /// @brief 故障グループを作る．
+  ///
+  /// fault_list が空の場合には nullptr を返す．
   DiGroup*
-  new_group(
+  _new_group(
     const TpgFaultList& fault_list ///< [in] 故障リスト
   );
 
@@ -134,6 +163,8 @@ private:
   std::vector<std::unique_ptr<DiGroup>> mGroupArray;
 
   // DiGroup のリスト
+  // 内容は mGroupArray とほぼ同じだが毎回 cast するのがめんどくさいので
+  // 無駄を承知でこちらの型も持っておく．
   std::vector<const DiGroup*> mGroupList;
 
   // 一度も検出されていない故障グループ

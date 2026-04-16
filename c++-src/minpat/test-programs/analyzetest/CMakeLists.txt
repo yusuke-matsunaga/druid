@@ -3,8 +3,6 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories(
-  ${PROJECT_SOURCE_DIR}/c++-src/types/include
-  ${GTEST_INCLUDE_DIR}
   )
 
 
@@ -18,14 +16,52 @@ include_directories(
 # ===================================================================
 
 
+
 # ===================================================================
-#  テスト用のターゲットの設定
+#  analyze_test
 # ===================================================================
 
-ym_add_gtest( druid_GateEncTest
-  GateEncTest.cc
+add_executable ( analyze_test
+  analyze_test.cc
+  $<TARGET_OBJECTS:druid_types_obj>
+  $<TARGET_OBJECTS:druid_dtpg_obj>
+  $<TARGET_OBJECTS:druid_minpat_obj>
+  $<TARGET_OBJECTS:druid_fsim_obj>
+  $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj>
+  $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj>
+  $<TARGET_OBJECTS:druid_fsim_multi_bside2_obj>
+  $<TARGET_OBJECTS:druid_fsim_multi_bside3_obj>
+  $<TARGET_OBJECTS:druid_fsim_naive_combi2_obj>
+  $<TARGET_OBJECTS:druid_fsim_naive_combi3_obj>
+  $<TARGET_OBJECTS:druid_fsim_naive_bside2_obj>
+  $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj>
+  ${YM_SUBMODULE_OBJ_LIST}
+  )
+
+target_compile_options ( analyze_test
+  PRIVATE "-O3"
+  )
+
+target_compile_definitions ( analyze_test
+  PRIVATE "-DNDEBUG"
+  )
+
+target_link_libraries ( analyze_test
+  ${YM_LIB_DEPENDS}
+  )
+
+if ( GPERFTOOLS_FOUND )
+  target_link_libraries ( analyze_test
+    ${GPERFTOOLS_LIBRARIES}
+    )
+endif ()
+
+
+add_executable ( analyze_test_d
+  analyze_test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_dtpg_obj_d>
+  $<TARGET_OBJECTS:druid_minpat_obj_d>
   $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>
@@ -38,24 +74,16 @@ ym_add_gtest( druid_GateEncTest
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
-target_include_directories ( druid_GateEncTest
-  PRIVATE ${PROJECT_SOURCE_DIR}/c++-src/types/tpg_network
+target_compile_options ( analyze_test_d
+  PRIVATE "-g"
   )
 
-
-ym_add_gtest ( druid_DtpgEngine_test
-  DtpgEngineTest.cc
-  $<TARGET_OBJECTS:druid_types_obj_d>
-  $<TARGET_OBJECTS:druid_dtpg_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_multi_combi3_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_multi_bside2_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_multi_bside3_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_naive_combi2_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_naive_combi3_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_naive_bside2_obj_d>
-  $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
-  ${YM_SUBMODULE_OBJ_D_LIST}
-  DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+target_link_libraries ( analyze_test_d
+  ${YM_LIB_DEPENDS}
   )
+
+if ( GPERFTOOLS_FOUND )
+  target_link_libraries ( analyze_test_d
+    ${GPERFTOOLS_LIBRARIES}
+    )
+endif ()

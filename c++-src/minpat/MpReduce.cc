@@ -7,17 +7,11 @@
 /// All rights reserved.
 
 #include "MpReduce.h"
+#include "minpat/FaultAnalyze.h"
 #include "types/TpgFaultList.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-extern
-TpgFaultList
-ffr_reduction(
-  const TpgFaultList& fault_list,
-  const ConfigParam& option
-);
 
 //////////////////////////////////////////////////////////////////////
 // クラス MpReduce
@@ -30,14 +24,8 @@ MpReduce::run(
   const ConfigParam& option
 )
 {
-  auto fault_list = init_fault_list;
-
-  auto do_ffr = option.get_bool_elem("ffr", false);
-  if ( do_ffr ) {
-    fault_list = ffr_reduction(fault_list, option);
-  }
-
-  return fault_list;
+  auto fault_info = FaultAnalyze::run(init_fault_list, option);
+  return fault_info.rep_fault_list();
 }
 
 END_NAMESPACE_DRUID
