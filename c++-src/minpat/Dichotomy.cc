@@ -124,6 +124,7 @@ Dichotomy::run(
   Timer timer;
   timer.start();
 
+  Timer fsim_timer;
   SizeType loop_count = 0;
   while ( mgr.group_num() < fault_num && !heap.empty() ) {
     // 検出回数が最小の故障を一つ選ぶ．
@@ -131,7 +132,9 @@ Dichotomy::run(
     auto min_fault = network.fault(fid);
     // この故障を検出するテストベクタを用いて故障シミュレーションを行う．
     auto tv = fault_info.testvector(min_fault);
+    fsim_timer.start();
     auto res = fsim.sppfp(tv);
+    fsim_timer.stop();
     ++ loop_count;
     auto fault_list1 = res.fault_list(0);
     // シミュレーション結果に基づいて細分化を行う．
@@ -161,7 +164,9 @@ Dichotomy::run(
   while ( mgr.group_num() < fault_num && no_change < NO_CHANGE_LIMIT ) {
     auto tv = TestVector(network);
     tv.set_from_random(randgen);
+    fsim_timer.start();
     auto res = fsim.sppfp(tv);
+    fsim_timer.stop();
     ++ loop_count;
     auto fault_list1 = res.fault_list(0);
     // シミュレーション結果に基づいて細分化を行う．
@@ -187,7 +192,9 @@ Dichotomy::run(
 	      << "# of Groups:            " << std::setw(8) << std::right << mgr.group_num() << std::endl
 	      << "Total # of simulations: " << std::setw(8) << std::right << loop_count << std::endl
 	      << "CPU Time:               " << std::setw(8) << std::right
-	      << timer.get_time() << "ms" << std::endl;
+	      << timer.get_time() << "ms" << std::endl
+	      << "Fsim time:              " << std::setw(8) << std::right
+	      << fsim_timer.get_time() << "ms" << std::endl;
   }
 
   timer.reset();

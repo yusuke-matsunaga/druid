@@ -20,23 +20,14 @@ NaiveDualEngine::NaiveDualEngine(
   const TpgFault& fault2,
   const ConfigParam& option
 ) : mEngine(fault1.network(), option),
-#if 0
-    mEnc1{new BoolDiffEnc(fault1.origin_node(), option)},
-    mEnc2{new BoolDiffEnc(fault2.origin_node(), option)}
-#else
     mEnc1{new BoolDiffEnc(fault1.ffr_root(), option)},
     mEnc2{new BoolDiffEnc(fault2.ffr_root(), option)}
-#endif
 {
   mEngine.add_subenc(std::unique_ptr<SubEnc>{mEnc1});
   mEngine.add_subenc(std::unique_ptr<SubEnc>{mEnc2});
 
   {
-#if 0
-    auto cond = fault1.excitation_condition();
-#else
     auto cond = fault1.ffr_propagate_condition();
-#endif
     auto lits = mEngine.conv_to_literal_list(cond);
     auto pvar = mEnc1->prop_var();
     mDlits1.reserve(lits.size() + 1);
@@ -53,11 +44,7 @@ NaiveDualEngine::NaiveDualEngine(
     solver().add_clause(tmp_lits);
   }
   {
-#if 0
-    auto cond = fault2.excitation_condition();
-#else
     auto cond = fault2.ffr_propagate_condition();
-#endif
     auto lits = mEngine.conv_to_literal_list(cond);
     auto pvar = mEnc2->prop_var();
     mDlits2.reserve(lits.size() + 1);

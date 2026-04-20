@@ -39,6 +39,7 @@ dichotomy_test(
   std::string format = "blif";
   FaultType ftype = FaultType::StuckAt;
   bool ffr_reduction = false;
+  bool mffc_reduction = false;
   SizeType no_change_limit = 0;
   bool multi_thread = false;
   bool verbose = false;
@@ -65,6 +66,9 @@ dichotomy_test(
     }
     else if ( arg == "--ffr-reduction" ) {
       ffr_reduction = true;
+    }
+    else if ( arg == "--mffc-reduction" ) {
+      mffc_reduction = true;
     }
     else if ( arg == "--no-change-limit" ) {
       ++ argpos;
@@ -125,14 +129,13 @@ dichotomy_test(
   {
     auto analyze_option = JsonValue::object();
     analyze_option.add("ffr_reduction", ffr_reduction);
+    analyze_option.add("mffc_reduction", mffc_reduction);
     analyze_option.add("global_reduction", false);
     if ( no_change_limit > 0 ) {
       analyze_option.add("no_change_limit", JsonValue(int(no_change_limit)));
     }
     option.add("analyze", analyze_option);
   }
-
-  std::mt19937 randgen;
 
   auto fault_list = network.rep_fault_list();
   // fault_list を更新する．

@@ -25,6 +25,8 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class DiGroupMgr
 {
+  friend class DiGroupBuilder;
+
 public:
 
   /// @brief 初期グループを作るコンストラクタ
@@ -55,14 +57,6 @@ public:
     DiGroupMgr&& right
   ) = default;
 
-  /// @brief prev_mgr の故障グループを det_list に基づいて細分化する．
-  static
-  DiGroupMgr
-  dichotomy(
-    const DiGroupMgr& mgr,       ///< [in] 元となる故障グループのリスト
-    const TpgFaultList& det_list ///< [in] 検出された故障のリスト
-  );
-
   /// @brief デストラクタ
   ~DiGroupMgr() = default;
 
@@ -71,6 +65,14 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief prev_mgr の故障グループを det_list に基づいて細分化する．
+  static
+  DiGroupMgr
+  dichotomy(
+    const DiGroupMgr& mgr,       ///< [in] 元となる故障グループのリスト
+    const TpgFaultList& det_list ///< [in] 検出された故障のリスト
+  );
 
   /// @brief グループ数を返す．
   SizeType
@@ -86,15 +88,6 @@ public:
     return mGroupList;
   }
 
-  /// @brief 未検出グループを返す．
-  ///
-  /// nullptr の場合もある．
-  const DiGroup*
-  undet_group() const
-  {
-    return mUndetGroup;
-  }
-
   /// @brief 内容を出力する．
   void
   print(
@@ -106,7 +99,6 @@ public:
   /// 自身が right の細分化であると仮定して以下の条件をチェックする．
   /// - グループ数が等しい
   /// - 各グループの dominance リストが等しい
-  /// - undet_group() が共に nullptr であるか共に nullptr でない．
   bool
   operator==(
     const DiGroupMgr& right ///< [in] 比較対象
@@ -157,9 +149,6 @@ private:
   // 内容は mGroupArray とほぼ同じだが毎回 cast するのがめんどくさいので
   // 無駄を承知でこちらの型も持っておく．
   std::vector<const DiGroup*> mGroupList;
-
-  // 一度も検出されていない故障グループ
-  DiGroup* mUndetGroup{nullptr};
 
 };
 

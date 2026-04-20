@@ -8,6 +8,8 @@
 
 #include "DiGroupMgr.h"
 #include "types/TpgNetwork.h"
+#include "ym/MtMgr.h"
+#include "ym/IdPool.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -25,7 +27,6 @@ DiGroupMgr::DiGroupMgr(
   if ( group != nullptr ) {
     group->set_conflict_list({group});
     group->set_dominance_list({group});
-    mUndetGroup = group;
   }
 }
 
@@ -45,7 +46,6 @@ DiGroupMgr::operator=(
 {
   mGroupArray.clear();
   mGroupList.clear();
-  mUndetGroup = nullptr;
   _copy(src);
   return *this;
 }
@@ -74,15 +74,16 @@ DiGroupMgr::dichotomy(
   // ただし，結果が空リストの場合は nullptr となる．
   auto& prev_group_list = mgr.group_list();
   auto ng = prev_group_list.size();
-  std::vector<DiGroup*> subgroup_list(ng * 2, nullptr);
 
-  // 結果を格納するマネージャ
   DiGroupMgr new_mgr;
   new_mgr.mGroupArray.reserve(ng * 2);
   new_mgr.mGroupList.reserve(ng * 2);
+  std::vector<DiGroup*> det_group_list(ng, nullptr);
+  std::vector<DiGroup*> undet_group_list(ng, nullptr);
 
-  for ( SizeType i = 0; i < ng; ++ i ) {
-    auto src_group = prev_group_list[i];
+  // 細分化した部分グループを作る．
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto src_group = prev_group_list[id];
     auto& fault_list = src_group->fault_list();
     TpgFaultList det_list;
     TpgFaultList undet_list;
@@ -96,18 +97,15 @@ DiGroupMgr::dichotomy(
     }
     auto det_group = new_mgr._new_group(det_list);
     auto undet_group = new_mgr._new_group(undet_list);
-    subgroup_list[i * 2 + 0] = det_group;
-    subgroup_list[i * 2 + 1] = undet_group;
-    if ( src_group == mgr.undet_group() ) {
-      new_mgr.mUndetGroup = undet_group;
-    }
+    det_group_list[id] = det_group;
+    undet_group_list[id] = undet_group;
   }
 
   // conflict list と dominance list を作る．
-  for ( SizeType i = 0; i < ng; ++ i ) {
-    auto src_group = prev_group_list[i];
-    auto det_group = subgroup_list[i * 2 + 0];
-    auto undet_group = subgroup_list[i * 2 + 1];
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto src_group = prev_group_list[id];
+    auto det_group = det_group_list[id];
+    auto undet_group = undet_group_list[id];
 
 #if 0
     { // 検出された部分グループの conflict_list は親の conflict_list
@@ -151,8 +149,8 @@ DiGroupMgr::dichotomy(
       undet_dominance_list.reserve(src_dominance_list.size() + 1);
       for ( auto src_dominance_group: src_dominance_list ) {
 	auto src_id = src_dominance_group->id();
-	auto det_dominance_subgroup = subgroup_list[src_id * 2 + 0];
-	auto undet_dominance_subgroup = subgroup_list[src_id * 2 + 1];
+	auto det_dominance_subgroup = det_group_list[src_id];
+	auto undet_dominance_subgroup = undet_group_list[src_id];
 	if ( det_dominance_subgroup != nullptr ) {
 	  det_dominance_list.push_back(det_dominance_subgroup);
 	  undet_dominance_list.push_back(det_dominance_subgroup);
@@ -205,11 +203,6 @@ DiGroupMgr::operator==(
   if ( group_num() != right.group_num() ) {
     return false;
   }
-  auto has_undet = undet_group() != nullptr;
-  auto has_undet1 = right.undet_group() != nullptr;
-  if ( has_undet != has_undet1 ) {
-    return false;
-  }
 
   SizeType d_count1 = 0;
   for ( auto group: right.group_list() ) {
@@ -253,10 +246,6 @@ DiGroupMgr::_copy(
       dst_group->mDominanceList.push_back(dst);
     }
   }
-  auto src_undet = src.undet_group();
-  if ( src_undet != nullptr ) {
-    mUndetGroup = mGroupArray[src_undet->id()].get();
-  }
 }
 
 // @brief 故障グループを作る．
@@ -273,6 +262,148 @@ DiGroupMgr::_new_group(
   mGroupArray.push_back(std::unique_ptr<DiGroup>{group});
   mGroupList.push_back(group);
   return group;
- }
+}
+
+#if 0
+//////////////////////////////////////////////////////////////////////
+// クラス DiGroupBuilder
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+DiGroupBuilder::DiGroupBuilder(
+  const std::vector<const DiGroup*>& src_group_list,
+  const std::vector<bool>& det_mark
+) : mN{src_group_list.size()},
+    mSrcGroupList{src_group_list},
+    mDetMark{det_mark},
+    mDetGroupList(mN, nullptr),
+    mUndetGroupList(mN, nullptr)
+{
+  mSubGroupList.reserve(mN * 2);
+}
+
+// @brief 細分化された部分グループを作る．
+void
+DiGroupBuilder::make_subgroup(
+  SizeType id
+)
+{
+  auto src_group = mSrcGroupList[id];
+  auto& fault_list = src_group->fault_list();
+  TpgFaultList det_list;
+  TpgFaultList undet_list;
+  for ( auto fault: fault_list ) {
+    if ( mDetMark[fault.id()] ) {
+      det_list.push_back(fault);
+    }
+    else {
+      undet_list.push_back(fault);
+    }
+  }
+  auto det_group = new_group(det_list);
+  auto undet_group = new_group(undet_list);
+  mDetGroupList[id] = det_group;
+  mUndetGroupList[id] = undet_group;
+}
+
+// @brief 細分化された部分グループの dominance list を作る．
+void
+DiGroupBuilder::make_dominance_list(
+  SizeType id
+)
+{
+  auto src_group = mSrcGroupList[id];
+  auto det_group = mDetGroupList[id];
+  auto undet_group = mUndetGroupList[id];
+
+#if 0
+  { // 検出された部分グループの conflict_list は親の conflict_list
+    // の検出されなかった部分グループとなる．
+    // 検出されなかった部分グループの conflict_list は親の conflict_list
+    // の両方の部分グループとなる．
+    std::vector<DiGroup*> det_conflict_list;
+    std::vector<DiGroup*> undet_conflict_list;
+    auto& src_conflict_list = src_group->conflict_list();
+    det_conflict_list.reserve(src_conflict_list.size());
+    undet_conflict_list.reserve(src_conflict_list.size());
+    for ( auto src_conflict_group: src_conflict_list ) {
+      auto src_id = src_conflict_group->id();
+      auto det_conflict_subgroup = subgroup_list[src_id * 2 + 0];
+      auto undet_conflict_subgroup = subgroup_list[src_id * 2 + 1];
+      if ( undet_conflict_subgroup != nullptr ) {
+	det_conflict_list.push_back(undet_conflict_subgroup);
+	undet_conflict_list.push_back(undet_conflict_subgroup);
+      }
+      if ( det_conflict_subgroup != nullptr ) {
+	undet_conflict_list.push_back(det_conflict_subgroup);
+      }
+    }
+    if ( det_group != nullptr ) {
+      det_group->set_conflict_list(std::move(det_conflict_list));
+    }
+    if ( undet_group != nullptr ) {
+      undet_group->set_conflict_list(std::move(undet_conflict_list));
+    }
+  }
+#endif
+
+  { // 検出された部分グループの dominance_list は親の dominance_list
+    // の検出された部分グループとなる．
+    // 検出されなかった部分グループの dominance_list は親の dominance_list
+    // の両方の部分グループ＋検出された部分グループとなる．
+    std::vector<DiGroup*> det_dominance_list;
+    std::vector<DiGroup*> undet_dominance_list;
+    auto& src_dominance_list = src_group->dominance_list();
+    det_dominance_list.reserve(src_dominance_list.size());
+    undet_dominance_list.reserve(src_dominance_list.size() + 1);
+    for ( auto src_dominance_group: src_dominance_list ) {
+      auto src_id = src_dominance_group->id();
+      auto det_dominance_subgroup = mDetGroupList[src_id];
+      auto undet_dominance_subgroup = mUndetGroupList[src_id];
+      if ( det_dominance_subgroup != nullptr ) {
+	det_dominance_list.push_back(det_dominance_subgroup);
+	undet_dominance_list.push_back(det_dominance_subgroup);
+      }
+      if ( undet_dominance_subgroup != nullptr ) {
+	undet_dominance_list.push_back(undet_dominance_subgroup);
+      }
+    }
+    if ( det_group != nullptr ) {
+      det_group->set_dominance_list(std::move(det_dominance_list));
+    }
+    if ( undet_group != nullptr ) {
+      if ( det_group != nullptr ) {
+	undet_dominance_list.push_back(det_group);
+      }
+      undet_group->set_dominance_list(std::move(undet_dominance_list));
+    }
+  }
+}
+
+// @brief 結果の DiGroupMgr を生成する．
+DiGroupMgr
+DiGroupBuilder::make_mgr()
+{
+  return DiGroupMgr(mSubGroupList);
+}
+
+// @brief 新しいグループを作る．
+DiGroup*
+DiGroupBuilder::new_group(
+  const TpgFaultList& fault_list
+)
+{
+  if ( fault_list.empty() ) {
+    return nullptr;
+  }
+  DiGroup* group = nullptr;
+  mLock.run([&]() {
+    auto id = mSubGroupList.size();
+    group = new DiGroup(id, fault_list);
+    mSubGroupList.push_back(group);
+  });
+  return group;
+}
+#endif
 
 END_NAMESPACE_DRUID
