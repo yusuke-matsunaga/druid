@@ -95,6 +95,10 @@ Dichotomy::run(
   const ConfigParam& option
 )
 {
+  SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
+  auto verbose = option.get_bool_elem("verbose", false);
+  auto debug = option.get_int_elem("debug", 0);
+
   // 現時点での代表故障のリスト
   auto fault_list = fault_info.rep_fault_list();
   auto fault_num = fault_list.size();
@@ -117,39 +121,18 @@ Dichotomy::run(
     heap.put_item(fault.id());
   }
 
+  Timer timer;
+  timer.start();
+
   SizeType loop_count = 0;
   while ( mgr.group_num() < fault_num && !heap.empty() ) {
     // 検出回数が最小の故障を一つ選ぶ．
-#if 0
-    // このやり方は常に O(fault_num) かかるので効率的ではない．
-    TpgFault min_fault;
-    SizeType min_count = 0;
-    bool first = true;
-    for ( auto fault: fault_list ) {
-      if ( mark[fault.id()] ) {
-	continue;
-      }
-      auto count = count_array[fault.id()];
-      if ( first ) {
-	min_count = count;
-	min_fault = fault;
-	first = false;
-      }
-      else if ( min_count > count ) {
-	min_count = count;
-	min_fault = fault;
-      }
-    }
-    if ( first ) {
-      break;
-    }
-#else
     auto fid = heap.get_min();
     auto min_fault = network.fault(fid);
-#endif
     // この故障を検出するテストベクタを用いて故障シミュレーションを行う．
     auto tv = fault_info.testvector(min_fault);
     auto res = fsim.sppfp(tv);
+    ++ loop_count;
     auto fault_list1 = res.fault_list(0);
     // シミュレーション結果に基づいて細分化を行う．
     auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1);
@@ -164,7 +147,7 @@ Dichotomy::run(
     if ( new_mgr != mgr ) {
       // 細分化できたら更新する．
       std::swap(mgr, new_mgr);
-      {
+      if ( debug > 1 ) {
 	std::cout << "#" << loop_count << ": "
 		  << mgr.group_num()
 		  << std::endl;
@@ -172,21 +155,54 @@ Dichotomy::run(
       }
     }
   }
-
-  {
-    std::cout << "# of faults:     " << fault_list.size() << std::endl
-	      << "# of Groups:     " << mgr.group_num() << std::endl;
+  // 変化がなくなるまでランダムシミュレーションを行う．
+  std::mt19937 randgen;
+  SizeType no_change = 0;
+  while ( mgr.group_num() < fault_num && no_change < NO_CHANGE_LIMIT ) {
+    auto tv = TestVector(network);
+    tv.set_from_random(randgen);
+    auto res = fsim.sppfp(tv);
+    ++ loop_count;
+    auto fault_list1 = res.fault_list(0);
+    // シミュレーション結果に基づいて細分化を行う．
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1);
+    if ( new_mgr != mgr ) {
+      // 細分化できたら更新する．
+      std::swap(mgr, new_mgr);
+      if ( debug > 1 ) {
+	std::cout << "#" << loop_count << ": "
+		  << mgr.group_num()
+		  << std::endl;
+	++ loop_count;
+      }
+    }
+    else {
+      ++ no_change;
+    }
   }
+
+  timer.stop();
+  if ( verbose ) {
+    std::cout << "# of faults:            " << std::setw(8) << std::right << fault_list.size() << std::endl
+	      << "# of Groups:            " << std::setw(8) << std::right << mgr.group_num() << std::endl
+	      << "Total # of simulations: " << std::setw(8) << std::right << loop_count << std::endl
+	      << "CPU Time:               " << std::setw(8) << std::right
+	      << timer.get_time() << "ms" << std::endl;
+  }
+
+  timer.reset();
+  timer.start();
 
   // DiGroup 内の故障が等価故障かどうか調べる．
   SizeType check_count = 0;
+  SizeType succ_count = 0;
   for ( auto group: mgr.group_list() ) {
     auto& fault_list = group->fault_list();
     auto nf = fault_list.size();
     if ( nf == 1 ) {
       continue;
     }
-    if ( 0 ) {
+    if ( debug > 2 ) {
       std::cout << "Group" << group->id() << ":";
       for ( auto fault: fault_list ) {
 	std::cout << " " << fault.str();
@@ -198,6 +214,9 @@ Dichotomy::run(
       auto fault1 = fault_list[i1];
       for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
 	auto fault2 = fault_list[i2];
+	if ( !fault_info.is_rep(fault2) ) {
+	  continue;
+	}
 	NaiveDualEngine engine(fault1, fault2, option);
 	++ check_count;
 	auto res01 = engine.solve(false, true);
@@ -207,23 +226,27 @@ Dichotomy::run(
 	    // fault1 と fault2 は等価故障
 	    if ( fault1.id() < fault2.id() ) {
 	      fault_info.set_rep(fault2, fault1);
-	      {
+	      ++ succ_count;
+	      if ( debug > 0 ) {
 		std::cout << fault1.str() << " and " << fault2.str()
 			  << " are equivalent" << std::endl;
 	      }
 	    }
 	    else {
 	      fault_info.set_rep(fault1, fault2);
-	      {
+	      ++ succ_count;
+	      if ( debug > 0 ) {
 		std::cout << fault2.str() << " and " << fault1.str()
 			  << " are equivalent" << std::endl;
 	      }
 	    }
+	    continue;
 	  }
 	  else if ( res10 == SatBool3::True ) {
 	    // fault1 は fault2 に支配されている．
 	    fault_info.set_dominator(fault1, fault2);
-	    {
+	    ++ succ_count;
+	    if ( debug > 0 ) {
 	      std::cout << fault1.str() << " is dominated by " << fault2.str()
 			<< std::endl;
 	    }
@@ -234,7 +257,8 @@ Dichotomy::run(
 	  if ( res10 == SatBool3::False ) {
 	    // fault2 は fault1 に支配されている．
 	    fault_info.set_dominator(fault2, fault1);
-	    {
+	    ++ succ_count;
+	    if ( debug > 0 ) {
 	      std::cout << fault2.str() << " is dominated by "
 			<< fault1.str() << std::endl;
 	    }
@@ -244,13 +268,28 @@ Dichotomy::run(
       }
     }
   }
+
+  timer.stop();
+  if ( verbose ) {
+    auto rep_num = fault_info.rep_fault_list().size();
+    std::cout << "Equivalence check end:    " << std::endl
+	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
+	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
+	      << "# of faults:              " << std::setw(8) << std::right << rep_num << std::endl
+	      << "CPU TIme:                 " << std::setw(8) << std::right << timer.get_time() << "ms" << std::endl;
+  }
+  timer.reset();
+  timer.start();
+
   // 残ったグループ内の故障は無関係となる．
+  check_count = 0;
+  succ_count = 0;
   for ( auto group1: mgr.group_list() ) {
     auto fault_list1 = rep_fault_list(group1->fault_list(), fault_info);
     if ( fault_list1.empty() ) {
       continue;
     }
-    if ( 0 ) {
+    if ( debug > 2 ) {
       std::cout << "Group#" << group1->id() << ":";
       for ( auto fault: fault_list1 ) {
 	std::cout << " " << fault.str();
@@ -258,12 +297,12 @@ Dichotomy::run(
       std::cout << std::endl;
     }
     auto nf1 = fault_list1.size();
-    for ( auto group2: group1->dominate_list() ) {
+    for ( auto group2: group1->dominance_list() ) {
       auto fault_list2 = rep_fault_list(group2->fault_list(), fault_info);
       if ( fault_list2.empty() ) {
 	continue;
       }
-      if ( 0 ) {
+      if ( debug > 2 ) {
 	std::cout << "  Group#" << group1->id() << ":";
 	for ( auto fault: fault_list2 ) {
 	  std::cout << " " << fault.str();
@@ -278,12 +317,16 @@ Dichotomy::run(
 	  if ( fault1 == fault2 ) {
 	    continue;
 	  }
+	  if ( !fault_info.is_rep(fault2) ) {
+	    continue;
+	  }
 	  NaiveDualEngine engine(fault1, fault2, option);
 	  auto res = engine.solve(true, false);
 	  ++ check_count;
 	  if ( res == SatBool3::False ) {
 	    fault_info.set_dominator(fault2, fault1);
-	    {
+	    ++ succ_count;
+	    if ( debug > 0 ) {
 	      std::cout << fault2.str() << " is dominated by "
 			<< fault1.str() << std::endl;
 	    }
@@ -293,86 +336,15 @@ Dichotomy::run(
       }
     }
   }
-#if 0
-  std::mt19937 randgen;
 
-  // シミュレーションの結果を用いて二分法を行う．
-  SizeType count = 0;
-  while ( mgr.group_num() < fault_list.size() ) {
-    // ランダムパタンを作る．
-    std::vector<TestVector> tv_list;
-    tv_list.reserve(PV_BITLEN);
-    for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
-      auto tv = TestVector(network);
-      tv.set_from_random(randgen);
-      tv_list.push_back(tv);
-    }
-
-    // そのパタンを使って故障シミュレーションを行う．
-    auto res = fsim.ppsfp(tv_list);
-    bool changed = false;
-    for ( SizeType i = 0; i < PV_BITLEN; ++ i ) {
-      auto new_mgr = DiGroupMgr::dichotomy(mgr, res.fault_list(i));
-      if ( new_mgr != mgr ) {
-	// 細分化できたら更新する．
-	std::swap(mgr, new_mgr);
-	changed = true;
-	{
-	  std::cout << "#" << count << ": "
-		    << mgr.group_num()
-		    << std::endl;
-	  ++ count;
-	}
-      }
-    }
-    if ( !changed ) {
-      break;
-    }
+  timer.stop();
+  if ( verbose ) {
+    std::cout << "Dominance check end:      " << std::endl
+	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
+	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
+	      << "CPU TIme:                 " << std::setw(8) << std::right << timer.get_time()
+	      << "ms" << std::endl;
   }
-
-  // 未検出の故障を対象に DTPG を行う．
-  auto undet_group = mgr.undet_group();
-  if ( undet_group != nullptr ) {
-    TpgFaultList untest_list;
-    TpgFaultList abort_list;
-    auto fault_list = undet_group->fault_list();
-    {
-      std::cout << "# of undet faults: " << fault_list.size() << std::endl;
-    }
-    std::vector<TestVector> tv_list;
-    tv_list.reserve(fault_list.size());
-    auto dtpg_option = option.get_param("dtpg");
-    auto res = DtpgMgr::run(fault_list, dtpg_option);
-    for ( auto fault: fault_list ) {
-      auto status = res.status(fault);
-      switch ( status ) {
-      case FaultStatus::Detected:
-      {
-	auto tv = res.testvector(fault);
-	tv.fix_x_from_random(randgen);
-	tv_list.push_back(tv);
-      }
-      break;
-      case FaultStatus::Untestable:
-	untest_list.push_back(fault);
-	break;
-      case FaultStatus::Undetected:
-	abort_list.push_back(fault);
-	break;
-      }
-    }
-    Fsim fsim(fault_list, fsim_option);
-    for ( auto& tv: tv_list ) {
-      auto res = fsim.sppfp(tv);
-      auto new_mgr = DiGroupMgr::dichotomy(mgr, res.fault_list(0));
-      if ( new_mgr != mgr ) {
-	std::swap(mgr, new_mgr);
-      }
-    }
-  }
-
-  return mgr;
-#endif
 }
 
 END_NAMESPACE_DRUID

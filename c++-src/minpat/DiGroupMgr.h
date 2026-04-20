@@ -20,7 +20,7 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// 以下の情報を持つ．
 /// - DiGroup のリスト
-/// 各 DiGroup が持つ conflict_list や dominate_list に含まれる
+/// 各 DiGroup が持つ conflict_list や dominance_list に含まれる
 /// DiGroup も同じ DiGroupMgr に属している．
 //////////////////////////////////////////////////////////////////////
 class DiGroupMgr
@@ -105,21 +105,12 @@ public:
   ///
   /// 自身が right の細分化であると仮定して以下の条件をチェックする．
   /// - グループ数が等しい
+  /// - 各グループの dominance リストが等しい
   /// - undet_group() が共に nullptr であるか共に nullptr でない．
   bool
   operator==(
     const DiGroupMgr& right ///< [in] 比較対象
-  ) const
-  {
-    if ( group_num() != right.group_num() ) {
-      return false;
-    }
-    if ( undet_group() != nullptr ) {
-      // right.undet_group() も nullptr ではない．
-      return true;
-    }
-    return right.undet_group() == nullptr;
-  }
+  ) const;
 
   /// @brief 非等価比較演算子
   bool

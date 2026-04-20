@@ -39,6 +39,7 @@ dichotomy_test(
   std::string format = "blif";
   FaultType ftype = FaultType::StuckAt;
   bool ffr_reduction = false;
+  SizeType no_change_limit = 0;
   bool multi_thread = false;
   bool verbose = false;
   int debug = 0;
@@ -64,6 +65,15 @@ dichotomy_test(
     }
     else if ( arg == "--ffr-reduction" ) {
       ffr_reduction = true;
+    }
+    else if ( arg == "--no-change-limit" ) {
+      ++ argpos;
+      if ( argpos >= argc ) {
+	std::cerr << "'--no-change-limit' requires <int> value";
+	return 2;
+      }
+      std::string val = argv[argpos];
+      no_change_limit = stoi(val);
     }
     else if ( arg == "--multi-thread" ) {
       multi_thread = true;
@@ -116,6 +126,9 @@ dichotomy_test(
     auto analyze_option = JsonValue::object();
     analyze_option.add("ffr_reduction", ffr_reduction);
     analyze_option.add("global_reduction", false);
+    if ( no_change_limit > 0 ) {
+      analyze_option.add("no_change_limit", JsonValue(int(no_change_limit)));
+    }
     option.add("analyze", analyze_option);
   }
 
@@ -128,70 +141,10 @@ dichotomy_test(
   auto rep_fault_list = fault_info.rep_fault_list();
   std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
 
-  Dichotomy::run(fault_info, option);
+  Dichotomy::run(fault_info, ConfigParam(option).get_param("analyze"));
 
   auto rep_fault_list2 = fault_info.rep_fault_list();
   std::cout << "# of reduced faults: " << rep_fault_list2.size() << std::endl;
-
-#if 0
-  std::vector<std::pair<SizeType, SizeType>> conflict_pair_list;
-  { // conflict_list が対称的かチェックする．
-    std::unordered_set<SizeType> mark;
-    auto ng = group_list.size();
-    for ( SizeType id = 0; id < ng; ++ id ) {
-      auto group = group_list[id];
-      for ( auto group1: group->conflict_list() ) {
-	auto id1 = group1->id();
-	mark.insert(id * ng + id1);
-	if ( id < id1 ) {
-	  conflict_pair_list.push_back({id, id1});
-	}
-      }
-    }
-    for ( SizeType id = 0; id < ng; ++ id ) {
-      auto group = group_list[id];
-      for ( auto group1: group->conflict_list() ) {
-	auto id1 = group1->id();
-	if ( mark.count(id1 * ng + id) == 0 ) {
-	  std::cout << "Error!: conflict relation should be symmetry";
-	  abort();
-	}
-      }
-    }
-  }
-#endif
-
-#if 0
-  std::cout << "# of faults:     " << fault_list.size() << std::endl
-	    << "# of rep faults: " << rep_fault_list.size() << std::endl
-	    << "# of Groups:     " << group_list.size() << std::endl;
-  std::vector<std::pair<SizeType, SizeType>> dom_pair_list;
-  for ( auto group: group_list ) {
-    for ( auto group1: group->dominate_list() ) {
-      for ( auto fault: group->fault_list() ) {
-	for ( auto fault1: group1->fault_list() ) {
-	  dom_pair_list.push_back({fault.id(), fault1.id()});
-	}
-      }
-    }
-  }
-  std::cout << "# of Dominance pairs: "
-	    << dom_pair_list.size()
-	    << std::endl;
-
-  if ( group_mgr.undet_group() != nullptr ) {
-    std::cout << "# of Undet Groups: "
-	      << group_mgr.undet_group()->fault_list().size()
-	      << std::endl;
-    for ( auto fault: group_mgr.undet_group()->fault_list() ) {
-      std::cout << " " << fault.str();
-    }
-    std::cout << std::endl;
-  }
-  std::cout << "# of Conflict pairs: "
-	    << conflict_pair_list.size()
-	    << std::endl;
-#endif
 
   return 0;
 }

@@ -71,11 +71,11 @@ public:
     return mConflictList;
   }
 
-  /// @brief dominate している候補グループのリストを返す．
+  /// @brief 支配している故障の候補グループのリストを返す．
   const std::vector<DiGroup*>&
-  dominate_list() const
+  dominance_list() const
   {
-    return mDominateList;
+    return mDominanceList;
   }
 
   /// @brief conflict_list を設定する．
@@ -87,13 +87,13 @@ public:
     std::swap(mConflictList, conflict_list);
   }
 
-  /// @brief dominate_list を設定する．
+  /// @brief dominance_list を設定する．
   void
-  set_dominate_list(
-    std::vector<DiGroup*>&& dominate_list ///< [in] 設定するグループのリスト
+  set_dominance_list(
+    std::vector<DiGroup*>&& src_list ///< [in] 設定するグループのリスト
   )
   {
-    std::swap(mDominateList, dominate_list);
+    std::swap(mDominanceList, src_list);
   }
 
 
@@ -112,7 +112,7 @@ private:
   std::vector<DiGroup*> mConflictList;
 
   // dominate している候補のリスト
-  std::vector<DiGroup*> mDominateList;
+  std::vector<DiGroup*> mDominanceList;
 
 };
 

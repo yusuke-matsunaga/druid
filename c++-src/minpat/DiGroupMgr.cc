@@ -24,7 +24,7 @@ DiGroupMgr::DiGroupMgr(
   auto group = _new_group(fault_list);
   if ( group != nullptr ) {
     group->set_conflict_list({group});
-    group->set_dominate_list({group});
+    group->set_dominance_list({group});
     mUndetGroup = group;
   }
 }
@@ -103,7 +103,7 @@ DiGroupMgr::dichotomy(
     }
   }
 
-  // conflict list と dominate list を作る．
+  // conflict list と dominance list を作る．
   for ( SizeType i = 0; i < ng; ++ i ) {
     auto src_group = prev_group_list[i];
     auto det_group = subgroup_list[i * 2 + 0];
@@ -140,35 +140,35 @@ DiGroupMgr::dichotomy(
     }
 #endif
 
-    { // 検出された部分グループの dominate_list は親の dominate_list
+    { // 検出された部分グループの dominance_list は親の dominance_list
       // の検出された部分グループとなる．
-      // 検出されなかった部分グループの dominate_list は親の dominate_list
+      // 検出されなかった部分グループの dominance_list は親の dominance_list
       // の両方の部分グループ＋検出された部分グループとなる．
-      std::vector<DiGroup*> det_dominate_list;
-      std::vector<DiGroup*> undet_dominate_list;
-      auto& src_dominate_list = src_group->dominate_list();
-      det_dominate_list.reserve(src_dominate_list.size());
-      undet_dominate_list.reserve(src_dominate_list.size() + 1);
-      for ( auto src_dominate_group: src_dominate_list ) {
-	auto src_id = src_dominate_group->id();
-	auto det_dominate_subgroup = subgroup_list[src_id * 2 + 0];
-	auto undet_dominate_subgroup = subgroup_list[src_id * 2 + 1];
-	if ( det_dominate_subgroup != nullptr ) {
-	  det_dominate_list.push_back(det_dominate_subgroup);
-	  undet_dominate_list.push_back(det_dominate_subgroup);
+      std::vector<DiGroup*> det_dominance_list;
+      std::vector<DiGroup*> undet_dominance_list;
+      auto& src_dominance_list = src_group->dominance_list();
+      det_dominance_list.reserve(src_dominance_list.size());
+      undet_dominance_list.reserve(src_dominance_list.size() + 1);
+      for ( auto src_dominance_group: src_dominance_list ) {
+	auto src_id = src_dominance_group->id();
+	auto det_dominance_subgroup = subgroup_list[src_id * 2 + 0];
+	auto undet_dominance_subgroup = subgroup_list[src_id * 2 + 1];
+	if ( det_dominance_subgroup != nullptr ) {
+	  det_dominance_list.push_back(det_dominance_subgroup);
+	  undet_dominance_list.push_back(det_dominance_subgroup);
 	}
-	if ( undet_dominate_subgroup != nullptr ) {
-	  undet_dominate_list.push_back(undet_dominate_subgroup);
+	if ( undet_dominance_subgroup != nullptr ) {
+	  undet_dominance_list.push_back(undet_dominance_subgroup);
 	}
       }
       if ( det_group != nullptr ) {
-	det_group->set_dominate_list(std::move(det_dominate_list));
+	det_group->set_dominance_list(std::move(det_dominance_list));
       }
       if ( undet_group != nullptr ) {
 	if ( det_group != nullptr ) {
-	  undet_dominate_list.push_back(det_group);
+	  undet_dominance_list.push_back(det_group);
 	}
-	undet_group->set_dominate_list(std::move(undet_dominate_list));
+	undet_group->set_dominance_list(std::move(undet_dominance_list));
       }
     }
   }
@@ -196,6 +196,32 @@ DiGroupMgr::print(
   s << "# of faults: " << nf << std::endl;
 }
 
+// @brief 等価比較演算子
+bool
+DiGroupMgr::operator==(
+  const DiGroupMgr& right
+) const
+{
+  if ( group_num() != right.group_num() ) {
+    return false;
+  }
+  auto has_undet = undet_group() != nullptr;
+  auto has_undet1 = right.undet_group() != nullptr;
+  if ( has_undet != has_undet1 ) {
+    return false;
+  }
+
+  SizeType d_count1 = 0;
+  for ( auto group: right.group_list() ) {
+    d_count1 += group->dominance_list().size();
+  }
+  SizeType d_count2 = 0;
+  for ( auto group: group_list() ) {
+    d_count2 += group->dominance_list().size();
+  }
+  return d_count1 == d_count2;
+}
+
 // @brief 複製する．
 void
 DiGroupMgr::_copy(
@@ -220,11 +246,11 @@ DiGroupMgr::_copy(
       dst_group->mConflictList.push_back(dst);
     }
 #endif
-    // mDominateList をコピーする．
-    dst_group->mDominateList.reserve(src_group->mDominateList.size());
-    for ( auto src: src_group->mDominateList ) {
+    // mDominanceList をコピーする．
+    dst_group->mDominanceList.reserve(src_group->mDominanceList.size());
+    for ( auto src: src_group->mDominanceList ) {
       auto dst = mGroupArray[src->id()].get();
-      dst_group->mDominateList.push_back(dst);
+      dst_group->mDominanceList.push_back(dst);
     }
   }
   auto src_undet = src.undet_group();
