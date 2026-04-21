@@ -53,49 +53,18 @@ public:
   /// @brief SPSFP 法のシミュレーションを行う．
   bool
   spsfp(
-    const TestVector& tv, ///< [in] テストベクタ
     const SimFault* f,    ///< [in] 故障
     DiffBits& dbits       ///< [out] 出力ごとの伝搬結果
   );
 
-  /// @brief SPSFP 法のシミュレーションを行う．
-  bool
-  spsfp(
-    const AssignList& assign_list, ///< [in] 入力割り当てのリスト
-    const SimFault* f,             ///< [in] 故障
-    DiffBits& dbits                ///< [out] 出力ごとの伝搬結果
-  );
-
-  /// @brief SPSFP 法のシミュレーションを行う．
-  bool
-  xspsfp(
-    const AssignList& assign_list, ///< [in] 入力割り当てのリスト
-    const SimFault* f,             ///< [in] 故障
-    DiffBits& dbits                ///< [out] 出力ごとの伝搬結果
-  );
-
   /// @brief SPPFP 法のシミュレーションを行う．
   void
-  sppfp(
-    const TestVector& tv ///< [in] テストベクタ
-  );
-
-  /// @brief SPPFP 法のシミュレーションを行う．
-  void
-  sppfp(
-    const AssignList& assign_list ///< [in] 入力割り当てのリスト
-  );
-
-  /// @brief SPPFP 法のシミュレーションを行う．
-  void
-  xsppfp(
-    const AssignList& assign_list ///< [in] 入力割り当てのリスト
-  );
+  sppfp();
 
   /// @brief PPSFP 法のシミュレーションを行う．
   void
   ppsfp(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    SizeType ntv ///< [in] 有効なテストベクタ数
   );
 
   /// @brief 結果を得る．
@@ -111,18 +80,7 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief spsfp() の下請け関数
-  bool
-  _spsfp(
-    const SimFault* f,    ///< [in] 故障
-    DiffBits& dbits       ///< [out] 出力ごとの伝搬結果
-  );
-
-  /// @brief sppf() の下請け関数
-  void
-  _sppfp();
-
-  /// @brief _sppsp() 用の下請け関数
+  /// @brief sppsp() 用の下請け関数
   void
   sppfp_simulation(
     const std::vector<const SimFFR*>& ffr_array ///< [in] イベントを挿入するFFRのリスト
@@ -211,43 +169,9 @@ private:
     mValArray[node->id()] = val;
   }
 
-  /// @brief 正常値の計算を行う．
+  /// @brief Fsim の値をコピーする．
   void
-  _calc_gval(
-    const TestVector& tv ///< [in] テストベクタ
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const std::vector<TestVector>& tv ///< [in] テストベクタのリスト
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const AssignList& assign_list ///< [in] 入力割り当てのリスト
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval2(
-    const AssignList& assign_list ///< [in] 入力割り当てのリスト
-  );
-
-  /// @brief 値の計算を行う．
-  ///
-  /// 入力ノードに値の設定は済んでいるものとする．
-  void
-  _calc_val(
-    std::vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
-  )
-  {
-    for ( auto node: mFsim.logic_list() ) {
-      auto val = node->calc_val(val_array);
-      val_array[node->id()] = val;
-    }
-  }
+  _copy_val();
 
   /// @brief 初期イベントを追加する．
   void
@@ -327,8 +251,10 @@ private:
   // local_prop 用の値配列
   std::vector<FSIM_VALTYPE> mValArray;
 
+#if FSIM_BSIDE
   // local_prop 用の値配列(1時刻前)
   std::vector<FSIM_VALTYPE> mPrevValArray;
+#endif
 
   // clear 用の情報の配列
   std::vector<RestoreInfo> mClearArray;

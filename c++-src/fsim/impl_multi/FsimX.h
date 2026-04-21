@@ -260,6 +260,13 @@ public:
     return mNodeArray.size();
   }
 
+  /// @brief 全ノードのリストを返す．
+  const std::vector<SimNode*>&
+  node_list() const
+  {
+    return mNodeList;
+  }
+
   /// @brief 論理ノードのリストを返す．
   const std::vector<SimNode*>&
   logic_list() const
@@ -314,6 +321,24 @@ public:
     return mSimNodeMap[tpg_id];
   }
 
+  /// @brief 現在の値を返す．
+  FSIM_VALTYPE
+  val(
+    SizeType node_id ///< [in] ノード番号
+  ) const
+  {
+    return mValArray[node_id];
+  }
+
+  /// @brief 1時刻前の値を返す．
+  FSIM_VALTYPE
+  prev_val(
+    SizeType node_id ///< [in] ノード番号
+  ) const
+  {
+    return mPrevValArray[node_id];
+  }
+
   /// @brief FFR数を得る．
   SizeType
   ffr_num() const
@@ -359,6 +384,44 @@ private:
   set_fault_list(
     const TpgFaultList& fault_list ///< [in] 対象の故障番号のリスト
   );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval(
+    const TestVector& tv ///< [in] テストベクタ
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval(
+    const std::vector<TestVector>& tv ///< [in] テストベクタのリスト
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval(
+    const AssignList& assign_list ///< [in] 入力割り当てのリスト
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  _calc_gval2(
+    const AssignList& assign_list ///< [in] 入力割り当てのリスト
+  );
+
+  /// @brief 値の計算を行う．
+  ///
+  /// 入力ノードに値の設定は済んでいるものとする．
+  void
+  _calc_val(
+    std::vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  )
+  {
+    for ( auto node: mLogicArray ) {
+      auto val = node->calc_val(val_array);
+      val_array[node->id()] = val;
+    }
+  }
 
   /// @brief 各 engine の結果を集める．
   std::shared_ptr<FsimResultsRep>
@@ -414,6 +477,10 @@ private:
   // 全ての SimNode を納めた配列
   std::vector<std::unique_ptr<SimNode>> mNodeArray;
 
+  // すべての SimNode のポインタを収めた配列
+  // 内容はほぼ mNodeArray と同一
+  std::vector<SimNode*> mNodeList;
+
   // PPIに対応する SimNode を納めた配列
   // サイズは mInputNum + mDffNum
   std::vector<SimNode*> mPPIList;
@@ -451,6 +518,12 @@ private:
 
   // 子スレッドのリスト
   std::vector<std::thread> mThreadList;
+
+  // local_prop 用の値配列
+  std::vector<FSIM_VALTYPE> mValArray;
+
+  // local_prop 用の値配列(1時刻前)
+  std::vector<FSIM_VALTYPE> mPrevValArray;
 
 };
 

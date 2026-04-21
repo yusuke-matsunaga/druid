@@ -24,9 +24,7 @@ const bool debug = false;
 //////////////////////////////////////////////////////////////////////
 enum class Cmd: std::uint8_t {
   PPSFP,
-  SPPFP_TV,
-  SPPFP_AS,
-  XSPPFP,
+  SPPFP,
   END
 };
 
@@ -38,11 +36,9 @@ operator<<(
 )
 {
   switch ( cmd ) {
-  case Cmd::PPSFP:    s << "PPSFP"; break;
-  case Cmd::SPPFP_TV: s << "SPPFP_TV"; break;
-  case Cmd::SPPFP_AS: s << "SPPFP_AS"; break;
-  case Cmd::XSPPFP:   s << "XSPPFP"; break;
-  case Cmd::END:      s << "END"; break;
+  case Cmd::PPSFP: s << "PPSFP"; break;
+  case Cmd::SPPFP: s << "SPPFP_TV"; break;
+  case Cmd::END:   s << "END"; break;
   }
   return s;
 }
@@ -86,14 +82,11 @@ public:
 
   /// @brief コマンドを設定する．
   void
-  put_sppfp_command(
-    const TestVector& tv ///< [in] テストベクタ
-  )
+  put_sppfp_command()
   {
     {
       std::unique_lock lck{mCmdMTX};
-      mCmd = Cmd::SPPFP_TV;
-      mTvPtr = &tv;
+      mCmd = Cmd::SPPFP;
       mCmdCV.notify_all();
     }
     if ( debug ) {
@@ -106,54 +99,14 @@ public:
 
   /// @brief コマンドを設定する．
   void
-  put_sppfp_command(
-    const AssignList& assign_list ///< [in] 割り当てリスト
-  )
-  {
-    {
-      std::unique_lock lck{mCmdMTX};
-      mCmd = Cmd::SPPFP_AS;
-      mAssignListPtr = &assign_list;
-      mCmdCV.notify_all();
-    }
-    if ( debug ) {
-      std::ostringstream buf;
-      buf << "put_command(SPPFP_AS)";
-      log(buf.str());
-    }
-    wait();
-  }
-
-  /// @brief コマンドを設定する．
-  void
-  put_xsppfp_command(
-    const AssignList& assign_list ///< [in] 割り当てリスト
-  )
-  {
-    {
-      std::unique_lock lck{mCmdMTX};
-      mCmd = Cmd::XSPPFP;
-      mAssignListPtr = &assign_list;
-      mCmdCV.notify_all();
-    }
-    if ( debug ) {
-      std::ostringstream buf;
-      buf << "put_command(XSPPFP)";
-      log(buf.str());
-    }
-    wait();
-  }
-
-  /// @brief コマンドを設定する．
-  void
   put_ppsfp_command(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    SizeType ntv
   )
   {
     {
       std::unique_lock lck{mCmdMTX};
       mCmd = Cmd::PPSFP;
-      mTvListPtr = &tv_list;
+      mNTV = ntv;
       mCmdCV.notify_all();
     }
     if ( debug ) {
@@ -170,9 +123,6 @@ public:
   {
     std::unique_lock lck{mCmdMTX};
     mCmd = Cmd::END;
-    mTvPtr = nullptr;
-    mAssignListPtr = nullptr;
-    mTvListPtr = nullptr;
     mCmdCV.notify_all();
     if ( debug ) {
       std::ostringstream buf;
@@ -209,25 +159,11 @@ public:
     return mCmd;
   }
 
-  /// @brief テストベクタを返す．
-  const TestVector&
-  testvector()
+  /// @brief テストベクタ数を返す．
+  SizeType
+  ntv()
   {
-    return *mTvPtr;
-  }
-
-  /// @brief 割り当てリストを返す．
-  const AssignList&
-  assign_list()
-  {
-    return *mAssignListPtr;
-  }
-
-  /// @brief テストベクタのリストを返す．
-  const std::vector<TestVector>&
-  testvector_list()
-  {
-    return *mTvListPtr;
+    return mNTV;
   }
 
   /// @brief 全ての子スレッドが ready になるのを待つ．
@@ -270,14 +206,8 @@ private:
   // コマンド
   Cmd mCmd;
 
-  // テストベクタ
-  const TestVector* mTvPtr{nullptr};
-
-  // テストベクタのリスト
-  const std::vector<TestVector>* mTvListPtr{nullptr};
-
-  // 割り当てリスト
-  const AssignList* mAssignListPtr{nullptr};
+  // テストベクタ数
+  SizeType mNTV;
 
   // mCmd 用のミューテックス
   std::mutex mCmdMTX;

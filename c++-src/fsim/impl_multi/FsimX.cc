@@ -28,6 +28,20 @@ BEGIN_NAMESPACE_DRUID_FSIM
 
 BEGIN_NONAMESPACE
 
+// 0/1 を PackedVal/PackedVal3 に変換する．
+inline
+FSIM_VALTYPE
+bool_to_packedval(
+  bool val
+)
+{
+#if FSIM_VAL2
+  return val ? PV_ALL1 : PV_ALL0;
+#elif FSIM_VAL3
+  return val ? PackedVal3(PV_ALL1) : PackedVal3(PV_ALL0);
+#endif
+}
+
 // Val3 を PackedVal/PackedVal3 に変換する．
 inline
 FSIM_VALTYPE
@@ -44,6 +58,25 @@ val3_to_packedval(
   case Val3::_0: return PackedVal3(PV_ALL1, PV_ALL0);
   case Val3::_1: return PackedVal3(PV_ALL0, PV_ALL1);
   }
+#endif
+}
+
+// bit のビットに値を設定する．
+inline
+void
+bit_set(
+  FSIM_VALTYPE& val,
+  Val3 ival,
+  PackedVal bit
+)
+{
+#if FSIM_VAL2
+  if ( ival == Val3::_1 ) {
+    val |= bit;
+  }
+#elif FSIM_VAL3
+  FSIM_VALTYPE val1 = val3_to_packedval(ival);
+  val.set_with_mask(val1, bit);
 #endif
 }
 
@@ -114,19 +147,11 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 	auto cmd = mSyncObj.get_command(engine->id());
 	switch ( cmd ) {
 	case Cmd::PPSFP:
-	  engine->ppsfp(mSyncObj.testvector_list());
+	  engine->ppsfp(mSyncObj.ntv());
 	  break;
 
-	case Cmd::SPPFP_TV:
-	  engine->sppfp(mSyncObj.testvector());
-	  break;
-
-	case Cmd::SPPFP_AS:
-	  engine->sppfp(mSyncObj.assign_list());
-	  break;
-
-	case Cmd::XSPPFP:
-	  engine->xsppfp(mSyncObj.assign_list());
+	case Cmd::SPPFP:
+	  engine->sppfp();
 	  break;
 
 	case Cmd::END:
@@ -280,6 +305,13 @@ FSIM_CLASSNAME::set_network(
     }
   }
   ++ mMaxLevel;
+
+  mValArray.clear();
+  mValArray.resize(mNodeArray.size());
+#if FSIM_BSIDE
+  mPrevValArray.clear();
+  mPrevValArray.resize(mNodeArray.size());
+#endif
 }
 
 // @brief 対象の故障をセットする．
@@ -363,9 +395,12 @@ FSIM_CLASSNAME::spsfp(
   DiffBits& dbits
 )
 {
+  // 正常値の計算を行う．
+  _calc_gval(tv);
+
   SimEngine engine{0, mSyncObj, *this, {}};
   auto ff = mFaultMap[fid];
-  return engine.spsfp(tv, ff, dbits);
+  return engine.spsfp(ff, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -376,9 +411,12 @@ FSIM_CLASSNAME::spsfp(
   DiffBits& dbits
 )
 {
+  // 正常値の計算を行う．
+  _calc_gval(assign_list);
+
   SimEngine engine{0, mSyncObj, *this, {}};
   auto ff = mFaultMap[fid];
-  return engine.spsfp(assign_list, ff, dbits);
+  return engine.spsfp(ff, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -389,9 +427,10 @@ FSIM_CLASSNAME::xspsfp(
   DiffBits& dbits
 )
 {
+  _calc_gval2(assign_list);
   SimEngine engine{0, mSyncObj, *this, {}};
   auto ff = mFaultMap[fid];
-  return engine.xspsfp(assign_list, ff, dbits);
+  return engine.spsfp(ff, dbits);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -400,8 +439,11 @@ FSIM_CLASSNAME::sppfp(
   const TestVector& tv
 )
 {
+  // 正常値の計算を行う．
+  _calc_gval(tv);
+
   // SPPFP コマンドを送る．
-  mSyncObj.put_sppfp_command(tv);
+  mSyncObj.put_sppfp_command();
 
   // 結果を集める．
   return merge_results();
@@ -413,8 +455,11 @@ FSIM_CLASSNAME::sppfp(
   const AssignList& assign_list
 )
 {
+  // 正常値の計算を行う．
+  _calc_gval(assign_list);
+
   // SPPFP コマンドを送る．
-  mSyncObj.put_sppfp_command(assign_list);
+  mSyncObj.put_sppfp_command();
 
   // 結果を集める．
   return merge_results();
@@ -426,8 +471,11 @@ FSIM_CLASSNAME::xsppfp(
   const AssignList& assign_list
 )
 {
+  // 正常値の計算を行う．
+  _calc_gval2(assign_list);
+
   // SPPFP コマンドを送る．
-  mSyncObj.put_xsppfp_command(assign_list);
+  mSyncObj.put_sppfp_command();
 
   // 結果を集める．
   return merge_results();
@@ -439,12 +487,291 @@ FSIM_CLASSNAME::ppsfp(
   const std::vector<TestVector>& tv_list
 )
 {
+  // 正常値の計算を行う．
+  _calc_gval(tv_list);
+
   // PPSFP コマンドを送る．
-  mSyncObj.put_ppsfp_command(tv_list);
+  mSyncObj.put_ppsfp_command(tv_list.size());
 
   // 結果を集める．
   return merge_results();
 }
+
+#if FSIM_COMBI
+// @brief 正常値の計算を行う．(縮退故障用)
+void
+FSIM_CLASSNAME::_calc_gval(
+  const TestVector& tv
+)
+{
+  // 入力の設定を行う．
+  for ( SizeType iid = 0; iid < ppi_num(); ++ iid ) {
+    auto simnode = ppi(iid);
+    auto val3 = tv.ppi_val(iid);
+    mValArray[simnode->id()] = val3_to_packedval(val3);
+  }
+
+  // 正常値の計算を行う．
+  _calc_val(mValArray);
+}
+
+// @brief 正常値の計算を行う．
+void
+FSIM_CLASSNAME::_calc_gval(
+  const std::vector<TestVector>& tv_list
+)
+{
+  // 設定されていないビットはどこか他の設定されているビットをコピーする．
+  auto x_val = FSIM_INITVAL;
+  for ( SizeType iid = 0; iid < ppi_num(); ++ iid ) {
+    auto simnode = ppi(iid);
+    auto val = x_val;
+    PackedVal bit = 1UL;
+    for ( SizeType pos = 0; pos < PV_BITLEN; ++ pos, bit <<= 1 ) {
+      SizeType epos = (pos < tv_list.size()) ? pos : 0;
+      auto ival = tv_list[epos].ppi_val(iid);
+      bit_set(val, ival, bit);
+    }
+    mValArray[simnode->id()] = val;
+  }
+
+  // 正常値の計算を行う．
+  _calc_val(mValArray);
+}
+
+// @brief 正常値の計算を行う．
+void
+FSIM_CLASSNAME::_calc_gval(
+    const AssignList& assign_list
+)
+{
+  // デフォルト値で初期化する．
+  auto val0 = FSIM_INITVAL;
+  for ( auto simnode: ppi_list() ) {
+    mValArray[simnode->id()] = val0;
+  }
+
+  for ( auto nv: assign_list ) {
+    if ( nv.time() != 1 ) {
+      throw std::logic_error{"nv.time() != 1"};
+    }
+    auto iid = nv.node().input_id();
+    auto simnode = ppi(iid);
+    mValArray[simnode->id()] = bool_to_packedval(nv.val());
+  }
+
+  // 正常値の計算を行う．
+  _calc_val(mValArray);
+}
+
+// @brief 正常値の計算を行う．
+void
+FSIM_CLASSNAME::_calc_gval2(
+    const AssignList& assign_list
+)
+{
+  // デフォルト値で初期化する．
+  auto x_val = FSIM_INITVAL;
+  for ( auto simnode: mLogicArray ) {
+    mValArray[simnode->id()] = x_val;
+  }
+
+  // 値をセットする．
+  for ( auto nv: assign_list ) {
+    if ( nv.time() != 1 ) {
+      throw std::logic_error{"nv.time() != 1"};
+    }
+    auto node_id = nv.node().id();
+    auto val = nv.val();
+    auto simnode = node(node_id);
+    mValArray[simnode->id()] = bool_to_packedval(val);
+  }
+
+  // 正常値の計算を行う．
+  _calc_val(mValArray);
+}
+#endif
+
+#if FSIM_BSIDE
+// @brief 正常値の計算を行う．(遷移故障用)
+void
+FSIM_CLASSNAME::_calc_gval(
+  const TestVector& tv
+)
+{
+  // 1時刻目の入力を設定する．
+  for ( SizeType iid = 0; iid < ppi_num(); ++ iid ) {
+    auto simnode = ppi(iid);
+    auto val3 = tv.ppi_val(iid);
+    mPrevValArray[simnode->id()] = val3_to_packedval(val3);
+  }
+
+  // 1時刻目の正常値の計算を行う．
+  _calc_val(mPrevValArray);
+
+  // DFF の出力の値を入力にコピーする．
+  for ( auto i: Range(dff_num()) ) {
+    auto onode = dff_input(i);
+    auto inode = dff_output(i);
+    auto val = mPrevValArray[onode->id()];
+    mValArray[inode->id()] = val;
+  }
+
+  // 2時刻目の入力を設定する．
+  for ( SizeType iid = 0; iid < input_num(); ++ iid ) {
+    auto simnode = ppi(iid);
+    auto val3 = tv.aux_input_val(iid);
+    mValArray[simnode->id()] = val3_to_packedval(val3);
+  }
+
+  // 2時刻目の正常値の計算を行う．
+  _calc_val(mValArray);
+}
+
+// @brief 正常値の計算を行う．
+void
+FSIM_CLASSNAME::_calc_gval(
+  const std::vector<TestVector>& tv_list
+)
+{
+  // 1時刻目の入力を設定する．
+  // 設定されていないビットはどこか他の設定されているビットをコピーする．
+  for ( SizeType iid = 0; iid < ppi_num(); ++ iid ) {
+    auto simnode = ppi(iid);
+    auto val = FSIM_INITVAL;
+    PackedVal bit = 1UL;
+    for ( SizeType pos = 0; pos < PV_BITLEN; ++ pos, bit <<= 1 ) {
+      SizeType epos = (pos < tv_list.size()) ? pos : 0;
+      auto ival = tv_list[epos].ppi_val(iid);
+      bit_set(val, ival, bit);
+    }
+    mPrevValArray[simnode->id()] = val;
+  }
+
+  // 1時刻目の正常値の計算を行う．
+  _calc_val(mPrevValArray);
+
+  // DFF の出力の値を入力にコピーする．
+  for ( auto i: Range(dff_num()) ) {
+    auto onode = dff_input(i);
+    auto inode = dff_output(i);
+    auto val = mPrevValArray[onode->id()];
+    mValArray[inode->id()] = val;
+  }
+
+  // 2時刻目の入力を設定する．
+  // 設定されていないビットはどこか他の設定されているビットをコピーする．
+  for ( SizeType iid = 0; iid < input_num(); ++ iid ) {
+    auto simnode = ppi(iid);
+    auto val = FSIM_INITVAL;
+    PackedVal bit = 1UL;
+    for ( SizeType pos = 0; pos < PV_BITLEN; ++ pos, bit <<= 1 ) {
+      SizeType epos = (pos < tv_list.size()) ? pos : 0;
+      auto ival = tv_list[epos].aux_input_val(iid);
+      bit_set(val, ival, bit);
+    }
+    mValArray[simnode->id()] = val;
+  }
+
+  // 2時刻目の正常値の計算を行う．
+  _calc_val(mValArray);
+}
+
+// @brief 正常値の計算を行う．
+void
+FSIM_CLASSNAME::_calc_gval(
+    const AssignList& assign_list
+)
+{
+  // 1時刻目の入力を設定する．
+  auto val0 = FSIM_INITVAL;
+  for ( auto simnode: ppi_list() ) {
+    mPrevValArray[simnode->id()] = val0;
+  }
+
+  for ( auto nv: assign_list ) {
+    if ( nv.time() == 0 ) {
+      SizeType iid = nv.node().input_id();
+      auto simnode = ppi(iid);
+      mPrevValArray[simnode->id()] = bool_to_packedval(nv.val());
+    }
+  }
+
+  // 1時刻目の正常値の計算を行う．
+  _calc_val(mPrevValArray);
+
+  // DFF の出力の値を入力にコピーする．
+  for ( auto i: Range(dff_num()) ) {
+    auto onode = dff_output(i);
+    auto inode = dff_input(i);
+    auto val = mPrevValArray[onode->id()];
+    mValArray[inode->id()] = val;
+  }
+
+  // 2時刻目の入力を設定する．
+  for ( auto simnode: input_list() ) {
+    mValArray[simnode->id()] = val0;
+  }
+  for ( auto nv: assign_list ) {
+    if ( nv.time() == 1 ) {
+      SizeType iid = nv.node().input_id();
+      auto simnode = ppi(iid);
+      mValArray[simnode->id()] = bool_to_packedval(nv.val());
+    }
+  }
+
+  // 2時刻目の正常値の計算を行う．
+  _calc_val(mValArray);
+}
+
+// @brief 正常値の計算を行う．
+void
+FSIM_CLASSNAME::_calc_gval2(
+    const AssignList& assign_list
+)
+{
+  // 1時刻目の入力を設定する．
+  auto x_val = FSIM_INITVAL;
+  for ( auto simnode: logic_list() ) {
+    mPrevValArray[simnode->id()] = x_val;
+  }
+
+  for ( auto nv: assign_list ) {
+    if ( nv.time() == 0 ) {
+      auto node_id = nv.node().id();
+      auto simnode = node(node_id);
+      mPrevValArray[simnode->id()] = bool_to_packedval(nv.val());
+    }
+  }
+
+  // 1時刻目の正常値の計算を行う．
+  _calc_val(mPrevValArray);
+
+  // DFF の出力の値を入力にコピーする．
+  for ( auto i: Range(dff_num()) ) {
+    auto onode = dff_output(i);
+    auto inode = dff_input(i);
+    auto val = mPrevValArray[onode->id()];
+    mValArray[inode->id()] = val;
+  }
+
+  // 2時刻目の入力を設定する．
+  for ( auto simnode: mLogicArray ) {
+    mValArray[simnode->id()] = x_val;
+  }
+
+  for ( auto nv: assign_list ) {
+    if ( nv.time() == 1 ) {
+      auto node_id = nv.node().id();
+      auto simnode = node(node_id);
+      mValArray[simnode->id()] = bool_to_packedval(nv.val());
+    }
+  }
+
+  // 2時刻目の正常値の計算を行う．
+  _calc_val(mValArray);
+}
+#endif
 
 // @brief 各 engine の結果を集める．
 std::shared_ptr<FsimResultsRep>
@@ -648,6 +975,7 @@ FSIM_CLASSNAME::make_input()
   auto id = mNodeArray.size();
   auto node = SimNode::new_input(id);
   mNodeArray.push_back(std::unique_ptr<SimNode>{node});
+  mNodeList.push_back(node);
   return node;
 }
 
@@ -662,6 +990,7 @@ FSIM_CLASSNAME::make_gate(
   auto id = mNodeArray.size();
   auto node = SimNode::new_gate(id, type, level, inputs);
   mNodeArray.push_back(std::unique_ptr<SimNode>{node});
+  mNodeList.push_back(node);
   mLogicArray.push_back(node);
   return node;
 }
