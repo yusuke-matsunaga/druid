@@ -31,7 +31,7 @@ public:
   void
   run(
     FaultInfo& fault_info,    ///< [in] 故障情報を収めたオブジェクト
-    const ConfigParam& option  ///< [in] オプション
+    const ConfigParam& option ///< [in] オプション
   );
 
 };

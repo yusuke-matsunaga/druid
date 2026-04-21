@@ -125,22 +125,42 @@ Dichotomy::run(
   timer.start();
 
   Timer fsim_timer;
+  Timer dicho_timer;
   SizeType loop_count = 0;
+  std::mt19937 randgen;
   while ( mgr.group_num() < fault_num && !heap.empty() ) {
     // 検出回数が最小の故障を一つ選ぶ．
     auto fid = heap.get_min();
     auto min_fault = network.fault(fid);
     // この故障を検出するテストベクタを用いて故障シミュレーションを行う．
-    auto tv = fault_info.testvector(min_fault);
+    auto tv1 = fault_info.testvector(min_fault);
+    tv1.fix_x_from_random(randgen);
+    auto tv2 = TestVector(network);
+    tv2.set_from_random(randgen);
     fsim_timer.start();
-    auto res = fsim.sppfp(tv);
+    auto res = fsim.ppsfp({tv1, tv2});
     fsim_timer.stop();
     ++ loop_count;
     auto fault_list1 = res.fault_list(0);
+    auto fault_list2 = res.fault_list(1);
     // シミュレーション結果に基づいて細分化を行う．
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1);
+    dicho_timer.start();
+#if 1
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1, fault_list2, option);
+#else
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1, option);
+    new_mgr = DiGroupMgr::dichotomy(new_mgr, fault_list2, option);
+#endif
+    dicho_timer.stop();
     // 検出回数を更新する．
     for ( auto fault: fault_list1 ) {
+      auto fid = fault.id();
+      comp.inc_count(fid);
+      if ( heap.is_in(fid) ) {
+	heap.update(fid);
+      }
+    }
+    for ( auto fault: fault_list2 ) {
       auto fid = fault.id();
       comp.inc_count(fid);
       if ( heap.is_in(fid) ) {
@@ -159,18 +179,26 @@ Dichotomy::run(
     }
   }
   // 変化がなくなるまでランダムシミュレーションを行う．
-  std::mt19937 randgen;
   SizeType no_change = 0;
   while ( mgr.group_num() < fault_num && no_change < NO_CHANGE_LIMIT ) {
-    auto tv = TestVector(network);
-    tv.set_from_random(randgen);
+    auto tv1 = TestVector(network);
+    tv1.set_from_random(randgen);
+    auto tv2 = TestVector(network);
+    tv2.set_from_random(randgen);
     fsim_timer.start();
-    auto res = fsim.sppfp(tv);
+    auto res = fsim.ppsfp({tv1, tv2});
     fsim_timer.stop();
     ++ loop_count;
     auto fault_list1 = res.fault_list(0);
+    auto fault_list2 = res.fault_list(1);
     // シミュレーション結果に基づいて細分化を行う．
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1);
+    dicho_timer.start();
+#if 0
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1, fault_list2, option);
+#else
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1, option);
+#endif
+    dicho_timer.stop();
     if ( new_mgr != mgr ) {
       // 細分化できたら更新する．
       std::swap(mgr, new_mgr);
@@ -194,7 +222,9 @@ Dichotomy::run(
 	      << "CPU Time:               " << std::setw(8) << std::right
 	      << timer.get_time() << "ms" << std::endl
 	      << "Fsim time:              " << std::setw(8) << std::right
-	      << fsim_timer.get_time() << "ms" << std::endl;
+	      << fsim_timer.get_time() << "ms" << std::endl
+	      << "Dichotomy time:         " << std::setw(8) << std::right
+	      << dicho_timer.get_time() << "ms" << std::endl;
   }
 
   timer.reset();

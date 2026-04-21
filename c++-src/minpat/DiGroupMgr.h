@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "DiGroup.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -70,8 +71,19 @@ public:
   static
   DiGroupMgr
   dichotomy(
-    const DiGroupMgr& mgr,       ///< [in] 元となる故障グループのリスト
-    const TpgFaultList& det_list ///< [in] 検出された故障のリスト
+    const DiGroupMgr& mgr,        ///< [in] 元となる故障グループのリスト
+    const TpgFaultList& det_list, ///< [in] 検出された故障のリスト
+    const ConfigParam& option     ///< [in] オプション
+  );
+
+  /// @brief prev_mgr の故障グループを det_list1, det_list2 に基づいて細分化する．
+  static
+  DiGroupMgr
+  dichotomy(
+    const DiGroupMgr& mgr,         ///< [in] 元となる故障グループのリスト
+    const TpgFaultList& det_list1, ///< [in] 検出された故障のリスト
+    const TpgFaultList& det_list2, ///< [in] 検出された故障のリスト
+    const ConfigParam& option      ///< [in] オプション
   );
 
   /// @brief グループ数を返す．
