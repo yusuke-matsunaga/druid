@@ -20,6 +20,20 @@ BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
+std::string
+time_str(
+  Timer& timer
+)
+{
+  std::ostringstream buf;
+  buf << std::setw(11)
+      << std::fixed
+      << std::setprecision(2)
+      << timer.get_time()
+      << "ms";
+  return buf.str();
+}
+
 class FaultComp
 {
 public:
@@ -96,6 +110,7 @@ Dichotomy::run(
 )
 {
   SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
+  SizeType BATCH_SIZE = std::min(32, option.get_int_elem("batch_size", 16));
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -126,91 +141,60 @@ Dichotomy::run(
 
   Timer fsim_timer;
   Timer dicho_timer;
-  SizeType loop_count = 0;
+  SizeType tv_count = 0;
   std::mt19937 randgen;
-  while ( mgr.group_num() < fault_num && !heap.empty() ) {
-    // 検出回数が最小の故障を一つ選ぶ．
-    auto fid = heap.get_min();
-    auto min_fault = network.fault(fid);
-    // この故障を検出するテストベクタを用いて故障シミュレーションを行う．
-    auto tv1 = fault_info.testvector(min_fault);
-    tv1.fix_x_from_random(randgen);
-    auto tv2 = TestVector(network);
-    tv2.set_from_random(randgen);
+  SizeType no_change = 0;
+  // 未検出の故障がある場合，必ず検出されるパタンが選ばれるので
+  // no_change とはならない．
+  // よってループ中止の条件に「ヒープ内に未検出の故障がない」は不要
+  while ( mgr.group_num() < fault_num &&
+	  no_change < NO_CHANGE_LIMIT ) {
+    std::vector<TestVector> tv_list(BATCH_SIZE);
+    for ( SizeType base = 0; base < BATCH_SIZE; ++ base ) {
+      if ( heap.empty() ) {
+	auto tv1 = TestVector(network);
+	tv1.set_from_random(randgen);
+	tv_list[base] = tv1;
+      }
+      else {
+	// 検出回数が最小の故障を一つ選ぶ．
+	auto fid = heap.get_min();
+	auto min_fault = network.fault(fid);
+	// この故障を検出するテストベクタを用いて故障シミュレーションを行う．
+	auto tv1 = fault_info.testvector(min_fault);
+	tv1.fix_x_from_random(randgen);
+	tv_list[base] = tv1;
+      }
+    }
     fsim_timer.start();
-    auto res = fsim.ppsfp({tv1, tv2});
+    auto res = fsim.ppsfp(tv_list);
     fsim_timer.stop();
-    ++ loop_count;
-    auto fault_list1 = res.fault_list(0);
-    auto fault_list2 = res.fault_list(1);
+    tv_count += BATCH_SIZE;
     // シミュレーション結果に基づいて細分化を行う．
     dicho_timer.start();
-#if 1
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1, fault_list2, option);
-#else
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1, option);
-    new_mgr = DiGroupMgr::dichotomy(new_mgr, fault_list2, option);
-#endif
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, res, option);
     dicho_timer.stop();
     // 検出回数を更新する．
-    for ( auto fault: fault_list1 ) {
-      auto fid = fault.id();
-      comp.inc_count(fid);
-      if ( heap.is_in(fid) ) {
-	heap.update(fid);
-      }
-    }
-    for ( auto fault: fault_list2 ) {
-      auto fid = fault.id();
-      comp.inc_count(fid);
-      if ( heap.is_in(fid) ) {
-	heap.update(fid);
+    for ( SizeType i = 0; i < res.tv_num(); ++ i ) {
+      for ( auto fault: res.fault_list(i) ) {
+	auto fid = fault.id();
+	if ( heap.is_in(fid) ) {
+	  comp.inc_count(fid);
+	  heap.update(fid);
+	}
       }
     }
     if ( new_mgr != mgr ) {
       // 細分化できたら更新する．
       std::swap(mgr, new_mgr);
       if ( debug > 1 ) {
-	std::cout << "#" << loop_count << ": "
+	std::cout << "#" << tv_count << ": "
 		  << mgr.group_num()
 		  << std::endl;
-	++ loop_count;
-      }
-    }
-  }
-  // 変化がなくなるまでランダムシミュレーションを行う．
-  SizeType no_change = 0;
-  while ( mgr.group_num() < fault_num && no_change < NO_CHANGE_LIMIT ) {
-    auto tv1 = TestVector(network);
-    tv1.set_from_random(randgen);
-    auto tv2 = TestVector(network);
-    tv2.set_from_random(randgen);
-    fsim_timer.start();
-    auto res = fsim.ppsfp({tv1, tv2});
-    fsim_timer.stop();
-    ++ loop_count;
-    auto fault_list1 = res.fault_list(0);
-    auto fault_list2 = res.fault_list(1);
-    // シミュレーション結果に基づいて細分化を行う．
-    dicho_timer.start();
-#if 0
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1, fault_list2, option);
-#else
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, fault_list1, option);
-#endif
-    dicho_timer.stop();
-    if ( new_mgr != mgr ) {
-      // 細分化できたら更新する．
-      std::swap(mgr, new_mgr);
-      if ( debug > 1 ) {
-	std::cout << "#" << loop_count << ": "
-		  << mgr.group_num()
-		  << std::endl;
-	++ loop_count;
       }
     }
     else {
-      ++ no_change;
+      no_change += BATCH_SIZE;
     }
   }
 
@@ -218,13 +202,10 @@ Dichotomy::run(
   if ( verbose ) {
     std::cout << "# of faults:            " << std::setw(8) << std::right << fault_list.size() << std::endl
 	      << "# of Groups:            " << std::setw(8) << std::right << mgr.group_num() << std::endl
-	      << "Total # of simulations: " << std::setw(8) << std::right << loop_count << std::endl
-	      << "CPU Time:               " << std::setw(8) << std::right
-	      << timer.get_time() << "ms" << std::endl
-	      << "Fsim time:              " << std::setw(8) << std::right
-	      << fsim_timer.get_time() << "ms" << std::endl
-	      << "Dichotomy time:         " << std::setw(8) << std::right
-	      << dicho_timer.get_time() << "ms" << std::endl;
+	      << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl
+	      << "CPU Time:               " << time_str(timer) << std::endl
+	      << "Fsim time:              " << time_str(fsim_timer) << std::endl
+	      << "Dichotomy time:         " << time_str(dicho_timer) << std::endl;
   }
 
   timer.reset();
@@ -313,7 +294,7 @@ Dichotomy::run(
 	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
 	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
 	      << "# of faults:              " << std::setw(8) << std::right << rep_num << std::endl
-	      << "CPU TIme:                 " << std::setw(8) << std::right << timer.get_time() << "ms" << std::endl;
+	      << "CPU TIme:                 " << time_str(timer) << std::endl;
   }
   timer.reset();
   timer.start();
@@ -379,8 +360,7 @@ Dichotomy::run(
     std::cout << "Dominance check end:      " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
 	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
-	      << "CPU TIme:                 " << std::setw(8) << std::right << timer.get_time()
-	      << "ms" << std::endl;
+	      << "CPU TIme:                 " << time_str(timer) << std::endl;
   }
 }
 

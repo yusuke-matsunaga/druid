@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "DiGroup.h"
+#include "fsim/FsimResults.h"
 #include "misc/ConfigParam.h"
 
 
@@ -26,8 +27,6 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class DiGroupMgr
 {
-  friend class DiGroupBuilder;
-
 public:
 
   /// @brief 初期グループを作るコンストラクタ
@@ -67,23 +66,13 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief prev_mgr の故障グループを det_list に基づいて細分化する．
-  static
-  DiGroupMgr
-  dichotomy(
-    const DiGroupMgr& mgr,        ///< [in] 元となる故障グループのリスト
-    const TpgFaultList& det_list, ///< [in] 検出された故障のリスト
-    const ConfigParam& option     ///< [in] オプション
-  );
-
   /// @brief prev_mgr の故障グループを det_list1, det_list2 に基づいて細分化する．
   static
   DiGroupMgr
   dichotomy(
-    const DiGroupMgr& mgr,         ///< [in] 元となる故障グループのリスト
-    const TpgFaultList& det_list1, ///< [in] 検出された故障のリスト
-    const TpgFaultList& det_list2, ///< [in] 検出された故障のリスト
-    const ConfigParam& option      ///< [in] オプション
+    const DiGroupMgr& mgr,           ///< [in] 元となる故障グループのリスト
+    const FsimResults& fsim_results, ///< [in] 故障シミュレーションの結果
+    const ConfigParam& option        ///< [in] オプション
   );
 
   /// @brief グループ数を返す．
@@ -99,6 +88,10 @@ public:
   {
     return mGroupList;
   }
+
+  /// @brief 各グループの dominance_list() の要素数の総和
+  SizeType
+  dominance_num() const;
 
   /// @brief 内容を出力する．
   void

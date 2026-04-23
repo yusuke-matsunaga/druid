@@ -64,27 +64,11 @@ public:
     return mFaultList;
   }
 
-  /// @brief conflicit している候補グループのリストを返す．
-  const std::vector<DiGroup*>&
-  conflict_list() const
-  {
-    return mConflictList;
-  }
-
   /// @brief 支配している故障の候補グループのリストを返す．
   const std::vector<DiGroup*>&
   dominance_list() const
   {
     return mDominanceList;
-  }
-
-  /// @brief conflict_list を設定する．
-  void
-  set_conflict_list(
-    std::vector<DiGroup*>&& conflict_list ///< [in] 設定するグループのリスト
-  )
-  {
-    std::swap(mConflictList, conflict_list);
   }
 
   /// @brief dominance_list を設定する．
@@ -107,9 +91,6 @@ private:
 
   // 故障のリスト
   TpgFaultList mFaultList;
-
-  // conflict している候補のリスト
-  std::vector<DiGroup*> mConflictList;
 
   // dominate している候補のリスト
   std::vector<DiGroup*> mDominanceList;

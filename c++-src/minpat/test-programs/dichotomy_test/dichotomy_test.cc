@@ -40,7 +40,8 @@ dichotomy_test(
   FaultType ftype = FaultType::StuckAt;
   bool ffr_reduction = false;
   bool mffc_reduction = false;
-  SizeType no_change_limit = 0;
+  int no_change_limit = 0;
+  int batch_size = 0;
   bool multi_thread = false;
   bool verbose = false;
   int debug = 0;
@@ -78,6 +79,15 @@ dichotomy_test(
       }
       std::string val = argv[argpos];
       no_change_limit = stoi(val);
+    }
+    else if ( arg == "--batch-size" ) {
+      ++ argpos;
+      if ( argpos >= argc ) {
+	std::cerr << "'--batch-size' requires <int> value";
+	return 2;
+      }
+      std::string val = argv[argpos];
+      batch_size = stoi(val);
     }
     else if ( arg == "--multi-thread" ) {
       multi_thread = true;
@@ -132,7 +142,10 @@ dichotomy_test(
     analyze_option.add("mffc_reduction", mffc_reduction);
     analyze_option.add("global_reduction", false);
     if ( no_change_limit > 0 ) {
-      analyze_option.add("no_change_limit", JsonValue(int(no_change_limit)));
+      analyze_option.add("no_change_limit", no_change_limit);
+    }
+    if ( batch_size > 0 ) {
+      analyze_option.add("batch_size", batch_size);
     }
     option.add("analyze", analyze_option);
   }
