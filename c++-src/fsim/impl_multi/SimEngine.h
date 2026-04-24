@@ -21,6 +21,10 @@ class SyncObj;
 //////////////////////////////////////////////////////////////////////
 /// @class SimEngine SimEngine.h "SimEngine.h"
 /// @brief シミュレーションを行う本体
+///
+/// オブジェクト自体はスレッドに対応して生成される．
+/// 処理内容は SyncObj を通じたコマンドで指示される．
+/// 結果は FsimResults に格納しておき，最後に Fsim にマージされる．
 //////////////////////////////////////////////////////////////////////
 class SimEngine
 {
@@ -28,9 +32,9 @@ public:
 
   /// @brief コンストラクタ
   SimEngine(
-    SizeType id,                          ///< [in] ID番号
-    SyncObj& simc_obj,                    ///< [in] 同期用オブジェクト
-    FSIM_CLASSNAME& fsim,                 ///< [in] 故障シミュレータ本体
+    SizeType id,                               ///< [in] ID番号
+    SyncObj& simc_obj,                         ///< [in] 同期用オブジェクト
+    FSIM_CLASSNAME& fsim,                      ///< [in] 故障シミュレータ本体
     const std::vector<const SimFFR*>& ffr_list ///< [in] 対象のFFRのリスト
   );
 
@@ -50,22 +54,9 @@ public:
     return mId;
   }
 
-  /// @brief SPSFP 法のシミュレーションを行う．
-  bool
-  spsfp(
-    const SimFault* f,    ///< [in] 故障
-    DiffBits& dbits       ///< [out] 出力ごとの伝搬結果
-  );
-
-  /// @brief SPPFP 法のシミュレーションを行う．
+  /// @brief スレッド本体の実行関数
   void
-  sppfp();
-
-  /// @brief PPSFP 法のシミュレーションを行う．
-  void
-  ppsfp(
-    SizeType ntv ///< [in] 有効なテストベクタ数
-  );
+  run();
 
   /// @brief 結果を得る．
   const FsimResultsRep*
@@ -74,17 +65,34 @@ public:
     return mRes.get();
   }
 
+  /// @brief SPSFP 法のシミュレーションを行う．
+  bool
+  spsfp(
+    const SimFault* f, ///< [in] 故障
+    DiffBits& dbits    ///< [out] 出力ごとの伝搬結果
+  );
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // コマンド処理関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief SPPFP 法のシミュレーションを行う．
+  ///
+  /// ffr_list の要素数は PV_BITLEN 以下
+  void
+  sppfp();
+
+  /// @brief PPSFP 法のシミュレーションを行う．
+  void
+  ppsfp();
+
 
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief sppsp() 用の下請け関数
-  void
-  sppfp_simulation(
-    const std::vector<const SimFFR*>& ffr_array ///< [in] イベントを挿入するFFRのリスト
-  );
 
   /// @brief FFR内の個々の故障の故障伝搬条件を計算する．
   /// @return 全ての故障の伝搬結果のORを返す．

@@ -142,25 +142,13 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
   // スレッドを生成する．
   for ( SizeType i = 0; i < NT; ++ i ) {
     auto& engine = mEngineList[i];
-    mThreadList[i] = std::thread{[&](){
-      for ( bool go_on = true; go_on; ) {
-	auto cmd = mSyncObj.get_command(engine->id());
-	switch ( cmd ) {
-	case Cmd::PPSFP:
-	  engine->ppsfp(mSyncObj.ntv());
-	  break;
-
-	case Cmd::SPPFP:
-	  engine->sppfp();
-	  break;
-
-	case Cmd::END:
-	  go_on = false;
-	  break;
-	}
+    mThreadList[i] = std::thread{
+      [&]() {
+	engine->run();
       }
-    }};
+    };
   }
+
   // 子スレッドがコマンド待ちになるまで待つ．
   mSyncObj.wait();
 }
@@ -442,8 +430,9 @@ FSIM_CLASSNAME::sppfp(
   // 正常値の計算を行う．
   _calc_gval(tv);
 
+  // FFRを単位としてマルチスレッド実行を行う．
   // SPPFP コマンドを送る．
-  mSyncObj.put_sppfp_command();
+  mSyncObj.put_sppfp_command(ffr_list());
 
   // 結果を集める．
   return merge_results();
@@ -458,8 +447,9 @@ FSIM_CLASSNAME::sppfp(
   // 正常値の計算を行う．
   _calc_gval(assign_list);
 
+  // FFRを単位としてマルチスレッド実行を行う．
   // SPPFP コマンドを送る．
-  mSyncObj.put_sppfp_command();
+  mSyncObj.put_sppfp_command(ffr_list());
 
   // 結果を集める．
   return merge_results();
@@ -474,8 +464,9 @@ FSIM_CLASSNAME::xsppfp(
   // 正常値の計算を行う．
   _calc_gval2(assign_list);
 
+  // FFRを単位としてマルチスレッド実行を行う．
   // SPPFP コマンドを送る．
-  mSyncObj.put_sppfp_command();
+  mSyncObj.put_sppfp_command(ffr_list());
 
   // 結果を集める．
   return merge_results();
@@ -491,10 +482,32 @@ FSIM_CLASSNAME::ppsfp(
   _calc_gval(tv_list);
 
   // PPSFP コマンドを送る．
-  mSyncObj.put_ppsfp_command(tv_list.size());
+  mSyncObj.put_ppsfp_command(tv_list.size(),
+			     ffr_list());
 
   // 結果を集める．
   return merge_results();
+}
+
+// @brief 故障を持つFFRのリストを返す．
+std::vector<const SimFFR*>
+FSIM_CLASSNAME::ffr_list() const
+{
+  std::vector<const SimFFR*> ans_list;
+  ans_list.reserve(mFFRArray.size());
+  for ( auto& ffr: mFFRArray ) {
+    bool has_fault = false;
+    for ( auto fault: ffr.fault_list() ) {
+      if ( !fault->skip() ) {
+	has_fault = true;
+	break;
+      }
+    }
+    if ( has_fault ) {
+      ans_list.push_back(&ffr);
+    }
+  }
+  return ans_list;
 }
 
 #if FSIM_COMBI

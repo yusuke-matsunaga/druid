@@ -385,6 +385,10 @@ private:
     const TpgFaultList& fault_list ///< [in] 対象の故障番号のリスト
   );
 
+  /// @brief 故障を持つFFRのリストを返す．
+  std::vector<const SimFFR*>
+  ffr_list() const;
+
   /// @brief 正常値の計算を行う．
   void
   _calc_gval(
@@ -422,6 +426,10 @@ private:
       val_array[node->id()] = val;
     }
   }
+
+  /// @brief SimEngine に値をコピーする．
+  void
+  engine_init();
 
   /// @brief 各 engine の結果を集める．
   std::shared_ptr<FsimResultsRep>

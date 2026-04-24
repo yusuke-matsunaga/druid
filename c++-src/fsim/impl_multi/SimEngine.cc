@@ -45,6 +45,28 @@ SimEngine::~SimEngine()
 {
 }
 
+// @brief スレッド本体の実行関数
+void
+SimEngine::run()
+{
+  for ( bool go_on = true; go_on; ) {
+    auto cmd = mSyncObj.get_command(mId);
+    switch ( cmd ) {
+    case Cmd::PPSFP:
+      sppfp();
+      break;
+
+    case Cmd::SPPFP:
+      ppsfp();
+      break;
+
+    case Cmd::END:
+      go_on = false;
+      break;
+    }
+  }
+}
+
 // @brief SPSFP 法のシミュレーションを行う．
 bool
 SimEngine::spsfp(
@@ -77,19 +99,103 @@ SimEngine::spsfp(
   return false;
 }
 
+// @brief SPPFP 法のシミュレーションを行う．
 void
-SimEngine::ppsfp(
-  SizeType ntv
-)
+SimEngine::sppfp()
+{
+  if ( mDebug ) {
+    log("sppfp() start");
+  }
+
+  // FsimX の値をコピーする．
+  _copy_val();
+
+  // 結果を初期化する．
+  mRes = std::unique_ptr<FsimResultsRep>{new FsimResultsRep(1)};
+
+  for ( ; ; ) {
+    // 処理すべき FFR のリストを取り出す．
+    auto ffr_list = mSyncObj.ffr_list(PV_BITLEN);
+    if ( ffr_list.empty() ) {
+      // 終わり
+      break;
+    }
+    auto nffr = ffr_list.size();
+    std::vector<const SimFFR*> ffr_array;
+    ffr_array.reserve(nffr);
+    for ( auto ffr: ffr_list ) {
+      // FFR 内の故障伝搬を行う．
+      // 結果は SimFault.mObsMask に保存される．
+      // FFR 内の全ての obs マスクを ffr_req に入れる．
+      auto ffr_req = foreach_faults(*ffr);
+      if ( ffr_req == PV_ALL0 ) {
+	// ffr_req が 0 ならその後のシミュレーションを行う必要はない．
+	continue;
+      }
+
+      auto root = ffr->root();
+      if ( root->is_output() ) {
+	// 常にこの出力のみで観測可能
+	DiffBits dbits;
+	// この dbits は1ビットのみなので sort() は必要ない．
+	dbits.add_output(root->output_id());
+	for ( auto ff: ffr->fault_list() ) {
+	  if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
+	    auto fid = ff->id();
+	    mRes->add(0, fid, dbits);
+	  }
+	}
+      }
+      else {
+	SizeType pos = ffr_array.size();
+	PackedVal mask = 1UL << pos;
+	ffr_array.push_back(ffr);
+	put_event(root, mask);
+      }
+    }
+    if ( ffr_array.empty() ) {
+      // シミュレーションすべき FFR が残っていなかった．
+      continue;
+    }
+
+    auto dbits_array = simulate();
+    auto obs = dbits_array.dbits_union();
+    for ( SizeType i = 0; i < ffr_array.size(); ++ i ) {
+      PackedVal mask = 1UL << i;
+      if ( (obs & mask) == PV_ALL0 ) {
+	continue;
+      }
+      auto& ffr = *ffr_array[i];
+      auto& fault_list = ffr.fault_list();
+      auto dbits = dbits_array.get_slice(i);
+      for ( auto f: fault_list ) {
+	if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
+	  auto fid = f->id();
+	  mRes->add(0, fid, dbits);
+	}
+      }
+      mask <<= 1;
+    }
+  }
+  if ( mDebug ) {
+    log("sppfp() end");
+  }
+}
+
+void
+SimEngine::ppsfp()
 {
   if ( mDebug ) {
     log("ppsfp() start");
   }
 
+  // FsimX の値をコピーする．
+  _copy_val();
+
+  auto ntv = mSyncObj.ntv();
+
   // 結果を初期化する．
   mRes = std::unique_ptr<FsimResultsRep>{new FsimResultsRep(ntv)};
-
-  _copy_val();
 
   // データを持っているビットを表すビットマスク
   PackedVal bitmask = 0UL;
@@ -97,9 +203,15 @@ SimEngine::ppsfp(
     bitmask |= (1UL << i);
   }
 
-  // FFR ごとに処理を行う．
-  auto NFFR = mFsim.ffr_num();
-  for ( auto ffr: mFFRList ) {
+  for ( ; ; ) {
+    // 処理すべき FFR を取り出す．
+    auto ffr = mSyncObj.ffr();
+    if ( ffr == nullptr ) {
+      // 終わり
+      break;
+    }
+
+    // FFR ごとに処理を行う．
     auto ffr_req = foreach_faults(*ffr) & bitmask;
     if ( ffr_req == PV_ALL0 ) {
       // ffr_req が 0 ならその後のシミュレーションは必要ない．
@@ -131,93 +243,9 @@ SimEngine::ppsfp(
       }
     }
   }
+
   if ( mDebug ) {
     log("ppsfp() end");
-  }
-}
-
-// @brief SPPFP 法のシミュレーションを行う．
-void
-SimEngine::sppfp()
-{
-  if ( mDebug ) {
-    log("sppfp() start");
-  }
-
-  // 結果を初期化する．
-  mRes = std::unique_ptr<FsimResultsRep>{new FsimResultsRep(1)};
-
-  _copy_val();
-
-  auto NFFR = mFsim.ffr_num();
-  auto NT = mSyncObj.thread_num();
-  std::vector<const SimFFR*> ffr_array;
-  ffr_array.reserve(PV_BITLEN);
-  for ( auto ffr: mFFRList ) {
-    // FFR 内の故障伝搬を行う．
-    // 結果は SimFault.mObsMask に保存される．
-    // FFR 内の全ての obs マスクを ffr_req に入れる．
-    auto ffr_req = foreach_faults(*ffr);
-    if ( ffr_req == PV_ALL0 ) {
-      // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
-      continue;
-    }
-
-    auto root = ffr->root();
-    if ( root->is_output() ) {
-      // 常にこの出力のみで観測可能
-      DiffBits dbits;
-      // この dbits は1ビットのみなので sort() は必要ない．
-      dbits.add_output(root->output_id());
-      for ( auto ff: ffr->fault_list() ) {
-	if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
-	  auto fid = ff->id();
-	  mRes->add(0, fid, dbits);
-	}
-      }
-    }
-    else {
-      SizeType pos = ffr_array.size();
-      PackedVal mask = 1UL << pos;
-      ffr_array.push_back(ffr);
-      put_event(root, mask);
-      if ( ffr_array.size() == PV_BITLEN ) {
-	sppfp_simulation(ffr_array);
-	ffr_array.clear();
-      }
-    }
-  }
-  if ( !ffr_array.empty() ) {
-    sppfp_simulation(ffr_array);
-  }
-  if ( mDebug ) {
-    log("sppfp() end");
-  }
-}
-
-// @brief 実際にイベントドリヴンシミュレーションを行う．
-void
-SimEngine::sppfp_simulation(
-  const std::vector<const SimFFR*>& ffr_array
-)
-{
-  auto dbits_array = simulate();
-  auto obs = dbits_array.dbits_union();
-  for ( SizeType i = 0; i < ffr_array.size(); ++ i ) {
-    PackedVal mask = 1UL << i;
-    if ( (obs & mask) == PV_ALL0 ) {
-      continue;
-    }
-    auto& ffr = *ffr_array[i];
-    auto& fault_list = ffr.fault_list();
-    auto dbits = dbits_array.get_slice(i);
-    for ( auto f: fault_list ) {
-      if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
-	auto fid = f->id();
-	mRes->add(0, fid, dbits);
-      }
-    }
-    mask <<= 1;
   }
 }
 

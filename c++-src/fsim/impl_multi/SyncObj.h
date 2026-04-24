@@ -20,14 +20,15 @@ BEGIN_NAMESPACE_DRUID_FSIM
 const bool debug = false;
 
 //////////////////////////////////////////////////////////////////////
-/// コマンドを表す列挙型
+/// @brief コマンドを表す列挙型
 //////////////////////////////////////////////////////////////////////
 enum class Cmd: std::uint8_t {
-  PPSFP,
-  SPPFP,
-  END
+  PPSFP, ///< FFRの根のノードの反転イベントを全てのビットを伝える．
+  SPPFP, ///< 複数のFFRの根のノードの反転イベントを別々のビットに伝える．
+  END    ///< 終了処理
 };
 
+/// @brief Cmd の内容をストリーム出力する演算子
 inline
 std::ostream&
 operator<<(
@@ -37,7 +38,7 @@ operator<<(
 {
   switch ( cmd ) {
   case Cmd::PPSFP: s << "PPSFP"; break;
-  case Cmd::SPPFP: s << "SPPFP_TV"; break;
+  case Cmd::SPPFP: s << "SPPFP"; break;
   case Cmd::END:   s << "END"; break;
   }
   return s;
@@ -47,6 +48,13 @@ operator<<(
 //////////////////////////////////////////////////////////////////////
 /// @class SyncObj SyncObj.h "SyncObj.h"
 /// @brief スレッド間の同期を行うオブジェクト
+///
+/// FsimX 側で put_XXX_command() を呼ぶ．
+/// SimEngine 側で get_command() を呼ぶ．
+/// コマンドに応じて渡されるパラメータが異なる．
+/// - SPPFP: ビット数分の FFR のリスト
+/// - PPSFP: FFR
+/// - END:   なし
 //////////////////////////////////////////////////////////////////////
 class SyncObj
 {
@@ -80,18 +88,22 @@ public:
     return mNT;
   }
 
-  /// @brief コマンドを設定する．
+  /// @brief SPPFP コマンドを設定する．
   void
-  put_sppfp_command()
+  put_sppfp_command(
+    const std::vector<const SimFFR*>& ffr_list
+  )
   {
     {
       std::unique_lock lck{mCmdMTX};
       mCmd = Cmd::SPPFP;
+      mFFRList = ffr_list;
+      mNextIndex = 0;
       mCmdCV.notify_all();
     }
     if ( debug ) {
       std::ostringstream buf;
-      buf << "put_command(SPPFP_TV)";
+      buf << "put_command(SPPFP)";
       log(buf.str());
     }
     wait();
@@ -100,13 +112,16 @@ public:
   /// @brief コマンドを設定する．
   void
   put_ppsfp_command(
-    SizeType ntv
+    SizeType ntv,
+    const std::vector<const SimFFR*>& ffr_list
   )
   {
     {
       std::unique_lock lck{mCmdMTX};
       mCmd = Cmd::PPSFP;
       mNTV = ntv;
+      mFFRList = ffr_list;
+      mNextIndex = 0;
       mCmdCV.notify_all();
     }
     if ( debug ) {
@@ -166,6 +181,41 @@ public:
     return mNTV;
   }
 
+  /// @brief FFRを取り出す．
+  const SimFFR*
+  ffr()
+  {
+    std::unique_lock lck{mIndexMTX};
+    if ( mNextIndex >= mFFRList.size() ) {
+      return nullptr;
+    }
+    auto ans = mFFRList[mNextIndex];
+    ++ mNextIndex;
+    return ans;
+  }
+
+  /// @brief FFRを取り出す．
+  std::vector<const SimFFR*>
+  ffr_list(
+    SizeType max_size
+  )
+  {
+    std::unique_lock lck{mIndexMTX};
+    auto n = mFFRList.size();
+    if ( mNextIndex >= n ) {
+      return {};
+    }
+    std::vector<const SimFFR*> ans_list;
+    ans_list.reserve(max_size);
+    n = std::min(n, mNextIndex + max_size);
+    while ( mNextIndex < n ) {
+      auto ffr = mFFRList[mNextIndex];
+      ans_list.push_back(ffr);
+      ++ mNextIndex;
+    }
+    return ans_list;
+  }
+
   /// @brief 全ての子スレッドが ready になるのを待つ．
   void
   wait()
@@ -209,11 +259,20 @@ private:
   // テストベクタ数
   SizeType mNTV;
 
+  // FFR のリスト
+  std::vector<const SimFFR*> mFFRList;
+
+  // mFFRList 中の次のインデックス
+  SizeType mNextIndex;
+
   // mCmd 用のミューテックス
   std::mutex mCmdMTX;
 
   // mCmd 用の条件変数
   std::condition_variable mCmdCV;
+
+  // mNextIndex 用のミューテックス
+  std::mutex mIndexMTX;
 
   // mReadyCount 用のミューテックス
   std::mutex mReadyMTX;
