@@ -1,8 +1,8 @@
-#ifndef SIMENGINE_H
-#define SIMENGINE_H
+#ifndef SIMTHRFUNC_H
+#define SIMTHRFUNC_H
 
-/// @file SimEngine.h
-/// @brief SimEngine のヘッダファイル
+/// @file SimThrFunc.h
+/// @brief SimThrFunc のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2024 Yusuke Matsunaga
@@ -16,30 +16,26 @@
 
 BEGIN_NAMESPACE_DRUID_FSIM
 
-class SyncObj;
-
 //////////////////////////////////////////////////////////////////////
-/// @class SimEngine SimEngine.h "SimEngine.h"
-/// @brief シミュレーションを行う本体
+/// @class SimThrFunc SimThrFunc.h "SimThrFunc.h"
+/// @brief スレッド実行の本体
 ///
 /// オブジェクト自体はスレッドに対応して生成される．
 /// 処理内容は SyncObj を通じたコマンドで指示される．
-/// 結果は FsimResults に格納しておき，最後に Fsim にマージされる．
+/// 結果は FsimResultsRep に格納する．
 //////////////////////////////////////////////////////////////////////
-class SimEngine
+class SimThrFunc
 {
 public:
 
   /// @brief コンストラクタ
-  SimEngine(
-    SizeType id,                               ///< [in] ID番号
-    SyncObj& simc_obj,                         ///< [in] 同期用オブジェクト
-    FSIM_CLASSNAME& fsim,                      ///< [in] 故障シミュレータ本体
-    const std::vector<const SimFFR*>& ffr_list ///< [in] 対象のFFRのリスト
+  SimThrFunc(
+    SizeType id,         ///< [in] ID番号
+    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ本体
   );
 
   /// @brief デストラクタ
-  ~SimEngine();
+  ~SimThrFunc();
 
 
 public:
@@ -54,16 +50,29 @@ public:
     return mId;
   }
 
-  /// @brief スレッド本体の実行関数
+  /// @brief 正常値の計算を行う．
   void
-  run();
+  calc_gval(
+    const TestVector& tv ///< [in] テストベクタ
+  );
 
-  /// @brief 結果を得る．
-  const FsimResultsRep*
-  results() const
-  {
-    return mRes.get();
-  }
+  /// @brief 正常値の計算を行う．
+  void
+  calc_gval(
+    const std::vector<TestVector>& tv ///< [in] テストベクタのリスト
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  calc_gval(
+    const AssignList& assign_list ///< [in] 入力割り当てのリスト
+  );
+
+  /// @brief 正常値の計算を行う．
+  void
+  calc_gvalx(
+    const AssignList& assign_list ///< [in] 入力割り当てのリスト
+  );
 
   /// @brief SPSFP 法のシミュレーションを行う．
   bool
@@ -72,27 +81,39 @@ public:
     DiffBits& dbits    ///< [out] 出力ごとの伝搬結果
   );
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // コマンド処理関数
-  //////////////////////////////////////////////////////////////////////
-
   /// @brief SPPFP 法のシミュレーションを行う．
-  ///
-  /// ffr_list の要素数は PV_BITLEN 以下
   void
-  sppfp();
+  sppfp(
+    const std::vector<const SimFFR*>& ffr_list, ///< [in] 対象のFFRのリスト
+    FsimResultsRep* res                         ///< [in] 結果を格納するオブジェクト
+  );
 
   /// @brief PPSFP 法のシミュレーションを行う．
   void
-  ppsfp();
+  ppsfp(
+    const SimFFR* ffr,  ///< [in] 対象のFFR
+    FsimResultsRep* res ///< [in] 結果を格納するオブジェクト
+  );
 
 
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief 値の計算を行う．
+  ///
+  /// 入力ノードに値の設定は済んでいるものとする．
+  void
+  _calc_val(
+    std::vector<FSIM_VALTYPE>& val_array ///< [in] 値の配列
+  )
+  {
+    for ( auto node: mFsim.logic_list() ) {
+      auto val = node->calc_val(val_array);
+      val_array[node->id()] = val;
+    }
+  }
 
   /// @brief FFR内の個々の故障の故障伝搬条件を計算する．
   /// @return 全ての故障の伝搬結果のORを返す．
@@ -177,10 +198,6 @@ private:
     mValArray[node->id()] = val;
   }
 
-  /// @brief Fsim の値をコピーする．
-  void
-  _copy_val();
-
   /// @brief 初期イベントを追加する．
   void
   put_event(
@@ -241,14 +258,8 @@ private:
   // ID 番号
   SizeType mId;
 
-  // 同期用オブジェクト
-  SyncObj& mSyncObj;
-
   // 故障シミュレータ
   FSIM_CLASSNAME& mFsim;
-
-  // 処理対象の FFR リスト
-  std::vector<const SimFFR*> mFFRList;
 
   // ノード番号をキーにして反転マスクを保持する配列
   std::vector<PackedVal> mFlipMaskArray;
@@ -267,9 +278,6 @@ private:
   // clear 用の情報の配列
   std::vector<RestoreInfo> mClearArray;
 
-  // 結果を格納するオブジェクト
-  std::unique_ptr<FsimResultsRep> mRes;
-
   // デバッグフラグ
   bool mDebug{false};
 
@@ -277,4 +285,4 @@ private:
 
 END_NAMESPACE_DRUID_FSIM
 
-#endif // SIMENGINE_H
+#endif // SIMTHRFUNC_H

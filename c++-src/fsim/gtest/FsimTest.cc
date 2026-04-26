@@ -412,14 +412,22 @@ TEST_P(FsimTest, ppsfp_multi_td_test)
   ppsfp_test(tpg_network, true);
 }
 
+#if 1
 INSTANTIATE_TEST_SUITE_P(FsimTest1, FsimTest,
 			 ::testing::Values("s27.blif", "s1196.blif"));
+#endif
 
 #if 0
 INSTANTIATE_TEST_SUITE_P(FsimTest2, FsimTest,
 			 ::testing::Values("s1196.blif"));
+#endif
+
+#if 0
 INSTANTIATE_TEST_SUITE_P(FsimTest3, FsimTest,
 			 ::testing::Values("s27.blif"));
+#endif
+
+#if 0
 INSTANTIATE_TEST_SUITE_P(FsimTest4, FsimTest,
 			 ::testing::Values("and2.blif"));
 #endif

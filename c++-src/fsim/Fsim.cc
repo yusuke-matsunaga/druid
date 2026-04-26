@@ -32,7 +32,8 @@ Fsim::Fsim(
   auto network = fault_list.network();
   bool has_previous_state = network.fault_type() == FaultType::TransitionDelay;
   if ( multi ) {
-    initialize_multi(fault_list, has_previous_state, has_x);
+    SizeType thread_num = option.get_int_elem("thread_num", 0);
+    initialize_multi(fault_list, has_previous_state, has_x, thread_num);
   }
   else {
     initialize_naive(fault_list, has_previous_state, has_x);

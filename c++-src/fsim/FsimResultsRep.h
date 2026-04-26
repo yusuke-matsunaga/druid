@@ -61,6 +61,30 @@ public:
     return res;
   }
 
+  /// @brief 複数の結果をマージした結果を作るクラスメソッド
+  static
+  std::shared_ptr<FsimResultsRep>
+  merge(
+    const std::vector<std::unique_ptr<FsimResultsRep>>& src_list
+  )
+  {
+    SizeType n = src_list.size();
+    // 常に1つは要素があるはず．
+    auto& src0 = src_list.front();
+    SizeType m = src0->tv_num();
+    auto res = std::shared_ptr<FsimResultsRep>{new FsimResultsRep(m)};
+    for ( auto& src: src_list ) {
+      if ( src->tv_num() != m ) {
+	throw std::invalid_argument{"tv_num() mismatch"};
+      }
+      for ( SizeType i = 0; i < m; ++ i ) {
+	_merge_elem(res->mElemList[i], src->mElemList[i]);
+      }
+    }
+    res->sort();
+    return res;
+  }
+
   /// @brief デストラクタ
   ~FsimResultsRep() = default;
 

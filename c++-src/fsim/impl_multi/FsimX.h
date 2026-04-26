@@ -19,12 +19,11 @@
 #include "types/TpgNode.h"
 #include "types/TestVector.h"
 #include "SimNodeList.h"
-#include "SyncObj.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
 
-class SimEngine;
+class SimThrFunc;
 
 //////////////////////////////////////////////////////////////////////
 /// @class FSIM_CLASSNAME FsimX.h "FsimX.h"
@@ -39,7 +38,8 @@ public:
 
   /// @brief コンストラクタ
   FSIM_CLASSNAME (
-    const TpgFaultList& fault_list ///< [in] 対象の故障のリスト
+    const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
+    SizeType thread_num             ///< [in] スレッド数
   );
 
   /// @brief デストラクタ
@@ -321,24 +321,6 @@ public:
     return mSimNodeMap[tpg_id];
   }
 
-  /// @brief 現在の値を返す．
-  FSIM_VALTYPE
-  val(
-    SizeType node_id ///< [in] ノード番号
-  ) const
-  {
-    return mValArray[node_id];
-  }
-
-  /// @brief 1時刻前の値を返す．
-  FSIM_VALTYPE
-  prev_val(
-    SizeType node_id ///< [in] ノード番号
-  ) const
-  {
-    return mPrevValArray[node_id];
-  }
-
   /// @brief FFR数を得る．
   SizeType
   ffr_num() const
@@ -389,30 +371,6 @@ private:
   std::vector<const SimFFR*>
   ffr_list() const;
 
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const TestVector& tv ///< [in] テストベクタ
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const std::vector<TestVector>& tv ///< [in] テストベクタのリスト
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const AssignList& assign_list ///< [in] 入力割り当てのリスト
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval2(
-    const AssignList& assign_list ///< [in] 入力割り当てのリスト
-  );
-
   /// @brief 値の計算を行う．
   ///
   /// 入力ノードに値の設定は済んでいるものとする．
@@ -426,14 +384,6 @@ private:
       val_array[node->id()] = val;
     }
   }
-
-  /// @brief SimEngine に値をコピーする．
-  void
-  engine_init();
-
-  /// @brief 各 engine の結果を集める．
-  std::shared_ptr<FsimResultsRep>
-  merge_results();
 
 
 private:
@@ -472,6 +422,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // スレッド数
+  SizeType mThreadNum;
 
   // 外部入力数
   SizeType mInputNum;
@@ -518,20 +471,8 @@ private:
   // TpgFault::id() をキーとして SimFault を格納する配列
   std::vector<SimFault*> mFaultMap;
 
-  // 子スレッドとの同期用オブジェクト
-  SyncObj mSyncObj;
-
-  // 子スレッド用の SimEngine のリスト
-  std::vector<std::unique_ptr<SimEngine>> mEngineList;
-
-  // 子スレッドのリスト
-  std::vector<std::thread> mThreadList;
-
-  // local_prop 用の値配列
-  std::vector<FSIM_VALTYPE> mValArray;
-
-  // local_prop 用の値配列(1時刻前)
-  std::vector<FSIM_VALTYPE> mPrevValArray;
+  // 子スレッド用の SimThrFunc のリスト
+  std::vector<std::unique_ptr<SimThrFunc>> mFuncList;
 
 };
 

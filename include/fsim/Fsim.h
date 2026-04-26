@@ -275,7 +275,8 @@ private:
   initialize_multi(
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
     bool has_previous_state,        ///< [in] 1時刻前の値を持つ時 true にする．
-    bool has_x                      ///< [in] 3値のシミュレーションを行う時 true にする．
+    bool has_x,                     ///< [in] 3値のシミュレーションを行う時 true にする．
+    SizeType thread_num             ///< [in] スレッド数
   );
 
   /// @brief 初期化を行う．

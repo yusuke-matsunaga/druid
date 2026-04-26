@@ -18,7 +18,7 @@ add_subdirectory( gtest )
 
 set (fsim_SOURCES
   FsimX.cc
-  SimEngine.cc
+  SimThrFunc.cc
   SimNode.cc
   SnAnd.cc
   SnBuff.cc
