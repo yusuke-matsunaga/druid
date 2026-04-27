@@ -15,14 +15,13 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class FsimResultsRep FsimResultsRep.h "FsimResultsRep.h"
-/// @brief FsimResults の実体
+/// @brief FsimResults のテストベクタ１つ分の実体
 ///
 /// 意味的には
-/// - テストベクタ番号
 /// - 故障番号
 /// - 出力の伝搬状態
-/// を要素としたリストだが，
-/// テストベクタ番号ごとに操作する時に効率がよくなるように実装する．
+/// を要素としたリストだが，スレッド実行の効率を考えて故障番号をキーにして
+/// 出力の伝搬状態を格納する配列となっている．
 //////////////////////////////////////////////////////////////////////
 class FsimResultsRep
 {
@@ -31,16 +30,23 @@ public:
   /// @brief コンストラクタ
   explicit
   FsimResultsRep(
-    SizeType fault_size, ///< [in] 故障番号のサイズ
-    SizeType tv_num = 1  ///< [in] 確保するベクタ数
+    SizeType fault_size ///< [in] 故障番号のサイズ
   ) : mFaultSize{fault_size},
-      mTvNum{tv_num},
-      mArray(mTvNum * mFaultSize)
+      mArray{new DiffBits*[mFaultSize]}
   {
+    for ( SizeType i = 0; i < mFaultSize; ++ i ) {
+      mArray[i] = nullptr;
+    }
   }
 
   /// @brief デストラクタ
-  ~FsimResultsRep() = default;
+  ~FsimResultsRep()
+  {
+    for ( SizeType i = 0; i < mFaultSize; ++ i ) {
+      delete mArray[i];
+    }
+    delete [] mArray;
+  }
 
 
 public:
@@ -51,22 +57,15 @@ public:
   /// @brief 要素を追加する．
   void
   add(
-    SizeType tv_id,          ///< [in] テストベクタ番号
     SizeType fault_id,       ///< [in] 故障番号
     const DiffBits& diffbits ///< [in] 出力の故障伝搬状態
   )
   {
-    _check_tv_id(tv_id);
     _check_fault_id(fault_id);
-    auto index = _index(tv_id, fault_id);
-    mArray[index] = diffbits;
-  }
-
-  /// @brief テストベクタ数を返す．
-  SizeType
-  tv_num() const
-  {
-    return mTvNum;
+    if ( mArray[fault_id] != nullptr ) {
+      throw std::logic_error{"something wrong"};
+    }
+    mArray[fault_id] = new DiffBits(diffbits);
   }
 
   /// @brief 故障番号のサイズを返す．
@@ -76,35 +75,38 @@ public:
     return mFaultSize;
   }
 
-  /// @brief 指定されたテストベクタ番号で検出された故障番号のリストを返す．
+  /// @brief 検出された故障番号のリストを返す．
   std::vector<SizeType>
-  fault_list(
-    SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
-  ) const
+  fault_list() const
   {
-    _check_tv_id(tv_id);
     std::vector<SizeType> ans_list;
-    SizeType base = tv_id * mFaultSize;
-    for ( SizeType id = 0; id < mFaultSize; ++ id ) {
-      auto& dbits = mArray[base + id];
-      if ( dbits.elem_num() > 0 ) {
+    for ( SizeType id = 0; id < fault_size(); ++ id ) {
+      auto dbits = mArray[id];
+      if ( dbits != nullptr ) {
 	ans_list.push_back(id);
       }
     }
     return ans_list;
   }
 
-  /// @brief 出力の故障伝搬状態を返す．
-  DiffBits
-  diffbits(
-    SizeType tv_id,   ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
+  /// @brief 検出されているか調べる．
+  bool
+  detected(
     SizeType fault_id ///< [in] 故障番号
   ) const
   {
-    _check_tv_id(tv_id);
     _check_fault_id(fault_id);
-    auto index = _index(tv_id, fault_id);
-    return mArray[index];
+    return mArray[fault_id] != nullptr;
+  }
+
+  /// @brief 出力の故障伝搬状態を返す．
+  const DiffBits&
+  diffbits(
+    SizeType fault_id ///< [in] 故障番号
+  ) const
+  {
+    _check_fault_id(fault_id);
+    return *mArray[fault_id];
   }
 
 
@@ -112,17 +114,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief tv_id の範囲チェックを行う．
-  void
-  _check_tv_id(
-    SizeType tv_id    ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
-  ) const
-  {
-    if ( tv_id >= tv_num() ) {
-      throw std::out_of_range{"tv_id is out of range"};
-    }
-  }
 
   /// @brief fault_id の範囲チェックを行う．
   void
@@ -135,30 +126,17 @@ private:
     }
   }
 
-  /// @brief インデックスを返す．
-  SizeType
-  _index(
-    SizeType tv_id,
-    SizeType fault_id
-  ) const
-  {
-    return tv_id * mFaultSize + fault_id;
-  }
-
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // テストベクタ数
-  SizeType mTvNum;
-
   // 故障番号のサイズ
-  SizeType mFaultSize;
+  SizeType mFaultSize{0};
 
   // 本体の配列
-  std::vector<DiffBits> mArray;
+  DiffBits** mArray{nullptr};
 
 };
 

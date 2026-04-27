@@ -21,7 +21,6 @@ BEGIN_NAMESPACE_DRUID_FSIM
 /// @brief スレッド実行の本体
 ///
 /// オブジェクト自体はスレッドに対応して生成される．
-/// 処理内容は SyncObj を通じたコマンドで指示される．
 /// 結果は FsimResultsRep に格納する．
 //////////////////////////////////////////////////////////////////////
 class SimThrFunc
@@ -91,8 +90,8 @@ public:
   /// @brief PPSFP 法のシミュレーションを行う．
   void
   ppsfp(
-    const SimFFR* ffr,  ///< [in] 対象のFFR
-    FsimResultsRep* res ///< [in] 結果を格納するオブジェクト
+    const SimFFR* ffr,                           ///< [in] 対象のFFR
+    const std::vector<FsimResultsRep*>& res_list ///< [in] 結果を格納するオブジェクトのリスト
   );
 
 
@@ -114,6 +113,14 @@ private:
       val_array[node->id()] = val;
     }
   }
+
+  /// @brief sppfp 用のシミュレーションを行う．
+  void
+  _sppfp_simulation(
+    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
+    SizeType ffr_num,         ///< [in] FFR 数
+    FsimResultsRep* res       ///< [in] 結果を格納するオブジェクト
+  );
 
   /// @brief FFR内の個々の故障の故障伝搬条件を計算する．
   /// @return 全ての故障の伝搬結果のORを返す．

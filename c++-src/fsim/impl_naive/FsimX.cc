@@ -468,7 +468,7 @@ std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::_sppfp()
 {
   // シミュレーション結果
-  auto res = new FsimResultsRep(mFaultMap.size(), 1);
+  auto res = new FsimResultsRep(mFaultMap.size());
 
   const SimFFR* ffr_buff[PV_BITLEN];
   auto bitpos = 0;
@@ -532,7 +532,7 @@ FSIM_CLASSNAME::_sppfp_simulation(
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
+std::vector<std::shared_ptr<FsimResultsRep>>
 FSIM_CLASSNAME::ppsfp(
   const std::vector<TestVector>& tv_list
 )
@@ -541,16 +541,19 @@ FSIM_CLASSNAME::ppsfp(
   _calc_gval(tv_list);
 
   // パタン数
-  auto n = tv_list.size();
+  auto ntv = tv_list.size();
 
   // データを持っているビットを表すビットマスク
   PackedVal bitmask = 0UL;
-  for ( SizeType i = 0; i < n; ++ i ) {
+  for ( SizeType i = 0; i < ntv; ++ i ) {
     bitmask |= (1UL << i);
   }
 
-  // 結果
-  auto res = new FsimResultsRep(mFaultMap.size(), n);
+  // 結果を格納するオブジェクトのリスト
+  std::vector<FsimResultsRep*> res_list(ntv);
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    res_list[i] = new FsimResultsRep(mFaultMap.size());
+  }
 
   // FFR ごとに処理を行う．
   for ( auto& ffr: mFFRArray ) {
@@ -577,10 +580,10 @@ FSIM_CLASSNAME::ppsfp(
 	  // 検出された．
 	  auto fid = ff->id();
 	  auto dbits_array1 = dbits_array.masking(ff->obs_mask());
-	  for ( SizeType i = 0; i < n; ++ i ) {
+	  for ( SizeType i = 0; i < ntv; ++ i ) {
 	    auto dbits = dbits_array1.get_slice(i);
 	    if ( dbits.elem_num() > 0 ) {
-	      res->add(i, fid, dbits);
+	      res_list[i]->add(fid, dbits);
 	    }
 	  }
 	}
@@ -588,7 +591,13 @@ FSIM_CLASSNAME::ppsfp(
     }
   }
 
-  return std::shared_ptr<FsimResultsRep>{res};
+  std::vector<std::shared_ptr<FsimResultsRep>> ans_list;
+  ans_list.reserve(ntv);
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    auto res = res_list[i];
+    ans_list.push_back(std::shared_ptr<FsimResultsRep>{res});
+  }
+  return ans_list;
 }
 
 // @brief init フラグを元に戻す．

@@ -437,8 +437,9 @@ SimThrFunc::sppfp(
   }
 
   auto nffr = ffr_list.size();
-  std::vector<const SimFFR*> ffr_array;
-  ffr_array.reserve(nffr);
+  // PV_BITLEN ずつ並列に行う．
+  const SimFFR* ffr_buff[PV_BITLEN];
+  SizeType bitpos = 0;
   for ( auto ffr: ffr_list ) {
     // FFR 内の故障伝搬を行う．
     // 結果は SimFault.mObsMask に保存される．
@@ -458,39 +459,27 @@ SimThrFunc::sppfp(
       for ( auto ff: ffr->fault_list() ) {
 	if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	  auto fid = ff->id();
-	  res->add(0, fid, dbits);
+	  res->add(fid, dbits);
 	}
       }
     }
     else {
-      SizeType pos = ffr_array.size();
-      PackedVal mask = 1UL << pos;
-      ffr_array.push_back(ffr);
+      // キューにイベントを積む
+      PackedVal mask = 1UL << bitpos;
       put_event(root, mask);
-    }
-  }
-  if ( ffr_array.empty() ) {
-    // シミュレーションすべき FFR が残っていなかった．
-    return;
-  }
+      ffr_buff[bitpos] = ffr;
+      ++ bitpos;
 
-  auto dbits_array = simulate();
-  auto obs = dbits_array.dbits_union();
-  for ( SizeType i = 0; i < ffr_array.size(); ++ i ) {
-    PackedVal mask = 1UL << i;
-    if ( (obs & mask) == PV_ALL0 ) {
-      continue;
-    }
-    auto& ffr = *ffr_array[i];
-    auto& fault_list = ffr.fault_list();
-    auto dbits = dbits_array.get_slice(i);
-    for ( auto f: fault_list ) {
-      if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
-	auto fid = f->id();
-	res->add(0, fid, dbits);
+      if ( bitpos == PV_BITLEN ) {
+	// ffr_buff が一杯になった．
+	_sppfp_simulation(ffr_buff, bitpos, res);
+	bitpos = 0;
       }
     }
-    mask <<= 1;
+  }
+  if ( bitpos > 0 ) {
+    // ffr_buff にFFRが残っていた．
+    _sppfp_simulation(ffr_buff, bitpos, res);
   }
 
   if ( mDebug ) {
@@ -498,17 +487,45 @@ SimThrFunc::sppfp(
   }
 }
 
+// @brief sppfp 用のシミュレーションを行う．
+void
+SimThrFunc::_sppfp_simulation(
+  const SimFFR* ffr_buff[],
+  SizeType ffr_num,
+  FsimResultsRep* res
+)
+{
+  auto dbits_array = simulate();
+  auto obs = dbits_array.dbits_union();
+  for ( SizeType i = 0; i < ffr_num; ++ i ) {
+    PackedVal mask = 1UL << i;
+    if ( (obs & mask) == PV_ALL0 ) {
+      continue;
+    }
+    auto ffr = ffr_buff[i];
+    auto& fault_list = ffr->fault_list();
+    auto dbits = dbits_array.get_slice(i);
+    for ( auto f: fault_list ) {
+      if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
+	auto fid = f->id();
+	res->add(fid, dbits);
+      }
+    }
+    mask <<= 1;
+  }
+}
+
 void
 SimThrFunc::ppsfp(
   const SimFFR* ffr,
-  FsimResultsRep* res
+  const std::vector<FsimResultsRep*>& res_list
 )
 {
   if ( mDebug ) {
     log("ppsfp() start");
   }
 
-  auto ntv = res->tv_num();
+  auto ntv = res_list.size();
 
   // データを持っているビットを表すビットマスク
   PackedVal bitmask = 0UL;
@@ -541,7 +558,7 @@ SimThrFunc::ppsfp(
 	for ( SizeType i = 0; i < ntv; ++ i ) {
 	  auto dbits = dbits_array1.get_slice(i);
 	  if ( dbits.elem_num() > 0 ) {
-	    res->add(i, fid, dbits);
+	    res_list[i]->add(fid, dbits);
 	  }
 	}
       }

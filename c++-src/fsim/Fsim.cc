@@ -182,9 +182,6 @@ Fsim::sppfp(
 )
 {
   auto res = mImpl->sppfp(tv);
-  if ( res->tv_num() != 1 ) {
-    throw std::logic_error{"something wrong"};
-  }
   return FsimResults(_network(), res);
 }
 
@@ -195,9 +192,6 @@ Fsim::sppfp(
 )
 {
   auto res = mImpl->sppfp(assign_list);
-  if ( res->tv_num() != 1 ) {
-    throw std::logic_error{"something wrong"};
-  }
   return FsimResults(_network(), res);
 }
 
@@ -208,9 +202,6 @@ Fsim::xsppfp(
 )
 {
   auto res = mImpl->xsppfp(assign_list);
-  if ( res->tv_num() != 1 ) {
-    throw std::logic_error{"something wrong"};
-  }
   return FsimResults(_network(), res);
 }
 
@@ -220,32 +211,26 @@ Fsim::ppsfp(
   const std::vector<TestVector>& tv_list
 )
 {
-  // 結果を格納するオブジェクト
-  auto res = std::shared_ptr<FsimResultsRep>{nullptr};
+  SizeType NV = tv_list.size();
+
+  // 結果を格納するオブジェクトのリスト
+  std::vector<std::shared_ptr<FsimResultsRep>> res_list;
+  res_list.reserve(NV);
 
   // PV_BITLEN ごとに分割して処理を行う．
   std::vector<TestVector> tv_buff;
   tv_buff.reserve(PV_BITLEN);
-  SizeType NV = tv_list.size();
   SizeType base = 0;
   for ( auto& tv: tv_list ) {
     tv_buff.push_back(tv);
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
-      auto res1 = mImpl->ppsfp(tv_buff);
-      if ( res == nullptr ) {
-	res = res1;
-      }
-      else {
-	if ( res1->tv_num() != tv_buff.size() ) {
-	  throw std::logic_error{"something wrong"};
-	}
-	//res->append(res1.get());
-      }
+      auto res_list1 = mImpl->ppsfp(tv_buff);
+      res_list.insert(res_list.end(), res_list1.begin(), res_list1.end());
       base += tv_buff.size();
       tv_buff.clear();
     }
   }
-  return FsimResults(_network(), res);
+  return FsimResults(_network(), res_list);
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．

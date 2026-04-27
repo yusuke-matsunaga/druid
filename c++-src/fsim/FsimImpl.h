@@ -134,7 +134,7 @@ public:
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   virtual
-  std::shared_ptr<FsimResultsRep>
+  std::vector<std::shared_ptr<FsimResultsRep>>
   ppsfp(
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) = 0;

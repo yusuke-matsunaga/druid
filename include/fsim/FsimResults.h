@@ -49,6 +49,13 @@ public:
     const std::shared_ptr<FsimResultsRep>& src
   );
 
+  /// @brief 内容を指定するコンストラクタ
+  explicit
+  FsimResults(
+    const std::shared_ptr<NetworkRep>& impl,
+    const std::vector<std::shared_ptr<FsimResultsRep>>& src
+  );
+
   /// @brief コピーコンストラクタ
   FsimResults(
     const FsimResults& src
@@ -96,11 +103,28 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
+  // 内部で使用される関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief テストベクタ番号が適正かチェックする．
+  void
+  _check_tv_id(
+    SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
+  ) const
+  {
+    if ( tv_id >= tv_num() ) {
+      throw std::out_of_range{"tv_id is out of range"};
+    }
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 実体を指す共有ポインタ
-  std::shared_ptr<FsimResultsRep> mPtr;
+  // テストベクタ番号ごとの結果のリスト
+  std::vector<std::shared_ptr<FsimResultsRep>> mArray;
 
 };
 

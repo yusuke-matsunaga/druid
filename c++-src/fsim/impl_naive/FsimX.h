@@ -166,7 +166,7 @@ public:
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  std::shared_ptr<FsimResultsRep>
+  std::vector<std::shared_ptr<FsimResultsRep>>
   ppsfp(
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) override;
@@ -462,7 +462,7 @@ private:
     for ( auto ff: fault_list ) {
       if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	auto fid = ff->id();
-	res->add(0, fid, dbits);
+	res->add(fid, dbits);
       }
     }
   }

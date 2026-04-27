@@ -18,7 +18,7 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief 空のコンストラクタ
 FsimResults::FsimResults(
-) : mPtr{nullptr}
+)
 {
 }
 
@@ -27,7 +27,16 @@ FsimResults::FsimResults(
   const std::shared_ptr<NetworkRep>& impl,
   const std::shared_ptr<FsimResultsRep>& src
 ) : TpgBase{impl},
-    mPtr{src}
+    mArray{{src}}
+{
+}
+
+// @brief 内容を指定するコンストラクタ
+FsimResults::FsimResults(
+  const std::shared_ptr<NetworkRep>& impl,
+  const std::vector<std::shared_ptr<FsimResultsRep>>& src
+) : TpgBase{impl},
+    mArray{src}
 {
 }
 
@@ -35,7 +44,7 @@ FsimResults::FsimResults(
 SizeType
 FsimResults::tv_num() const
 {
-  return mPtr->tv_num();
+  return mArray.size();
 }
 
 // @brief 指定されたテストベクタ番号で検出された故障のリストを返す．
@@ -44,7 +53,9 @@ FsimResults::fault_list(
   SizeType tv_id
 ) const
 {
-  return TpgBase::fault_list(mPtr->fault_list(tv_id));
+  _check_tv_id(tv_id);
+  auto& rep = mArray[tv_id];
+  return TpgBase::fault_list(rep->fault_list());
 }
 
 // @brief 出力の故障伝搬状態を返す．
@@ -54,7 +65,9 @@ FsimResults::diffbits(
   SizeType fault_id
 ) const
 {
-  return mPtr->diffbits(tv_id, fault_id);
+  _check_tv_id(tv_id);
+  auto& rep = mArray[tv_id];
+  return rep->diffbits(fault_id);
 }
 
 END_NAMESPACE_DRUID
