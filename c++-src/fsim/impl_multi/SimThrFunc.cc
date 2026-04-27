@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "SimThrFunc.h"
+#include "SimThrResults.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM

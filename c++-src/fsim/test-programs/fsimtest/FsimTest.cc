@@ -139,17 +139,19 @@ ppsfp_test(
 	for ( auto fault: res.fault_list(tv_id) ) {
 	  auto fid = fault.id();
 	  auto dbits = res.diffbits(tv_id, fid);
-	  det_array[fid] = true;
-	  ++ det_num;
-	  if ( drop ) {
-	    fsim.set_skip(fault);
+	  if ( !det_array[fid] ) {
+	    det_array[fid] = true;
+	    ++ det_num;
+	    if ( drop ) {
+	      fsim.set_skip(fault);
+	    }
+	    auto index = base + tv_id;
+	    if ( pat_dict.count(index) == 0 ) {
+	      pat_dict.emplace(index);
+	      ++ nepat;
+	    }
+	    print_fault(fault, index);
 	  }
-	  auto index = base + tv_id;
-	  if ( pat_dict.count(index) == 0 ) {
-	    pat_dict.emplace(index);
-	    ++ nepat;
-	  }
-	  print_fault(fault, index);
 	}
       }
       base += tv_buff.size();

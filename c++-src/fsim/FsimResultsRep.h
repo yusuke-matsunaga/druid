@@ -31,58 +31,12 @@ public:
   /// @brief コンストラクタ
   explicit
   FsimResultsRep(
-    SizeType num = 1 ///< [in] 確保するベクタ数
-  )
+    SizeType fault_size, ///< [in] 故障番号のサイズ
+    SizeType tv_num = 1  ///< [in] 確保するベクタ数
+  ) : mFaultSize{fault_size},
+      mTvNum{tv_num},
+      mArray(mTvNum * mFaultSize)
   {
-    new_tv(num);
-  }
-
-  /// @brief 複数の結果をマージした結果を作るクラスメソッド
-  static
-  std::shared_ptr<FsimResultsRep>
-  merge(
-    const std::vector<const FsimResultsRep*>& src_list
-  )
-  {
-    SizeType n = src_list.size();
-    // 常に1つは要素があるはず．
-    auto src0 = src_list.front();
-    SizeType m = src0->tv_num();
-    auto res = std::shared_ptr<FsimResultsRep>{new FsimResultsRep(m)};
-    for ( auto src: src_list ) {
-      if ( src->tv_num() != m ) {
-	throw std::invalid_argument{"tv_num() mismatch"};
-      }
-      for ( SizeType i = 0; i < m; ++ i ) {
-	_merge_elem(res->mElemList[i], src->mElemList[i]);
-      }
-    }
-    res->sort();
-    return res;
-  }
-
-  /// @brief 複数の結果をマージした結果を作るクラスメソッド
-  static
-  std::shared_ptr<FsimResultsRep>
-  merge(
-    const std::vector<std::unique_ptr<FsimResultsRep>>& src_list
-  )
-  {
-    SizeType n = src_list.size();
-    // 常に1つは要素があるはず．
-    auto& src0 = src_list.front();
-    SizeType m = src0->tv_num();
-    auto res = std::shared_ptr<FsimResultsRep>{new FsimResultsRep(m)};
-    for ( auto& src: src_list ) {
-      if ( src->tv_num() != m ) {
-	throw std::invalid_argument{"tv_num() mismatch"};
-      }
-      for ( SizeType i = 0; i < m; ++ i ) {
-	_merge_elem(res->mElemList[i], src->mElemList[i]);
-      }
-    }
-    res->sort();
-    return res;
   }
 
   /// @brief デストラクタ
@@ -94,17 +48,6 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 新しいテストベクタを追加する．
-  void
-  new_tv(
-    SizeType num = 1 ///< [in] 追加するベクタ数
-  )
-  {
-    for ( SizeType i = 0; i < num; ++ i ) {
-      mElemList.push_back(ElemType{});
-    }
-  }
-
   /// @brief 要素を追加する．
   void
   add(
@@ -114,36 +57,23 @@ public:
   )
   {
     _check_tv_id(tv_id);
-    auto& elem = mElemList[tv_id];
-    elem.fault_list.push_back(fault_id);
-    elem.dbits_dict.emplace(fault_id, diffbits);
-  }
-
-  /// @brief 結果を末尾に追加する．
-  void
-  append(
-    const FsimResultsRep* src ///< [in] 追加するオブジェクト
-  )
-  {
-    mElemList.insert(mElemList.end(),
-		     src->mElemList.begin(), src->mElemList.end());
-  }
-
-  /// @brief fault_list を整列させる．
-  void
-  sort()
-  {
-    for ( auto& elem: mElemList ) {
-      auto& fault_list = elem.fault_list;
-      std::sort(fault_list.begin(), fault_list.end());
-    }
+    _check_fault_id(fault_id);
+    auto index = _index(tv_id, fault_id);
+    mArray[index] = diffbits;
   }
 
   /// @brief テストベクタ数を返す．
   SizeType
   tv_num() const
   {
-    return mElemList.size();
+    return mTvNum;
+  }
+
+  /// @brief 故障番号のサイズを返す．
+  SizeType
+  fault_size() const
+  {
+    return mFaultSize;
   }
 
   /// @brief 指定されたテストベクタ番号で検出された故障番号のリストを返す．
@@ -153,7 +83,15 @@ public:
   ) const
   {
     _check_tv_id(tv_id);
-    return mElemList[tv_id].fault_list;
+    std::vector<SizeType> ans_list;
+    SizeType base = tv_id * mFaultSize;
+    for ( SizeType id = 0; id < mFaultSize; ++ id ) {
+      auto& dbits = mArray[base + id];
+      if ( dbits.elem_num() > 0 ) {
+	ans_list.push_back(id);
+      }
+    }
+    return ans_list;
   }
 
   /// @brief 出力の故障伝搬状態を返す．
@@ -164,52 +102,16 @@ public:
   ) const
   {
     _check_tv_id(tv_id);
-    auto& dbits_dict = mElemList[tv_id].dbits_dict;
-    if ( dbits_dict.count(fault_id) == 0 ) {
-      abort();
-      throw std::out_of_range{"fault_id was not found"};
-    }
-    return dbits_dict.at(fault_id);
+    _check_fault_id(fault_id);
+    auto index = _index(tv_id, fault_id);
+    return mArray[index];
   }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられるデータ構造
-  //////////////////////////////////////////////////////////////////////
-
-  // 一つのテストベクタに対する結果を表す構造体
-  struct ElemType {
-    // 検出された故障番号のリスト
-    std::vector<SizeType> fault_list;
-    // 故障番号をキーにして DiffBits を格納した辞書
-    std::unordered_map<SizeType, DiffBits> dbits_dict;
-  };
 
 
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief ElemType の内容をマージする．
-  static
-  void
-  _merge_elem(
-    ElemType& dst,
-    const ElemType& src
-  )
-  {
-    auto& dst_list = dst.fault_list;
-    auto& src_list = src.fault_list;
-    dst_list.insert(dst_list.end(),
-		    src_list.begin(),
-		    src_list.end());
-    for ( auto fid: src_list ) {
-      auto dbits = src.dbits_dict.at(fid);
-      dst.dbits_dict.emplace(fid, dbits);
-    }
-  }
 
   /// @brief tv_id の範囲チェックを行う．
   void
@@ -222,14 +124,41 @@ private:
     }
   }
 
+  /// @brief fault_id の範囲チェックを行う．
+  void
+  _check_fault_id(
+    SizeType fault_id ///< [in] 故障番号 ( 0 <= fault_id < fault_num() )
+  ) const
+  {
+    if ( fault_id >= fault_size() ) {
+      throw std::out_of_range{"fault_id is out of range"};
+    }
+  }
+
+  /// @brief インデックスを返す．
+  SizeType
+  _index(
+    SizeType tv_id,
+    SizeType fault_id
+  ) const
+  {
+    return tv_id * mFaultSize + fault_id;
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 本体
-  std::vector<ElemType> mElemList;
+  // テストベクタ数
+  SizeType mTvNum;
+
+  // 故障番号のサイズ
+  SizeType mFaultSize;
+
+  // 本体の配列
+  std::vector<DiffBits> mArray;
 
 };
 

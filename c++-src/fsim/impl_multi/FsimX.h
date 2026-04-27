@@ -340,12 +340,33 @@ public:
     return mFFRArray[id];
   }
 
+  /// @brief FFRグループ数を得る．
+  SizeType
+  ffrgroup_num() const
+  {
+    return mFFRGroupList.size();
+  }
+
+  /// @brief FFRグループを得る．
+  const std::vector<const SimFFR*>&
+  ffrgroup(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < ffrgroup_num() )
+  ) const
+  {
+    if ( pos >= ffrgroup_num() ) {
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mFFRGroupList[pos];
+  }
+
+#if 0
   /// @brief FFRの排列を得る．
   const std::vector<SimFFR>&
   ffr_array() const
   {
     return mFFRArray;
   }
+#endif
 
 
 private:
@@ -461,6 +482,9 @@ private:
 
   // SimNode のノード番号をキーにして対応する SimFFR を格納する配列
   std::vector<SimFFR*> mFFRMap;
+
+  // FFRを PV_BITLEN ごとにまとめたグループのリスト
+  std::vector<std::vector<const SimFFR*>> mFFRGroupList;
 
   // ノードの最大レベル
   SizeType mMaxLevel;

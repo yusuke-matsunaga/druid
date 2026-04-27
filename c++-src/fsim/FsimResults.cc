@@ -18,7 +18,7 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief 空のコンストラクタ
 FsimResults::FsimResults(
-) : mPtr{new FsimResultsRep}
+) : mPtr{nullptr}
 {
 }
 

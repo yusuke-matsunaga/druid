@@ -468,7 +468,7 @@ std::shared_ptr<FsimResultsRep>
 FSIM_CLASSNAME::_sppfp()
 {
   // シミュレーション結果
-  auto res = new FsimResultsRep(1);
+  auto res = new FsimResultsRep(mFaultMap.size(), 1);
 
   const SimFFR* ffr_buff[PV_BITLEN];
   auto bitpos = 0;
@@ -506,7 +506,7 @@ FSIM_CLASSNAME::_sppfp()
   if ( bitpos > 0 ) {
     _sppfp_simulation(ffr_buff, bitpos, res);
   }
-  res->sort();
+
   return std::shared_ptr<FsimResultsRep>{res};
 }
 
@@ -550,7 +550,7 @@ FSIM_CLASSNAME::ppsfp(
   }
 
   // 結果
-  auto res = new FsimResultsRep(n);
+  auto res = new FsimResultsRep(mFaultMap.size(), n);
 
   // FFR ごとに処理を行う．
   for ( auto& ffr: mFFRArray ) {
@@ -588,7 +588,6 @@ FSIM_CLASSNAME::ppsfp(
     }
   }
 
-  res->sort();
   return std::shared_ptr<FsimResultsRep>{res};
 }
 

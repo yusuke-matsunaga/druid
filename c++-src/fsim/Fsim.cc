@@ -221,7 +221,7 @@ Fsim::ppsfp(
 )
 {
   // 結果を格納するオブジェクト
-  auto res = std::shared_ptr<FsimResultsRep>{new FsimResultsRep(0)};
+  auto res = std::shared_ptr<FsimResultsRep>{nullptr};
 
   // PV_BITLEN ごとに分割して処理を行う．
   std::vector<TestVector> tv_buff;
@@ -232,10 +232,15 @@ Fsim::ppsfp(
     tv_buff.push_back(tv);
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
       auto res1 = mImpl->ppsfp(tv_buff);
-      if ( res1->tv_num() != tv_buff.size() ) {
-	throw std::logic_error{"something wrong"};
+      if ( res == nullptr ) {
+	res = res1;
       }
-      res->append(res1.get());
+      else {
+	if ( res1->tv_num() != tv_buff.size() ) {
+	  throw std::logic_error{"something wrong"};
+	}
+	//res->append(res1.get());
+      }
       base += tv_buff.size();
       tv_buff.clear();
     }
