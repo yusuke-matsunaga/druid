@@ -49,27 +49,28 @@ new_Fsim(
 FSIM_CLASSNAME::FSIM_CLASSNAME(
   const TpgFaultList& fault_list,
   SizeType thread_num
-) : mThreadNum{thread_num},
-    mFuncList(mThreadNum)
+) : mSyncObj(thread_num),
+    mFuncList(thread_num),
+    mThrList(thread_num)
 {
   set_network(fault_list.network());
   set_fault_list(fault_list);
 
   // 各スレッドが担当する FFR の数
-  std::vector<SizeType> size_list(mThreadNum, 0);
+  std::vector<SizeType> size_list(thread_num, 0);
   SizeType nffr = mFFRArray.size();
   for ( SizeType i = 0; i < nffr; ++ i ) {
-    ++ size_list[i % mThreadNum];
+    ++ size_list[i % thread_num];
   }
   // 各スレッドが担当する FFR の開始位置
-  std::vector<SizeType> begin_list(mThreadNum + 1);
+  std::vector<SizeType> begin_list(thread_num + 1);
   SizeType base = 0;
-  for ( SizeType i = 0; i < mThreadNum; ++ i ) {
+  for ( SizeType i = 0; i < thread_num; ++ i ) {
     begin_list[i] = base;
     base += size_list[i];
   }
-  begin_list[mThreadNum] = base;
-  for ( SizeType i = 0; i < mThreadNum; ++ i ) {
+  begin_list[thread_num] = base;
+  for ( SizeType i = 0; i < thread_num; ++ i ) {
     std::vector<const SimFFR*> ffr_list;
     auto begin = begin_list[i];
     auto end = begin_list[i + 1];
@@ -81,11 +82,56 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
     auto func = new SimThrFunc(i, *this, ffr_list);
     mFuncList[i] = std::unique_ptr<SimThrFunc>{func};
   }
+
+  // スレッドを生成する．
+  for ( SizeType i = 0; i < thread_num; ++ i ) {
+    auto func = mFuncList[i].get();
+    mThrList[i] = std::thread{
+      [&](SimThrFunc* func) {
+	for ( bool go_on = true; go_on; ) {
+	  auto cmd = mSyncObj.get_command(func->id());
+	  switch ( cmd ) {
+	  case Cmd::PPSFP:
+	    func->calc_gval(mSyncObj.testvector_list());
+	    func->ppsfp(mSyncObj.res_list());
+	    break;
+
+	  case Cmd::SPPFP_TV:
+	    func->calc_gval(mSyncObj.testvector());
+	    func->sppfp(mSyncObj.res());
+	    break;
+
+	  case Cmd::SPPFP_AS:
+	    func->calc_gval(mSyncObj.assign_list());
+	    func->sppfp(mSyncObj.res());
+	    break;
+
+	  case Cmd::XSPPFP:
+	    func->calc_gvalx(mSyncObj.assign_list());
+	    func->sppfp(mSyncObj.res());
+	    break;
+
+	  case Cmd::END:
+	    go_on = false;
+	    break;
+	  }
+	}
+      },
+      func
+    };
+  }
 }
 
 // @brief デストラクタ
 FSIM_CLASSNAME::~FSIM_CLASSNAME()
 {
+  // 終了コマンドを送る．
+  mSyncObj.put_end();
+
+  // 子スレッドの終了を待つ．
+  for ( auto& thr: mThrList ) {
+    thr.join();
+  }
 }
 
 // @brief ネットワークをセットする関数
@@ -300,13 +346,13 @@ FSIM_CLASSNAME::spsfp(
   DiffBits& dbits
 )
 {
-  auto& func = mFuncList[0];
+  auto func = SimThrFunc(0, *this);
 
   // 正常値の計算を行う．
-  func->calc_gval(tv);
+  func.calc_gval(tv);
 
   auto ff = mFaultMap[fid];
-  return func->spsfp(ff, dbits);
+  return func.spsfp(ff, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -317,13 +363,13 @@ FSIM_CLASSNAME::spsfp(
   DiffBits& dbits
 )
 {
-  auto& func = mFuncList[0];
+  auto func = SimThrFunc(0, *this);
 
   // 正常値の計算を行う．
-  func->calc_gval(assign_list);
+  func.calc_gval(assign_list);
 
   auto ff = mFaultMap[fid];
-  return func->spsfp(ff, dbits);
+  return func.spsfp(ff, dbits);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -334,13 +380,13 @@ FSIM_CLASSNAME::xspsfp(
   DiffBits& dbits
 )
 {
-  auto& func = mFuncList[0];
+  auto func = SimThrFunc(0, *this);
 
   // 正常値の計算を行う．
-  func->calc_gvalx(assign_list);
+  func.calc_gvalx(assign_list);
 
   auto ff = mFaultMap[fid];
-  return func->spsfp(ff, dbits);
+  return func.spsfp(ff, dbits);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -352,17 +398,7 @@ FSIM_CLASSNAME::sppfp(
   // 結果を格納するオブジェクト
   auto res = new FsimResultsRep(mFaultMap.size());
 
-  MtMgr::run(
-    [&](SizeType id) {
-      auto func = mFuncList[id].get();
-
-      // 正常値の計算を行う．
-      func->calc_gval(tv);
-      // FFRグループごとに故障シミュレーションを行う．
-      func->sppfp(res);
-    },
-    mThreadNum
-  );
+  mSyncObj.put_sppfp_command(tv, res);
 
   return std::shared_ptr<FsimResultsRep>{res};
 }
@@ -376,17 +412,7 @@ FSIM_CLASSNAME::sppfp(
   // 結果を格納するオブジェクト
   auto res = new FsimResultsRep(mFaultMap.size());
 
-  MtMgr::run(
-    [&](SizeType id) {
-      auto func = mFuncList[id].get();
-
-      // 正常値の計算を行う．
-      func->calc_gval(assign_list);
-      // FFRグループごとに故障シミュレーションを行う．
-      func->sppfp(res);
-    },
-    mThreadNum
-  );
+  mSyncObj.put_sppfp_command(assign_list, res);
 
   return std::shared_ptr<FsimResultsRep>{res};
 }
@@ -400,17 +426,7 @@ FSIM_CLASSNAME::xsppfp(
   // 結果を格納するオブジェクト
   auto res = new FsimResultsRep(mFaultMap.size());
 
-  MtMgr::run(
-    [&](SizeType id) {
-      auto func = mFuncList[id].get();
-
-      // 正常値の計算を行う．
-      func->calc_gvalx(assign_list);
-      // FFRグループごとに故障シミュレーションを行う．
-      func->sppfp(res);
-    },
-    mThreadNum
-  );
+  mSyncObj.put_xsppfp_command(assign_list, res);
 
   return std::shared_ptr<FsimResultsRep>{res};
 }
@@ -430,17 +446,7 @@ FSIM_CLASSNAME::ppsfp(
     res_list[i] = res;
   }
 
-  MtMgr::run(
-    [&](SizeType id) {
-      auto& func = mFuncList[id];
-
-      // 正常値の計算を行う．
-      func->calc_gval(tv_list);
-      // FFRごとに故障シミュレーションを行う．
-      func->ppsfp(res_list);
-    },
-    mThreadNum
-  );
+  mSyncObj.put_ppsfp_command(tv_list, res_list);
 
   std::vector<std::shared_ptr<FsimResultsRep>> ans_list;
   ans_list.reserve(ntv);

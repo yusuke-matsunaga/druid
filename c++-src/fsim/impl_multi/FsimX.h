@@ -19,6 +19,7 @@
 #include "types/TpgNode.h"
 #include "types/TestVector.h"
 #include "SimNodeList.h"
+#include "SyncObj.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -460,8 +461,14 @@ private:
   // TpgFault::id() をキーとして SimFault を格納する配列
   std::vector<SimFault*> mFaultMap;
 
+  // 同期用のオブジェクト
+  SyncObj mSyncObj;
+
   // 子スレッド用の SimThrFunc のリスト
   std::vector<std::unique_ptr<SimThrFunc>> mFuncList;
+
+  // スレッドのリスト
+  std::vector<std::thread> mThrList;
 
 };
 
