@@ -29,8 +29,10 @@ public:
 
   /// @brief コンストラクタ
   SimThrFunc(
-    SizeType id,         ///< [in] ID番号
-    FSIM_CLASSNAME& fsim ///< [in] 故障シミュレータ本体
+    SizeType id,                               ///< [in] ID番号
+    FSIM_CLASSNAME& fsim,                      ///< [in] 故障シミュレータ本体
+    const std::vector<const SimFFR*>& ffr_list ///< [in] 担当する FFR のリスト
+    = {}
   );
 
   /// @brief デストラクタ
@@ -83,14 +85,12 @@ public:
   /// @brief SPPFP 法のシミュレーションを行う．
   void
   sppfp(
-    const std::vector<const SimFFR*>& ffr_list, ///< [in] 対象のFFRのリスト
-    FsimResultsRep* res                         ///< [in] 結果を格納するオブジェクト
+    FsimResultsRep* res ///< [in] 結果を格納するオブジェクト
   );
 
   /// @brief PPSFP 法のシミュレーションを行う．
   void
   ppsfp(
-    const SimFFR* ffr,                           ///< [in] 対象のFFR
     const std::vector<FsimResultsRep*>& res_list ///< [in] 結果を格納するオブジェクトのリスト
   );
 
@@ -267,6 +267,9 @@ private:
 
   // 故障シミュレータ
   FSIM_CLASSNAME& mFsim;
+
+  // 担当する FFR のリスト
+  std::vector<const SimFFR*> mFFRList;
 
   // ノード番号をキーにして反転マスクを保持する配列
   std::vector<PackedVal> mFlipMaskArray;

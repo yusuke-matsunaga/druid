@@ -537,9 +537,6 @@ FSIM_CLASSNAME::ppsfp(
   const std::vector<TestVector>& tv_list
 )
 {
-  // 正常値の計算を行う．
-  _calc_gval(tv_list);
-
   // パタン数
   auto ntv = tv_list.size();
 
@@ -554,6 +551,9 @@ FSIM_CLASSNAME::ppsfp(
   for ( SizeType i = 0; i < ntv; ++ i ) {
     res_list[i] = new FsimResultsRep(mFaultMap.size());
   }
+
+  // 正常値の計算を行う．
+  _calc_gval(tv_list);
 
   // FFR ごとに処理を行う．
   for ( auto& ffr: mFFRArray ) {

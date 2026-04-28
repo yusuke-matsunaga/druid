@@ -97,9 +97,11 @@ END_NONAMESPACE
 // @brief コンストラクタ
 SimThrFunc::SimThrFunc(
   SizeType id,
-  FSIM_CLASSNAME& fsim
+  FSIM_CLASSNAME& fsim,
+  const std::vector<const SimFFR*>& ffr_list
 ) : mId{id},
     mFsim{fsim},
+    mFFRList{ffr_list},
     mFlipMaskArray(fsim.node_num(), PV_ALL0),
     mEventQ{fsim.max_level(), fsim.node_num()},
     mValArray(fsim.node_num())
@@ -428,7 +430,6 @@ SimThrFunc::spsfp(
 // @brief SPPFP 法のシミュレーションを行う．
 void
 SimThrFunc::sppfp(
-  const std::vector<const SimFFR*>& ffr_list,
   FsimResultsRep* res
 )
 {
@@ -436,11 +437,10 @@ SimThrFunc::sppfp(
     log("sppfp() start");
   }
 
-  auto nffr = ffr_list.size();
   // PV_BITLEN ずつ並列に行う．
   const SimFFR* ffr_buff[PV_BITLEN];
   SizeType bitpos = 0;
-  for ( auto ffr: ffr_list ) {
+  for ( auto ffr: mFFRList ) {
     // FFR 内の故障伝搬を行う．
     // 結果は SimFault.mObsMask に保存される．
     // FFR 内の全ての obs マスクを ffr_req に入れる．
@@ -517,7 +517,6 @@ SimThrFunc::_sppfp_simulation(
 
 void
 SimThrFunc::ppsfp(
-  const SimFFR* ffr,
   const std::vector<FsimResultsRep*>& res_list
 )
 {
@@ -533,32 +532,34 @@ SimThrFunc::ppsfp(
     bitmask |= (1UL << i);
   }
 
-  // FFR ごとに処理を行う．
-  auto ffr_req = foreach_faults(*ffr) & bitmask;
-  if ( ffr_req == PV_ALL0 ) {
-    // ffr_req が 0 ならその後のシミュレーションは必要ない．
-    return;
-  }
+  for ( auto ffr: mFFRList ) {
+    // FFR ごとに処理を行う．
+    auto ffr_req = foreach_faults(*ffr) & bitmask;
+    if ( ffr_req == PV_ALL0 ) {
+      // ffr_req が 0 ならその後のシミュレーションは必要ない．
+      continue;
+    }
 
-  // イベントシミュレーションを行う．
-  auto root = ffr->root();
-  put_event(ffr->root(), ffr_req);
-  auto dbits_array = simulate();
-  auto gobs = dbits_array.dbits_union();
-  if ( gobs != PV_ALL0 ) {
-    // FFR の故障伝搬値とマージする．
-    for ( auto ff: ffr->fault_list() ) {
-      if ( ff->skip() ) {
-	continue;
-      }
-      if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
-	// 検出された
-	auto fid = ff->id();
-	auto dbits_array1 = dbits_array.masking(ff->obs_mask());
-	for ( SizeType i = 0; i < ntv; ++ i ) {
-	  auto dbits = dbits_array1.get_slice(i);
-	  if ( dbits.elem_num() > 0 ) {
-	    res_list[i]->add(fid, dbits);
+    // イベントシミュレーションを行う．
+    auto root = ffr->root();
+    put_event(ffr->root(), ffr_req);
+    auto dbits_array = simulate();
+    auto gobs = dbits_array.dbits_union();
+    if ( gobs != PV_ALL0 ) {
+      // FFR の故障伝搬値とマージする．
+      for ( auto ff: ffr->fault_list() ) {
+	if ( ff->skip() ) {
+	  continue;
+	}
+	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
+	  // 検出された
+	  auto fid = ff->id();
+	  auto dbits_array1 = dbits_array.masking(ff->obs_mask());
+	  for ( SizeType i = 0; i < ntv; ++ i ) {
+	    auto dbits = dbits_array1.get_slice(i);
+	    if ( dbits.elem_num() > 0 ) {
+	      res_list[i]->add(fid, dbits);
+	    }
 	  }
 	}
       }

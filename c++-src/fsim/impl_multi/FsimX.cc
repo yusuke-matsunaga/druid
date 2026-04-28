@@ -55,8 +55,30 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
   set_network(fault_list.network());
   set_fault_list(fault_list);
 
+  // 各スレッドが担当する FFR の数
+  std::vector<SizeType> size_list(mThreadNum, 0);
+  SizeType nffr = mFFRArray.size();
+  for ( SizeType i = 0; i < nffr; ++ i ) {
+    ++ size_list[i % mThreadNum];
+  }
+  // 各スレッドが担当する FFR の開始位置
+  std::vector<SizeType> begin_list(mThreadNum + 1);
+  SizeType base = 0;
   for ( SizeType i = 0; i < mThreadNum; ++ i ) {
-    auto func = new SimThrFunc(i, *this);
+    begin_list[i] = base;
+    base += size_list[i];
+  }
+  begin_list[mThreadNum] = base;
+  for ( SizeType i = 0; i < mThreadNum; ++ i ) {
+    std::vector<const SimFFR*> ffr_list;
+    auto begin = begin_list[i];
+    auto end = begin_list[i + 1];
+    ffr_list.reserve(end - begin);
+    for ( SizeType j = begin; j < end; ++ j ) {
+      auto ffr = &mFFRArray[j];
+      ffr_list.push_back(ffr);
+    }
+    auto func = new SimThrFunc(i, *this, ffr_list);
     mFuncList[i] = std::unique_ptr<SimThrFunc>{func};
   }
 }
@@ -170,9 +192,7 @@ FSIM_CLASSNAME::set_network(
   mFFRArray.resize(ffr_num);
   mFFRMap.resize(mNodeArray.size());
   auto fg_num = (ffr_num + PV_BITLEN - 1) / PV_BITLEN;
-  mFFRGroupList.reserve(fg_num);
   ffr_num = 0;
-  std::vector<const SimFFR*> tmp_group;
   for ( int i = node_num; -- i >= 0; ) {
     auto& node = mNodeArray[i];
     if ( node->is_output() || node->fanout_num() != 1 ) {
@@ -181,20 +201,12 @@ FSIM_CLASSNAME::set_network(
       mFFRMap[node->id()] = ffr;
       ffr->set_root(node.get());
       ++ ffr_num;
-      tmp_group.push_back(ffr);
-      if ( tmp_group.size() == PV_BITLEN ) {
-	mFFRGroupList.push_back(tmp_group);
-	tmp_group.clear();
-      }
     }
     else {
       auto fo_node = node->fanout_top();
       auto ffr = mFFRMap[fo_node->id()];
       mFFRMap[node->id()] = ffr;
     }
-  }
-  if ( !tmp_group.empty() ) {
-    mFFRGroupList.push_back(tmp_group);
   }
 
   // 最大レベルを求める．
@@ -340,8 +352,6 @@ FSIM_CLASSNAME::sppfp(
   // 結果を格納するオブジェクト
   auto res = new FsimResultsRep(mFaultMap.size());
 
-  SizeType ffr_num = mFFRArray.size();
-  SizeType group_size = (ffr_num + mThreadNum - 1) / mThreadNum;
   MtMgr::run(
     [&](SizeType id) {
       auto func = mFuncList[id].get();
@@ -349,15 +359,7 @@ FSIM_CLASSNAME::sppfp(
       // 正常値の計算を行う．
       func->calc_gval(tv);
       // FFRグループごとに故障シミュレーションを行う．
-      SizeType base = group_size * id;
-      SizeType end = std::min(base + group_size, ffr_num);
-      std::vector<const SimFFR*> ffr_list;
-      ffr_list.reserve(group_size);
-      for ( SizeType i = base; i < end; ++ i ) {
-	auto ffr = &mFFRArray[i];
-	ffr_list.push_back(ffr);
-      }
-      func->sppfp(ffr_list, res);
+      func->sppfp(res);
     },
     mThreadNum
   );
@@ -374,8 +376,6 @@ FSIM_CLASSNAME::sppfp(
   // 結果を格納するオブジェクト
   auto res = new FsimResultsRep(mFaultMap.size());
 
-  SizeType ffr_num = mFFRArray.size();
-  SizeType group_size = (ffr_num + mThreadNum - 1) / mThreadNum;
   MtMgr::run(
     [&](SizeType id) {
       auto func = mFuncList[id].get();
@@ -383,15 +383,7 @@ FSIM_CLASSNAME::sppfp(
       // 正常値の計算を行う．
       func->calc_gval(assign_list);
       // FFRグループごとに故障シミュレーションを行う．
-      SizeType base = group_size * id;
-      SizeType end = std::min(base + group_size, ffr_num);
-      std::vector<const SimFFR*> ffr_list;
-      ffr_list.reserve(group_size);
-      for ( SizeType i = base; i < end; ++ i ) {
-	auto ffr = &mFFRArray[i];
-	ffr_list.push_back(ffr);
-      }
-      func->sppfp(ffr_list, res);
+      func->sppfp(res);
     },
     mThreadNum
   );
@@ -408,8 +400,6 @@ FSIM_CLASSNAME::xsppfp(
   // 結果を格納するオブジェクト
   auto res = new FsimResultsRep(mFaultMap.size());
 
-  SizeType ffr_num = mFFRArray.size();
-  SizeType group_size = (ffr_num + mThreadNum - 1) / mThreadNum;
   MtMgr::run(
     [&](SizeType id) {
       auto func = mFuncList[id].get();
@@ -417,15 +407,7 @@ FSIM_CLASSNAME::xsppfp(
       // 正常値の計算を行う．
       func->calc_gvalx(assign_list);
       // FFRグループごとに故障シミュレーションを行う．
-      SizeType base = group_size * id;
-      SizeType end = std::min(base + group_size, ffr_num);
-      std::vector<const SimFFR*> ffr_list;
-      ffr_list.reserve(group_size);
-      for ( SizeType i = base; i < end; ++ i ) {
-	auto ffr = &mFFRArray[i];
-	ffr_list.push_back(ffr);
-      }
-      func->sppfp(ffr_list, res);
+      func->sppfp(res);
     },
     mThreadNum
   );
@@ -448,21 +430,14 @@ FSIM_CLASSNAME::ppsfp(
     res_list[i] = res;
   }
 
-  SizeType ffr_num = mFFRArray.size();
-  SizeType group_size = (ffr_num + mThreadNum - 1) / mThreadNum;
   MtMgr::run(
     [&](SizeType id) {
-      auto func = mFuncList[id].get();
+      auto& func = mFuncList[id];
 
       // 正常値の計算を行う．
       func->calc_gval(tv_list);
       // FFRごとに故障シミュレーションを行う．
-      SizeType base = group_size * id;
-      SizeType end = std::min(base + group_size, ffr_num);
-      for ( SizeType i = base; i < end; ++ i ) {
-	auto ffr = &mFFRArray[i];
-	func->ppsfp(ffr, res_list);
-      }
+      func->ppsfp(res_list);
     },
     mThreadNum
   );
@@ -472,27 +447,6 @@ FSIM_CLASSNAME::ppsfp(
   for ( SizeType i = 0; i < ntv; ++ i ) {
     auto res = res_list[i];
     ans_list.push_back(std::shared_ptr<FsimResultsRep>{res});
-  }
-  return ans_list;
-}
-
-// @brief 故障を持つFFRのリストを返す．
-std::vector<const SimFFR*>
-FSIM_CLASSNAME::ffr_list() const
-{
-  std::vector<const SimFFR*> ans_list;
-  ans_list.reserve(mFFRArray.size());
-  for ( auto& ffr: mFFRArray ) {
-    bool has_fault = false;
-    for ( auto fault: ffr.fault_list() ) {
-      if ( !fault->skip() ) {
-	has_fault = true;
-	break;
-      }
-    }
-    if ( has_fault ) {
-      ans_list.push_back(&ffr);
-    }
   }
   return ans_list;
 }
