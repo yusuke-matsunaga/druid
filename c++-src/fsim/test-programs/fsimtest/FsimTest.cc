@@ -211,13 +211,15 @@ fsim2test(
   bool drop = false;
 
   bool multi = false;
+  int thread_num = 0;
 
   argv0 = argv[0];
 
   int pos = 1;
   for ( ; pos < argc; ++ pos) {
-    if ( argv[pos][0] == '-' ) {
-      if ( strcmp(argv[pos], "-n") == 0 ) {
+    std::string arg = argv[pos];
+    if ( arg[0] == '-' ) {
+      if ( arg == "-n" ) {
 	++ pos;
 	if ( pos >= argc ) {
 	  std::cerr << " -n option requires #pat"
@@ -231,7 +233,7 @@ fsim2test(
 	  return -1;
 	}
       }
-      else if ( strcmp(argv[pos], "--fsim2") == 0 ) {
+      else if ( arg == "--fsim2" ) {
 	if ( fsim3 ) {
 	  std::cerr << "--fsim2 and --fsim3 are mutually exclusive"
 		    << std::endl;
@@ -239,7 +241,7 @@ fsim2test(
 	}
 	fsim2 = true;
       }
-      else if ( strcmp(argv[pos], "--fsim3") == 0 ) {
+      else if ( arg == "--fsim3" ) {
 	if ( fsim2 ) {
 	  std::cerr << "--fsim2 and --fsim3 are mutually exclusive"
 		    << std::endl;
@@ -247,7 +249,7 @@ fsim2test(
 	}
 	fsim3 = true;
       }
-      else if ( strcmp(argv[pos], "--ppsfp") == 0 ) {
+      else if ( arg == "--ppsfp" ) {
 	if ( sppfp ) {
 	  std::cerr << "--ppspf and --sppfp are mutually exclusive"
 		    << std::endl;
@@ -255,7 +257,7 @@ fsim2test(
 	}
 	ppsfp = true;
       }
-      else if ( strcmp(argv[pos], "--sppfp") == 0 ) {
+      else if ( arg == "--sppfp" ) {
 	if ( ppsfp ) {
 	  std::cerr << "--ppspf and --sppfp are mutually exclusive"
 		    << std::endl;
@@ -263,7 +265,7 @@ fsim2test(
 	}
 	sppfp = true;
       }
-      else if ( strcmp(argv[pos], "--stuck-at") == 0 ) {
+      else if ( arg == "--stuck-at" ) {
 	if ( td_mode ) {
 	  std::cerr << "--stuck-at and --transition-delay are mutually exclusive"
 		    << std::endl;
@@ -271,7 +273,7 @@ fsim2test(
 	}
 	sa_mode = true;
       }
-      else if ( strcmp(argv[pos], "--transition-delay") == 0 ) {
+      else if ( arg == "--transition-delay" ) {
 	if ( td_mode ) {
 	  std::cerr << "--stuck-at and --transition-delay are mutually exclusive"
 		    << std::endl;
@@ -279,23 +281,32 @@ fsim2test(
 	}
 	td_mode = true;
       }
-      else if ( strcmp(argv[pos], "--drop") == 0 ) {
+      else if ( arg == "--drop" ) {
 	drop = true;
       }
-      else if ( strcmp(argv[pos], "--multi") == 0 ) {
+      else if ( arg == "--multi" ) {
 	multi = true;
       }
-      else if ( strcmp(argv[pos], "--blif") == 0 ) {
+      else if ( arg == "--thread-num" ) {
+	++ pos;
+	if ( pos >= argc ) {
+	  std::cerr << " --thread-num option requires <int>"
+		    << std::endl;
+	  return -1;
+	}
+	thread_num = atoi(argv[pos]);
+      }
+      else if ( arg == "--blif" ) {
 	format = "blif";
       }
-      else if ( strcmp(argv[pos], "--iscas89") == 0 ) {
+      else if ( arg == "--iscas89" ) {
 	format = "iscas89";
       }
-      else if ( strcmp(argv[pos], "--verbose") == 0 ) {
+      else if ( arg == "--verbose" ) {
 	verbose = true;
       }
       else {
-	std::cerr << argv[pos] << ": illegal option"
+	std::cerr << arg << ": illegal option"
 		  << std::endl;
 	usage();
 	return -1;
@@ -337,6 +348,7 @@ fsim2test(
   auto option = JsonValue::object();
   option.add("has_x", fsim3);
   option.add("multi_thread", multi);
+  option.add("thread_num", thread_num);
   auto fsim = Fsim(fault_list, option);
 
   SizeType max_fid = fault_list.max_fid();

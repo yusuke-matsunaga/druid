@@ -88,17 +88,17 @@ public:
     FsimResultsRep* res   ///< [in] 結果を格納するオブジェクト
   )
   {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "put_command(SPPFP_TV)";
+      log(buf.str());
+    }
     {
       std::unique_lock lck{mCmdMtx};
       mCmd = Cmd::SPPFP_TV;
       mTv = tv;
       mRes = res;
       mCmdCV.notify_all();
-    }
-    if ( debug ) {
-      std::ostringstream buf;
-      buf << "put_command(SPPFP_TV)";
-      log(buf.str());
     }
     wait();
   }
@@ -110,17 +110,17 @@ public:
     FsimResultsRep* res            ///< [in] 結果を格納するオブジェクト
   )
   {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "put_command(SPPFP_AS)";
+      log(buf.str());
+    }
     {
       std::unique_lock lck{mCmdMtx};
       mCmd = Cmd::SPPFP_AS;
       mAssignList = assign_list;
       mRes = res;
       mCmdCV.notify_all();
-    }
-    if ( debug ) {
-      std::ostringstream buf;
-      buf << "put_command(SPPFP_AS)";
-      log(buf.str());
     }
     wait();
   }
@@ -132,17 +132,17 @@ public:
     FsimResultsRep* res            ///< [in] 結果を格納するオブジェクト
   )
   {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "put_command(XSPPFP)";
+      log(buf.str());
+    }
     {
       std::unique_lock lck{mCmdMtx};
       mCmd = Cmd::XSPPFP;
       mAssignList = assign_list;
       mRes = res;
       mCmdCV.notify_all();
-    }
-    if ( debug ) {
-      std::ostringstream buf;
-      buf << "put_command(XSPPFP)";
-      log(buf.str());
     }
     wait();
   }
@@ -154,17 +154,17 @@ public:
     const std::vector<FsimResultsRep*>& res_list ///< [in] 結果を格納するオブジェクトのリスト
   )
   {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "put_command(PPSFP)";
+      log(buf.str());
+    }
     {
       std::unique_lock lck{mCmdMtx};
       mCmd = Cmd::PPSFP;
       mTvList = tv_list;
       mResList = res_list;
       mCmdCV.notify_all();
-    }
-    if ( debug ) {
-      std::ostringstream buf;
-      buf << "put_command(PPSFP)";
-      log(buf.str());
     }
     wait();
   }
@@ -173,14 +173,14 @@ public:
   void
   put_end()
   {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "    put_command(END)";
+      log(buf.str());
+    }
     std::unique_lock lck{mCmdMtx};
     mCmd = Cmd::END;
     mCmdCV.notify_all();
-    if ( debug ) {
-      std::ostringstream buf;
-      buf << "put_command(END)";
-      log(buf.str());
-    }
   }
 
   /// @brief コマンドを取り出す．
@@ -189,23 +189,25 @@ public:
     SizeType id
   )
   {
-    std::unique_lock lck2{mCmdMtx};
+    std::unique_lock lck{mCmdMtx};
     {
-      std::lock_guard lck1{mReadyMtx};
+      std::lock_guard lck{mReadyMtx};
       ++ mReadyCount;
+      if ( debug ) {
+	std::ostringstream buf;
+	buf << "    waiting for command(" << id << ")"
+	    << ", mReadyCount = " << mReadyCount;
+	log(buf.str());
+      }
       if ( mReadyCount == thread_num() ) {
+	// 最後のひとりなら準備完了を通知する．
 	mReadyCV.notify_all();
-	if ( debug ) {
-	  std::ostringstream buf;
-	  buf << "get ready(" << id << ")";
-	  log(buf.str());
-	}
       }
     }
-    mCmdCV.wait(lck2);
+    mCmdCV.wait(lck);
     if ( debug ) {
       std::ostringstream buf;
-      buf << "get_command(" << id << ") => " << mCmd;
+      buf << "    get_command(" << id << ") => " << mCmd;
       log(buf.str());
     }
     return mCmd;
@@ -232,6 +234,13 @@ public:
     return mTvList;
   }
 
+  /// @brief res()/res_list() 用のミューテックスを返す．
+  std::mutex&
+  res_mutex()
+  {
+    return mResMtx;
+  }
+
   /// @brief 結果を格納するオブジェクトを返す．
   FsimResultsRep*
   res()
@@ -250,16 +259,18 @@ public:
   void
   wait()
   {
-    std::unique_lock lck{mReadyMtx};
     if ( debug ) {
-      log("wait()");
+      log("    wait()");
     }
-    if ( mReadyCount != thread_num() ) {
-      mReadyCV.wait(lck);
+    {
+      std::unique_lock lck{mReadyMtx};
+      if ( mReadyCount != thread_num() ) {
+	mReadyCV.wait(lck);
+      }
+      mReadyCount = 0;
     }
-    mReadyCount = 0;
     if ( debug ) {
-      log("wait() end");
+      log("    wait() end");
     }
   }
 
@@ -293,6 +304,9 @@ private:
 
   // 割り当てリスト
   AssignList mAssignList;
+
+  // mRes/mResList 用のミューテックス
+  std::mutex mResMtx;
 
   // 結果を格納するオブジェクト
   FsimResultsRep* mRes;

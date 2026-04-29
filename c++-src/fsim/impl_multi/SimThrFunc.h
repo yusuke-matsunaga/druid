@@ -51,6 +51,13 @@ public:
     return mId;
   }
 
+  /// @brief 担当する FFR のリストを返す．
+  const std::vector<const SimFFR*>&
+  ffr_list() const
+  {
+    return mFFRList;
+  }
+
   /// @brief 正常値の計算を行う．
   void
   calc_gval(
@@ -158,11 +165,6 @@ private:
     return cval & lobs;
 #endif
   }
-
-  void
-  log(
-    const std::string& msg
-  );
 
 
 private:

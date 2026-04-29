@@ -120,6 +120,8 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
       func
     };
   }
+
+  mSyncObj.wait();
 }
 
 // @brief デストラクタ

@@ -111,9 +111,6 @@ SimThrFunc::SimThrFunc(
 {
   mClearArray.reserve(fsim.node_num());
   mDebug = false;
-  if ( mDebug ) {
-    log("instantiated");
-  }
 }
 
 // @brief デストラクタ
@@ -433,10 +430,6 @@ SimThrFunc::sppfp(
   FsimResultsRep* res
 )
 {
-  if ( mDebug ) {
-    log("sppfp() start");
-  }
-
   // PV_BITLEN ずつ並列に行う．
   const SimFFR* ffr_buff[PV_BITLEN];
   SizeType bitpos = 0;
@@ -481,10 +474,6 @@ SimThrFunc::sppfp(
     // ffr_buff にFFRが残っていた．
     _sppfp_simulation(ffr_buff, bitpos, res);
   }
-
-  if ( mDebug ) {
-    log("sppfp() end");
-  }
 }
 
 // @brief sppfp 用のシミュレーションを行う．
@@ -520,10 +509,6 @@ SimThrFunc::ppsfp(
   const std::vector<FsimResultsRep*>& res_list
 )
 {
-  if ( mDebug ) {
-    log("ppsfp() start");
-  }
-
   auto ntv = res_list.size();
 
   // データを持っているビットを表すビットマスク
@@ -565,20 +550,6 @@ SimThrFunc::ppsfp(
       }
     }
   }
-
-  if ( mDebug ) {
-    log("ppsfp() end");
-  }
-}
-
-void
-SimThrFunc::log(
-  const std::string& msg
-)
-{
-  std::ostringstream buf;
-  buf << "[THR#" << mId << "]: " << msg;
-  //mSyncObj.log(buf.str());
 }
 
 // @brief 個々の故障に FaultProp を適用する．

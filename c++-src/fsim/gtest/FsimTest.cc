@@ -55,21 +55,24 @@ public:
   void
   sppfp_test(
     const TpgNetwork& network,
-    bool multi
+    bool multi,
+    int thread_num = 0
   );
 
   /// @brief sppfp テストを行う．
   void
   xsppfp_test(
     const TpgNetwork& network,
-    bool multi
+    bool multi,
+    int thread_num = 0
   );
 
   /// @brief ppsfp のテストを行う．
   void
   ppsfp_test(
     const TpgNetwork& network,
-    bool multi
+    bool multi,
+    int thread_num = 0
   );
 
 
@@ -154,12 +157,14 @@ FsimTest::xspsfp_test(
 void
 FsimTest::sppfp_test(
   const TpgNetwork& tpg_network,
-  bool multi
+  bool multi,
+  int thread_num
 )
 {
   auto fault_list = tpg_network.rep_fault_list();
   auto fsim_option = JsonValue::object();
   fsim_option.add("multi_thread", multi);
+  fsim_option.add("thread_num", thread_num);
   auto fsim = Fsim(fault_list, fsim_option);
 
   SizeType input_num = tpg_network.input_num();
@@ -205,13 +210,15 @@ FsimTest::sppfp_test(
 void
 FsimTest::xsppfp_test(
   const TpgNetwork& tpg_network,
-  bool multi
+  bool multi,
+  int thread_num
 )
 {
   auto fault_list = tpg_network.rep_fault_list();
   auto fsim_option = JsonValue::object();
   fsim_option.add("has_x", true);
   fsim_option.add("multi_thread", multi);
+  fsim_option.add("thread_num", thread_num);
   auto fsim = Fsim(fault_list, fsim_option);
 
   SizeType input_num = tpg_network.input_num();
@@ -280,12 +287,14 @@ FsimTest::xsppfp_test(
 void
 FsimTest::ppsfp_test(
   const TpgNetwork& tpg_network,
-  bool multi
+  bool multi,
+  int thread_num
 )
 {
   auto fault_list = tpg_network.rep_fault_list();
   auto fsim_option = JsonValue::object();
   fsim_option.add("multi_thread", multi);
+  fsim_option.add("thread_num", thread_num);
   auto fsim = Fsim(fault_list, fsim_option);
 
   SizeType input_num = tpg_network.input_num();
@@ -403,7 +412,7 @@ TEST_P(FsimTest, sppfp_multi_td_test)
 TEST_P(FsimTest, ppsfp_multi_sa_test)
 {
   auto tpg_network = read_network(FaultType::StuckAt);
-  ppsfp_test(tpg_network, true);
+  ppsfp_test(tpg_network, true, 2);
 }
 
 TEST_P(FsimTest, ppsfp_multi_td_test)
