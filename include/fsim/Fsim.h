@@ -116,7 +116,7 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // 故障シミュレーションを行う関数
+  // 故障検出のみを判定する故障シミュレーションを行う関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -128,16 +128,6 @@ public:
     const TpgFault& fault ///< [in] 対象の故障番号
   );
 
-  /// @brief SPSFP故障シミュレーションを行う(DibbBits付き)．
-  /// @retval true 故障の検出が行えた．
-  /// @retval false 故障の検出が行えなかった．
-  bool
-  spsfp(
-    const TestVector& tv,  ///< [in] テストベクタ
-    const TpgFault& fault, ///< [in] 対象の故障番号
-    DiffBits& dbits        ///< [out] 出力ごとの伝搬状況を表すビットベクタ
-  );
-
   /// @brief SPSFP故障シミュレーションを行う．
   /// @retval true 故障の検出が行えた．
   /// @retval false 故障の検出が行えなかった．
@@ -147,18 +137,6 @@ public:
   spsfp(
     const AssignList& assign_list, ///< [in] 値の割当リスト
     const TpgFault& fault          ///< [in] 対象の故障番号
-  );
-
-  /// @brief SPSFP故障シミュレーションを行う(DiffBits付き)．
-  /// @retval true 故障の検出が行えた．
-  /// @retval false 故障の検出が行えなかった．
-  ///
-  /// assign_list は外部入力の割り当てでなければならない．
-  bool
-  spsfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault& fault,         ///< [in] 対象の故障番号
-    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
   );
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -173,24 +151,81 @@ public:
     const TpgFault& fault          ///< [in] 対象の故障番号
   );
 
-  /// @brief SPSFP故障シミュレーションを行う(DiffBits付き)．
-  /// @retval true 故障の検出が行えた．
-  /// @retval false 故障の検出が行えなかった．
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  /// @return 検出された故障のリストを返す．
+  TpgFaultList
+  sppfp(
+    const TestVector& tv ///< [in] テストベクタ
+  );
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  /// @return 検出された故障のリストを返す．
   ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  bool
-  xspsfp(
+  /// - assign_list は外部入力の割り当てでなければならない．
+  TpgFaultList
+  sppfp(
+    const AssignList& assign_list ///< [in] 値の割当リスト
+  );
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  /// @return 検出された故障のリストを返す．
+  ///
+  /// - assign_list は任意の位置の割り当てでよい．
+  /// - 3値のシミュレーションのみ可能
+  TpgFaultList
+  xsppfp(
+    const AssignList& assign_list ///< [in] 値の割当リスト
+  );
+
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  /// @return 検出された故障のリストのベクタを返す．
+  ///
+  /// - 結果のベクタサイズ == tv_list.size() が成り立つ．
+  std::vector<TpgFaultList>
+  ppsfp(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  );
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 出力ごとの故障伝搬を区別した故障シミュレーションを行う関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief SPSFP故障シミュレーションを行う
+  /// @return 出力ごとの故障伝搬状況を返す．
+  DiffBits
+  spsfp2(
+    const TestVector& tv, ///< [in] テストベクタ
+    const TpgFault& fault ///< [in] 対象の故障番号
+  );
+
+  /// @brief SPSFP故障シミュレーションを行う
+  /// @return 出力ごとの故障伝搬状況を返す．
+  ///
+  /// - assign_list は外部入力の割り当てでなければならない．
+  DiffBits
+  spsfp2(
     const AssignList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault& fault,         ///< [in] 対象の故障番号
-    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+    const TpgFault& fault          ///< [in] 対象の故障番号
+  );
+
+  /// @brief SPSFP故障シミュレーションを行う
+  /// @return 出力ごとの故障伝搬状況を返す．
+  ///
+  /// - assign_list は任意の位置の割り当てでよい．
+  /// - 3値のシミュレーションのみ可能
+  DiffBits
+  xspsfp2(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    const TpgFault& fault          ///< [in] 対象の故障番号
   );
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   ///
   /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
   FsimResults
-  sppfp(
+  sppfp2(
     const TestVector& tv ///< [in] テストベクタ
   );
 
@@ -199,7 +234,7 @@ public:
   /// - assign_list は外部入力の割り当てでなければならない．
   /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
   FsimResults
-  sppfp(
+  sppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   );
 
@@ -209,7 +244,7 @@ public:
   /// - 3値のシミュレーションのみ可能
   /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
   FsimResults
-  xsppfp(
+  xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   );
 
@@ -217,7 +252,7 @@ public:
   ///
   /// - 結果の FsimResults::tv_num() == tv_list.size() が成り立つ．
   FsimResults
-  ppsfp(
+  ppsfp2(
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   );
 

@@ -344,6 +344,122 @@ FSIM_CLASSNAME::get_skip(
 bool
 FSIM_CLASSNAME::spsfp(
   const TestVector& tv,
+  SizeType fid
+)
+{
+  auto func = SimThrFunc(0, *this);
+
+  // 正常値の計算を行う．
+  func.calc_gval(tv);
+
+  auto ff = mFaultMap[fid];
+  return func.spsfp(ff);
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+bool
+FSIM_CLASSNAME::spsfp(
+  const AssignList& assign_list,
+  SizeType fid
+)
+{
+  auto func = SimThrFunc(0, *this);
+
+  // 正常値の計算を行う．
+  func.calc_gval(assign_list);
+
+  auto ff = mFaultMap[fid];
+  return func.spsfp(ff);
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+bool
+FSIM_CLASSNAME::xspsfp(
+  const AssignList& assign_list,
+  SizeType fid
+)
+{
+  auto func = SimThrFunc(0, *this);
+
+  // 正常値の計算を行う．
+  func.calc_gvalx(assign_list);
+
+  auto ff = mFaultMap[fid];
+  return func.spsfp(ff);
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+std::vector<SizeType>
+FSIM_CLASSNAME::sppfp(
+  const TestVector& tv
+)
+{
+  // 結果を格納するオブジェクト
+  auto res = new FsimResultsRep(mFaultMap.size());
+
+  mSyncObj.put_sppfp_command(tv, res);
+
+  return std::shared_ptr<FsimResultsRep>{res};
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+std::shared_ptr<FsimResultsRep>
+FSIM_CLASSNAME::sppfp(
+  const AssignList& assign_list
+)
+{
+  // 結果を格納するオブジェクト
+  auto res = new FsimResultsRep(mFaultMap.size());
+
+  mSyncObj.put_sppfp_command(assign_list, res);
+
+  return std::shared_ptr<FsimResultsRep>{res};
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+std::shared_ptr<FsimResultsRep>
+FSIM_CLASSNAME::xsppfp(
+  const AssignList& assign_list
+)
+{
+  // 結果を格納するオブジェクト
+  auto res = new FsimResultsRep(mFaultMap.size());
+
+  mSyncObj.put_xsppfp_command(assign_list, res);
+
+  return std::shared_ptr<FsimResultsRep>{res};
+}
+
+// @brief 複数のパタンで故障シミュレーションを行う．
+std::vector<std::shared_ptr<FsimResultsRep>>
+FSIM_CLASSNAME::ppsfp(
+  const std::vector<TestVector>& tv_list
+)
+{
+  auto ntv = tv_list.size();
+
+  // 結果を格納するオブジェクトのリスト
+  std::vector<FsimResultsRep*> res_list(ntv);
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    auto res = new FsimResultsRep(mFaultMap.size());
+    res_list[i] = res;
+  }
+
+  mSyncObj.put_ppsfp_command(tv_list, res_list);
+
+  std::vector<std::shared_ptr<FsimResultsRep>> ans_list;
+  ans_list.reserve(ntv);
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    auto res = res_list[i];
+    ans_list.push_back(std::shared_ptr<FsimResultsRep>{res});
+  }
+  return ans_list;
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+bool
+FSIM_CLASSNAME::spsfp(
+  const TestVector& tv,
   SizeType fid,
   DiffBits& dbits
 )

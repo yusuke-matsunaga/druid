@@ -81,7 +81,7 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////
-  // 故障シミュレーションを行う関数
+  // 検出の判定のみを行う故障シミュレーションを行う関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -90,8 +90,7 @@ public:
   bool
   spsfp(
     const TestVector& tv, ///< [in] テストベクタ
-    SizeType fid,         ///< [in] 対象の故障番号
-    DiffBits& dbits       ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+    SizeType fid          ///< [in] 対象の故障番号
   ) override;
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -100,8 +99,7 @@ public:
   bool
   spsfp(
     const AssignList& assign_list, ///< [in] 値の割当リスト
-    SizeType fid,                  ///< [in] 対象の故障番号
-    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+    SizeType fid                   ///< [in] 対象の故障番号
   ) override;
 
   /// @brief SPSFP故障シミュレーションを行う．
@@ -113,20 +111,78 @@ public:
   bool
   xspsfp(
     const AssignList& assign_list, ///< [in] 値の割当リスト
-    SizeType fid,                  ///< [in] 対象の故障番号
-    DiffBits& dbits                ///< [out] 出力ごとの伝搬状況を表すビットベクタ
+    SizeType fid                   ///< [in] 対象の故障番号
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  std::shared_ptr<FsimResultsRep>
+  /// @return 検出された故障番号のリストを返す．
+  std::vector<SizeType>
   sppfp(
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
-  std::shared_ptr<FsimResultsRep>
+  /// @return 検出された故障番号のリストを返す．
+  std::vector<SizeType>
   sppfp(
+    const AssignList& assign_list ///< [in] 値の割当リスト
+  ) override;
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  /// @return 検出された故障番号のリストを返す．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  std::vector<SizeType>
+  xsppfp(
+    const AssignList& assign_list ///< [in] 値の割当リスト
+  ) override;
+
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  std::vector<std::vector<SizeType>>
+  ppsfp(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  ) override;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 出力ごとの故障伝搬を調べる故障シミュレーションを行う関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief SPSFP故障シミュレーションを行う．
+  DiffBits
+  spsfp2(
+    const TestVector& tv, ///< [in] テストベクタ
+    SizeType fid          ///< [in] 対象の故障番号
+  ) override;
+
+  /// @brief SPSFP故障シミュレーションを行う．
+  DiffBits
+  spsfp2(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    SizeType fid                   ///< [in] 対象の故障番号
+  ) override;
+
+  /// @brief SPSFP故障シミュレーションを行う．
+  ///
+  /// * assign_list は任意の位置の割り当てでよい．
+  /// * 3値のシミュレーションのみ可能
+  DiffBits
+  xspsfp2(
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    SizeType fid                   ///< [in] 対象の故障番号
+  ) override;
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  std::shared_ptr<FsimResultsRep>
+  sppfp2(
+    const TestVector& tv ///< [in] テストベクタ
+  ) override;
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  std::shared_ptr<FsimResultsRep>
+  sppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
@@ -135,13 +191,13 @@ public:
   /// * assign_list は任意の位置の割り当てでよい．
   /// * 3値のシミュレーションのみ可能
   std::shared_ptr<FsimResultsRep>
-  xsppfp(
+  xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   std::vector<std::shared_ptr<FsimResultsRep>>
-  ppsfp(
+  ppsfp2(
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) override;
 

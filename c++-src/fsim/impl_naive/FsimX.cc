@@ -338,48 +338,42 @@ FSIM_CLASSNAME::get_skip(
 bool
 FSIM_CLASSNAME::spsfp(
   const TestVector& tv,
-  SizeType fid,
-  DiffBits& dbits
+  SizeType fid
 )
 {
   // 正常値の計算を行う．
   _calc_gval(tv);
 
   // 故障伝搬を行う．
-  return _spsfp(fid, dbits);
+  return _spsfp(fid);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
 bool
 FSIM_CLASSNAME::spsfp(
   const AssignList& assign_list,
-  SizeType fid,
-  DiffBits& dbits
+  SizeType fid
 )
 {
   // 正常値の計算を行う．
   _calc_gval(assign_list);
 
   // 故障伝搬を行う．
-  return _spsfp(fid, dbits);
+  return _spsfp(fid);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
 bool
 FSIM_CLASSNAME::xspsfp(
   const AssignList& assign_list,
-  SizeType fid,
-  DiffBits& dbits
+  SizeType fid
 )
 {
-  // dbits を初期化しておく．
-  dbits.clear();
-
   // 正常値の計算を行う．
   _calc_gval2(assign_list);
 
   // 故障伝搬を行う．
-  auto res = _spsfp(fid, dbits);
+  auto res = _spsfp(fid);
 
   // init フラグを元に戻す．
   _clear_init();
@@ -390,13 +384,9 @@ FSIM_CLASSNAME::xspsfp(
 // @brief SPSFP故障シミュレーションの本体
 bool
 FSIM_CLASSNAME::_spsfp(
-  SizeType fid,
-  DiffBits& dbits
+  SizeType fid
 )
 {
-  // dbits を初期化しておく．
-  dbits.clear();
-
   auto ff = mFaultMap[fid];
 
   // FFR の根までの伝搬条件を求める．
@@ -413,14 +403,13 @@ FSIM_CLASSNAME::_spsfp(
   // root からの故障伝搬シミュレーションを行う．
   auto dbits_array = _global_prop(root, PV_ALL1);
   if ( dbits_array.dbits_union() != PV_ALL0 ) {
-    dbits = dbits_array.get_slice(0);
     return true;
   }
   return false;
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
+std::vector<SizeType>
 FSIM_CLASSNAME::sppfp(
   const TestVector& tv
 )
@@ -433,7 +422,7 @@ FSIM_CLASSNAME::sppfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
+std::vector<SizeType>
 FSIM_CLASSNAME::sppfp(
   const AssignList& assign_list
 )
@@ -446,7 +435,7 @@ FSIM_CLASSNAME::sppfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
+std::vector<SizeType>
 FSIM_CLASSNAME::xsppfp(
   const AssignList& assign_list
 )
@@ -464,8 +453,250 @@ FSIM_CLASSNAME::xsppfp(
 }
 
 // @brief SPPFP故障シミュレーションの本体
-std::shared_ptr<FsimResultsRep>
+std::vector<SizeType>
 FSIM_CLASSNAME::_sppfp()
+{
+  std::vector<SizeType> fid_list;
+
+  const SimFFR* ffr_buff[PV_BITLEN];
+  auto bitpos = 0;
+  // FFR ごとに処理を行う．
+  for ( auto& ffr: mFFRArray ) {
+    // FFR 内の故障伝搬を行う．
+    // 結果は SimFault.mObsMask に保存される．
+    // FFR 内の全ての obs マスクを ffr_req に入れる．
+    auto ffr_req = _foreach_faults(ffr);
+    if ( ffr_req == PV_ALL0 ) {
+      // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
+      continue;
+    }
+
+    auto root = ffr.root();
+    if ( root->is_output() ) {
+      // 常に観測可能
+      _sppfp_sub(ffr, fid_list);
+    }
+    else {
+      // キューに積んでおく
+      PackedVal bitmask = 1ULL << bitpos;
+      mEventQ.put_event(root, bitmask);
+      ffr_buff[bitpos] = &ffr;
+      ++ bitpos;
+
+      if ( bitpos == PV_BITLEN ) {
+	_sppfp_simulation(ffr_buff, bitpos, fid_list);
+	bitpos = 0;
+      }
+    }
+  }
+  if ( bitpos > 0 ) {
+    _sppfp_simulation(ffr_buff, bitpos, fid_list);
+  }
+
+  std::sort(fid_list.begin(), fid_list.end());
+  return fid_list;
+}
+
+// @brief sppfp 用のシミュレーションを行う．
+void
+FSIM_CLASSNAME::_sppfp_simulation(
+  const SimFFR* ffr_buff[],
+  SizeType ffr_num,
+  std::vector<SizeType>& fid_list
+)
+{
+  auto dbits_array = mEventQ.simulate();
+  auto obs = dbits_array.dbits_union();
+  PackedVal mask = 1ULL;
+  for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
+    if ( obs & mask ) {
+      auto& ffr = *ffr_buff[i];
+      _sppfp_sub(ffr, fid_list);
+    }
+  }
+}
+
+// @brief 複数のパタンで故障シミュレーションを行う．
+std::vector<std::vector<SizeType>>
+FSIM_CLASSNAME::ppsfp(
+  const std::vector<TestVector>& tv_list
+)
+{
+  // パタン数
+  auto ntv = tv_list.size();
+
+  // データを持っているビットを表すビットマスク
+  PackedVal bitmask = 0UL;
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    bitmask |= (1UL << i);
+  }
+
+  // 結果を格納するオブジェクトのリスト
+  std::vector<std::vector<SizeType>> det_list_array(ntv);
+
+  // 正常値の計算を行う．
+  _calc_gval(tv_list);
+
+  // FFR ごとに処理を行う．
+  for ( auto& ffr: mFFRArray ) {
+    // FFR 内の故障伝搬を行う．
+    // 結果は SimFault::mObsMask に保存される．
+    // FFR 内の全ての obs マスクを ffr_req に入れる．
+    auto ffr_req = _foreach_faults(ffr) & bitmask;
+
+    // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
+    if ( ffr_req == PV_ALL0 ) {
+      continue;
+    }
+
+    // FFR の出力の故障伝搬を行う．
+    auto dbits_array = _global_prop(ffr.root(), ffr_req);
+    auto gobs = dbits_array.dbits_union();
+    if ( gobs != PV_ALL0 ) {
+      // FFR 内の故障伝搬を行う．
+      for ( auto ff: ffr.fault_list() ) {
+	if ( ff->skip() ) {
+	  continue;
+	}
+	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
+	  // 検出された．
+	  auto fid = ff->id();
+	  auto dbits_array1 = dbits_array.masking(ff->obs_mask());
+	  for ( SizeType i = 0; i < ntv; ++ i ) {
+	    auto dbits = dbits_array1.get_slice(i);
+	    if ( dbits.elem_num() > 0 ) {
+	      det_list_array[i].push_back(fid);
+	    }
+	  }
+	}
+      }
+    }
+  }
+
+  return det_list_array;
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+DiffBits
+FSIM_CLASSNAME::spsfp2(
+  const TestVector& tv,
+  SizeType fid
+)
+{
+  // 正常値の計算を行う．
+  _calc_gval(tv);
+
+  // 故障伝搬を行う．
+  return _spsfp2(fid);
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+DiffBits
+FSIM_CLASSNAME::spsfp2(
+  const AssignList& assign_list,
+  SizeType fid
+)
+{
+  // 正常値の計算を行う．
+  _calc_gval(assign_list);
+
+  // 故障伝搬を行う．
+  return _spsfp2(fid);
+}
+
+// @brief SPSFP故障シミュレーションを行う．
+DiffBits
+FSIM_CLASSNAME::xspsfp2(
+  const AssignList& assign_list,
+  SizeType fid
+)
+{
+  // 正常値の計算を行う．
+  _calc_gval2(assign_list);
+
+  // 故障伝搬を行う．
+  auto res = _spsfp2(fid);
+
+  // init フラグを元に戻す．
+  _clear_init();
+
+  return res;
+}
+
+// @brief SPSFP故障シミュレーションの本体
+DiffBits
+FSIM_CLASSNAME::_spsfp2(
+  SizeType fid
+)
+{
+  auto ff = mFaultMap[fid];
+
+  // FFR の根までの伝搬条件を求める．
+  auto obs = _local_prop(ff);
+
+  // obs が 0 ならその後のシミュレーションを行う必要はない．
+  if ( obs == PV_ALL0 ) {
+    return DiffBits();
+  }
+
+  // FFR の根のノードを求める．
+  auto root = ff->origin_node()->ffr_root();
+
+  // root からの故障伝搬シミュレーションを行う．
+  auto dbits_array = _global_prop(root, PV_ALL1);
+  if ( dbits_array.dbits_union() != PV_ALL0 ) {
+    return dbits_array.get_slice(0);
+  }
+  return DiffBits();
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+std::shared_ptr<FsimResultsRep>
+FSIM_CLASSNAME::sppfp2(
+  const TestVector& tv
+)
+{
+  // 正常値の計算を行う．
+  _calc_gval(tv);
+
+  // 故障伝搬を行う．
+  return _sppfp2();
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+std::shared_ptr<FsimResultsRep>
+FSIM_CLASSNAME::sppfp2(
+  const AssignList& assign_list
+)
+{
+  // 正常値の計算を行う．
+  _calc_gval(assign_list);
+
+  // 故障伝搬を行う．
+  return _sppfp2();
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+std::shared_ptr<FsimResultsRep>
+FSIM_CLASSNAME::xsppfp2(
+  const AssignList& assign_list
+)
+{
+  // 正常値の計算を行う．
+  _calc_gval2(assign_list);
+
+  // 故障伝搬を行う．
+  auto res = _sppfp2();
+
+  // init フラグを元に戻す．
+  _clear_init();
+
+  return res;
+}
+
+// @brief SPPFP故障シミュレーションの本体
+std::shared_ptr<FsimResultsRep>
+FSIM_CLASSNAME::_sppfp2()
 {
   // シミュレーション結果
   auto res = new FsimResultsRep(mFaultMap.size());
@@ -488,7 +719,7 @@ FSIM_CLASSNAME::_sppfp()
       // 常にこの出力のみで観測可能
       DiffBits dbits;
       dbits.add_output(root->output_id());
-      _sppfp_sub(ffr, dbits, res);
+      _sppfp2_sub(ffr, dbits, res);
     }
     else {
       // キューに積んでおく
@@ -498,21 +729,21 @@ FSIM_CLASSNAME::_sppfp()
       ++ bitpos;
 
       if ( bitpos == PV_BITLEN ) {
-	_sppfp_simulation(ffr_buff, bitpos, res);
+	_sppfp2_simulation(ffr_buff, bitpos, res);
 	bitpos = 0;
       }
     }
   }
   if ( bitpos > 0 ) {
-    _sppfp_simulation(ffr_buff, bitpos, res);
+    _sppfp2_simulation(ffr_buff, bitpos, res);
   }
 
   return std::shared_ptr<FsimResultsRep>{res};
 }
 
-// @brief sppfp 用のシミュレーションを行う．
+// @brief sppfp2 用のシミュレーションを行う．
 void
-FSIM_CLASSNAME::_sppfp_simulation(
+FSIM_CLASSNAME::_sppfp2_simulation(
   const SimFFR* ffr_buff[],
   SizeType ffr_num,
   FsimResultsRep* res
@@ -526,14 +757,14 @@ FSIM_CLASSNAME::_sppfp_simulation(
       auto& ffr = *ffr_buff[i];
       auto dbits = dbits_array.get_slice(i);
       dbits.sort();
-      _sppfp_sub(ffr, dbits, res);
+      _sppfp2_sub(ffr, dbits, res);
     }
   }
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
 std::vector<std::shared_ptr<FsimResultsRep>>
-FSIM_CLASSNAME::ppsfp(
+FSIM_CLASSNAME::ppsfp2(
   const std::vector<TestVector>& tv_list
 )
 {
