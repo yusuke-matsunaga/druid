@@ -85,21 +85,70 @@ public:
   /// @brief SPSFP 法のシミュレーションを行う．
   bool
   spsfp(
-    const SimFault* f, ///< [in] 故障
-    DiffBits& dbits    ///< [out] 出力ごとの伝搬結果
+    const SimFault* f ///< [in] 故障
   );
 
   /// @brief SPPFP 法のシミュレーションを行う．
+  ///
+  /// 結果は mDetListArray[0] に格納される．
   void
-  sppfp(
-    FsimResultsRep* res ///< [in] 結果を格納するオブジェクト
-  );
+  sppfp();
 
   /// @brief PPSFP 法のシミュレーションを行う．
+  ///
+  /// 結果は mDetListArray に格納される．
   void
-  ppsfp(
-    const std::vector<FsimResultsRep*>& res_list ///< [in] 結果を格納するオブジェクトのリスト
+  ppsfp();
+
+  /// @brief SPSFP 法のシミュレーションを行う．
+  DiffBits
+  spsfp2(
+    const SimFault* f ///< [in] 故障
   );
+
+  /// @brief SPPFP 法のシミュレーションを行う．
+  ///
+  /// 結果は mDetListArray[0] と mDiffBitsListArray[0] に格納される．
+  void
+  sppfp2();
+
+  /// @brief PPSFP 法のシミュレーションを行う．
+  ///
+  /// 結果は mDetListArray と mDiffBitsListArray に格納される．
+  void
+  ppsfp2();
+
+  /// @brief SPPFP の結果を得る．
+  const std::vector<SizeType>&
+  det_list() const
+  {
+    return mDetListArray[0];
+  }
+
+  /// @brief PPSFP の結果を得る．
+  const std::vector<SizeType>&
+  det_list(
+    SizeType tv_id ///< [in] テストベクタ番号
+  ) const
+  {
+    return mDetListArray[tv_id];
+  }
+
+  /// @brief SPPFP2 の結果を得る．
+  const std::vector<DiffBits>&
+  diffbits_list() const
+  {
+    return mDiffBitsListArray[0];
+  }
+
+  /// @brief PPSFP2 の結果を得る．
+  const std::vector<DiffBits>&
+  diffbits_list(
+    SizeType tv_id ///< [in] テストベクタ番号
+  ) const
+  {
+    return mDiffBitsListArray[tv_id];
+  }
 
 
 private:
@@ -123,10 +172,16 @@ private:
 
   /// @brief sppfp 用のシミュレーションを行う．
   void
-  _sppfp_simulation(
+  _sppfp_sub(
     const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
-    SizeType ffr_num,         ///< [in] FFR 数
-    FsimResultsRep* res       ///< [in] 結果を格納するオブジェクト
+    SizeType ffr_num          ///< [in] FFR 数
+  );
+
+  /// @brief sppfp 用のシミュレーションを行う．
+  void
+  _sppfp2_sub(
+    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
+    SizeType ffr_num          ///< [in] FFR 数
   );
 
   /// @brief FFR内の個々の故障の故障伝搬条件を計算する．
@@ -232,8 +287,13 @@ private:
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @retval 出力における変化ビットを返す．
-  DiffBitsArray
+  PackedVal
   simulate();
+
+  /// @brief イベントドリブンシミュレーションを行う．
+  /// @retval 出力における変化ビットを返す．
+  DiffBitsArray
+  simulate2();
 
   /// @brief clear リストに追加する．
   void
@@ -273,8 +333,14 @@ private:
   // 担当する FFR のリスト
   std::vector<const SimFFR*> mFFRList;
 
-  // ノード番号をキーにして反転マスクを保持する配列
-  std::vector<PackedVal> mFlipMaskArray;
+  // 検出された故障のリストの配列
+  std::vector<std::vector<SizeType>> mDetListArray;
+
+  // 検出された故障の出力ごとの故障伝搬状況のリストの配列
+  std::vector<std::vector<DiffBits>> mDiffBitsListArray;
+
+  // 現在のテストベクタ数
+  SizeType mTvNum;
 
   // イベントキュー
   EventQ mEventQ;
@@ -289,6 +355,9 @@ private:
 
   // clear 用の情報の配列
   std::vector<RestoreInfo> mClearArray;
+
+  // ノード番号をキーにして反転マスクを保持する配列
+  std::vector<PackedVal> mFlipMaskArray;
 
   // デバッグフラグ
   bool mDebug{false};

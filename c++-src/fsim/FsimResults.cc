@@ -25,19 +25,70 @@ FsimResults::FsimResults(
 // @brief 内容を指定するコンストラクタ
 FsimResults::FsimResults(
   const std::shared_ptr<NetworkRep>& impl,
-  const std::shared_ptr<FsimResultsRep>& src
+  FsimResultsRep* src
 ) : TpgBase{impl},
-    mArray{{src}}
+    mArray{src}
 {
 }
 
 // @brief 内容を指定するコンストラクタ
 FsimResults::FsimResults(
   const std::shared_ptr<NetworkRep>& impl,
-  const std::vector<std::shared_ptr<FsimResultsRep>>& src
+  const std::vector<FsimResultsRep*>& src_list
 ) : TpgBase{impl},
-    mArray{src}
+    mArray{src_list}
 {
+}
+
+// @brief コピーコンストラクタ
+FsimResults::FsimResults(
+  const FsimResults& src
+) : TpgBase{src}
+{
+  _copy(src);
+}
+
+// @brief 代入演算子
+FsimResults&
+FsimResults::operator=(
+  const FsimResults& src
+)
+{
+  if ( this != &src ) {
+    TpgBase::operator=(src);
+    _clear();
+    _copy(src);
+  }
+  return *this;
+}
+
+// @brief デストラクタ
+FsimResults::~FsimResults()
+{
+  _clear();
+}
+
+// @brief クリアする．
+void
+FsimResults::_clear()
+{
+  for ( auto rep: mArray ) {
+    delete rep;
+  }
+  mArray.clear();
+}
+
+// @brief コピーする
+void
+FsimResults::_copy(
+  const FsimResults& src
+)
+{
+  mArray.reserve(src.mArray.size());
+  for ( auto src_rep: src.mArray ) {
+    auto rep = new FsimResultsRep(*src_rep);
+    mArray.push_back(rep);
+  }
 }
 
 // @brief テストベクタの総数を返す．
@@ -54,7 +105,7 @@ FsimResults::fault_list(
 ) const
 {
   _check_tv_id(tv_id);
-  auto& rep = mArray[tv_id];
+  auto rep = mArray[tv_id];
   return TpgBase::fault_list(rep->fault_list());
 }
 
@@ -66,7 +117,7 @@ FsimResults::diffbits(
 ) const
 {
   _check_tv_id(tv_id);
-  auto& rep = mArray[tv_id];
+  auto rep = mArray[tv_id];
   return rep->diffbits(fault_id);
 }
 

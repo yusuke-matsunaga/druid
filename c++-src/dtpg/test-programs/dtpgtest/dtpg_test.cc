@@ -367,7 +367,6 @@ dtpg_test(
       if ( stats != FaultStatus::Detected ) {
 	continue;
       }
-      DiffBits _;
       std::string error;
       int error_type = 0;
       auto cond = results.cond(fault);
@@ -378,12 +377,12 @@ dtpg_test(
 	error_type |= 4;
       }
       assign_list.merge(aux_list);
-      if ( !fsim.xspsfp(assign_list, fault, _) ) {
+      if ( !fsim.xspsfp(assign_list, fault) ) {
 	error += " assign_list";
 	error_type |= 1;
       }
       auto tv = results.testvector(fault);
-      if ( !fsim.spsfp(tv, fault, _) ) {
+      if ( !fsim.spsfp(tv, fault) ) {
 	error += " testvector";
 	error_type |= 2;
       }

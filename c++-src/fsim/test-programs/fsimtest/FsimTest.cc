@@ -52,8 +52,7 @@ spsfp_test(
       if ( det_mark.count(fault.id()) > 0 ) {
 	continue;
       }
-      DiffBits dbits;
-      if ( fsim.spsfp(tv, fault, dbits) ) {
+      if ( fsim.spsfp(tv, fault) ) {
 	++ det_num;
 	detect = true;
 	det_mark.emplace(fault.id());
@@ -86,13 +85,48 @@ sppfp_test(
   std::vector<bool> det_array(max_fid, false);
   for ( auto tv: tv_list ) {
     bool detected = false;
-    auto res = fsim.sppfp(tv);
-    if ( res.tv_num() != 1 ) {
-      throw std::logic_error{"something wrong"};
+    auto det_list = fsim.sppfp(tv);
+    for ( auto fault: det_list ) {
+      auto fid = fault.id();
+      if ( !det_array[fid] ) {
+	det_array[fid] = true;
+	++ det_num;
+	if ( drop ) {
+	  fsim.set_skip(fault);
+	}
+	print_fault(fault, i);
+	detected = true;
+      }
     }
+    if ( detected ) {
+      ++ nepat;
+    }
+    ++ i;
+  }
+
+  return std::make_pair(det_num, nepat);
+}
+
+// SPPFP2 のテスト
+std::pair<int, int>
+sppfp2_test(
+  const TpgNetwork& network,
+  Fsim& fsim,
+  const std::vector<TestVector>& tv_list,
+  SizeType max_fid,
+  bool drop
+)
+{
+  int det_num = 0;
+  int nepat = 0;
+  int i = 0;
+
+  std::vector<bool> det_array(max_fid, false);
+  for ( auto tv: tv_list ) {
+    bool detected = false;
+    auto res = fsim.sppfp2(tv);
     for ( auto fault: res.fault_list(0) ) {
       auto fid = fault.id();
-      auto dbits = res.diffbits(0, fid);
       if ( !det_array[fid] ) {
 	det_array[fid] = true;
 	++ det_num;
@@ -134,11 +168,58 @@ ppsfp_test(
   for ( auto& tv: tv_list ) {
     tv_buff.push_back(tv);
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
-      auto res = fsim.ppsfp(tv_buff);
+      auto det_list_array = fsim.ppsfp(tv_buff);
+      for ( SizeType tv_id = 0; tv_id < tv_buff.size(); ++ tv_id ) {
+	for ( auto fault: det_list_array[tv_id] ) {
+	  auto fid = fault.id();
+	  if ( !det_array[fid] ) {
+	    det_array[fid] = true;
+	    ++ det_num;
+	    if ( drop ) {
+	      fsim.set_skip(fault);
+	    }
+	    auto index = base + tv_id;
+	    if ( pat_dict.count(index) == 0 ) {
+	      pat_dict.emplace(index);
+	      ++ nepat;
+	    }
+	    print_fault(fault, index);
+	  }
+	}
+      }
+      base += tv_buff.size();
+      tv_buff.clear();
+    }
+  }
+  return std::make_pair(det_num, nepat);
+}
+
+// PPSFP2 のテスト
+std::pair<SizeType, SizeType>
+ppsfp2_test(
+  const TpgNetwork& network,
+  Fsim& fsim,
+  const std::vector<TestVector>& tv_list,
+  SizeType max_fid,
+  bool drop
+)
+{
+  SizeType nepat = 0;
+  SizeType det_num = 0;
+
+  std::unordered_set<SizeType> pat_dict;
+  std::vector<bool> det_array(max_fid, false);
+  std::vector<TestVector> tv_buff;
+  tv_buff.reserve(PV_BITLEN);
+  SizeType NV = tv_list.size();
+  SizeType base = 0;
+  for ( auto& tv: tv_list ) {
+    tv_buff.push_back(tv);
+    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
+      auto res = fsim.ppsfp2(tv_buff);
       for ( SizeType tv_id = 0; tv_id < tv_buff.size(); ++ tv_id ) {
 	for ( auto fault: res.fault_list(tv_id) ) {
 	  auto fid = fault.id();
-	  auto dbits = res.diffbits(tv_id, fid);
 	  if ( !det_array[fid] ) {
 	    det_array[fid] = true;
 	    ++ det_num;
@@ -203,7 +284,9 @@ fsim2test(
   bool fsim3 = false;
 
   bool ppsfp = false;
+  bool ppsfp2 = false;
   bool sppfp = false;
+  bool sppfp2 = false;
 
   bool sa_mode = false;
   bool td_mode = false;
@@ -255,15 +338,71 @@ fsim2test(
 		    << std::endl;
 	  return -1;
 	}
+	if ( sppfp2 ) {
+	  std::cerr << "--ppsfp and --sppfp2 are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	if ( ppsfp2 ) {
+	  std::cerr << "--ppspf and --ppsfp2 are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
 	ppsfp = true;
       }
-      else if ( arg == "--sppfp" ) {
+      else if ( arg == "--ppsfp2" ) {
+	if ( sppfp ) {
+	  std::cerr << "--ppspf2 and --sppfp are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	if ( sppfp2 ) {
+	  std::cerr << "--ppspf2 and --sppfp2 are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
 	if ( ppsfp ) {
-	  std::cerr << "--ppspf and --sppfp are mutually exclusive"
+	  std::cerr << "--ppspf2 and --ppsfp are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	ppsfp2 = true;
+      }
+      else if ( arg == "--sppfp" ) {
+	if ( sppfp2 ) {
+	  std::cerr << "--sppfp and --sppfp2 are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	if ( ppsfp ) {
+	  std::cerr << "--sppfp and --ppspf are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	if ( ppsfp2 ) {
+	  std::cerr << "--sppfp and --ppspf2 are mutually exclusive"
 		    << std::endl;
 	  return -1;
 	}
 	sppfp = true;
+      }
+      else if ( arg == "--sppfp2" ) {
+	if ( sppfp ) {
+	  std::cerr << "--sppfp2 and --sppfp are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	if ( ppsfp ) {
+	  std::cerr << "--sppfp2 and --ppspf are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	if ( ppsfp2 ) {
+	  std::cerr << "--sppfp2 and --ppspf2 are mutually exclusive"
+		    << std::endl;
+	  return -1;
+	}
+	sppfp2 = true;
       }
       else if ( arg == "--stuck-at" ) {
 	if ( td_mode ) {
@@ -369,8 +508,14 @@ fsim2test(
   if ( ppsfp ) {
     dpnum = ppsfp_test(network, fsim, tv_list, max_fid, drop);
   }
+  else if ( ppsfp2 ) {
+    dpnum = ppsfp2_test(network, fsim, tv_list, max_fid, drop);
+  }
   else if ( sppfp ) {
     dpnum = sppfp_test(network, fsim, tv_list, max_fid, drop);
+  }
+  else if ( sppfp2 ) {
+    dpnum = sppfp2_test(network, fsim, tv_list, max_fid, drop);
   }
   else {
     // デフォルトフォールバックは SPSFP

@@ -65,9 +65,8 @@ MpComp_MinCov::run(
     auto nc = tv_list.size();
     for ( SizeType col_pos = 0; col_pos < nc; ++ col_pos ) {
       auto& tv = tv_list[col_pos];
-      auto fsim_res = fsim.sppfp(tv);
-      auto tmp_fault_list = fsim_res.fault_list(0);
-      for ( auto fault: tmp_fault_list ) {
+      auto det_list = fsim.sppfp(tv);
+      for ( auto fault: det_list ) {
 	auto fid = fault.id();
 	auto row_pos = fid_map[fid];
 	mincov.insert_elem(row_pos, col_pos);

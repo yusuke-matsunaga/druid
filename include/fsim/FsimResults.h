@@ -42,33 +42,37 @@ public:
   /// @brief 空のコンストラクタ
   FsimResults();
 
-  /// @brief 内容を指定するコンストラクタ
+  /// @brief 内容を指定するコンストラクタ(SPPFP用)
+  ///
+  /// src の所有権はこのオブジェクトに移る．
   explicit
   FsimResults(
     const std::shared_ptr<NetworkRep>& impl,
-    const std::shared_ptr<FsimResultsRep>& src
+    FsimResultsRep* src
   );
 
-  /// @brief 内容を指定するコンストラクタ
+  /// @brief 内容を指定するコンストラクタ(PPSFP用)
+  ///
+  /// src_lsit の中身の所有権はこのオブジェクトに移る．
   explicit
   FsimResults(
     const std::shared_ptr<NetworkRep>& impl,
-    const std::vector<std::shared_ptr<FsimResultsRep>>& src
+    const std::vector<FsimResultsRep*>& src_list
   );
 
   /// @brief コピーコンストラクタ
   FsimResults(
     const FsimResults& src
-  ) = default;
+  );
 
   /// @brief 代入演算子
   FsimResults&
   operator=(
     const FsimResults& src
-  ) = default;
+  );
 
   /// @brief デストラクタ
-  ~FsimResults() = default;
+  ~FsimResults();
 
 
 public:
@@ -117,6 +121,16 @@ private:
     }
   }
 
+  /// @brief クリアする．
+  void
+  _clear();
+
+  /// @brief コピーする
+  void
+  _copy(
+    const FsimResults& src
+  );
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -124,7 +138,7 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // テストベクタ番号ごとの結果のリスト
-  std::vector<std::shared_ptr<FsimResultsRep>> mArray;
+  std::vector<FsimResultsRep*> mArray;
 
 };
 

@@ -142,6 +142,8 @@ SimThrFunc::calc_gval(
   const std::vector<TestVector>& tv_list
 )
 {
+  mTvNum = tv_list.size();
+
   // 設定されていないビットはどこか他の設定されているビットをコピーする．
   auto x_val = FSIM_INITVAL;
   for ( SizeType iid = 0; iid < mFsim.ppi_num(); ++ iid ) {
@@ -255,6 +257,8 @@ SimThrFunc::calc_gval(
   const std::vector<TestVector>& tv_list
 )
 {
+  mTvNum = tv_list.size();
+
   // 1時刻目の入力を設定する．
   // 設定されていないビットはどこか他の設定されているビットをコピーする．
   for ( SizeType iid = 0; iid < mFsim.ppi_num(); ++ iid ) {
@@ -397,12 +401,10 @@ SimThrFunc::calc_gvalx(
 // @brief SPSFP 法のシミュレーションを行う．
 bool
 SimThrFunc::spsfp(
-  const SimFault* f,
-  DiffBits& dbits
+  const SimFault* f
 )
 {
   SizeType NPO = mFsim.ppo_num();
-  dbits.clear();
 
   // FFR の根までの伝搬条件を求める．
   auto local_obs = local_prop(f);
@@ -414,10 +416,9 @@ SimThrFunc::spsfp(
 
     // イベントシミュレーションを行う．
     put_event(root, local_obs);
-    auto dbits_array = simulate();
-    if ( dbits_array.elem_num() > 0 ) {
+    auto det = simulate();
+    if ( det != PV_ALL0 ) {
       // 検出された
-      dbits = dbits_array.get_slice(0);
       return true;
     }
   }
@@ -426,10 +427,161 @@ SimThrFunc::spsfp(
 
 // @brief SPPFP 法のシミュレーションを行う．
 void
-SimThrFunc::sppfp(
-  FsimResultsRep* res
+SimThrFunc::sppfp()
+{
+  mDetListArray.clear();
+  mDetListArray.resize(1);
+
+  // PV_BITLEN ずつ並列に行う．
+  const SimFFR* ffr_buff[PV_BITLEN];
+  SizeType bitpos = 0;
+  for ( auto ffr: mFFRList ) {
+    // FFR 内の故障伝搬を行う．
+    // 結果は SimFault.mObsMask に保存される．
+    // FFR 内の全ての obs マスクを ffr_req に入れる．
+    auto ffr_req = foreach_faults(*ffr);
+    if ( ffr_req == PV_ALL0 ) {
+      // ffr_req が 0 ならその後のシミュレーションを行う必要はない．
+      continue;
+    }
+
+    auto root = ffr->root();
+    if ( root->is_output() ) {
+      // 常にこの出力のみで観測可能
+      for ( auto ff: ffr->fault_list() ) {
+	if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
+	  auto fid = ff->id();
+	  mDetListArray[0].push_back(fid);
+	}
+      }
+    }
+    else {
+      // キューにイベントを積む
+      PackedVal mask = 1UL << bitpos;
+      put_event(root, mask);
+      ffr_buff[bitpos] = ffr;
+      ++ bitpos;
+
+      if ( bitpos == PV_BITLEN ) {
+	// ffr_buff が一杯になった．
+	_sppfp_sub(ffr_buff, bitpos);
+	bitpos = 0;
+      }
+    }
+  }
+  if ( bitpos > 0 ) {
+    // ffr_buff にFFRが残っていた．
+    _sppfp_sub(ffr_buff, bitpos);
+  }
+}
+
+// @brief sppfp 用のシミュレーションを行う．
+void
+SimThrFunc::_sppfp_sub(
+  const SimFFR* ffr_buff[],
+  SizeType ffr_num
 )
 {
+  auto obs = simulate();
+  for ( SizeType i = 0; i < ffr_num; ++ i ) {
+    PackedVal mask = 1UL << i;
+    if ( (obs & mask) == PV_ALL0 ) {
+      continue;
+    }
+    auto ffr = ffr_buff[i];
+    auto& fault_list = ffr->fault_list();
+    for ( auto f: fault_list ) {
+      if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
+	auto fid = f->id();
+	mDetListArray[0].push_back(fid);
+      }
+    }
+    mask <<= 1;
+  }
+}
+
+void
+SimThrFunc::ppsfp()
+{
+  mDetListArray.clear();
+  mDetListArray.resize(mTvNum);
+
+  // データを持っているビットを表すビットマスク
+  PackedVal bitmask = 0UL;
+  for ( SizeType i = 0; i < mTvNum; ++ i ) {
+    bitmask |= (1UL << i);
+  }
+
+  for ( auto ffr: mFFRList ) {
+    // FFR ごとに処理を行う．
+    auto ffr_req = foreach_faults(*ffr) & bitmask;
+    if ( ffr_req == PV_ALL0 ) {
+      // ffr_req が 0 ならその後のシミュレーションは必要ない．
+      continue;
+    }
+
+    // イベントシミュレーションを行う．
+    auto root = ffr->root();
+    put_event(ffr->root(), ffr_req);
+    auto gobs = simulate();
+    if ( gobs != PV_ALL0 ) {
+      // FFR の故障伝搬値とマージする．
+      for ( auto ff: ffr->fault_list() ) {
+	if ( ff->skip() ) {
+	  continue;
+	}
+	auto obs = ff->obs_mask() & gobs;
+	if ( obs != PV_ALL0 ) {
+	  // 検出された
+	  auto fid = ff->id();
+	  for ( SizeType i = 0; i < mTvNum; ++ i ) {
+	    PackedVal bitmask = 1UL << i;
+	    if ( (obs & bitmask) != PV_ALL0 ) {
+	      mDetListArray[i].push_back(fid);
+	    }
+	  }
+	}
+      }
+    }
+  }
+}
+
+// @brief SPSFP 法のシミュレーションを行う．
+DiffBits
+SimThrFunc::spsfp2(
+  const SimFault* f
+)
+{
+  SizeType NPO = mFsim.ppo_num();
+
+  // FFR の根までの伝搬条件を求める．
+  auto local_obs = local_prop(f);
+
+  // local_obs が 0 ならその後のシミュレーションを行う必要はない．
+  if ( local_obs != PV_ALL0 ) {
+    // FFR の根のノードを求める．
+    auto root = f->origin_node()->ffr_root();
+
+    // イベントシミュレーションを行う．
+    put_event(root, local_obs);
+    auto dbits_array = simulate2();
+    if ( dbits_array.elem_num() > 0 ) {
+      // 検出された
+      return dbits_array.get_slice(0);
+    }
+  }
+  return DiffBits();
+}
+
+// @brief SPPFP 法のシミュレーションを行う．
+void
+SimThrFunc::sppfp2()
+{
+  mDetListArray.clear();
+  mDetListArray.resize(1);
+  mDiffBitsListArray.clear();
+  mDiffBitsListArray.resize(1);
+
   // PV_BITLEN ずつ並列に行う．
   const SimFFR* ffr_buff[PV_BITLEN];
   SizeType bitpos = 0;
@@ -452,7 +604,8 @@ SimThrFunc::sppfp(
       for ( auto ff: ffr->fault_list() ) {
 	if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	  auto fid = ff->id();
-	  res->add(fid, dbits);
+	  mDetListArray[0].push_back(fid);
+	  mDiffBitsListArray[0].push_back(dbits);
 	}
       }
     }
@@ -465,26 +618,25 @@ SimThrFunc::sppfp(
 
       if ( bitpos == PV_BITLEN ) {
 	// ffr_buff が一杯になった．
-	_sppfp_simulation(ffr_buff, bitpos, res);
+	_sppfp2_sub(ffr_buff, bitpos);
 	bitpos = 0;
       }
     }
   }
   if ( bitpos > 0 ) {
     // ffr_buff にFFRが残っていた．
-    _sppfp_simulation(ffr_buff, bitpos, res);
+    _sppfp2_sub(ffr_buff, bitpos);
   }
 }
 
 // @brief sppfp 用のシミュレーションを行う．
 void
-SimThrFunc::_sppfp_simulation(
+SimThrFunc::_sppfp2_sub(
   const SimFFR* ffr_buff[],
-  SizeType ffr_num,
-  FsimResultsRep* res
+  SizeType ffr_num
 )
 {
-  auto dbits_array = simulate();
+  auto dbits_array = simulate2();
   auto obs = dbits_array.dbits_union();
   for ( SizeType i = 0; i < ffr_num; ++ i ) {
     PackedVal mask = 1UL << i;
@@ -497,7 +649,8 @@ SimThrFunc::_sppfp_simulation(
     for ( auto f: fault_list ) {
       if ( !f->skip() && (f->obs_mask() & obs) != PV_ALL0 ) {
 	auto fid = f->id();
-	res->add(fid, dbits);
+	mDetListArray[0].push_back(fid);
+	mDiffBitsListArray[0].push_back(dbits);
       }
     }
     mask <<= 1;
@@ -505,15 +658,16 @@ SimThrFunc::_sppfp_simulation(
 }
 
 void
-SimThrFunc::ppsfp(
-  const std::vector<FsimResultsRep*>& res_list
-)
+SimThrFunc::ppsfp2()
 {
-  auto ntv = res_list.size();
+  mDetListArray.clear();
+  mDetListArray.resize(mTvNum);
+  mDiffBitsListArray.clear();
+  mDiffBitsListArray.resize(mTvNum);
 
   // データを持っているビットを表すビットマスク
   PackedVal bitmask = 0UL;
-  for ( SizeType i = 0; i < ntv; ++ i ) {
+  for ( SizeType i = 0; i < mTvNum; ++ i ) {
     bitmask |= (1UL << i);
   }
 
@@ -528,7 +682,7 @@ SimThrFunc::ppsfp(
     // イベントシミュレーションを行う．
     auto root = ffr->root();
     put_event(ffr->root(), ffr_req);
-    auto dbits_array = simulate();
+    auto dbits_array = simulate2();
     auto gobs = dbits_array.dbits_union();
     if ( gobs != PV_ALL0 ) {
       // FFR の故障伝搬値とマージする．
@@ -540,10 +694,11 @@ SimThrFunc::ppsfp(
 	  // 検出された
 	  auto fid = ff->id();
 	  auto dbits_array1 = dbits_array.masking(ff->obs_mask());
-	  for ( SizeType i = 0; i < ntv; ++ i ) {
+	  for ( SizeType i = 0; i < mTvNum; ++ i ) {
 	    auto dbits = dbits_array1.get_slice(i);
 	    if ( dbits.elem_num() > 0 ) {
-	      res_list[i]->add(fid, dbits);
+	      mDetListArray[i].push_back(fid);
+	      mDiffBitsListArray[i].push_back(dbits);
 	    }
 	  }
 	}
@@ -574,8 +729,47 @@ SimThrFunc::foreach_faults(
 }
 
 // @brief イベントドリブンシミュレーションを行う．
-DiffBitsArray
+PackedVal
 SimThrFunc::simulate()
+{
+  PackedVal det = PV_ALL0;
+
+  for ( ; ; ) {
+    auto node = mEventQ.get();
+    // イベントが残っていなければ終わる．
+    if ( node == nullptr ) break;
+
+    auto old_val = get_val(node);
+    auto new_val = node->calc_val(mValArray);
+    // 反転イベントを考慮する．
+    auto flip_mask = mFlipMaskArray[node->id()];
+    new_val ^= flip_mask;
+    mFlipMaskArray[node->id()] = PV_ALL0;
+    set_val(node, new_val);
+    if ( new_val != old_val ) {
+      mValArray[node->id()] = new_val;
+      add_to_clear_list(node, old_val);
+      if ( node->is_output() ) {
+	det |= diff(new_val, old_val);
+      }
+      else {
+	mEventQ.put_fanouts(node);
+      }
+    }
+  }
+
+  // 今の故障シミュレーションで値の変わったノードを元にもどしておく
+  for ( auto& rinfo: mClearArray ) {
+    mValArray[rinfo.mId] = rinfo.mVal;
+  }
+  mClearArray.clear();
+
+  return det;
+}
+
+// @brief イベントドリブンシミュレーションを行う．
+DiffBitsArray
+SimThrFunc::simulate2()
 {
   DiffBitsArray dbits_array;
 

@@ -27,6 +27,10 @@ enum class Cmd: std::uint8_t {
   SPPFP_TV,
   SPPFP_AS,
   XSPPFP,
+  PPSFP2,
+  SPPFP2_TV,
+  SPPFP2_AS,
+  XSPPFP2,
   END
 };
 
@@ -38,10 +42,14 @@ operator<<(
 )
 {
   switch ( cmd ) {
-  case Cmd::PPSFP:    s << "PPSFP"; break;
-  case Cmd::SPPFP_TV: s << "SPPFP_TV"; break;
-  case Cmd::SPPFP_AS: s << "SPPFP_AS"; break;
-  case Cmd::XSPPFP:   s << "XSPPFP"; break;
+  case Cmd::PPSFP:     s << "PPSFP"; break;
+  case Cmd::SPPFP_TV:  s << "SPPFP_TV"; break;
+  case Cmd::SPPFP_AS:  s << "SPPFP_AS"; break;
+  case Cmd::XSPPFP:    s << "XSPPFP"; break;
+  case Cmd::PPSFP2:    s << "PPSFP2"; break;
+  case Cmd::SPPFP2_TV: s << "SPPFP2_TV"; break;
+  case Cmd::SPPFP2_AS: s << "SPPFP2_AS"; break;
+  case Cmd::XSPPFP2:   s << "XSPPFP2"; break;
   case Cmd::END:      s << "END"; break;
   }
   return s;
@@ -84,8 +92,7 @@ public:
   /// @brief コマンドを設定する．
   void
   put_sppfp_command(
-    const TestVector& tv, ///< [in] テストベクタ
-    FsimResultsRep* res   ///< [in] 結果を格納するオブジェクト
+    const TestVector& tv ///< [in] テストベクタ
   )
   {
     if ( debug ) {
@@ -97,7 +104,6 @@ public:
       std::unique_lock lck{mCmdMtx};
       mCmd = Cmd::SPPFP_TV;
       mTv = tv;
-      mRes = res;
       mCmdCV.notify_all();
     }
     wait();
@@ -106,8 +112,7 @@ public:
   /// @brief コマンドを設定する．
   void
   put_sppfp_command(
-    const AssignList& assign_list, ///< [in] 割り当てリスト
-    FsimResultsRep* res            ///< [in] 結果を格納するオブジェクト
+    const AssignList& assign_list ///< [in] 割り当てリスト
   )
   {
     if ( debug ) {
@@ -119,7 +124,6 @@ public:
       std::unique_lock lck{mCmdMtx};
       mCmd = Cmd::SPPFP_AS;
       mAssignList = assign_list;
-      mRes = res;
       mCmdCV.notify_all();
     }
     wait();
@@ -128,8 +132,7 @@ public:
   /// @brief コマンドを設定する．
   void
   put_xsppfp_command(
-    const AssignList& assign_list, ///< [in] 割り当てリスト
-    FsimResultsRep* res            ///< [in] 結果を格納するオブジェクト
+    const AssignList& assign_list ///< [in] 割り当てリスト
   )
   {
     if ( debug ) {
@@ -141,7 +144,6 @@ public:
       std::unique_lock lck{mCmdMtx};
       mCmd = Cmd::XSPPFP;
       mAssignList = assign_list;
-      mRes = res;
       mCmdCV.notify_all();
     }
     wait();
@@ -150,8 +152,7 @@ public:
   /// @brief コマンドを設定する．
   void
   put_ppsfp_command(
-    const std::vector<TestVector>& tv_list,      ///< [in] テストベクタのリスト
-    const std::vector<FsimResultsRep*>& res_list ///< [in] 結果を格納するオブジェクトのリスト
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   )
   {
     if ( debug ) {
@@ -163,7 +164,86 @@ public:
       std::unique_lock lck{mCmdMtx};
       mCmd = Cmd::PPSFP;
       mTvList = tv_list;
-      mResList = res_list;
+      mCmdCV.notify_all();
+    }
+    wait();
+  }
+
+  /// @brief コマンドを設定する．
+  void
+  put_sppfp2_command(
+    const TestVector& tv ///< [in] テストベクタ
+  )
+  {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "put_command(SPPFP_TV)";
+      log(buf.str());
+    }
+    {
+      std::unique_lock lck{mCmdMtx};
+      mCmd = Cmd::SPPFP2_TV;
+      mTv = tv;
+      mCmdCV.notify_all();
+    }
+    wait();
+  }
+
+  /// @brief コマンドを設定する．
+  void
+  put_sppfp2_command(
+    const AssignList& assign_list ///< [in] 割り当てリスト
+  )
+  {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "put_command(SPPFP_AS)";
+      log(buf.str());
+    }
+    {
+      std::unique_lock lck{mCmdMtx};
+      mCmd = Cmd::SPPFP2_AS;
+      mAssignList = assign_list;
+      mCmdCV.notify_all();
+    }
+    wait();
+  }
+
+  /// @brief コマンドを設定する．
+  void
+  put_xsppfp2_command(
+    const AssignList& assign_list ///< [in] 割り当てリスト
+  )
+  {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "put_command(XSPPFP)";
+      log(buf.str());
+    }
+    {
+      std::unique_lock lck{mCmdMtx};
+      mCmd = Cmd::XSPPFP2;
+      mAssignList = assign_list;
+      mCmdCV.notify_all();
+    }
+    wait();
+  }
+
+  /// @brief コマンドを設定する．
+  void
+  put_ppsfp2_command(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  )
+  {
+    if ( debug ) {
+      std::ostringstream buf;
+      buf << "put_command(PPSFP)";
+      log(buf.str());
+    }
+    {
+      std::unique_lock lck{mCmdMtx};
+      mCmd = Cmd::PPSFP2;
+      mTvList = tv_list;
       mCmdCV.notify_all();
     }
     wait();
@@ -234,27 +314,6 @@ public:
     return mTvList;
   }
 
-  /// @brief res()/res_list() 用のミューテックスを返す．
-  std::mutex&
-  res_mutex()
-  {
-    return mResMtx;
-  }
-
-  /// @brief 結果を格納するオブジェクトを返す．
-  FsimResultsRep*
-  res()
-  {
-    return mRes;
-  }
-
-  /// @brief 結果を格納するオブジェクトのリストを返す．
-  const std::vector<FsimResultsRep*>&
-  res_list()
-  {
-    return mResList;
-  }
-
   /// @brief 全ての子スレッドが ready になるのを待つ．
   void
   wait()
@@ -304,15 +363,6 @@ private:
 
   // 割り当てリスト
   AssignList mAssignList;
-
-  // mRes/mResList 用のミューテックス
-  std::mutex mResMtx;
-
-  // 結果を格納するオブジェクト
-  FsimResultsRep* mRes;
-
-  // 結果を格納するオブジェクトのリスト
-  std::vector<FsimResultsRep*> mResList;
 
   // mCmd 用のミューテックス
   std::mutex mCmdMtx;

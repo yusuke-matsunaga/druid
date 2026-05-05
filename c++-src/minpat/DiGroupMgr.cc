@@ -65,16 +65,16 @@ DiGroupMgr::operator=(
 DiGroupMgr
 DiGroupMgr::dichotomy(
   const DiGroupMgr& mgr,
-  const FsimResults& fsim_results,
+  const std::vector<TpgFaultList>& det_list_array,
   const ConfigParam& option
 )
 {
-  auto network = fsim_results.network();
-  auto ntv = fsim_results.tv_num();
+  auto network = det_list_array.front().network();
+  auto ntv = det_list_array.size();
   std::vector<SizeType> det_mark(network.max_fault_id(), 0);
   for ( SizeType i = 0; i < ntv; ++ i ) {
     SizeType bit = 1 << i;
-    for ( auto fault: fsim_results.fault_list(i) ) {
+    for ( auto fault: det_list_array[i] ) {
       det_mark[fault.id()] |= bit;
     }
   }

@@ -93,22 +93,42 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 	  switch ( cmd ) {
 	  case Cmd::PPSFP:
 	    func->calc_gval(mSyncObj.testvector_list());
-	    func->ppsfp(mSyncObj.res_list());
+	    func->ppsfp();
 	    break;
 
 	  case Cmd::SPPFP_TV:
 	    func->calc_gval(mSyncObj.testvector());
-	    func->sppfp(mSyncObj.res());
+	    func->sppfp();
 	    break;
 
 	  case Cmd::SPPFP_AS:
 	    func->calc_gval(mSyncObj.assign_list());
-	    func->sppfp(mSyncObj.res());
+	    func->sppfp();
 	    break;
 
 	  case Cmd::XSPPFP:
 	    func->calc_gvalx(mSyncObj.assign_list());
-	    func->sppfp(mSyncObj.res());
+	    func->sppfp();
+	    break;
+
+	  case Cmd::PPSFP2:
+	    func->calc_gval(mSyncObj.testvector_list());
+	    func->ppsfp2();
+	    break;
+
+	  case Cmd::SPPFP2_TV:
+	    func->calc_gval(mSyncObj.testvector());
+	    func->sppfp2();
+	    break;
+
+	  case Cmd::SPPFP2_AS:
+	    func->calc_gval(mSyncObj.assign_list());
+	    func->sppfp2();
+	    break;
+
+	  case Cmd::XSPPFP2:
+	    func->calc_gvalx(mSyncObj.assign_list());
+	    func->sppfp2();
 	    break;
 
 	  case Cmd::END:
@@ -394,74 +414,50 @@ FSIM_CLASSNAME::sppfp(
   const TestVector& tv
 )
 {
-  // 結果を格納するオブジェクト
-  auto res = new FsimResultsRep(mFaultMap.size());
+  mSyncObj.put_sppfp_command(tv);
 
-  mSyncObj.put_sppfp_command(tv, res);
-
-  return std::shared_ptr<FsimResultsRep>{res};
+  return merge_det_list();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
+std::vector<SizeType>
 FSIM_CLASSNAME::sppfp(
   const AssignList& assign_list
 )
 {
-  // 結果を格納するオブジェクト
-  auto res = new FsimResultsRep(mFaultMap.size());
+  mSyncObj.put_sppfp_command(assign_list);
 
-  mSyncObj.put_sppfp_command(assign_list, res);
-
-  return std::shared_ptr<FsimResultsRep>{res};
+  return merge_det_list();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
+std::vector<SizeType>
 FSIM_CLASSNAME::xsppfp(
   const AssignList& assign_list
 )
 {
-  // 結果を格納するオブジェクト
-  auto res = new FsimResultsRep(mFaultMap.size());
+  mSyncObj.put_xsppfp_command(assign_list);
 
-  mSyncObj.put_xsppfp_command(assign_list, res);
-
-  return std::shared_ptr<FsimResultsRep>{res};
+  return merge_det_list();
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-std::vector<std::shared_ptr<FsimResultsRep>>
+std::vector<std::vector<SizeType>>
 FSIM_CLASSNAME::ppsfp(
   const std::vector<TestVector>& tv_list
 )
 {
+  mSyncObj.put_ppsfp_command(tv_list);
+
   auto ntv = tv_list.size();
-
-  // 結果を格納するオブジェクトのリスト
-  std::vector<FsimResultsRep*> res_list(ntv);
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    auto res = new FsimResultsRep(mFaultMap.size());
-    res_list[i] = res;
-  }
-
-  mSyncObj.put_ppsfp_command(tv_list, res_list);
-
-  std::vector<std::shared_ptr<FsimResultsRep>> ans_list;
-  ans_list.reserve(ntv);
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    auto res = res_list[i];
-    ans_list.push_back(std::shared_ptr<FsimResultsRep>{res});
-  }
-  return ans_list;
+  return merge_det_list_array(ntv);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
-bool
-FSIM_CLASSNAME::spsfp(
+DiffBits
+FSIM_CLASSNAME::spsfp2(
   const TestVector& tv,
-  SizeType fid,
-  DiffBits& dbits
+  SizeType fid
 )
 {
   auto func = SimThrFunc(0, *this);
@@ -470,15 +466,14 @@ FSIM_CLASSNAME::spsfp(
   func.calc_gval(tv);
 
   auto ff = mFaultMap[fid];
-  return func.spsfp(ff, dbits);
+  return func.spsfp2(ff);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
-bool
-FSIM_CLASSNAME::spsfp(
+DiffBits
+FSIM_CLASSNAME::spsfp2(
   const AssignList& assign_list,
-  SizeType fid,
-  DiffBits& dbits
+  SizeType fid
 )
 {
   auto func = SimThrFunc(0, *this);
@@ -487,15 +482,14 @@ FSIM_CLASSNAME::spsfp(
   func.calc_gval(assign_list);
 
   auto ff = mFaultMap[fid];
-  return func.spsfp(ff, dbits);
+  return func.spsfp2(ff);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
-bool
-FSIM_CLASSNAME::xspsfp(
+DiffBits
+FSIM_CLASSNAME::xspsfp2(
   const AssignList& assign_list,
-  SizeType fid,
-  DiffBits& dbits
+  SizeType fid
 )
 {
   auto func = SimThrFunc(0, *this);
@@ -504,75 +498,53 @@ FSIM_CLASSNAME::xspsfp(
   func.calc_gvalx(assign_list);
 
   auto ff = mFaultMap[fid];
-  return func.spsfp(ff, dbits);
+  return func.spsfp2(ff);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
-FSIM_CLASSNAME::sppfp(
+FsimResultsRep*
+FSIM_CLASSNAME::sppfp2(
   const TestVector& tv
 )
 {
-  // 結果を格納するオブジェクト
-  auto res = new FsimResultsRep(mFaultMap.size());
+  mSyncObj.put_sppfp2_command(tv);
 
-  mSyncObj.put_sppfp_command(tv, res);
-
-  return std::shared_ptr<FsimResultsRep>{res};
+  return merge_diffbits_list();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
-FSIM_CLASSNAME::sppfp(
+FsimResultsRep*
+FSIM_CLASSNAME::sppfp2(
   const AssignList& assign_list
 )
 {
-  // 結果を格納するオブジェクト
-  auto res = new FsimResultsRep(mFaultMap.size());
+  mSyncObj.put_sppfp2_command(assign_list);
 
-  mSyncObj.put_sppfp_command(assign_list, res);
-
-  return std::shared_ptr<FsimResultsRep>{res};
+  return merge_diffbits_list();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::shared_ptr<FsimResultsRep>
-FSIM_CLASSNAME::xsppfp(
+FsimResultsRep*
+FSIM_CLASSNAME::xsppfp2(
   const AssignList& assign_list
 )
 {
-  // 結果を格納するオブジェクト
-  auto res = new FsimResultsRep(mFaultMap.size());
+  mSyncObj.put_xsppfp2_command(assign_list);
 
-  mSyncObj.put_xsppfp_command(assign_list, res);
-
-  return std::shared_ptr<FsimResultsRep>{res};
+  return merge_diffbits_list();
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-std::vector<std::shared_ptr<FsimResultsRep>>
-FSIM_CLASSNAME::ppsfp(
+std::vector<FsimResultsRep*>
+FSIM_CLASSNAME::ppsfp2(
   const std::vector<TestVector>& tv_list
 )
 {
+
+  mSyncObj.put_ppsfp2_command(tv_list);
+
   auto ntv = tv_list.size();
-
-  // 結果を格納するオブジェクトのリスト
-  std::vector<FsimResultsRep*> res_list(ntv);
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    auto res = new FsimResultsRep(mFaultMap.size());
-    res_list[i] = res;
-  }
-
-  mSyncObj.put_ppsfp_command(tv_list, res_list);
-
-  std::vector<std::shared_ptr<FsimResultsRep>> ans_list;
-  ans_list.reserve(ntv);
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    auto res = res_list[i];
-    ans_list.push_back(std::shared_ptr<FsimResultsRep>{res});
-  }
-  return ans_list;
+  return merge_diffbits_list_array(ntv);
 }
 
 #if FSIM_BSIDE
@@ -757,6 +729,92 @@ FSIM_CLASSNAME::calc_wsa(
   return 0;
 }
 #endif
+
+// @brief 各 SimThrFunc の持っている det_list をマージする．
+std::vector<SizeType>
+FSIM_CLASSNAME::merge_det_list()
+{
+  SizeType n = 0;
+  for ( auto& func: mFuncList ) {
+    n += func->det_list().size();
+  }
+  std::vector<SizeType> det_list;
+  det_list.reserve(n);
+  for ( auto& func: mFuncList ) {
+    auto& det_list1 = func->det_list();
+    det_list.insert(det_list.end(), det_list1.begin(), det_list1.end());
+  }
+  return det_list;
+}
+
+// @brief 各 SimThrFunc の持っている det_list_array をマージする．
+std::vector<std::vector<SizeType>>
+FSIM_CLASSNAME::merge_det_list_array(
+  SizeType tv_num
+)
+{
+  std::vector<std::vector<SizeType>> det_list_array(tv_num);
+  std::vector<SizeType> n_array(tv_num, 0);
+  for ( auto& func: mFuncList ) {
+    for ( SizeType i = 0; i < tv_num; ++ i ) {
+      n_array[i] += func->det_list(i).size();
+    }
+  }
+  for ( SizeType i = 0; i < tv_num; ++ i ) {
+    det_list_array[i].reserve(n_array[i]);
+  }
+  for ( auto& func: mFuncList ) {
+    for ( SizeType i = 0; i < tv_num; ++ i ) {
+      auto& det_list = det_list_array[i];
+      auto& det_list1 = func->det_list(i);
+      det_list.insert(det_list.end(), det_list1.begin(), det_list1.end());
+    }
+  }
+  return det_list_array;
+}
+
+// @brief 各 SimThrFunc の持っている diffbits_list をマージする．
+FsimResultsRep*
+FSIM_CLASSNAME::merge_diffbits_list()
+{
+  auto res = new FsimResultsRep(mFaultMap.size());
+  for ( auto& func: mFuncList ) {
+    auto& det_list1 = func->det_list();
+    auto& diffbits_list1 = func->diffbits_list();
+    auto n = det_list1.size();
+    for ( SizeType i = 0; i < n; ++ i ) {
+      auto fid = det_list1[i];
+      auto& dbits = diffbits_list1[i];
+      res->add(fid, dbits);
+    }
+  }
+  return res;
+}
+
+// @brief 各 SimThrFunc の持っている diffbits_list_array をマージする．
+std::vector<FsimResultsRep*>
+FSIM_CLASSNAME::merge_diffbits_list_array(
+  SizeType tv_num
+)
+{
+  std::vector<FsimResultsRep*> res_list(tv_num);
+  for ( SizeType i = 0; i < tv_num; ++ i ) {
+    res_list[i] = new FsimResultsRep(mFaultMap.size());
+  }
+  for ( auto& func: mFuncList ) {
+    for ( SizeType i = 0; i < tv_num; ++ i ) {
+      auto& det_list1 = func->det_list(i);
+      auto& diffbits_list1 = func->diffbits_list(i);
+      auto n = det_list1.size();
+      for ( SizeType j = 0; j < n; ++ j ) {
+	auto fid = det_list1[j];
+	auto& dbits = diffbits_list1[j];
+	res_list[i]->add(fid, dbits);
+      }
+    }
+  }
+  return res_list;
+}
 
 // @brief 外部入力ノードを作る．
 SimNode*

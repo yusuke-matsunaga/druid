@@ -87,8 +87,8 @@ make_fault_list(
   auto ntv = tv_list.size();
   fault_list_array.reserve(ntv);
   for ( auto& tv: tv_list ) {
-    auto res = fsim.sppfp(tv);
-    fault_list_array.push_back(res.fault_list(0));
+    auto det_list = fsim.sppfp(tv);
+    fault_list_array.push_back(det_list);
   }
   return fault_list_array;
 }

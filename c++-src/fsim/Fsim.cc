@@ -146,6 +146,7 @@ Fsim::sppfp(
 )
 {
   auto fid_list = mImpl->sppfp(tv);
+  std::sort(fid_list.begin(), fid_list.end());
   return TpgBase::fault_list(fid_list);
 }
 
@@ -156,6 +157,7 @@ Fsim::sppfp(
 )
 {
   auto fid_list = mImpl->sppfp(assign_list);
+  std::sort(fid_list.begin(), fid_list.end());
   return TpgBase::fault_list(fid_list);
 }
 
@@ -166,6 +168,7 @@ Fsim::xsppfp(
 )
 {
   auto fid_list = mImpl->xsppfp(assign_list);
+  std::sort(fid_list.begin(), fid_list.end());
   return TpgBase::fault_list(fid_list);
 }
 
@@ -190,6 +193,7 @@ Fsim::ppsfp(
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == ntv )  {
       auto fid_list_array = mImpl->ppsfp(tv_buff);
       for ( auto& fid_list: fid_list_array ) {
+	std::sort(fid_list.begin(), fid_list.end());
 	det_list_array.push_back(TpgBase::fault_list(fid_list));
       }
       base += tv_buff.size();
@@ -268,7 +272,7 @@ Fsim::ppsfp2(
   SizeType ntv = tv_list.size();
 
   // 結果を格納するオブジェクトのリスト
-  std::vector<std::shared_ptr<FsimResultsRep>> res_list;
+  std::vector<FsimResultsRep*> res_list;
   res_list.reserve(ntv);
 
   // PV_BITLEN ごとに分割して処理を行う．

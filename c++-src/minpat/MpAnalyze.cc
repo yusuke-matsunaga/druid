@@ -84,14 +84,13 @@ MpAnalyze::MpAnalyze(
   // 各テストベクタの検出する故障のリストを mDetListArray
   // に入れる．
   for ( auto& tv: tv_list ) {
-    auto res = fsim.sppfp(tv);
-    auto src_list = res.fault_list(0);
-    std::vector<SizeType> det_list;
-    det_list.reserve(src_list.size());
-    for ( auto fault: src_list ) {
-      det_list.push_back(fault.id());
+    auto det_list = fsim.sppfp(tv);
+    std::vector<SizeType> fid_list;
+    fid_list.reserve(det_list.size());
+    for ( auto fault: det_list ) {
+      fid_list.push_back(fault.id());
     }
-    mDetListArray.push_back(det_list);
+    mDetListArray.push_back(fid_list);
   }
 
   // Phase2:

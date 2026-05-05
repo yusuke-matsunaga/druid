@@ -79,8 +79,58 @@ val_str2(
 END_NONAMESPACE
 
 // @brief イベントドリブンシミュレーションを行う．
-DiffBitsArray
+PackedVal
 EventQ::simulate()
+{
+  // 検出結果
+  PackedVal det = PV_ALL0;
+  for ( ; ; ) {
+    auto node = get();
+    // イベントが残っていなければ終わる．
+    if ( node == nullptr ) break;
+
+    auto old_val = node->val();
+    auto new_val = old_val;
+    if ( node->need_init() ) {
+      new_val = node->init_val();
+    }
+    else {
+      new_val = node->calc_val();
+    }
+    // 反転イベントを考慮する．
+    auto flip_mask = mFlipMaskArray[node->id()];
+    new_val ^= flip_mask;
+    mFlipMaskArray[node->id()] = PV_ALL0;
+    node->set_val(new_val);
+    if ( debug ) {
+      std::cout << "Node#" << node->id() << std::endl
+		<< " old_val = " << val_str2(old_val) << std::endl
+		<< " new_val = " << val_str2(new_val) << std::endl;
+    }
+    if ( new_val != old_val ) {
+      add_to_clear_list(node, old_val);
+      if ( node->is_output() ) {
+	det |= diff(new_val, old_val);
+      }
+      else {
+	put_fanouts(node);
+      }
+    }
+  }
+
+  // 今の故障シミュレーションで値の変わったノードを元にもどしておく
+  for ( auto& rinfo: mClearArray ) {
+    auto node = rinfo.mNode;
+    node->set_val(rinfo.mVal);
+  }
+  mClearArray.clear();
+
+  return det;
+}
+
+// @brief イベントドリブンシミュレーションを行う．
+DiffBitsArray
+EventQ::simulate2()
 {
   // 結果を格納するオブジェクト
   DiffBitsArray dbits_array;
@@ -97,11 +147,10 @@ EventQ::simulate()
     else {
       new_val = node->calc_val();
     }
-    if ( node->has_flip_mask() ) {
-      // node に反転イベントがある場合
-      auto flip_mask = mFlipMaskArray[node->id()];
-      new_val ^= flip_mask;
-    }
+    // 反転イベントの考慮
+    auto flip_mask = mFlipMaskArray[node->id()];
+    new_val ^= flip_mask;
+    mFlipMaskArray[node->id()] = PV_ALL0;
     node->set_val(new_val);
     if ( debug ) {
       std::cout << "Node#" << node->id() << std::endl
@@ -126,12 +175,6 @@ EventQ::simulate()
     node->set_val(rinfo.mVal);
   }
   mClearArray.clear();
-
-  for ( auto i: Range(0, mMaskPos) ) {
-    auto node = mMaskList[i];
-    node->clear_flip();
-  }
-  mMaskPos = 0;
 
   return dbits_array;
 }

@@ -175,13 +175,13 @@ public:
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   sppfp2(
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   sppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
@@ -190,13 +190,13 @@ public:
   ///
   /// * assign_list は任意の位置の割り当てでよい．
   /// * 3値のシミュレーションのみ可能
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  std::vector<std::shared_ptr<FsimResultsRep>>
+  std::vector<FsimResultsRep*>
   ppsfp2(
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) override;
@@ -430,6 +430,26 @@ private:
       val_array[node->id()] = val;
     }
   }
+
+  /// @brief 各 SimThrFunc の持っている det_list をマージする．
+  std::vector<SizeType>
+  merge_det_list();
+
+  /// @brief 各 SimThrFunc の持っている det_list_array をマージする．
+  std::vector<std::vector<SizeType>>
+  merge_det_list_array(
+    SizeType tv_num
+  );
+
+  /// @brief 各 SimThrFunc の持っている diffbits_list をマージする．
+  FsimResultsRep*
+  merge_diffbits_list();
+
+  /// @brief 各 SimThrFunc の持っている diffbits_list_array をマージする．
+  std::vector<FsimResultsRep*>
+  merge_diffbits_list_array(
+    SizeType tv_num
+  );
 
 
 private:

@@ -175,7 +175,7 @@ get_skip(
 }
 
 PyObject*
-spsfp(
+spsfp2(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -221,18 +221,10 @@ spsfp(
   auto& val = PyFsim::_get_ref(self);
   try {
     if ( tv.vector_size() > 0 ) {
-      DiffBits dbits;
-      auto res = val.spsfp(tv, fault, dbits);
-      auto res_obj = PyBool::ToPyObject(res);
-      auto dbits_obj = PyDiffBits::ToPyObject(dbits);
-      return Py_BuildValue("OO", res_obj, dbits_obj);
+      return PyDiffBits::ToPyObject(val.spsfp2(tv, fault));
     }
     if ( as_list.size() > 0 ) {
-      DiffBits dbits;
-      auto res = val.spsfp(as_list, fault, dbits);
-      auto res_obj = PyBool::ToPyObject(res);
-      auto dbits_obj = PyDiffBits::ToPyObject(dbits);
-      return Py_BuildValue("OO", res_obj, dbits_obj);
+      return PyDiffBits::ToPyObject(val.spsfp2(as_list, fault));
     }
     PyErr_SetString(PyExc_TypeError, "either testvector or assign_list must be given");
     return nullptr;
@@ -246,7 +238,7 @@ spsfp(
 }
 
 PyObject*
-xspsfp(
+xspsfp2(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -281,11 +273,7 @@ xspsfp(
   }
   auto& val = PyFsim::_get_ref(self);
   try {
-    DiffBits dbits;
-    auto res = val.xspsfp(as_list, fault, dbits);
-    auto res_obj = PyBool::ToPyObject(res);
-    auto dbits_obj = PyDiffBits::ToPyObject(dbits);
-    return Py_BuildValue("OO", res_obj, dbits_obj);
+    return PyDiffBits::ToPyObject(val.xspsfp2(as_list, fault));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -296,7 +284,7 @@ xspsfp(
 }
 
 PyObject*
-sppfp(
+sppfp2(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -332,12 +320,12 @@ sppfp(
   auto& val = PyFsim::_get_ref(self);
   try {
     if ( tv.vector_size() > 0 ) {
-      return PyFsimResults::ToPyObject(val.sppfp(tv));
+      return PyFsimResults::ToPyObject(val.sppfp2(tv));
     }
     if ( as_list.size() > 0 ) {
-      return PyFsimResults::ToPyObject(val.sppfp(as_list));
+      return PyFsimResults::ToPyObject(val.sppfp2(as_list));
     }
-    PyErr_SetString(PyExc_TypeError, "eighter testvector or assign_list must be given");
+    PyErr_SetString(PyExc_TypeError, "either testvector or assign_list must be given");
     return nullptr;
   }
   catch ( std::exception err ) {
@@ -349,7 +337,7 @@ sppfp(
 }
 
 PyObject*
-xsppfp(
+xsppfp2(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -374,7 +362,7 @@ xsppfp(
   }
   auto& val = PyFsim::_get_ref(self);
   try {
-    return PyFsimResults::ToPyObject(val.xsppfp(assign_list));
+    return PyFsimResults::ToPyObject(val.xsppfp2(assign_list));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -385,7 +373,7 @@ xsppfp(
 }
 
 PyObject*
-ppsfp(
+ppsfp2(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -410,7 +398,7 @@ ppsfp(
   }
   auto& val = PyFsim::_get_ref(self);
   try {
-    return PyFsimResults::ToPyObject(val.ppsfp(tv_list));
+    return PyFsimResults::ToPyObject(val.ppsfp2(tv_list));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -442,24 +430,24 @@ PyMethodDef methods[] = {
    reinterpret_cast<PyCFunction>(get_skip),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("get \"skip\" mark")},
-  {"spsfp",
-   reinterpret_cast<PyCFunction>(spsfp),
+  {"spsfp2",
+   reinterpret_cast<PyCFunction>(spsfp2),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do SPSFP fault simulation")},
-  {"xspsfp",
-   reinterpret_cast<PyCFunction>(xspsfp),
+  {"xspsfp2",
+   reinterpret_cast<PyCFunction>(xspsfp2),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do SPSFP fault simulation with X values")},
-  {"sppfp",
-   reinterpret_cast<PyCFunction>(sppfp),
+  {"sppfp2",
+   reinterpret_cast<PyCFunction>(sppfp2),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do SPPFP fault simulation")},
-  {"xsppfp",
-   reinterpret_cast<PyCFunction>(xsppfp),
+  {"xsppfp2",
+   reinterpret_cast<PyCFunction>(xsppfp2),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do SPPFP fault simulation with X values")},
-  {"ppsfp",
-   reinterpret_cast<PyCFunction>(ppsfp),
+  {"ppsfp2",
+   reinterpret_cast<PyCFunction>(ppsfp2),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do SPPFP fault simulation with X values")},
   // end-marker

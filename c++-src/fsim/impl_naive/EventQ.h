@@ -72,9 +72,14 @@ public:
   }
 
   /// @brief イベントドリブンシミュレーションを行う．
+  /// @retval 伝搬状況を返す．
+  PackedVal
+  simulate();
+
+  /// @brief イベントドリブンシミュレーションを行う．
   /// @retval 出力における変化ビットを返す．
   DiffBitsArray
-  simulate();
+  simulate2();
 
 
 private:
@@ -158,10 +163,7 @@ private:
     PackedVal flip_mask ///< [in] 反転マスク
   )
   {
-    node->set_flip();
     mFlipMaskArray[node->id()] = flip_mask;
-    mMaskList[mMaskPos] = node;
-    ++ mMaskPos;
   }
 
 
@@ -198,19 +200,9 @@ private:
   // clear 用の情報の配列
   std::vector<RestoreInfo> mClearArray;
 
-  // mCelarArray の最後の要素位置
-  SizeType mClearPos{0};
-
   // 反転マスクの配列
   // サイズは mClearArraySize と同じ
   std::vector<PackedVal> mFlipMaskArray;
-
-  // 反転マスクをセットしたノードのリスト
-  // 仕様上 PV_BITLEN が最大
-  SimNode* mMaskList[PV_BITLEN];
-
-  // mMaskList の最後の要素位置
-  SizeType mMaskPos{0};
 
 };
 

@@ -66,12 +66,12 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief prev_mgr の故障グループを det_list1, det_list2 に基づいて細分化する．
+  /// @brief prev_mgr の故障グループを det_list_array に基づいて細分化する．
   static
   DiGroupMgr
   dichotomy(
     const DiGroupMgr& mgr,           ///< [in] 元となる故障グループのリスト
-    const FsimResults& fsim_results, ///< [in] 故障シミュレーションの結果
+    const std::vector<TpgFaultList>& det_list_array, ///< [in] 検出された故障のリストの配列
     const ConfigParam& option        ///< [in] オプション
   );
 

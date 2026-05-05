@@ -202,13 +202,13 @@ public:
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   sppfp2(
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   sppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
@@ -217,13 +217,13 @@ public:
   ///
   /// * assign_list は任意の位置の割り当てでよい．
   /// * 3値のシミュレーションのみ可能
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  std::vector<std::shared_ptr<FsimResultsRep>>
+  std::vector<FsimResultsRep*>
   ppsfp2(
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) override;
@@ -392,7 +392,7 @@ private:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   _sppfp2();
 
   /// @brief sppfp 用のシミュレーションを行う．
@@ -441,11 +441,11 @@ private:
 
   /// @brief 正常値の計算を行う．
   void
-  _calc_gval2(
+  _calc_gvalx(
     const AssignList& assign_list ///< [in] 値割り当てのリスト
   );
 
-  /// @brief _calc_val2() 用に初期値の設定を行う．
+  /// @brief _calc_valx() 用に初期値の設定を行う．
   void
   _set_init(
     SizeType node_id, ///< [in] ノード番号
@@ -459,7 +459,7 @@ private:
 
   /// @brief 値の計算を行う．
   void
-  _calc_val2()
+  _calc_valx()
   {
     auto init_val = FSIM_INITVAL;
     for ( auto node: mPPIList ) {
@@ -495,7 +495,7 @@ private:
   /// @return 伝搬したビットに1を立てたビットベクタ
   ///
   /// obs_mask が0のビットのイベントはマスクされる．
-  DiffBitsArray
+  PackedVal
   _global_prop(
     SimNode* root,     ///< [in] FFRの根のノード
     PackedVal obs_mask ///< [in] ビットマスク
@@ -503,6 +503,20 @@ private:
   {
     mEventQ.put_event(root, obs_mask);
     return mEventQ.simulate();
+  }
+
+  /// @brief FFR の根から故障伝搬シミュレーションを行う．
+  /// @return 伝搬したビットに1を立てたビットベクタ
+  ///
+  /// obs_mask が0のビットのイベントはマスクされる．
+  DiffBitsArray
+  _global_prop2(
+    SimNode* root,     ///< [in] FFRの根のノード
+    PackedVal obs_mask ///< [in] ビットマスク
+  )
+  {
+    mEventQ.put_event(root, obs_mask);
+    return mEventQ.simulate2();
   }
 
   /// @brief FFR内の故障シミュレーションを行う．

@@ -174,14 +174,14 @@ public:
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   virtual
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   sppfp2(
     const TestVector& tv ///< [in] テストベクタ
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   virtual
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   sppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) = 0;
@@ -191,14 +191,14 @@ public:
   /// * assign_list は任意の位置の割り当てでよい．
   /// * 3値のシミュレーションのみ可能
   virtual
-  std::shared_ptr<FsimResultsRep>
+  FsimResultsRep*
   xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   virtual
-  std::vector<std::shared_ptr<FsimResultsRep>>
+  std::vector<FsimResultsRep*>
   ppsfp2(
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) = 0;

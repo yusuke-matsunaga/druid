@@ -242,8 +242,7 @@ DtpgTestWithParam2::do_test()
     auto fs = dtpg_results.status(fault);
     if ( fs == FaultStatus::Detected ) {
       auto tv = dtpg_results.testvector(fault);
-      DiffBits dbits;
-      bool r = fsim.spsfp(tv, fault, dbits);
+      bool r = fsim.spsfp(tv, fault);
       if ( !r ) {
 	++ ErrorCount;
       }
@@ -377,14 +376,13 @@ TEST(DtpgTest, xor2)
       continue;
     }
     auto tv = res.testvector(fault);
-    DiffBits _;
-    auto fsim_res = fsim.spsfp(tv, fault, _);
+    auto fsim_res = fsim.spsfp(tv, fault);
     EXPECT_TRUE( fsim_res ) << fault.str();
     auto cond = res.cond(fault);
     auto assign_list = cond.main_cond();
     auto aux_assign_list = cond.aux_cond();
     auto assign_list2 = assign_list + aux_assign_list;
-    auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
+    auto fsim_res2 = fsim.xspsfp(assign_list2, fault);
     EXPECT_TRUE( fsim_res2 ) << fault.str();
     EXPECT_TRUE( DtpgMgr::check(fault, assign_list) );
   }
@@ -411,11 +409,10 @@ TEST(DtpgTest, c432)
     auto assign_list = cond.main_cond();
     auto aux_assign_list = cond.aux_cond();
     EXPECT_TRUE( DtpgMgr::check(fault, assign_list) ) << fault.str() << " check";
-    DiffBits _;
-    auto fsim_res = fsim.spsfp(tv, fault, _);
+    auto fsim_res = fsim.spsfp(tv, fault);
     EXPECT_TRUE( fsim_res ) << fault.str() << " testvector";
     auto assign_list2 = assign_list + aux_assign_list;
-    auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
+    auto fsim_res2 = fsim.xspsfp(assign_list2, fault);
     EXPECT_TRUE( fsim_res2 ) << fault.str() << " assign_list";
   }
 }
@@ -443,11 +440,10 @@ TEST(DtpgTest, c499)
     auto assign_list = cond.main_cond();
     auto aux_assign_list = cond.aux_cond();
     EXPECT_TRUE( DtpgMgr::check(fault, assign_list) ) << fault.str() << " check";
-    DiffBits _;
-    auto fsim_res = fsim.spsfp(tv, fault, _);
+    auto fsim_res = fsim.spsfp(tv, fault);
     EXPECT_TRUE( fsim_res ) << fault.str() << " testvector";
     auto assign_list2 = assign_list + aux_assign_list;
-    auto fsim_res2 = fsim.xspsfp(assign_list2, fault, _);
+    auto fsim_res2 = fsim.xspsfp(assign_list2, fault);
     EXPECT_TRUE( fsim_res2 ) << fault.str() << " assign_list";
   }
 }
