@@ -360,34 +360,6 @@ private:
     SizeType ffr_num          ///< [in] FFR 数
   );
 
-  /// @brief FFR の根から故障伝搬シミュレーションを行う．
-  /// @return 伝搬したビットに1を立てたビットベクタ
-  ///
-  /// obs_mask が0のビットのイベントはマスクされる．
-  PackedVal
-  _global_prop(
-    SimNode* root,     ///< [in] FFRの根のノード
-    PackedVal obs_mask ///< [in] ビットマスク
-  )
-  {
-    put_event(root, obs_mask);
-    return simulate();
-  }
-
-  /// @brief FFR の根から故障伝搬シミュレーションを行う．
-  /// @return 伝搬したビットに1を立てたビットベクタ
-  ///
-  /// obs_mask が0のビットのイベントはマスクされる．
-  DiffBitsArray
-  _global_prop2(
-    SimNode* root,     ///< [in] FFRの根のノード
-    PackedVal obs_mask ///< [in] ビットマスク
-  )
-  {
-    put_event(root, obs_mask);
-    return simulate2();
-  }
-
   /// @brief FFR内の故障シミュレーションを行う．
   PackedVal
   _local_prop(
@@ -418,12 +390,13 @@ private:
   void
   _sppfp_sub(
     const SimFFR& ffr,              ///< [in] 対象の FFR
+    PackedVal bitmask,              ///< [in] ビットマスク
     std::vector<SizeType>& det_list ///< [in] 結果を格納するリスト
   )
   {
     auto& fault_list = ffr.fault_list();
     for ( auto ff: fault_list ) {
-      if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
+      if ( !ff->skip() && (ff->obs_mask() & bitmask) != PV_ALL0 ) {
 	auto fid = ff->id();
 	det_list.push_back(fid);
       }
@@ -517,34 +490,6 @@ private:
     bool weighted
   );
 #endif
-
-  /// @brief 初期イベントを追加する．
-  void
-  put_event(
-    SimNode* node,      ///< [in] 対象のノード
-    PackedVal flip_mask ///< [in] 反転マスク
-  )
-  {
-#if 0
-    if ( node->gate_type() == PrimType::None ) {
-      // 入力の場合，他のイベントの干渉は受けないので
-      // 今計算してしまう．
-      auto old_val = node->val();
-      node->set_val(old_val ^ flip_mask);
-      add_to_clear_list(node, old_val);
-      put_fanouts(node);
-    }
-    else {
-      // 複数のイベントを登録する場合があるので
-      // ここでは計算せずに反転マスクのみをセットする．
-      set_flip_mask(node, flip_mask);
-      put(node);
-    }
-#else
-    set_flip_mask(node, flip_mask);
-    put(node);
-#endif
-  }
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @retval 伝搬状況を返す．

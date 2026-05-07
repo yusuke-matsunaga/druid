@@ -265,7 +265,9 @@ SimEngine::spsfp(
   auto root = ff->origin_node()->ffr_root();
 
   // root からの故障伝搬シミュレーションを行う．
-  auto gobs = _global_prop(root, PV_ALL1);
+  set_flip_mask(root, PV_ALL1);
+  put(root);
+  auto gobs = simulate();
   if ( gobs != PV_ALL0 ) {
     return true;
   }
@@ -294,15 +296,15 @@ SimEngine::sppfp()
     auto root = ffr.root();
     if ( root->is_output() ) {
       // 常に観測可能
-      _sppfp_sub(ffr, det_list);
+      _sppfp_sub(ffr, PV_ALL1, det_list);
     }
     else {
       // キューに積んでおく
       PackedVal bitmask = 1ULL << bitpos;
-      put_event(root, bitmask);
+      set_flip_mask(root, bitmask);
+      put(root);
       ffr_buff[bitpos] = &ffr;
       ++ bitpos;
-
       if ( bitpos == PV_BITLEN ) {
 	_sppfp_simulation(ffr_buff, bitpos, det_list);
 	bitpos = 0;
@@ -329,7 +331,7 @@ SimEngine::_sppfp_simulation(
   for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
     if ( obs & mask ) {
       auto& ffr = *ffr_buff[i];
-      _sppfp_sub(ffr, det_list);
+      _sppfp_sub(ffr, mask, det_list);
     }
   }
 }
@@ -362,7 +364,10 @@ SimEngine::ppsfp(
     }
 
     // FFR の出力の故障伝搬を行う．
-    auto gobs = _global_prop(ffr.root(), ffr_req);
+    auto root = ffr.root();
+    set_flip_mask(root, ffr_req);
+    put(root);
+    auto gobs = simulate();
     if ( gobs != PV_ALL0 ) {
       // FFR 内の故障伝搬を行う．
       for ( auto ff: ffr.fault_list() ) {
@@ -410,7 +415,9 @@ SimEngine::spsfp2(
   auto root = ff->origin_node()->ffr_root();
 
   // root からの故障伝搬シミュレーションを行う．
-  auto dbits_array = _global_prop2(root, PV_ALL1);
+  set_flip_mask(root, PV_ALL1);
+  put(root);
+  auto dbits_array = simulate2();
   if ( dbits_array.dbits_union() != PV_ALL0 ) {
     return dbits_array.get_slice(0);
   }
@@ -446,10 +453,10 @@ SimEngine::sppfp2()
     else {
       // キューに積んでおく
       PackedVal bitmask = 1ULL << bitpos;
-      put_event(root, bitmask);
+      set_flip_mask(root, bitmask);
+      put(root);
       ffr_buff[bitpos] = &ffr;
       ++ bitpos;
-
       if ( bitpos == PV_BITLEN ) {
 	_sppfp2_simulation(ffr_buff, bitpos);
 	bitpos = 0;
@@ -514,7 +521,10 @@ SimEngine::ppsfp2(
     }
 
     // FFR の出力の故障伝搬を行う．
-    auto dbits_array = _global_prop2(ffr.root(), ffr_req);
+    auto root = ffr.root();
+    set_flip_mask(root, ffr_req);
+    put(root);
+    auto dbits_array = simulate2();
     auto gobs = dbits_array.dbits_union();
     if ( gobs != PV_ALL0 ) {
       // FFR 内の故障伝搬を行う．

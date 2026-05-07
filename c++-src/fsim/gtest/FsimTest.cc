@@ -18,11 +18,11 @@
 
 #define SPSFP_TEST 0
 #define SPPFP_TEST 1
-#define PPSFP_TEST 0
+#define PPSFP_TEST 1
 #define SINGLE_TEST 1
-#define MULTI_TEST 0
+#define MULTI_TEST 1
 #define DETLIST_TEST 1
-#define DIFFBITS_TEST 0
+#define DIFFBITS_TEST 1
 
 
 BEGIN_NAMESPACE_DRUID
