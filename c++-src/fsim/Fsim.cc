@@ -240,6 +240,7 @@ Fsim::sppfp2(
 )
 {
   auto res = mImpl->sppfp2(tv);
+  res->sort();
   return FsimResults(_network(), res);
 }
 
@@ -250,6 +251,7 @@ Fsim::sppfp2(
 )
 {
   auto res = mImpl->sppfp2(assign_list);
+  res->sort();
   return FsimResults(_network(), res);
 }
 
@@ -260,6 +262,7 @@ Fsim::xsppfp2(
 )
 {
   auto res = mImpl->xsppfp2(assign_list);
+  res->sort();
   return FsimResults(_network(), res);
 }
 
@@ -288,6 +291,9 @@ Fsim::ppsfp2(
       tv_buff.clear();
     }
   }
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    res_list[i]->sort();
+  }
   return FsimResults(_network(), res_list);
 }
 
@@ -299,6 +305,16 @@ Fsim::calc_wsa(
 )
 {
   return mImpl->calc_wsa(tv, weighted);
+}
+
+// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
+SizeType
+Fsim::calc_wsa(
+  const InputVector& i_vect,
+  bool weighted
+)
+{
+  return mImpl->calc_wsa(i_vect, weighted);
 }
 
 // @brief 状態を設定する．
@@ -319,16 +335,6 @@ Fsim::get_state(
 )
 {
   mImpl->get_state(i_vect, f_vect);
-}
-
-// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
-SizeType
-Fsim::calc_wsa(
-  const InputVector& i_vect,
-  bool weighted
-)
-{
-  return mImpl->calc_wsa(i_vect, weighted);
 }
 
 END_NAMESPACE_DRUID

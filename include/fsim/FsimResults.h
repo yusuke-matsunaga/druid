@@ -85,19 +85,24 @@ public:
   SizeType
   tv_num() const;
 
-  /// @brief 指定されたテストベクタ番号で検出された故障のリストを返す．
-  ///
-  /// 故障番号の昇順にソートされている．
-  TpgFaultList
-  fault_list(
+  /// @brief 指定されたテストベクタ番号で検出された故障数を返す．
+  SizeType
+  det_num(
     SizeType tv_id ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
   ) const;
 
-  /// @brief 出力の故障伝搬状態を返す．
+  /// @brief 指定されたテストベクタ番号で検出された故障を返す．
+  TpgFault
+  fault(
+    SizeType tv_id, ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
+    SizeType pos    ///< [in] 位置番号 ( 0 <= pos < det_num(tv_id) )
+  ) const;
+
+  /// @brief 指定されたテストベクタ番号で検出された故障の出力ごとの故障伝搬状態を返す．
   DiffBits
   diffbits(
-    SizeType tv_id,   ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
-    SizeType fault_id ///< [in] 故障番号
+    SizeType tv_id, ///< [in] テストベクタ番号 ( 0 <= tv_id < tv_num() )
+    SizeType pos    ///< [in] 位置番号 ( 0 <= pos < det_num(tv_id) )
   ) const;
 
   //////////////////////////////////////////////////////////////////////

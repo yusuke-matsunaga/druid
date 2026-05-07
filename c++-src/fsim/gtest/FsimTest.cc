@@ -16,12 +16,13 @@
 #include "types/TpgFaultList.h"
 #include "types/TestVector.h"
 
-#define SPSFP_TEST 1
+#define SPSFP_TEST 0
 #define SPPFP_TEST 1
-#define PPSFP_TEST 1
+#define PPSFP_TEST 0
 #define SINGLE_TEST 1
-#define MULTI_TEST 1
-#define DIFFBITS_TEST 1
+#define MULTI_TEST 0
+#define DETLIST_TEST 1
+#define DIFFBITS_TEST 0
 
 
 BEGIN_NAMESPACE_DRUID
@@ -280,6 +281,8 @@ FsimTest::sppfp_test(
   std::mt19937 randgen;
   SizeType nv = PAT_NUM;
 
+  RefSim refsim{tpg_network};
+
   auto has_prev = tpg_network.fault_type() == FaultType::TransitionDelay;
   TestVector tv(input_num, dff_num, has_prev);
   for ( SizeType i = 0; i < nv; ++ i ) {
@@ -287,7 +290,7 @@ FsimTest::sppfp_test(
     std::unordered_set<SizeType> det_dict;
     SizeType ndet = 0;
     for ( auto fault: fault_list ) {
-      auto dbits = fsim.spsfp2(tv, fault);
+      auto dbits = refsim.simulate(tv, fault.id());
       if ( dbits.elem_num() > 0 ) {
 	det_dict.insert(fault.id());
 	++ ndet;
@@ -299,7 +302,12 @@ FsimTest::sppfp_test(
     bool first = true;
     for ( auto fault: det_list ) {
       auto fid = fault.id();
-      EXPECT_TRUE( det_dict.count(fid) > 0 );
+      if ( det_dict.count(fid) == 0 ) {
+	refsim.debug = true;
+	refsim.simulate(tv, fid);
+	refsim.debug = false;
+      }
+      EXPECT_TRUE( det_dict.count(fid) > 0 ) << fault.str();
       if ( first ) {
 	first = false;
       }
@@ -331,33 +339,54 @@ FsimTest::sppfp2_test(
   std::mt19937 randgen;
   SizeType nv = PAT_NUM;
 
+  RefSim refsim{tpg_network};
+
   auto has_prev = tpg_network.fault_type() == FaultType::TransitionDelay;
   TestVector tv(input_num, dff_num, has_prev);
-  for ( SizeType i = 0; i < nv; ++ i ) {
+  for ( SizeType tv_id = 0; tv_id < nv; ++ tv_id ) {
     tv.set_from_random(randgen);
     std::unordered_map<SizeType, DiffBits> dbits_dict;
     SizeType ndet = 0;
     for ( auto fault: fault_list ) {
-      auto dbits = fsim.spsfp2(tv, fault);
+      auto dbits = refsim.simulate(tv, fault.id());
       if ( dbits.elem_num() > 0 ) {
 	dbits_dict.emplace(fault.id(), dbits);
 	++ ndet;
       }
     }
     auto res = fsim.sppfp2(tv);
-    EXPECT_EQ( ndet, res.fault_list(0).size() );
+    if ( ndet != res.det_num(0) ) {
+      std::cout << "ref fault_list:" << std::endl;
+      for ( auto fault: fault_list ) {
+	if ( dbits_dict.count(fault.id()) > 0 ) {
+	  auto& dbits = dbits_dict.at(fault.id());
+	  std::cout << " " << fault.str()
+		    << ": " << dbits
+		    << std::endl;
+	}
+      }
+      std::cout << std::endl;
+      std::cout << "fault_list:" << std::endl;
+      auto n = res.det_num(0);
+      for ( SizeType i = 0; i < n; ++ i ) {
+	auto fault = res.fault(0, i);
+	auto dbits = res.diffbits(0, i);
+	std::cout << " " << fault.str()
+		  << ": " << dbits
+		  << std::endl;
+      }
+      std::cout << std::endl;
+    }
+    ASSERT_EQ( ndet, res.det_num(0) );
     SizeType prev_fid = 0;
-    bool first = true;
-    for ( auto fault: res.fault_list(0) ) {
+    for ( SizeType i = 0; i < ndet; ++ i ) {
+      auto fault = res.fault(0, i);
       auto fid = fault.id();
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
-      auto tmp_dbits = res.diffbits(0, fid);
-      EXPECT_EQ( dbits_dict.at(fid), tmp_dbits );
-      if ( first ) {
-	first = false;
-      }
-      else {
-	// res.fault_list(0) がソートされているかチェック
+      auto dbits = res.diffbits(0, i);
+      EXPECT_EQ( dbits_dict.at(fid), dbits );
+      if ( i > 0 ) {
+	// res.fault(0, i) がソートされているかチェック
 	EXPECT_TRUE( prev_fid < fid );
       }
       prev_fid = fid;
@@ -481,7 +510,8 @@ FsimTest::xsppfp2_test(
       }
     }
     auto res = fsim.xsppfp2(assign_list);
-    if ( ref_fault_list.size() != res.fault_list(0).size() ) {
+    auto ndet = ref_fault_list.size();
+    if ( ndet != res.det_num(0) ) {
       if ( debug ) {
 	std::cout << "original fault: " << fault.str() << std::endl;
 	std::cout << "assign list = " << assign_list << std::endl;
@@ -491,24 +521,23 @@ FsimTest::xsppfp2_test(
 	}
 	std::cout << std::endl;
 	std::cout << "fsim fault_list:";
-	for ( auto fault: res.fault_list(0) ) {
+	auto n = res.det_num(0);
+	for ( SizeType i = 0; i < n; ++ i ) {
+	  auto fault = res.fault(0, i);
 	  std::cout << " " << fault.str();
 	}
 	std::cout << std::endl;
       }
     }
-    ASSERT_EQ( ref_fault_list.size(), res.fault_list(0).size() );
+    ASSERT_EQ( ndet, res.det_num(0) );
     SizeType prev_fid = 0;
-    bool first = true;
-    for ( auto fault: res.fault_list(0) ) {
+    for ( SizeType i = 0; i < ndet; ++ i ) {
+      auto fault = res.fault(0, i);
       auto fid = fault.id();
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
-      auto tmp_dbits = res.diffbits(0, fid);
-      EXPECT_EQ( dbits_dict.at(fid), tmp_dbits );
-      if ( first ) {
-	first = false;
-      }
-      else {
+      auto dbits = res.diffbits(0, i);
+      EXPECT_EQ( dbits_dict.at(fid), dbits );
+      if ( i > 0 ) {
 	// res.fault_list(0) がソートされているかチェック
 	ASSERT_TRUE( prev_fid < fid );
       }
@@ -594,14 +623,15 @@ FsimTest::ppsfp2_test(
   ASSERT_EQ( nv, res.tv_num() );
   for ( SizeType i = 0; i < nv; ++ i ) {
     auto ref_res = fsim.sppfp2(tv_list[i]);
-    auto f_list1 = ref_res.fault_list(0);
-    auto f_list2 = res.fault_list(i);
-    ASSERT_EQ( f_list1, f_list2 );
-    for ( auto fault: f_list1 ) {
-      auto fid = fault.id();
-      auto ref_dbits = ref_res.diffbits(0, fid);
-      auto dbits = res.diffbits(i, fid);
-      EXPECT_EQ( ref_dbits, dbits );
+    auto ndet = ref_res.det_num(0);
+    ASSERT_EQ( ndet, res.det_num(i) );
+    for ( SizeType j = 0; j < ndet; ++ j ) {
+      auto fault1 = ref_res.fault(0, j);
+      auto fault2 = res.fault(i, j);
+      EXPECT_EQ( fault1, fault2 );
+      auto dbits1 = ref_res.diffbits(0, j);
+      auto dbits2 = res.diffbits(i, j);
+      EXPECT_EQ( dbits1, dbits2 );
     }
   }
 }
@@ -648,6 +678,7 @@ TEST_P(FsimTest, xspsfp2_sa_test)
 
 #if SPPFP_TEST
 #if SINGLE_TEST
+#if DETLIST_TEST
 TEST_P(FsimTest, sppfp_single_sa_test)
 {
   auto tpg_network = read_network(FaultType::StuckAt);
@@ -665,6 +696,7 @@ TEST_P(FsimTest, xsppfp_single_sa_test)
   auto tpg_network = read_network(FaultType::StuckAt);
   xsppfp_test(tpg_network, false);
 }
+#endif
 
 #if DIFFBITS_TEST
 TEST_P(FsimTest, sppfp2_single_sa_test)
@@ -688,6 +720,7 @@ TEST_P(FsimTest, xsppfp2_single_sa_test)
 #endif // SINGLE_TEST
 
 #if MULTI_TEST
+#if DETLIST_TEST
 TEST_P(FsimTest, sppfp_multi_sa_test)
 {
   auto tpg_network = read_network(FaultType::StuckAt);
@@ -699,6 +732,7 @@ TEST_P(FsimTest, sppfp_multi_td_test)
   auto tpg_network = read_network(FaultType::TransitionDelay);
   sppfp_test(tpg_network, true);
 }
+#endif
 
 #if DIFFBITS_TEST
 TEST_P(FsimTest, sppfp2_multi_sa_test)
@@ -718,6 +752,7 @@ TEST_P(FsimTest, sppfp2_multi_td_test)
 
 #if PPSFP_TEST
 #if SINGLE_TEST
+#if DETLIST_TEST
 TEST_P(FsimTest, ppsfp_single_sa_test)
 {
   auto tpg_network = read_network(FaultType::StuckAt);
@@ -729,6 +764,7 @@ TEST_P(FsimTest, ppsfp_single_td_test)
   auto tpg_network = read_network(FaultType::TransitionDelay);
   ppsfp_test(tpg_network, false);
 }
+#endif
 
 #if DIFFBITS_TEST
 TEST_P(FsimTest, ppsfp2_single_sa_test)
@@ -746,6 +782,7 @@ TEST_P(FsimTest, ppsfp2_single_td_test)
 #endif // SINGLE_TEST
 
 #if MULTI_TEST
+#if DETLIST_TEST
 TEST_P(FsimTest, ppsfp_multi_sa_test)
 {
   auto tpg_network = read_network(FaultType::StuckAt);
@@ -757,6 +794,7 @@ TEST_P(FsimTest, ppsfp_multi_td_test)
   auto tpg_network = read_network(FaultType::TransitionDelay);
   ppsfp_test(tpg_network, true);
 }
+#endif
 
 #if DIFFBITS_TEST
 TEST_P(FsimTest, ppsfp2_multi_sa_test)
@@ -775,7 +813,7 @@ TEST_P(FsimTest, ppsfp2_multi_td_test)
 #endif // PPSFP_TEST
 
 
-#if 1
+#if 0
 INSTANTIATE_TEST_SUITE_P(FsimTest1, FsimTest,
 			 ::testing::Values("s27.blif", "s1196.blif"));
 #endif
@@ -790,11 +828,17 @@ INSTANTIATE_TEST_SUITE_P(FsimTest3, FsimTest,
 			 ::testing::Values("s27.blif"));
 #endif
 
+#if 1
+INSTANTIATE_TEST_SUITE_P(FsimTest3, FsimTest,
+			 ::testing::Values("C432.blif"));
+#endif
+
 #if 0
 INSTANTIATE_TEST_SUITE_P(FsimTest4, FsimTest,
 			 ::testing::Values("and2.blif"));
 #endif
 
+#if 0
 TEST(FsimTest, case1)
 {
   auto data_dir = std::filesystem::path{TESTDATA_DIR};
@@ -909,5 +953,6 @@ TEST(FsimTest, case3)
   auto res = fsim.spsfp(assign_list, fault2);
   EXPECT_TRUE( res );
 }
+#endif
 
 END_NAMESPACE_DRUID

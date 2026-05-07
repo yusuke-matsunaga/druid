@@ -9,6 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
+#include "fsim/FsimResults.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -20,33 +21,26 @@ BEGIN_NAMESPACE_DRUID
 /// 意味的には
 /// - 故障番号
 /// - 出力の伝搬状態
-/// を要素としたリストだが，出力の伝搬状態は単独で用いることがないので
-/// 故障番号をキーとして辞書に格納する．
+/// を要素としたリストを表す．
 //////////////////////////////////////////////////////////////////////
 class FsimResultsRep
 {
 public:
 
+  /// @brief 故障に対する出力ごとの検出結果
+  struct Info {
+    SizeType fault_id; ///< 故障番号
+    DiffBits diffbits; ///< 出力ごとの故障伝搬状況
+  };
+
+
+public:
+
   /// @brief コンストラクタ
-  explicit
-  FsimResultsRep(
-    SizeType fault_size ///< [in] 故障番号のサイズ
-  ) : mFaultSize{fault_size},
-      mArray{new DiffBits*[mFaultSize]}
-  {
-    for ( SizeType i = 0; i < mFaultSize; ++ i ) {
-      mArray[i] = nullptr;
-    }
-  }
+  FsimResultsRep() = default;
 
   /// @brief デストラクタ
-  ~FsimResultsRep()
-  {
-    for ( SizeType i = 0; i < mFaultSize; ++ i ) {
-      delete mArray[i];
-    }
-    delete [] mArray;
-  }
+  ~FsimResultsRep() = default;
 
 
 public:
@@ -61,69 +55,48 @@ public:
     const DiffBits& diffbits ///< [in] 出力の故障伝搬状態
   )
   {
-    _check_fault_id(fault_id);
-    if ( mArray[fault_id] != nullptr ) {
-      throw std::logic_error{"something wrong"};
-    }
-    mArray[fault_id] = new DiffBits(diffbits);
+    mDetList.push_back({fault_id, diffbits});
   }
 
-  /// @brief 故障番号のサイズを返す．
+  /// @brief 検出された故障数を返す．
   SizeType
-  fault_size() const
+  det_num() const
   {
-    return mFaultSize;
+    return mDetList.size();
   }
 
-  /// @brief 検出された故障番号のリストを返す．
-  std::vector<SizeType>
-  fault_list() const
-  {
-    std::vector<SizeType> ans_list;
-    for ( SizeType id = 0; id < fault_size(); ++ id ) {
-      auto dbits = mArray[id];
-      if ( dbits != nullptr ) {
-	ans_list.push_back(id);
-      }
-    }
-    return ans_list;
-  }
-
-  /// @brief 検出されているか調べる．
-  bool
-  detected(
-    SizeType fault_id ///< [in] 故障番号
+  /// @brief 検出された故障を返す．
+  SizeType
+  fault_id(
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_num() )
   ) const
   {
-    _check_fault_id(fault_id);
-    return mArray[fault_id] != nullptr;
+    if ( pos >= det_num() ) {
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mDetList[pos].fault_id;
   }
 
   /// @brief 出力の故障伝搬状態を返す．
-  const DiffBits&
+  DiffBits
   diffbits(
-    SizeType fault_id ///< [in] 故障番号
+    SizeType pos ///< [in] 位置番号 ( 0 <= pos < det_num() )
   ) const
   {
-    _check_fault_id(fault_id);
-    return *mArray[fault_id];
+    if ( pos >= det_num() ) {
+      throw std::out_of_range{"pos is out of range"};
+    }
+    return mDetList[pos].diffbits;
   }
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief fault_id の範囲チェックを行う．
+  /// @brief 故障番号の昇順にソートする．
   void
-  _check_fault_id(
-    SizeType fault_id ///< [in] 故障番号 ( 0 <= fault_id < fault_num() )
-  ) const
+  sort()
   {
-    if ( fault_id >= fault_size() ) {
-      throw std::out_of_range{"fault_id is out of range"};
-    }
+    std::sort(mDetList.begin(), mDetList.end(),
+	      [](const Info& a, const Info& b) -> bool {
+		return a.fault_id < b.fault_id;
+	      });
   }
 
 
@@ -132,11 +105,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障番号のサイズ
-  SizeType mFaultSize{0};
-
-  // 本体の配列
-  DiffBits** mArray{nullptr};
+  // 検出結果のリスト
+  std::vector<Info> mDetList;
 
 };
 

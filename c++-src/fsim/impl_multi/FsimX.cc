@@ -49,16 +49,13 @@ new_Fsim(
 FSIM_CLASSNAME::FSIM_CLASSNAME(
   const TpgFaultList& fault_list,
   SizeType thread_num
-) : mSyncObj(thread_num),
-    mFuncList(thread_num),
-    mThrList(thread_num)
+)
 {
-  set_network(fault_list.network());
-  set_fault_list(fault_list);
+  auto network = fault_list.network();
 
   // 各スレッドが担当する FFR の数
   std::vector<SizeType> size_list(thread_num, 0);
-  SizeType nffr = mFFRArray.size();
+  SizeType nffr = network.ffr_num();
   for ( SizeType i = 0; i < nffr; ++ i ) {
     ++ size_list[i % thread_num];
   }
@@ -70,21 +67,34 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
     base += size_list[i];
   }
   begin_list[thread_num] = base;
+  // 担当する FFR がないスレッドは生成しない．
+  SizeType act_num = 0;
   for ( SizeType i = 0; i < thread_num; ++ i ) {
-    std::vector<const SimFFR*> ffr_list;
+    auto begin = begin_list[i];
+    auto end = begin_list[i + 1];
+    if ( begin == end ) {
+      break;
+    }
+    ++ act_num;
+  }
+  mSyncObj.initialize(act_num);
+
+  mFuncList.reserve(act_num);
+  for ( SizeType i = 0; i < act_num; ++ i ) {
+    std::vector<SizeType> ffr_list;
     auto begin = begin_list[i];
     auto end = begin_list[i + 1];
     ffr_list.reserve(end - begin);
     for ( SizeType j = begin; j < end; ++ j ) {
-      auto ffr = &mFFRArray[j];
-      ffr_list.push_back(ffr);
+      ffr_list.push_back(j);
     }
-    auto func = new SimThrFunc(i, *this, ffr_list);
-    mFuncList[i] = std::unique_ptr<SimThrFunc>{func};
+    auto func = new SimThrFunc(i, network, fault_list, ffr_list);
+    mFuncList.push_back(std::unique_ptr<SimThrFunc>{func});
   }
 
   // スレッドを生成する．
-  for ( SizeType i = 0; i < thread_num; ++ i ) {
+  mThrList.resize(act_num);
+  for ( SizeType i = 0; i < act_num; ++ i ) {
     auto func = mFuncList[i].get();
     mThrList[i] = std::thread{
       [&](SimThrFunc* func) {
@@ -92,42 +102,42 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 	  auto cmd = mSyncObj.get_command(func->id());
 	  switch ( cmd ) {
 	  case Cmd::PPSFP:
-	    func->calc_gval(mSyncObj.testvector_list());
-	    func->ppsfp();
+	    func->engine().calc_val(mSyncObj.testvector_list());
+	    func->ppsfp(mSyncObj.testvector_list().size());
 	    break;
 
 	  case Cmd::SPPFP_TV:
-	    func->calc_gval(mSyncObj.testvector());
+	    func->engine().calc_val(mSyncObj.testvector());
 	    func->sppfp();
 	    break;
 
 	  case Cmd::SPPFP_AS:
-	    func->calc_gval(mSyncObj.assign_list());
+	    func->engine().calc_val(mSyncObj.assign_list());
 	    func->sppfp();
 	    break;
 
 	  case Cmd::XSPPFP:
-	    func->calc_gvalx(mSyncObj.assign_list());
+	    func->engine().calc_valx(mSyncObj.assign_list());
 	    func->sppfp();
 	    break;
 
 	  case Cmd::PPSFP2:
-	    func->calc_gval(mSyncObj.testvector_list());
-	    func->ppsfp2();
+	    func->engine().calc_val(mSyncObj.testvector_list());
+	    func->ppsfp2(mSyncObj.testvector_list().size());
 	    break;
 
 	  case Cmd::SPPFP2_TV:
-	    func->calc_gval(mSyncObj.testvector());
+	    func->engine().calc_val(mSyncObj.testvector());
 	    func->sppfp2();
 	    break;
 
 	  case Cmd::SPPFP2_AS:
-	    func->calc_gval(mSyncObj.assign_list());
+	    func->engine().calc_val(mSyncObj.assign_list());
 	    func->sppfp2();
 	    break;
 
 	  case Cmd::XSPPFP2:
-	    func->calc_gvalx(mSyncObj.assign_list());
+	    func->engine().calc_valx(mSyncObj.assign_list());
 	    func->sppfp2();
 	    break;
 
@@ -156,171 +166,12 @@ FSIM_CLASSNAME::~FSIM_CLASSNAME()
   }
 }
 
-// @brief ネットワークをセットする関数
-void
-FSIM_CLASSNAME::set_network(
-  const TpgNetwork& network
-)
-{
-  mInputNum = network.input_num();
-  mOutputNum = network.output_num();
-  mDffNum = network.dff_num();
-
-  auto nn = network.node_num();
-  auto ni = network.ppi_num();
-  auto no = network.ppo_num();
-
-  if ( ni != mInputNum + mDffNum ) {
-    throw std::logic_error{"ni != mInputNum + mDffNum"};
-  }
-  if ( no != mOutputNum + mDffNum ) {
-    throw std::logic_error{"no != mOutputNum + mDffNum"};
-  }
-
-  // 対応付けを行うマップの初期化
-  mSimNodeMap.resize(nn);
-
-  mPPIList.clear();
-  mPPIList.resize(ni);
-  mPPOList.clear();
-  mPPOList.resize(no);
-
-  for ( auto tpgnode: network.node_list() ) {
-    SimNode* node = nullptr;
-
-    if ( tpgnode.is_ppi() ) {
-      // 外部入力に対応する SimNode の生成
-      node = make_input();
-      mPPIList[tpgnode.input_id()] = node;
-    }
-    else if ( tpgnode.is_ppo() ) {
-      // 外部出力に対応する SimNode の生成
-      auto inode = mSimNodeMap[tpgnode.fanin(0).id()];
-      auto oid = tpgnode.output_id();
-      node = make_output(inode, oid);
-      mPPOList[oid] = node;
-    }
-    else if ( tpgnode.is_logic() ) {
-      // 論理ノードに対する SimNode の作成
-      auto ni = tpgnode.fanin_num();
-
-      // ファンインに対応する SimNode を探す．
-      std::vector<SizeType> inputs;
-      inputs.reserve(ni);
-      SizeType max_level = 0;
-      for ( auto itpgnode: tpgnode.fanin_list() ) {
-	auto inode = mSimNodeMap[itpgnode.id()];
-	if ( inode == nullptr ) {
-	  throw std::logic_error{"mSimNodeMap[itpgnode->id()] == nullptr"};
-	}
-
-	inputs.push_back(inode->id());
-	max_level = std::max(max_level, inode->level());
-      }
-
-      // 出力の論理を表す SimNode を作る．
-      auto type = tpgnode.gate_type();
-      ++ max_level;
-      node = make_gate(type, max_level, inputs);
-    }
-    // 対応表に登録しておく．
-    mSimNodeMap[tpgnode.id()] = node;
-  }
-
-  // 各ノードのファンアウトリストの設定
-  auto node_num = mNodeArray.size();
-  {
-    std::vector<std::vector<SimNode*>> fanout_lists(node_num);
-    std::vector<int> ipos(node_num);
-    for ( auto& node: mNodeArray ) {
-      auto ni = node->fanin_num();
-      for ( auto i: Range(0, ni) ) {
-	auto inode = node->fanin(i);
-	fanout_lists[inode].push_back(node.get());
-	ipos[inode] = i;
-      }
-    }
-    for ( auto i: Range(node_num) ) {
-      auto& node = mNodeArray[i];
-      if ( !node->is_output() ) {
-	node->set_fanout_list(fanout_lists[i], ipos[i]);
-      }
-    }
-  }
-
-  // FFR の設定
-  auto ffr_num = 0;
-  for ( auto& node: mNodeArray ) {
-    if ( node->is_output() || node->fanout_num() != 1 ) {
-      ++ ffr_num;
-    }
-  }
-
-  mFFRArray.clear();
-  mFFRArray.resize(ffr_num);
-  mFFRMap.resize(mNodeArray.size());
-  auto fg_num = (ffr_num + PV_BITLEN - 1) / PV_BITLEN;
-  ffr_num = 0;
-  for ( int i = node_num; -- i >= 0; ) {
-    auto& node = mNodeArray[i];
-    if ( node->is_output() || node->fanout_num() != 1 ) {
-      auto ffr = &mFFRArray[ffr_num];
-      node->set_ffr_root();
-      mFFRMap[node->id()] = ffr;
-      ffr->set_root(node.get());
-      ++ ffr_num;
-    }
-    else {
-      auto fo_node = node->fanout_top();
-      auto ffr = mFFRMap[fo_node->id()];
-      mFFRMap[node->id()] = ffr;
-    }
-  }
-
-  // 最大レベルを求める．
-  mMaxLevel = 0;
-  for ( auto inode: mPPOList ) {
-    if ( mMaxLevel < inode->level() ) {
-      mMaxLevel = inode->level();
-    }
-  }
-  ++ mMaxLevel;
-}
-
-// @brief 対象の故障をセットする．
-void
-FSIM_CLASSNAME::set_fault_list(
-  const TpgFaultList& fault_list
-)
-{
-  SizeType nf = fault_list.size();
-  SizeType max_fid = fault_list.max_fid();
-  ++ max_fid;
-
-  mFaultList.clear();
-  mFaultList.reserve(nf);
-
-  mFaultMap.clear();
-  mFaultMap.resize(max_fid, nullptr);
-
-  for ( auto fault: fault_list ) {
-    auto tpgnode = fault.origin_node();
-    auto simnode = mSimNodeMap[tpgnode.id()];
-    auto sim_f = new SimFault{fault, simnode, mSimNodeMap};
-    mFaultList.push_back(std::unique_ptr<SimFault>{sim_f});
-    mFaultMap[fault.id()] = sim_f;
-    sim_f->set_skip(false);
-    auto ffr = mFFRMap[simnode->id()];
-    ffr->add_fault(sim_f);
-  }
-}
-
 // @brief 全ての故障にスキップマークをつける．
 void
 FSIM_CLASSNAME::set_skip_all()
 {
-  for ( auto& f: mFaultList ) {
-    f->set_skip(true);
+  for ( auto& func: mFuncList ) {
+    func->engine().set_skip_all();
   }
 }
 
@@ -330,15 +181,17 @@ FSIM_CLASSNAME::set_skip(
   SizeType fid
 )
 {
-  mFaultMap[fid]->set_skip(true);
+  for ( auto& func: mFuncList ) {
+    func->engine().set_skip(fid);
+  }
 }
 
 // @brief 全ての故障のスキップマークを消す．
 void
 FSIM_CLASSNAME::clear_skip_all()
 {
-  for ( auto& f: mFaultList ) {
-    f->set_skip(false);
+  for ( auto& func: mFuncList ) {
+    func->engine().clear_skip_all();
   }
 }
 
@@ -348,7 +201,9 @@ FSIM_CLASSNAME::clear_skip(
   SizeType fid
 )
 {
-  mFaultMap[fid]->set_skip(false);
+  for ( auto& func: mFuncList ) {
+    func->engine().clear_skip(fid);
+  }
 }
 
 // @brief 故障のスキップマークを得る．
@@ -357,7 +212,12 @@ FSIM_CLASSNAME::get_skip(
   SizeType fid
 ) const
 {
-  return mFaultMap[fid]->skip();
+  for ( auto& func: mFuncList ) {
+    if ( func->engine().get_skip(fid) ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -367,13 +227,8 @@ FSIM_CLASSNAME::spsfp(
   SizeType fid
 )
 {
-  auto func = SimThrFunc(0, *this);
-
-  // 正常値の計算を行う．
-  func.calc_gval(tv);
-
-  auto ff = mFaultMap[fid];
-  return func.spsfp(ff);
+  // マルチスレッド版は対応していない．
+  return false;
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -383,13 +238,8 @@ FSIM_CLASSNAME::spsfp(
   SizeType fid
 )
 {
-  auto func = SimThrFunc(0, *this);
-
-  // 正常値の計算を行う．
-  func.calc_gval(assign_list);
-
-  auto ff = mFaultMap[fid];
-  return func.spsfp(ff);
+  // マルチスレッド版は対応していない．
+  return false;
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -399,13 +249,8 @@ FSIM_CLASSNAME::xspsfp(
   SizeType fid
 )
 {
-  auto func = SimThrFunc(0, *this);
-
-  // 正常値の計算を行う．
-  func.calc_gvalx(assign_list);
-
-  auto ff = mFaultMap[fid];
-  return func.spsfp(ff);
+  // マルチスレッド版は対応していない．
+  return false;
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -460,13 +305,8 @@ FSIM_CLASSNAME::spsfp2(
   SizeType fid
 )
 {
-  auto func = SimThrFunc(0, *this);
-
-  // 正常値の計算を行う．
-  func.calc_gval(tv);
-
-  auto ff = mFaultMap[fid];
-  return func.spsfp2(ff);
+  // マルチスレッド版は対応していない．
+  return DiffBits();
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -476,13 +316,8 @@ FSIM_CLASSNAME::spsfp2(
   SizeType fid
 )
 {
-  auto func = SimThrFunc(0, *this);
-
-  // 正常値の計算を行う．
-  func.calc_gval(assign_list);
-
-  auto ff = mFaultMap[fid];
-  return func.spsfp2(ff);
+  // マルチスレッド版は対応していない．
+  return DiffBits();
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -492,13 +327,8 @@ FSIM_CLASSNAME::xspsfp2(
   SizeType fid
 )
 {
-  auto func = SimThrFunc(0, *this);
-
-  // 正常値の計算を行う．
-  func.calc_gvalx(assign_list);
-
-  auto ff = mFaultMap[fid];
-  return func.spsfp2(ff);
+  // マルチスレッド版は対応していない．
+  return DiffBits();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -547,7 +377,6 @@ FSIM_CLASSNAME::ppsfp2(
   return merge_diffbits_list_array(ntv);
 }
 
-#if FSIM_BSIDE
 // @brief 状態を設定する．
 void
 FSIM_CLASSNAME::set_state(
@@ -672,74 +501,19 @@ FSIM_CLASSNAME::calc_wsa(
 #endif
 }
 
-#if 0
-// @brief ノードの出力の(重み付き)信号遷移回数を求める．
-SizeType
-FSIM_CLASSNAME::_calc_wsa(
-  SimNode* node,
-  bool weighted
-)
-{
-  SizeType wsa = 0;
-  if ( mPrevValArray[node->id()] != mValArray[node->id()] ) {
-    wsa = 1;
-    if ( weighted ) {
-      wsa += node->fanout_num();
-    }
-  }
-  return wsa;
-}
-#endif
-#else
-// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
-SizeType
-FSIM_CLASSNAME::calc_wsa(
-  const TestVector& tv,
-  bool weighted
-)
-{
-  return 0;
-}
-
-// @brief 状態を設定する．
-void
-FSIM_CLASSNAME::set_state(
-  const InputVector& i_vect,
-  const DffVector& f_vect
-)
-{
-}
-
-// @brief 状態を取得する．
-void
-FSIM_CLASSNAME::get_state(
-  InputVector& i_vect,
-  DffVector& f_vect
-)
-{
-}
-
-// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
-SizeType
-FSIM_CLASSNAME::calc_wsa(
-  const InputVector& i_vect,
-  bool weighted
-)
-{
-  return 0;
-}
-#endif
-
 // @brief 各 SimThrFunc の持っている det_list をマージする．
 std::vector<SizeType>
 FSIM_CLASSNAME::merge_det_list()
 {
+  // 要素数を数える．
   SizeType n = 0;
   for ( auto& func: mFuncList ) {
     n += func->det_list().size();
   }
+  // 結果のリストを用意する．
   std::vector<SizeType> det_list;
   det_list.reserve(n);
+  // 結果を作る．
   for ( auto& func: mFuncList ) {
     auto& det_list1 = func->det_list();
     det_list.insert(det_list.end(), det_list1.begin(), det_list1.end());
@@ -753,16 +527,19 @@ FSIM_CLASSNAME::merge_det_list_array(
   SizeType tv_num
 )
 {
-  std::vector<std::vector<SizeType>> det_list_array(tv_num);
+  // 要素数を数える．
   std::vector<SizeType> n_array(tv_num, 0);
   for ( auto& func: mFuncList ) {
     for ( SizeType i = 0; i < tv_num; ++ i ) {
       n_array[i] += func->det_list(i).size();
     }
   }
+  // 領域を確保する．
+  std::vector<std::vector<SizeType>> det_list_array(tv_num);
   for ( SizeType i = 0; i < tv_num; ++ i ) {
     det_list_array[i].reserve(n_array[i]);
   }
+  // 結果を作る．
   for ( auto& func: mFuncList ) {
     for ( SizeType i = 0; i < tv_num; ++ i ) {
       auto& det_list = det_list_array[i];
@@ -777,16 +554,16 @@ FSIM_CLASSNAME::merge_det_list_array(
 FsimResultsRep*
 FSIM_CLASSNAME::merge_diffbits_list()
 {
-  auto res = new FsimResultsRep(mFaultMap.size());
+  auto res = new FsimResultsRep;
   for ( auto& func: mFuncList ) {
-    auto& det_list1 = func->det_list();
-    auto& diffbits_list1 = func->diffbits_list();
-    auto n = det_list1.size();
+    auto res1 = func->diffbits_list();
+    auto n = res1->det_num();
     for ( SizeType i = 0; i < n; ++ i ) {
-      auto fid = det_list1[i];
-      auto& dbits = diffbits_list1[i];
+      auto fid = res1->fault_id(i);
+      auto dbits = res1->diffbits(i);
       res->add(fid, dbits);
     }
+    delete res1;
   }
   return res;
 }
@@ -799,131 +576,21 @@ FSIM_CLASSNAME::merge_diffbits_list_array(
 {
   std::vector<FsimResultsRep*> res_list(tv_num);
   for ( SizeType i = 0; i < tv_num; ++ i ) {
-    res_list[i] = new FsimResultsRep(mFaultMap.size());
+    res_list[i] = new FsimResultsRep;
   }
   for ( auto& func: mFuncList ) {
     for ( SizeType i = 0; i < tv_num; ++ i ) {
-      auto& det_list1 = func->det_list(i);
-      auto& diffbits_list1 = func->diffbits_list(i);
-      auto n = det_list1.size();
+      auto res1 = func->diffbits_list(i);
+      auto n = res1->det_num();
       for ( SizeType j = 0; j < n; ++ j ) {
-	auto fid = det_list1[j];
-	auto& dbits = diffbits_list1[j];
+	auto fid = res1->fault_id(j);
+	auto dbits = res1->diffbits(j);
 	res_list[i]->add(fid, dbits);
       }
+      delete res1;
     }
   }
   return res_list;
 }
-
-// @brief 外部入力ノードを作る．
-SimNode*
-FSIM_CLASSNAME::make_input()
-{
-  auto id = mNodeArray.size();
-  auto node = SimNode::new_input(id);
-  mNodeArray.push_back(std::unique_ptr<SimNode>{node});
-  mNodeList.push_back(node);
-  return node;
-}
-
-// @brief 単純な logic ノードを作る．
-SimNode*
-FSIM_CLASSNAME::make_gate(
-  PrimType type,
-  SizeType level,
-  const std::vector<SizeType>& inputs
-)
-{
-  auto id = mNodeArray.size();
-  auto node = SimNode::new_gate(id, type, level, inputs);
-  mNodeArray.push_back(std::unique_ptr<SimNode>{node});
-  mNodeList.push_back(node);
-  mLogicArray.push_back(node);
-  return node;
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス SimFault
-//////////////////////////////////////////////////////////////////////
-
-// @brief コンストラクタ
-SimFault::SimFault(
-  TpgFault f,
-  SimNode* node,
-  const std::vector<SimNode*>& simmap
-) : mId{f.id()},
-    mNode{node}
-{
-  // もとの excitation_condition を SimNode に置き換える．
-  for ( auto nodeval: f.excitation_condition() ) {
-    auto src_node = nodeval.node();
-    auto val = nodeval.val();
-    auto simnode = simmap[src_node.id()];
-    if ( nodeval.time() == 1 ) {
-      mExCondList.push_back({simnode, val});
-    }
-#if FSIM_BSIDE
-    else {
-      mPrevCondList.push_back({simnode, val});
-    }
-#endif
-  }
-}
-
-// @brief 故障の活性化条件を求める．
-PackedVal
-SimFault::excitation_condition(
-  const std::vector<FSIM_VALTYPE>& val_array
-) const
-{
-  auto cond = PV_ALL1;
-  for ( auto& tmp: mExCondList ) {
-    auto node = tmp.node();
-    auto val0 = tmp.val();
-#if FSIM_VAL2
-    auto val = val_array[node->id()];
-    if ( !val0 ) {
-      val = ~val;
-    }
-#elif FSIM_VAL3
-    auto val3 = val_array[node->id()];
-    auto val = val0 ? val3.val1() : val3.val0();
-#else
-    #error "Neither FSIM_VAL2 nor FSIM_VAL3 are defined"
-#endif
-    cond &= val;
-  }
-  return cond;
-}
-
-#if FSIM_BSIDE
-// @brief 遷移故障用の1時刻前の条件を求める．
-PackedVal
-SimFault::previous_condition(
-  const std::vector<FSIM_VALTYPE>& val_array
-) const
-{
-  auto cond = PV_ALL1;
-  for ( auto& tmp: mPrevCondList ) {
-    auto node = tmp.node();
-    auto val0 = tmp.val();
-#if FSIM_VAL2
-    auto val = val_array[node->id()];
-    if ( !val0 ) {
-      val = ~val;
-    }
-#elif FSIM_VAL3
-    auto val3 = val_array[node->id()];
-    auto val = val0 ? val3.val1() : val3.val0();
-#else
-#error "Neither FSIM_VAL2 nor FSIM_VAL3 are defined"
-#endif
-    cond &= val;
-  }
-  return cond;
-}
-#endif
 
 END_NAMESPACE_DRUID_FSIM

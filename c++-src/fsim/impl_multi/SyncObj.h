@@ -65,10 +65,7 @@ class SyncObj
 public:
 
   /// @brief コンストラクタ
-  explicit
-  SyncObj(
-    SizeType num = 0 ///< [in] 子スレッド数
-  ) : mThreadNum{num}
+  SyncObj()
   {
     mReadyCount = 0;
   }
@@ -81,6 +78,16 @@ public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief 初期化する．
+  void
+  initialize(
+    SizeType num = 0 ///< [in] 子スレッド数
+  )
+  {
+    mThreadNum = num;
+    mReadyCount = 0;
+  }
 
   /// @brief スレッド数を返す．
   SizeType

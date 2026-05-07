@@ -125,7 +125,9 @@ sppfp2_test(
   for ( auto tv: tv_list ) {
     bool detected = false;
     auto res = fsim.sppfp2(tv);
-    for ( auto fault: res.fault_list(0) ) {
+    auto n = res.det_num(0);
+    for ( SizeType i = 0; i < n; ++ i ) {
+      auto fault = res.fault(0, i);
       auto fid = fault.id();
       if ( !det_array[fid] ) {
 	det_array[fid] = true;
@@ -218,7 +220,9 @@ ppsfp2_test(
     if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
       auto res = fsim.ppsfp2(tv_buff);
       for ( SizeType tv_id = 0; tv_id < tv_buff.size(); ++ tv_id ) {
-	for ( auto fault: res.fault_list(tv_id) ) {
+	auto n = res.det_num(tv_id);
+	for ( SizeType i = 0; i < n; ++ i ) {
+	  auto fault = res.fault(tv_id, i);
 	  auto fid = fault.id();
 	  if ( !det_array[fid] ) {
 	    det_array[fid] = true;

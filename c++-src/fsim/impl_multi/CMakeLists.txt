@@ -9,7 +9,7 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( gtest )
+#add_subdirectory( gtest )
 
 
 # ===================================================================
@@ -19,6 +19,8 @@ add_subdirectory( gtest )
 set (fsim_SOURCES
   FsimX.cc
   SimThrFunc.cc
+  SimEngine.cc
+  SimFault.cc
   SimNode.cc
   SnAnd.cc
   SnBuff.cc

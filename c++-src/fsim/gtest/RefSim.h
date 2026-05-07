@@ -132,6 +132,10 @@ private:
   // DFFの入力ノード(疑似出力ノード)のリスト
   std::vector<RefNode*> mDffInList;
 
+public:
+
+  bool debug{false};
+
 };
 
 END_NAMESPACE_DRUID

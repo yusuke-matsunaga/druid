@@ -13,7 +13,7 @@
 #include "fsim_nsdef.h"
 #include "types/PackedVal.h"
 #include "types/PackedVal3.h"
-#include "EventQ.h"
+#include "SimEngine.h"
 #include "SimFault.h"
 #include "SimFFR.h"
 #include "SimNodeList.h"
@@ -287,14 +287,14 @@ public:
   SizeType
   input_num() const
   {
-    return mInputNum;
+    return mEngine.input_num();
   }
 
   /// @brief PPI数を返す．
   SizeType
   ppi_num() const
   {
-    return mInputNum + mDffNum;
+    return mEngine.ppi_num();
   }
 
   /// @brief PPI のノードを返す．
@@ -303,38 +303,35 @@ public:
     SizeType id ///< [in] PPI番号 ( 0 <= id < ppi_num() )
   ) const
   {
-    if ( id >= ppi_num() ) {
-      throw std::out_of_range{"id is out of range"};
-    }
-    return mPPIList[id];
+    return mEngine.ppi(id);
   }
 
   /// @brief 外部入力ノードのリストを返す．
   SimNodeList
   input_list() const
   {
-    return SimNodeList{mPPIList.begin(), mPPIList.begin() + input_num()};
+    return mEngine.input_list();
   }
 
   /// @brief DFFの出力ノードのリストを返す．
   SimNodeList
   dff_output_list() const
   {
-    return SimNodeList{mPPIList.begin() + input_num(), mPPIList.end()};
+    return mEngine.dff_output_list();
   }
 
   /// @brief PPI のノードのリストを返す．
   SimNodeList
   ppi_list() const
   {
-    return SimNodeList{mPPIList.begin(), mPPIList.end()};
+    return mEngine.ppi_list();
   }
 
   /// @brief PPO数を返す．
   SizeType
   ppo_num() const
   {
-    return mOutputNum + mDffNum;
+    return mEngine.ppo_num();
   }
 
 
@@ -342,20 +339,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる下請け関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief ネットワークをセットする．
-  ///
-  /// 全ての故障のスキップマークはクリアされる．
-  void
-  set_network(
-    const TpgNetwork& network ///< [in] ネットワーク
-  );
-
-  /// @brief 対象の故障をセットする．
-  void
-  set_fault_list(
-    const TpgFaultList& fault_list ///< [in] 対象の故障のリスト
-  );
 
   /// @brief SPSFP故障シミュレーションの本体
   /// @retval true 故障の検出が行えた．
@@ -366,15 +349,14 @@ private:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
-  std::vector<SizeType>
+  void
   _sppfp();
 
   /// @brief sppfp 用のシミュレーションを行う．
   void
   _sppfp_simulation(
-    const SimFFR* ffr_buff[],       ///< [in] FFR を入れた配列
-    SizeType ffr_num,               ///< [in] FFR 数
-    std::vector<SizeType>& det_list ///< [in] 検出された故障番号を格納するリスト
+    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
+    SizeType ffr_num          ///< [in] FFR 数
   );
 
   /// @brief PPSFP故障シミュレーションの本体
@@ -392,15 +374,14 @@ private:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
-  FsimResultsRep*
+  void
   _sppfp2();
 
   /// @brief sppfp 用のシミュレーションを行う．
   void
   _sppfp2_simulation(
     const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
-    SizeType ffr_num,         ///< [in] FFR 数
-    FsimResultsRep* res       ///< [in] 結果を格納するオブジェクト
+    SizeType ffr_num          ///< [in] FFR 数
   );
 
   /// @brief PPSFP故障シミュレーションの本体
@@ -410,87 +391,7 @@ private:
     SizeType npat  ///< [in] パタン数
   );
 
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const TestVector& tv ///< [in] テストベクタ
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
-  );
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gval(
-    const AssignList& assign_list ///< [in] 外部入力の値割り当てのリスト
-  );
-
-  /// @brief 値の計算を行う．
-  ///
-  /// 入力ノードに値の設定は済んでいるものとする．
-  void
-  _calc_val()
-  {
-    for ( auto node: mLogicArray ) {
-      node->set_calc_val();
-    }
-  }
-
-  /// @brief 正常値の計算を行う．
-  void
-  _calc_gvalx(
-    const AssignList& assign_list ///< [in] 値割り当てのリスト
-  );
-
-  /// @brief _calc_valx() 用に初期値の設定を行う．
-  void
-  _set_init(
-    SizeType node_id, ///< [in] ノード番号
-    FSIM_VALTYPE val  ///< [in] 設定する値
-  )
-  {
-    auto simnode = mSimNodeMap[node_id];
-    simnode->set_init_val(val);
-    mInitNodeList.push_back(simnode);
-  }
-
-  /// @brief 値の計算を行う．
-  void
-  _calc_valx()
-  {
-    auto init_val = FSIM_INITVAL;
-    for ( auto node: mPPIList ) {
-      if ( node->need_init() ) {
-	node->do_init();
-      }
-      else {
-	node->set_val(init_val);
-      }
-    }
-    for ( auto node: mLogicArray ) {
-      if ( node->need_init() ) {
-	node->do_init();
-      }
-      else {
-	node->set_calc_val();
-      }
-    }
-  }
-
-  /// @brief init フラグを元に戻す．
-  void
-  _clear_init();
-
-  /// @brief ノードの出力の(重み付き)信号遷移回数を求める．
-  SizeType
-  _calc_wsa(
-    SimNode* node,
-    bool weighted
-  );
-
+#if 0
   /// @brief FFR の根から故障伝搬シミュレーションを行う．
   /// @return 伝搬したビットに1を立てたビットベクタ
   ///
@@ -501,8 +402,8 @@ private:
     PackedVal obs_mask ///< [in] ビットマスク
   )
   {
-    mEventQ.put_event(root, obs_mask);
-    return mEventQ.simulate();
+    mEngine.put_event(root, obs_mask);
+    return mEngine.simulate();
   }
 
   /// @brief FFR の根から故障伝搬シミュレーションを行う．
@@ -515,8 +416,8 @@ private:
     PackedVal obs_mask ///< [in] ビットマスク
   )
   {
-    mEventQ.put_event(root, obs_mask);
-    return mEventQ.simulate2();
+    mEngine.put_event(root, obs_mask);
+    return mEngine.simulate2();
   }
 
   /// @brief FFR内の故障シミュレーションを行う．
@@ -549,15 +450,14 @@ private:
   /// @brief sppfp 用の下請け関数
   void
   _sppfp_sub(
-    const SimFFR& ffr,              ///< [in] 対象の FFR
-    std::vector<SizeType>& det_list ///< [in] 検出された故障番号を格納するオブジェクト
+    const SimFFR& ffr ///< [in] 対象の FFR
   )
   {
     auto& fault_list = ffr.fault_list();
     for ( auto ff: fault_list ) {
       if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	auto fid = ff->id();
-	det_list.push_back(fid);
+	mDetList.push_back(fid);
       }
     }
   }
@@ -565,16 +465,16 @@ private:
   /// @brief sppfp 用の下請け関数
   void
   _sppfp2_sub(
-    const SimFFR& ffr,  ///< [in] 対象の FFR
-    DiffBits dbits,     ///< [in] 出力の故障伝搬ビット
-    FsimResultsRep* res ///< [in] 結果を格納するオブジェクト
+    const SimFFR& ffr, ///< [in] 対象の FFR
+    DiffBits dbits     ///< [in] 出力の故障伝搬ビット
   )
   {
     auto& fault_list = ffr.fault_list();
     for ( auto ff: fault_list ) {
       if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	auto fid = ff->id();
-	res->add(fid, dbits);
+	mDetList.push_back(fid);
+	mDiffBitsList.push_back(dbits);
       }
     }
   }
@@ -601,36 +501,7 @@ private:
 
     return ffr_req;
   }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // SimNode / SimFault の設定に関する関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 外部入力ノードを作る．
-  SimNode*
-  make_input();
-
-  /// @brief 外部出力ノードを作る．
-  SimNode*
-  make_output(
-    SimNode* input,
-    SizeType output_id
-  )
-  {
-    // 実際にはバッファタイプのノードに出力の印をつけるだけ．
-    auto node = make_gate(PrimType::Buff, {input});
-    node->set_output(output_id);
-    return node;
-  }
-
-  /// @brief logic ノードを作る．
-  SimNode*
-  make_gate(
-    PrimType type,
-    const std::vector<SimNode*>& inputs
-  );
+#endif
 
 
 private:
@@ -638,56 +509,14 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 外部入力数
-  SizeType mInputNum;
+  // エンジン
+  SimEngine mEngine;
 
-  // 外部出力数
-  SizeType mOutputNum;
+  // 検出された故障番号のリスト
+  std::vector<SizeType> mDetList;
 
-  // DFF数
-  SizeType mDffNum;
-
-  // 全ての SimNode を納めた配列
-  std::vector<std::unique_ptr<SimNode>> mNodeArray;
-
-  // PPIに対応する SimNode を納めた配列
-  // サイズは mInputNum + mDffNum
-  std::vector<SimNode*> mPPIList;
-
-  // PPOに対応する SimNode を納めた配列
-  // サイズは mOutputNum + mDffNum
-  std::vector<SimNode*> mPPOList;
-
-  // 入力からのトポロジカル順に並べた logic ノードの配列
-  std::vector<SimNode*> mLogicArray;
-
-  // TpgNode のノード番号から SimNode を取り出す配列
-  std::vector<SimNode*> mSimNodeMap;
-
-  // FFR を納めた配列
-  std::vector<SimFFR> mFFRArray;
-
-  // SimNode のノード番号をキーにして対応する SimFFR を格納する配列
-  std::vector<SimFFR*> mFFRMap;
-
-  // 初期化用のノードリスト
-  std::vector<SimNode*> mInitNodeList;
-
-  // イベントキュー
-  EventQ mEventQ;
-
-  // 全ての SimFault のリスト
-  std::vector<std::unique_ptr<SimFault>> mFaultList;
-
-  // 故障番号をキーとして SimFault を格納する配列
-  std::vector<SimFault*> mFaultMap;
-
-  // 検出された故障を格納する配列
-  std::vector<SizeType> mDetFaultArray;
-
-  // 故障ごとの検出パタンを収める配列
-  // キーは故障番号
-  std::unordered_map<SizeType, DiffBits> mDiffBitsMap;
+  // 検出された故障の出力ごとの故障伝搬状況のリスト
+  std::vector<DiffBits> mDiffBitsList;
 
 };
 

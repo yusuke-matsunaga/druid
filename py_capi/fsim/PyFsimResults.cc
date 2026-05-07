@@ -8,7 +8,8 @@
 
 #include "pym/PyFsimResults.h"
 #include "pym/PyDiffBits.h"
-#include "pym/PyTpgFaultList.h"
+#include "pym/PyTpgFault.h"
+#include "pym/PyList.h"
 #include "pym/PyUlong.h"
 #include "pym/PyModule.h"
 
@@ -64,7 +65,7 @@ tv_num(
 }
 
 PyObject*
-fault_list(
+det_num(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -82,7 +83,39 @@ fault_list(
   }
   auto& val = PyFsimResults::_get_ref(self);
   try {
-    return PyTpgFaultList::ToPyObject(val.fault_list(tv_id));
+    return PyUlong::ToPyObject(val.det_num(tv_id));
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+fault(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "tv_id",
+    "pos",
+    nullptr
+  };
+  unsigned long tv_id;
+  unsigned long pos;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "kk",
+                                    const_cast<char**>(kwlist),
+                                    &tv_id,
+                                    &pos) ) {
+    return nullptr;
+  }
+  auto& val = PyFsimResults::_get_ref(self);
+  try {
+    return PyTpgFault::ToPyObject(val.fault(tv_id, pos));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -101,20 +134,20 @@ diffbits(
 {
   static const char* kwlist[] = {
     "tv_id",
-    "fault_id",
+    "pos",
     nullptr
   };
   unsigned long tv_id;
-  unsigned long fid;
+  unsigned long pos;
   if ( !PyArg_ParseTupleAndKeywords(args, kwds, "kk",
                                     const_cast<char**>(kwlist),
                                     &tv_id,
-                                    &fid) ) {
+                                    &pos) ) {
     return nullptr;
   }
   auto& val = PyFsimResults::_get_ref(self);
   try {
-    return PyDiffBits::ToPyObject(val.diffbits(tv_id, fid));
+    return PyDiffBits::ToPyObject(val.diffbits(tv_id, pos));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -130,10 +163,14 @@ PyMethodDef methods[] = {
    tv_num,
    METH_NOARGS,
    PyDoc_STR("return the number of TestVectors")},
-  {"fault_list",
-   reinterpret_cast<PyCFunction>(fault_list),
+  {"det_num",
+   reinterpret_cast<PyCFunction>(det_num),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("return the list of fault IDs")},
+   PyDoc_STR("return the number of detected faults")},
+  {"fault",
+   reinterpret_cast<PyCFunction>(fault),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("return detected fault")},
   {"diffbits",
    reinterpret_cast<PyCFunction>(diffbits),
    METH_VARARGS | METH_KEYWORDS,

@@ -98,27 +98,39 @@ FsimResults::tv_num() const
   return mArray.size();
 }
 
-// @brief 指定されたテストベクタ番号で検出された故障のリストを返す．
-TpgFaultList
-FsimResults::fault_list(
+// @brief 指定されたテストベクタ番号で検出された故障数を返す．
+SizeType
+FsimResults::det_num(
   SizeType tv_id
 ) const
 {
   _check_tv_id(tv_id);
   auto rep = mArray[tv_id];
-  return TpgBase::fault_list(rep->fault_list());
+  return rep->det_num();
 }
 
-// @brief 出力の故障伝搬状態を返す．
-DiffBits
-FsimResults::diffbits(
+// @brief 指定されたテストベクタ番号で検出された故障を返す．
+TpgFault
+FsimResults::fault(
   SizeType tv_id,
-  SizeType fault_id
+  SizeType pos
 ) const
 {
   _check_tv_id(tv_id);
   auto rep = mArray[tv_id];
-  return rep->diffbits(fault_id);
+  return TpgBase::fault(rep->fault_id(pos));
+}
+
+// @brief 指定されたテストベクタ番号で検出された故障の出力ごとの故障伝搬状態を返す．
+DiffBits
+FsimResults::diffbits(
+  SizeType tv_id,
+  SizeType pos
+) const
+{
+  _check_tv_id(tv_id);
+  auto rep = mArray[tv_id];
+  return rep->diffbits(pos);
 }
 
 END_NAMESPACE_DRUID

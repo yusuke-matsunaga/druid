@@ -17,8 +17,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-static bool debug = false;
-
 // @brief コンストラクタ
 RefSim::RefSim(
   const TpgNetwork& network
@@ -158,7 +156,7 @@ RefSim::simulate_sa(
       dbits.add_output(i + no);
     }
   }
-  if ( debug && dbits.elem_num() > 0 ) {
+  if ( debug ) {
     std::vector<int> outmap(mNetwork.node_num(), -1);
     int oid = 0;
     for ( auto node: mNetwork.output_list() ) {

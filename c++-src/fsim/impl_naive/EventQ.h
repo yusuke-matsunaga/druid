@@ -48,6 +48,25 @@ public:
     SizeType node_num    ///< [in] ノード数
   );
 
+  /// @brief 初期値を追加する．
+  void
+  set_init(
+    SizeType node_id, ///< [in] ノード番号
+    FSIM_VALTYPE val  ///< [in] 値
+  )
+  {
+    mInitValDict.emplace(node_id, val);
+  }
+
+  /// @brief 初期値を返す．
+  FSIM_VALTYPE
+  get_init(
+    SizeType node_id ///< [in] ノード番号
+  )
+  {
+    return mInitValDict.at(node_id);
+  }
+
   /// @brief 初期イベントを追加する．
   void
   put_event(
@@ -196,6 +215,9 @@ private:
 
   // キューに入っているノード数
   SizeType mNum{0};
+
+  // 初期値を格納した辞書
+  std::unordered_map<SizeType, FSIM_VALTYPE> mInitValDict;
 
   // clear 用の情報の配列
   std::vector<RestoreInfo> mClearArray;
