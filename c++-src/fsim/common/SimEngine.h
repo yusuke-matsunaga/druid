@@ -350,7 +350,7 @@ private:
   _sppfp_simulation(
     const SimFFR* ffr_buff[],       ///< [in] FFR を入れた配列
     SizeType ffr_num,               ///< [in] FFR 数
-    std::vector<SizeType>& det_list ///< [in] 結果を格納するリスト
+    std::vector<SizeType>& det_list ///< [in] 検出された故障番号を格納するリスト
   );
 
   /// @brief sppfp 用のシミュレーションを行う．
@@ -391,7 +391,7 @@ private:
   _sppfp_sub(
     const SimFFR& ffr,              ///< [in] 対象の FFR
     PackedVal bitmask,              ///< [in] ビットマスク
-    std::vector<SizeType>& det_list ///< [in] 結果を格納するリスト
+    std::vector<SizeType>& det_list ///< [in] 検出された故障番号を格納するリスト
   )
   {
     auto& fault_list = ffr.fault_list();
@@ -659,9 +659,6 @@ private:
 
   // 故障番号をキーとして SimFault を格納する配列
   std::vector<SimFault*> mFaultMap;
-
-  // SPPFPの結果のリスト
-  std::vector<SizeType> mDetList;
 
   // SPPFP2の結果
   FsimResultsRep* mRes;

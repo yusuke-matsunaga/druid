@@ -30,7 +30,6 @@ class SimNode
 {
   friend class FSIM_CLASSNAME;
   friend class SimEngine;
-  friend class EventQ;
 
 protected:
 

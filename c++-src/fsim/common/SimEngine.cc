@@ -282,6 +282,7 @@ SimEngine::sppfp()
 
   const SimFFR* ffr_buff[PV_BITLEN];
   auto bitpos = 0;
+
   // FFR ごとに処理を行う．
   for ( auto& ffr: mFFRArray ) {
     // FFR 内の故障伝搬を行う．
@@ -297,21 +298,23 @@ SimEngine::sppfp()
     if ( root->is_output() ) {
       // 常に観測可能
       _sppfp_sub(ffr, PV_ALL1, det_list);
+      continue;
     }
-    else {
-      // キューに積んでおく
-      PackedVal bitmask = 1ULL << bitpos;
-      set_flip_mask(root, bitmask);
-      put(root);
-      ffr_buff[bitpos] = &ffr;
-      ++ bitpos;
-      if ( bitpos == PV_BITLEN ) {
-	_sppfp_simulation(ffr_buff, bitpos, det_list);
-	bitpos = 0;
-      }
+
+    // キューに積んでおく
+    PackedVal bitmask = 1ULL << bitpos;
+    set_flip_mask(root, bitmask);
+    put(root);
+    ffr_buff[bitpos] = &ffr;
+    ++ bitpos;
+    if ( bitpos == PV_BITLEN ) {
+      // バッファが一杯になったのでイベントドリヴンシミュレーションを行う．
+      _sppfp_simulation(ffr_buff, bitpos, det_list);
+      bitpos = 0;
     }
   }
   if ( bitpos > 0 ) {
+    // バッファに要素が残っていた．
     _sppfp_simulation(ffr_buff, bitpos, det_list);
   }
 
@@ -328,8 +331,8 @@ SimEngine::_sppfp_simulation(
 {
   auto obs = simulate();
   PackedVal mask = 1ULL;
-  for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
-    if ( obs & mask ) {
+  for ( auto i = 0; i < ffr_num; ++ i, obs >>= 1 ) {
+    if ( (obs & mask) == mask ) {
       auto& ffr = *ffr_buff[i];
       _sppfp_sub(ffr, mask, det_list);
     }
@@ -1252,6 +1255,7 @@ SimEngine::set_fault_list(
       ++ nf;
     }
   }
+
   mFaultList.reserve(nf);
   for ( auto fault: fault_list ) {
     auto tpgnode = fault.origin_node();
