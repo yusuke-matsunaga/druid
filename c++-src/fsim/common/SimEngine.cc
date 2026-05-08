@@ -1171,39 +1171,17 @@ SimEngine::set_network(
     // すべての FFR を対象にする．
     auto ffr_num = network.ffr_num();
     mFFRArray.resize(ffr_num);
-#if 0
     for ( auto tpgffr: network.ffr_list() ) {
       auto tpgroot = tpgffr.root();
-      auto root = mSimNodeMap[tpgroot.id()];
-      auto& simffr = mFFRArray[tpgffr.id()];
-      simffr.set(tpgffr.id(), root);
-      root->set_ffr_root();
-      mFFRMap[tpgroot.id()] = &simffr;
+      auto node = mSimNodeMap[tpgroot.id()];
+      auto ffr = &mFFRArray[tpgffr.id()];
+      node->set_ffr_root();
+      ffr->set(tpgffr.id(), node);
       for ( auto tpgnode: tpgffr.node_list() ) {
 	auto node = mSimNodeMap[tpgnode.id()];
-	mFFRMap[tpgnode.id()] = &simffr;
+	mFFRMap[tpgnode.id()] = ffr;
       }
     }
-#else
-    SizeType ffr_id = 0;
-    for ( SizeType i = 0; i < node_num; ++ i ) {
-      auto& node = mNodeArray[i];
-      if ( node->is_output() || node->fanout_num() > 1 ) {
-	auto ffr = &mFFRArray[ffr_id];
-	node->set_ffr_root();
-	mFFRMap[node->id()] = ffr;
-	ffr->set(ffr_id, node.get());
-	++ ffr_id;
-      }
-    }
-    for ( auto& node: mNodeArray ) {
-      if ( !node->is_ffr_root() ) {
-	auto root = node->ffr_root();
-	auto ffr = mFFRMap[root->id()];
-	mFFRMap[node->id()] = ffr;
-      }
-    }
-#endif
   }
   else {
     // ffr_list のみを対象にする．
@@ -1213,13 +1191,13 @@ SimEngine::set_network(
     for ( auto ffr_id: ffr_list ) {
       auto tpgffr = network.ffr(ffr_id);
       auto tpgroot = tpgffr.root();
-      auto root = mSimNodeMap[tpgroot.id()];
-      auto& simffr = mFFRArray[next_id];
-      simffr.set(ffr_id, root);
-      root->set_ffr_root();
+      auto node = mSimNodeMap[tpgroot.id()];
+      auto ffr = &mFFRArray[next_id];
+      node->set_ffr_root();
+      ffr->set(next_id, node);
       for ( auto tpgnode: tpgffr.node_list() ) {
 	auto node = mSimNodeMap[tpgnode.id()];
-	mFFRMap[tpgnode.id()] = &simffr;
+	mFFRMap[tpgnode.id()] = ffr;
       }
       ++ next_id;
     }
