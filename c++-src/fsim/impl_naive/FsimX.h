@@ -26,7 +26,7 @@ BEGIN_NAMESPACE_DRUID_FSIM
 class SimNode;
 
 BEGIN_NONAMESPACE
-
+#if 0
 inline
 std::string
 val_str(
@@ -50,7 +50,7 @@ val_str(
   return "X";
 #endif
 }
-
+#endif
 
 END_NONAMESPACE
 
@@ -129,18 +129,6 @@ public:
     SizeType fid                   ///< [in] 対象の故障番号
   ) override;
 
-  /// @brief SPSFP故障シミュレーションを行う．
-  /// @retval true 故障の検出が行えた．
-  /// @retval false 故障の検出が行えなかった．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  bool
-  xspsfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    SizeType fid                   ///< [in] 対象の故障番号
-  ) override;
-
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障番号のリストを返す．
   std::vector<SizeType>
@@ -152,16 +140,6 @@ public:
   /// @return 検出された故障番号のリストを返す．
   std::vector<SizeType>
   sppfp(
-    const AssignList& assign_list ///< [in] 値の割当リスト
-  ) override;
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  std::vector<SizeType>
-  xsppfp(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
@@ -191,16 +169,6 @@ public:
     SizeType fid                   ///< [in] 対象の故障番号
   ) override;
 
-  /// @brief SPSFP故障シミュレーションを行う．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  DiffBits
-  xspsfp2(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    SizeType fid                   ///< [in] 対象の故障番号
-  ) override;
-
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   FsimResultsRep*
   sppfp2(
@@ -210,15 +178,6 @@ public:
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   FsimResultsRep*
   sppfp2(
-    const AssignList& assign_list ///< [in] 値の割当リスト
-  ) override;
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  FsimResultsRep*
-  xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
@@ -334,7 +293,7 @@ public:
     return mEngine.ppo_num();
   }
 
-
+#if 0
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる下請け関数
@@ -390,119 +349,7 @@ private:
     SizeType base, ///< [in] パタン番号の起点
     SizeType npat  ///< [in] パタン数
   );
-
-#if 0
-  /// @brief FFR の根から故障伝搬シミュレーションを行う．
-  /// @return 伝搬したビットに1を立てたビットベクタ
-  ///
-  /// obs_mask が0のビットのイベントはマスクされる．
-  PackedVal
-  _global_prop(
-    SimNode* root,     ///< [in] FFRの根のノード
-    PackedVal obs_mask ///< [in] ビットマスク
-  )
-  {
-    mEngine.put_event(root, obs_mask);
-    return mEngine.simulate();
-  }
-
-  /// @brief FFR の根から故障伝搬シミュレーションを行う．
-  /// @return 伝搬したビットに1を立てたビットベクタ
-  ///
-  /// obs_mask が0のビットのイベントはマスクされる．
-  DiffBitsArray
-  _global_prop2(
-    SimNode* root,     ///< [in] FFRの根のノード
-    PackedVal obs_mask ///< [in] ビットマスク
-  )
-  {
-    mEngine.put_event(root, obs_mask);
-    return mEngine.simulate2();
-  }
-
-  /// @brief FFR内の故障シミュレーションを行う．
-  PackedVal
-  _local_prop(
-    SimFault* fault ///< [in] 対象の故障
-  )
-  {
-    // 故障の活性化条件を求める．
-    auto cval = fault->excitation_condition();
-    // FFR 内の故障伝搬を行う．
-    auto lobs = PV_ALL1;
-    auto f_node = fault->origin_node();
-    for ( auto node = f_node; !node->is_ffr_root(); ) {
-      auto onode = node->fanout_top();
-      auto pos = node->fanout_ipos();
-      lobs &= onode->_calc_gobs(pos);
-      node = onode;
-    }
-
-#if FSIM_BSIDE
-    // 1時刻前の条件を求める．
-    auto pval = fault->previous_condition();
-    return cval & pval & lobs;
-#else
-    return cval & lobs;
 #endif
-  }
-
-  /// @brief sppfp 用の下請け関数
-  void
-  _sppfp_sub(
-    const SimFFR& ffr ///< [in] 対象の FFR
-  )
-  {
-    auto& fault_list = ffr.fault_list();
-    for ( auto ff: fault_list ) {
-      if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
-	auto fid = ff->id();
-	mDetList.push_back(fid);
-      }
-    }
-  }
-
-  /// @brief sppfp 用の下請け関数
-  void
-  _sppfp2_sub(
-    const SimFFR& ffr, ///< [in] 対象の FFR
-    DiffBits dbits     ///< [in] 出力の故障伝搬ビット
-  )
-  {
-    auto& fault_list = ffr.fault_list();
-    for ( auto ff: fault_list ) {
-      if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
-	auto fid = ff->id();
-	mDetList.push_back(fid);
-	mDiffBitsList.push_back(dbits);
-      }
-    }
-  }
-
-  /// @brief FFR 内の個々の故障の故障伝搬条件を計算する．
-  /// @return 全ての故障の伝搬結果のORを返す．
-  ///
-  /// 個々の SimFault の obs_mask を設定する．
-  PackedVal
-  _foreach_faults(
-    const SimFFR& ffr ///< [in] 対象の FFR
-  )
-  {
-    auto& fault_list = ffr.fault_list();
-    auto ffr_req = PV_ALL0;
-    for ( auto ff: fault_list ) {
-      if ( ff->skip() ) {
-	continue;
-      }
-      auto obs = _local_prop(ff);
-      ff->set_obs_mask(obs);
-      ffr_req |= obs;
-    }
-
-    return ffr_req;
-  }
-#endif
-
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -511,12 +358,6 @@ private:
 
   // エンジン
   SimEngine mEngine;
-
-  // 検出された故障番号のリスト
-  std::vector<SizeType> mDetList;
-
-  // 検出された故障の出力ごとの故障伝搬状況のリスト
-  std::vector<DiffBits> mDiffBitsList;
 
 };
 

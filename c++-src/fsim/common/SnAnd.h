@@ -71,7 +71,7 @@ protected:
     for ( auto i: Range(1, _fanin_num()) ) {
       val &= _fanin(i)->val();
     }
-  return val;
+    return val;
   }
 
 };

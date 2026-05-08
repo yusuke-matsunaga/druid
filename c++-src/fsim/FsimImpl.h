@@ -92,19 +92,6 @@ public:
     SizeType fid                   ///< [in] 対象の故障番号
   ) = 0;
 
-  /// @brief SPSFP故障シミュレーションを行う．
-  /// @retval true 故障の検出が行えた．
-  /// @retval false 故障の検出が行えなかった．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  virtual
-  bool
-  xspsfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    SizeType fid                   ///< [in] 対象の故障番号
-  ) = 0;
-
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障番号のリストを返す．
   virtual
@@ -118,17 +105,6 @@ public:
   virtual
   std::vector<SizeType>
   sppfp(
-    const AssignList& assign_list ///< [in] 値の割当リスト
-  ) = 0;
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  virtual
-  std::vector<SizeType>
-  xsppfp(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) = 0;
 
@@ -161,17 +137,6 @@ public:
     SizeType fid                   ///< [in] 対象の故障番号
   ) = 0;
 
-  /// @brief SPSFP故障シミュレーションを行う．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  virtual
-  DiffBits
-  xspsfp2(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    SizeType fid                   ///< [in] 対象の故障番号
-  ) = 0;
-
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   virtual
   FsimResultsRep*
@@ -183,16 +148,6 @@ public:
   virtual
   FsimResultsRep*
   sppfp2(
-    const AssignList& assign_list ///< [in] 値の割当リスト
-  ) = 0;
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  virtual
-  FsimResultsRep*
-  xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) = 0;
 

@@ -116,11 +116,6 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 	    func->sppfp();
 	    break;
 
-	  case Cmd::XSPPFP:
-	    func->engine().calc_valx(mSyncObj.assign_list());
-	    func->sppfp();
-	    break;
-
 	  case Cmd::PPSFP2:
 	    func->engine().calc_val(mSyncObj.testvector_list());
 	    func->ppsfp2(mSyncObj.testvector_list().size());
@@ -133,11 +128,6 @@ FSIM_CLASSNAME::FSIM_CLASSNAME(
 
 	  case Cmd::SPPFP2_AS:
 	    func->engine().calc_val(mSyncObj.assign_list());
-	    func->sppfp2();
-	    break;
-
-	  case Cmd::XSPPFP2:
-	    func->engine().calc_valx(mSyncObj.assign_list());
 	    func->sppfp2();
 	    break;
 
@@ -242,17 +232,6 @@ FSIM_CLASSNAME::spsfp(
   return false;
 }
 
-// @brief SPSFP故障シミュレーションを行う．
-bool
-FSIM_CLASSNAME::xspsfp(
-  const AssignList& assign_list,
-  SizeType fid
-)
-{
-  // マルチスレッド版は対応していない．
-  return false;
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 std::vector<SizeType>
 FSIM_CLASSNAME::sppfp(
@@ -271,17 +250,6 @@ FSIM_CLASSNAME::sppfp(
 )
 {
   mSyncObj.put_sppfp_command(assign_list);
-
-  return merge_det_list();
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-std::vector<SizeType>
-FSIM_CLASSNAME::xsppfp(
-  const AssignList& assign_list
-)
-{
-  mSyncObj.put_xsppfp_command(assign_list);
 
   return merge_det_list();
 }
@@ -320,17 +288,6 @@ FSIM_CLASSNAME::spsfp2(
   return DiffBits();
 }
 
-// @brief SPSFP故障シミュレーションを行う．
-DiffBits
-FSIM_CLASSNAME::xspsfp2(
-  const AssignList& assign_list,
-  SizeType fid
-)
-{
-  // マルチスレッド版は対応していない．
-  return DiffBits();
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 FsimResultsRep*
 FSIM_CLASSNAME::sppfp2(
@@ -349,17 +306,6 @@ FSIM_CLASSNAME::sppfp2(
 )
 {
   mSyncObj.put_sppfp2_command(assign_list);
-
-  return merge_diffbits_list();
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-FsimResultsRep*
-FSIM_CLASSNAME::xsppfp2(
-  const AssignList& assign_list
-)
-{
-  mSyncObj.put_xsppfp2_command(assign_list);
 
   return merge_diffbits_list();
 }

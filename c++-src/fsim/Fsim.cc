@@ -136,7 +136,7 @@ Fsim::xspsfp(
   const TpgFault& fault
 )
 {
-  return mImpl->xspsfp(assign_list, fault.id());
+  return false;
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -167,9 +167,7 @@ Fsim::xsppfp(
   const AssignList& assign_list
 )
 {
-  auto fid_list = mImpl->xsppfp(assign_list);
-  std::sort(fid_list.begin(), fid_list.end());
-  return TpgBase::fault_list(fid_list);
+  return TpgFaultList();
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
@@ -230,7 +228,7 @@ Fsim::xspsfp2(
   const TpgFault& fault
 )
 {
-  return mImpl->xspsfp2(assign_list, fault.id());
+  return DiffBits();
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -261,9 +259,7 @@ Fsim::xsppfp2(
   const AssignList& assign_list
 )
 {
-  auto res = mImpl->xsppfp2(assign_list);
-  res->sort();
-  return FsimResults(_network(), res);
+  return FsimResults();
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．

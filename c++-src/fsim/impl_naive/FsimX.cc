@@ -112,25 +112,6 @@ FSIM_CLASSNAME::spsfp(
   return mEngine.spsfp(fid);
 }
 
-// @brief SPSFP故障シミュレーションを行う．
-bool
-FSIM_CLASSNAME::xspsfp(
-  const AssignList& assign_list,
-  SizeType fid
-)
-{
-  // 正常値の計算を行う．
-  mEngine.calc_valx(assign_list);
-
-  // 故障伝搬を行う．
-  auto res = mEngine.spsfp(fid);
-
-  // init フラグを元に戻す．
-  mEngine.clear_init();
-
-  return res;
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 std::vector<SizeType>
 FSIM_CLASSNAME::sppfp(
@@ -155,24 +136,6 @@ FSIM_CLASSNAME::sppfp(
 
   // 故障伝搬を行う．
   return mEngine.sppfp();
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-std::vector<SizeType>
-FSIM_CLASSNAME::xsppfp(
-  const AssignList& assign_list
-)
-{
-  // 正常値の計算を行う．
-  mEngine.calc_valx(assign_list);
-
-  // 故障伝搬を行う．
-  auto res = mEngine.sppfp();
-
-  // init フラグを元に戻す．
-  mEngine.clear_init();
-
-  return res;
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
@@ -217,25 +180,6 @@ FSIM_CLASSNAME::spsfp2(
   return mEngine.spsfp2(fid);
 }
 
-// @brief SPSFP故障シミュレーションを行う．
-DiffBits
-FSIM_CLASSNAME::xspsfp2(
-  const AssignList& assign_list,
-  SizeType fid
-)
-{
-  // 正常値の計算を行う．
-  mEngine.calc_valx(assign_list);
-
-  // 故障伝搬を行う．
-  auto res = mEngine.spsfp2(fid);
-
-  // init フラグを元に戻す．
-  mEngine.clear_init();
-
-  return res;
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 FsimResultsRep*
 FSIM_CLASSNAME::sppfp2(
@@ -260,24 +204,6 @@ FSIM_CLASSNAME::sppfp2(
 
   // 故障伝搬を行う．
   return mEngine.sppfp2();
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-FsimResultsRep*
-FSIM_CLASSNAME::xsppfp2(
-  const AssignList& assign_list
-)
-{
-  // 正常値の計算を行う．
-  mEngine.calc_valx(assign_list);
-
-  // 故障伝搬を行う．
-  auto res = mEngine.sppfp2();
-
-  // init フラグを元に戻す．
-  mEngine.clear_init();
-
-  return res;
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．

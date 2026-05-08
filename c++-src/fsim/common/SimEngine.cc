@@ -876,13 +876,7 @@ SimEngine::simulate()
     if ( node == nullptr ) break;
 
     auto old_val = node->val();
-    auto new_val = old_val;
-    if ( node->need_init() ) {
-      new_val = _get_init(node->id());
-    }
-    else {
-      new_val = node->calc_val();
-    }
+    auto new_val = node->calc_val();
     // 反転イベントを考慮する．
     auto flip_mask = mFlipMaskArray[node->id()];
     new_val ^= flip_mask;

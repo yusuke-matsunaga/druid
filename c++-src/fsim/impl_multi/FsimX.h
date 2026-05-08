@@ -102,18 +102,6 @@ public:
     SizeType fid                   ///< [in] 対象の故障番号
   ) override;
 
-  /// @brief SPSFP故障シミュレーションを行う．
-  /// @retval true 故障の検出が行えた．
-  /// @retval false 故障の検出が行えなかった．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  bool
-  xspsfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    SizeType fid                   ///< [in] 対象の故障番号
-  ) override;
-
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障番号のリストを返す．
   std::vector<SizeType>
@@ -125,16 +113,6 @@ public:
   /// @return 検出された故障番号のリストを返す．
   std::vector<SizeType>
   sppfp(
-    const AssignList& assign_list ///< [in] 値の割当リスト
-  ) override;
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  std::vector<SizeType>
-  xsppfp(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
@@ -164,16 +142,6 @@ public:
     SizeType fid                   ///< [in] 対象の故障番号
   ) override;
 
-  /// @brief SPSFP故障シミュレーションを行う．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  DiffBits
-  xspsfp2(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    SizeType fid                   ///< [in] 対象の故障番号
-  ) override;
-
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   FsimResultsRep*
   sppfp2(
@@ -183,15 +151,6 @@ public:
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   FsimResultsRep*
   sppfp2(
-    const AssignList& assign_list ///< [in] 値の割当リスト
-  ) override;
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  FsimResultsRep*
-  xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   ) override;
 
