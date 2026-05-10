@@ -139,18 +139,6 @@ public:
     const TpgFault& fault          ///< [in] 対象の故障番号
   );
 
-  /// @brief SPSFP故障シミュレーションを行う．
-  /// @retval true 故障の検出が行えた．
-  /// @retval false 故障の検出が行えなかった．
-  ///
-  /// * assign_list は任意の位置の割り当てでよい．
-  /// * 3値のシミュレーションのみ可能
-  bool
-  xspsfp(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault& fault          ///< [in] 対象の故障番号
-  );
-
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
   TpgFaultList
@@ -164,16 +152,6 @@ public:
   /// - assign_list は外部入力の割り当てでなければならない．
   TpgFaultList
   sppfp(
-    const AssignList& assign_list ///< [in] 値の割当リスト
-  );
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
-  ///
-  /// - assign_list は任意の位置の割り当てでよい．
-  /// - 3値のシミュレーションのみ可能
-  TpgFaultList
-  xsppfp(
     const AssignList& assign_list ///< [in] 値の割当リスト
   );
 
@@ -210,17 +188,6 @@ public:
     const TpgFault& fault          ///< [in] 対象の故障番号
   );
 
-  /// @brief SPSFP故障シミュレーションを行う
-  /// @return 出力ごとの故障伝搬状況を返す．
-  ///
-  /// - assign_list は任意の位置の割り当てでよい．
-  /// - 3値のシミュレーションのみ可能
-  DiffBits
-  xspsfp2(
-    const AssignList& assign_list, ///< [in] 値の割当リスト
-    const TpgFault& fault          ///< [in] 対象の故障番号
-  );
-
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   ///
   /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
@@ -235,16 +202,6 @@ public:
   /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
   FsimResults
   sppfp2(
-    const AssignList& assign_list ///< [in] 値の割当リスト
-  );
-
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
-  ///
-  /// - assign_list は任意の位置の割り当てでよい．
-  /// - 3値のシミュレーションのみ可能
-  /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
-  FsimResults
-  xsppfp2(
     const AssignList& assign_list ///< [in] 値の割当リスト
   );
 

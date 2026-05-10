@@ -132,18 +132,6 @@ class FsimGen(PyObjGen):
                                                 cvarname='as_list')],
                         doc_str='do SPSFP fault simulation')
 
-        def meth_xspsfp2(writer):
-            writer.gen_return_pyobject('PyDiffBits',
-                                       'val.xspsfp2(as_list, fault)')
-        self.add_method('xspsfp2',
-                        func_body=meth_xspsfp2,
-                        arg_list=[TpgFaultArg(name='fault',
-                                              cvarname='fault'),
-                                  KwdArg(),
-                                  AssignListArg(name='assign_list',
-                                                cvarname='as_list')],
-                        doc_str='do SPSFP fault simulation with X values')
-
         def meth_sppfp2(writer):
             with writer.gen_if_block('tv.vector_size() > 0'):
                 writer.gen_return_pyobject('PyFsimResults',
@@ -161,15 +149,6 @@ class FsimGen(PyObjGen):
                                   AssignListArg(name='assign_list',
                                                 cvarname='as_list')],
                         doc_str='do SPPFP fault simulation')
-
-        def meth_xsppfp2(writer):
-            writer.gen_return_pyobject('PyFsimResults',
-                                       'val.xsppfp2(assign_list)')
-        self.add_method('xsppfp2',
-                        func_body=meth_xsppfp2,
-                        arg_list=[AssignListArg(name='assign_list',
-                                                cvarname='assign_list')],
-                        doc_str='do SPPFP fault simulation with X values')
 
         def meth_ppsfp2(writer):
             writer.gen_return_pyobject('PyFsimResults',

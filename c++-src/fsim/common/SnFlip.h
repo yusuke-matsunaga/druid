@@ -20,13 +20,13 @@ BEGIN_NAMESPACE_DRUID_FSIM
 class SnFlip :
   public SnGate1
 {
-protected:
+public:
 
   /// @brief コンストラクタ
   SnFlip(
     SizeType id,
-    const std::vector<SimNode*>& inputs
-  ) : SnGate1{id, inputs}
+    SimNode* orig_node ///< [in] 元のノード
+  ) : SnGate1(id, {orig_node})
   {
   }
 
@@ -43,20 +43,13 @@ public:
   PrimType
   gate_type() const override;
 
-  /// @brief 反転マスクを得る．
-  PackedVal
-  flip_mask() const
-  {
-    return mFlipMask;
-  }
-
   /// @brief 反転マスクをセットする．
   void
   set_flip_mask(
-    PackedVal mask ///< [in] セットするマスク
+    PackedVal flip_mask ///< [in] 反転マスク
   )
   {
-    mFlipMask = mask;
+    mFlipMask = flip_mask;
   }
 
   /// @brief 内容をダンプする．
@@ -87,9 +80,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
-
-  // 元のノード
-  SimNode* mOrigNode;
 
   // 反転マスク
   PackedVal mFlipMask{PV_ALL0};

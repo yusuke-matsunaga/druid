@@ -8,6 +8,7 @@
 
 #include "SimEngine.h"
 #include "SimNode.h"
+#include "SnFlip.h"
 #include "types/TestVector.h"
 #include "types/InputVector.h"
 #include "types/DffVector.h"
@@ -181,6 +182,7 @@ SimEngine::SimEngine(
     mPPIList(network.ppi_num()),
     mPPOList(network.ppo_num()),
     mSimNodeMap(network.node_num(), nullptr),
+    mFlipNodeMap(network.node_num(), nullptr),
     mFaultMap(fault_list.max_fid() + 1, nullptr)
 {
   set_network(network, ffr_list);
@@ -281,7 +283,7 @@ SimEngine::sppfp()
   std::vector<SizeType> det_list;
 
   const SimFFR* ffr_buff[PV_BITLEN];
-  auto bitpos = 0;
+  auto buff_size = 0;
 
   // FFR ごとに処理を行う．
   for ( auto& ffr: mFFRArray ) {
@@ -301,21 +303,18 @@ SimEngine::sppfp()
       continue;
     }
 
-    // キューに積んでおく
-    PackedVal bitmask = 1ULL << bitpos;
-    set_flip_mask(root, bitmask);
-    put(root);
-    ffr_buff[bitpos] = &ffr;
-    ++ bitpos;
-    if ( bitpos == PV_BITLEN ) {
+    // バッファに積んでおく
+    ffr_buff[buff_size] = &ffr;
+    ++ buff_size;
+    if ( buff_size == PV_BITLEN ) {
       // バッファが一杯になったのでイベントドリヴンシミュレーションを行う．
-      _sppfp_simulation(ffr_buff, bitpos, det_list);
-      bitpos = 0;
+      _sppfp_simulation(ffr_buff, buff_size, det_list);
+      buff_size = 0;
     }
   }
-  if ( bitpos > 0 ) {
+  if ( buff_size > 0 ) {
     // バッファに要素が残っていた．
-    _sppfp_simulation(ffr_buff, bitpos, det_list);
+    _sppfp_simulation(ffr_buff, buff_size, det_list);
   }
 
   return det_list;
@@ -325,16 +324,27 @@ SimEngine::sppfp()
 void
 SimEngine::_sppfp_simulation(
   const SimFFR* ffr_buff[],
-  SizeType ffr_num,
+  SizeType buff_size,
   std::vector<SizeType>& det_list
 )
 {
-  auto obs = simulate();
-  PackedVal mask = 1ULL;
-  for ( auto i = 0; i < ffr_num; ++ i, obs >>= 1 ) {
-    if ( (obs & mask) == mask ) {
-      auto& ffr = *ffr_buff[i];
-      _sppfp_sub(ffr, mask, det_list);
+  PackedVal bitmask = 1ULL;
+  for ( SizeType i = 0; i < buff_size; ++ i, bitmask <<= 1 ) {
+    auto& ffr = *ffr_buff[i];
+    auto root = ffr.root();
+    auto flip = mFlipNodeMap[root->id()];
+    flip->set_flip_mask(bitmask);
+    put(flip);
+  }
+  auto obs = simulate1();
+  bitmask = 1ULL;
+  for ( SizeType i = 0; i < buff_size; ++ i, bitmask <<= 1 ) {
+    auto& ffr = *ffr_buff[i];
+    auto root = ffr.root();
+    auto flip = mFlipNodeMap[root->id()];
+    flip->set_flip_mask(PV_ALL0);
+    if ( (obs & bitmask) != PV_ALL0 ) {
+      _sppfp_sub(ffr, bitmask, det_list);
     }
   }
 }
@@ -368,24 +378,33 @@ SimEngine::ppsfp(
 
     // FFR の出力の故障伝搬を行う．
     auto root = ffr.root();
-    set_flip_mask(root, ffr_req);
-    put(root);
-    auto gobs = simulate();
-    if ( gobs != PV_ALL0 ) {
-      // FFR 内の故障伝搬を行う．
-      for ( auto ff: ffr.fault_list() ) {
-	if ( ff->skip() ) {
-	  continue;
-	}
-	auto obs = ff->obs_mask() & gobs;
-	if ( obs != PV_ALL0 ) {
-	  // 検出された．
-	  auto fid = ff->id();
-	  for ( SizeType i = 0; i < tv_num; ++ i ) {
-	    PackedVal bitmask = 1UL << i;
-	    if ( (obs & bitmask) != PV_ALL0 ) {
-	      det_list_array[i].push_back(fid);
-	    }
+    PackedVal gobs = PV_ALL1;
+    if ( !root->is_output() ) {
+      // root が外部出力なら常に観測可能
+      auto old_val = root->val();
+      auto new_val = old_val ^ ffr_req;
+      root->set_val(new_val);
+      add_to_clear_list(root, old_val);
+      put_fanouts(root);
+      gobs = simulate1();
+      if ( gobs == PV_ALL0 ) {
+	continue;
+      }
+    }
+
+    // FFR 内の故障伝搬を行う．
+    for ( auto ff: ffr.fault_list() ) {
+      if ( ff->skip() ) {
+	continue;
+      }
+      auto obs = ff->obs_mask() & gobs;
+      if ( obs != PV_ALL0 ) {
+	// 検出された．
+	auto fid = ff->id();
+	for ( SizeType i = 0; i < tv_num; ++ i ) {
+	  PackedVal bitmask = 1UL << i;
+	  if ( (obs & bitmask) != PV_ALL0 ) {
+	    det_list_array[i].push_back(fid);
 	  }
 	}
       }
@@ -619,27 +638,6 @@ SimEngine::calc_val(
   // 正常値の計算を行う．
   _calc_val();
 }
-
-// @brief 値の計算を行う．
-void
-SimEngine::calc_valx(
-  const AssignList& assign_list
-)
-{
-  // 値をセットする．
-  for ( auto nv: assign_list ) {
-    if ( nv.time() != 1 ) {
-      throw std::logic_error{"nv.time() != 1"};
-    }
-    auto node_id = nv.node().id();
-    auto val = nv.val();
-    auto pval = bool_to_packedval(val);
-    _add_init_val(node_id, pval);
-  }
-
-  // 正常値の計算を行う．
-  _calc_valx();
-}
 #endif
 
 #if FSIM_BSIDE
@@ -787,82 +785,7 @@ SimEngine::calc_val(
   // 2時刻目の正常値の計算を行う．
   _calc_val();
 }
-
-// @brief 値の計算を行う．
-void
-SimEngine::calc_valx(
-  const AssignList& assign_list
-)
-{
-  { // 1時刻目の値をセットする．
-    for ( auto nv: assign_list ) {
-      if ( nv.time() == 0 ) {
-	auto node_id = nv.node_id();
-	auto val = nv.val();
-	auto pval = bool_to_packedval(val);
-	_add_init_val(node_id, pval);
-      }
-    }
-
-    // 1時刻目の正常値の計算を行う．
-    _calc_valx();
-
-    // init フラグを消す．
-    clear_init();
-  }
-
-  // 1時刻シフトする．
-  for ( auto& node: mNodeArray ) {
-    node->shift_val();
-  }
-
-  // DFF の出力の値を入力にコピーする．
-  for ( auto i: Range(mDffNum) ) {
-    auto onode = mPPOList[i + mOutputNum];
-    auto inode = mPPIList[i + mInputNum];
-    inode->set_val(onode->val());
-  }
-
-  { // 2時刻目の値をセットする．
-    for ( auto nv: assign_list ) {
-      if ( nv.time() == 1 ) {
-	auto node_id = nv.node().id();
-	auto val = nv.val();
-	auto pval = bool_to_packedval(val);
-	_add_init_val(node_id, pval);
-      }
-    }
-
-    // 2時刻目の正常値の計算を行う．
-    _calc_valx();
-  }
-}
 #endif
-
-// @brief 正常値の計算を行う．
-void
-SimEngine::_calc_valx()
-{
-  auto init_val = FSIM_INITVAL;
-  for ( auto node: mPPIList ) {
-    if ( node->need_init() ) {
-      auto val = _get_init(node->id());
-      node->set_val(val);
-    }
-    else {
-      node->set_val(init_val);
-    }
-  }
-  for ( auto node: mLogicArray ) {
-    if ( node->need_init() ) {
-      auto val = _get_init(node->id());
-      node->set_val(val);
-    }
-    else {
-      node->set_calc_val();
-    }
-  }
-}
 
 // @brief イベントドリブンシミュレーションを行う．
 PackedVal
@@ -881,8 +804,43 @@ SimEngine::simulate()
     auto flip_mask = mFlipMaskArray[node->id()];
     new_val ^= flip_mask;
     mFlipMaskArray[node->id()] = PV_ALL0;
-    node->set_val(new_val);
     if ( new_val != old_val ) {
+      node->set_val(new_val);
+      add_to_clear_list(node, old_val);
+      if ( node->is_output() ) {
+	det |= diff(new_val, old_val);
+      }
+      else {
+	put_fanouts(node);
+      }
+    }
+  }
+
+  // 今の故障シミュレーションで値の変わったノードを元にもどしておく
+  for ( auto& rinfo: mClearArray ) {
+    auto node = rinfo.mNode;
+    node->set_val(rinfo.mVal);
+  }
+  mClearArray.clear();
+
+  return det;
+}
+
+// @brief イベントドリブンシミュレーションを行う．
+PackedVal
+SimEngine::simulate1()
+{
+  // 検出結果
+  PackedVal det = PV_ALL0;
+  for ( ; ; ) {
+    auto node = get();
+    // イベントが残っていなければ終わる．
+    if ( node == nullptr ) break;
+
+    auto old_val = node->val();
+    auto new_val = node->calc_val();
+    if ( new_val != old_val ) {
+      node->set_val(new_val);
       add_to_clear_list(node, old_val);
       if ( node->is_output() ) {
 	det |= diff(new_val, old_val);
@@ -1097,6 +1055,15 @@ SimEngine::set_network(
     throw std::logic_error{"no != mOutputNum + mDffNum"};
   }
 
+  // 反転イベントを挿入するノードに印を付ける．
+  std::vector<bool> flip_mark(nn, false);
+  for ( auto ffr_id: ffr_list ) {
+    auto ffr = network.ffr(ffr_id);
+    auto tpgroot = ffr.root();
+    flip_mark[tpgroot.id()] = true;
+  }
+
+  // SimNode を作る．
   for ( SizeType id = 0; id < nn; ++ id ) {
     auto tpgnode = network.node(id);
     SimNode* node = nullptr;
@@ -1134,8 +1101,14 @@ SimEngine::set_network(
       auto type = tpgnode.gate_type();
       node = make_gate(type, inputs);
     }
+
+    if ( flip_mark[id] ) {
+      // 反転イベント用のノードを挿入する．
+      node = make_flip(node);
+    }
+
     // 対応表に登録しておく．
-    mSimNodeMap[tpgnode.id()] = node;
+    mSimNodeMap[id] = node;
   }
 
   // 各ノードのファンアウトリストの設定
@@ -1210,6 +1183,12 @@ SimEngine::set_network(
 
   mCurLevel = 0;
   mNum = 0;
+
+  for ( auto& node: mNodeArray ) {
+    std::cout << "Node#" << node->id()
+	      << ": ";
+    node->dump(std::cout);
+  }
 }
 
 // @brief 故障を設定する．
@@ -1266,6 +1245,19 @@ SimEngine::make_gate(
   mNodeArray.push_back(std::unique_ptr<SimNode>{node});
   mLogicArray.push_back(node);
   return node;
+}
+
+// @brief 反転イベントノードを作る．
+SimNode*
+SimEngine::make_flip(
+  SimNode* node
+)
+{
+  auto id = mNodeArray.size();
+  auto flip = new SnFlip(id, node);
+  mNodeArray.push_back(std::unique_ptr<SimNode>{flip});
+  mFlipNodeMap[id] = flip;
+  return flip;
 }
 
 END_NAMESPACE_DRUID_FSIM

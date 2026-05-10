@@ -53,23 +53,9 @@ public:
     const TpgNetwork& network
   );
 
-  /// @brief spsfp のテストを行う．
-  void
-  xspsfp_test(
-    const TpgNetwork& network
-  );
-
   /// @brief sppfp テストを行う．
   void
   sppfp_test(
-    const TpgNetwork& network,
-    bool multi,
-    int thread_num = 0
-  );
-
-  /// @brief sppfp テストを行う．
-  void
-  xsppfp_test(
     const TpgNetwork& network,
     bool multi,
     int thread_num = 0
@@ -89,23 +75,9 @@ public:
     const TpgNetwork& network
   );
 
-  /// @brief spsfp のテストを行う．
-  void
-  xspsfp2_test(
-    const TpgNetwork& network
-  );
-
   /// @brief sppfp テストを行う．
   void
   sppfp2_test(
-    const TpgNetwork& network,
-    bool multi,
-    int thread_num = 0
-  );
-
-  /// @brief sppfp テストを行う．
-  void
-  xsppfp2_test(
     const TpgNetwork& network,
     bool multi,
     int thread_num = 0
@@ -160,40 +132,6 @@ FsimTest::spsfp_test(
   }
 }
 
-// @brief xspsfp のテストを行う．
-void
-FsimTest::xspsfp_test(
-  const TpgNetwork& network
-)
-{
-  auto fault_list = network.rep_fault_list();
-  auto option = JsonValue::object();
-  option.add("has_x", true);
-  auto fsim = Fsim(fault_list, option);
-
-  SizeType input_num = network.input_num();
-  SizeType dff_num = network.dff_num();
-
-  RefSim refsim{network};
-
-  if ( debug ) {
-    network.print(std::cout);
-  }
-  for ( auto fault: fault_list ) {
-    auto results = DtpgMgr::run(TpgFaultList({fault}));
-    if ( results.status(fault) != FaultStatus::Detected ) {
-      continue;
-    }
-    auto cond = results.cond(fault);
-    auto assign_list = cond.main_cond();
-    assign_list.merge(cond.aux_cond());
-    auto ref_dbits = refsim.simulate(assign_list, fault.id());
-    auto ref_res = ref_dbits.elem_num() > 0;
-    auto res = fsim.xspsfp(assign_list, fault);
-    EXPECT_EQ( ref_res, res );
-  }
-}
-
 void
 FsimTest::spsfp2_test(
   const TpgNetwork& network
@@ -224,41 +162,6 @@ FsimTest::spsfp2_test(
       auto dbits = fsim.spsfp2(tv, fault);
       EXPECT_EQ( ref_dbits, dbits );
     }
-  }
-}
-
-// @brief xspsfp2 のテストを行う．
-void
-FsimTest::xspsfp2_test(
-  const TpgNetwork& network
-)
-{
-  auto fault_list = network.rep_fault_list();
-  auto option = JsonValue::object();
-  option.add("has_x", true);
-  auto fsim = Fsim(fault_list, option);
-
-  SizeType input_num = network.input_num();
-  SizeType dff_num = network.dff_num();
-
-  RefSim refsim{network};
-
-  if ( debug ) {
-    network.print(std::cout);
-  }
-  for ( auto fault: fault_list ) {
-    auto results = DtpgMgr::run(TpgFaultList({fault}));
-    if ( results.status(fault) != FaultStatus::Detected ) {
-      continue;
-    }
-    auto cond = results.cond(fault);
-    auto assign_list = cond.main_cond();
-    assign_list.merge(cond.aux_cond());
-    auto ref_dbits = refsim.simulate(assign_list, fault.id());
-    auto dbits = fsim.xspsfp2(assign_list, fault);
-    dbits.sort();
-    ref_dbits.sort();
-    EXPECT_EQ( ref_dbits, dbits );
   }
 }
 
@@ -395,158 +298,6 @@ FsimTest::sppfp2_test(
 }
 
 void
-FsimTest::xsppfp_test(
-  const TpgNetwork& tpg_network,
-  bool multi,
-  int thread_num
-)
-{
-  auto fault_list = tpg_network.rep_fault_list();
-  auto fsim_option = JsonValue::object();
-  fsim_option.add("has_x", true);
-  fsim_option.add("multi_thread", multi);
-  fsim_option.add("thread_num", thread_num);
-  auto fsim = Fsim(fault_list, fsim_option);
-
-  SizeType input_num = tpg_network.input_num();
-  SizeType dff_num = tpg_network.dff_num();
-
-  RefSim refsim{tpg_network};
-
-  if ( debug ) {
-    tpg_network.print(std::cout);
-  }
-
-  for ( auto fault: fault_list ) {
-    auto results = DtpgMgr::run(TpgFaultList({fault}));
-    if ( results.status(fault) != FaultStatus::Detected ) {
-      continue;
-    }
-    auto cond = results.cond(fault);
-    auto assign_list = cond.main_cond();
-    assign_list.merge(cond.aux_cond());
-    std::unordered_set<SizeType> det_dict;
-    std::vector<TpgFault> ref_fault_list;
-    for ( auto fault1: fault_list ) {
-      DiffBits dbits1 = refsim.simulate(assign_list, fault1.id());
-      if ( dbits1.elem_num() > 0 ) {
-	det_dict.insert(fault1.id());
-	ref_fault_list.push_back(fault1);
-      }
-    }
-    auto det_list = fsim.xsppfp(assign_list);
-    if ( ref_fault_list.size() != det_list.size() ) {
-      if ( debug ) {
-	std::cout << "original fault: " << fault.str() << std::endl;
-	std::cout << "assign list = " << assign_list << std::endl;
-	std::cout << "ref fault_list:";
-	for ( auto fault: ref_fault_list ) {
-	  std::cout << " " << fault.str();
-	}
-	std::cout << std::endl;
-	std::cout << "fsim det_list:";
-	for ( auto fault: det_list ) {
-	  std::cout << " " << fault.str();
-	}
-	std::cout << std::endl;
-      }
-    }
-    ASSERT_EQ( ref_fault_list.size(), det_list.size() );
-    SizeType prev_fid = 0;
-    bool first = true;
-    for ( auto fault: det_list ) {
-      auto fid = fault.id();
-      EXPECT_TRUE( det_dict.count(fid) > 0 );
-      if ( first ) {
-	first = false;
-      }
-      else {
-	// det_list がソートされているかチェック
-	ASSERT_TRUE( prev_fid < fid );
-      }
-      prev_fid = fid;
-    }
-  }
-}
-
-void
-FsimTest::xsppfp2_test(
-  const TpgNetwork& tpg_network,
-  bool multi,
-  int thread_num
-)
-{
-  auto fault_list = tpg_network.rep_fault_list();
-  auto fsim_option = JsonValue::object();
-  fsim_option.add("has_x", true);
-  fsim_option.add("multi_thread", multi);
-  fsim_option.add("thread_num", thread_num);
-  auto fsim = Fsim(fault_list, fsim_option);
-
-  SizeType input_num = tpg_network.input_num();
-  SizeType dff_num = tpg_network.dff_num();
-
-  RefSim refsim{tpg_network};
-
-  if ( debug ) {
-    tpg_network.print(std::cout);
-  }
-
-  for ( auto fault: fault_list ) {
-    auto results = DtpgMgr::run(TpgFaultList({fault}));
-    if ( results.status(fault) != FaultStatus::Detected ) {
-      continue;
-    }
-    auto cond = results.cond(fault);
-    auto assign_list = cond.main_cond();
-    assign_list.merge(cond.aux_cond());
-    std::unordered_map<SizeType, DiffBits> dbits_dict;
-    std::vector<TpgFault> ref_fault_list;
-    for ( auto fault1: fault_list ) {
-      DiffBits dbits1 = refsim.simulate(assign_list, fault1.id());
-      if ( dbits1.elem_num() > 0 ) {
-	dbits_dict.emplace(fault1.id(), dbits1);
-	ref_fault_list.push_back(fault1);
-      }
-    }
-    auto res = fsim.xsppfp2(assign_list);
-    auto ndet = ref_fault_list.size();
-    if ( ndet != res.det_num(0) ) {
-      if ( debug ) {
-	std::cout << "original fault: " << fault.str() << std::endl;
-	std::cout << "assign list = " << assign_list << std::endl;
-	std::cout << "ref fault_list:";
-	for ( auto fault: ref_fault_list ) {
-	  std::cout << " " << fault.str();
-	}
-	std::cout << std::endl;
-	std::cout << "fsim fault_list:";
-	auto n = res.det_num(0);
-	for ( SizeType i = 0; i < n; ++ i ) {
-	  auto fault = res.fault(0, i);
-	  std::cout << " " << fault.str();
-	}
-	std::cout << std::endl;
-      }
-    }
-    ASSERT_EQ( ndet, res.det_num(0) );
-    SizeType prev_fid = 0;
-    for ( SizeType i = 0; i < ndet; ++ i ) {
-      auto fault = res.fault(0, i);
-      auto fid = fault.id();
-      EXPECT_TRUE( dbits_dict.count(fid) > 0 );
-      auto dbits = res.diffbits(0, i);
-      EXPECT_EQ( dbits_dict.at(fid), dbits );
-      if ( i > 0 ) {
-	// res.fault_list(0) がソートされているかチェック
-	ASSERT_TRUE( prev_fid < fid );
-      }
-      prev_fid = fid;
-    }
-  }
-}
-
-void
 FsimTest::ppsfp_test(
   const TpgNetwork& tpg_network,
   bool multi,
@@ -649,12 +400,6 @@ TEST_P(FsimTest, spsfp_td_test)
   spsfp_test(tpg_network);
 }
 
-TEST_P(FsimTest, xspsfp_sa_test)
-{
-  auto tpg_network = read_network(FaultType::StuckAt);
-  xspsfp_test(tpg_network);
-}
-
 #if DIFFBITS_TEST
 TEST_P(FsimTest, spsfp2_sa_test)
 {
@@ -666,12 +411,6 @@ TEST_P(FsimTest, spsfp2_td_test)
 {
   auto tpg_network = read_network(FaultType::TransitionDelay);
   spsfp2_test(tpg_network);
-}
-
-TEST_P(FsimTest, xspsfp2_sa_test)
-{
-  auto tpg_network = read_network(FaultType::StuckAt);
-  xspsfp2_test(tpg_network);
 }
 #endif // DIFFBITS_TEST
 #endif // SPSFP_TEST
@@ -690,12 +429,6 @@ TEST_P(FsimTest, sppfp_single_td_test)
   auto tpg_network = read_network(FaultType::TransitionDelay);
   sppfp_test(tpg_network, false);
 }
-
-TEST_P(FsimTest, xsppfp_single_sa_test)
-{
-  auto tpg_network = read_network(FaultType::StuckAt);
-  xsppfp_test(tpg_network, false);
-}
 #endif
 
 #if DIFFBITS_TEST
@@ -709,12 +442,6 @@ TEST_P(FsimTest, sppfp2_single_td_test)
 {
   auto tpg_network = read_network(FaultType::TransitionDelay);
   sppfp2_test(tpg_network, false);
-}
-
-TEST_P(FsimTest, xsppfp2_single_sa_test)
-{
-  auto tpg_network = read_network(FaultType::StuckAt);
-  xsppfp2_test(tpg_network, false);
 }
 #endif // DIFFBITS_TEST
 #endif // SINGLE_TEST
@@ -864,9 +591,6 @@ TEST(FsimTest, case1)
       assign_list.add(network.node(130), 1, true);
       assign_list.add(network.node(135), 1, true);
       assign_list.add(network.node(139), 1, true);
-      DiffBits _;
-      auto res = fsim.xspsfp(assign_list, fault);
-      EXPECT_TRUE( res );
       auto dbits = refsim.simulate(assign_list, fault.id());
       EXPECT_TRUE( dbits.elem_num() > 0 );
     }
@@ -894,8 +618,6 @@ TEST(FsimTest, case2)
       assign_list.add(network.node(7), 1, false);
       assign_list.add(network.node(8), 1, true);
       assign_list.add(network.node(15), 1, false);
-      auto res = fsim.xspsfp(assign_list, fault);
-      EXPECT_TRUE( res );
       auto dbits = refsim.simulate(assign_list, fault.id());
       EXPECT_TRUE( dbits.elem_num() > 0 );
     }

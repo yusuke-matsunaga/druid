@@ -188,6 +188,13 @@ TpgNode::fanout_list() const
   return node_list(_node()->fanout_list());
 }
 
+// @brief FFR の根ノードの時 true を返す．
+bool
+TpgNode::is_ffr_root() const
+{
+  return _node()->is_ffr_root();
+}
+
 // @brief FFR の根のノードを得る．
 TpgNode
 TpgNode::ffr_root() const

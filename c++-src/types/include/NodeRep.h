@@ -285,13 +285,20 @@ public:
     return mFanoutList;
   }
 
+  /// @brief FFR の根ノードの時 true を返す．
+  bool
+  is_ffr_root() const
+  {
+    return fanout_num() == 0 || fanout_num() > 1;
+  }
+
   /// @brief FFR の根のノードのノード番号を得る．
   ///
   /// 自分が根の場合には自分自身を返す．
   const NodeRep*
   ffr_root() const
   {
-    if ( fanout_num() == 0 || fanout_num() > 1 ) {
+    if ( is_ffr_root() ) {
       return this;
     }
     return fanout(0)->ffr_root();

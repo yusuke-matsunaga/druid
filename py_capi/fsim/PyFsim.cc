@@ -238,52 +238,6 @@ spsfp2(
 }
 
 PyObject*
-xspsfp2(
-  PyObject* self,
-  PyObject* args,
-  PyObject* kwds
-)
-{
-  static const char* kwlist[] = {
-    "fault",
-    "assign_list",
-    nullptr
-  };
-  PyObject* fault_obj = nullptr;
-  PyObject* as_list_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!$O!",
-                                    const_cast<char**>(kwlist),
-                                    PyTpgFault::_typeobject(), &fault_obj,
-                                    PyAssignList::_typeobject(), &as_list_obj) ) {
-    return nullptr;
-  }
-  TpgFault fault;
-  if ( fault_obj != nullptr ) {
-    if ( !PyTpgFault::FromPyObject(fault_obj, fault) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to TpgFault");
-      return nullptr;
-    }
-  }
-  AssignList as_list;
-  if ( as_list_obj != nullptr ) {
-    if ( !PyAssignList::FromPyObject(as_list_obj, as_list) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
-      return nullptr;
-    }
-  }
-  auto& val = PyFsim::_get_ref(self);
-  try {
-    return PyDiffBits::ToPyObject(val.xspsfp2(as_list, fault));
-  }
-  catch ( std::exception err ) {
-    std::ostringstream buf;
-    buf << "exception" << ": " << err.what();
-    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
-    return nullptr;
-  }
-}
-
-PyObject*
 sppfp2(
   PyObject* self,
   PyObject* args,
@@ -327,42 +281,6 @@ sppfp2(
     }
     PyErr_SetString(PyExc_TypeError, "either testvector or assign_list must be given");
     return nullptr;
-  }
-  catch ( std::exception err ) {
-    std::ostringstream buf;
-    buf << "exception" << ": " << err.what();
-    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
-    return nullptr;
-  }
-}
-
-PyObject*
-xsppfp2(
-  PyObject* self,
-  PyObject* args,
-  PyObject* kwds
-)
-{
-  static const char* kwlist[] = {
-    "assign_list",
-    nullptr
-  };
-  PyObject* assign_list_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!",
-                                    const_cast<char**>(kwlist),
-                                    PyAssignList::_typeobject(), &assign_list_obj) ) {
-    return nullptr;
-  }
-  AssignList assign_list;
-  if ( assign_list_obj != nullptr ) {
-    if ( !PyAssignList::FromPyObject(assign_list_obj, assign_list) ) {
-      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
-      return nullptr;
-    }
-  }
-  auto& val = PyFsim::_get_ref(self);
-  try {
-    return PyFsimResults::ToPyObject(val.xsppfp2(assign_list));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -434,18 +352,10 @@ PyMethodDef methods[] = {
    reinterpret_cast<PyCFunction>(spsfp2),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do SPSFP fault simulation")},
-  {"xspsfp2",
-   reinterpret_cast<PyCFunction>(xspsfp2),
-   METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("do SPSFP fault simulation with X values")},
   {"sppfp2",
    reinterpret_cast<PyCFunction>(sppfp2),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do SPPFP fault simulation")},
-  {"xsppfp2",
-   reinterpret_cast<PyCFunction>(xsppfp2),
-   METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("do SPPFP fault simulation with X values")},
   {"ppsfp2",
    reinterpret_cast<PyCFunction>(ppsfp2),
    METH_VARARGS | METH_KEYWORDS,

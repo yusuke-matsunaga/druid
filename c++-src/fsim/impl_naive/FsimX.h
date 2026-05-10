@@ -293,64 +293,6 @@ public:
     return mEngine.ppo_num();
   }
 
-#if 0
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる下請け関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief SPSFP故障シミュレーションの本体
-  /// @retval true 故障の検出が行えた．
-  /// @retval false 故障の検出が行えなかった．
-  bool
-  _spsfp(
-    SizeType fid ///< [in] 対象の故障番号
-  );
-
-  /// @brief SPPFP故障シミュレーションの本体
-  void
-  _sppfp();
-
-  /// @brief sppfp 用のシミュレーションを行う．
-  void
-  _sppfp_simulation(
-    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
-    SizeType ffr_num          ///< [in] FFR 数
-  );
-
-  /// @brief PPSFP故障シミュレーションの本体
-  void
-  _ppsfp(
-    SizeType base, ///< [in] パタン番号の起点
-    SizeType npat  ///< [in] パタン数
-  );
-
-  /// @brief SPSFP故障シミュレーションの本体
-  /// @return 出力ごとの故障伝搬状況
-  DiffBits
-  _spsfp2(
-    SizeType fid ///< [in] 対象の故障番号
-  );
-
-  /// @brief SPPFP故障シミュレーションの本体
-  void
-  _sppfp2();
-
-  /// @brief sppfp 用のシミュレーションを行う．
-  void
-  _sppfp2_simulation(
-    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
-    SizeType ffr_num          ///< [in] FFR 数
-  );
-
-  /// @brief PPSFP故障シミュレーションの本体
-  void
-  _ppsfp2(
-    SizeType base, ///< [in] パタン番号の起点
-    SizeType npat  ///< [in] パタン数
-  );
-#endif
-
 private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ

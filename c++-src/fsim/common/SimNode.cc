@@ -12,6 +12,7 @@
 #include "SnAnd.h"
 #include "SnOr.h"
 #include "SnXor.h"
+#include "SnFlip.h"
 #include "ym/Range.h"
 
 

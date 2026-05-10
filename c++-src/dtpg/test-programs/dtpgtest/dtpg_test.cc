@@ -371,15 +371,9 @@ dtpg_test(
       int error_type = 0;
       auto cond = results.cond(fault);
       auto assign_list = cond.main_cond();
-      auto aux_list = cond.aux_cond();
       if ( !DtpgMgr::check(fault, assign_list) ) {
 	error += " check";
 	error_type |= 4;
-      }
-      assign_list.merge(aux_list);
-      if ( !fsim.xspsfp(assign_list, fault) ) {
-	error += " assign_list";
-	error_type |= 1;
       }
       auto tv = results.testvector(fault);
       if ( !fsim.spsfp(tv, fault) ) {

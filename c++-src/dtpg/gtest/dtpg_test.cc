@@ -380,10 +380,6 @@ TEST(DtpgTest, xor2)
     EXPECT_TRUE( fsim_res ) << fault.str();
     auto cond = res.cond(fault);
     auto assign_list = cond.main_cond();
-    auto aux_assign_list = cond.aux_cond();
-    auto assign_list2 = assign_list + aux_assign_list;
-    auto fsim_res2 = fsim.xspsfp(assign_list2, fault);
-    EXPECT_TRUE( fsim_res2 ) << fault.str();
     EXPECT_TRUE( DtpgMgr::check(fault, assign_list) );
   }
 }
@@ -411,9 +407,6 @@ TEST(DtpgTest, c432)
     EXPECT_TRUE( DtpgMgr::check(fault, assign_list) ) << fault.str() << " check";
     auto fsim_res = fsim.spsfp(tv, fault);
     EXPECT_TRUE( fsim_res ) << fault.str() << " testvector";
-    auto assign_list2 = assign_list + aux_assign_list;
-    auto fsim_res2 = fsim.xspsfp(assign_list2, fault);
-    EXPECT_TRUE( fsim_res2 ) << fault.str() << " assign_list";
   }
 }
 
@@ -442,9 +435,6 @@ TEST(DtpgTest, c499)
     EXPECT_TRUE( DtpgMgr::check(fault, assign_list) ) << fault.str() << " check";
     auto fsim_res = fsim.spsfp(tv, fault);
     EXPECT_TRUE( fsim_res ) << fault.str() << " testvector";
-    auto assign_list2 = assign_list + aux_assign_list;
-    auto fsim_res2 = fsim.xspsfp(assign_list2, fault);
-    EXPECT_TRUE( fsim_res2 ) << fault.str() << " assign_list";
   }
 }
 

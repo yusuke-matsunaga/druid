@@ -20,6 +20,8 @@
 
 BEGIN_NAMESPACE_DRUID_FSIM
 
+class SnFlip;
+
 //////////////////////////////////////////////////////////////////////
 /// @class SimEngine SimEngine.h "SimEngine.h"
 /// @brief 故障シミュレーションの本体
@@ -233,12 +235,6 @@ public:
     const AssignList& assign_list ///< [in] 外部入力の値割り当てのリスト
   );
 
-  /// @brief 値の計算を行う．
-  void
-  calc_valx(
-    const AssignList& assign_list ///< [in] 値割り当てのリスト
-  );
-
   /// @brief SimNode の初期値フラグを消す．
   void
   clear_init()
@@ -337,6 +333,12 @@ private:
   make_gate(
     PrimType type,
     const std::vector<SimNode*>& inputs
+  );
+
+  /// @brief 反転イベントノードを作る．
+  SimNode*
+  make_flip(
+    SimNode* node
   );
 
 
@@ -468,10 +470,6 @@ private:
   }
 
   /// @brief 値の計算を行う．
-  void
-  _calc_valx();
-
-  /// @brief 値の計算を行う．
   ///
   /// 入力ノードに値の設定は済んでいるものとする．
   void
@@ -492,12 +490,17 @@ private:
 #endif
 
   /// @brief イベントドリブンシミュレーションを行う．
-  /// @retval 伝搬状況を返す．
+  /// @return 伝搬状況を返す．
   PackedVal
   simulate();
 
   /// @brief イベントドリブンシミュレーションを行う．
-  /// @retval 出力における変化ビットを返す．
+  /// @return 伝搬状況を返す．
+  PackedVal
+  simulate1();
+
+  /// @brief イベントドリブンシミュレーションを行う．
+  /// @return 出力における変化ビットを返す．
   DiffBitsArray
   simulate2();
 
@@ -634,6 +637,10 @@ private:
 
   // SimNode のノード番号をキーにして対応する SimFFR を格納する配列
   std::vector<SimFFR*> mFFRMap;
+
+  // SimNode のノード番号をキーにして反転イベント用のノードを格納する配列
+  // 該当しないノードの場合には nullptr が入る．
+  std::vector<SnFlip*> mFlipNodeMap;
 
   // キューの先頭ノードの配列
   std::vector<SimNode*> mArray;

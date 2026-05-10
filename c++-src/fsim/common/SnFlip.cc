@@ -43,7 +43,7 @@ SnFlip::dump(
 FSIM_VALTYPE
 SnFlip::_calc_val() const
 {
-  auto val = _fanin()->val();
+  auto val = _fanin()->calc_val();
   return val ^ mFlipMask;
 }
 

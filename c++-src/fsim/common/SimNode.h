@@ -390,6 +390,7 @@ private:
   std::uint32_t mFanoutNum;
 
   // ファンアウトの先頭のノード
+  // FFR の根のノードの場合は SimNode** にキャストして用いる．
   SimNode* mFanoutTop;
 
   // レベル

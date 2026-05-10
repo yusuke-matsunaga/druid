@@ -95,6 +95,10 @@ public:
   TpgNodeList
   fanout_list() const;
 
+  /// @brief FFR の根ノードの時 true を返す．
+  bool
+  is_ffr_root() const;
+
   /// @brief FFR の根のノードを得る．
   ///
   /// 自分が根の場合には自分自身を返す．

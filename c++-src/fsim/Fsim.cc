@@ -129,16 +129,6 @@ Fsim::spsfp(
   return mImpl->spsfp(assign_list, fault.id());
 }
 
-// @brief SPSFP故障シミュレーションを行う．
-bool
-Fsim::xspsfp(
-  const AssignList& assign_list,
-  const TpgFault& fault
-)
-{
-  return false;
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 TpgFaultList
 Fsim::sppfp(
@@ -159,15 +149,6 @@ Fsim::sppfp(
   auto fid_list = mImpl->sppfp(assign_list);
   std::sort(fid_list.begin(), fid_list.end());
   return TpgBase::fault_list(fid_list);
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-TpgFaultList
-Fsim::xsppfp(
-  const AssignList& assign_list
-)
-{
-  return TpgFaultList();
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
@@ -221,16 +202,6 @@ Fsim::spsfp2(
   return mImpl->spsfp2(assign_list, fault.id());
 }
 
-// @brief SPSFP故障シミュレーションを行う．
-DiffBits
-Fsim::xspsfp2(
-  const AssignList& assign_list,
-  const TpgFault& fault
-)
-{
-  return DiffBits();
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 FsimResults
 Fsim::sppfp2(
@@ -251,15 +222,6 @@ Fsim::sppfp2(
   auto res = mImpl->sppfp2(assign_list);
   res->sort();
   return FsimResults(_network(), res);
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-FsimResults
-Fsim::xsppfp2(
-  const AssignList& assign_list
-)
-{
-  return FsimResults();
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．

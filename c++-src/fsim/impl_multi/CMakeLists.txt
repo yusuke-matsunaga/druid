@@ -28,6 +28,7 @@ set (fsim_SOURCES
   SnInput.cc
   SnOr.cc
   SnXor.cc
+  SnFlip.cc
   )
 
 
