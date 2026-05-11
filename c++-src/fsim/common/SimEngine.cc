@@ -332,17 +332,28 @@ SimEngine::_sppfp_simulation(
   for ( SizeType i = 0; i < buff_size; ++ i, bitmask <<= 1 ) {
     auto& ffr = *ffr_buff[i];
     auto root = ffr.root();
+#if 0
     auto flip = mFlipNodeMap[root->id()];
     flip->set_flip_mask(bitmask);
     put(flip);
+#else
+    set_flip_mask(root, bitmask);
+    put(root);
+#endif
   }
+#if 0
   auto obs = simulate1();
+#else
+  auto obs = simulate();
+#endif
   bitmask = 1ULL;
   for ( SizeType i = 0; i < buff_size; ++ i, bitmask <<= 1 ) {
     auto& ffr = *ffr_buff[i];
+#if 0
     auto root = ffr.root();
     auto flip = mFlipNodeMap[root->id()];
     flip->set_flip_mask(PV_ALL0);
+#endif
     if ( (obs & bitmask) != PV_ALL0 ) {
       _sppfp_sub(ffr, bitmask, det_list);
     }
@@ -800,18 +811,34 @@ SimEngine::simulate()
 
     auto old_val = node->val();
     auto new_val = node->calc_val();
-    // 反転イベントを考慮する．
-    auto flip_mask = mFlipMaskArray[node->id()];
-    new_val ^= flip_mask;
-    mFlipMaskArray[node->id()] = PV_ALL0;
-    if ( new_val != old_val ) {
-      node->set_val(new_val);
-      add_to_clear_list(node, old_val);
-      if ( node->is_output() ) {
+    if ( node->is_output() ) {
+      if ( new_val != old_val ) {
 	det |= diff(new_val, old_val);
       }
+    }
+    else {
+      auto nfo = node->fanout_num();
+      if ( nfo == 1 ) {
+	if ( new_val != old_val ) {
+	  node->set_val(new_val);
+	  add_to_clear_list(node, old_val);
+	  auto onode = node->fanout_top();
+	  put(onode);
+	}
+      }
       else {
-	put_fanouts(node);
+	// 反転イベントを考慮する．
+	auto flip_mask = mFlipMaskArray[node->id()];
+	new_val ^= flip_mask;
+	mFlipMaskArray[node->id()] = PV_ALL0;
+	if ( new_val != old_val ) {
+	  node->set_val(new_val);
+	  add_to_clear_list(node, old_val);
+	  for ( auto i: Range(0, nfo) ) {
+	    auto onode = node->fanout(i);
+	    put(onode);
+	  }
+	}
       }
     }
   }
@@ -840,12 +867,12 @@ SimEngine::simulate1()
     auto old_val = node->val();
     auto new_val = node->calc_val();
     if ( new_val != old_val ) {
-      node->set_val(new_val);
-      add_to_clear_list(node, old_val);
       if ( node->is_output() ) {
 	det |= diff(new_val, old_val);
       }
       else {
+	node->set_val(new_val);
+	add_to_clear_list(node, old_val);
 	put_fanouts(node);
       }
     }
@@ -884,14 +911,14 @@ SimEngine::simulate2()
     auto flip_mask = mFlipMaskArray[node->id()];
     new_val ^= flip_mask;
     mFlipMaskArray[node->id()] = PV_ALL0;
-    node->set_val(new_val);
     if ( new_val != old_val ) {
-      add_to_clear_list(node, old_val);
       if ( node->is_output() ) {
 	auto dbits = diff(new_val, old_val);
 	dbits_array.add_output(node->output_id(), dbits);
       }
       else {
+	node->set_val(new_val);
+	add_to_clear_list(node, old_val);
 	put_fanouts(node);
       }
     }
@@ -1055,6 +1082,7 @@ SimEngine::set_network(
     throw std::logic_error{"no != mOutputNum + mDffNum"};
   }
 
+#if 0
   // 反転イベントを挿入するノードに印を付ける．
   std::vector<bool> flip_mark(nn, false);
   for ( auto ffr_id: ffr_list ) {
@@ -1062,6 +1090,7 @@ SimEngine::set_network(
     auto tpgroot = ffr.root();
     flip_mark[tpgroot.id()] = true;
   }
+#endif
 
   // SimNode を作る．
   for ( SizeType id = 0; id < nn; ++ id ) {
@@ -1102,10 +1131,12 @@ SimEngine::set_network(
       node = make_gate(type, inputs);
     }
 
+#if 0
     if ( flip_mark[id] ) {
       // 反転イベント用のノードを挿入する．
       node = make_flip(node);
     }
+#endif
 
     // 対応表に登録しておく．
     mSimNodeMap[id] = node;
