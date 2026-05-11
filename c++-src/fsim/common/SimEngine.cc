@@ -182,7 +182,6 @@ SimEngine::SimEngine(
     mPPIList(network.ppi_num()),
     mPPOList(network.ppo_num()),
     mSimNodeMap(network.node_num(), nullptr),
-    mFlipNodeMap(network.node_num(), nullptr),
     mFaultMap(fault_list.max_fid() + 1, nullptr)
 {
   set_network(network, ffr_list);
@@ -265,9 +264,13 @@ SimEngine::spsfp(
 
   // FFR の根のノードを求める．
   auto root = ff->origin_node()->ffr_root();
+  if ( root->is_output() ) {
+    // root が出力なら検出可能
+    return true;
+  }
 
   // root からの故障伝搬シミュレーションを行う．
-  set_flip_mask(root, PV_ALL1);
+  root->set_flip_mask(PV_ALL1);
   put(root);
   auto gobs = simulate();
   if ( gobs != PV_ALL0 ) {
@@ -332,28 +335,13 @@ SimEngine::_sppfp_simulation(
   for ( SizeType i = 0; i < buff_size; ++ i, bitmask <<= 1 ) {
     auto& ffr = *ffr_buff[i];
     auto root = ffr.root();
-#if 0
-    auto flip = mFlipNodeMap[root->id()];
-    flip->set_flip_mask(bitmask);
-    put(flip);
-#else
-    set_flip_mask(root, bitmask);
+    root->set_flip_mask(bitmask);
     put(root);
-#endif
   }
-#if 0
-  auto obs = simulate1();
-#else
   auto obs = simulate();
-#endif
   bitmask = 1ULL;
   for ( SizeType i = 0; i < buff_size; ++ i, bitmask <<= 1 ) {
     auto& ffr = *ffr_buff[i];
-#if 0
-    auto root = ffr.root();
-    auto flip = mFlipNodeMap[root->id()];
-    flip->set_flip_mask(PV_ALL0);
-#endif
     if ( (obs & bitmask) != PV_ALL0 ) {
       _sppfp_sub(ffr, bitmask, det_list);
     }
@@ -446,9 +434,14 @@ SimEngine::spsfp2(
 
   // FFR の根のノードを求める．
   auto root = ff->origin_node()->ffr_root();
+  if ( root->is_output() ) {
+    DiffBits dbits;
+    dbits.add_output(root->output_id());
+    return dbits;
+  }
 
   // root からの故障伝搬シミュレーションを行う．
-  set_flip_mask(root, PV_ALL1);
+  root->set_flip_mask(PV_ALL1);
   put(root);
   auto dbits_array = simulate2();
   if ( dbits_array.dbits_union() != PV_ALL0 ) {
@@ -464,7 +457,7 @@ SimEngine::sppfp2()
   mRes = new FsimResultsRep;
 
   const SimFFR* ffr_buff[PV_BITLEN];
-  auto bitpos = 0;
+  auto buff_size = 0;
   // FFR ごとに処理を行う．
   for ( auto& ffr: mFFRArray ) {
     // FFR 内の故障伝搬を行う．
@@ -485,19 +478,16 @@ SimEngine::sppfp2()
     }
     else {
       // キューに積んでおく
-      PackedVal bitmask = 1ULL << bitpos;
-      set_flip_mask(root, bitmask);
-      put(root);
-      ffr_buff[bitpos] = &ffr;
-      ++ bitpos;
-      if ( bitpos == PV_BITLEN ) {
-	_sppfp2_simulation(ffr_buff, bitpos);
-	bitpos = 0;
+      ffr_buff[buff_size] = &ffr;
+      ++ buff_size;
+      if ( buff_size == PV_BITLEN ) {
+	_sppfp2_simulation(ffr_buff, buff_size);
+	buff_size = 0;
       }
     }
   }
-  if ( bitpos > 0 ) {
-    _sppfp2_simulation(ffr_buff, bitpos);
+  if ( buff_size > 0 ) {
+    _sppfp2_simulation(ffr_buff, buff_size);
   }
 
   return mRes;
@@ -510,11 +500,18 @@ SimEngine::_sppfp2_simulation(
   SizeType ffr_num
 )
 {
+  PackedVal bitmask = 1ULL;
+  for ( auto i = 0; i < ffr_num; ++ i, bitmask <<= 1 ) {
+    auto& ffr = *ffr_buff[i];
+    auto root = ffr.root();
+    root->set_flip_mask(bitmask);
+    put(root);
+  }
   auto dbits_array = simulate2();
   auto obs = dbits_array.dbits_union();
-  PackedVal mask = 1ULL;
-  for ( auto i = 0; i < ffr_num; ++ i, mask <<= 1 ) {
-    if ( obs & mask ) {
+  bitmask = 1ULL;
+  for ( auto i = 0; i < ffr_num; ++ i, bitmask <<= 1 ) {
+    if ( obs & bitmask ) {
       auto& ffr = *ffr_buff[i];
       auto dbits = dbits_array.get_slice(i);
       dbits.sort();
@@ -555,25 +552,38 @@ SimEngine::ppsfp2(
 
     // FFR の出力の故障伝搬を行う．
     auto root = ffr.root();
-    set_flip_mask(root, ffr_req);
-    put(root);
-    auto dbits_array = simulate2();
+    DiffBitsArray dbits_array;
+    if ( root->is_output() ) {
+      // root が外部出力なら常に観測可能
+      dbits_array.add_output(root->output_id(), ffr_req);
+    }
+    else {
+      auto old_val = root->val();
+      auto new_val = old_val ^ ffr_req;
+      root->set_val(new_val);
+      add_to_clear_list(root, old_val);
+      put_fanouts(root);
+      dbits_array = simulate3();
+    }
     auto gobs = dbits_array.dbits_union();
-    if ( gobs != PV_ALL0 ) {
-      // FFR 内の故障伝搬を行う．
-      for ( auto ff: ffr.fault_list() ) {
-	if ( ff->skip() ) {
-	  continue;
-	}
-	if ( (ff->obs_mask() & gobs) != PV_ALL0 ) {
-	  // 検出された．
-	  auto fid = ff->id();
-	  auto dbits_array1 = dbits_array.masking(ff->obs_mask());
-	  for ( SizeType i = 0; i < tv_num; ++ i ) {
-	    auto dbits = dbits_array1.get_slice(i);
-	    if ( dbits.elem_num() > 0 ) {
-	      res_list[i]->add(fid, dbits);
-	    }
+    if ( gobs == PV_ALL0 ) {
+      continue;
+    }
+
+    // FFR 内の故障伝搬を行う．
+    for ( auto ff: ffr.fault_list() ) {
+      if ( ff->skip() ) {
+	continue;
+      }
+      auto obs = ff->obs_mask() & gobs;
+      if ( obs != PV_ALL0 ) {
+	// 検出された．
+	auto fid = ff->id();
+	auto dbits_array1 = dbits_array.masking(ff->obs_mask());
+	for ( SizeType i = 0; i < tv_num; ++ i ) {
+	  auto dbits = dbits_array1.get_slice(i);
+	  if ( dbits.elem_num() > 0 ) {
+	    res_list[i]->add(fid, dbits);
 	  }
 	}
       }
@@ -828,14 +838,13 @@ SimEngine::simulate()
       }
       else {
 	// 反転イベントを考慮する．
-	auto flip_mask = mFlipMaskArray[node->id()];
+	auto flip_mask = node->flip_mask();
 	new_val ^= flip_mask;
-	mFlipMaskArray[node->id()] = PV_ALL0;
+	node->set_flip_mask(PV_ALL0);
 	if ( new_val != old_val ) {
 	  node->set_val(new_val);
 	  add_to_clear_list(node, old_val);
-	  for ( auto i: Range(0, nfo) ) {
-	    auto onode = node->fanout(i);
+	  for ( auto onode: node->fanout_list() ) {
 	    put(onode);
 	  }
 	}
@@ -900,27 +909,73 @@ SimEngine::simulate2()
     if ( node == nullptr ) break;
 
     auto old_val = node->val();
-    auto new_val = old_val;
-    if ( node->need_init() ) {
-      new_val = _get_init(node->id());
-    }
-    else {
-      new_val = node->calc_val();
-    }
-    // 反転イベントの考慮
-    auto flip_mask = mFlipMaskArray[node->id()];
-    new_val ^= flip_mask;
-    mFlipMaskArray[node->id()] = PV_ALL0;
-    if ( new_val != old_val ) {
-      if ( node->is_output() ) {
+    auto new_val = node->calc_val();
+    if ( node->is_output() ) {
+      if ( new_val != old_val ) {
 	auto dbits = diff(new_val, old_val);
 	dbits_array.add_output(node->output_id(), dbits);
       }
-      else {
-	node->set_val(new_val);
-	add_to_clear_list(node, old_val);
-	put_fanouts(node);
+    }
+    else {
+      auto nfo = node->fanout_num();
+      if ( nfo == 1 ) {
+	if ( new_val != old_val ) {
+	  node->set_val(new_val);
+	  add_to_clear_list(node, old_val);
+	  auto onode = node->fanout_top();
+	  put(onode);
+	}
       }
+      else {
+	// 反転イベントの考慮
+	auto flip_mask = node->flip_mask();
+	new_val ^= flip_mask;
+	node->set_flip_mask(PV_ALL0);
+	if ( new_val != old_val ) {
+	  node->set_val(new_val);
+	  add_to_clear_list(node, old_val);
+	  for ( auto onode: node->fanout_list() ) {
+	    put(onode);
+	  }
+	}
+      }
+    }
+  }
+
+  // 今の故障シミュレーションで値の変わったノードを元にもどしておく
+  for ( auto& rinfo: mClearArray ) {
+    auto node = rinfo.mNode;
+    node->set_val(rinfo.mVal);
+  }
+  mClearArray.clear();
+
+  return dbits_array;
+}
+
+// @brief イベントドリブンシミュレーションを行う．
+DiffBitsArray
+SimEngine::simulate3()
+{
+  // 結果を格納するオブジェクト
+  DiffBitsArray dbits_array;
+  for ( ; ; ) {
+    auto node = get();
+    // イベントが残っていなければ終わる．
+    if ( node == nullptr ) break;
+
+    auto old_val = node->val();
+    auto new_val = node->calc_val();
+    if ( new_val == old_val ) {
+      continue;
+    }
+    if ( node->is_output() ) {
+      auto dbits = diff(new_val, old_val);
+      dbits_array.add_output(node->output_id(), dbits);
+    }
+    else {
+      node->set_val(new_val);
+      add_to_clear_list(node, old_val);
+      put_fanouts(node);
     }
   }
 
@@ -1082,16 +1137,6 @@ SimEngine::set_network(
     throw std::logic_error{"no != mOutputNum + mDffNum"};
   }
 
-#if 0
-  // 反転イベントを挿入するノードに印を付ける．
-  std::vector<bool> flip_mark(nn, false);
-  for ( auto ffr_id: ffr_list ) {
-    auto ffr = network.ffr(ffr_id);
-    auto tpgroot = ffr.root();
-    flip_mark[tpgroot.id()] = true;
-  }
-#endif
-
   // SimNode を作る．
   for ( SizeType id = 0; id < nn; ++ id ) {
     auto tpgnode = network.node(id);
@@ -1130,13 +1175,6 @@ SimEngine::set_network(
       auto type = tpgnode.gate_type();
       node = make_gate(type, inputs);
     }
-
-#if 0
-    if ( flip_mark[id] ) {
-      // 反転イベント用のノードを挿入する．
-      node = make_flip(node);
-    }
-#endif
 
     // 対応表に登録しておく．
     mSimNodeMap[id] = node;
@@ -1210,16 +1248,9 @@ SimEngine::set_network(
   }
   mArray.resize(max_level + 1, nullptr);
   mClearArray.reserve(node_num);
-  mFlipMaskArray.resize(node_num, PV_ALL0);
 
   mCurLevel = 0;
   mNum = 0;
-
-  for ( auto& node: mNodeArray ) {
-    std::cout << "Node#" << node->id()
-	      << ": ";
-    node->dump(std::cout);
-  }
 }
 
 // @brief 故障を設定する．
@@ -1276,19 +1307,6 @@ SimEngine::make_gate(
   mNodeArray.push_back(std::unique_ptr<SimNode>{node});
   mLogicArray.push_back(node);
   return node;
-}
-
-// @brief 反転イベントノードを作る．
-SimNode*
-SimEngine::make_flip(
-  SimNode* node
-)
-{
-  auto id = mNodeArray.size();
-  auto flip = new SnFlip(id, node);
-  mNodeArray.push_back(std::unique_ptr<SimNode>{flip});
-  mFlipNodeMap[id] = flip;
-  return flip;
 }
 
 END_NAMESPACE_DRUID_FSIM

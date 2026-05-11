@@ -20,8 +20,6 @@
 
 BEGIN_NAMESPACE_DRUID_FSIM
 
-class SnFlip;
-
 //////////////////////////////////////////////////////////////////////
 /// @class SimEngine SimEngine.h "SimEngine.h"
 /// @brief 故障シミュレーションの本体
@@ -235,18 +233,6 @@ public:
     const AssignList& assign_list ///< [in] 外部入力の値割り当てのリスト
   );
 
-  /// @brief SimNode の初期値フラグを消す．
-  void
-  clear_init()
-  {
-    for ( auto& p: mInitValDict ) {
-      auto id = p.first;
-      auto node = mSimNodeMap[id];
-      node->clear_init();
-    }
-    mInitValDict.clear();
-  }
-
 #if FSIM_BSIDE
   /// @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
   /// @param[in] tv テストベクタ
@@ -448,27 +434,6 @@ private:
   FsimResultsRep*
   _make_results();
 
-  /// @brief 初期値を追加する．
-  void
-  _add_init_val(
-    SizeType node_id, ///< [in] ノード番号
-    FSIM_VALTYPE val  ///< [in] 値
-  )
-  {
-    auto node = mSimNodeMap[node_id];
-    node->set_init();
-    mInitValDict.emplace(node_id, val);
-  }
-
-  /// @brief 初期値を返す．
-  FSIM_VALTYPE
-  _get_init(
-    SizeType node_id ///< [in] ノード番号
-  )
-  {
-    return mInitValDict.at(node_id);
-  }
-
   /// @brief 値の計算を行う．
   ///
   /// 入力ノードに値の設定は済んでいるものとする．
@@ -491,18 +456,31 @@ private:
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @return 伝搬状況を返す．
+  ///
+  /// sppfp 用．反転イベントあり．
   PackedVal
   simulate();
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @return 伝搬状況を返す．
+  ///
+  /// ppsfp 用．反転イベントなし
   PackedVal
   simulate1();
 
   /// @brief イベントドリブンシミュレーションを行う．
   /// @return 出力における変化ビットを返す．
+  ///
+  /// sppfp2 用．反転イベントあり．
   DiffBitsArray
   simulate2();
+
+  /// @brief イベントドリブンシミュレーションを行う．
+  /// @return 出力における変化ビットを返す．
+  ///
+  /// ppsfp2 用．反転イベントなし
+  DiffBitsArray
+  simulate3();
 
   /// @brief ファンアウトのノードをキューに積む．
   void
@@ -516,8 +494,7 @@ private:
       put(onode);
     }
     else {
-      for ( auto i: Range(0, no) ) {
-	auto onode = node->fanout(i);
+      for ( auto onode: node->fanout_list() ) {
 	put(onode);
       }
     }
@@ -571,16 +548,6 @@ private:
   )
   {
     mClearArray.push_back({node, old_val});
-  }
-
-  /// @brief 反転フラグをセットする．
-  void
-  set_flip_mask(
-    SimNode* node,      ///< [in] 対象のノード
-    PackedVal flip_mask ///< [in] 反転マスク
-  )
-  {
-    mFlipMaskArray[node->id()] = flip_mask;
   }
 
 
@@ -638,10 +605,6 @@ private:
   // SimNode のノード番号をキーにして対応する SimFFR を格納する配列
   std::vector<SimFFR*> mFFRMap;
 
-  // SimNode のノード番号をキーにして反転イベント用のノードを格納する配列
-  // 該当しないノードの場合には nullptr が入る．
-  std::vector<SnFlip*> mFlipNodeMap;
-
   // キューの先頭ノードの配列
   std::vector<SimNode*> mArray;
 
@@ -651,15 +614,8 @@ private:
   // キューに入っているノード数
   SizeType mNum{0};
 
-  // 初期値を格納した辞書
-  std::unordered_map<SizeType, FSIM_VALTYPE> mInitValDict;
-
   // clear 用の情報の配列
   std::vector<RestoreInfo> mClearArray;
-
-  // 反転マスクの配列
-  // サイズは mClearArraySize と同じ
-  std::vector<PackedVal> mFlipMaskArray;
 
   // 全ての SimFault のリスト
   std::vector<std::unique_ptr<SimFault>> mFaultList;

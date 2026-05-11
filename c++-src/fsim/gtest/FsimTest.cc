@@ -16,7 +16,7 @@
 #include "types/TpgFaultList.h"
 #include "types/TestVector.h"
 
-#define SPSFP_TEST 0
+#define SPSFP_TEST 1
 #define SPPFP_TEST 1
 #define PPSFP_TEST 1
 #define SINGLE_TEST 1

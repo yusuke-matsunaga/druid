@@ -156,11 +156,11 @@ SimNode::set_fanout_list(
       mFanoutTop = fo_list[0];
     }
     else {
-      SimNode** fanouts = new SimNode*[nfo];
+      auto fo_info = new FanoutInfo(nfo);
       for ( auto i: Range(0, nfo) ) {
-	fanouts[i] = fo_list[i];
+	fo_info->mFoList[i] = fo_list[i];
       }
-      mFanoutTop = reinterpret_cast<SimNode*>(fanouts);
+      mFanoutTop = reinterpret_cast<SimNode*>(fo_info);
     }
   }
 

@@ -31,6 +31,19 @@ class SimNode
   friend class FSIM_CLASSNAME;
   friend class SimEngine;
 
+  /// @brief ファンアウト情報を表すデータ構造
+  struct FanoutInfo {
+    FanoutInfo(
+      SizeType nfo
+    ) : mFoList(nfo)
+    {
+    }
+
+    std::vector<SimNode*> mFoList; ///< ファンアウトのリスト
+    PackedVal mFlipMask{PV_ALL0};  ///< 反転マスク
+  };
+
+
 protected:
 
   /// @brief コンストラクタ
@@ -112,6 +125,8 @@ public:
   }
 
   /// @brief ファンアウトの先頭のノードを得る．
+  ///
+  /// ただし fanout_num() == 1 の時しか使えない．
   SimNode*
   fanout_top() const
   {
@@ -119,22 +134,42 @@ public:
   }
 
   /// @brief 最初のファンアウト先の入力位置を得る．
+  ///
+  /// ただし fanout_num() == 1 の時しか使えない．
   SizeType
   fanout_ipos() const
   {
     return static_cast<SizeType>(mFanoutNum & 0xFFU);
   }
 
-  /// @brief pos 番目のファンアウトを得る．
+  /// @brief ファンアウトリストを得る．
   ///
-  /// ただし fanout_num() == 1 の時は使えない．
-  SimNode*
-  fanout(
-    SizeType pos ///< [in] 位置番号 ( 0 <= pos < fanout_num() )
-  ) const
+  /// ただし fanout_num() > 1 の時しか使えない．
+  const std::vector<SimNode*>&
+  fanout_list() const
   {
-    SimNode** fanouts = reinterpret_cast<SimNode**>(mFanoutTop);
-    return fanouts[pos];
+    auto fo_info = reinterpret_cast<FanoutInfo*>(mFanoutTop);
+    return fo_info->mFoList;
+  }
+
+  /// @brief 反転マスクを得る．
+  ///
+  /// ただし fanout_num() > 1 の時しか使えない．
+  PackedVal
+  flip_mask() const
+  {
+    auto fo_info = reinterpret_cast<FanoutInfo*>(mFanoutTop);
+    return fo_info->mFlipMask;
+  }
+
+  /// @brief 反転マスクをセットする．
+  void
+  set_flip_mask(
+    PackedVal mask
+  )
+  {
+    auto fo_info = reinterpret_cast<FanoutInfo*>(mFanoutTop);
+    fo_info->mFlipMask = mask;
   }
 
   /// @brief FFR の根のノードの時 true を返す．
@@ -239,27 +274,6 @@ public:
   clear_queue()
   {
     mFlags.reset(IN_Q);
-  }
-
-  /// @brief 初期化が必要な時 true を返す．
-  bool
-  need_init() const
-  {
-    return mFlags.test(INIT);
-  }
-
-  /// @brief init フラグをセットする．
-  void
-  set_init()
-  {
-    mFlags.set(INIT);
-  }
-
-  /// @brief init フラグをクリアする．
-  void
-  clear_init()
-  {
-    mFlags.reset(INIT);
   }
 
   /// @brief 出力値を得る．
@@ -378,8 +392,7 @@ private:
   static const int OUTPUT = 0;   ///< 出力ノード
   static const int FFR_ROOT = 1; ///< FFRの根のノード
   static const int IN_Q = 2;     ///< キューに積まれている．
-  static const int INIT = 3;     ///< 初期値を持つ．
-  static const int NFLAGS = 4;   ///< 総ビット数
+  static const int NFLAGS = 3;   ///< 総ビット数
 
   // 種々のフラグ
   std::bitset<NFLAGS> mFlags;
