@@ -60,12 +60,6 @@ public:
   PackedVal
   excitation_condition() const;
 
-#if FSIM_BSIDE
-  /// @brief 遷移故障用の1時刻前の条件を求める．
-  PackedVal
-  previous_condition() const;
-#endif
-
   /// @brief 故障伝搬マスクを得る．
   PackedVal
   obs_mask() const

@@ -77,6 +77,22 @@ public:
     return mFaultList;
   }
 
+  /// @brief 故障リストに関係するノードのリストを設定する．
+  void
+  set_node_list(
+    const std::vector<SimNode*>& node_list
+  )
+  {
+    mNodeList = node_list;
+  }
+
+  /// @brief 故障リストに関係するノードのリストを得る．
+  const std::vector<SimNode*>&
+  node_list() const
+  {
+    return mNodeList;
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -91,6 +107,10 @@ private:
 
   // この FFR に属する故障のリスト
   std::vector<SimFault*> mFaultList;
+
+  // mFaultList に関係するノードのリスト
+  // mRoot から DFS でたどった時の preorder になっている．
+  std::vector<SimNode*> mNodeList;
 
 };
 

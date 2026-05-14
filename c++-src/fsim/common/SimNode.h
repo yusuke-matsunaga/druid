@@ -348,6 +348,22 @@ public:
   }
 #endif
 
+  /// @brief 出力の可観測性をセットする．
+  void
+  set_obs(
+    PackedVal obs
+  )
+  {
+    mObs = obs;
+  }
+
+  /// @brief 出力の可観測性を得る．
+  PackedVal
+  obs() const
+  {
+    return mObs;
+  }
+
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -419,6 +435,9 @@ private:
   // 1時刻前の値
   FSIM_VALTYPE mPrevVal;
 #endif
+
+  // 出力の可観測性
+  PackedVal mObs;
 
 };
 

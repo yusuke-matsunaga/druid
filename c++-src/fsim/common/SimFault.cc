@@ -63,15 +63,9 @@ SimFault::excitation_condition() const
 #endif
     cond &= val;
   }
-  return cond;
-}
 
 #if FSIM_BSIDE
-// @brief 遷移故障用の1時刻前の条件を求める．
-PackedVal
-SimFault::previous_condition() const
-{
-  auto cond = PV_ALL1;
+  // 遷移故障用の1時刻前の条件を追加する．
   for ( auto& tmp: mPrevCondList ) {
     auto node = tmp.node();
     auto val0 = tmp.val();
@@ -88,8 +82,9 @@ SimFault::previous_condition() const
 #endif
     cond &= val;
   }
+#endif
+
   return cond;
 }
-#endif
 
 END_NAMESPACE_DRUID_FSIM

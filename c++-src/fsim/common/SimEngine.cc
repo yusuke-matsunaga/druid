@@ -341,8 +341,8 @@ SimEngine::_sppfp_simulation(
   auto obs = simulate();
   bitmask = 1ULL;
   for ( SizeType i = 0; i < buff_size; ++ i, bitmask <<= 1 ) {
-    auto& ffr = *ffr_buff[i];
     if ( (obs & bitmask) != PV_ALL0 ) {
+      auto& ffr = *ffr_buff[i];
       _sppfp_sub(ffr, bitmask, det_list);
     }
   }
@@ -400,8 +400,8 @@ SimEngine::ppsfp(
       if ( obs != PV_ALL0 ) {
 	// 検出された．
 	auto fid = ff->id();
-	for ( SizeType i = 0; i < tv_num; ++ i ) {
-	  PackedVal bitmask = 1UL << i;
+	PackedVal bitmask = 1UL;
+	for ( SizeType i = 0; i < tv_num; ++ i, bitmask <<= 1 ) {
 	  if ( (obs & bitmask) != PV_ALL0 ) {
 	    det_list_array[i].push_back(fid);
 	  }
@@ -1283,6 +1283,76 @@ SimEngine::set_fault_list(
     sim_f->set_skip(false);
     ffr->add_fault(sim_f);
   }
+
+  // FFR 内の故障の設定を行う．
+  for ( auto& ffr: mFFRArray ) {
+    set_ffr_faults(ffr);
+  }
+}
+
+BEGIN_NONAMESPACE
+
+void
+dfs(
+  SimNode* node,
+  std::unordered_set<SizeType>& mark,
+  const std::unordered_set<SizeType>& fmark,
+  std::vector<SimNode*>& node_list
+)
+{
+  auto node_id = node->id();
+  if ( fmark.count(node_id) == 0 ) {
+    // 対象外
+    return;
+  }
+  if ( mark.count(node_id) > 0 ) {
+    // 処理済み
+    return;
+  }
+  mark.insert(node_id);
+  node_list.push_back(node);
+  auto nfi = node->fanin_num();
+  for ( SizeType i = 0; i < nfi; ++ i ) {
+    auto inode = node->fanin(i);
+    dfs(inode, mark, fmark, node_list);
+  }
+}
+
+END_NONAMESPACE
+
+// @brief FFR に故障リストを設定する．
+void
+SimEngine::set_ffr_faults(
+  SimFFR& ffr
+)
+{
+  // fault_list に関係するノードに印を付ける．
+  std::unordered_set<SizeType> fmark;
+  for ( auto fault: ffr.fault_list() ) {
+    auto node = fault->origin_node();
+    for ( ; ; ) {
+      if ( fmark.count(node->id()) > 0 ) {
+	break;
+      }
+      fmark.insert(node->id());
+      if ( node->is_ffr_root() ) {
+	break;
+      }
+      node = node->fanout_top();
+    }
+  }
+  // ffr の根からDFSを行い preorder で fault_list に関係する
+  // ノードのリストを作る．
+  // ただし root は含めない．
+  std::unordered_set<SizeType> mark;
+  std::vector<SimNode*> node_list;
+  auto root = ffr.root();
+  auto nfi = root->fanin_num();
+  for ( SizeType i = 0; i < nfi; ++ i ) {
+    auto node = root->fanin(i);
+    dfs(node, mark, fmark, node_list);
+  }
+  ffr.set_node_list(node_list);
 }
 
 // @brief 外部入力ノードを作る．

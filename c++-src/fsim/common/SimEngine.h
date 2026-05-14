@@ -297,6 +297,12 @@ private:
     const TpgFaultList& fault_list ///< [in] 対象の故障リスト
   );
 
+  /// @brief FFR に故障リストを設定する．
+  void
+  set_ffr_faults(
+    SimFFR& ffr ///< [in] 対象の FFR
+  );
+
   /// @brief 外部入力ノードを作る．
   SimNode*
   make_input();
@@ -365,13 +371,7 @@ private:
       lobs &= onode->_calc_gobs(pos);
       node = onode;
     }
-#if FSIM_BSIDE
-    // 1時刻前の条件を求める．
-    auto pval = fault->previous_condition();
-    return cval & pval & lobs;
-#else
     return cval & lobs;
-#endif
   }
 
   /// @brief sppfp 用の下請け関数
@@ -416,13 +416,24 @@ private:
     const SimFFR& ffr ///< [in] 対象の FFR
   )
   {
+    // 関係するノードの出力の可観測性を計算する．
+    auto root = ffr.root();
+    root->set_obs(PV_ALL1);
+    for ( auto node: ffr.node_list() ) {
+      auto onode = node->fanout_top();
+      auto obs = onode->obs() & onode->_calc_gobs(node->fanout_ipos());
+      node->set_obs(obs);
+    }
+
+    // 各故障の可観測性を計算する．
     auto& fault_list = ffr.fault_list();
     auto ffr_req = PV_ALL0;
     for ( auto ff: fault_list ) {
       if ( ff->skip() ) {
 	continue;
       }
-      auto obs = _local_prop(ff);
+      auto cval = ff->excitation_condition();
+      auto obs = cval & ff->origin_node()->obs();
       ff->set_obs_mask(obs);
       ffr_req |= obs;
     }
