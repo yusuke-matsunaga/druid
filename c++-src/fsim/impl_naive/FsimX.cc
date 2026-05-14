@@ -125,6 +125,29 @@ FSIM_CLASSNAME::sppfp(
   return mEngine.sppfp();
 }
 
+// @brief 複数のパタンで故障シミュレーションを行う．
+std::vector<std::vector<SizeType>>
+FSIM_CLASSNAME::sppfp(
+  const std::vector<TestVector>& tv_list
+)
+{
+  auto ntv = tv_list.size();
+
+  // 結果を格納するオブジェクト
+  std::vector<std::vector<SizeType>> det_list_array;
+  det_list_array.reserve(ntv);
+
+  for ( auto& tv: tv_list ) {
+    // 正常値の計算を行う．
+    mEngine.calc_val(tv);
+    // 故障シュミレーションを行う．
+    auto det_list = mEngine.sppfp();
+    // 結果を追加する．
+    det_list_array.push_back(det_list);
+  }
+  return det_list_array;
+}
+
 // @brief ひとつのパタンで故障シミュレーションを行う．
 std::vector<SizeType>
 FSIM_CLASSNAME::sppfp(
@@ -144,12 +167,33 @@ FSIM_CLASSNAME::ppsfp(
   const std::vector<TestVector>& tv_list
 )
 {
-  // 正常値の計算を行う．
-  mEngine.calc_val(tv_list);
-
-  // パタン数
   auto ntv = tv_list.size();
-  return mEngine.ppsfp(ntv);
+
+  // 結果を格納するオブジェクト
+  std::vector<std::vector<SizeType>> det_list_array;
+  det_list_array.reserve(ntv);
+
+  // PV_BITLEN ごとに分割して処理を行う．
+  std::vector<TestVector> tv_buff;
+  tv_buff.reserve(PV_BITLEN);
+  SizeType base = 0;
+  for ( auto& tv: tv_list ) {
+    tv_buff.push_back(tv);
+    auto buff_size = tv_buff.size();
+    if ( buff_size == PV_BITLEN || buff_size + base == ntv )  {
+      // 正常値の計算を行う．
+      mEngine.calc_val(tv_buff);
+      // パタン並列シュミレーションを行う．
+      auto det_list_array1 = mEngine.ppsfp(buff_size);
+      // 結果を追加する．
+      det_list_array.insert(det_list_array.end(),
+			    det_list_array1.begin(),
+			    det_list_array1.end());
+      base += tv_buff.size();
+      tv_buff.clear();
+    }
+  }
+  return det_list_array;
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -194,6 +238,29 @@ FSIM_CLASSNAME::sppfp2(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
+std::vector<FsimResultsRep*>
+FSIM_CLASSNAME::sppfp2(
+  const std::vector<TestVector>& tv_list
+)
+{
+  auto ntv = tv_list.size();
+
+  // 結果を格納するオブジェクト
+  std::vector<FsimResultsRep*> res_array;
+  res_array.reserve(ntv);
+
+  for ( auto& tv: tv_list ) {
+    // 正常値の計算を行う．
+    mEngine.calc_val(tv);
+    // 故障シュミレーションを行う．
+    auto res = mEngine.sppfp2();
+    // 結果を追加する．
+    res_array.push_back(res);
+  }
+  return res_array;
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
 FsimResultsRep*
 FSIM_CLASSNAME::sppfp2(
   const AssignList& assign_list
@@ -212,13 +279,33 @@ FSIM_CLASSNAME::ppsfp2(
   const std::vector<TestVector>& tv_list
 )
 {
-  // 正常値の計算を行う．
-  mEngine.calc_val(tv_list);
-
-  // パタン数
   auto ntv = tv_list.size();
 
-  return mEngine.ppsfp2(ntv);
+  // 結果を格納するオブジェクト
+  std::vector<FsimResultsRep*> res_array;
+  res_array.reserve(ntv);
+
+  // PV_BITLEN ごとに分割して処理を行う．
+  std::vector<TestVector> tv_buff;
+  tv_buff.reserve(PV_BITLEN);
+  SizeType base = 0;
+  for ( auto& tv: tv_list ) {
+    tv_buff.push_back(tv);
+    auto buff_size = tv_buff.size();
+    if ( buff_size == PV_BITLEN || buff_size + base == ntv )  {
+      // 正常値の計算を行う．
+      mEngine.calc_val(tv_buff);
+      // パタン並列シュミレーションを行う．
+      auto res_array1 = mEngine.ppsfp2(buff_size);
+      // 結果を追加する．
+      res_array.insert(res_array.end(),
+		       res_array1.begin(),
+		       res_array1.end());
+      base += tv_buff.size();
+      tv_buff.clear();
+    }
+  }
+  return res_array;
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．

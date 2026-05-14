@@ -186,10 +186,21 @@ FsimTest::sppfp_test(
 
   RefSim refsim{tpg_network};
 
-  auto has_prev = tpg_network.fault_type() == FaultType::TransitionDelay;
-  TestVector tv(input_num, dff_num, has_prev);
+  std::vector<TestVector> tv_list;
+  tv_list.reserve(nv);
+  {
+    auto has_prev = tpg_network.fault_type() == FaultType::TransitionDelay;
+    TestVector tv(input_num, dff_num, has_prev);
+    for ( SizeType i = 0; i < nv; ++ i ) {
+      tv.set_from_random(randgen);
+      tv_list.push_back(tv);
+    }
+  }
+
+  auto det_list_array = fsim.sppfp(tv_list);
+
   for ( SizeType i = 0; i < nv; ++ i ) {
-    tv.set_from_random(randgen);
+    auto& tv = tv_list[i];
     std::unordered_set<SizeType> det_dict;
     SizeType ndet = 0;
     for ( auto fault: fault_list ) {
@@ -199,7 +210,7 @@ FsimTest::sppfp_test(
 	++ ndet;
       }
     }
-    auto det_list = fsim.sppfp(tv);
+    auto& det_list = det_list_array[i];
     EXPECT_EQ( ndet, det_list.size() );
     SizeType prev_fid = 0;
     bool first = true;
@@ -244,10 +255,21 @@ FsimTest::sppfp2_test(
 
   RefSim refsim{tpg_network};
 
-  auto has_prev = tpg_network.fault_type() == FaultType::TransitionDelay;
-  TestVector tv(input_num, dff_num, has_prev);
+  std::vector<TestVector> tv_list;
+  {
+    tv_list.reserve(nv);
+    auto has_prev = tpg_network.fault_type() == FaultType::TransitionDelay;
+    TestVector tv(input_num, dff_num, has_prev);
+    for ( SizeType tv_id = 0; tv_id < nv; ++ tv_id ) {
+      tv.set_from_random(randgen);
+      tv_list.push_back(tv);
+    }
+  }
+
+  auto res = fsim.sppfp2(tv_list);
+
   for ( SizeType tv_id = 0; tv_id < nv; ++ tv_id ) {
-    tv.set_from_random(randgen);
+    auto& tv = tv_list[tv_id];
     std::unordered_map<SizeType, DiffBits> dbits_dict;
     SizeType ndet = 0;
     for ( auto fault: fault_list ) {
@@ -257,8 +279,7 @@ FsimTest::sppfp2_test(
 	++ ndet;
       }
     }
-    auto res = fsim.sppfp2(tv);
-    if ( ndet != res.det_num(0) ) {
+    if ( ndet != res.det_num(tv_id) ) {
       std::cout << "ref fault_list:" << std::endl;
       for ( auto fault: fault_list ) {
 	if ( dbits_dict.count(fault.id()) > 0 ) {
@@ -270,26 +291,26 @@ FsimTest::sppfp2_test(
       }
       std::cout << std::endl;
       std::cout << "fault_list:" << std::endl;
-      auto n = res.det_num(0);
+      auto n = res.det_num(tv_id);
       for ( SizeType i = 0; i < n; ++ i ) {
-	auto fault = res.fault(0, i);
-	auto dbits = res.diffbits(0, i);
+	auto fault = res.fault(tv_id, i);
+	auto dbits = res.diffbits(tv_id, i);
 	std::cout << " " << fault.str()
 		  << ": " << dbits
 		  << std::endl;
       }
       std::cout << std::endl;
     }
-    ASSERT_EQ( ndet, res.det_num(0) );
+    ASSERT_EQ( ndet, res.det_num(tv_id) );
     SizeType prev_fid = 0;
     for ( SizeType i = 0; i < ndet; ++ i ) {
-      auto fault = res.fault(0, i);
+      auto fault = res.fault(tv_id, i);
       auto fid = fault.id();
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
-      auto dbits = res.diffbits(0, i);
+      auto dbits = res.diffbits(tv_id, i);
       EXPECT_EQ( dbits_dict.at(fid), dbits );
       if ( i > 0 ) {
-	// res.fault(0, i) がソートされているかチェック
+	// res.fault(tv_id, i) がソートされているかチェック
 	EXPECT_TRUE( prev_fid < fid );
       }
       prev_fid = fid;

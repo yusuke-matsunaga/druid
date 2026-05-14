@@ -73,35 +73,30 @@ std::pair<int, int>
 sppfp_test(
   const TpgNetwork& network,
   Fsim& fsim,
-  const std::vector<TestVector>& tv_list,
-  SizeType max_fid,
-  bool drop
+  const std::vector<TestVector>& tv_list
 )
 {
   int det_num = 0;
   int nepat = 0;
-  int i = 0;
 
-  std::vector<bool> det_array(max_fid, false);
-  for ( auto tv: tv_list ) {
+  auto ntv = tv_list.size();
+  std::vector<bool> det_array(network.max_fault_id(), false);
+  auto det_list_array = fsim.sppfp(tv_list);
+  for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
+    auto& det_list = det_list_array[tv_id];
     bool detected = false;
-    auto det_list = fsim.sppfp(tv);
     for ( auto fault: det_list ) {
       auto fid = fault.id();
       if ( !det_array[fid] ) {
 	det_array[fid] = true;
 	++ det_num;
-	if ( drop ) {
-	  fsim.set_skip(fault);
-	}
-	print_fault(fault, i);
+	print_fault(fault, tv_id);
 	detected = true;
       }
     }
     if ( detected ) {
       ++ nepat;
     }
-    ++ i;
   }
 
   return std::make_pair(det_num, nepat);
@@ -112,37 +107,32 @@ std::pair<int, int>
 sppfp2_test(
   const TpgNetwork& network,
   Fsim& fsim,
-  const std::vector<TestVector>& tv_list,
-  SizeType max_fid,
-  bool drop
+  const std::vector<TestVector>& tv_list
 )
 {
+  auto ntv = tv_list.size();
+
   int det_num = 0;
   int nepat = 0;
-  int i = 0;
 
-  std::vector<bool> det_array(max_fid, false);
-  for ( auto tv: tv_list ) {
+  auto res = fsim.sppfp2(tv_list);
+  std::vector<bool> det_array(network.max_fault_id(), false);
+  for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
     bool detected = false;
-    auto res = fsim.sppfp2(tv);
-    auto n = res.det_num(0);
+    auto n = res.det_num(tv_id);
     for ( SizeType i = 0; i < n; ++ i ) {
-      auto fault = res.fault(0, i);
+      auto fault = res.fault(tv_id, i);
       auto fid = fault.id();
       if ( !det_array[fid] ) {
 	det_array[fid] = true;
 	++ det_num;
-	if ( drop ) {
-	  fsim.set_skip(fault);
-	}
-	print_fault(fault, i);
+	print_fault(fault, tv_id);
 	detected = true;
       }
     }
     if ( detected ) {
       ++ nepat;
     }
-    ++ i;
   }
 
   return std::make_pair(det_num, nepat);
@@ -153,44 +143,29 @@ std::pair<SizeType, SizeType>
 ppsfp_test(
   const TpgNetwork& network,
   Fsim& fsim,
-  const std::vector<TestVector>& tv_list,
-  SizeType max_fid,
-  bool drop
+  const std::vector<TestVector>& tv_list
 )
 {
+  auto ntv = tv_list.size();
+
   SizeType nepat = 0;
   SizeType det_num = 0;
 
   std::unordered_set<SizeType> pat_dict;
-  std::vector<bool> det_array(max_fid, false);
-  std::vector<TestVector> tv_buff;
-  tv_buff.reserve(PV_BITLEN);
-  SizeType NV = tv_list.size();
-  SizeType base = 0;
-  for ( auto& tv: tv_list ) {
-    tv_buff.push_back(tv);
-    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
-      auto det_list_array = fsim.ppsfp(tv_buff);
-      for ( SizeType tv_id = 0; tv_id < tv_buff.size(); ++ tv_id ) {
-	for ( auto fault: det_list_array[tv_id] ) {
-	  auto fid = fault.id();
-	  if ( !det_array[fid] ) {
-	    det_array[fid] = true;
-	    ++ det_num;
-	    if ( drop ) {
-	      fsim.set_skip(fault);
-	    }
-	    auto index = base + tv_id;
-	    if ( pat_dict.count(index) == 0 ) {
-	      pat_dict.emplace(index);
-	      ++ nepat;
-	    }
-	    print_fault(fault, index);
-	  }
+  std::vector<bool> det_array(network.max_fault_id(), false);
+  auto det_list_array = fsim.ppsfp(tv_list);
+  for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
+    for ( auto fault: det_list_array[tv_id] ) {
+      auto fid = fault.id();
+      if ( !det_array[fid] ) {
+	det_array[fid] = true;
+	++ det_num;
+	if ( pat_dict.count(tv_id) == 0 ) {
+	  pat_dict.emplace(tv_id);
+	  ++ nepat;
 	}
+	print_fault(fault, tv_id);
       }
-      base += tv_buff.size();
-      tv_buff.clear();
     }
   }
   return std::make_pair(det_num, nepat);
@@ -201,46 +176,32 @@ std::pair<SizeType, SizeType>
 ppsfp2_test(
   const TpgNetwork& network,
   Fsim& fsim,
-  const std::vector<TestVector>& tv_list,
-  SizeType max_fid,
-  bool drop
+  const std::vector<TestVector>& tv_list
 )
 {
+  auto ntv = tv_list.size();
+
   SizeType nepat = 0;
   SizeType det_num = 0;
 
   std::unordered_set<SizeType> pat_dict;
-  std::vector<bool> det_array(max_fid, false);
-  std::vector<TestVector> tv_buff;
-  tv_buff.reserve(PV_BITLEN);
-  SizeType NV = tv_list.size();
-  SizeType base = 0;
-  for ( auto& tv: tv_list ) {
-    tv_buff.push_back(tv);
-    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == NV )  {
-      auto res = fsim.ppsfp2(tv_buff);
-      for ( SizeType tv_id = 0; tv_id < tv_buff.size(); ++ tv_id ) {
-	auto n = res.det_num(tv_id);
-	for ( SizeType i = 0; i < n; ++ i ) {
-	  auto fault = res.fault(tv_id, i);
-	  auto fid = fault.id();
-	  if ( !det_array[fid] ) {
-	    det_array[fid] = true;
-	    ++ det_num;
-	    if ( drop ) {
-	      fsim.set_skip(fault);
-	    }
-	    auto index = base + tv_id;
-	    if ( pat_dict.count(index) == 0 ) {
-	      pat_dict.emplace(index);
-	      ++ nepat;
-	    }
-	    print_fault(fault, index);
-	  }
+  std::vector<bool> det_array(network.max_fault_id(), false);
+
+  auto res = fsim.ppsfp2(tv_list);
+  for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
+    auto n = res.det_num(tv_id);
+    for ( SizeType i = 0; i < n; ++ i ) {
+      auto fault = res.fault(tv_id, i);
+      auto fid = fault.id();
+      if ( !det_array[fid] ) {
+	det_array[fid] = true;
+	++ det_num;
+	if ( pat_dict.count(tv_id) == 0 ) {
+	  pat_dict.emplace(tv_id);
+	  ++ nepat;
 	}
+	print_fault(fault, tv_id);
       }
-      base += tv_buff.size();
-      tv_buff.clear();
     }
   }
   return std::make_pair(det_num, nepat);
@@ -510,16 +471,16 @@ fsim2test(
 
   std::pair<int, int> dpnum;
   if ( ppsfp ) {
-    dpnum = ppsfp_test(network, fsim, tv_list, max_fid, drop);
+    dpnum = ppsfp_test(network, fsim, tv_list);
   }
   else if ( ppsfp2 ) {
-    dpnum = ppsfp2_test(network, fsim, tv_list, max_fid, drop);
+    dpnum = ppsfp2_test(network, fsim, tv_list);
   }
   else if ( sppfp ) {
-    dpnum = sppfp_test(network, fsim, tv_list, max_fid, drop);
+    dpnum = sppfp_test(network, fsim, tv_list);
   }
   else if ( sppfp2 ) {
-    dpnum = sppfp2_test(network, fsim, tv_list, max_fid, drop);
+    dpnum = sppfp2_test(network, fsim, tv_list);
   }
   else {
     // デフォルトフォールバックは SPSFP

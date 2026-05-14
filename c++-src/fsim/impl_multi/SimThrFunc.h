@@ -29,11 +29,9 @@ public:
 
   /// @brief コンストラクタ
   SimThrFunc(
-    SizeType id,                          ///< [in] ID番号
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgFaultList& fault_list,       ///< [in] 対象の故障リスト
-    const std::vector<SizeType>& ffr_list ///< [in] 担当する FFR の番号のリスト
-    = {}
+    SizeType id,                   ///< [in] ID番号
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    const TpgFaultList& fault_list ///< [in] 対象の故障リスト
   );
 
   /// @brief デストラクタ
@@ -60,70 +58,64 @@ public:
   }
 
   /// @brief SPPFP 法のシミュレーションを行う．
-  ///
-  /// 結果は mDetListArray[0] に格納される．
+  std::vector<SizeType>
+  sppfp(
+    const TestVector& tv
+  );
+
+  /// @brief SPPFP 法のシミュレーションを行う．
   void
-  sppfp();
+  sppfp(
+    const std::vector<TestVector>& tv_list,            ///< [in] テストベクタのリスト
+    SizeType begin,                                    ///< [in] 開始位置
+    SizeType end,                                      ///< [in] 終了位置
+    std::vector<std::vector<SizeType>>& det_list_array ///< [in] 結果を格納する配列
+  );
+
+  /// @brief SPPFP 法のシミュレーションを行う．
+  std::vector<SizeType>
+  sppfp(
+    const AssignList& assign_list
+  );
 
   /// @brief PPSFP 法のシミュレーションを行う．
-  ///
-  /// 結果は mDetListArray に格納される．
   void
   ppsfp(
-    SizeType tv_num ///< [in] テストベクタ数
+    const std::vector<TestVector>& tv_list,            ///< [in] テストベクタのリスト
+    SizeType begin,                                    ///< [in] 開始位置
+    SizeType end,                                      ///< [in] 終了位置
+    std::vector<std::vector<SizeType>>& det_list_array ///< [in] 結果を格納する配列
   );
 
-  /// @brief SPPFP2 法のシミュレーションを行う．
-  ///
-  /// 結果は mResArray[0] に格納される．
-  void
-  sppfp2();
+  /// @brief SPPFP 法のシミュレーションを行う．
+  FsimResultsRep*
+  sppfp2(
+    const TestVector& tv
+  );
 
   /// @brief PPSFP2 法のシミュレーションを行う．
-  ///
-  /// 結果は mResArray に格納される．
   void
-  ppsfp2(
-    SizeType tv_num ///< [in] テストベクタ数
+  sppfp2(
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    SizeType begin,                         ///< [in] 開始位置
+    SizeType end,                           ///< [in] 終了位置
+    std::vector<FsimResultsRep*>& res_array ///< [in] 結果を格納する配列
   );
 
-  /// @brief SPPFP の結果を得る．
-  const std::vector<SizeType>&
-  det_list() const
-  {
-    return mDetListArray[0];
-  }
-
-  /// @brief PPSFP の結果を得る．
-  const std::vector<SizeType>&
-  det_list(
-    SizeType tv_id ///< [in] テストベクタ番号
-  ) const
-  {
-    return mDetListArray[tv_id];
-  }
-
-  /// @brief SPPFP2 の結果を得る．
+  /// @brief SPPFP 法のシミュレーションを行う．
   FsimResultsRep*
-  diffbits_list() const
-  {
-    return mResArray[0];
-  }
+  sppfp2(
+    const AssignList& assign_list
+  );
 
-  /// @brief PPSFP2 の結果を得る．
-  FsimResultsRep*
-  diffbits_list(
-    SizeType tv_id ///< [in] テストベクタ番号
-  ) const
-  {
-    return mResArray[tv_id];
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  /// @brief PPSFP2 法のシミュレーションを行う．
+  void
+  ppsfp2(
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    SizeType begin,                         ///< [in] 開始位置
+    SizeType end,                           ///< [in] 終了位置
+    std::vector<FsimResultsRep*>& res_array ///< [in] 結果を格納する配列
+  );
 
 
 private:
@@ -136,12 +128,6 @@ private:
 
   // シミュレーションエンジン
   SimEngine mEngine;
-
-  // SPPFP/PPSFP の結果
-  std::vector<std::vector<SizeType>> mDetListArray;
-
-  // SPPFP2/PPSFP2 の結果
-  std::vector<FsimResultsRep*> mResArray;
 
 };
 

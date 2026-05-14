@@ -174,8 +174,7 @@ END_NONAMESPACE
 // @brief コンストラクタ
 SimEngine::SimEngine(
   const TpgNetwork& network,
-  const TpgFaultList& fault_list,
-  const std::vector<SizeType>& ffr_list
+  const TpgFaultList& fault_list
 ) : mInputNum{network.input_num()},
     mOutputNum{network.output_num()},
     mDffNum{network.dff_num()},
@@ -184,7 +183,7 @@ SimEngine::SimEngine(
     mSimNodeMap(network.node_num(), nullptr),
     mFaultMap(fault_list.max_fid() + 1, nullptr)
 {
-  set_network(network, ffr_list);
+  set_network(network);
   set_fault_list(fault_list);
 }
 
@@ -319,7 +318,7 @@ SimEngine::sppfp()
     // バッファに要素が残っていた．
     _sppfp_simulation(ffr_buff, buff_size, det_list);
   }
-
+  std::sort(det_list.begin(), det_list.end());
   return det_list;
 }
 
@@ -410,6 +409,10 @@ SimEngine::ppsfp(
     }
   }
 
+  for ( SizeType i = 0; i < tv_num; ++ i ) {
+    auto& det_list = det_list_array[i];
+    std::sort(det_list.begin(), det_list.end());
+  }
   return det_list_array;
 }
 
@@ -454,7 +457,7 @@ SimEngine::spsfp2(
 FsimResultsRep*
 SimEngine::sppfp2()
 {
-  mRes = new FsimResultsRep;
+  auto res = new FsimResultsRep;
 
   const SimFFR* ffr_buff[PV_BITLEN];
   auto buff_size = 0;
@@ -474,30 +477,31 @@ SimEngine::sppfp2()
       // 常にこの出力のみで観測可能
       DiffBits dbits;
       dbits.add_output(root->output_id());
-      _sppfp2_sub(ffr, dbits);
+      _sppfp2_sub(ffr, dbits, res);
     }
     else {
       // キューに積んでおく
       ffr_buff[buff_size] = &ffr;
       ++ buff_size;
       if ( buff_size == PV_BITLEN ) {
-	_sppfp2_simulation(ffr_buff, buff_size);
+	_sppfp2_simulation(ffr_buff, buff_size, res);
 	buff_size = 0;
       }
     }
   }
   if ( buff_size > 0 ) {
-    _sppfp2_simulation(ffr_buff, buff_size);
+    _sppfp2_simulation(ffr_buff, buff_size, res);
   }
-
-  return mRes;
+  res->sort();
+  return res;
 }
 
 // @brief sppfp 用のシミュレーションを行う．
 void
 SimEngine::_sppfp2_simulation(
   const SimFFR* ffr_buff[],
-  SizeType ffr_num
+  SizeType ffr_num,
+  FsimResultsRep* res
 )
 {
   PackedVal bitmask = 1ULL;
@@ -515,7 +519,7 @@ SimEngine::_sppfp2_simulation(
       auto& ffr = *ffr_buff[i];
       auto dbits = dbits_array.get_slice(i);
       dbits.sort();
-      _sppfp2_sub(ffr, dbits);
+      _sppfp2_sub(ffr, dbits, res);
     }
   }
 }
@@ -588,6 +592,10 @@ SimEngine::ppsfp2(
 	}
       }
     }
+  }
+  for ( SizeType i = 0; i < tv_num; ++ i ) {
+    auto res = res_list[i];
+    res->sort();
   }
   return res_list;
 }
@@ -1122,8 +1130,7 @@ SimEngine::_calc_wsa(
 // @brief ネットワークの構造を設定する．
 void
 SimEngine::set_network(
-  const TpgNetwork& network,
-  const std::vector<SizeType>& ffr_list
+  const TpgNetwork& network
 )
 {
   auto nn = network.node_num();
@@ -1203,39 +1210,19 @@ SimEngine::set_network(
 
   // FFR の設定
   mFFRMap.resize(mNodeArray.size());
-  if ( ffr_list.empty() ) {
-    // すべての FFR を対象にする．
-    auto ffr_num = network.ffr_num();
-    mFFRArray.resize(ffr_num);
-    for ( auto tpgffr: network.ffr_list() ) {
-      auto tpgroot = tpgffr.root();
-      auto node = mSimNodeMap[tpgroot.id()];
-      auto ffr = &mFFRArray[tpgffr.id()];
-      node->set_ffr_root();
-      ffr->set(tpgffr.id(), node);
-      for ( auto tpgnode: tpgffr.node_list() ) {
-	auto node = mSimNodeMap[tpgnode.id()];
-	mFFRMap[tpgnode.id()] = ffr;
-      }
-    }
-  }
-  else {
-    // ffr_list のみを対象にする．
-    auto ffr_num = ffr_list.size();
-    mFFRArray.resize(ffr_num);
-    SizeType next_id = 0;
-    for ( auto ffr_id: ffr_list ) {
-      auto tpgffr = network.ffr(ffr_id);
-      auto tpgroot = tpgffr.root();
-      auto node = mSimNodeMap[tpgroot.id()];
-      auto ffr = &mFFRArray[next_id];
-      node->set_ffr_root();
-      ffr->set(next_id, node);
-      for ( auto tpgnode: tpgffr.node_list() ) {
-	auto node = mSimNodeMap[tpgnode.id()];
-	mFFRMap[tpgnode.id()] = ffr;
-      }
-      ++ next_id;
+
+  // すべての FFR を対象にする．
+  auto ffr_num = network.ffr_num();
+  mFFRArray.resize(ffr_num);
+  for ( auto tpgffr: network.ffr_list() ) {
+    auto tpgroot = tpgffr.root();
+    auto node = mSimNodeMap[tpgroot.id()];
+    auto ffr = &mFFRArray[tpgffr.id()];
+    node->set_ffr_root();
+    ffr->set(tpgffr.id(), node);
+    for ( auto tpgnode: tpgffr.node_list() ) {
+      auto node = mSimNodeMap[tpgnode.id()];
+      mFFRMap[tpgnode.id()] = ffr;
     }
   }
 

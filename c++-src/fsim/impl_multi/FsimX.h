@@ -11,15 +11,7 @@
 
 #include "FsimImpl.h"
 #include "fsim_nsdef.h"
-#include "types/PackedVal.h"
-#include "types/PackedVal3.h"
-#include "SimNode.h"
-#include "SimFFR.h"
-#include "SimFault.h"
-#include "types/TpgNode.h"
 #include "types/TestVector.h"
-#include "SimNodeList.h"
-#include "SyncObj.h"
 
 
 BEGIN_NAMESPACE_DRUID_FSIM
@@ -109,6 +101,13 @@ public:
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  /// @return 検出された故障番号のリストを返す．
+  std::vector<std::vector<SizeType>>
+  sppfp(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  ) override;
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障番号のリストを返す．
   std::vector<SizeType>
@@ -146,6 +145,12 @@ public:
   FsimResultsRep*
   sppfp2(
     const TestVector& tv ///< [in] テストベクタ
+  ) override;
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  std::vector<FsimResultsRep*>
+  sppfp2(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
@@ -244,14 +249,8 @@ private:
   // スレッド数
   SizeType mThreadNum;
 
-  // 同期用のオブジェクト
-  SyncObj mSyncObj;
-
   // 子スレッド用の SimThrFunc のリスト
   std::vector<std::unique_ptr<SimThrFunc>> mFuncList;
-
-  // スレッドのリスト
-  std::vector<std::thread> mThrList;
 
 };
 

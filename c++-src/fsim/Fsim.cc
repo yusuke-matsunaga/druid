@@ -136,8 +136,26 @@ Fsim::sppfp(
 )
 {
   auto fid_list = mImpl->sppfp(tv);
-  std::sort(fid_list.begin(), fid_list.end());
   return TpgBase::fault_list(fid_list);
+}
+
+// @brief SPPFPで故障シミュレーションを行う．
+std::vector<TpgFaultList>
+Fsim::sppfp(
+  const std::vector<TestVector>& tv_list
+)
+{
+  auto fid_list_array = mImpl->sppfp(tv_list);
+
+  // 結果を格納するオブジェクトのリスト
+  std::vector<TpgFaultList> det_list_array;
+  det_list_array.reserve(fid_list_array.size());
+
+  // TpgFaultList に変換する．
+  for ( auto& fid_list: fid_list_array ) {
+    det_list_array.push_back(TpgBase::fault_list(fid_list));
+  }
+  return det_list_array;
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -147,7 +165,6 @@ Fsim::sppfp(
 )
 {
   auto fid_list = mImpl->sppfp(assign_list);
-  std::sort(fid_list.begin(), fid_list.end());
   return TpgBase::fault_list(fid_list);
 }
 
@@ -157,27 +174,15 @@ Fsim::ppsfp(
   const std::vector<TestVector>& tv_list
 )
 {
-  SizeType ntv = tv_list.size();
+  auto fid_list_array = mImpl->ppsfp(tv_list);
 
   // 結果を格納するオブジェクトのリスト
   std::vector<TpgFaultList> det_list_array;
-  det_list_array.reserve(ntv);
+  det_list_array.reserve(fid_list_array.size());
 
-  // PV_BITLEN ごとに分割して処理を行う．
-  std::vector<TestVector> tv_buff;
-  tv_buff.reserve(PV_BITLEN);
-  SizeType base = 0;
-  for ( auto& tv: tv_list ) {
-    tv_buff.push_back(tv);
-    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == ntv )  {
-      auto fid_list_array = mImpl->ppsfp(tv_buff);
-      for ( auto& fid_list: fid_list_array ) {
-	std::sort(fid_list.begin(), fid_list.end());
-	det_list_array.push_back(TpgBase::fault_list(fid_list));
-      }
-      base += tv_buff.size();
-      tv_buff.clear();
-    }
+  // TpgFaultList に変換する．
+  for ( auto& fid_list: fid_list_array ) {
+    det_list_array.push_back(TpgBase::fault_list(fid_list));
   }
   return det_list_array;
 }
@@ -209,8 +214,17 @@ Fsim::sppfp2(
 )
 {
   auto res = mImpl->sppfp2(tv);
-  res->sort();
   return FsimResults(_network(), res);
+}
+
+// @brief SPPFPで故障シミュレーションを行う．
+FsimResults
+Fsim::sppfp2(
+  const std::vector<TestVector>& tv_list
+)
+{
+  auto res_list = mImpl->sppfp2(tv_list);
+  return FsimResults(_network(), res_list);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -220,7 +234,6 @@ Fsim::sppfp2(
 )
 {
   auto res = mImpl->sppfp2(assign_list);
-  res->sort();
   return FsimResults(_network(), res);
 }
 
@@ -230,28 +243,7 @@ Fsim::ppsfp2(
   const std::vector<TestVector>& tv_list
 )
 {
-  SizeType ntv = tv_list.size();
-
-  // 結果を格納するオブジェクトのリスト
-  std::vector<FsimResultsRep*> res_list;
-  res_list.reserve(ntv);
-
-  // PV_BITLEN ごとに分割して処理を行う．
-  std::vector<TestVector> tv_buff;
-  tv_buff.reserve(PV_BITLEN);
-  SizeType base = 0;
-  for ( auto& tv: tv_list ) {
-    tv_buff.push_back(tv);
-    if ( tv_buff.size() == PV_BITLEN || tv_buff.size() + base == ntv )  {
-      auto res_list1 = mImpl->ppsfp2(tv_buff);
-      res_list.insert(res_list.end(), res_list1.begin(), res_list1.end());
-      base += tv_buff.size();
-      tv_buff.clear();
-    }
-  }
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    res_list[i]->sort();
-  }
+  auto res_list = mImpl->ppsfp2(tv_list);
   return FsimResults(_network(), res_list);
 }
 

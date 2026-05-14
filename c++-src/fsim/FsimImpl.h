@@ -100,6 +100,14 @@ public:
     const TestVector& tv ///< [in] テストベクタ
   ) = 0;
 
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  /// @return 検出された故障番号のリストを返す．
+  virtual
+  std::vector<std::vector<SizeType>>
+  sppfp(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  ) = 0;
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障番号のリストを返す．
   virtual
@@ -142,6 +150,14 @@ public:
   FsimResultsRep*
   sppfp2(
     const TestVector& tv ///< [in] テストベクタ
+  ) = 0;
+
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  /// @return 検出された故障番号のリストを返す．
+  virtual
+  std::vector<FsimResultsRep*>
+  sppfp2(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．

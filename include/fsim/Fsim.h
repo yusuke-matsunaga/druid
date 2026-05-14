@@ -139,14 +139,23 @@ public:
     const TpgFault& fault          ///< [in] 対象の故障番号
   );
 
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  /// @brief SPPFPで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
   TpgFaultList
   sppfp(
     const TestVector& tv ///< [in] テストベクタ
   );
 
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  /// @brief SPPFPで故障シミュレーションを行う．
+  /// @return 検出された故障のリストを返す．
+  ///
+  /// - 結果のベクタサイズ == tv_list.size() が成り立つ．
+  std::vector<TpgFaultList>
+  sppfp(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  );
+
+  /// @brief SPPFPで故障シミュレーションを行う．
   /// @return 検出された故障のリストを返す．
   ///
   /// - assign_list は外部入力の割り当てでなければならない．
@@ -155,7 +164,7 @@ public:
     const AssignList& assign_list ///< [in] 値の割当リスト
   );
 
-  /// @brief 複数のパタンで故障シミュレーションを行う．
+  /// @brief PPSFPで故障シミュレーションを行う．
   /// @return 検出された故障のリストのベクタを返す．
   ///
   /// - 結果のベクタサイズ == tv_list.size() が成り立つ．
@@ -188,7 +197,7 @@ public:
     const TpgFault& fault          ///< [in] 対象の故障番号
   );
 
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  /// @brief SPPFPで故障シミュレーションを行う．
   ///
   /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
   FsimResults
@@ -196,7 +205,15 @@ public:
     const TestVector& tv ///< [in] テストベクタ
   );
 
-  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  /// @brief SPPFPで故障シミュレーションを行う．
+  ///
+  /// - 結果の FsimResult::tv_num() == tv_list.size() が成り立つ．
+  FsimResults
+  sppfp2(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  );
+
+  /// @brief SPPFPで故障シミュレーションを行う．
   ///
   /// - assign_list は外部入力の割り当てでなければならない．
   /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
@@ -205,7 +222,7 @@ public:
     const AssignList& assign_list ///< [in] 値の割当リスト
   );
 
-  /// @brief 複数のパタンで故障シミュレーションを行う．
+  /// @brief PPSFPで故障シミュレーションを行う．
   ///
   /// - 結果の FsimResults::tv_num() == tv_list.size() が成り立つ．
   FsimResults

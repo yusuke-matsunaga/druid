@@ -34,15 +34,11 @@ public:
 
   /// @brief コンストラクタ
   ///
-  /// 実際には fault_list の中で ffr_list の FFR に含まれる故障のみを
-  /// 対象とする．
   /// 実は network は fault_list から取り出すことができるので冗長だが
   /// わかりやすさのため指定することにした．
   SimEngine(
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const TpgFaultList& fault_list,       ///< [in] 対象の故障のリスト
-    const std::vector<SizeType>& ffr_list ///< [in] 担当する FFR 番号のリスト
-    = {}
+    const TpgNetwork& network,     ///< [in] 対象のネットワーク
+    const TpgFaultList& fault_list ///< [in] 対象の故障のリスト
   );
 
   /// @brief デストラクタ
@@ -183,10 +179,16 @@ public:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
+  /// @return 検出された故障番号のリストを返す．
+  ///
+  /// 結果の故障番号はソートされている．
   std::vector<SizeType>
   sppfp();
 
   /// @brief PPSFP故障シミュレーションの本体
+  /// @return 検出された故障番号のリストの配列を返す．
+  ///
+  /// 結果の故障番号はソートされている．
   std::vector<std::vector<SizeType>>
   ppsfp(
     SizeType tv_num ///< [in] テストベクタ数
@@ -200,10 +202,14 @@ public:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
+  ///
+  /// 結果はソートされている．
   FsimResultsRep*
   sppfp2();
 
   /// @brief PPSFP故障シミュレーションの本体
+  ///
+  /// 結果はソートされている．
   std::vector<FsimResultsRep*>
   ppsfp2(
     SizeType tv_num ///< [in] テストベクタ数
@@ -287,8 +293,7 @@ private:
   /// @brief ネットワークの構造を設定する．
   void
   set_network(
-    const TpgNetwork& network,            ///< [in] 対象のネットワーク
-    const std::vector<SizeType>& ffr_list ///< [in] 担当する FFR の番号のリスト
+    const TpgNetwork& network ///< [in] 対象のネットワーク
   );
 
   /// @brief 故障を設定する．
@@ -351,7 +356,8 @@ private:
   void
   _sppfp2_simulation(
     const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
-    SizeType ffr_num          ///< [in] FFR 数
+    SizeType ffr_num,         ///< [in] FFR 数
+    FsimResultsRep* res       ///< [in] 結果を格納するオブジェクト
   );
 
   /// @brief FFR内の故障シミュレーションを行う．
@@ -394,15 +400,16 @@ private:
   /// @brief sppfp 用の下請け関数
   void
   _sppfp2_sub(
-    const SimFFR& ffr, ///< [in] 対象の FFR
-    DiffBits dbits     ///< [in] 出力の故障伝搬ビット
+    const SimFFR& ffr,  ///< [in] 対象の FFR
+    DiffBits dbits,     ///< [in] 出力の故障伝搬ビット
+    FsimResultsRep* res ///< [in] 結果を格納するオブジェクト
   )
   {
     auto& fault_list = ffr.fault_list();
     for ( auto ff: fault_list ) {
       if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	auto fid = ff->id();
-	mRes->add(fid, dbits);
+	res->add(fid, dbits);
       }
     }
   }
@@ -633,9 +640,6 @@ private:
 
   // 故障番号をキーとして SimFault を格納する配列
   std::vector<SimFault*> mFaultMap;
-
-  // SPPFP2の結果
-  FsimResultsRep* mRes;
 
 };
 

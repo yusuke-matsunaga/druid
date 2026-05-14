@@ -136,6 +136,13 @@ public:
     const TestVector& tv ///< [in] テストベクタ
   ) override;
 
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  /// @return 検出された故障番号のリストを返す．
+  std::vector<std::vector<SizeType>>
+  sppfp(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+  ) override;
+
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   /// @return 検出された故障番号のリストを返す．
   std::vector<SizeType>
@@ -173,6 +180,12 @@ public:
   FsimResultsRep*
   sppfp2(
     const TestVector& tv ///< [in] テストベクタ
+  ) override;
+
+  /// @brief ひとつのパタンで故障シミュレーションを行う．
+  std::vector<FsimResultsRep*>
+  sppfp2(
+    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
