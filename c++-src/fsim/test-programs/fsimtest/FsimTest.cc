@@ -68,142 +68,189 @@ spsfp_test(
   return std::make_pair(det_num, nepat);
 }
 
-// SPPFP のテスト
+TpgFaultList
+simulate1(
+  Fsim& fsim,
+  const TestVector& tv,
+  bool ppsfp
+)
+{
+  if ( ppsfp ) {
+    auto det_list_array = fsim.ppsfp({tv});
+    return det_list_array[0];
+  }
+  else {
+    return fsim.sppfp(tv);
+  }
+}
+
+// SPPFP/ppsfp のテスト
 std::pair<int, int>
-sppfp_test(
+test1(
   const TpgNetwork& network,
   Fsim& fsim,
-  const std::vector<TestVector>& tv_list
+  const std::vector<TestVector>& tv_list,
+  SizeType batch_size,
+  bool ppsfp
 )
 {
   int det_num = 0;
   int nepat = 0;
+  std::vector<bool> det_array(network.max_fault_id(), false);
 
   auto ntv = tv_list.size();
-  std::vector<bool> det_array(network.max_fault_id(), false);
-  auto det_list_array = fsim.sppfp(tv_list);
-  for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
-    auto& det_list = det_list_array[tv_id];
-    bool detected = false;
-    for ( auto fault: det_list ) {
-      auto fid = fault.id();
-      if ( !det_array[fid] ) {
-	det_array[fid] = true;
-	++ det_num;
-	print_fault(fault, tv_id);
-	detected = true;
+  if ( batch_size == 1 ) {
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      auto tv = tv_list[i];
+      auto det_list = simulate1(fsim, tv, ppsfp);
+      bool detected = false;
+      for ( auto fault: det_list ) {
+	auto fid = fault.id();
+	if ( !det_array[fid] ) {
+	  det_array[fid] = true;
+	  ++ det_num;
+	  print_fault(fault, i);
+	  detected = true;
+	}
+      }
+      if ( detected ) {
+	++ nepat;
       }
     }
-    if ( detected ) {
-      ++ nepat;
+  }
+  else if ( batch_size == ntv ) {
+    auto det_list_array = ppsfp ? fsim.ppsfp(tv_list) : fsim.sppfp(tv_list);
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      auto& det_list = det_list_array[i];
+      bool detected = false;
+      for ( auto fault: det_list ) {
+	auto fid = fault.id();
+	if ( !det_array[fid] ) {
+	  det_array[fid] = true;
+	  ++ det_num;
+	  print_fault(fault, i);
+	  detected = true;
+	}
+      }
+      if ( detected ) {
+	++ nepat;
+      }
+    }
+  }
+  else {
+    for ( SizeType base = 0; base < ntv; base += batch_size ) {
+      auto n = std::min(batch_size, ntv - base);
+      std::vector<TestVector> tv_buff(n);
+      for ( SizeType i = 0; i < n; ++ i ) {
+	tv_buff[i] = tv_list[base + i];
+      }
+      auto det_list_array = ppsfp ? fsim.ppsfp(tv_buff) : fsim.sppfp(tv_buff);
+      for ( SizeType i = 0; i < n; ++ i ) {
+	auto& det_list = det_list_array[i];
+	bool detected = false;
+	for ( auto fault: det_list ) {
+	  auto fid = fault.id();
+	  if ( !det_array[fid] ) {
+	    det_array[fid] = true;
+	    ++ det_num;
+	    print_fault(fault, base + i);
+	    detected = true;
+	  }
+	}
+	if ( detected ) {
+	  ++ nepat;
+	}
+      }
     }
   }
 
   return std::make_pair(det_num, nepat);
 }
 
-// SPPFP2 のテスト
+// SPPFP2/PPSFP2 のテスト
 std::pair<int, int>
-sppfp2_test(
+test2(
   const TpgNetwork& network,
   Fsim& fsim,
-  const std::vector<TestVector>& tv_list
+  const std::vector<TestVector>& tv_list,
+  SizeType batch_size,
+  bool ppsfp
 )
 {
-  auto ntv = tv_list.size();
-
   int det_num = 0;
   int nepat = 0;
-
-  auto res = fsim.sppfp2(tv_list);
   std::vector<bool> det_array(network.max_fault_id(), false);
-  for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
-    bool detected = false;
-    auto n = res.det_num(tv_id);
-    for ( SizeType i = 0; i < n; ++ i ) {
-      auto fault = res.fault(tv_id, i);
-      auto fid = fault.id();
-      if ( !det_array[fid] ) {
-	det_array[fid] = true;
-	++ det_num;
-	print_fault(fault, tv_id);
-	detected = true;
+
+  auto ntv = tv_list.size();
+  if ( batch_size == 1 ) {
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      auto tv = tv_list[i];
+      auto res = ppsfp ? fsim.ppsfp2({tv}) : fsim.sppfp2(tv);
+      bool detected = false;
+      auto n = res.det_num(0);
+      for ( SizeType i = 0; i < n; ++ i ) {
+	auto fault = res.fault(0, i);
+	auto fid = fault.id();
+	if ( !det_array[fid] ) {
+	  det_array[fid] = true;
+	  ++ det_num;
+	  print_fault(fault, i);
+	  detected = true;
+	}
+      }
+      if ( detected ) {
+	++ nepat;
       }
     }
-    if ( detected ) {
-      ++ nepat;
+  }
+  else if ( batch_size == ntv ) {
+    auto res = ppsfp ? fsim.ppsfp2(tv_list) : fsim.sppfp2(tv_list);
+    for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
+      bool detected = false;
+      auto n = res.det_num(tv_id);
+      for ( SizeType i = 0; i < n; ++ i ) {
+	auto fault = res.fault(tv_id, i);
+	auto fid = fault.id();
+	if ( !det_array[fid] ) {
+	  det_array[fid] = true;
+	  ++ det_num;
+	  print_fault(fault, tv_id);
+	  detected = true;
+	}
+      }
+      if ( detected ) {
+	++ nepat;
+      }
     }
   }
-
-  return std::make_pair(det_num, nepat);
-}
-
-// PPSFP のテスト
-std::pair<SizeType, SizeType>
-ppsfp_test(
-  const TpgNetwork& network,
-  Fsim& fsim,
-  const std::vector<TestVector>& tv_list
-)
-{
-  auto ntv = tv_list.size();
-
-  SizeType nepat = 0;
-  SizeType det_num = 0;
-
-  std::unordered_set<SizeType> pat_dict;
-  std::vector<bool> det_array(network.max_fault_id(), false);
-  auto det_list_array = fsim.ppsfp(tv_list);
-  for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
-    for ( auto fault: det_list_array[tv_id] ) {
-      auto fid = fault.id();
-      if ( !det_array[fid] ) {
-	det_array[fid] = true;
-	++ det_num;
-	if ( pat_dict.count(tv_id) == 0 ) {
-	  pat_dict.emplace(tv_id);
+  else {
+    for ( SizeType base = 0; base < ntv; base += batch_size ) {
+      auto n = std::min(batch_size, ntv - base);
+      std::vector<TestVector> tv_buff(n);
+      for ( SizeType i = 0; i < n; ++ i ) {
+	tv_buff[i] = tv_list[base + i];
+      }
+      auto res = ppsfp ? fsim.ppsfp2(tv_buff) : fsim.sppfp2(tv_buff);
+      for ( SizeType i = 0; i < n; ++ i ) {
+	auto det_num = res.det_num(i);
+	bool detected = false;
+	for ( SizeType j = 0; j < det_num; ++ j ) {
+	  auto fault = res.fault(i, j);
+	  auto fid = fault.id();
+	  if ( !det_array[fid] ) {
+	    det_array[fid] = true;
+	    ++ det_num;
+	    print_fault(fault, base + i);
+	    detected = true;
+	  }
+	}
+	if ( detected ) {
 	  ++ nepat;
 	}
-	print_fault(fault, tv_id);
       }
     }
   }
-  return std::make_pair(det_num, nepat);
-}
 
-// PPSFP2 のテスト
-std::pair<SizeType, SizeType>
-ppsfp2_test(
-  const TpgNetwork& network,
-  Fsim& fsim,
-  const std::vector<TestVector>& tv_list
-)
-{
-  auto ntv = tv_list.size();
-
-  SizeType nepat = 0;
-  SizeType det_num = 0;
-
-  std::unordered_set<SizeType> pat_dict;
-  std::vector<bool> det_array(network.max_fault_id(), false);
-
-  auto res = fsim.ppsfp2(tv_list);
-  for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
-    auto n = res.det_num(tv_id);
-    for ( SizeType i = 0; i < n; ++ i ) {
-      auto fault = res.fault(tv_id, i);
-      auto fid = fault.id();
-      if ( !det_array[fid] ) {
-	det_array[fid] = true;
-	++ det_num;
-	if ( pat_dict.count(tv_id) == 0 ) {
-	  pat_dict.emplace(tv_id);
-	  ++ nepat;
-	}
-	print_fault(fault, tv_id);
-      }
-    }
-  }
   return std::make_pair(det_num, nepat);
 }
 
@@ -260,6 +307,7 @@ fsim2test(
 
   bool multi = false;
   int thread_num = 0;
+  int batch_size = 0;
 
   argv0 = argv[0];
 
@@ -267,7 +315,7 @@ fsim2test(
   for ( ; pos < argc; ++ pos) {
     std::string arg = argv[pos];
     if ( arg[0] == '-' ) {
-      if ( arg == "-n" ) {
+      if ( arg == "-n" || arg == "--num" ) {
 	++ pos;
 	if ( pos >= argc ) {
 	  std::cerr << " -n option requires #pat"
@@ -277,6 +325,20 @@ fsim2test(
 	npat = atoi(argv[pos]);
 	if ( npat == 0 ) {
 	  std::cerr << " integer expected after -n"
+		    << std::endl;
+	  return -1;
+	}
+      }
+      if ( arg == "-b" || arg == "--batch-size" ) {
+	++ pos;
+	if ( pos >= argc ) {
+	  std::cerr << " -b option requires #pat"
+		    << std::endl;
+	  return -1;
+	}
+	batch_size = atoi(argv[pos]);
+	if ( batch_size == 0 ) {
+	  std::cerr << " integer expected after -b"
 		    << std::endl;
 	  return -1;
 	}
@@ -431,6 +493,10 @@ fsim2test(
     npat = 100000;
   }
 
+  if ( batch_size == 0 ) {
+    batch_size = npat;
+  }
+
   if ( !fsim2 && !fsim3 ) {
     // fsim2 をデフォルトにする．
     fsim2 = true;
@@ -470,17 +536,11 @@ fsim2test(
   timer.start();
 
   std::pair<int, int> dpnum;
-  if ( ppsfp ) {
-    dpnum = ppsfp_test(network, fsim, tv_list);
+  if ( ppsfp || sppfp ) {
+    dpnum = test1(network, fsim, tv_list, batch_size, ppsfp);
   }
-  else if ( ppsfp2 ) {
-    dpnum = ppsfp2_test(network, fsim, tv_list);
-  }
-  else if ( sppfp ) {
-    dpnum = sppfp_test(network, fsim, tv_list);
-  }
-  else if ( sppfp2 ) {
-    dpnum = sppfp2_test(network, fsim, tv_list);
+  else if ( ppsfp2 || sppfp2 ) {
+    dpnum = test2(network, fsim, tv_list, batch_size, ppsfp2);
   }
   else {
     // デフォルトフォールバックは SPSFP
