@@ -68,22 +68,6 @@ spsfp_test(
   return std::make_pair(det_num, nepat);
 }
 
-TpgFaultList
-simulate1(
-  Fsim& fsim,
-  const TestVector& tv,
-  bool ppsfp
-)
-{
-  if ( ppsfp ) {
-    auto det_list_array = fsim.ppsfp({tv});
-    return det_list_array[0];
-  }
-  else {
-    return fsim.sppfp(tv);
-  }
-}
-
 // SPPFP/ppsfp のテスト
 std::pair<int, int>
 test1(
@@ -102,7 +86,7 @@ test1(
   if ( batch_size == 1 ) {
     for ( SizeType i = 0; i < ntv; ++ i ) {
       auto tv = tv_list[i];
-      auto det_list = simulate1(fsim, tv, ppsfp);
+      auto det_list = fsim.run_single(tv);
       bool detected = false;
       for ( auto fault: det_list ) {
 	auto fid = fault.id();
@@ -119,7 +103,7 @@ test1(
     }
   }
   else if ( batch_size == ntv ) {
-    auto det_list_array = ppsfp ? fsim.ppsfp(tv_list) : fsim.sppfp(tv_list);
+    auto det_list_array = fsim.run_multi(tv_list, ppsfp);
     for ( SizeType i = 0; i < ntv; ++ i ) {
       auto& det_list = det_list_array[i];
       bool detected = false;
@@ -144,7 +128,7 @@ test1(
       for ( SizeType i = 0; i < n; ++ i ) {
 	tv_buff[i] = tv_list[base + i];
       }
-      auto det_list_array = ppsfp ? fsim.ppsfp(tv_buff) : fsim.sppfp(tv_buff);
+      auto det_list_array = fsim.run_multi(tv_buff, ppsfp);
       for ( SizeType i = 0; i < n; ++ i ) {
 	auto& det_list = det_list_array[i];
 	bool detected = false;
@@ -185,7 +169,7 @@ test2(
   if ( batch_size == 1 ) {
     for ( SizeType i = 0; i < ntv; ++ i ) {
       auto tv = tv_list[i];
-      auto res = ppsfp ? fsim.ppsfp2({tv}) : fsim.sppfp2(tv);
+      auto res = fsim.run_single2(tv);
       bool detected = false;
       auto n = res.det_num(0);
       for ( SizeType i = 0; i < n; ++ i ) {
@@ -204,7 +188,7 @@ test2(
     }
   }
   else if ( batch_size == ntv ) {
-    auto res = ppsfp ? fsim.ppsfp2(tv_list) : fsim.sppfp2(tv_list);
+    auto res = fsim.run_multi2(tv_list, ppsfp);
     for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
       bool detected = false;
       auto n = res.det_num(tv_id);
@@ -230,7 +214,7 @@ test2(
       for ( SizeType i = 0; i < n; ++ i ) {
 	tv_buff[i] = tv_list[base + i];
       }
-      auto res = ppsfp ? fsim.ppsfp2(tv_buff) : fsim.sppfp2(tv_buff);
+      auto res = fsim.run_multi2(tv_buff, ppsfp);
       for ( SizeType i = 0; i < n; ++ i ) {
 	auto det_num = res.det_num(i);
 	bool detected = false;

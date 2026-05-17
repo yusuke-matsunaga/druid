@@ -131,7 +131,7 @@ Fsim::spsfp(
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
 TpgFaultList
-Fsim::sppfp(
+Fsim::run_single(
   const TestVector& tv
 )
 {
@@ -139,28 +139,9 @@ Fsim::sppfp(
   return TpgBase::fault_list(fid_list);
 }
 
-// @brief SPPFPで故障シミュレーションを行う．
-std::vector<TpgFaultList>
-Fsim::sppfp(
-  const std::vector<TestVector>& tv_list
-)
-{
-  auto fid_list_array = mImpl->sppfp(tv_list);
-
-  // 結果を格納するオブジェクトのリスト
-  std::vector<TpgFaultList> det_list_array;
-  det_list_array.reserve(fid_list_array.size());
-
-  // TpgFaultList に変換する．
-  for ( auto& fid_list: fid_list_array ) {
-    det_list_array.push_back(TpgBase::fault_list(fid_list));
-  }
-  return det_list_array;
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 TpgFaultList
-Fsim::sppfp(
+Fsim::run_single(
   const AssignList& assign_list
 )
 {
@@ -168,13 +149,14 @@ Fsim::sppfp(
   return TpgBase::fault_list(fid_list);
 }
 
-// @brief 複数のパタンで故障シミュレーションを行う．
+// @brief SPPFPで故障シミュレーションを行う．
 std::vector<TpgFaultList>
-Fsim::ppsfp(
-  const std::vector<TestVector>& tv_list
+Fsim::run_multi(
+  const std::vector<TestVector>& tv_list,
+  bool ppsfp
 )
 {
-  auto fid_list_array = mImpl->ppsfp(tv_list);
+  auto fid_list_array = ppsfp ? mImpl->ppsfp(tv_list) : mImpl->sppfp(tv_list);
 
   // 結果を格納するオブジェクトのリスト
   std::vector<TpgFaultList> det_list_array;
@@ -209,7 +191,7 @@ Fsim::spsfp2(
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
 FsimResults
-Fsim::sppfp2(
+Fsim::run_single2(
   const TestVector& tv
 )
 {
@@ -217,19 +199,9 @@ Fsim::sppfp2(
   return FsimResults(_network(), res);
 }
 
-// @brief SPPFPで故障シミュレーションを行う．
-FsimResults
-Fsim::sppfp2(
-  const std::vector<TestVector>& tv_list
-)
-{
-  auto res_list = mImpl->sppfp2(tv_list);
-  return FsimResults(_network(), res_list);
-}
-
 // @brief ひとつのパタンで故障シミュレーションを行う．
 FsimResults
-Fsim::sppfp2(
+Fsim::run_single2(
   const AssignList& assign_list
 )
 {
@@ -237,13 +209,14 @@ Fsim::sppfp2(
   return FsimResults(_network(), res);
 }
 
-// @brief 複数のパタンで故障シミュレーションを行う．
+// @brief SPPFPで故障シミュレーションを行う．
 FsimResults
-Fsim::ppsfp2(
-  const std::vector<TestVector>& tv_list
+Fsim::run_multi2(
+  const std::vector<TestVector>& tv_list,
+  bool ppsfp
 )
 {
-  auto res_list = mImpl->ppsfp2(tv_list);
+  auto res_list = ppsfp ? mImpl->ppsfp2(tv_list) : mImpl->sppfp2(tv_list);
   return FsimResults(_network(), res_list);
 }
 

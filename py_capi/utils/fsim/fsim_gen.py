@@ -8,7 +8,7 @@
 """
 
 from mk_py_capi import PyObjGen
-from mk_py_capi import UlongArg, RawObjArg, OptArg, KwdArg
+from mk_py_capi import UlongArg, BoolArg, RawObjArg, OptArg, KwdArg
 from misc import JsonValueArg
 from tpg_types import TpgNetworkRefArg
 from tpg_types import TpgFaultListArg, TpgFaultArg
@@ -112,6 +112,24 @@ class FsimGen(PyObjGen):
                                               cvarname='fault')],
                         doc_str='get \\"skip\\" mark')
 
+        def meth_spsfp(writer):
+            with writer.gen_if_block('tv.vector_size() > 0'):
+                writer.gen_return_py_bool('val.spsfp(tv, fault)')
+            with writer.gen_if_block('as_list.size() > 0'):
+                writer.gen_return_py_bool('val.spsfp(as_list, fault)')
+            writer.gen_type_error('"either testvector or assign_list must be given"')
+        self.add_method('spsfp',
+                        func_body=meth_spsfp,
+                        arg_list=[TpgFaultArg(name='fault',
+                                              cvarname='fault'),
+                                  OptArg(),
+                                  KwdArg(),
+                                  TestVectorArg(name='testvector',
+                                                cvarname='tv'),
+                                  AssignListArg(name='assign_list',
+                                                cvarname='as_list')],
+                        doc_str='do SPSFP fault simulation')
+
         def meth_spsfp2(writer):
             with writer.gen_if_block('tv.vector_size() > 0'):
                 writer.gen_return_pyobject('PyDiffBits',
@@ -132,32 +150,67 @@ class FsimGen(PyObjGen):
                                                 cvarname='as_list')],
                         doc_str='do SPSFP fault simulation')
 
-        def meth_sppfp2(writer):
+        def meth_run_single(writer):
             with writer.gen_if_block('tv.vector_size() > 0'):
-                writer.gen_return_pyobject('PyFsimResults',
-                                           'val.sppfp2(tv)')
+                writer.gen_return_pyobject('PyTpgFaultList',
+                                           'val.run_single(tv)')
             with writer.gen_if_block('as_list.size() > 0'):
-                writer.gen_return_pyobject('PyFsimResults',
-                                           'val.sppfp2(as_list)')
+                writer.gen_return_pyobject('PyTpgFaultList',
+                                           'val.run_single(as_list)')
             writer.gen_type_error('"either testvector or assign_list must be given"')
-        self.add_method('sppfp2',
-                        func_body=meth_sppfp2,
+        self.add_method('run_single',
+                        func_body=meth_run_single,
                         arg_list=[OptArg(),
                                   KwdArg(),
                                   TestVectorArg(name='testvector',
                                                 cvarname='tv'),
                                   AssignListArg(name='assign_list',
                                                 cvarname='as_list')],
-                        doc_str='do SPPFP fault simulation')
+                        doc_str='do single pattern fault simulation')
 
-        def meth_ppsfp2(writer):
+        def meth_run_multi(writer):
+            writer.gen_return_pyobject('PyList<TpgFaultList, PyTpgFaultList>',
+                                       'val.run_multi(tv_list, ppsfp)')
+        self.add_method('run_multi',
+                        func_body=meth_run_multi,
+                        arg_list=[KwdArg(),
+                                  TestVectorListArg(name='tv_list',
+                                                    cvarname='tv_list'),
+                                  OptArg(),
+                                  BoolArg(name='ppsfp',
+                                          cvarname='ppsfp')],
+                        doc_str='do multiple pattern fault simulation')
+
+        def meth_run_single2(writer):
+            with writer.gen_if_block('tv.vector_size() > 0'):
+                writer.gen_return_pyobject('PyFsimResults',
+                                           'val.run_single2(tv)')
+            with writer.gen_if_block('as_list.size() > 0'):
+                writer.gen_return_pyobject('PyFsimResults',
+                                           'val.run_single2(as_list)')
+            writer.gen_type_error('"either testvector or assign_list must be given"')
+        self.add_method('run_single2',
+                        func_body=meth_run_single2,
+                        arg_list=[OptArg(),
+                                  KwdArg(),
+                                  TestVectorArg(name='testvector',
+                                                cvarname='tv'),
+                                  AssignListArg(name='assign_list',
+                                                cvarname='as_list')],
+                        doc_str='do single pattern fault simulation')
+
+        def meth_run_multi2(writer):
             writer.gen_return_pyobject('PyFsimResults',
-                                       'val.ppsfp2(tv_list)')
-        self.add_method('ppsfp2',
-                        func_body=meth_ppsfp2,
-                        arg_list=[TestVectorListArg(name='tv_list',
-                                                    cvarname='tv_list')],
-                        doc_str='do SPPFP fault simulation with X values')
+                                       'val.run_multi2(tv_list, ppsfp)')
+        self.add_method('run_multi2',
+                        func_body=meth_run_multi2,
+                        arg_list=[KwdArg(),
+                                  TestVectorListArg(name='tv_list',
+                                                    cvarname='tv_list'),
+                                  OptArg(),
+                                  BoolArg(name='ppsfp',
+                                          cvarname='ppsfp')],
+                        doc_str='do multiple pattern fault simulation')
 
         def meth_calc_wsa(writer):
             pass

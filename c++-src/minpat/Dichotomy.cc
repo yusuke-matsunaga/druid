@@ -167,7 +167,7 @@ Dichotomy::run(
       }
     }
     fsim_timer.start();
-    auto det_list_array = fsim.ppsfp(tv_list);
+    auto det_list_array = fsim.run_multi(tv_list, true);
     fsim_timer.stop();
     tv_count += BATCH_SIZE;
     // シミュレーション結果に基づいて細分化を行う．

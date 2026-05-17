@@ -86,11 +86,8 @@ make_fault_list(
   std::vector<TpgFaultList> fault_list_array;
   auto ntv = tv_list.size();
   fault_list_array.reserve(ntv);
-  for ( auto& tv: tv_list ) {
-    auto det_list = fsim.sppfp(tv);
-    fault_list_array.push_back(det_list);
-  }
-  return fault_list_array;
+  auto det_list_array = fsim.run_multi(tv_list);
+  return det_list_array;
 }
 
 // 各テストベクタが唯一検出する故障のリストを作る．

@@ -65,7 +65,7 @@ MpComp_MinCov::run(
     auto nc = tv_list.size();
     for ( SizeType col_pos = 0; col_pos < nc; ++ col_pos ) {
       auto& tv = tv_list[col_pos];
-      auto det_list = fsim.sppfp(tv);
+      auto det_list = fsim.run_single(tv);
       for ( auto fault: det_list ) {
 	auto fid = fault.id();
 	auto row_pos = fid_map[fid];

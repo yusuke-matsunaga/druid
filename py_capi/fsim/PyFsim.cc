@@ -175,6 +175,69 @@ get_skip(
 }
 
 PyObject*
+spsfp(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "fault",
+    "testvector",
+    "assign_list",
+    nullptr
+  };
+  PyObject* fault_obj = nullptr;
+  PyObject* tv_obj = nullptr;
+  PyObject* as_list_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O!|$O!O!",
+                                    const_cast<char**>(kwlist),
+                                    PyTpgFault::_typeobject(), &fault_obj,
+                                    PyTestVector::_typeobject(), &tv_obj,
+                                    PyAssignList::_typeobject(), &as_list_obj) ) {
+    return nullptr;
+  }
+  TpgFault fault;
+  if ( fault_obj != nullptr ) {
+    if ( !PyTpgFault::FromPyObject(fault_obj, fault) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to TpgFault");
+      return nullptr;
+    }
+  }
+  TestVector tv;
+  if ( tv_obj != nullptr ) {
+    if ( !PyTestVector::FromPyObject(tv_obj, tv) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to TestVector");
+      return nullptr;
+    }
+  }
+  AssignList as_list;
+  if ( as_list_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(as_list_obj, as_list) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+      return nullptr;
+    }
+  }
+  auto& val = PyFsim::_get_ref(self);
+  try {
+    if ( tv.vector_size() > 0 ) {
+      return PyBool_FromLong(val.spsfp(tv, fault));
+    }
+    if ( as_list.size() > 0 ) {
+      return PyBool_FromLong(val.spsfp(as_list, fault));
+    }
+    PyErr_SetString(PyExc_TypeError, "either testvector or assign_list must be given");
+    return nullptr;
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
 spsfp2(
   PyObject* self,
   PyObject* args,
@@ -238,7 +301,7 @@ spsfp2(
 }
 
 PyObject*
-sppfp2(
+run_single(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -274,10 +337,10 @@ sppfp2(
   auto& val = PyFsim::_get_ref(self);
   try {
     if ( tv.vector_size() > 0 ) {
-      return PyFsimResults::ToPyObject(val.sppfp2(tv));
+      return PyTpgFaultList::ToPyObject(val.run_single(tv));
     }
     if ( as_list.size() > 0 ) {
-      return PyFsimResults::ToPyObject(val.sppfp2(as_list));
+      return PyTpgFaultList::ToPyObject(val.run_single(as_list));
     }
     PyErr_SetString(PyExc_TypeError, "either testvector or assign_list must be given");
     return nullptr;
@@ -291,7 +354,7 @@ sppfp2(
 }
 
 PyObject*
-ppsfp2(
+run_multi(
   PyObject* self,
   PyObject* args,
   PyObject* kwds
@@ -299,12 +362,15 @@ ppsfp2(
 {
   static const char* kwlist[] = {
     "tv_list",
+    "ppsfp",
     nullptr
   };
   PyObject* tv_list_obj = nullptr;
-  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "O",
+  int ppsfp_tmp = -1;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "$O|p",
                                     const_cast<char**>(kwlist),
-                                    &tv_list_obj) ) {
+                                    &tv_list_obj,
+                                    &ppsfp_tmp) ) {
     return nullptr;
   }
   std::vector<TestVector> tv_list;
@@ -314,9 +380,109 @@ ppsfp2(
       return nullptr;
     }
   }
+  bool ppsfp;
+  if ( ppsfp_tmp != -1 ) {
+    ppsfp = static_cast<bool>(ppsfp_tmp);
+  }
   auto& val = PyFsim::_get_ref(self);
   try {
-    return PyFsimResults::ToPyObject(val.ppsfp2(tv_list));
+    return PyList<TpgFaultList, PyTpgFaultList>::ToPyObject(val.run_multi(tv_list, ppsfp));
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+run_single2(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "testvector",
+    "assign_list",
+    nullptr
+  };
+  PyObject* tv_obj = nullptr;
+  PyObject* as_list_obj = nullptr;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "|$O!O!",
+                                    const_cast<char**>(kwlist),
+                                    PyTestVector::_typeobject(), &tv_obj,
+                                    PyAssignList::_typeobject(), &as_list_obj) ) {
+    return nullptr;
+  }
+  TestVector tv;
+  if ( tv_obj != nullptr ) {
+    if ( !PyTestVector::FromPyObject(tv_obj, tv) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to TestVector");
+      return nullptr;
+    }
+  }
+  AssignList as_list;
+  if ( as_list_obj != nullptr ) {
+    if ( !PyAssignList::FromPyObject(as_list_obj, as_list) ) {
+      PyErr_SetString(PyExc_TypeError, "could not convert to AssignList");
+      return nullptr;
+    }
+  }
+  auto& val = PyFsim::_get_ref(self);
+  try {
+    if ( tv.vector_size() > 0 ) {
+      return PyFsimResults::ToPyObject(val.run_single2(tv));
+    }
+    if ( as_list.size() > 0 ) {
+      return PyFsimResults::ToPyObject(val.run_single2(as_list));
+    }
+    PyErr_SetString(PyExc_TypeError, "either testvector or assign_list must be given");
+    return nullptr;
+  }
+  catch ( std::exception err ) {
+    std::ostringstream buf;
+    buf << "exception" << ": " << err.what();
+    PyErr_SetString(PyExc_ValueError, buf.str().c_str());
+    return nullptr;
+  }
+}
+
+PyObject*
+run_multi2(
+  PyObject* self,
+  PyObject* args,
+  PyObject* kwds
+)
+{
+  static const char* kwlist[] = {
+    "tv_list",
+    "ppsfp",
+    nullptr
+  };
+  PyObject* tv_list_obj = nullptr;
+  int ppsfp_tmp = -1;
+  if ( !PyArg_ParseTupleAndKeywords(args, kwds, "$O|p",
+                                    const_cast<char**>(kwlist),
+                                    &tv_list_obj,
+                                    &ppsfp_tmp) ) {
+    return nullptr;
+  }
+  std::vector<TestVector> tv_list;
+  if ( tv_list_obj != nullptr ) {
+    if ( !PyList<TestVector, PyTestVector>::FromPyObject(tv_list_obj, tv_list) ) {
+      PyErr_SetString(PyExc_ValueError, "could not convert to std::vector<TestVector>");
+      return nullptr;
+    }
+  }
+  bool ppsfp;
+  if ( ppsfp_tmp != -1 ) {
+    ppsfp = static_cast<bool>(ppsfp_tmp);
+  }
+  auto& val = PyFsim::_get_ref(self);
+  try {
+    return PyFsimResults::ToPyObject(val.run_multi2(tv_list, ppsfp));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;
@@ -348,18 +514,30 @@ PyMethodDef methods[] = {
    reinterpret_cast<PyCFunction>(get_skip),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("get \"skip\" mark")},
+  {"spsfp",
+   reinterpret_cast<PyCFunction>(spsfp),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("do SPSFP fault simulation")},
   {"spsfp2",
    reinterpret_cast<PyCFunction>(spsfp2),
    METH_VARARGS | METH_KEYWORDS,
    PyDoc_STR("do SPSFP fault simulation")},
-  {"sppfp2",
-   reinterpret_cast<PyCFunction>(sppfp2),
+  {"run_single",
+   reinterpret_cast<PyCFunction>(run_single),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("do SPPFP fault simulation")},
-  {"ppsfp2",
-   reinterpret_cast<PyCFunction>(ppsfp2),
+   PyDoc_STR("do single pattern fault simulation")},
+  {"run_multi",
+   reinterpret_cast<PyCFunction>(run_multi),
    METH_VARARGS | METH_KEYWORDS,
-   PyDoc_STR("do SPPFP fault simulation with X values")},
+   PyDoc_STR("do multiple pattern fault simulation")},
+  {"run_single2",
+   reinterpret_cast<PyCFunction>(run_single2),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("do single pattern fault simulation")},
+  {"run_multi2",
+   reinterpret_cast<PyCFunction>(run_multi2),
+   METH_VARARGS | METH_KEYWORDS,
+   PyDoc_STR("do multiple pattern fault simulation")},
   // end-marker
   {nullptr, nullptr, 0, nullptr}
 };
