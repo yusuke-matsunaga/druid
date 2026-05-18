@@ -73,7 +73,7 @@ merge(
 }
 
 // 各テストベクタの検出する故障のリストを作る．
-std::vector<TpgFaultList>
+FsimResults
 make_fault_list(
   const std::vector<TestVector>& tv_list,
   const TpgFaultList& fault_list,
@@ -86,24 +86,24 @@ make_fault_list(
   std::vector<TpgFaultList> fault_list_array;
   auto ntv = tv_list.size();
   fault_list_array.reserve(ntv);
-  auto det_list_array = fsim.run_multi(tv_list);
-  return det_list_array;
+  auto res = fsim.run_multi(tv_list);
+  return res;
 }
 
 // 各テストベクタが唯一検出する故障のリストを作る．
 std::vector<TpgFaultList>
 make_ex_list(
   const TpgFaultList& fault_list,
-  const std::vector<TpgFaultList>& fault_list_array
+  const FsimResults& res
 )
 {
-  auto n = fault_list_array.size();
+  auto n = res.tv_num();
   std::vector<TpgFaultList> fault_list1(n);
   {
     TpgFaultList acc_fault_list;
     for ( SizeType i = 0; i < n; ++ i ) {
       fault_list1[i] = acc_fault_list;
-      acc_fault_list = merge(acc_fault_list, fault_list_array[i]);
+      acc_fault_list = merge(acc_fault_list, res.fault_list(i));
     }
   }
   std::vector<TpgFaultList> fault_list2(n);
@@ -112,7 +112,7 @@ make_ex_list(
     for ( SizeType i = 0; i < n; ++ i ) {
       auto pos = n - i - 1;
       fault_list1[pos] = acc_fault_list;
-      acc_fault_list = merge(acc_fault_list, fault_list_array[pos]);
+      acc_fault_list = merge(acc_fault_list, res.fault_list(i));
     }
   }
   auto network = fault_list.network();
@@ -125,7 +125,7 @@ make_ex_list(
     for ( auto fault: fault_list2[i] ) {
       mark[fault.id()] = true;
     }
-    for ( auto fault: fault_list_array[i] ) {
+    for ( auto fault: res.fault_list(i) ) {
       if ( !mark[fault.id()] ) {
 	ex_list_array[i].push_back(fault);
       }
@@ -219,10 +219,10 @@ make_fg_list(
   auto ntv = tv_list.size();
 
   // 各テストベクタの検出する故障を求める．
-  auto fault_list_array = make_fault_list(tv_list, fault_list, option);
+  auto res = make_fault_list(tv_list, fault_list, option);
 
   // 各テストベクタが唯一検出する故障を求める．
-  auto ex_list_array = make_ex_list(fault_list, fault_list_array);
+  auto ex_list_array = make_ex_list(fault_list, res);
 
   // ex_list_array の要素数の降順にソートする．
   std::vector<SizeType> pos_list(ntv);
@@ -240,7 +240,7 @@ make_fg_list(
   fg_list.reserve(ntv);
   for ( auto pos: pos_list ) {
     TpgFaultList fault_list1;
-    for ( auto fault: fault_list_array[pos] ) {
+    for ( auto fault: res.fault_list(pos) ) {
       auto fid = fault.id();
       if ( !det_mark[fid] ) {
 	det_mark[fid] = true;

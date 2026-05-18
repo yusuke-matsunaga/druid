@@ -12,6 +12,7 @@
 #include "types/TestVector.h"
 #include "types/TpgFault.h"
 #include "types/TpgFaultList.h"
+#include "ResultsRep.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -130,43 +131,47 @@ Fsim::spsfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-TpgFaultList
+FsimResults
 Fsim::run_single(
   const TestVector& tv
 )
 {
-  auto fid_list = mImpl->sppfp(tv);
-  return TpgBase::fault_list(fid_list);
+  // 結果を格納するオブジェクト
+  auto res = new ResultsRep(1, false);
+  mImpl->sppfp(tv, res->mFidListArray[0]);
+  return _make_results(res);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-TpgFaultList
+FsimResults
 Fsim::run_single(
   const AssignList& assign_list
 )
 {
-  auto fid_list = mImpl->sppfp(assign_list);
-  return TpgBase::fault_list(fid_list);
+  // 結果を格納するオブジェクト
+  auto res = new ResultsRep(1, false);
+  mImpl->sppfp(assign_list, res->mFidListArray[0]);
+  return _make_results(res);
 }
 
-// @brief SPPFPで故障シミュレーションを行う．
-std::vector<TpgFaultList>
+// @brief 複数のパタンで故障シミュレーションを行う．
+FsimResults
 Fsim::run_multi(
   const std::vector<TestVector>& tv_list,
   bool ppsfp
 )
 {
-  auto fid_list_array = ppsfp ? mImpl->ppsfp(tv_list) : mImpl->sppfp(tv_list);
+  auto ntv = tv_list.size();
 
-  // 結果を格納するオブジェクトのリスト
-  std::vector<TpgFaultList> det_list_array;
-  det_list_array.reserve(fid_list_array.size());
-
-  // TpgFaultList に変換する．
-  for ( auto& fid_list: fid_list_array ) {
-    det_list_array.push_back(TpgBase::fault_list(fid_list));
+  // 結果を格納するオブジェクト
+  auto res = new ResultsRep(ntv, false);
+  if ( ppsfp ) {
+    mImpl->ppsfp(tv_list, res->mFidListArray);
   }
-  return det_list_array;
+  else {
+    mImpl->sppfp(tv_list, res->mFidListArray);
+  }
+  return _make_results(res);
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -195,8 +200,10 @@ Fsim::run_single2(
   const TestVector& tv
 )
 {
-  auto res = mImpl->sppfp2(tv);
-  return FsimResults(_network(), res);
+  // 結果を格納するオブジェクト
+  auto res = new ResultsRep(1, true);
+  mImpl->sppfp2(tv, res->mFidListArray[0], res->mDiffBitsDictArray[0]);
+  return _make_results(res);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
@@ -205,8 +212,10 @@ Fsim::run_single2(
   const AssignList& assign_list
 )
 {
-  auto res = mImpl->sppfp2(assign_list);
-  return FsimResults(_network(), res);
+  // 結果を格納するオブジェクト
+  auto res = new ResultsRep(1, true);
+  mImpl->sppfp2(assign_list, res->mFidListArray[0], res->mDiffBitsDictArray[0]);
+  return _make_results(res);
 }
 
 // @brief SPPFPで故障シミュレーションを行う．
@@ -216,8 +225,17 @@ Fsim::run_multi2(
   bool ppsfp
 )
 {
-  auto res_list = ppsfp ? mImpl->ppsfp2(tv_list) : mImpl->sppfp2(tv_list);
-  return FsimResults(_network(), res_list);
+  auto ntv = tv_list.size();
+
+  // 結果を格納するオブジェクト
+  auto res = new ResultsRep(ntv, true);
+  if ( ppsfp ) {
+    mImpl->ppsfp2(tv_list, res->mFidListArray, res->mDiffBitsDictArray);
+  }
+  else {
+    mImpl->sppfp2(tv_list, res->mFidListArray, res->mDiffBitsDictArray);
+  }
+  return _make_results(res);
 }
 
 // @brief 1クロック分のシミュレーションを行い，遷移回数を数える．
@@ -258,6 +276,15 @@ Fsim::get_state(
 )
 {
   mImpl->get_state(i_vect, f_vect);
+}
+
+// @brief 結果のオブジェクトを作る．
+FsimResults
+Fsim::_make_results(
+  ResultsRep* res
+)
+{
+  return FsimResults(_network(), std::shared_ptr<ResultsRep>{res});
 }
 
 END_NAMESPACE_DRUID

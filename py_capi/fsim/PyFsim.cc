@@ -337,10 +337,10 @@ run_single(
   auto& val = PyFsim::_get_ref(self);
   try {
     if ( tv.vector_size() > 0 ) {
-      return PyTpgFaultList::ToPyObject(val.run_single(tv));
+      return PyFsimResults::ToPyObject(val.run_single(tv));
     }
     if ( as_list.size() > 0 ) {
-      return PyTpgFaultList::ToPyObject(val.run_single(as_list));
+      return PyFsimResults::ToPyObject(val.run_single(as_list));
     }
     PyErr_SetString(PyExc_TypeError, "either testvector or assign_list must be given");
     return nullptr;
@@ -386,7 +386,7 @@ run_multi(
   }
   auto& val = PyFsim::_get_ref(self);
   try {
-    return PyList<TpgFaultList, PyTpgFaultList>::ToPyObject(val.run_multi(tv_list, ppsfp));
+    return PyFsimResults::ToPyObject(val.run_multi(tv_list, ppsfp));
   }
   catch ( std::exception err ) {
     std::ostringstream buf;

@@ -167,16 +167,17 @@ Dichotomy::run(
       }
     }
     fsim_timer.start();
-    auto det_list_array = fsim.run_multi(tv_list, true);
+    auto res = fsim.run_multi(tv_list, true);
     fsim_timer.stop();
     tv_count += BATCH_SIZE;
     // シミュレーション結果に基づいて細分化を行う．
     dicho_timer.start();
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, det_list_array, option);
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, res, option);
     dicho_timer.stop();
     // 検出回数を更新する．
-    for ( SizeType i = 0; i < det_list_array.size(); ++ i ) {
-      for ( auto fault: det_list_array[i] ) {
+    auto ntv = res.tv_num();
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      for ( auto fault: res.fault_list(i) ) {
 	auto fid = fault.id();
 	if ( heap.is_in(fid) ) {
 	  comp.inc_count(fid);

@@ -152,10 +152,10 @@ class FsimGen(PyObjGen):
 
         def meth_run_single(writer):
             with writer.gen_if_block('tv.vector_size() > 0'):
-                writer.gen_return_pyobject('PyTpgFaultList',
+                writer.gen_return_pyobject('PyFsimResults',
                                            'val.run_single(tv)')
             with writer.gen_if_block('as_list.size() > 0'):
-                writer.gen_return_pyobject('PyTpgFaultList',
+                writer.gen_return_pyobject('PyFsimResults',
                                            'val.run_single(as_list)')
             writer.gen_type_error('"either testvector or assign_list must be given"')
         self.add_method('run_single',
@@ -169,7 +169,7 @@ class FsimGen(PyObjGen):
                         doc_str='do single pattern fault simulation')
 
         def meth_run_multi(writer):
-            writer.gen_return_pyobject('PyList<TpgFaultList, PyTpgFaultList>',
+            writer.gen_return_pyobject('PyFsimResults',
                                        'val.run_multi(tv_list, ppsfp)')
         self.add_method('run_multi',
                         func_body=meth_run_multi,

@@ -27,6 +27,15 @@ class SimThrFunc
 {
 public:
 
+  /// @brief 故障番号のリストの型
+  using FidList = std::vector<SizeType>;
+
+  /// @brief 出力ごとの故障伝搬状況の辞書の型
+  using DiffBitsDict = std::unordered_map<SizeType, DiffBits>;
+
+
+public:
+
   /// @brief コンストラクタ
   SimThrFunc(
     SizeType id,                   ///< [in] ID番号
@@ -58,63 +67,71 @@ public:
   }
 
   /// @brief SPPFP 法のシミュレーションを行う．
-  std::vector<SizeType>
+  void
   sppfp(
-    const TestVector& tv
+    const TestVector& tv,
+    FidList& fid_list
   );
 
   /// @brief SPPFP 法のシミュレーションを行う．
   void
   sppfp(
-    const std::vector<TestVector>& tv_list,            ///< [in] テストベクタのリスト
-    SizeType begin,                                    ///< [in] 開始位置
-    SizeType end,                                      ///< [in] 終了位置
-    std::vector<std::vector<SizeType>>& det_list_array ///< [in] 結果を格納する配列
+    const AssignList& assign_list,
+    FidList& fid_list
   );
 
   /// @brief SPPFP 法のシミュレーションを行う．
-  std::vector<SizeType>
+  void
   sppfp(
-    const AssignList& assign_list
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    SizeType begin,                         ///< [in] 開始位置
+    SizeType end,                           ///< [in] 終了位置
+    std::vector<FidList>& det_list_array    ///< [in] 結果を格納する配列
   );
 
   /// @brief PPSFP 法のシミュレーションを行う．
   void
   ppsfp(
-    const std::vector<TestVector>& tv_list,            ///< [in] テストベクタのリスト
-    SizeType begin,                                    ///< [in] 開始位置
-    SizeType end,                                      ///< [in] 終了位置
-    std::vector<std::vector<SizeType>>& det_list_array ///< [in] 結果を格納する配列
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    SizeType begin,                         ///< [in] 開始位置
+    SizeType end,                           ///< [in] 終了位置
+    std::vector<FidList>& det_list_array    ///< [in] 結果を格納する配列
   );
 
   /// @brief SPPFP 法のシミュレーションを行う．
-  FsimResultsRep*
+  void
   sppfp2(
-    const TestVector& tv
+    const TestVector& tv,    ///< [in] テストベクタ
+    FidList& fid_list,       ///< [in] 検出された故障番号のリスト
+    DiffBitsDict& dbits_dict ///< [in] 出力ごとの故障伝搬状況の辞書
+  );
+
+  /// @brief SPPFP 法のシミュレーションを行う．
+  void
+  sppfp2(
+    const AssignList& assign_list, ///< [in] 値割り当てのリスト
+    FidList& fid_list,             ///< [in] 検出された故障番号のリスト
+    DiffBitsDict& dbits_dict       ///< [in] 出力ごとの故障伝搬状況の辞書
   );
 
   /// @brief PPSFP2 法のシミュレーションを行う．
   void
   sppfp2(
-    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    SizeType begin,                         ///< [in] 開始位置
-    SizeType end,                           ///< [in] 終了位置
-    std::vector<FsimResultsRep*>& res_array ///< [in] 結果を格納する配列
-  );
-
-  /// @brief SPPFP 法のシミュレーションを行う．
-  FsimResultsRep*
-  sppfp2(
-    const AssignList& assign_list
+    const std::vector<TestVector>& tv_list,     ///< [in] テストベクタのリスト
+    SizeType begin,                             ///< [in] 開始位置
+    SizeType end,                               ///< [in] 終了位置
+    std::vector<FidList>& fid_list_array,       ///< [in] 検出された故障番号のリストの配列
+    std::vector<DiffBitsDict>& dbits_dict_array ///< [in] 出力ごとの伝搬状況の辞書の配列
   );
 
   /// @brief PPSFP2 法のシミュレーションを行う．
   void
   ppsfp2(
-    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
-    SizeType begin,                         ///< [in] 開始位置
-    SizeType end,                           ///< [in] 終了位置
-    std::vector<FsimResultsRep*>& res_array ///< [in] 結果を格納する配列
+    const std::vector<TestVector>& tv_list,     ///< [in] テストベクタのリスト
+    SizeType begin,                             ///< [in] 開始位置
+    SizeType end,                               ///< [in] 終了位置
+    std::vector<FidList>& fid_list_array,       ///< [in] 検出された故障番号のリストの配列
+    std::vector<DiffBitsDict>& dbits_dict_array ///< [in] 出力ごとの伝搬状況の辞書の配列
   );
 
 

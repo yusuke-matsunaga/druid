@@ -10,7 +10,6 @@
 
 #include "fsim_nsdef.h"
 #include "DiffBitsArray.h"
-#include "FsimResultsRep.h"
 #include "SimNode.h"
 #include "SimNodeList.h"
 #include "SimFFR.h"
@@ -30,6 +29,15 @@ BEGIN_NAMESPACE_DRUID_FSIM
 //////////////////////////////////////////////////////////////////////
 class SimEngine
 {
+public:
+
+  /// @brief 故障番号のリストの型
+  using FidList = std::vector<SizeType>;
+
+  /// @brief 出力ごとの故障伝搬状況の辞書の型
+  using DiffBitsDict = std::unordered_map<SizeType, DiffBits>;
+
+
 public:
 
   /// @brief コンストラクタ
@@ -179,19 +187,22 @@ public:
   );
 
   /// @brief SPPFP故障シミュレーションの本体
-  /// @return 検出された故障番号のリストを返す．
   ///
   /// 結果の故障番号はソートされている．
-  std::vector<SizeType>
-  sppfp();
+  void
+  sppfp(
+    FidList& fid_list ///< [in] 検出された故障番号のリスト
+  );
 
   /// @brief PPSFP故障シミュレーションの本体
   /// @return 検出された故障番号のリストの配列を返す．
   ///
   /// 結果の故障番号はソートされている．
-  std::vector<std::vector<SizeType>>
+  void
   ppsfp(
-    SizeType tv_num ///< [in] テストベクタ数
+    SizeType tv_num,                      ///< [in] テストベクタ数
+    std::vector<FidList>& fid_list_array, ///< [in] 検出された故障番号のリストの配列
+    SizeType base                         ///< fid_list_array のベースアドレス
   );
 
   /// @brief SPSFP故障シミュレーションの本体
@@ -203,16 +214,22 @@ public:
 
   /// @brief SPPFP故障シミュレーションの本体
   ///
-  /// 結果はソートされている．
-  FsimResultsRep*
-  sppfp2();
+  /// 結果の故障番号はソートされている．
+  void
+  sppfp2(
+    FidList& fid_list,       ///< [in] 検出された故障番号のリスト
+    DiffBitsDict& dbits_dict ///< [in] 出力ごとの故障伝搬状況の辞書
+  );
 
   /// @brief PPSFP故障シミュレーションの本体
   ///
-  /// 結果はソートされている．
-  std::vector<FsimResultsRep*>
+  /// 結果の故障番号はソートされている．
+  void
   ppsfp2(
-    SizeType tv_num ///< [in] テストベクタ数
+    SizeType tv_num, ///< [in] テストベクタ数
+    std::vector<FidList>& fid_list_array,        ///< [in] 検出された故障番号のリストの配列
+    std::vector<DiffBitsDict>& dbits_dict_array, ///< [in] 出力ごとの故障伝搬状況の辞書の配列
+    SizeType base                                ///< fid_list_array のベースアドレス
   );
 
 
@@ -347,9 +364,9 @@ private:
   /// @brief sppfp 用のシミュレーションを行う．
   void
   _sppfp_simulation(
-    const SimFFR* ffr_buff[],       ///< [in] FFR を入れた配列
-    SizeType ffr_num,               ///< [in] FFR 数
-    std::vector<SizeType>& det_list ///< [in] 検出された故障番号を格納するリスト
+    const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
+    SizeType ffr_num,         ///< [in] FFR 数
+    FidList& det_list         ///< [in] 検出された故障番号を格納するリスト
   );
 
   /// @brief sppfp 用のシミュレーションを行う．
@@ -357,7 +374,8 @@ private:
   _sppfp2_simulation(
     const SimFFR* ffr_buff[], ///< [in] FFR を入れた配列
     SizeType ffr_num,         ///< [in] FFR 数
-    FsimResultsRep* res       ///< [in] 結果を格納するオブジェクト
+    FidList& fid_list,        ///< [in] 検出された故障番号を格納するリスト
+    DiffBitsDict& dbits_dict  ///< [in] 出力ごとの故障伝搬状況の辞書
   );
 
   /// @brief FFR内の故障シミュレーションを行う．
@@ -383,9 +401,9 @@ private:
   /// @brief sppfp 用の下請け関数
   void
   _sppfp_sub(
-    const SimFFR& ffr,              ///< [in] 対象の FFR
-    PackedVal bitmask,              ///< [in] ビットマスク
-    std::vector<SizeType>& det_list ///< [in] 検出された故障番号を格納するリスト
+    const SimFFR& ffr, ///< [in] 対象の FFR
+    PackedVal bitmask, ///< [in] ビットマスク
+    FidList& det_list  ///< [in] 検出された故障番号を格納するリスト
   )
   {
     auto& fault_list = ffr.fault_list();
@@ -400,16 +418,18 @@ private:
   /// @brief sppfp 用の下請け関数
   void
   _sppfp2_sub(
-    const SimFFR& ffr,  ///< [in] 対象の FFR
-    DiffBits dbits,     ///< [in] 出力の故障伝搬ビット
-    FsimResultsRep* res ///< [in] 結果を格納するオブジェクト
+    const SimFFR& ffr,       ///< [in] 対象の FFR
+    DiffBits dbits,          ///< [in] 出力の故障伝搬ビット
+    FidList& det_list,       ///< [in] 検出された故障番号を格納するリスト
+    DiffBitsDict& dbits_dict ///< [in] 出力ごとの故障伝搬状況の辞書
   )
   {
     auto& fault_list = ffr.fault_list();
     for ( auto ff: fault_list ) {
       if ( !ff->skip() && ff->obs_mask() != PV_ALL0 ) {
 	auto fid = ff->id();
-	res->add(fid, dbits);
+	det_list.push_back(fid);
+	dbits_dict.emplace(fid, dbits);
       }
     }
   }
@@ -447,10 +467,6 @@ private:
 
     return ffr_req;
   }
-
-  /// @brief sppfp2 の結果を作る．
-  FsimResultsRep*
-  _make_results();
 
   /// @brief 値の計算を行う．
   ///

@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "fsim/FsimResults.h"
-#include "FsimResultsRep.h"
+#include "ResultsRep.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -16,97 +16,31 @@ BEGIN_NAMESPACE_DRUID
 // クラス FsimResults
 //////////////////////////////////////////////////////////////////////
 
-// @brief 空のコンストラクタ
-FsimResults::FsimResults(
-)
-{
-}
-
 // @brief 内容を指定するコンストラクタ
 FsimResults::FsimResults(
   const std::shared_ptr<NetworkRep>& impl,
-  FsimResultsRep* src
+  const std::shared_ptr<ResultsRep>& rep
 ) : TpgBase{impl},
-    mArray{src}
+    mRep{rep}
 {
-}
-
-// @brief 内容を指定するコンストラクタ
-FsimResults::FsimResults(
-  const std::shared_ptr<NetworkRep>& impl,
-  const std::vector<FsimResultsRep*>& src_list
-) : TpgBase{impl},
-    mArray{src_list}
-{
-}
-
-// @brief コピーコンストラクタ
-FsimResults::FsimResults(
-  const FsimResults& src
-) : TpgBase{src}
-{
-  _copy(src);
-}
-
-// @brief 代入演算子
-FsimResults&
-FsimResults::operator=(
-  const FsimResults& src
-)
-{
-  if ( this != &src ) {
-    TpgBase::operator=(src);
-    _clear();
-    _copy(src);
-  }
-  return *this;
-}
-
-// @brief デストラクタ
-FsimResults::~FsimResults()
-{
-  _clear();
-}
-
-// @brief クリアする．
-void
-FsimResults::_clear()
-{
-  for ( auto rep: mArray ) {
-    delete rep;
-  }
-  mArray.clear();
-}
-
-// @brief コピーする
-void
-FsimResults::_copy(
-  const FsimResults& src
-)
-{
-  mArray.reserve(src.mArray.size());
-  for ( auto src_rep: src.mArray ) {
-    auto rep = new FsimResultsRep(*src_rep);
-    mArray.push_back(rep);
-  }
 }
 
 // @brief テストベクタの総数を返す．
 SizeType
 FsimResults::tv_num() const
 {
-  return mArray.size();
+  _check_rep();
+  return mRep->tv_num();
 }
 
 // @brief 指定されたテストベクタ番号で検出された故障数を返す．
 SizeType
-FsimResults::det_num(
+FsimResults::fault_num(
   SizeType tv_id
 ) const
 {
-  _check_tv_id(tv_id);
-  auto rep = mArray[tv_id];
-  return rep->det_num();
+  _check_rep();
+  return mRep->fault_num(tv_id);
 }
 
 // @brief 指定されたテストベクタ番号で検出された故障を返す．
@@ -116,21 +50,29 @@ FsimResults::fault(
   SizeType pos
 ) const
 {
-  _check_tv_id(tv_id);
-  auto rep = mArray[tv_id];
-  return TpgBase::fault(rep->fault_id(pos));
+  _check_rep();
+  return TpgBase::fault(mRep->fid(tv_id, pos));
+}
+
+// @brief 指定されたテストベクタ番号で検出された故障のリストを返す．
+TpgFaultList
+FsimResults::fault_list(
+  SizeType tv_id
+) const
+{
+  _check_rep();
+  return TpgBase::fault_list(mRep->fid_list(tv_id));
 }
 
 // @brief 指定されたテストベクタ番号で検出された故障の出力ごとの故障伝搬状態を返す．
 DiffBits
 FsimResults::diffbits(
   SizeType tv_id,
-  SizeType pos
+  const TpgFault& fault
 ) const
 {
-  _check_tv_id(tv_id);
-  auto rep = mArray[tv_id];
-  return rep->diffbits(pos);
+  _check_rep();
+  return mRep->diffbits(tv_id, fault.id());
 }
 
 END_NAMESPACE_DRUID

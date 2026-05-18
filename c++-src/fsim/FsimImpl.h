@@ -13,7 +13,6 @@
 #include "types/FaultType.h"
 #include "types/PackedVal.h"
 #include "fsim/DiffBits.h"
-#include "FsimResultsRep.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -24,6 +23,15 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 class FsimImpl
 {
+public:
+
+  /// @brief 故障番号のリストの型
+  using FidList = std::vector<SizeType>;
+
+  /// @brief 出力ごとの故障伝搬状況の辞書の型
+  using DiffBitsDict = std::unordered_map<SizeType, DiffBits>;
+
+
 public:
 
   virtual
@@ -93,34 +101,35 @@ public:
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
   virtual
-  std::vector<SizeType>
+  void
   sppfp(
-    const TestVector& tv ///< [in] テストベクタ
-  ) = 0;
-
-  /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
-  virtual
-  std::vector<std::vector<SizeType>>
-  sppfp(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const TestVector& tv,           ///< [in] テストベクタ
+    FidList& fid_list               ///< [in] 検出された故障番号を格納するリスト
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
   virtual
-  std::vector<SizeType>
+  void
   sppfp(
-    const AssignList& assign_list ///< [in] 値の割当リスト
+    const AssignList& assign_list,  ///< [in] 値の割当リスト
+    FidList& fid_list               ///< [in] 検出された故障番号を格納するリスト
   ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   virtual
-  std::vector<std::vector<SizeType>>
+  void
+  sppfp(
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    std::vector<FidList>& fid_list_array    ///< [in] 検出された故障番号を格納するリスト
+  ) = 0;
+
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  virtual
+  void
   ppsfp(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    std::vector<FidList>& fid_list_array    ///< [in] 検出された故障番号を格納するリスト
   ) = 0;
 
 
@@ -147,31 +156,38 @@ public:
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   virtual
-  FsimResultsRep*
+  void
   sppfp2(
-    const TestVector& tv ///< [in] テストベクタ
-  ) = 0;
-
-  /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
-  virtual
-  std::vector<FsimResultsRep*>
-  sppfp2(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const TestVector& tv,    ///< [in] テストベクタ
+    FidList& fid_list,       ///< [in] 検出された故障番号を格納するリスト
+    DiffBitsDict& dbits_dict ///< [in] 出力ごとの検出状況を格納する辞書
   ) = 0;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
   virtual
-  FsimResultsRep*
+  void
   sppfp2(
-    const AssignList& assign_list ///< [in] 値の割当リスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    FidList& fid_list,             ///< [in] 検出された故障番号を格納するリスト
+    DiffBitsDict& dbits_dict       ///< [in] 出力ごとの検出状況を格納する辞書
   ) = 0;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
   virtual
-  std::vector<FsimResultsRep*>
+  void
+  sppfp2(
+    const std::vector<TestVector>& tv_list,     ///< [in] テストベクタのリスト
+    std::vector<FidList>& fid_list_array,       ///< [in] 検出された故障番号を格納するリスト
+    std::vector<DiffBitsDict>& dbits_dict_array ///< [in] 出力ごとの検出状況を格納する辞書
+  ) = 0;
+
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  virtual
+  void
   ppsfp2(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const std::vector<TestVector>& tv_list,     ///< [in] テストベクタのリスト
+    std::vector<FidList>& fid_list_array,       ///< [in] 検出された故障番号を格納するリスト
+    std::vector<DiffBitsDict>& dbits_dict_array ///< [in] 出力ごとの検出状況を格納する辞書
   ) = 0;
 
 

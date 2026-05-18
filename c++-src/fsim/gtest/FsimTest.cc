@@ -194,7 +194,8 @@ FsimTest::single_test(
 
   for ( SizeType i = 0; i < nv; ++ i ) {
     auto& tv = tv_list[i];
-    auto det_list = fsim.run_single(tv);
+    auto res = fsim.run_single(tv);
+    ASSERT_EQ( 1, res.tv_num() );
     std::unordered_set<SizeType> det_dict;
     SizeType ndet = 0;
     for ( auto fault: fault_list ) {
@@ -204,10 +205,10 @@ FsimTest::single_test(
 	++ ndet;
       }
     }
-    EXPECT_EQ( ndet, det_list.size() );
+    ASSERT_EQ( ndet, res.fault_num(0) );
     SizeType prev_fid = 0;
     bool first = true;
-    for ( auto fault: det_list ) {
+    for ( auto fault: res.fault_list(0) ) {
       auto fid = fault.id();
       if ( det_dict.count(fid) == 0 ) {
 	refsim.debug = true;
@@ -260,8 +261,8 @@ FsimTest::multi_test(
     }
   }
 
-  auto det_list_array = fsim.run_multi(tv_list, ppsfp);
-
+  auto res = fsim.run_multi(tv_list, ppsfp);
+  ASSERT_EQ( nv, res.tv_num() );
   for ( SizeType i = 0; i < nv; ++ i ) {
     auto& tv = tv_list[i];
     std::unordered_set<SizeType> det_dict;
@@ -273,7 +274,7 @@ FsimTest::multi_test(
 	++ ndet;
       }
     }
-    auto& det_list = det_list_array[i];
+    auto det_list = res.fault_list(i);
     EXPECT_EQ( ndet, det_list.size() );
     SizeType prev_fid = 0;
     bool first = true;
@@ -326,7 +327,7 @@ FsimTest::single2_test(
   }
 
   auto res = fsim.run_multi2(tv_list);
-
+  ASSERT_EQ( nv, res.tv_num() );
   for ( SizeType tv_id = 0; tv_id < nv; ++ tv_id ) {
     auto& tv = tv_list[tv_id];
     auto res = fsim.run_single2(tv);
@@ -339,7 +340,7 @@ FsimTest::single2_test(
 	++ ndet;
       }
     }
-    if ( ndet != res.det_num(0) ) {
+    if ( ndet != res.fault_num(0) ) {
       std::cout << "ref fault_list:" << std::endl;
       for ( auto fault: fault_list ) {
 	if ( dbits_dict.count(fault.id()) > 0 ) {
@@ -351,23 +352,23 @@ FsimTest::single2_test(
       }
       std::cout << std::endl;
       std::cout << "fault_list:" << std::endl;
-      auto n = res.det_num(0);
+      auto n = res.fault_num(0);
       for ( SizeType i = 0; i < n; ++ i ) {
 	auto fault = res.fault(0, i);
-	auto dbits = res.diffbits(0, i);
+	auto dbits = res.diffbits(0, fault);
 	std::cout << " " << fault.str()
 		  << ": " << dbits
 		  << std::endl;
       }
       std::cout << std::endl;
     }
-    ASSERT_EQ( ndet, res.det_num(0) );
+    ASSERT_EQ( ndet, res.fault_num(0) );
     SizeType prev_fid = 0;
     for ( SizeType i = 0; i < ndet; ++ i ) {
       auto fault = res.fault(0, i);
       auto fid = fault.id();
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
-      auto dbits = res.diffbits(0, i);
+      auto dbits = res.diffbits(0, fault);
       EXPECT_EQ( dbits_dict.at(fid), dbits );
       if ( i > 0 ) {
 	// res.fault(0, i) がソートされているかチェック
@@ -424,7 +425,7 @@ FsimTest::multi2_test(
 	++ ndet;
       }
     }
-    if ( ndet != res.det_num(tv_id) ) {
+    if ( ndet != res.fault_num(tv_id) ) {
       std::cout << "ref fault_list:" << std::endl;
       for ( auto fault: fault_list ) {
 	if ( dbits_dict.count(fault.id()) > 0 ) {
@@ -436,23 +437,23 @@ FsimTest::multi2_test(
       }
       std::cout << std::endl;
       std::cout << "fault_list:" << std::endl;
-      auto n = res.det_num(tv_id);
+      auto n = res.fault_num(tv_id);
       for ( SizeType i = 0; i < n; ++ i ) {
 	auto fault = res.fault(tv_id, i);
-	auto dbits = res.diffbits(tv_id, i);
+	auto dbits = res.diffbits(tv_id, fault);
 	std::cout << " " << fault.str()
 		  << ": " << dbits
 		  << std::endl;
       }
       std::cout << std::endl;
     }
-    ASSERT_EQ( ndet, res.det_num(tv_id) );
+    ASSERT_EQ( ndet, res.fault_num(tv_id) );
     SizeType prev_fid = 0;
     for ( SizeType i = 0; i < ndet; ++ i ) {
       auto fault = res.fault(tv_id, i);
       auto fid = fault.id();
       EXPECT_TRUE( dbits_dict.count(fid) > 0 );
-      auto dbits = res.diffbits(tv_id, i);
+      auto dbits = res.diffbits(tv_id, fault);
       EXPECT_EQ( dbits_dict.at(fid), dbits );
       if ( i > 0 ) {
 	// res.fault(tv_id, i) がソートされているかチェック

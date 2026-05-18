@@ -146,20 +146,34 @@ FSIM_CLASSNAME::spsfp(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::vector<SizeType>
+void
 FSIM_CLASSNAME::sppfp(
-  const TestVector& tv
+  const TestVector& tv,
+  FidList& fid_list
 )
 {
   // 実はシングルスレッドで実行する．
   auto func = mFuncList.front().get();
-  return func->sppfp(tv);
+  func->sppfp(tv, fid_list);
+}
+
+// @brief ひとつのパタンで故障シミュレーションを行う．
+void
+FSIM_CLASSNAME::sppfp(
+  const AssignList& assign_list,
+  FidList& fid_list
+)
+{
+  // 実はシングルスレッドで実行する．
+  auto func = mFuncList.front().get();
+  func->sppfp(assign_list, fid_list);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-std::vector<std::vector<SizeType>>
+void
 FSIM_CLASSNAME::sppfp(
-  const std::vector<TestVector>& tv_list
+  const std::vector<TestVector>& tv_list,
+  std::vector<FidList>& fid_list_array
 )
 {
   // 全パタン数
@@ -169,8 +183,6 @@ FSIM_CLASSNAME::sppfp(
   std::vector<std::thread> thr_list(act_num);
   // スレッド当たりのパタン数
   auto pat_size = (ntv + act_num - 1) / act_num;
-  // 結果を格納するオブジェクト
-  std::vector<std::vector<SizeType>> det_list_array(ntv);
   for ( SizeType i = 0; i < act_num; ++ i ) {
     auto func = mFuncList[i].get();
     SizeType begin = pat_size * i;
@@ -179,7 +191,7 @@ FSIM_CLASSNAME::sppfp(
       [&](SimThrFunc* func,
 	  const std::vector<TestVector>& tv_list,
 	  SizeType begin, SizeType end) {
-	func->sppfp(tv_list, begin, end, det_list_array);
+	func->sppfp(tv_list, begin, end, fid_list_array);
       },
       func, tv_list, begin, end
     };
@@ -187,24 +199,13 @@ FSIM_CLASSNAME::sppfp(
   for ( auto& thr: thr_list ) {
     thr.join();
   }
-  return det_list_array;
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-std::vector<SizeType>
-FSIM_CLASSNAME::sppfp(
-  const AssignList& assign_list
-)
-{
-  // 実はシングルスレッドで実行する．
-  auto func = mFuncList.front().get();
-  return func->sppfp(assign_list);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-std::vector<std::vector<SizeType>>
+void
 FSIM_CLASSNAME::ppsfp(
-  const std::vector<TestVector>& tv_list
+  const std::vector<TestVector>& tv_list,
+  std::vector<FidList>& fid_list_array
 )
 {
   // 全パタン数
@@ -216,8 +217,6 @@ FSIM_CLASSNAME::ppsfp(
   std::vector<std::thread> thr_list(act_num);
   // スレッド当たりのパタン数
   auto pat_size = (ntv + act_num - 1) / act_num;
-  // 結果を格納するオブジェクト
-  std::vector<std::vector<SizeType>> det_list_array(ntv);
   for ( SizeType i = 0; i < act_num; ++ i ) {
     auto func = mFuncList[i].get();
     SizeType begin = pat_size * i;
@@ -226,7 +225,7 @@ FSIM_CLASSNAME::ppsfp(
       [&](SimThrFunc* func,
 	  const std::vector<TestVector>& tv_list,
 	  SizeType begin, SizeType end) {
-	func->ppsfp(tv_list, begin, end, det_list_array);
+	func->ppsfp(tv_list, begin, end, fid_list_array);
       },
       func, tv_list, begin, end
     };
@@ -234,7 +233,6 @@ FSIM_CLASSNAME::ppsfp(
   for ( auto& thr: thr_list ) {
     thr.join();
   }
-  return det_list_array;
 }
 
 // @brief SPSFP故障シミュレーションを行う．
@@ -260,20 +258,37 @@ FSIM_CLASSNAME::spsfp2(
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-FsimResultsRep*
+void
 FSIM_CLASSNAME::sppfp2(
-  const TestVector& tv
+  const TestVector& tv,
+  FidList& fid_list,
+  DiffBitsDict& dbits_dict
 )
 {
   // 実はシングルスレッドで実行する．
   auto func = mFuncList.front().get();
-  return func->sppfp2(tv);
+  func->sppfp2(tv, fid_list, dbits_dict);
 }
 
 // @brief ひとつのパタンで故障シミュレーションを行う．
-std::vector<FsimResultsRep*>
+void
 FSIM_CLASSNAME::sppfp2(
-  const std::vector<TestVector>& tv_list
+  const AssignList& assign_list,
+  FidList& fid_list,
+  DiffBitsDict& dbits_dict
+)
+{
+  // 実はシングルスレッドで実行する．
+  auto func = mFuncList.front().get();
+  func->sppfp2(assign_list, fid_list, dbits_dict);
+}
+
+// @brief 複数のパタンで故障シミュレーションを行う．
+void
+FSIM_CLASSNAME::sppfp2(
+  const std::vector<TestVector>& tv_list,
+  std::vector<FidList>& fid_list_array,
+  std::vector<DiffBitsDict>& dbits_dict_array
 )
 {
   // 全パタン数
@@ -283,8 +298,6 @@ FSIM_CLASSNAME::sppfp2(
   std::vector<std::thread> thr_list(act_num);
   // スレッド当たりのパタン数
   auto pat_size = (ntv + act_num - 1) / act_num;
-  // 結果を格納するオブジェクト
-  std::vector<FsimResultsRep*> res_array(ntv);
   for ( SizeType i = 0; i < act_num; ++ i ) {
     auto func = mFuncList[i].get();
     SizeType begin = pat_size * i;
@@ -293,7 +306,7 @@ FSIM_CLASSNAME::sppfp2(
       [&](SimThrFunc* func,
 	  const std::vector<TestVector>& tv_list,
 	  SizeType begin, SizeType end) {
-	func->sppfp2(tv_list, begin, end, res_array);
+	func->sppfp2(tv_list, begin, end, fid_list_array, dbits_dict_array);
       },
       func, tv_list, begin, end
     };
@@ -301,24 +314,14 @@ FSIM_CLASSNAME::sppfp2(
   for ( auto& thr: thr_list ) {
     thr.join();
   }
-  return res_array;
-}
-
-// @brief ひとつのパタンで故障シミュレーションを行う．
-FsimResultsRep*
-FSIM_CLASSNAME::sppfp2(
-  const AssignList& assign_list
-)
-{
-  // 実はシングルスレッドで実行する．
-  auto func = mFuncList.front().get();
-  return func->sppfp2(assign_list);
 }
 
 // @brief 複数のパタンで故障シミュレーションを行う．
-std::vector<FsimResultsRep*>
+void
 FSIM_CLASSNAME::ppsfp2(
-  const std::vector<TestVector>& tv_list
+  const std::vector<TestVector>& tv_list,
+  std::vector<FidList>& fid_list_array,
+  std::vector<DiffBitsDict>& dbits_dict_array
 )
 {
   // 全パタン数
@@ -330,8 +333,6 @@ FSIM_CLASSNAME::ppsfp2(
   std::vector<std::thread> thr_list(act_num);
   // スレッド当たりのパタン数
   auto pat_size = (ntv + act_num - 1) / act_num;
-  // 結果を格納するオブジェクト
-  std::vector<FsimResultsRep*> res_array(ntv);
   for ( SizeType i = 0; i < act_num; ++ i ) {
     auto func = mFuncList[i].get();
     SizeType begin = pat_size * i;
@@ -340,7 +341,7 @@ FSIM_CLASSNAME::ppsfp2(
       [&](SimThrFunc* func,
 	  const std::vector<TestVector>& tv_list,
 	  SizeType begin, SizeType end) {
-	func->ppsfp2(tv_list, begin, end, res_array);
+	func->ppsfp2(tv_list, begin, end, fid_list_array, dbits_dict_array);
       },
       func, tv_list, begin, end
     };
@@ -348,7 +349,6 @@ FSIM_CLASSNAME::ppsfp2(
   for ( auto& thr: thr_list ) {
     thr.join();
   }
-  return res_array;
 }
 
 // @brief 状態を設定する．

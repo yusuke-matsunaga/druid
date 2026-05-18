@@ -95,30 +95,31 @@ public:
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
-  std::vector<SizeType>
+  void
   sppfp(
-    const TestVector& tv ///< [in] テストベクタ
-  ) override;
-
-  /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
-  std::vector<std::vector<SizeType>>
-  sppfp(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const TestVector& tv, ///< [in] テストベクタ
+    FidList& fid_list     ///< [in] 検出された故障番号を格納するリスト
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障番号のリストを返す．
-  std::vector<SizeType>
+  void
   sppfp(
-    const AssignList& assign_list ///< [in] 値の割当リスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    FidList& fid_list              ///< [in] 検出された故障番号を格納するリスト
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  std::vector<std::vector<SizeType>>
+  void
+  sppfp(
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    std::vector<FidList>& fid_list_array    ///< [in] 検出された故障番号を格納するリスト
+  ) override;
+
+  /// @brief 複数のパタンで故障シミュレーションを行う．
+  void
   ppsfp(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
+    std::vector<FidList>& fid_list_array    ///< [in] 検出された故障番号を格納するリスト
   ) override;
 
 
@@ -142,27 +143,35 @@ public:
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  FsimResultsRep*
+  void
   sppfp2(
-    const TestVector& tv ///< [in] テストベクタ
+    const TestVector& tv,    ///< [in] テストベクタ
+    FidList& fid_list,       ///< [in] 検出された故障番号を格納するリスト
+    DiffBitsDict& dbits_dict ///< [in] 出力ごとの検出状況を格納する辞書
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  std::vector<FsimResultsRep*>
+  void
   sppfp2(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const AssignList& assign_list, ///< [in] 値の割当リスト
+    FidList& fid_list,             ///< [in] 検出された故障番号を格納するリスト
+    DiffBitsDict& dbits_dict       ///< [in] 出力ごとの検出状況を格納する辞書
   ) override;
 
   /// @brief ひとつのパタンで故障シミュレーションを行う．
-  FsimResultsRep*
+  void
   sppfp2(
-    const AssignList& assign_list ///< [in] 値の割当リスト
+    const std::vector<TestVector>& tv_list,     ///< [in] テストベクタのリスト
+    std::vector<FidList>& fid_list_array,       ///< [in] 検出された故障番号を格納するリスト
+    std::vector<DiffBitsDict>& dbits_dict_array ///< [in] 出力ごとの検出状況を格納する辞書
   ) override;
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  std::vector<FsimResultsRep*>
+  void
   ppsfp2(
-    const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
+    const std::vector<TestVector>& tv_list,     ///< [in] テストベクタのリスト
+    std::vector<FidList>& fid_list_array,       ///< [in] 検出された故障番号を格納するリスト
+    std::vector<DiffBitsDict>& dbits_dict_array ///< [in] 出力ごとの検出状況を格納する辞書
   ) override;
 
 
@@ -214,7 +223,7 @@ public:
                                ///          を掛けたものの和
   ) override;
 
-
+#if 0
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる下請け関数
@@ -239,7 +248,7 @@ private:
   merge_diffbits_list_array(
     SizeType tv_num
   );
-
+#endif
 
 private:
   //////////////////////////////////////////////////////////////////////

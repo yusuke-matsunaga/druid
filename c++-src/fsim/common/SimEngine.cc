@@ -9,6 +9,7 @@
 #include "SimEngine.h"
 #include "SimNode.h"
 #include "SnFlip.h"
+#include "types/TpgFaultList.h"
 #include "types/TestVector.h"
 #include "types/InputVector.h"
 #include "types/DffVector.h"
@@ -279,11 +280,11 @@ SimEngine::spsfp(
 }
 
 // @brief SPPFP故障シミュレーションの本体
-std::vector<SizeType>
-SimEngine::sppfp()
+void
+SimEngine::sppfp(
+  FidList& fid_list
+)
 {
-  std::vector<SizeType> det_list;
-
   const SimFFR* ffr_buff[PV_BITLEN];
   auto buff_size = 0;
 
@@ -301,7 +302,7 @@ SimEngine::sppfp()
     auto root = ffr.root();
     if ( root->is_output() ) {
       // 常に観測可能
-      _sppfp_sub(ffr, PV_ALL1, det_list);
+      _sppfp_sub(ffr, PV_ALL1, fid_list);
       continue;
     }
 
@@ -310,16 +311,15 @@ SimEngine::sppfp()
     ++ buff_size;
     if ( buff_size == PV_BITLEN ) {
       // バッファが一杯になったのでイベントドリヴンシミュレーションを行う．
-      _sppfp_simulation(ffr_buff, buff_size, det_list);
+      _sppfp_simulation(ffr_buff, buff_size, fid_list);
       buff_size = 0;
     }
   }
   if ( buff_size > 0 ) {
     // バッファに要素が残っていた．
-    _sppfp_simulation(ffr_buff, buff_size, det_list);
+    _sppfp_simulation(ffr_buff, buff_size, fid_list);
   }
-  std::sort(det_list.begin(), det_list.end());
-  return det_list;
+  std::sort(fid_list.begin(), fid_list.end());
 }
 
 // @brief sppfp 用のシミュレーションを行う．
@@ -348,9 +348,11 @@ SimEngine::_sppfp_simulation(
 }
 
 // @brief PPSFP故障シミュレーションの本体
-std::vector<std::vector<SizeType>>
+void
 SimEngine::ppsfp(
-  SizeType tv_num
+  SizeType tv_num,
+  std::vector<FidList>& fid_list_array,
+  SizeType base
 )
 {
   // データを持っているビットを表すビットマスク
@@ -358,9 +360,6 @@ SimEngine::ppsfp(
   for ( SizeType i = 0; i < tv_num; ++ i ) {
     bitmask |= (1UL << i);
   }
-
-  // 結果を格納するオブジェクトのリスト
-  std::vector<std::vector<SizeType>> det_list_array(tv_num);
 
   // FFR ごとに処理を行う．
   for ( auto& ffr: mFFRArray ) {
@@ -402,7 +401,7 @@ SimEngine::ppsfp(
 	PackedVal bitmask = 1UL;
 	for ( SizeType i = 0; i < tv_num; ++ i, bitmask <<= 1 ) {
 	  if ( (obs & bitmask) != PV_ALL0 ) {
-	    det_list_array[i].push_back(fid);
+	    fid_list_array[i + base].push_back(fid);
 	  }
 	}
       }
@@ -410,10 +409,9 @@ SimEngine::ppsfp(
   }
 
   for ( SizeType i = 0; i < tv_num; ++ i ) {
-    auto& det_list = det_list_array[i];
-    std::sort(det_list.begin(), det_list.end());
+    auto& fid_list = fid_list_array[i + base];
+    std::sort(fid_list.begin(), fid_list.end());
   }
-  return det_list_array;
 }
 
 // @brief SPSFP故障シミュレーションの本体
@@ -454,11 +452,12 @@ SimEngine::spsfp2(
 }
 
 // @brief SPPFP故障シミュレーションの本体
-FsimResultsRep*
-SimEngine::sppfp2()
+void
+SimEngine::sppfp2(
+  FidList& fid_list,
+  DiffBitsDict& dbits_dict
+)
 {
-  auto res = new FsimResultsRep;
-
   const SimFFR* ffr_buff[PV_BITLEN];
   auto buff_size = 0;
   // FFR ごとに処理を行う．
@@ -477,23 +476,22 @@ SimEngine::sppfp2()
       // 常にこの出力のみで観測可能
       DiffBits dbits;
       dbits.add_output(root->output_id());
-      _sppfp2_sub(ffr, dbits, res);
+      _sppfp2_sub(ffr, dbits, fid_list, dbits_dict);
     }
     else {
       // キューに積んでおく
       ffr_buff[buff_size] = &ffr;
       ++ buff_size;
       if ( buff_size == PV_BITLEN ) {
-	_sppfp2_simulation(ffr_buff, buff_size, res);
+	_sppfp2_simulation(ffr_buff, buff_size, fid_list, dbits_dict);
 	buff_size = 0;
       }
     }
   }
   if ( buff_size > 0 ) {
-    _sppfp2_simulation(ffr_buff, buff_size, res);
+    _sppfp2_simulation(ffr_buff, buff_size, fid_list, dbits_dict);
   }
-  res->sort();
-  return res;
+  std::sort(fid_list.begin(), fid_list.end());
 }
 
 // @brief sppfp 用のシミュレーションを行う．
@@ -501,7 +499,8 @@ void
 SimEngine::_sppfp2_simulation(
   const SimFFR* ffr_buff[],
   SizeType ffr_num,
-  FsimResultsRep* res
+  FidList& fid_list,
+  DiffBitsDict& dbits_dict
 )
 {
   PackedVal bitmask = 1ULL;
@@ -519,23 +518,20 @@ SimEngine::_sppfp2_simulation(
       auto& ffr = *ffr_buff[i];
       auto dbits = dbits_array.get_slice(i);
       dbits.sort();
-      _sppfp2_sub(ffr, dbits, res);
+      _sppfp2_sub(ffr, dbits, fid_list, dbits_dict);
     }
   }
 }
 
 // @brief PPSFP故障シミュレーションの本体
-std::vector<FsimResultsRep*>
+void
 SimEngine::ppsfp2(
-  SizeType tv_num
+  SizeType tv_num,
+  std::vector<FidList>& fid_list_array,
+  std::vector<DiffBitsDict>& dbits_dict_array,
+  SizeType base
 )
 {
-  std::vector<FsimResultsRep*> res_list(tv_num);
-  for ( SizeType i = 0; i < tv_num; ++ i ) {
-    auto res = new FsimResultsRep;
-    res_list[i] = res;
-  }
-
   // データを持っているビットを表すビットマスク
   PackedVal bitmask = 0UL;
   for ( SizeType i = 0; i < tv_num; ++ i ) {
@@ -587,17 +583,17 @@ SimEngine::ppsfp2(
 	for ( SizeType i = 0; i < tv_num; ++ i ) {
 	  auto dbits = dbits_array1.get_slice(i);
 	  if ( dbits.elem_num() > 0 ) {
-	    res_list[i]->add(fid, dbits);
+	    fid_list_array[i + base].push_back(fid);
+	    dbits_dict_array[i + base].emplace(fid, dbits);
 	  }
 	}
       }
     }
   }
   for ( SizeType i = 0; i < tv_num; ++ i ) {
-    auto res = res_list[i];
-    res->sort();
+    auto& fid_list = fid_list_array[i + base];
+    std::sort(fid_list.begin(), fid_list.end());
   }
-  return res_list;
 }
 
 #if FSIM_COMBI

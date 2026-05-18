@@ -140,26 +140,23 @@ public:
   );
 
   /// @brief 一つのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
-  TpgFaultList
+  FsimResults
   run_single(
     const TestVector& tv ///< [in] テストベクタ
   );
 
   /// @brief 一つのパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
   ///
   /// - assign_list は外部入力の割り当てでなければならない．
-  TpgFaultList
+  FsimResults
   run_single(
     const AssignList& assign_list ///< [in] 値の割当リスト
   );
 
   /// @brief 複数のパタンで故障シミュレーションを行う．
-  /// @return 検出された故障のリストを返す．
   ///
-  /// - 結果のベクタサイズ == tv_list.size() が成り立つ．
-  std::vector<TpgFaultList>
+  /// - 結果の FsimResults::tv_num() == tv_list.size() が成り立つ．
+  FsimResults
   run_multi(
     const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
     bool ppsfp = true                       ///< [in] PPSFP の時 true にするフラグ
@@ -200,7 +197,7 @@ public:
   /// @brief SPPFPで故障シミュレーションを行う．
   ///
   /// - assign_list は外部入力の割り当てでなければならない．
-  /// - 結果の FsimResult::tv_num() == 1 が成り立つ．
+  /// - 結果の FsimResults::tv_num() == 1 が成り立つ．
   FsimResults
   run_single2(
     const AssignList& assign_list ///< [in] 値の割当リスト
@@ -208,7 +205,7 @@ public:
 
   /// @brief SPPFPで故障シミュレーションを行う．
   ///
-  /// - 結果の FsimResult::tv_num() == tv_list.size() が成り立つ．
+  /// - 結果の FsimResults::tv_num() == tv_list.size() が成り立つ．
   FsimResults
   run_multi2(
     const std::vector<TestVector>& tv_list, ///< [in] テストベクタのリスト
@@ -279,6 +276,12 @@ private:
     const TpgFaultList& fault_list, ///< [in] 対象の故障のリスト
     bool has_previous_state,        ///< [in] 1時刻前の値を持つ時 true にする．
     bool has_x                      ///< [in] 3値のシミュレーションを行う時 true にする．
+  );
+
+  /// @brief 結果のオブジェクトを作る．
+  FsimResults
+  _make_results(
+    ResultsRep* res
   );
 
 

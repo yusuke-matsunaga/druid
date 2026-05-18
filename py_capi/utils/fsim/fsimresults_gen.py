@@ -9,7 +9,7 @@
 
 from mk_py_capi import PyObjGen
 from mk_py_capi import UlongArg
-from .fsim_args import DiffBitsArg, FsimResultsArg
+from tpg_types import TpgFaultArg
 
 
 class FsimResultsGen(PyObjGen):
@@ -22,7 +22,7 @@ class FsimResultsGen(PyObjGen):
                          source_include_files=['pym/PyFsimResults.h',
                                                'pym/PyDiffBits.h',
                                                'pym/PyTpgFault.h',
-                                               'pym/PyList.h',
+                                               'pym/PyTpgFaultList.h',
                                                'pym/PyUlong.h'])
 
         self.add_dealloc('default')
@@ -33,10 +33,10 @@ class FsimResultsGen(PyObjGen):
                         func_body=meth_tv_num,
                         doc_str='return the number of TestVectors')
 
-        def meth_det_num(writer):
-            writer.gen_return_py_ulong('val.det_num(tv_id)')
-        self.add_method('det_num',
-                        func_body=meth_det_num,
+        def meth_fault_num(writer):
+            writer.gen_return_py_ulong('val.fault_num(tv_id)')
+        self.add_method('fault_num',
+                        func_body=meth_fault_num,
                         arg_list=[UlongArg(name='tv_id',
                                            cvarname='tv_id')],
                         doc_str='return the number of detected faults')
@@ -52,15 +52,24 @@ class FsimResultsGen(PyObjGen):
                                            cvarname='pos')],
                         doc_str='return detected fault')
 
+        def meth_fault_list(writer):
+            writer.gen_return_pyobject('PyTpgFaultList',
+                                       'val.fault_list(tv_id)')
+        self.add_method('fault_list',
+                        func_body=meth_fault_list,
+                        arg_list=[UlongArg(name='tv_id',
+                                           cvarname='tv_id')],
+                        doc_str='return the list of detected faults')
+
         def meth_diffbits(writer):
             writer.gen_return_pyobject('PyDiffBits',
-                                       'val.diffbits(tv_id, pos)')
+                                       'val.diffbits(tv_id, fault)')
         self.add_method('diffbits',
                         func_body=meth_diffbits,
                         arg_list=[UlongArg(name='tv_id',
                                            cvarname='tv_id'),
-                                  UlongArg(name='pos',
-                                           cvarname='pos')],
+                                  TpgFaultArg(name='fault',
+                                              cvarname='fault')],
                         doc_str='return DiffBits of the simulation result')
 
         self.add_conv('default')
