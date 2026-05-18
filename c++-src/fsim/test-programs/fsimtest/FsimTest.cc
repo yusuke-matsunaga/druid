@@ -171,9 +171,8 @@ test2(
       auto tv = tv_list[i];
       auto res = fsim.run_single2(tv);
       bool detected = false;
-      auto n = res.fault_num(0);
-      for ( SizeType i = 0; i < n; ++ i ) {
-	auto fault = res.fault(0, i);
+      auto fault_list = res.fault_list(0);
+      for ( auto fault: fault_list ) {
 	auto fid = fault.id();
 	if ( !det_array[fid] ) {
 	  det_array[fid] = true;
@@ -191,9 +190,8 @@ test2(
     auto res = fsim.run_multi2(tv_list, ppsfp);
     for ( SizeType tv_id = 0; tv_id < ntv; ++ tv_id ) {
       bool detected = false;
-      auto n = res.fault_num(tv_id);
-      for ( SizeType i = 0; i < n; ++ i ) {
-	auto fault = res.fault(tv_id, i);
+      auto fault_list = res.fault_list(tv_id);
+      for ( auto fault: fault_list ) {
 	auto fid = fault.id();
 	if ( !det_array[fid] ) {
 	  det_array[fid] = true;
@@ -216,10 +214,9 @@ test2(
       }
       auto res = fsim.run_multi2(tv_buff, ppsfp);
       for ( SizeType i = 0; i < n; ++ i ) {
-	auto det_num = res.fault_num(i);
+	auto fault_list = res.fault_list(i);
 	bool detected = false;
-	for ( SizeType j = 0; j < det_num; ++ j ) {
-	  auto fault = res.fault(i, j);
+	for ( auto fault: fault_list ) {
 	  auto fid = fault.id();
 	  if ( !det_array[fid] ) {
 	    det_array[fid] = true;
