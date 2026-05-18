@@ -40,6 +40,7 @@ set ( minpat_SOURCES
   FaultGroup.cc
   Dichotomy.cc
   DiGroupMgr.cc
+  NaiveReduce.cc
   )
 
 

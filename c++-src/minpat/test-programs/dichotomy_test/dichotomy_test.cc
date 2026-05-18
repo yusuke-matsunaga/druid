@@ -8,6 +8,7 @@
 
 #include "druid.h"
 #include "Dichotomy.h"
+#include "NaiveReduce.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
 #include "types/TestVector.h"
@@ -151,17 +152,65 @@ dichotomy_test(
   }
 
   auto fault_list = network.rep_fault_list();
-  // fault_list を更新する．
-  auto analyze_option = ConfigParam(option).get_param("analyze");
-  auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
-  auto rep_fault_list = fault_info.rep_fault_list();
-  std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
+  TpgFaultList rep_fault_list1;
+  TpgFaultList rep_fault_list2;
+  {
+    // fault_list を更新する．
+    auto analyze_option = ConfigParam(option).get_param("analyze");
+    auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
+    auto rep_fault_list = fault_info.rep_fault_list();
+    std::cout << "Dichotomy" << std::endl;
+    std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
 
-  Dichotomy::run(fault_info, ConfigParam(option).get_param("analyze"));
+    Dichotomy::run(fault_info, ConfigParam(option).get_param("analyze"));
 
-  auto rep_fault_list2 = fault_info.rep_fault_list();
-  std::cout << "# of reduced faults: " << rep_fault_list2.size() << std::endl;
+    rep_fault_list1 = fault_info.rep_fault_list();
+    std::cout << "# of reduced faults: " << rep_fault_list1.size() << std::endl;
+  }
+  {
+    // fault_list を更新する．
+    std::cout << std::endl;
+    std::cout << "Naive" << std::endl;
+    auto analyze_option = ConfigParam(option).get_param("analyze");
+    auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
+    auto rep_fault_list = fault_info.rep_fault_list();
+    std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
 
+    NaiveReduce::run(fault_info, ConfigParam(option).get_param("analyze"));
+
+    rep_fault_list2 = fault_info.rep_fault_list();
+    std::cout << "# of reduced faults: " << rep_fault_list2.size() << std::endl;
+  }
+  if ( rep_fault_list1.size() != rep_fault_list2.size() ) {
+    auto n1 = rep_fault_list1.size();
+    auto n2 = rep_fault_list2.size();
+    SizeType i1 = 0;
+    SizeType i2 = 0;
+    while ( i1 < n1 && i2 < n2 ) {
+      auto f1 = rep_fault_list1[i1];
+      auto f2 = rep_fault_list2[i2];
+      if ( f1.id() < f2.id() ) {
+	std::cout << "<" << f1.str() << std::endl;
+	++ i1;
+      }
+      else if ( f1.id() > f2.id() ) {
+	std::cout << ">" << f2.str() << std::endl;
+	++ i2;
+      }
+      else {
+	++ i1;
+	++ i2;
+      }
+    }
+    for ( ; i1 < n1; ++ i1 ) {
+      auto f1 = rep_fault_list1[i1];
+      std::cout << "<" << f1.str() << std::endl;
+    }
+    for ( ; i2 < n2; ++ i2 ) {
+      auto f2 = rep_fault_list2[i2];
+      std::cout << "<" << f2.str() << std::endl;
+    }
+  }
   return 0;
 }
 

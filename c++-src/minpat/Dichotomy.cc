@@ -193,24 +193,20 @@ Dichotomy::run(
 		  << mgr.group_num()
 		  << std::endl;
       }
+      no_change = 0;
     }
     else {
       no_change += BATCH_SIZE;
     }
   }
 
-  timer.stop();
   if ( verbose ) {
     std::cout << "# of faults:            " << std::setw(8) << std::right << fault_list.size() << std::endl
 	      << "# of Groups:            " << std::setw(8) << std::right << mgr.group_num() << std::endl
 	      << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl
-	      << "CPU Time:               " << time_str(timer) << std::endl
 	      << "Fsim time:              " << time_str(fsim_timer) << std::endl
 	      << "Dichotomy time:         " << time_str(dicho_timer) << std::endl;
   }
-
-  timer.reset();
-  timer.start();
 
   // DiGroup 内の故障が等価故障かどうか調べる．
   SizeType check_count = 0;
@@ -288,17 +284,13 @@ Dichotomy::run(
     }
   }
 
-  timer.stop();
   if ( verbose ) {
     auto rep_num = fault_info.rep_fault_list().size();
     std::cout << "Equivalence check end:    " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
 	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
-	      << "# of faults:              " << std::setw(8) << std::right << rep_num << std::endl
-	      << "CPU TIme:                 " << time_str(timer) << std::endl;
+	      << "# of faults:              " << std::setw(8) << std::right << rep_num << std::endl;
   }
-  timer.reset();
-  timer.start();
 
   // 残ったグループ内の故障は無関係となる．
   check_count = 0;
@@ -361,7 +353,7 @@ Dichotomy::run(
     std::cout << "Dominance check end:      " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
 	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
-	      << "CPU TIme:                 " << time_str(timer) << std::endl;
+	      << "Total CPU TIme:           " << time_str(timer) << std::endl;
   }
 }
 
