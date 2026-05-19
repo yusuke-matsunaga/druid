@@ -213,10 +213,6 @@ NaiveReduce::run(
 	   !dom_cand_array[fault2.id() * max_fid + fault1.id()] ) {
 	continue;
       }
-      {
-	std::cout << "  " << i1 << ", " << i2 << "/" << nf << "\r";
-	std::cout.flush();
-      }
       NaiveDualEngine engine(fault1, fault2, option);
       auto res11 = engine.solve(true, true);
       ++ check_count;
@@ -224,11 +220,11 @@ NaiveReduce::run(
 	// fault1 と fault2 は排他的
 	continue;
       }
-      SatBool3 res01 = SatBool3::False;
+      SatBool3 res01 = SatBool3::True;
       if ( dom_cand_array[fault1.id() * max_fid + fault2.id()] ) {
 	res01 = engine.solve(false, true);
       }
-      SatBool3 res10 = SatBool3::False;
+      SatBool3 res10 = SatBool3::True;
       if ( dom_cand_array[fault2.id() * max_fid + fault1.id()] ) {
 	res10 = engine.solve(true, false);
       }
@@ -237,19 +233,12 @@ NaiveReduce::run(
 	  // fault1 と fault2 は等価故障
 	  // fault1.id() < fault2.id() のはず
 	  fault_info.set_rep(fault2, fault1);
-	  if ( fault2.str() == "I#35:O:SA0" ) {
-	    std::cout << fault2.str() << " is equivalent to " << fault1.str() << std::endl;
-	  }
 	  ++ succ_count;
 	  continue;
 	}
 	else if ( res10 == SatBool3::True ) {
 	  // fault1 は fault2 に支配されている．
 	  fault_info.set_dominator(fault1, fault2);
-	  if ( fault1.str() == "I#35:O:SA0" ) {
-	    std::cout << fault1.str() << " is dominated by " << fault2.str()
-		      << " (A)" << std::endl;
-	  }
 	  ++ succ_count;
 	  break;
 	}
@@ -258,10 +247,6 @@ NaiveReduce::run(
 	if ( res10 == SatBool3::False ) {
 	  // fault2 は fault1 に支配されている．
 	  fault_info.set_dominator(fault2, fault1);
-	  if ( fault2.str() == "I#35:O:SA0" ) {
-	    std::cout << fault2.str() << " is dominated by " << fault1.str()
-		      << " (B)" << std::endl;
-	  }
 	  ++ succ_count;
 	  continue;
 	}

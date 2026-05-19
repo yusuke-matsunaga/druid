@@ -314,7 +314,7 @@ Dichotomy::run(
 	continue;
       }
       if ( debug > 2 ) {
-	std::cout << "  Group#" << group1->id() << ":";
+	std::cout << "  Group#" << group2->id() << ":";
 	for ( auto fault: fault_list2 ) {
 	  std::cout << " " << fault.str();
 	}
@@ -338,7 +338,8 @@ Dichotomy::run(
 	    fault_info.set_dominator(fault2, fault1);
 	    ++ succ_count;
 	    if ( debug > 0 ) {
-	      std::cout << fault2.str() << " is dominated by "
+	      std::cout << "    "
+			<< fault2.str() << " is dominated by "
 			<< fault1.str() << std::endl;
 	    }
 	    continue;

@@ -164,6 +164,8 @@ DiGroupMgr::print(
   std::ostream& s
 ) const
 {
+  s << "================================" << std::endl
+    << " # of Groups: " << group_num() << std::endl;
   SizeType i = 0;
   SizeType nf = 0;
   for ( auto group: group_list() ) {
@@ -171,16 +173,16 @@ DiGroupMgr::print(
     for ( auto fault: group->fault_list() ) {
       s << "    " << fault.str() << std::endl;
     }
-    s << std::endl;
     s << std::endl << "  dominance_list:";
     for ( auto g: group->dominance_list() ) {
       s << " " << g->id();
     }
-    s << std::endl;
+    s << std::endl << std::endl;
     nf += group->fault_list().size();
     ++ i;
   }
-  s << "# of faults: " << nf << std::endl;
+  s << "# of faults: " << nf << std::endl
+    << "================================" << std::endl;
 }
 
 // @brief 等価比較演算子
