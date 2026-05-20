@@ -31,6 +31,7 @@ time_str(
   return buf.str();
 }
 
+// count_array に従って比較を行うファンクタクラス
 class FaultComp
 {
 public:
@@ -76,7 +77,155 @@ private:
 
 };
 
+// 2つの故障間の故障シミュレーションの結果を表すクラス
+class PatMgr
+{
+public:
+
+  /// @brief コンストラクタ
+  PatMgr(
+    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
+    SizeType size                   ///< [in] 最大サイズ
+  ) : mFaultList{fault_list},
+      mSize{size},
+      mArray(mSize * mSize, 0)
+  {
+  }
+
+  /// @brief デストラクタ
+  ~PatMgr() = default;
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障シミュレーションの結果を登録する．
+  /// @return 変化があったら true を返す．
+  bool
+  add(
+    const FsimResults& res ///< [in] 故障シミュレーションの結果
+  );
+
+  /// @brief 支配する可能性のある故障のリストを返す．
+  TpgFaultList
+  domcand_list(
+    const TpgFault& fault
+  ) const;
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// 故障対に対するインデックスを計算する．
+  SizeType
+  _index(
+    const TpgFault& fault1,
+    const TpgFault& fault2
+  ) const
+  {
+    return fault1.id() * mSize + fault2.id();
+  }
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
+  // データメンバ
+  //////////////////////////////////////////////////////////////////////
+
+  // 対象の故障のリスト
+  TpgFaultList mFaultList;
+
+  // サイズ
+  SizeType mSize;
+
+  // 2つの故障間の関係を表すビットパタンの配列
+  // サイズは mSize * mSize
+  // ビットの意味は以下の通り
+  // 0: 故障1が故障2を支配する可能性なし(1, 0 のパタンあり)
+  // 1: 故障1と故障2を同時に検出できた(1, 1 のパタンあり)
+  std::vector<std::uint8_t> mArray;
+
+};
+
+// @brief 故障シミュレーションの結果を登録する．
+bool
+PatMgr::add(
+  const FsimResults& res
+)
+{
+  auto ntv = res.tv_num();
+  // 各故障に対するビットパタンを作る．
+  std::vector<PackedVal> pat_array(mSize, 0);
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    PackedVal pat = 1ULL << i;
+    for ( auto fault: res.fault_list(i) ) {
+      pat_array[fault.id()] |= pat;
+    }
+  }
+
+  auto nf = mFaultList.size();
+  bool change = false;
+  for ( SizeType i1 = 0; i1 < nf - 1; ++ i1 ) {
+    auto fault1 = mFaultList[i1];
+    auto pat1 = pat_array[fault1.id()];
+    for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
+      auto fault2 = mFaultList[i2];
+      auto idx1 = _index(fault1, fault2);
+      auto idx2 = _index(fault2, fault1);
+      auto pat2 = pat_array[fault2.id()];
+      if ( (pat1 & pat2) != PV_ALL0 ) {
+#if 0
+	if ( (mArray[idx1] & 2) == 0 ) {
+	  change = true;
+	}
+#endif
+	mArray[idx1] |= 2;
+#if 0
+	if ( (mArray[idx2] & 2) == 0 ) {
+	  change = true;
+	}
+#endif
+	mArray[idx2] |= 2;
+      }
+      if ( (pat1 & ~pat2) != PV_ALL0 ) {
+	if ( (mArray[idx1] & 1) == 0 ) {
+	  change = true;
+	}
+	mArray[idx1] |= 1;
+      }
+      if ( (pat2 & ~pat1) != PV_ALL0 ) {
+	if ( (mArray[idx2] & 1) == 0 ) {
+	  change = true;
+	}
+	mArray[idx2] |= 1;
+      }
+    }
+  }
+  return change;
+}
+
+// @brief 支配する可能性のある故障のリストを返す．
+TpgFaultList
+PatMgr::domcand_list(
+  const TpgFault& fault
+) const
+{
+  TpgFaultList ans_list;
+  for ( auto fault2: mFaultList ) {
+    auto idx = _index(fault, fault2);
+    if ( mArray[idx] == 2 ) {
+      ans_list.push_back(fault2);
+    }
+  }
+  return ans_list;
+}
+
 END_NONAMESPACE
+
 
 // @brief 故障グループの細分化を行ってから支配関係を調べる．
 void
@@ -110,22 +259,13 @@ NaiveReduce::run(
     heap.put_item(fault.id());
   }
 
-  // 支配故障の候補集合を表すビットベクタ
-  auto max_fid = network.max_fault_id();
-  std::vector<bool> dom_cand_array(max_fid * max_fid, false);
-  std::vector<bool> compat_array(max_fid * max_fid, false);
-  for ( auto fault1: fault_list ) {
-    for ( auto fault2: fault_list ) {
-      dom_cand_array[fault1.id() * max_fid + fault2.id()] = true;
-    }
-  }
-
   Timer timer1;
   timer1.start();
 
   SizeType tv_count = 0;
   std::mt19937 randgen;
   SizeType no_change = 0;
+  PatMgr patmgr(fault_list, network.max_fault_id());
   while ( no_change < NO_CHANGE_LIMIT ) {
     std::vector<TestVector> tv_list(BATCH_SIZE);
     for ( SizeType base = 0; base < BATCH_SIZE; ++ base ) {
@@ -147,42 +287,7 @@ NaiveReduce::run(
     auto res = fsim.run_multi(tv_list, true);
     tv_count += BATCH_SIZE;
 
-    auto ntv = res.tv_num();
-    bool change = false;
-    for ( SizeType i = 0; i < ntv; ++ i ) {
-      std::vector<bool> mark(max_fid, false);
-      for ( auto fault: res.fault_list(i) ) {
-	mark[fault.id()] = true;
-      }
-#if 0
-      auto n1 = res.fault_num(i);
-      for ( SizeType i1 = 0; i1 < n1 - 1; ++ i1 ) {
-	auto fault1 = res.fault(i, i1);
-	for ( SizeType i2 = i1 + 1; i2 < n1; ++ i2 ) {
-	  auto fault2 = res.fault(i, i2);
-	  if ( !compat_array[fault1.id() * max_fid + fault2.id()] ) {
-	    compat_array[fault1.id() * max_fid + fault2.id()] = true;
-	    compat_array[fault2.id() * max_fid + fault1.id()] = true;
-	    change = true;
-	  }
-	}
-      }
-#endif
-      for ( auto fault1: res.fault_list(i) ) {
-	for ( auto fault2: fault_list ) {
-	  if ( fault1 == fault2 ) {
-	    continue;
-	  }
-	  if ( dom_cand_array[fault1.id() * max_fid + fault2.id()] ) {
-	    if ( !mark[fault2.id()] ) {
-	      // fault1 が fault2 を支配することはない．
-	      dom_cand_array[fault1.id() * max_fid + fault2.id()] = false;
-	      change = true;
-	    }
-	  }
-	}
-      }
-    }
+    auto change = patmgr.add(res);
     if ( change ) {
       no_change = 0;
     }
@@ -198,58 +303,21 @@ NaiveReduce::run(
 
   Timer timer2;
   timer2.start();
-  auto nf = fault_list.size();
-  for ( SizeType i1 = 0; i1 < nf - 1; ++ i1 ) {
-    auto fault1 = fault_list[i1];
+  for ( auto fault1: fault_list ) {
     if ( !fault_info.is_rep(fault1) ) {
       continue;
     }
-    for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
-      auto fault2 = fault_list[i2];
+    for ( auto fault2: patmgr.domcand_list(fault1) ) {
       if ( !fault_info.is_rep(fault2) ) {
 	continue;
       }
-      if ( !dom_cand_array[fault1.id() * max_fid + fault2.id()] &&
-	   !dom_cand_array[fault2.id() * max_fid + fault1.id()] ) {
-	continue;
-      }
       NaiveDualEngine engine(fault1, fault2, option);
-      auto res11 = engine.solve(true, true);
       ++ check_count;
-      if ( res11 != SatBool3::True ) {
-	// fault1 と fault2 は排他的
-	continue;
-      }
-      SatBool3 res01 = SatBool3::True;
-      if ( dom_cand_array[fault1.id() * max_fid + fault2.id()] ) {
-	res01 = engine.solve(false, true);
-      }
-      SatBool3 res10 = SatBool3::True;
-      if ( dom_cand_array[fault2.id() * max_fid + fault1.id()] ) {
-	res10 = engine.solve(true, false);
-      }
-      if ( res01 == SatBool3::False ) {
-	if ( res10 == SatBool3::False ) {
-	  // fault1 と fault2 は等価故障
-	  // fault1.id() < fault2.id() のはず
-	  fault_info.set_rep(fault2, fault1);
-	  ++ succ_count;
-	  continue;
-	}
-	else if ( res10 == SatBool3::True ) {
-	  // fault1 は fault2 に支配されている．
-	  fault_info.set_dominator(fault1, fault2);
-	  ++ succ_count;
-	  break;
-	}
-      }
-      else if ( res01 == SatBool3::True ) {
-	if ( res10 == SatBool3::False ) {
-	  // fault2 は fault1 に支配されている．
-	  fault_info.set_dominator(fault2, fault1);
-	  ++ succ_count;
-	  continue;
-	}
+      auto res10 = engine.solve(true, false);
+      if ( res10 == SatBool3::False ) {
+	// fault2 は fault1 に支配されている．
+	fault_info.set_dominator(fault2, fault1);
+	++ succ_count;
       }
     }
   }
