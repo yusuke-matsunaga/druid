@@ -144,10 +144,8 @@ private:
 
   // 2つの故障間の関係を表すビットパタンの配列
   // サイズは mSize * mSize
-  // ビットの意味は以下の通り
   // 0: 故障1が故障2を支配する可能性なし(1, 0 のパタンあり)
-  // 1: 故障1と故障2を同時に検出できた(1, 1 のパタンあり)
-  std::vector<std::uint8_t> mArray;
+  std::vector<bool> mArray;
 
 };
 
@@ -174,34 +172,20 @@ PatMgr::add(
     auto pat1 = pat_array[fault1.id()];
     for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
       auto fault2 = mFaultList[i2];
-      auto idx1 = _index(fault1, fault2);
-      auto idx2 = _index(fault2, fault1);
       auto pat2 = pat_array[fault2.id()];
-      if ( (pat1 & pat2) != PV_ALL0 ) {
-#if 0
-	if ( (mArray[idx1] & 2) == 0 ) {
-	  change = true;
-	}
-#endif
-	mArray[idx1] |= 2;
-#if 0
-	if ( (mArray[idx2] & 2) == 0 ) {
-	  change = true;
-	}
-#endif
-	mArray[idx2] |= 2;
-      }
       if ( (pat1 & ~pat2) != PV_ALL0 ) {
-	if ( (mArray[idx1] & 1) == 0 ) {
+	auto idx1 = _index(fault1, fault2);
+	if ( !mArray[idx1] ) {
 	  change = true;
 	}
-	mArray[idx1] |= 1;
+	mArray[idx1] = true;
       }
       if ( (pat2 & ~pat1) != PV_ALL0 ) {
-	if ( (mArray[idx2] & 1) == 0 ) {
+	auto idx2 = _index(fault2, fault1);
+	if ( !mArray[idx2] ) {
 	  change = true;
 	}
-	mArray[idx2] |= 1;
+	mArray[idx2] = true;
       }
     }
   }
@@ -216,8 +200,11 @@ PatMgr::domcand_list(
 {
   TpgFaultList ans_list;
   for ( auto fault2: mFaultList ) {
+    if ( fault2 == fault ) {
+      continue;
+    }
     auto idx = _index(fault, fault2);
-    if ( mArray[idx] == 2 ) {
+    if ( !mArray[idx] ) {
       ans_list.push_back(fault2);
     }
   }
