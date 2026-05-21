@@ -110,7 +110,7 @@ Dichotomy::run(
 )
 {
   SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
-  SizeType BATCH_SIZE = std::min(32, option.get_int_elem("batch_size", 16));
+  SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -138,6 +138,9 @@ Dichotomy::run(
 
   Timer timer;
   timer.start();
+
+  Timer scr_timer;
+  scr_timer.start();
 
   Timer fsim_timer;
   Timer dicho_timer;
@@ -199,18 +202,19 @@ Dichotomy::run(
       no_change += BATCH_SIZE;
     }
   }
+  scr_timer.stop();
 
   if ( verbose ) {
     std::cout << "# of faults:            " << std::setw(8) << std::right << fault_list.size() << std::endl
 	      << "# of Groups:            " << std::setw(8) << std::right << mgr.group_num() << std::endl
-	      << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl
-	      << "Fsim time:              " << time_str(fsim_timer) << std::endl
-	      << "Dichotomy time:         " << time_str(dicho_timer) << std::endl;
+	      << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl;
   }
 
   // DiGroup 内の故障が等価故障かどうか調べる．
   SizeType check_count = 0;
   SizeType succ_count = 0;
+  Timer timer_phase1;
+  timer_phase1.start();
   for ( auto group: mgr.group_list() ) {
     auto& fault_list = group->fault_list();
     auto nf = fault_list.size();
@@ -283,10 +287,12 @@ Dichotomy::run(
       }
     }
   }
+  timer_phase1.stop();
 
   if ( verbose ) {
     auto rep_num = fault_info.rep_fault_list().size();
-    std::cout << "Equivalence check end:    " << std::endl
+    std::cout << std::endl
+	      << "Equivalence check end:    " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
 	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
 	      << "# of faults:              " << std::setw(8) << std::right << rep_num << std::endl;
@@ -295,6 +301,8 @@ Dichotomy::run(
   // 残ったグループ内の故障は無関係となる．
   check_count = 0;
   succ_count = 0;
+  Timer timer_phase2;
+  timer_phase2.start();
   for ( auto group1: mgr.group_list() ) {
     auto fault_list1 = rep_fault_list(group1->fault_list(), fault_info);
     if ( fault_list1.empty() ) {
@@ -348,12 +356,21 @@ Dichotomy::run(
       }
     }
   }
+  timer_phase2.stop();
 
   timer.stop();
   if ( verbose ) {
-    std::cout << "Dominance check end:      " << std::endl
+    std::cout << std::endl
+	      << "Dominance check end:      " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
 	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
+	      << "---------------------------------------------------------------"
+	      << std::endl
+	      << "Screening time:           " << time_str(scr_timer) << std::endl
+	      << " (Fsim time):             " << time_str(fsim_timer) << std::endl
+	      << " (Dichotomy time):        " << time_str(dicho_timer) << std::endl
+	      << "Phase1 Time:              " << time_str(timer_phase1) << std::endl
+	      << "Phase2 Time:              " << time_str(timer_phase2) << std::endl
 	      << "Total CPU TIme:           " << time_str(timer) << std::endl;
   }
 }

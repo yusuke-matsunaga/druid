@@ -108,6 +108,12 @@ public:
     const FsimResults& res ///< [in] 故障シミュレーションの結果
   );
 
+  /// @brief 等価な可能性のある故障のリストを返す．
+  TpgFaultList
+  eqcand_list(
+    const TpgFault& fault
+  ) const;
+
   /// @brief 支配する可能性のある故障のリストを返す．
   TpgFaultList
   domcand_list(
@@ -192,6 +198,26 @@ PatMgr::add(
   return change;
 }
 
+// @brief 等価故障の可能性のあるリストを返す．
+TpgFaultList
+PatMgr::eqcand_list(
+  const TpgFault& fault
+) const
+{
+  TpgFaultList ans_list;
+  for ( auto fault2: mFaultList ) {
+    if ( fault2 == fault ) {
+      continue;
+    }
+    auto idx1 = _index(fault, fault2);
+    auto idx2 = _index(fault2, fault);
+    if ( !mArray[idx1] && !mArray[idx2] ) {
+      ans_list.push_back(fault2);
+    }
+  }
+  return ans_list;
+}
+
 // @brief 支配する可能性のある故障のリストを返す．
 TpgFaultList
 PatMgr::domcand_list(
@@ -222,7 +248,7 @@ NaiveReduce::run(
 )
 {
   SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
-  SizeType BATCH_SIZE = std::min(32, option.get_int_elem("batch_size", 16));
+  SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
   auto verbose = option.get_bool_elem("verbose", false);
 
   Timer timer;
@@ -249,6 +275,7 @@ NaiveReduce::run(
   Timer timer1;
   timer1.start();
 
+  Timer fsim_timer;
   SizeType tv_count = 0;
   std::mt19937 randgen;
   SizeType no_change = 0;
@@ -271,7 +298,9 @@ NaiveReduce::run(
 	tv_list[base] = tv1;
       }
     }
+    fsim_timer.start();
     auto res = fsim.run_multi(tv_list, true);
+    fsim_timer.stop();
     tv_count += BATCH_SIZE;
 
     auto change = patmgr.add(res);
@@ -284,12 +313,42 @@ NaiveReduce::run(
   }
   timer1.stop();
   if ( verbose ) {
-    std::cout << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl
-	      << "CPU Time:               " << time_str(timer1) << std::endl;
+    std::cout << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl;
   }
 
-  Timer timer2;
-  timer2.start();
+  Timer timer_phase1;
+  timer_phase1.start();
+  for ( auto fault1: fault_list ) {
+    if ( !fault_info.is_rep(fault1) ) {
+      continue;
+    }
+    for ( auto fault2: patmgr.eqcand_list(fault1) ) {
+      if ( !fault_info.is_rep(fault2) ) {
+	continue;
+      }
+      NaiveDualEngine engine(fault1, fault2, option);
+      ++ check_count;
+      auto res10 = engine.solve(true, false);
+      auto res01 = engine.solve(false, true);
+      if ( res10 == SatBool3::False && res01 == SatBool3::False ) {
+	// fault1 と fault2 は等価
+	fault_info.set_rep(fault2, fault1);
+	++ succ_count;
+      }
+    }
+  }
+  timer_phase1.stop();
+  if ( verbose ) {
+    std::cout << std::endl
+	      << "Equivalence check end:    " << std::endl
+	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
+	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl;
+  }
+
+  Timer timer_phase2;
+  timer_phase2.start();
+  check_count = 0;
+  succ_count = 0;
   for ( auto fault1: fault_list ) {
     if ( !fault_info.is_rep(fault1) ) {
       continue;
@@ -308,14 +367,19 @@ NaiveReduce::run(
       }
     }
   }
-  timer2.stop();
+  timer_phase2.stop();
 
   timer.stop();
   if ( verbose ) {
-    std::cout << "Dominance check end:      " << std::endl
+    std::cout << std::endl
+	      << "Dominance check end:      " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
 	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
-	      << "Phase2 Time:              " << time_str(timer2) << std::endl
+	      << "-------------------------------------------------------" << std::endl
+	      << "Screening Time:           " << time_str(timer1) << std::endl
+	      << " (Fsim Time):             " << time_str(fsim_timer) << std::endl
+	      << "Phase1 Time:              " << time_str(timer_phase1) << std::endl
+	      << "Phase2 Time:              " << time_str(timer_phase2) << std::endl
 	      << "Total CPU Time:           " << time_str(timer) << std::endl;
   }
 }

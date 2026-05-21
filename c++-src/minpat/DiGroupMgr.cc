@@ -8,6 +8,7 @@
 
 #include "DiGroupMgr.h"
 #include "types/TpgNetwork.h"
+#include "types/PackedVal.h"
 #include "ym/MtMgr.h"
 #include "ym/IdPool.h"
 
@@ -16,12 +17,14 @@ BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
 
-// dichotomy() で用いるデータ構造
+// 分割されたグループの情報
+struct SubGroup {
+  PackedVal d_pat; // 検出パタン
+  DiGroup* group;  // 分割されたグループ
+};
+
 struct SubGroupInfo {
-  // 有効な d_pat のリスト
-  std::vector<SizeType> d_pat_list;
-  // d_pat をキーにして対応するグループを持つ辞書
-  std::unordered_map<SizeType, DiGroup*> subgroup_dict;
+  std::vector<SubGroup> sglist;
 };
 
 END_NONAMESPACE
@@ -71,9 +74,9 @@ DiGroupMgr::dichotomy(
 {
   auto network = res.network();
   auto ntv = res.tv_num();
-  std::vector<SizeType> det_mark(network.max_fault_id(), 0);
+  std::vector<PackedVal> det_mark(network.max_fault_id(), 0);
   for ( SizeType i = 0; i < ntv; ++ i ) {
-    SizeType bit = 1 << i;
+    PackedVal bit = 1 << i;
     for ( auto fault: res.fault_list(i) ) {
       det_mark[fault.id()] |= bit;
     }
@@ -84,58 +87,61 @@ DiGroupMgr::dichotomy(
 
   // まずグループの数を数える．
   auto ng = mgr.group_num();
-  std::vector<SubGroupInfo> sginfo_list(ng);
+  std::vector<std::vector<PackedVal>> d_list_array(ng);
   SizeType new_group_num = 0;
   for ( auto src_group: src_group_list ) {
-    auto& sginfo = sginfo_list[src_group->id()];
-    std::unordered_set<SizeType> d_hash;
+    std::unordered_set<PackedVal> d_hash;
+    auto& d_list = d_list_array[src_group->id()];
     for ( auto fault: src_group->fault_list() ) {
       auto d = det_mark[fault.id()];
       if ( d_hash.count(d) == 0 ) {
 	d_hash.insert(d);
-	sginfo.d_pat_list.push_back(d);
+	d_list.push_back(d);
 	++ new_group_num;
       }
     }
-    std::sort(sginfo.d_pat_list.begin(), sginfo.d_pat_list.end(),
-	      std::greater<>());
+    std::sort(d_list.begin(), d_list.end(), std::greater<>());
   }
 
   DiGroupMgr new_mgr;
   new_mgr.mGroupArray.reserve(new_group_num);
   new_mgr.mGroupList.reserve(new_group_num);
+  std::vector<SubGroupInfo> sginfo_array(ng);
   for ( SizeType id = 0; id < ng; ++ id ) {
     auto src_group = src_group_list[id];
     auto& fault_list = src_group->fault_list();
     std::unordered_map<SizeType, TpgFaultList> fault_list_dict;
-    auto& sginfo = sginfo_list[id];
-    for ( auto d: sginfo.d_pat_list ) {
+    auto& d_list = d_list_array[id];
+    for ( auto d: d_list ) {
       fault_list_dict.emplace(d, TpgFaultList());
     }
     for ( auto fault: fault_list ) {
       auto d = det_mark[fault.id()];
       fault_list_dict.at(d).push_back(fault);
     }
-    for ( auto d: sginfo.d_pat_list ) {
+    auto& sginfo = sginfo_array[id];
+    for ( auto d: d_list ) {
       auto& fault_list = fault_list_dict.at(d);
       auto new_group = new_mgr._new_group(fault_list);
-      sginfo.subgroup_dict.emplace(d, new_group);
+      sginfo.sglist.push_back({d, new_group});
     }
   }
 
   // dominance list を作る．
   for ( SizeType id = 0; id < ng; ++ id ) {
     auto src_group = src_group_list[id];
-    auto& sginfo = sginfo_list[id];
+    auto& sginfo = sginfo_array[id];
     std::vector<DiGroup*> dom_list;
     auto& src_dom_list = src_group->dominance_list();
-    for ( auto d: sginfo.d_pat_list ) {
-      auto group = sginfo.subgroup_dict.at(d);
+    for ( auto& sg: sginfo.sglist ) {
+      auto d = sg.d_pat;
+      auto group = sg.group;
       for ( auto src_dom_group: src_dom_list ) {
-	auto& src_dom_sginfo = sginfo_list[src_dom_group->id()];
-	for ( auto d1: src_dom_sginfo.d_pat_list ) {
+	auto& src_dom_sginfo = sginfo_array[src_dom_group->id()];
+	for ( auto& sg1: src_dom_sginfo.sglist ) {
+	  auto d1 = sg1.d_pat;
 	  if ( (d & d1) == d ) {
-	    auto src_dom_subgroup = src_dom_sginfo.subgroup_dict.at(d1);
+	    auto src_dom_subgroup = sg1.group;
 	    dom_list.push_back(src_dom_subgroup);
 	  }
 	}
