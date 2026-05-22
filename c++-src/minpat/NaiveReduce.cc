@@ -249,6 +249,7 @@ NaiveReduce::run(
 {
   SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
   SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
+  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 10);
   auto verbose = option.get_bool_elem("verbose", false);
 
   Timer timer;
@@ -328,8 +329,8 @@ NaiveReduce::run(
       }
       NaiveDualEngine engine(fault1, fault2, option);
       ++ check_count;
-      auto res10 = engine.solve(true, false);
-      auto res01 = engine.solve(false, true);
+      auto res10 = engine.solve(true, false, TIME_LIMIT);
+      auto res01 = engine.solve(false, true, TIME_LIMIT);
       if ( res10 == SatBool3::False && res01 == SatBool3::False ) {
 	// fault1 と fault2 は等価
 	fault_info.set_rep(fault2, fault1);
@@ -359,7 +360,7 @@ NaiveReduce::run(
       }
       NaiveDualEngine engine(fault1, fault2, option);
       ++ check_count;
-      auto res10 = engine.solve(true, false);
+      auto res10 = engine.solve(true, false, TIME_LIMIT);
       if ( res10 == SatBool3::False ) {
 	// fault2 は fault1 に支配されている．
 	fault_info.set_dominator(fault2, fault1);

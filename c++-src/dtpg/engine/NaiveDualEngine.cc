@@ -71,7 +71,8 @@ NaiveDualEngine::~NaiveDualEngine()
 SatBool3
 NaiveDualEngine::solve(
   bool detect1,
-  bool detect2
+  bool detect2,
+  SizeType time_limit
 )
 {
   std::vector<SatLiteral> tmp_lits;
@@ -88,7 +89,7 @@ NaiveDualEngine::solve(
   else {
     tmp_lits.push_back(mClit2);
   }
-  return solver().solve(tmp_lits);
+  return solver().solve(tmp_lits, time_limit);
 }
 
 // @brief SATの解から十分条件を得る．

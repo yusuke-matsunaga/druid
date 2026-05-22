@@ -111,6 +111,7 @@ Dichotomy::run(
 {
   SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
   SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
+  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 10);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -238,26 +239,16 @@ Dichotomy::run(
 	}
 	NaiveDualEngine engine(fault1, fault2, option);
 	++ check_count;
-	auto res01 = engine.solve(false, true);
-	auto res10 = engine.solve(true, false);
+	auto res01 = engine.solve(false, true, TIME_LIMIT);
+	auto res10 = engine.solve(true, false, TIME_LIMIT);
 	if ( res01 == SatBool3::False ) {
 	  if ( res10 == SatBool3::False ) {
 	    // fault1 と fault2 は等価故障
-	    if ( fault1.id() < fault2.id() ) {
-	      fault_info.set_rep(fault2, fault1);
-	      ++ succ_count;
-	      if ( debug > 0 ) {
-		std::cout << fault1.str() << " and " << fault2.str()
-			  << " are equivalent" << std::endl;
-	      }
-	    }
-	    else {
-	      fault_info.set_rep(fault1, fault2);
-	      ++ succ_count;
-	      if ( debug > 0 ) {
-		std::cout << fault2.str() << " and " << fault1.str()
-			  << " are equivalent" << std::endl;
-	      }
+	    fault_info.set_rep(fault2, fault1);
+	    ++ succ_count;
+	    if ( debug > 0 ) {
+	      std::cout << fault1.str() << " and " << fault2.str()
+			<< " are equivalent" << std::endl;
 	    }
 	    continue;
 	  }
@@ -340,7 +331,7 @@ Dichotomy::run(
 	    continue;
 	  }
 	  NaiveDualEngine engine(fault1, fault2, option);
-	  auto res = engine.solve(true, false);
+	  auto res = engine.solve(true, false, TIME_LIMIT);
 	  ++ check_count;
 	  if ( res == SatBool3::False ) {
 	    fault_info.set_dominator(fault2, fault1);

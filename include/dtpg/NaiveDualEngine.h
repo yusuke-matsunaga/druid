@@ -56,8 +56,9 @@ public:
   /// @brief 問題を解く
   SatBool3
   solve(
-    bool detect1, ///< [in] fault1 を検出する時 true にする．
-    bool detect2  ///< [in] fault2 を検出する時 true にする．
+    bool detect1,           ///< [in] fault1 を検出する時 true にする．
+    bool detect2,           ///< [in] fault2 を検出する時 true にする．
+    SizeType time_limit = 0 ///< [in] 時間制約(秒) 0 で制約なし
   );
 
   /// @brief SATの解から十分条件を得る(fault1用)．
