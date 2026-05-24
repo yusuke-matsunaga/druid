@@ -43,6 +43,7 @@ dichotomy_test(
   bool mffc_reduction = false;
   int no_change_limit = 0;
   int batch_size = 0;
+  int sat_time_limit = 0;
   bool multi_thread = false;
   bool verbose = false;
   int debug = 0;
@@ -92,6 +93,15 @@ dichotomy_test(
     }
     else if ( arg == "--multi-thread" ) {
       multi_thread = true;
+    }
+    else if ( arg == "--sat-time-limit" ) {
+      ++ argpos;
+      if ( argpos >= argc ) {
+	std::cerr << "'--sat-time-limit' requires <int> value";
+	return 2;
+      }
+      std::string val_str = argv[argpos];
+      sat_time_limit = stoi(val_str);
     }
     else if ( arg == "--verbose" ) {
       verbose = true;
@@ -148,25 +158,15 @@ dichotomy_test(
     if ( batch_size > 0 ) {
       analyze_option.add("batch_size", batch_size);
     }
+    if ( sat_time_limit > 0 ) {
+      analyze_option.add("time_limit", sat_time_limit);
+    }
     option.add("analyze", analyze_option);
   }
 
   auto fault_list = network.rep_fault_list();
-  TpgFaultList rep_fault_list1;
+
   TpgFaultList rep_fault_list2;
-  {
-    // fault_list を更新する．
-    auto analyze_option = ConfigParam(option).get_param("analyze");
-    auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
-    auto rep_fault_list = fault_info.rep_fault_list();
-    std::cout << "Dichotomy" << std::endl;
-    std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
-
-    Dichotomy::run(fault_info, ConfigParam(option).get_param("analyze"));
-
-    rep_fault_list1 = fault_info.rep_fault_list();
-    std::cout << "# of reduced faults: " << rep_fault_list1.size() << std::endl;
-  }
   {
     // fault_list を更新する．
     std::cout << std::endl;
@@ -181,34 +181,39 @@ dichotomy_test(
     rep_fault_list2 = fault_info.rep_fault_list();
     std::cout << "# of reduced faults: " << rep_fault_list2.size() << std::endl;
   }
-  if ( rep_fault_list1.size() != rep_fault_list2.size() ) {
-    auto n1 = rep_fault_list1.size();
-    auto n2 = rep_fault_list2.size();
-    SizeType i1 = 0;
-    SizeType i2 = 0;
-    while ( i1 < n1 && i2 < n2 ) {
-      auto f1 = rep_fault_list1[i1];
-      auto f2 = rep_fault_list2[i2];
-      if ( f1.id() < f2.id() ) {
-	std::cout << "<" << f1.str() << std::endl;
-	++ i1;
-      }
-      else if ( f1.id() > f2.id() ) {
-	std::cout << ">" << f2.str() << std::endl;
-	++ i2;
-      }
-      else {
-	++ i1;
-	++ i2;
-      }
+
+  TpgFaultList rep_fault_list1;
+  {
+    // fault_list を更新する．
+    auto analyze_option = ConfigParam(option).get_param("analyze");
+    auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
+    auto rep_fault_list = fault_info.rep_fault_list();
+    std::cout << "Dichotomy" << std::endl;
+    std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
+
+    Dichotomy::run(fault_info, ConfigParam(option).get_param("analyze"));
+
+    rep_fault_list1 = fault_info.rep_fault_list();
+    std::cout << "# of reduced faults: " << rep_fault_list1.size() << std::endl;
+  }
+
+  std::unordered_set<SizeType> map1;
+  for ( auto fault: rep_fault_list1 ) {
+    map1.insert(fault.id());
+  }
+  std::unordered_set<SizeType> map2;
+  for ( auto fault: rep_fault_list2 ) {
+    map2.insert(fault.id());
+  }
+
+  for ( auto fault: rep_fault_list1 ) {
+    if ( map2.count(fault.id()) == 0 ) {
+      std::cout << "1: " << fault.str() << std::endl;
     }
-    for ( ; i1 < n1; ++ i1 ) {
-      auto f1 = rep_fault_list1[i1];
-      std::cout << "<" << f1.str() << std::endl;
-    }
-    for ( ; i2 < n2; ++ i2 ) {
-      auto f2 = rep_fault_list2[i2];
-      std::cout << "<" << f2.str() << std::endl;
+  }
+  for ( auto fault: rep_fault_list2 ) {
+    if ( map1.count(fault.id()) == 0 ) {
+      std::cout << "2: " << fault.str() << std::endl;
     }
   }
   return 0;

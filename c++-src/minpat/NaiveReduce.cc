@@ -249,7 +249,7 @@ NaiveReduce::run(
 {
   SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
   SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
-  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 10);
+  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
   auto verbose = option.get_bool_elem("verbose", false);
 
   Timer timer;
