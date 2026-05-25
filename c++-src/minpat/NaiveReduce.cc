@@ -88,7 +88,8 @@ public:
     SizeType size                   ///< [in] 最大サイズ
   ) : mFaultList{fault_list},
       mSize{size},
-      mArray(mSize * mSize, 0)
+      mArray(mSize * mSize, 0),
+      mDomCandListArray(mSize)
   {
   }
 
@@ -153,6 +154,12 @@ private:
   // 0: 故障1が故障2を支配する可能性なし(1, 0 のパタンあり)
   std::vector<bool> mArray;
 
+  // 支配する故障候補のリストの配列
+  std::vector<TpgFaultList> mDomCandListArray;
+
+  // mDomCandListArray が初期化されていたら true となるフラグ
+  bool mInitialized{false};
+
 };
 
 // @brief 故障シミュレーションの結果を登録する．
@@ -172,30 +179,54 @@ PatMgr::add(
   }
 
   auto nf = mFaultList.size();
-  bool change = false;
-  for ( SizeType i1 = 0; i1 < nf - 1; ++ i1 ) {
-    auto fault1 = mFaultList[i1];
-    auto pat1 = pat_array[fault1.id()];
-    for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
-      auto fault2 = mFaultList[i2];
-      auto pat2 = pat_array[fault2.id()];
-      if ( (pat1 & ~pat2) != PV_ALL0 ) {
-	auto idx1 = _index(fault1, fault2);
-	if ( !mArray[idx1] ) {
-	  change = true;
+  if ( mInitialized ) {
+    bool change = false;
+    for ( SizeType i1 = 0; i1 < nf; ++ i1 ) {
+      auto fault1 = mFaultList[i1];
+      auto pat1 = pat_array[fault1.id()];
+      auto& old_list = mDomCandListArray[fault1.id()];
+      TpgFaultList new_list;
+      new_list.reserve(old_list.size());
+      for ( auto fault2: old_list ) {
+	auto pat2 = pat_array[fault2.id()];
+	if ( (pat1 & ~pat2) != PV_ALL0 ) {
+	  auto idx1 = _index(fault1, fault2);
+	  mArray[idx1] = true;
 	}
-	mArray[idx1] = true;
+	else {
+	  new_list.push_back(fault2);
+	}
       }
-      if ( (pat2 & ~pat1) != PV_ALL0 ) {
-	auto idx2 = _index(fault2, fault1);
-	if ( !mArray[idx2] ) {
-	  change = true;
-	}
-	mArray[idx2] = true;
+      if ( new_list.size() != old_list.size() ) {
+	std::swap(new_list, old_list);
+	change = true;
       }
     }
+    return change;
   }
-  return change;
+  else {
+    for ( SizeType i1 = 0; i1 < nf; ++ i1 ) {
+      auto fault1 = mFaultList[i1];
+      auto pat1 = pat_array[fault1.id()];
+      auto& new_list = mDomCandListArray[fault1.id()];
+      for ( SizeType i2 = 0; i2 < nf; ++ i2 ) {
+	if ( i2 == i1 ) {
+	  continue;
+	}
+	auto fault2 = mFaultList[i2];
+	auto pat2 = pat_array[fault2.id()];
+	if ( (pat1 & ~pat2) != PV_ALL0 ) {
+	  auto idx1 = _index(fault1, fault2);
+	  mArray[idx1] = true;
+	}
+	else {
+	  new_list.push_back(fault2);
+	}
+      }
+    }
+    mInitialized = true;
+    return true;
+  }
 }
 
 // @brief 等価故障の可能性のあるリストを返す．
@@ -224,6 +255,9 @@ PatMgr::domcand_list(
   const TpgFault& fault
 ) const
 {
+#if 1
+  return mDomCandListArray[fault.id()];
+#else
   TpgFaultList ans_list;
   for ( auto fault2: mFaultList ) {
     if ( fault2 == fault ) {
@@ -235,6 +269,7 @@ PatMgr::domcand_list(
     }
   }
   return ans_list;
+#endif
 }
 
 END_NONAMESPACE
@@ -306,6 +341,18 @@ NaiveReduce::run(
     fsim_timer.stop();
     tv_count += BATCH_SIZE;
 
+    // 検出回数を更新する．
+    auto ntv = res.tv_num();
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      for ( auto fault: res.fault_list(i) ) {
+	auto fid = fault.id();
+	if ( heap.is_in(fid) ) {
+	  comp.inc_count(fid);
+	  heap.update(fid);
+	}
+      }
+    }
+
     auto change = patmgr.add(res);
     if ( change ) {
       no_change = 0;
@@ -316,7 +363,8 @@ NaiveReduce::run(
   }
   timer1.stop();
   if ( verbose ) {
-    std::cout << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl;
+    std::cout << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl
+	      << "No Change Limit:        " << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl;
   }
 
   Timer timer_phase1;

@@ -174,10 +174,7 @@ Dichotomy::run(
     auto res = fsim.run_multi(tv_list, true);
     fsim_timer.stop();
     tv_count += BATCH_SIZE;
-    // シミュレーション結果に基づいて細分化を行う．
-    dicho_timer.start();
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, res, option);
-    dicho_timer.stop();
+
     // 検出回数を更新する．
     auto ntv = res.tv_num();
     for ( SizeType i = 0; i < ntv; ++ i ) {
@@ -189,6 +186,12 @@ Dichotomy::run(
 	}
       }
     }
+
+    // シミュレーション結果に基づいて細分化を行う．
+    dicho_timer.start();
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, res, option);
+    dicho_timer.stop();
+
     if ( new_mgr != mgr ) {
       // 細分化できたら更新する．
       std::swap(mgr, new_mgr);
@@ -208,7 +211,8 @@ Dichotomy::run(
   if ( verbose ) {
     std::cout << "# of faults:            " << std::setw(8) << std::right << fault_list.size() << std::endl
 	      << "# of Groups:            " << std::setw(8) << std::right << mgr.group_num() << std::endl
-	      << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl;
+	      << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl
+	      << "No Change Limit:        " << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl;
   }
 
   // DiGroup 内の故障が等価故障かどうか調べる．
