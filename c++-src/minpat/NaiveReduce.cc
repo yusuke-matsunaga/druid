@@ -285,6 +285,7 @@ NaiveReduce::run(
     std::vector<TestVector> tv_list(BATCH_SIZE);
     for ( SizeType base = 0; base < BATCH_SIZE; ++ base ) {
       if ( heap.empty() ) {
+	// ランダムパタンを作る．
 	auto tv1 = TestVector(network);
 	tv1.set_from_random(randgen);
 	tv_list[base] = tv1;
@@ -295,6 +296,7 @@ NaiveReduce::run(
 	auto min_fault = network.fault(fid);
 	// この故障を検出するテストベクタを用いて故障シミュレーションを行う．
 	auto tv1 = fault_info.testvector(min_fault);
+	// X の部分はランダムに埋める．
 	tv1.fix_x_from_random(randgen);
 	tv_list[base] = tv1;
       }

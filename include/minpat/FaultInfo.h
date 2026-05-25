@@ -46,10 +46,19 @@ public:
 
 public:
 
+  /// @brief 空のコンストラクタ
+  FaultInfo() = default;
+
   /// @brief コンストラクタ
+  explicit
   FaultInfo(
     const TpgFaultList& fault_list ///< [in] 対象の故障リスト
   );
+
+  /// @brief コピーコンストラクタ
+  FaultInfo(
+    const FaultInfo& src
+  ) = default;
 
   /// @brief デストラクタ
   ~FaultInfo() = default;

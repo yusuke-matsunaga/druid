@@ -166,34 +166,37 @@ dichotomy_test(
 
   auto fault_list = network.rep_fault_list();
 
+  FaultInfo fault_info;
+  {
+    auto analyze_option = ConfigParam(option).get_param("analyze");
+    fault_info = FaultAnalyze::run(fault_list, analyze_option);
+    auto rep_fault_list = fault_info.rep_fault_list();
+    std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
+  }
+
   TpgFaultList rep_fault_list2;
   {
     // fault_list を更新する．
     std::cout << std::endl;
     std::cout << "Naive" << std::endl;
-    auto analyze_option = ConfigParam(option).get_param("analyze");
-    auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
-    auto rep_fault_list = fault_info.rep_fault_list();
-    std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
 
-    NaiveReduce::run(fault_info, ConfigParam(option).get_param("analyze"));
+    auto fault_info2 = fault_info;
+    NaiveReduce::run(fault_info2, ConfigParam(option).get_param("analyze"));
 
-    rep_fault_list2 = fault_info.rep_fault_list();
+    rep_fault_list2 = fault_info2.rep_fault_list();
     std::cout << "# of reduced faults: " << rep_fault_list2.size() << std::endl;
   }
 
   TpgFaultList rep_fault_list1;
   {
     // fault_list を更新する．
-    auto analyze_option = ConfigParam(option).get_param("analyze");
-    auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
-    auto rep_fault_list = fault_info.rep_fault_list();
+    std::cout << std::endl;
     std::cout << "Dichotomy" << std::endl;
-    std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
 
-    Dichotomy::run(fault_info, ConfigParam(option).get_param("analyze"));
+    auto fault_info1 = fault_info;
+    Dichotomy::run(fault_info1, ConfigParam(option).get_param("analyze"));
 
-    rep_fault_list1 = fault_info.rep_fault_list();
+    rep_fault_list1 = fault_info1.rep_fault_list();
     std::cout << "# of reduced faults: " << rep_fault_list1.size() << std::endl;
   }
 
