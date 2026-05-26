@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "NaiveReduce.h"
+#include "NaiveMgr.h"
 #include "fsim/Fsim.h"
 #include "dtpg/NaiveDualEngine.h"
 #include "ym/HeapTree.h"
@@ -77,201 +78,6 @@ private:
 
 };
 
-// 2つの故障間の故障シミュレーションの結果を表すクラス
-class PatMgr
-{
-public:
-
-  /// @brief コンストラクタ
-  PatMgr(
-    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
-    SizeType size                   ///< [in] 最大サイズ
-  ) : mFaultList{fault_list},
-      mSize{size},
-      mArray(mSize * mSize, 0),
-      mDomCandListArray(mSize)
-  {
-  }
-
-  /// @brief デストラクタ
-  ~PatMgr() = default;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 故障シミュレーションの結果を登録する．
-  /// @return 変化があったら true を返す．
-  bool
-  add(
-    const FsimResults& res ///< [in] 故障シミュレーションの結果
-  );
-
-  /// @brief 等価な可能性のある故障のリストを返す．
-  TpgFaultList
-  eqcand_list(
-    const TpgFault& fault
-  ) const;
-
-  /// @brief 支配する可能性のある故障のリストを返す．
-  TpgFaultList
-  domcand_list(
-    const TpgFault& fault
-  ) const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// 故障対に対するインデックスを計算する．
-  SizeType
-  _index(
-    const TpgFault& fault1,
-    const TpgFault& fault2
-  ) const
-  {
-    return fault1.id() * mSize + fault2.id();
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 対象の故障のリスト
-  TpgFaultList mFaultList;
-
-  // サイズ
-  SizeType mSize;
-
-  // 2つの故障間の関係を表すビットパタンの配列
-  // サイズは mSize * mSize
-  // 0: 故障1が故障2を支配する可能性なし(1, 0 のパタンあり)
-  std::vector<bool> mArray;
-
-  // 支配する故障候補のリストの配列
-  std::vector<TpgFaultList> mDomCandListArray;
-
-  // mDomCandListArray が初期化されていたら true となるフラグ
-  bool mInitialized{false};
-
-};
-
-// @brief 故障シミュレーションの結果を登録する．
-bool
-PatMgr::add(
-  const FsimResults& res
-)
-{
-  auto ntv = res.tv_num();
-  // 各故障に対するビットパタンを作る．
-  std::vector<PackedVal> pat_array(mSize, 0);
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    PackedVal pat = 1ULL << i;
-    for ( auto fault: res.fault_list(i) ) {
-      pat_array[fault.id()] |= pat;
-    }
-  }
-
-  auto nf = mFaultList.size();
-  if ( mInitialized ) {
-    bool change = false;
-    for ( SizeType i1 = 0; i1 < nf; ++ i1 ) {
-      auto fault1 = mFaultList[i1];
-      auto pat1 = pat_array[fault1.id()];
-      auto& old_list = mDomCandListArray[fault1.id()];
-      TpgFaultList new_list;
-      new_list.reserve(old_list.size());
-      for ( auto fault2: old_list ) {
-	auto pat2 = pat_array[fault2.id()];
-	if ( (pat1 & ~pat2) != PV_ALL0 ) {
-	  auto idx1 = _index(fault1, fault2);
-	  mArray[idx1] = true;
-	}
-	else {
-	  new_list.push_back(fault2);
-	}
-      }
-      if ( new_list.size() != old_list.size() ) {
-	std::swap(new_list, old_list);
-	change = true;
-      }
-    }
-    return change;
-  }
-  else {
-    for ( SizeType i1 = 0; i1 < nf; ++ i1 ) {
-      auto fault1 = mFaultList[i1];
-      auto pat1 = pat_array[fault1.id()];
-      auto& new_list = mDomCandListArray[fault1.id()];
-      for ( SizeType i2 = 0; i2 < nf; ++ i2 ) {
-	if ( i2 == i1 ) {
-	  continue;
-	}
-	auto fault2 = mFaultList[i2];
-	auto pat2 = pat_array[fault2.id()];
-	if ( (pat1 & ~pat2) != PV_ALL0 ) {
-	  auto idx1 = _index(fault1, fault2);
-	  mArray[idx1] = true;
-	}
-	else {
-	  new_list.push_back(fault2);
-	}
-      }
-    }
-    mInitialized = true;
-    return true;
-  }
-}
-
-// @brief 等価故障の可能性のあるリストを返す．
-TpgFaultList
-PatMgr::eqcand_list(
-  const TpgFault& fault
-) const
-{
-  TpgFaultList ans_list;
-  for ( auto fault2: mFaultList ) {
-    if ( fault2 == fault ) {
-      continue;
-    }
-    auto idx1 = _index(fault, fault2);
-    auto idx2 = _index(fault2, fault);
-    if ( !mArray[idx1] && !mArray[idx2] ) {
-      ans_list.push_back(fault2);
-    }
-  }
-  return ans_list;
-}
-
-// @brief 支配する可能性のある故障のリストを返す．
-TpgFaultList
-PatMgr::domcand_list(
-  const TpgFault& fault
-) const
-{
-#if 1
-  return mDomCandListArray[fault.id()];
-#else
-  TpgFaultList ans_list;
-  for ( auto fault2: mFaultList ) {
-    if ( fault2 == fault ) {
-      continue;
-    }
-    auto idx = _index(fault, fault2);
-    if ( !mArray[idx] ) {
-      ans_list.push_back(fault2);
-    }
-  }
-  return ans_list;
-#endif
-}
-
 END_NONAMESPACE
 
 
@@ -315,7 +121,7 @@ NaiveReduce::run(
   SizeType tv_count = 0;
   std::mt19937 randgen;
   SizeType no_change = 0;
-  PatMgr patmgr(fault_list, network.max_fault_id());
+  NaiveMgr naivemgr(fault_list, network.max_fault_id());
   while ( no_change < NO_CHANGE_LIMIT ) {
     std::vector<TestVector> tv_list(BATCH_SIZE);
     for ( SizeType base = 0; base < BATCH_SIZE; ++ base ) {
@@ -353,7 +159,7 @@ NaiveReduce::run(
       }
     }
 
-    auto change = patmgr.add(res);
+    auto change = naivemgr.add(res);
     if ( change ) {
       no_change = 0;
     }
@@ -373,7 +179,7 @@ NaiveReduce::run(
     if ( !fault_info.is_rep(fault1) ) {
       continue;
     }
-    for ( auto fault2: patmgr.eqcand_list(fault1) ) {
+    for ( auto fault2: naivemgr.eqcand_list(fault1) ) {
       if ( !fault_info.is_rep(fault2) ) {
 	continue;
       }
@@ -404,7 +210,7 @@ NaiveReduce::run(
     if ( !fault_info.is_rep(fault1) ) {
       continue;
     }
-    for ( auto fault2: patmgr.domcand_list(fault1) ) {
+    for ( auto fault2: naivemgr.domcand_list(fault1) ) {
       if ( !fault_info.is_rep(fault2) ) {
 	continue;
       }

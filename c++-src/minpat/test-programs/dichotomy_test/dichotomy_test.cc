@@ -174,6 +174,7 @@ dichotomy_test(
     std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
   }
 
+#if 0
   TpgFaultList rep_fault_list2;
   {
     // fault_list を更新する．
@@ -186,6 +187,7 @@ dichotomy_test(
     rep_fault_list2 = fault_info2.rep_fault_list();
     std::cout << "# of reduced faults: " << rep_fault_list2.size() << std::endl;
   }
+#endif
 
   TpgFaultList rep_fault_list1;
   {
@@ -200,6 +202,7 @@ dichotomy_test(
     std::cout << "# of reduced faults: " << rep_fault_list1.size() << std::endl;
   }
 
+#if 0
   std::unordered_set<SizeType> map1;
   for ( auto fault: rep_fault_list1 ) {
     map1.insert(fault.id());
@@ -219,6 +222,7 @@ dichotomy_test(
       std::cout << "2: " << fault.str() << std::endl;
     }
   }
+#endif
   return 0;
 }
 

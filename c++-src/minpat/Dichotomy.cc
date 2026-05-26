@@ -8,6 +8,7 @@
 
 #include "Dichotomy.h"
 #include "DiGroupMgr.h"
+#include "NaiveMgr.h"
 #include "types/TpgNetwork.h"
 #include "types/TestVector.h"
 #include "types/PackedVal.h"
@@ -137,17 +138,16 @@ Dichotomy::run(
     heap.put_item(fault.id());
   }
 
-  Timer timer;
-  timer.start();
-
   Timer scr_timer;
   scr_timer.start();
 
   Timer fsim_timer;
   Timer dicho_timer;
+  Timer naive_timer;
   SizeType tv_count = 0;
   std::mt19937 randgen;
   SizeType no_change = 0;
+  NaiveMgr naivemgr(fault_list, network.max_fault_id());
   // 未検出の故障がある場合，必ず検出されるパタンが選ばれるので
   // no_change とはならない．
   // よってループ中止の条件に「ヒープ内に未検出の故障がない」は不要
@@ -192,6 +192,10 @@ Dichotomy::run(
     auto new_mgr = DiGroupMgr::dichotomy(mgr, res, option);
     dicho_timer.stop();
 
+    naive_timer.start();
+    naivemgr.add(res);
+    naive_timer.stop();
+
     if ( new_mgr != mgr ) {
       // 細分化できたら更新する．
       std::swap(mgr, new_mgr);
@@ -212,8 +216,17 @@ Dichotomy::run(
     std::cout << "# of faults:            " << std::setw(8) << std::right << fault_list.size() << std::endl
 	      << "# of Groups:            " << std::setw(8) << std::right << mgr.group_num() << std::endl
 	      << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl
-	      << "No Change Limit:        " << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl;
+	      << "No Change Limit:        " << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
+	      << "Screening time:           " << time_str(scr_timer) << std::endl
+	      << " (Fsim time):             " << time_str(fsim_timer) << std::endl
+	      << " (Dichotomy time):        " << time_str(dicho_timer) << std::endl
+	      << " (NaiveMgr Time):         " << time_str(naive_timer) << std::endl;
   }
+
+  auto naive_fault_info = fault_info;
+
+  Timer timer;
+  timer.start();
 
   // DiGroup 内の故障が等価故障かどうか調べる．
   SizeType check_count = 0;
@@ -361,12 +374,80 @@ Dichotomy::run(
 	      << "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
 	      << "---------------------------------------------------------------"
 	      << std::endl
-	      << "Screening time:           " << time_str(scr_timer) << std::endl
-	      << " (Fsim time):             " << time_str(fsim_timer) << std::endl
-	      << " (Dichotomy time):        " << time_str(dicho_timer) << std::endl
 	      << "Phase1 Time:              " << time_str(timer_phase1) << std::endl
 	      << "Phase2 Time:              " << time_str(timer_phase2) << std::endl
 	      << "Total CPU TIme:           " << time_str(timer) << std::endl;
+  }
+
+  {
+    Timer timer;
+    timer.start();
+    Timer timer_phase1;
+    timer_phase1.start();
+    SizeType check_count = 0;
+    SizeType succ_count = 0;
+    for ( auto fault1: fault_list ) {
+      if ( !naive_fault_info.is_rep(fault1) ) {
+	continue;
+      }
+      for ( auto fault2: naivemgr.eqcand_list(fault1) ) {
+	if ( !naive_fault_info.is_rep(fault2) ) {
+	  continue;
+	}
+	NaiveDualEngine engine(fault1, fault2, option);
+	++ check_count;
+	auto res10 = engine.solve(true, false, TIME_LIMIT);
+	auto res01 = engine.solve(false, true, TIME_LIMIT);
+	if ( res10 == SatBool3::False && res01 == SatBool3::False ) {
+	  // fault1 と fault2 は等価
+	  naive_fault_info.set_rep(fault2, fault1);
+	  ++ succ_count;
+	}
+      }
+    }
+    timer_phase1.stop();
+    if ( verbose ) {
+      std::cout << std::endl
+		<< "Equivalence check end:    " << std::endl
+		<< "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
+		<< "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl;
+    }
+
+    Timer timer_phase2;
+    timer_phase2.start();
+    check_count = 0;
+    succ_count = 0;
+    for ( auto fault1: fault_list ) {
+      if ( !naive_fault_info.is_rep(fault1) ) {
+	continue;
+      }
+      for ( auto fault2: naivemgr.domcand_list(fault1) ) {
+	if ( !naive_fault_info.is_rep(fault2) ) {
+	  continue;
+	}
+	NaiveDualEngine engine(fault1, fault2, option);
+	++ check_count;
+	auto res10 = engine.solve(true, false, TIME_LIMIT);
+	if ( res10 == SatBool3::False ) {
+	  // fault2 は fault1 に支配されている．
+	  naive_fault_info.set_dominator(fault2, fault1);
+	  ++ succ_count;
+	}
+      }
+    }
+    timer_phase2.stop();
+
+    timer.stop();
+    if ( verbose ) {
+      std::cout << std::endl
+		<< "Dominance check end:      " << std::endl
+		<< "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
+		<< "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
+		<< "-------------------------------------------------------" << std::endl
+		<< "Phase1 Time:              " << time_str(timer_phase1) << std::endl
+		<< "Phase2 Time:              " << time_str(timer_phase2) << std::endl
+		<< "Total CPU Time:           " << time_str(timer) << std::endl;
+    }
   }
 }
 

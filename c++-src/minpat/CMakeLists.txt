@@ -41,6 +41,7 @@ set ( minpat_SOURCES
   Dichotomy.cc
   DiGroupMgr.cc
   NaiveReduce.cc
+  NaiveMgr.cc
   )
 
 
