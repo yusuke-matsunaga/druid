@@ -97,6 +97,128 @@ rep_fault_list(
   return fault_list;
 }
 
+void
+check_list(
+  const std::string& label,
+  const TpgFaultList& fault_list1,
+  const TpgFaultList& fault_list2
+)
+{
+  auto n1 = fault_list1.size();
+  auto n2 = fault_list2.size();
+  SizeType i1 = 0;
+  SizeType i2 = 0;
+  while ( i1 < n1 && i2 < n2 ) {
+    auto fault1 = fault_list1[i1];
+    auto fault2 = fault_list2[i2];
+    if ( fault1.id() < fault2.id() ) {
+      break;
+    }
+    if ( fault1.id() > fault2.id() ) {
+      break;
+    }
+    ++ i1;
+    ++ i2;
+  }
+  if ( i1 < n1 || i2 < n2 ) {
+    // 内容が異なっていた．
+    std::cout << label << std::endl;
+    SizeType i1 = 0;
+    SizeType i2 = 0;
+    while ( i1 < n1 && i2 < n2 ) {
+      auto fault1 = fault_list1[i1];
+      auto fault2 = fault_list2[i2];
+      if ( fault1.id() < fault2.id() ) {
+	std::cout << "1: " << fault1.str() << std::endl;
+	++ i1;
+      }
+      else if ( fault1.id() > fault2.id() ) {
+	std::cout << "2: " << fault2.str() << std::endl;
+	++ i2;
+      }
+      else {
+	++ i1;
+	++ i2;
+      }
+    }
+    for ( ; i1 < n1; ++ i1 ) {
+      auto fault1 = fault_list1[i1];
+      std::cout << "1: " << fault1.str() << std::endl;
+    }
+    for ( ; i2 < n2; ++ i2 ) {
+      auto fault2 = fault_list2[i2];
+      std::cout << "2: " << fault2.str() << std::endl;
+    }
+  }
+}
+
+void
+check(
+  const TpgFaultList& fault_list,
+  const DiGroupMgr& dgmgr,
+  const NaiveMgr& naivemgr
+)
+{
+  SizeType max_id = 0;
+  for ( auto fault: fault_list ) {
+    max_id = std::max(max_id, fault.id());
+  }
+  ++ max_id;
+  std::vector<TpgFaultList> domcand_list_array1(max_id);
+  std::vector<TpgFaultList> eqcand_list_array1(max_id);
+  std::vector<TpgFaultList> domcand_list_array2(max_id);
+  std::vector<TpgFaultList> eqcand_list_array2(max_id);
+
+  for ( auto group: dgmgr.group_list() ) {
+    for ( auto fault: group->fault_list() ) {
+      auto& domcand_list = domcand_list_array1[fault.id()];
+      for ( auto dom_group: group->dominance_list() ) {
+	for ( auto fault1: dom_group->fault_list() ) {
+	  if ( fault1 != fault ) {
+	    domcand_list.push_back(fault1);
+	  }
+	}
+      }
+      auto& eqcand_list = eqcand_list_array1[fault.id()];
+      for ( auto fault1: group->fault_list() ) {
+	if ( fault1 == fault ) {
+	  continue;
+	}
+	eqcand_list.push_back(fault1);
+      }
+    }
+  }
+
+  for ( auto fault: fault_list ) {
+    auto& domcand_list = domcand_list_array2[fault.id()];
+    for ( auto fault1: naivemgr.domcand_list(fault) ) {
+      domcand_list.push_back(fault1);
+    }
+    auto& eqcand_list = eqcand_list_array2[fault.id()];
+    for ( auto fault1: naivemgr.eqcand_list(fault) ) {
+      eqcand_list.push_back(fault1);
+    }
+  }
+
+  for ( auto fault: fault_list ) {
+    auto& eqcand_list1 = eqcand_list_array1[fault.id()];
+    eqcand_list1.sort();
+    auto& eqcand_list2 = eqcand_list_array2[fault.id()];
+    eqcand_list2.sort();
+    std::ostringstream buf1;
+    buf1 << "EQ CAND for " << fault.str();
+    check_list(buf1.str(), eqcand_list1, eqcand_list2);
+
+    auto& domcand_list1 = domcand_list_array1[fault.id()];
+    domcand_list1.sort();
+    auto& domcand_list2 = domcand_list_array2[fault.id()];
+    domcand_list2.sort();
+    std::ostringstream buf2;
+    buf2 << "DOM CAND for " << fault.str();
+    check_list(buf2.str(), domcand_list1, domcand_list2);
+  }
+}
+
 END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
@@ -196,6 +318,20 @@ Dichotomy::run(
     naivemgr.add(res);
     naive_timer.stop();
 
+    {
+#if 0
+      auto ntv = res.tv_num();
+      for ( SizeType i = 0; i < ntv; ++ i ) {
+	std::cout << "#" << i << std::endl;
+	for ( auto fault: res.fault_list(i) ) {
+	  std::cout << " " << fault.str();
+	}
+	std::cout << std::endl;
+      }
+#endif
+      check(fault_list, new_mgr, naivemgr);
+      //std::cout << std::endl;
+    }
     if ( new_mgr != mgr ) {
       // 細分化できたら更新する．
       std::swap(mgr, new_mgr);
