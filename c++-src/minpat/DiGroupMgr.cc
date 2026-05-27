@@ -68,20 +68,10 @@ DiGroupMgr::operator=(
 DiGroupMgr
 DiGroupMgr::dichotomy(
   const DiGroupMgr& mgr,
-  const FsimResults& res,
+  const std::vector<PackedVal>& dpat_array,
   const ConfigParam& option
 )
 {
-  auto network = res.network();
-  auto ntv = res.tv_num();
-  std::vector<PackedVal> det_mark(network.max_fault_id(), 0);
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    PackedVal bit = 1 << i;
-    for ( auto fault: res.fault_list(i) ) {
-      det_mark[fault.id()] |= bit;
-    }
-  }
-
   // 細分化したグループを作る．
   auto& src_group_list = mgr.group_list();
 
@@ -93,7 +83,7 @@ DiGroupMgr::dichotomy(
     std::unordered_set<PackedVal> d_hash;
     auto& d_list = d_list_array[src_group->id()];
     for ( auto fault: src_group->fault_list() ) {
-      auto d = det_mark[fault.id()];
+      auto d = dpat_array[fault.id()];
       if ( d_hash.count(d) == 0 ) {
 	d_hash.insert(d);
 	d_list.push_back(d);
@@ -116,7 +106,7 @@ DiGroupMgr::dichotomy(
       fault_list_dict.emplace(d, TpgFaultList());
     }
     for ( auto fault: fault_list ) {
-      auto d = det_mark[fault.id()];
+      auto d = dpat_array[fault.id()];
       fault_list_dict.at(d).push_back(fault);
     }
     auto& sginfo = sginfo_array[id];

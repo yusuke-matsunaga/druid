@@ -32,6 +32,22 @@ time_str(
   return buf.str();
 }
 
+std::vector<PackedVal>
+make_dpat_array(
+  const FsimResults& res
+)
+{
+  auto ntv = res.tv_num();
+  std::vector<PackedVal> dpat_array(res.network().max_fault_id(), 0);
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    PackedVal bit = 1ULL << i;
+    for ( auto fault: res.fault_list(i) ) {
+      dpat_array[fault.id()] |= bit;
+    }
+  }
+  return dpat_array;
+}
+
 // count_array に従って比較を行うファンクタクラス
 class FaultComp
 {
@@ -159,7 +175,9 @@ NaiveReduce::run(
       }
     }
 
-    auto change = naivemgr.add(res);
+    auto dpat_array = make_dpat_array(res);
+
+    auto change = naivemgr.add(dpat_array);
     if ( change ) {
       no_change = 0;
     }

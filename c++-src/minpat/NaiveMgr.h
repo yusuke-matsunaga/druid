@@ -9,7 +9,8 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "fsim/FsimResults.h"
+#include "types/PackedVal.h"
+#include "types/TpgFaultList.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -46,7 +47,7 @@ public:
   /// @return 変化があったら true を返す．
   bool
   add(
-    const FsimResults& res ///< [in] 故障シミュレーションの結果
+    const std::vector<PackedVal>& dpat_array ///< [in] 故障検出のビットパタンの配列
   );
 
   /// @brief 等価な可能性のある故障のリストを返す．

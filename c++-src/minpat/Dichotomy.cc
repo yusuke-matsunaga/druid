@@ -8,7 +8,6 @@
 
 #include "Dichotomy.h"
 #include "DiGroupMgr.h"
-#include "NaiveMgr.h"
 #include "types/TpgNetwork.h"
 #include "types/TestVector.h"
 #include "types/PackedVal.h"
@@ -97,128 +96,6 @@ rep_fault_list(
   return fault_list;
 }
 
-void
-check_list(
-  const std::string& label,
-  const TpgFaultList& fault_list1,
-  const TpgFaultList& fault_list2
-)
-{
-  auto n1 = fault_list1.size();
-  auto n2 = fault_list2.size();
-  SizeType i1 = 0;
-  SizeType i2 = 0;
-  while ( i1 < n1 && i2 < n2 ) {
-    auto fault1 = fault_list1[i1];
-    auto fault2 = fault_list2[i2];
-    if ( fault1.id() < fault2.id() ) {
-      break;
-    }
-    if ( fault1.id() > fault2.id() ) {
-      break;
-    }
-    ++ i1;
-    ++ i2;
-  }
-  if ( i1 < n1 || i2 < n2 ) {
-    // 内容が異なっていた．
-    std::cout << label << std::endl;
-    SizeType i1 = 0;
-    SizeType i2 = 0;
-    while ( i1 < n1 && i2 < n2 ) {
-      auto fault1 = fault_list1[i1];
-      auto fault2 = fault_list2[i2];
-      if ( fault1.id() < fault2.id() ) {
-	std::cout << "1: " << fault1.str() << std::endl;
-	++ i1;
-      }
-      else if ( fault1.id() > fault2.id() ) {
-	std::cout << "2: " << fault2.str() << std::endl;
-	++ i2;
-      }
-      else {
-	++ i1;
-	++ i2;
-      }
-    }
-    for ( ; i1 < n1; ++ i1 ) {
-      auto fault1 = fault_list1[i1];
-      std::cout << "1: " << fault1.str() << std::endl;
-    }
-    for ( ; i2 < n2; ++ i2 ) {
-      auto fault2 = fault_list2[i2];
-      std::cout << "2: " << fault2.str() << std::endl;
-    }
-  }
-}
-
-void
-check(
-  const TpgFaultList& fault_list,
-  const DiGroupMgr& dgmgr,
-  const NaiveMgr& naivemgr
-)
-{
-  SizeType max_id = 0;
-  for ( auto fault: fault_list ) {
-    max_id = std::max(max_id, fault.id());
-  }
-  ++ max_id;
-  std::vector<TpgFaultList> domcand_list_array1(max_id);
-  std::vector<TpgFaultList> eqcand_list_array1(max_id);
-  std::vector<TpgFaultList> domcand_list_array2(max_id);
-  std::vector<TpgFaultList> eqcand_list_array2(max_id);
-
-  for ( auto group: dgmgr.group_list() ) {
-    for ( auto fault: group->fault_list() ) {
-      auto& domcand_list = domcand_list_array1[fault.id()];
-      for ( auto dom_group: group->dominance_list() ) {
-	for ( auto fault1: dom_group->fault_list() ) {
-	  if ( fault1 != fault ) {
-	    domcand_list.push_back(fault1);
-	  }
-	}
-      }
-      auto& eqcand_list = eqcand_list_array1[fault.id()];
-      for ( auto fault1: group->fault_list() ) {
-	if ( fault1 == fault ) {
-	  continue;
-	}
-	eqcand_list.push_back(fault1);
-      }
-    }
-  }
-
-  for ( auto fault: fault_list ) {
-    auto& domcand_list = domcand_list_array2[fault.id()];
-    for ( auto fault1: naivemgr.domcand_list(fault) ) {
-      domcand_list.push_back(fault1);
-    }
-    auto& eqcand_list = eqcand_list_array2[fault.id()];
-    for ( auto fault1: naivemgr.eqcand_list(fault) ) {
-      eqcand_list.push_back(fault1);
-    }
-  }
-
-  for ( auto fault: fault_list ) {
-    auto& eqcand_list1 = eqcand_list_array1[fault.id()];
-    eqcand_list1.sort();
-    auto& eqcand_list2 = eqcand_list_array2[fault.id()];
-    eqcand_list2.sort();
-    std::ostringstream buf1;
-    buf1 << "EQ CAND for " << fault.str();
-    check_list(buf1.str(), eqcand_list1, eqcand_list2);
-
-    auto& domcand_list1 = domcand_list_array1[fault.id()];
-    domcand_list1.sort();
-    auto& domcand_list2 = domcand_list_array2[fault.id()];
-    domcand_list2.sort();
-    std::ostringstream buf2;
-    buf2 << "DOM CAND for " << fault.str();
-    check_list(buf2.str(), domcand_list1, domcand_list2);
-  }
-}
-
 END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
@@ -265,11 +142,9 @@ Dichotomy::run(
 
   Timer fsim_timer;
   Timer dicho_timer;
-  Timer naive_timer;
   SizeType tv_count = 0;
   std::mt19937 randgen;
   SizeType no_change = 0;
-  NaiveMgr naivemgr(fault_list, network.max_fault_id());
   // 未検出の故障がある場合，必ず検出されるパタンが選ばれるので
   // no_change とはならない．
   // よってループ中止の条件に「ヒープ内に未検出の故障がない」は不要
@@ -298,10 +173,15 @@ Dichotomy::run(
     tv_count += BATCH_SIZE;
 
     // 検出回数を更新する．
+    // その結果を用いいてヒープ木を更新する．
+    // 同時に各故障の検出ビットパタンを作る．
     auto ntv = res.tv_num();
+    std::vector<PackedVal> dpat_array(network.max_fault_id(), PV_ALL0);
     for ( SizeType i = 0; i < ntv; ++ i ) {
+      PackedVal bit = 1ULL << i;
       for ( auto fault: res.fault_list(i) ) {
 	auto fid = fault.id();
+	dpat_array[fid] |= bit;
 	if ( heap.is_in(fid) ) {
 	  comp.inc_count(fid);
 	  heap.update(fid);
@@ -311,27 +191,9 @@ Dichotomy::run(
 
     // シミュレーション結果に基づいて細分化を行う．
     dicho_timer.start();
-    auto new_mgr = DiGroupMgr::dichotomy(mgr, res, option);
+    auto new_mgr = DiGroupMgr::dichotomy(mgr, dpat_array, option);
     dicho_timer.stop();
 
-    naive_timer.start();
-    naivemgr.add(res);
-    naive_timer.stop();
-
-    {
-#if 0
-      auto ntv = res.tv_num();
-      for ( SizeType i = 0; i < ntv; ++ i ) {
-	std::cout << "#" << i << std::endl;
-	for ( auto fault: res.fault_list(i) ) {
-	  std::cout << " " << fault.str();
-	}
-	std::cout << std::endl;
-      }
-#endif
-      check(fault_list, new_mgr, naivemgr);
-      //std::cout << std::endl;
-    }
     if ( new_mgr != mgr ) {
       // 細分化できたら更新する．
       std::swap(mgr, new_mgr);
@@ -355,11 +217,8 @@ Dichotomy::run(
 	      << "No Change Limit:        " << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
 	      << "Screening time:           " << time_str(scr_timer) << std::endl
 	      << " (Fsim time):             " << time_str(fsim_timer) << std::endl
-	      << " (Dichotomy time):        " << time_str(dicho_timer) << std::endl
-	      << " (NaiveMgr Time):         " << time_str(naive_timer) << std::endl;
+	      << " (Dichotomy time):        " << time_str(dicho_timer) << std::endl;
   }
-
-  auto naive_fault_info = fault_info;
 
   Timer timer;
   timer.start();
@@ -513,77 +372,6 @@ Dichotomy::run(
 	      << "Phase1 Time:              " << time_str(timer_phase1) << std::endl
 	      << "Phase2 Time:              " << time_str(timer_phase2) << std::endl
 	      << "Total CPU TIme:           " << time_str(timer) << std::endl;
-  }
-
-  {
-    Timer timer;
-    timer.start();
-    Timer timer_phase1;
-    timer_phase1.start();
-    SizeType check_count = 0;
-    SizeType succ_count = 0;
-    for ( auto fault1: fault_list ) {
-      if ( !naive_fault_info.is_rep(fault1) ) {
-	continue;
-      }
-      for ( auto fault2: naivemgr.eqcand_list(fault1) ) {
-	if ( !naive_fault_info.is_rep(fault2) ) {
-	  continue;
-	}
-	NaiveDualEngine engine(fault1, fault2, option);
-	++ check_count;
-	auto res10 = engine.solve(true, false, TIME_LIMIT);
-	auto res01 = engine.solve(false, true, TIME_LIMIT);
-	if ( res10 == SatBool3::False && res01 == SatBool3::False ) {
-	  // fault1 と fault2 は等価
-	  naive_fault_info.set_rep(fault2, fault1);
-	  ++ succ_count;
-	}
-      }
-    }
-    timer_phase1.stop();
-    if ( verbose ) {
-      std::cout << std::endl
-		<< "Equivalence check end:    " << std::endl
-		<< "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
-		<< "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl;
-    }
-
-    Timer timer_phase2;
-    timer_phase2.start();
-    check_count = 0;
-    succ_count = 0;
-    for ( auto fault1: fault_list ) {
-      if ( !naive_fault_info.is_rep(fault1) ) {
-	continue;
-      }
-      for ( auto fault2: naivemgr.domcand_list(fault1) ) {
-	if ( !naive_fault_info.is_rep(fault2) ) {
-	  continue;
-	}
-	NaiveDualEngine engine(fault1, fault2, option);
-	++ check_count;
-	auto res10 = engine.solve(true, false, TIME_LIMIT);
-	if ( res10 == SatBool3::False ) {
-	  // fault2 は fault1 に支配されている．
-	  naive_fault_info.set_dominator(fault2, fault1);
-	  ++ succ_count;
-	}
-      }
-    }
-    timer_phase2.stop();
-
-    timer.stop();
-    if ( verbose ) {
-      std::cout << std::endl
-		<< "Dominance check end:      " << std::endl
-		<< "Total checks:             " << std::setw(8) << std::right << check_count << std::endl
-		<< "Total succeeds:           " << std::setw(8) << std::right << succ_count << std::endl
-		<< "-------------------------------------------------------" << std::endl
-		<< "Phase1 Time:              " << time_str(timer_phase1) << std::endl
-		<< "Phase2 Time:              " << time_str(timer_phase2) << std::endl
-		<< "Total CPU Time:           " << time_str(timer) << std::endl;
-    }
   }
 }
 

@@ -10,7 +10,7 @@
 
 #include "druid.h"
 #include "DiGroup.h"
-#include "fsim/FsimResults.h"
+#include "types/PackedVal.h"
 #include "misc/ConfigParam.h"
 
 
@@ -70,9 +70,9 @@ public:
   static
   DiGroupMgr
   dichotomy(
-    const DiGroupMgr& mgr,    ///< [in] 元となる故障グループのリスト
-    const FsimResults& res,   ///< [in] 故障シミュレーションの結果
-    const ConfigParam& option ///< [in] オプション
+    const DiGroupMgr& mgr,                    ///< [in] 元となる故障グループのリスト
+    const std::vector<PackedVal>& dpat_array, ///< [in] 故障の検出ビットパタンの配列
+    const ConfigParam& option                 ///< [in] オプション
   );
 
   /// @brief グループ数を返す．
