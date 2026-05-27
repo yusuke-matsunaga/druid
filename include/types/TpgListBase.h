@@ -261,6 +261,13 @@ public:
     mIdList.reserve(size);
   }
 
+  /// @brief 番号の昇順にソートする．
+  void
+  sort()
+  {
+    std::sort(mIdList.begin(), mIdList.end());
+  }
+
 
 protected:
   //////////////////////////////////////////////////////////////////////
