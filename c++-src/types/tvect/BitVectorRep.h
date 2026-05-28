@@ -356,7 +356,6 @@ private:
   ) const
   {
     if ( index >= len() ) {
-      abort();
       throw std::out_of_range{"index is out of range"};
     }
   }

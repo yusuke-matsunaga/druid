@@ -12,7 +12,8 @@ include_directories(
 # ===================================================================
 
 add_subdirectory ( minpat )
-add_subdirectory ( dichotomy_test )
+add_subdirectory ( filter_test )
+#add_subdirectory ( dichotomy_test )
 add_subdirectory ( analyzetest )
 
 

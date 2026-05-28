@@ -37,11 +37,12 @@ set ( minpat_SOURCES
   FaultInfo.cc
   MFFCAnalyze.cc
   DomChecker.cc
-  FaultGroup.cc
-  Dichotomy.cc
-  DiGroupMgr.cc
-  NaiveReduce.cc
-  NaiveMgr.cc
+  filter/Dichotomy.cc
+  filter/DiGroupMgr.cc
+  filter/NaiveReduce.cc
+  filter/NaiveMgr.cc
+  filter/DiFilter.cc
+  filter/NaiveFilter.cc
   )
 
 
