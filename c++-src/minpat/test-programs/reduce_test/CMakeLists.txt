@@ -15,8 +15,8 @@ include_directories(
 #  ソースファイルの設定
 # ===================================================================
 
-add_executable ( dichotomy_test
-  dichotomy_test.cc
+add_executable ( reduce_test
+  reduce_test.cc
   $<TARGET_OBJECTS:druid_types_obj>
   $<TARGET_OBJECTS:druid_dtpg_obj>
   $<TARGET_OBJECTS:druid_minpat_obj>
@@ -32,26 +32,26 @@ add_executable ( dichotomy_test
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
-target_compile_options ( dichotomy_test
+target_compile_options ( reduce_test
   PRIVATE "-O3"
   )
 
-target_compile_definitions ( dichotomy_test
+target_compile_definitions ( reduce_test
   PRIVATE "-DNDEBUG"
   )
 
-target_link_libraries ( dichotomy_test
+target_link_libraries ( reduce_test
   ${YM_LIB_DEPENDS}
   )
 
 if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( dichotomy_test
+  target_link_libraries ( reduce_test
     ${GPERFTOOLS_LIBRARIES}
     )
 endif ()
 
-add_executable ( dichotomy_test_d
-  dichotomy_test.cc
+add_executable ( reduce_test_d
+  reduce_test.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_dtpg_obj_d>
   $<TARGET_OBJECTS:druid_minpat_obj_d>
@@ -67,16 +67,16 @@ add_executable ( dichotomy_test_d
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
-target_compile_options ( dichotomy_test_d
+target_compile_options ( reduce_test_d
   PRIVATE "-g"
   )
 
-target_link_libraries ( dichotomy_test_d
+target_link_libraries ( reduce_test_d
   ${YM_LIB_DEPENDS}
   )
 
 if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( dichotomy_test_d
+  target_link_libraries ( reduce_test_d
     ${GPERFTOOLS_LIBRARIES}
     )
 endif ()

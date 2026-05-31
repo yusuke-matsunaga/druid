@@ -43,6 +43,7 @@ set ( minpat_SOURCES
   filter/NaiveMgr.cc
   filter/DiFilter.cc
   filter/NaiveFilter.cc
+  filter/Reducer.cc
   )
 
 

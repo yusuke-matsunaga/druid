@@ -1,5 +1,5 @@
 
-/// @file dichotomy_test.cc
+/// @file reduce_test.cc
 /// @brief dichotomy のテストプログラム
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
@@ -7,19 +7,35 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "Dichotomy.h"
-#include "NaiveReduce.h"
+#include "MpReduce.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
-#include "types/TestVector.h"
-#include "minpat/FaultAnalyze.h"
-#include "fsim/Fsim.h"
+#include "types/TpgFaultList.h"
 #include "ym/JsonValue.h"
+#include "ym/Timer.h"
 #include <unistd.h> // getopt
 #include <libgen.h> // basename
 
 
 BEGIN_NAMESPACE_DRUID
+
+BEGIN_NONAMESPACE
+
+std::string
+time_str(
+  Timer& timer
+)
+{
+  std::ostringstream buf;
+  buf << std::setw(11)
+      << std::fixed
+      << std::setprecision(2)
+      << timer.get_time()
+      << "ms";
+  return buf.str();
+}
+
+END_NONAMESPACE
 
 static char* argv0;
 
@@ -32,7 +48,7 @@ usage()
 }
 
 int
-dichotomy_test(
+reduce_test(
   int argc,
   char** argv
 )
@@ -120,7 +136,6 @@ dichotomy_test(
   }
   if ( argpos != argc - 1 ) {
     usage();
-    std::cout << "Usage: minpat <filename>" << std::endl;
     return 1;
   }
 
@@ -147,80 +162,33 @@ dichotomy_test(
     global_option.add("debug", debug);
     option.add("*", global_option);
   }
-  {
-    auto analyze_option = JsonValue::object();
-    analyze_option.add("ffr_reduction", ffr_reduction);
-    analyze_option.add("mffc_reduction", mffc_reduction);
-    analyze_option.add("global_reduction", false);
-    if ( no_change_limit > 0 ) {
-      analyze_option.add("no_change_limit", no_change_limit);
-    }
-    if ( batch_size > 0 ) {
-      analyze_option.add("batch_size", batch_size);
-    }
-    if ( sat_time_limit > 0 ) {
-      analyze_option.add("time_limit", sat_time_limit);
-    }
-    option.add("analyze", analyze_option);
+  option.add("ffr_reduction", ffr_reduction);
+  option.add("mffc_reduction", mffc_reduction);
+  option.add("global_reduction", false);
+  if ( no_change_limit > 0 ) {
+    option.add("no_change_limit", no_change_limit);
   }
+  if ( batch_size > 0 ) {
+    option.add("batch_size", batch_size);
+  }
+  if ( sat_time_limit > 0 ) {
+    option.add("time_limit", sat_time_limit);
+  }
+
+  Timer timer;
+  timer.start();
 
   auto fault_list = network.rep_fault_list();
+  auto red_fault_list = MpReduce::run(fault_list, ConfigParam(option));
 
-  FaultInfo fault_info;
-  {
-    auto analyze_option = ConfigParam(option).get_param("analyze");
-    fault_info = FaultAnalyze::run(fault_list, analyze_option);
-    auto rep_fault_list = fault_info.rep_fault_list();
-    std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
+  timer.stop();
+
+  if ( verbose ) {
+    std::cout << "# of initial faults: " << fault_list.size() << std::endl
+	      << "# of reduced faults: " << red_fault_list.size() << std::endl
+	      << "Total CPU time:      " << time_str(timer) << std::endl;
   }
 
-  TpgFaultList rep_fault_list2;
-  {
-    // fault_list を更新する．
-    std::cout << std::endl;
-    std::cout << "Naive" << std::endl;
-
-    auto fault_info2 = fault_info;
-    NaiveReduce::run(fault_info2, ConfigParam(option).get_param("analyze"));
-
-    rep_fault_list2 = fault_info2.rep_fault_list();
-    std::cout << "# of reduced faults: " << rep_fault_list2.size() << std::endl;
-  }
-
-  TpgFaultList rep_fault_list1;
-  {
-    // fault_list を更新する．
-    std::cout << std::endl;
-    std::cout << "Dichotomy" << std::endl;
-
-    auto fault_info1 = fault_info;
-    Dichotomy::run(fault_info1, ConfigParam(option).get_param("analyze"));
-
-    rep_fault_list1 = fault_info1.rep_fault_list();
-    std::cout << "# of reduced faults: " << rep_fault_list1.size() << std::endl;
-  }
-
-#if 0
-  std::unordered_set<SizeType> map1;
-  for ( auto fault: rep_fault_list1 ) {
-    map1.insert(fault.id());
-  }
-  std::unordered_set<SizeType> map2;
-  for ( auto fault: rep_fault_list2 ) {
-    map2.insert(fault.id());
-  }
-
-  for ( auto fault: rep_fault_list1 ) {
-    if ( map2.count(fault.id()) == 0 ) {
-      std::cout << "1: " << fault.str() << std::endl;
-    }
-  }
-  for ( auto fault: rep_fault_list2 ) {
-    if ( map1.count(fault.id()) == 0 ) {
-      std::cout << "2: " << fault.str() << std::endl;
-    }
-  }
-#endif
   return 0;
 }
 
@@ -233,5 +201,5 @@ main(
   char** argv
 )
 {
-  return DRUID_NAMESPACE::dichotomy_test(argc, argv);
+  return DRUID_NAMESPACE::reduce_test(argc, argv);
 }
