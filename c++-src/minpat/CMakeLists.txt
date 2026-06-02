@@ -3,7 +3,7 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-#  include
+  include
   )
 
 
@@ -41,9 +41,8 @@ set ( minpat_SOURCES
   filter/DiGroupMgr.cc
   filter/NaiveReduce.cc
   filter/NaiveMgr.cc
-  filter/DiFilter.cc
-  filter/NaiveFilter.cc
   filter/Reducer.cc
+  filter/NaiveCandMgr.cc
   )
 
 

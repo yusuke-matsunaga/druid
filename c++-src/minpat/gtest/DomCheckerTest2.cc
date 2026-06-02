@@ -8,7 +8,7 @@
 
 #include <gtest/gtest.h>
 #include "dtpg/NaiveDualEngine.h"
-#include "minpat/FaultInfo.h"
+#include "FaultInfo.h"
 #include "FFRAnalyze.h"
 #include "DomChecker.h"
 #include "types/TpgNetwork.h"

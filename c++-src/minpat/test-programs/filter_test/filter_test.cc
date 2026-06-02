@@ -9,10 +9,10 @@
 #include "druid.h"
 #include "DiFilter.h"
 #include "NaiveFilter.h"
+#include "FaultAnalyze.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
 #include "types/TestVector.h"
-#include "minpat/FaultAnalyze.h"
 #include "fsim/Fsim.h"
 #include "ym/JsonValue.h"
 #include <unistd.h> // getopt

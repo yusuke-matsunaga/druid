@@ -12,7 +12,7 @@ include_directories(
 # ===================================================================
 
 add_subdirectory ( minpat )
-add_subdirectory ( filter_test )
+#add_subdirectory ( filter_test )
 add_subdirectory ( reduce_test )
 add_subdirectory ( analyzetest )
 

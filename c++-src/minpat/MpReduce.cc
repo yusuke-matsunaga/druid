@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "MpReduce.h"
-#include "minpat/FaultAnalyze.h"
+#include "FaultAnalyze.h"
 #include "types/TpgFaultList.h"
 
 

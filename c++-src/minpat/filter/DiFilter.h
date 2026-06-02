@@ -10,7 +10,7 @@
 
 #include "druid.h"
 #include "EqDomCand.h"
-#include "minpat/FaultInfo.h"
+#include "FaultInfo.h"
 #include "misc/ConfigParam.h"
 
 

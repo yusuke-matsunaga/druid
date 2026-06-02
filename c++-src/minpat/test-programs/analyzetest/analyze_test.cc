@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "types/TpgNetwork.h"
-#include "minpat/FaultAnalyze.h"
+#include "FaultAnalyze.h"
 #include "dtpg/NaiveDtpgEngine.h"
 #include "dtpg/NaiveDualEngine.h"
 #include "types/TpgFault.h"
