@@ -17,10 +17,9 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 NaiveCandMgr::NaiveCandMgr(
-  const FaultInfo& fault_info
-) : CandMgr(fault_info),
+  const TpgFaultList& fault_list
+) : CandMgr(fault_list),
     mSize{max_fault_size()},
-    mFaultList{fault_list()},
     mArray(mSize * mSize, false),
     mDomCandListArray(mSize)
 {
@@ -39,7 +38,7 @@ NaiveCandMgr::update(
 {
   if ( mInitialized ) {
     bool change = false;
-    for ( auto fault1: mFaultList ) {
+    for ( auto fault1: fault_list() ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& old_list = mDomCandListArray[fault1.id()];
       TpgFaultList new_list;
@@ -62,10 +61,10 @@ NaiveCandMgr::update(
     return change;
   }
   else {
-    for ( auto fault1: mFaultList ) {
+    for ( auto fault1: fault_list() ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& new_list = mDomCandListArray[fault1.id()];
-      for ( auto fault2: mFaultList ) {
+      for ( auto fault2: fault_list() ) {
 	if ( fault2 == fault1 ) {
 	  continue;
 	}
@@ -89,10 +88,10 @@ EqDomCand
 NaiveCandMgr::end()
 {
   EqDomCand cand;
-  cand.init(mFaultList);
+  cand.init(fault_list());
   {
     std::vector<bool> mark(mSize, false);
-    for ( auto fault: mFaultList ) {
+    for ( auto fault: fault_list() ) {
       if ( mark[fault.id()] ) {
 	continue;
       }
@@ -105,7 +104,7 @@ NaiveCandMgr::end()
       }
     }
   }
-  for ( auto fault: mFaultList ) {
+  for ( auto fault: fault_list() ) {
     auto dom_list = mDomCandListArray[fault.id()];
     cand.set_domcand(fault, dom_list);
   }

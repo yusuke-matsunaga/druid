@@ -42,7 +42,8 @@ set ( minpat_SOURCES
   filter/NaiveReduce.cc
   filter/NaiveMgr.cc
   filter/Reducer.cc
-  filter/NaiveCandMgr.cc
+  filter/CandMgr.cc
+  filter/Filter.cc
   )
 
 

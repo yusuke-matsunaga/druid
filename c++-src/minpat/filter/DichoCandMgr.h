@@ -1,8 +1,8 @@
-#ifndef NAIVECANDMGR_H
-#define NAIVECANDMGR_H
+#ifndef DICHOCANDMGR_H
+#define DICHOCANDMGR_H
 
-/// @file NaiveCandMgr.h
-/// @brief NaiveCandMgr のヘッダファイル
+/// @file DichoCandMgr.h
+/// @brief DichoCandMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -13,22 +13,24 @@
 
 BEGIN_NAMESPACE_DRUID
 
+class DiGroup;
+
 //////////////////////////////////////////////////////////////////////
-/// @class NaiveCandMgr NaiveCandMgr.h "NaiveCandMgr.h"
+/// @class DichoCandMgr DichoCandMgr.h "DichoCandMgr.h"
 /// @brief 単純な CandMgr
 //////////////////////////////////////////////////////////////////////
-class NaiveCandMgr :
+class DichoCandMgr :
   public CandMgr
 {
 public:
 
   /// @brief コンストラクタ
-  NaiveCandMgr(
+  DichoCandMgr(
     const TpgFaultList& fault_list ///< [in] 対象の故障リスト
   );
 
   /// @brief デストラクタ
-  ~NaiveCandMgr();
+  ~DichoCandMgr();
 
 
 private:
@@ -52,21 +54,11 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 等価な可能性のある故障のリストを返す．
-  TpgFaultList
-  eqcand_list(
-    const TpgFault& fault
+  /// @brief 変化があったか調べる．
+  bool
+  check(
+    const std::vector<std::unique_ptr<DiGroup>>& new_group_list
   ) const;
-
-  /// 故障対に対するインデックスを計算する．
-  SizeType
-  _index(
-    const TpgFault& fault1,
-    const TpgFault& fault2
-  ) const
-  {
-    return fault1.id() * mSize + fault2.id();
-  }
 
 
 private:
@@ -74,23 +66,12 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障番号の最大値
-  SizeType mSize;
-
-  // 2つの故障間の関係を表すビットパタンの配列
-  // サイズは mSize * mSize
-  // 0: 故障1が故障2を支配する可能性なし(1, 0 のパタンあり)
-  std::vector<bool> mArray;
-
-  // 支配する故障候補のリストの配列
-  // サイズは mSize
-  std::vector<TpgFaultList> mDomCandListArray;
-
-  // mDomCandListArray が初期化されていたら true となるフラグ
-  bool mInitialized{false};
+  // 現在のグループのリスト
+  // DiGroup の所有権を持つ．
+  std::vector<std::unique_ptr<DiGroup>> mCurGroupList;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // NAIVECANDMGR_H
+#endif // DICHOCANDMGR_H

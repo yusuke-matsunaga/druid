@@ -7,6 +7,8 @@
 /// All rights reserved.
 
 #include "Filter.h"
+#include "CandMgr.h"
+#include "EqDomCand.h"
 #include "types/TpgNetwork.h"
 #include "types/TestVector.h"
 #include "fsim/Fsim.h"
@@ -85,9 +87,10 @@ END_NONAMESPACE
 // クラス Filter
 //////////////////////////////////////////////////////////////////////
 
-// @brief fault_list に対して支配故障候補を求める．
+// @brief fault_info に対して支配故障候補を求める．
 EqDomCand
 Filter::run(
+  const FaultInfo& fault_info,
   const ConfigParam& option
 )
 {
@@ -100,7 +103,7 @@ Filter::run(
   Timer timer;
   timer.start();
 
-  auto fault_list = mFaultInfo.rep_fault_list();
+  auto fault_list = fault_info.rep_fault_list();
 
   // 故障シミュレータ
   auto fsim_option = option.get_param("fsim");
@@ -114,6 +117,10 @@ Filter::run(
   for ( auto fault: fault_list ) {
     heap.put_item(fault.id());
   }
+
+  // 等価故障/支配故障の候補を管理するオブジェクト
+  auto candmgr_opt = option.get_string_elem("candmgr", "naive");
+  auto candmgr = CandMgr::new_obj(fault_list, candmgr_opt);
 
   Timer fsim_timer;
   SizeType tv_count = 0;
@@ -159,7 +166,7 @@ Filter::run(
       }
     }
 
-    auto change = update(dpat_array);
+    auto change = candmgr->update(dpat_array);
     if ( change ) {
       no_change = 0;
     }
@@ -169,7 +176,7 @@ Filter::run(
   }
 
   // 結果の EqDomCand を作る．
-  auto cand = end();
+  auto cand = candmgr->end();
   timer.stop();
 
   if ( verbose ) {

@@ -10,7 +10,8 @@
 
 #include "druid.h"
 #include "EqDomCand.h"
-#include "FaultInfo.h"
+#include "types/TpgNetwork.h"
+#include "types/TpgFaultList.h"
 #include "types/PackedVal.h"
 
 
@@ -30,10 +31,18 @@ public:
 
   /// @brief コンストラクタ
   CandMgr(
-    const FaultInfo& fault_info ///< [in] 対象の故障の情報
-  ) : mFaultInfo{fault_info}
+    const TpgFaultList& fault_list ///< [in] 対象の故障リスト
+  ) : mFaultList{fault_list}
   {
   }
+
+  /// @brief 新しいオブジェクトを作る．
+  static
+  std::unique_ptr<CandMgr>
+  new_obj(
+    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
+    const std::string& opt          ///< [in] オプション
+  );
 
   /// @brief デストラクタ
   virtual
@@ -63,18 +72,11 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障情報を返す．
-  const FaultInfo&
-  fault_info() const
-  {
-    return mFaultInfo;
-  }
-
   /// @brief 対象の故障リストを返す．
   TpgFaultList
   fault_list() const
   {
-    return mFaultInfo.fault_list();
+    return mFaultList;
   }
 
   /// @brief 対象のネットワークを返す．
@@ -98,7 +100,7 @@ protected:
   //////////////////////////////////////////////////////////////////////
 
   // 対象の故障のリスト
-  const FaultInfo& mFaultInfo;
+  TpgFaultList mFaultList;
 
 };
 

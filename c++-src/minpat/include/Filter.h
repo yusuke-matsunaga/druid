@@ -9,71 +9,34 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "EqDomCand.h"
 #include "FaultInfo.h"
-#include "types/PackedVal.h"
 #include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
+class EqDomCand;
+
 //////////////////////////////////////////////////////////////////////
 /// @class Filter Filter.h "Filter.h"
 /// @brief 等価故障と支配故障候補のフィルター
+///
+/// 実はただの関数
 //////////////////////////////////////////////////////////////////////
 class Filter
 {
-public:
-
-  /// @brief コンストラクタ
-  Filter(
-    const FaultInfo& fault_info ///< [in] 対象の故障の情報
-  ) : mFaultInfo{fault_info}
-  {
-  }
-
-  /// @brief デストラクタ
-  virtual
-  ~Filter() = default;
-
-
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 等価故障と支配故障の候補を求める．
+  static
   EqDomCand
   run(
+    const FaultInfo& fault_info, ///< [in] 対象の故障の情報
     const ConfigParam& option    ///< [in] オプション
   );
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 更新処理
-  virtual
-  bool
-  update(
-    const std::vector<PackedVal>& dpat_array ///< [in] 故障の検出状況のピットパタン
-  ) = 0;
-
-  /// @brief 終了処理
-  virtual
-  EqDomCand
-  end() = 0;
-
-
-protected:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // 対象の故障のリスト
-  const FaultInfo& mFaultInfo;
 
 };
 
