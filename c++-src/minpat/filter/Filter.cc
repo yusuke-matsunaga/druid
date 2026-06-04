@@ -7,12 +7,12 @@
 /// All rights reserved.
 
 #include "Filter.h"
+#include "PatGen.h"
 #include "CandMgr.h"
 #include "EqDomCand.h"
 #include "types/TpgNetwork.h"
 #include "types/TestVector.h"
 #include "fsim/Fsim.h"
-#include "ym/HeapTree.h"
 #include "ym/Timer.h"
 
 
@@ -33,52 +33,6 @@ time_str(
       << "ms";
   return buf.str();
 }
-
-// count_array[id] の値で整列したヒープ木
-class FaultComp
-{
-public:
-
-  FaultComp(
-    SizeType size
-  ) : count_array(size, 0)
-  {
-  }
-
-  int
-  operator()(
-    SizeType id1,
-    SizeType id2
-  ) const
-  {
-    auto c1 = count_array[id1];
-    auto c2 = count_array[id2];
-    if ( c1 < c2 ) {
-      return -1;
-    }
-    if ( c1 > c2 ) {
-      return 1;
-    }
-    return 0;
-  }
-
-  void
-  inc_count(
-    SizeType id
-  )
-  {
-    ++ count_array[id];
-  }
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  std::vector<SizeType> count_array;
-
-};
 
 END_NONAMESPACE
 
@@ -109,63 +63,38 @@ Filter::run(
   auto fsim_option = option.get_param("fsim");
   Fsim fsim(fault_list, fsim_option);
 
-  // 故障番号をキーにして検出回数で比較する関数オブジェクト
-  auto network = fault_list.network();
-  FaultComp comp(network.max_fault_id());
-  // 故障番号を入れるヒープ木
-  auto heap = HeapTree<SizeType, FaultComp>(comp);
-  for ( auto fault: fault_list ) {
-    heap.put_item(fault.id());
-  }
+  // パタンを作るオブジェクト
+  auto patgen_option = option.get_param("patgen");
+  auto patgen = PatGen::new_obj(fault_info, patgen_option);
 
   // 等価故障/支配故障の候補を管理するオブジェクト
-  auto candmgr_opt = option.get_string_elem("candmgr", "naive");
-  auto candmgr = CandMgr::new_obj(fault_list, candmgr_opt);
+  auto candmgr_option = option.get_param("candmgr");
+  auto candmgr = CandMgr::new_obj(fault_list, candmgr_option);
+
+  auto network = fault_info.network();
+  auto max_size = network.max_fault_id();
 
   Timer fsim_timer;
   SizeType tv_count = 0;
-  std::mt19937 randgen;
   SizeType no_change = 0;
   while ( no_change < NO_CHANGE_LIMIT ) {
     std::vector<TestVector> tv_list(BATCH_SIZE);
-    for ( SizeType base = 0; base < BATCH_SIZE; ++ base ) {
-      if ( heap.empty() ) {
-	// ランダムパタンを作る．
-	auto tv1 = TestVector(network);
-	tv1.set_from_random(randgen);
-	tv_list[base] = tv1;
-      }
-      else {
-	// 検出回数が最小の故障を一つ選ぶ．
-	auto fid = heap.get_min();
-	auto min_fault = network.fault(fid);
-	// この故障を検出するテストベクタを用いて故障シミュレーションを行う．
-	auto tv1 = fault_info.testvector(min_fault);
-	// X の部分はランダムに埋める．
-	tv1.fix_x_from_random(randgen);
-	tv_list[base] = tv1;
-      }
-    }
+    patgen->gen(BATCH_SIZE, tv_list);
     fsim_timer.start();
     auto res = fsim.run_multi(tv_list, true);
     fsim_timer.stop();
     tv_count += BATCH_SIZE;
+    patgen->update(res);
 
-    // 検出回数を更新する．
     auto ntv = res.tv_num();
-    std::vector<PackedVal> dpat_array(network.max_fault_id(), PV_ALL0);
+    std::vector<PackedVal> dpat_array(max_size, PV_ALL0);
     for ( SizeType i = 0; i < ntv; ++ i ) {
       PackedVal bit = 1ULL << i;
       for ( auto fault: res.fault_list(i) ) {
 	auto fid = fault.id();
 	dpat_array[fid] |= bit;
-	if ( heap.is_in(fid) ) {
-	  comp.inc_count(fid);
-	  heap.update(fid);
-	}
       }
     }
-
     auto change = candmgr->update(dpat_array);
     if ( change ) {
       no_change = 0;

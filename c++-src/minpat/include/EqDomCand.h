@@ -138,6 +138,16 @@ public:
     mEqGroupList.push_back(fault_list);
   }
 
+  /// @brief 等価故障グループのリストをソートする．
+  void
+  sort()
+  {
+    std::sort(mEqGroupList.begin(), mEqGroupList.end(),
+	      [](const TpgFaultList& a, const TpgFaultList& b)->bool {
+		return a[0].id() < b[0].id();
+	      });
+  }
+
   /// @brief 支配故障の候補リストを設定する．
   void
   set_domcand(

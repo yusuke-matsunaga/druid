@@ -22,23 +22,25 @@ BEGIN_NAMESPACE_DRUID
 std::unique_ptr<CandMgr>
 CandMgr::new_obj(
   const TpgFaultList& fault_list,
-  const std::string& opt
+  const ConfigParam& option
 )
 {
+  auto str = option.get_string_elem("method", "naive");
   CandMgr* mgr = nullptr;
-  if ( opt == "naive" ) {
+  if ( str == "naive" ) {
     mgr = new NaiveCandMgr(fault_list);
   }
-  else if ( opt == "dichotomy" ) {
+  else if ( str == "dichotomy" ) {
     mgr = new DichoCandMgr(fault_list);
   }
   else {
     std::ostringstream buf;
-    buf << opt << ": unknown option";
+    buf << str << ": unknown option for 'method'";
     throw std::invalid_argument{buf.str()};
   }
   return std::unique_ptr<CandMgr>{mgr};
 }
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス NaiveCandMgr
@@ -137,6 +139,7 @@ NaiveCandMgr::end()
     auto dom_list = mDomCandListArray[fault.id()];
     cand.set_domcand(fault, dom_list);
   }
+  cand.sort();
   return cand;
 }
 
@@ -182,6 +185,7 @@ DichoCandMgr::DichoCandMgr(
 {
   // 最初は１つのグループ
   auto group = new DiGroup(0, fault_list);
+  group->set_dominance_list({group});
   mCurGroupList.push_back(std::unique_ptr<DiGroup>{group});
 }
 
@@ -296,6 +300,7 @@ DichoCandMgr::end()
       cand.set_domcand(fault, dom_list);
     }
   }
+  cand.sort();
   return cand;
 }
 

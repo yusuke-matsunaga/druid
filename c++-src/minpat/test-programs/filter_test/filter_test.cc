@@ -7,8 +7,8 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "DiFilter.h"
-#include "NaiveFilter.h"
+#include "Filter.h"
+#include "EqDomCand.h"
 #include "FaultAnalyze.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
@@ -20,6 +20,32 @@
 
 
 BEGIN_NAMESPACE_DRUID
+
+BEGIN_NONAMESPACE
+
+void
+dfs(
+  const TpgFault& fault,
+  const EqDomCand& cand,
+  std::vector<SizeType>& count_map,
+  std::vector<SizeType>& rank_map
+)
+{
+  auto rank = rank_map[fault.id()];
+  ++ rank;
+  for ( auto fault1: cand.domcand(fault) ) {
+    auto rank1 = rank_map[fault1.id()];
+    if ( rank > rank1 ) {
+      rank_map[fault1.id()] = rank;
+    }
+    -- count_map[fault1.id()];
+    if ( count_map[fault1.id()] == 0 ) {
+      dfs(fault1, cand, count_map, rank_map);
+    }
+  }
+}
+
+END_NONAMESPACE
 
 static char* argv0;
 
@@ -139,14 +165,13 @@ filter_test(
     network.print(std::cout);
   }
 
+  auto global_option = JsonValue::object();
+  global_option.add("multi_thread", multi_thread);
+  global_option.add("verbose", verbose);
+  global_option.add("debug", debug);
+
   auto option = JsonValue::object();
-  {
-    auto global_option = JsonValue::object();
-    global_option.add("multi_thread", multi_thread);
-    global_option.add("verbose", verbose);
-    global_option.add("debug", debug);
-    option.add("*", global_option);
-  }
+  option.add("*", global_option);
   {
     auto analyze_option = JsonValue::object();
     analyze_option.add("ffr_reduction", ffr_reduction);
@@ -177,14 +202,43 @@ filter_test(
   // Naive method
   std::cout << std::endl;
   std::cout << "Naive" << std::endl;
+  auto naive_option = option;
+  {
+    auto filter_option = JsonValue::object();
+    if ( no_change_limit > 0 ) {
+      filter_option.add("no_change_limit", no_change_limit);
+    }
+    if ( batch_size > 0 ) {
+      filter_option.add("batch_size", batch_size);
+    }
+    auto cand_option = JsonValue::object();
+    cand_option.add("method", std::string{"naive"});
+    filter_option.add("candmgr", cand_option);
+    filter_option.add("*", global_option);
+    naive_option.add("filter", filter_option);
+  }
 
-  auto cand1 = NaiveFilter::run(fault_info, ConfigParam(option).get_param("analyze"));
+  auto cand1 = Filter::run(fault_info, ConfigParam(naive_option).get_param("filter"));
 
   // Dichotomy method
   std::cout << std::endl;
   std::cout << "Dichotomy" << std::endl;
+  auto dicho_option = option;
+  {
+    auto filter_option = JsonValue::object();
+    if ( no_change_limit > 0 ) {
+      filter_option.add("no_change_limit", no_change_limit);
+    }
+    if ( batch_size > 0 ) {
+      filter_option.add("batch_size", batch_size);
+    }
+    auto cand_option = JsonValue::object();
+    cand_option.add("method", std::string{"dichotomy"});
+    filter_option.add("candmgr", cand_option);
+    dicho_option.add("filter", filter_option);
+  }
 
-  auto cand2 = DiFilter::run(fault_info, ConfigParam(option).get_param("analyze"));
+  auto cand2 = Filter::run(fault_info, ConfigParam(dicho_option).get_param("filter"));
 
   if ( cand1 != cand2 ) {
     std::cout << "cand1" << std::endl;
@@ -193,6 +247,38 @@ filter_test(
     cand2.print(std::cout);
   }
 
+  {
+    std::vector<SizeType> count_map(network.max_fault_id(), 0);
+    for ( auto fault: fault_list ) {
+      for ( auto fault1: cand2.domcand(fault) ) {
+	++ count_map[fault1.id()];
+      }
+    }
+    std::vector<SizeType> rank_map(network.max_fault_id(), 0);
+    TpgFaultList root_list;
+    for ( auto fault: fault_list ) {
+      if ( count_map[fault.id()] == 0 ) {
+	root_list.push_back(fault);
+      }
+    }
+    for ( auto fault: root_list ) {
+      dfs(fault, cand2, count_map, rank_map);
+    }
+    SizeType total_cand = 0;
+    SizeType imm_cand = 0;
+    for ( auto fault: fault_list ) {
+      total_cand += cand2.domcand(fault).size();
+      auto rank = rank_map[fault.id()];
+      for ( auto fault1: cand2.domcand(fault) ) {
+	auto rank1 = rank_map[fault1.id()];
+	if ( rank1 == rank + 1 ) {
+	  ++ imm_cand;
+	}
+      }
+    }
+    std::cout << "Total # of dominance candidate: " << total_cand << std::endl
+	      << "Total # of immidiate domminance candidate: " << imm_cand << std::endl;
+  }
   return 0;
 }
 

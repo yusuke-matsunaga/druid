@@ -13,6 +13,7 @@
 #include "types/TpgNetwork.h"
 #include "types/TpgFaultList.h"
 #include "types/PackedVal.h"
+#include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -41,7 +42,7 @@ public:
   std::unique_ptr<CandMgr>
   new_obj(
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
-    const std::string& opt          ///< [in] オプション
+    const ConfigParam& option       ///< [in] オプション
   );
 
   /// @brief デストラクタ
