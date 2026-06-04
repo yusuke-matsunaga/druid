@@ -43,8 +43,10 @@ set ( minpat_SOURCES
   #filter/NaiveMgr.cc
   filter/Reducer.cc
   filter/Filter.cc
+  filter/EqDomCand.cc
   filter/PatGen.cc
   filter/CandMgr.cc
+  filter/DomGraph.cc
   )
 
 

@@ -21,32 +21,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-void
-dfs(
-  const TpgFault& fault,
-  const EqDomCand& cand,
-  std::vector<SizeType>& count_map,
-  std::vector<SizeType>& rank_map
-)
-{
-  auto rank = rank_map[fault.id()];
-  ++ rank;
-  for ( auto fault1: cand.domcand(fault) ) {
-    auto rank1 = rank_map[fault1.id()];
-    if ( rank > rank1 ) {
-      rank_map[fault1.id()] = rank;
-    }
-    -- count_map[fault1.id()];
-    if ( count_map[fault1.id()] == 0 ) {
-      dfs(fault1, cand, count_map, rank_map);
-    }
-  }
-}
-
-END_NONAMESPACE
-
 static char* argv0;
 
 void
@@ -248,36 +222,10 @@ filter_test(
   }
 
   {
-    std::vector<SizeType> count_map(network.max_fault_id(), 0);
-    for ( auto fault: fault_list ) {
-      for ( auto fault1: cand2.domcand(fault) ) {
-	++ count_map[fault1.id()];
-      }
-    }
-    std::vector<SizeType> rank_map(network.max_fault_id(), 0);
-    TpgFaultList root_list;
-    for ( auto fault: fault_list ) {
-      if ( count_map[fault.id()] == 0 ) {
-	root_list.push_back(fault);
-      }
-    }
-    for ( auto fault: root_list ) {
-      dfs(fault, cand2, count_map, rank_map);
-    }
-    SizeType total_cand = 0;
-    SizeType imm_cand = 0;
-    for ( auto fault: fault_list ) {
-      total_cand += cand2.domcand(fault).size();
-      auto rank = rank_map[fault.id()];
-      for ( auto fault1: cand2.domcand(fault) ) {
-	auto rank1 = rank_map[fault1.id()];
-	if ( rank1 == rank + 1 ) {
-	  ++ imm_cand;
-	}
-      }
-    }
+    SizeType total_cand = cand2.total_cand_num();
+    SizeType imm_cand = cand2.total_imm_cand_num();
     std::cout << "Total # of dominance candidate: " << total_cand << std::endl
-	      << "Total # of immidiate domminance candidate: " << imm_cand << std::endl;
+	      << "Total # of immediate domminance candidate: " << imm_cand << std::endl;
   }
   return 0;
 }

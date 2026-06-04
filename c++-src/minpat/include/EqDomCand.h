@@ -35,6 +35,13 @@ public:
   // 情報を取得する関数
   //////////////////////////////////////////////////////////////////////
 
+  /// @brief 対象の故障のリストを返す．
+  const TpgFaultList&
+  fault_list() const
+  {
+    return mFaultList;
+  }
+
   /// @brief 等価故障のグループ数を返す．
   SizeType
   eqgroup_num() const
@@ -63,31 +70,19 @@ public:
     return mDomCandArray[fault.id()];
   }
 
+  /// @brief 支配故障の候補数を返す．
+  SizeType
+  total_cand_num() const;
+
+  /// @brief 直接支配故障の候補数を返す．
+  SizeType
+  total_imm_cand_num() const;
+
   /// @brief 内容を出力する．
   void
   print(
     std::ostream& s ///< [in] 出力ストリーム
-  ) const
-  {
-    SizeType id = 0;
-    for ( auto& eqgroup: mEqGroupList ) {
-      s << "EQ#" << id << ":";
-      for ( auto fault: eqgroup ) {
-	s << " " << fault.str();
-      }
-      s << std::endl;
-      ++ id;
-    }
-    s << "--------------------------" << std::endl;
-    for ( auto fault: mFaultList ) {
-      s << fault.str() << ":";
-      for ( auto fault1: mDomCandArray[fault.id()] ) {
-	s << " " << fault1.str();
-      }
-      s << std::endl;
-    }
-    s << std::endl;
-  }
+  ) const;
 
   /// @brief 等価比較演算子
   bool
@@ -118,16 +113,7 @@ public:
   void
   init(
     const TpgFaultList& fault_list ///< [in] 故障リスト
-  )
-  {
-    mFaultList = fault_list;
-    SizeType max_id = 0;
-    for ( auto fault: mFaultList ) {
-      max_id = std::max(max_id, fault.id());
-    }
-    ++ max_id;
-    mDomCandArray.resize(max_id);
-  }
+  );
 
   /// @brief 等価故障グループを追加する．
   void
