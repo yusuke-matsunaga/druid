@@ -9,7 +9,9 @@
 #include "CandMgr.h"
 #include "NaiveCandMgr.h"
 #include "DichoCandMgr.h"
+#include "DichoCandMgr2.h"
 #include "DiGroup.h"
+#include "DPatGraph.h"
 #include "DomGraph.h"
 
 
@@ -33,6 +35,9 @@ CandMgr::new_obj(
   }
   else if ( str == "dichotomy" ) {
     mgr = new DichoCandMgr(fault_list);
+  }
+  else if ( str == "dichotomy2" ) {
+    mgr = new DichoCandMgr2(fault_list);
   }
   else {
     std::ostringstream buf;
@@ -312,6 +317,161 @@ DichoCandMgr::end()
 // @brief 変化があったか調べる．
 bool
 DichoCandMgr::check(
+  const std::vector<std::unique_ptr<DiGroup>>& new_group_list
+) const
+{
+  if ( new_group_list.size() != mCurGroupList.size() ) {
+    // グループ数が異なる．
+    return true;
+  }
+
+  // 支配故障の候補数を調べる．
+  SizeType dom_num1 = 0;
+  for ( auto& group: mCurGroupList ) {
+    dom_num1 += group->dominance_list().size();
+  }
+  SizeType dom_num2 = 0;
+  for ( auto& group: new_group_list ) {
+    dom_num2 += group->dominance_list().size();
+  }
+  return dom_num1 != dom_num2;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// クラス DichoCandMgr2
+//////////////////////////////////////////////////////////////////////
+
+// @brief コンストラクタ
+DichoCandMgr2::DichoCandMgr2(
+  const TpgFaultList& fault_list
+) : CandMgr(fault_list)
+{
+  // 最初は１つのグループ
+  auto group = new DiGroup(0, fault_list);
+  group->set_dominance_list({group});
+  mCurGroupList.push_back(std::unique_ptr<DiGroup>{group});
+}
+
+// @brief デストラクタ
+DichoCandMgr2::~DichoCandMgr2()
+{
+}
+
+// @brief 更新処理
+bool
+DichoCandMgr2::update(
+  const std::vector<PackedVal>& dpat_array
+)
+{
+  using SubGroupInfo = std::unordered_map<PackedVal, DiGroup*>;
+
+  // まずグループの数を数える．
+  // 同時に現れた d_pat のリストを作る．
+  auto ng = mCurGroupList.size();
+  std::vector<std::unique_ptr<DPatGraph>> dpat_graph_array;
+  dpat_graph_array.reserve(ng);
+  SizeType new_group_num = 0;
+  for ( auto& src_group: mCurGroupList ) {
+    std::unordered_set<PackedVal> d_hash;
+    std::vector<PackedVal> dpat_list;
+    for ( auto fault: src_group->fault_list() ) {
+      auto d = dpat_array[fault.id()];
+      if ( d_hash.count(d) == 0 ) {
+	d_hash.insert(d);
+	dpat_list.push_back(d);
+	++ new_group_num;
+      }
+    }
+    dpat_graph_array.push_back(std::unique_ptr<DPatGraph>{new DPatGraph(dpat_list)});
+  }
+
+  // 細分化したグループを作る．
+  std::vector<std::unique_ptr<DiGroup>> new_group_list;
+  new_group_list.reserve(new_group_num);
+  std::vector<SubGroupInfo> sginfo_array(ng);
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto& src_group = mCurGroupList[id];
+    auto& fault_list = src_group->fault_list();
+    std::unordered_map<SizeType, TpgFaultList> fault_list_dict;
+    auto& d_list = dpat_graph_array[id]->pat_list();
+    for ( auto d: d_list ) {
+      fault_list_dict.emplace(d, TpgFaultList());
+    }
+    for ( auto fault: fault_list ) {
+      auto d = dpat_array[fault.id()];
+      fault_list_dict.at(d).push_back(fault);
+    }
+    auto& sginfo = sginfo_array[id];
+    for ( auto d: d_list ) {
+      auto& fault_list = fault_list_dict.at(d);
+      if ( fault_list.empty() ) {
+	continue;
+      }
+      auto id = new_group_list.size();
+      auto new_group = new DiGroup(id, fault_list);
+      new_group_list.push_back(std::unique_ptr<DiGroup>{new_group});
+      sginfo.emplace(d, new_group);
+    }
+  }
+
+  // dominance list を作る．
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto& src_group = mCurGroupList[id];
+    auto& sginfo = sginfo_array[id];
+    std::vector<DiGroup*> dom_list;
+    auto& src_dom_list = src_group->dominance_list();
+    for ( auto& p: sginfo ) {
+      auto d = p.first;
+      auto group = p.second;
+      for ( auto src_dom_group: src_dom_list ) {
+	auto& dpat_graph1 = *dpat_graph_array[src_dom_group->id()];
+	auto& sginfo1 = sginfo_array[src_dom_group->id()];
+	for ( auto d1: dpat_graph1.dom_list(d) ) {
+	  auto src_dom_subgroup = sginfo1.at(d1);
+	  dom_list.push_back(src_dom_subgroup);
+	}
+      }
+      group->set_dominance_list(std::move(dom_list));
+    }
+  }
+
+  // 変化があったら更新する．
+  if ( check(new_group_list) ) {
+    std::swap(mCurGroupList, new_group_list);
+    return true;
+  }
+  return false;
+}
+
+// @brief 終了処理
+EqDomCand
+DichoCandMgr2::end()
+{
+  EqDomCand cand;
+  cand.init(fault_list());
+
+  for ( auto& group: mCurGroupList ) {
+    cand.add_eqgroup(group->fault_list());
+    for ( auto fault: group->fault_list() ) {
+      TpgFaultList dom_list;
+      for ( auto dom_group: group->dominance_list() ) {
+	for ( auto fault1: dom_group->fault_list() ) {
+	  if ( fault1 != fault ) {
+	    dom_list.push_back(fault1);
+	  }
+	}
+      }
+      cand.set_domcand(fault, dom_list);
+    }
+  }
+  cand.sort();
+  return cand;
+}
+
+// @brief 変化があったか調べる．
+bool
+DichoCandMgr2::check(
   const std::vector<std::unique_ptr<DiGroup>>& new_group_list
 ) const
 {

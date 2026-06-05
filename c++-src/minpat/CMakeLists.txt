@@ -47,6 +47,7 @@ set ( minpat_SOURCES
   filter/PatGen.cc
   filter/CandMgr.cc
   filter/DomGraph.cc
+  filter/DPatGraph.cc
   )
 
 

@@ -1,8 +1,8 @@
-#ifndef DICHOCANDMGR_H
-#define DICHOCANDMGR_H
+#ifndef DICHOCANDMGR2_H
+#define DICHOCANDMGR2_H
 
-/// @file DichoCandMgr.h
-/// @brief DichoCandMgr のヘッダファイル
+/// @file DichoCandMgr2.h
+/// @brief DichoCandMgr2 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -16,21 +16,21 @@ BEGIN_NAMESPACE_DRUID
 class DiGroup;
 
 //////////////////////////////////////////////////////////////////////
-/// @class DichoCandMgr DichoCandMgr.h "DichoCandMgr.h"
+/// @class DichoCandMgr2 DichoCandMgr2.h "DichoCandMgr2.h"
 /// @brief 二分法を用いた CandMgr
 //////////////////////////////////////////////////////////////////////
-class DichoCandMgr :
+class DichoCandMgr2 :
   public CandMgr
 {
 public:
 
   /// @brief コンストラクタ
-  DichoCandMgr(
+  DichoCandMgr2(
     const TpgFaultList& fault_list ///< [in] 対象の故障リスト
   );
 
   /// @brief デストラクタ
-  ~DichoCandMgr();
+  ~DichoCandMgr2();
 
 
 private:
@@ -99,4 +99,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // DICHOCANDMGR_H
+#endif // DICHOCANDMGR2_H
