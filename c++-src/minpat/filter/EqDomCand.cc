@@ -31,6 +31,7 @@ EqDomCand::total_cand_num() const
 SizeType
 EqDomCand::total_imm_cand_num() const
 {
+#if 0
   DomGraph dg(*this);
   dg.print(std::cout);
   SizeType imm_cand = 0;
@@ -44,6 +45,9 @@ EqDomCand::total_imm_cand_num() const
     }
   }
   return imm_cand;
+#else
+  return 0;
+#endif
 }
 
 // @brief 内容を出力する．

@@ -10,6 +10,7 @@
 #include "NaiveCandMgr.h"
 #include "DichoCandMgr.h"
 #include "DiGroup.h"
+#include "DomGraph.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -283,6 +284,10 @@ DichoCandMgr::update(
 EqDomCand
 DichoCandMgr::end()
 {
+  {
+    DomGraph dg(*this);
+    //dg.print(std::cout);
+  }
   EqDomCand cand;
   cand.init(fault_list());
 

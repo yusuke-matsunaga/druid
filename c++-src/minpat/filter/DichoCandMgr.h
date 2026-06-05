@@ -49,6 +49,31 @@ private:
   end() override;
 
 
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief グループ数を返す．
+  SizeType
+  group_num() const
+  {
+    return mCurGroupList.size();
+  }
+
+  /// @brief グループを返す．
+  const DiGroup*
+  group(
+    SizeType id ///< [in] グループ番号
+  ) const
+  {
+    if ( id >= group_num() ) {
+      throw std::out_of_range{"id is out of range"};
+    }
+    return mCurGroupList[id].get();
+  }
+
+
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数

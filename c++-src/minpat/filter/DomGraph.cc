@@ -7,7 +7,8 @@
 /// All rights reserved.
 
 #include "DomGraph.h"
-#include "EqDomCand.h"
+#include "DichoCandMgr.h"
+#include "DiGroup.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -18,81 +19,78 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 DomGraph::DomGraph(
-  const EqDomCand& cand
+  const DichoCandMgr& candmgr
 )
 {
-  auto fault_list = cand.fault_list();
-  auto nf = fault_list.size();
-  mNodeList.reserve(nf);
-  for ( auto fault: fault_list ) {
-    auto node = new DomNode(fault);
+  auto ng = candmgr.group_num();
+  mNodeList.reserve(ng);
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto node = new DomNode(id);
     mNodeList.push_back(std::unique_ptr<DomNode>{node});
-    mNodeMap.emplace(fault.id(), node);
+    mNodeMap.emplace(id, node);
   }
 
   // 支配関係を表すリンクを作る．
-  for ( auto fault: fault_list ) {
-    auto node = mNodeMap.at(fault.id());
-    for ( auto fault1: cand.domcand(fault) ) {
-      auto node1 = mNodeMap.at(fault1.id());
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto group = candmgr.group(id);
+    auto node = mNodeMap.at(group->id());
+    for ( auto group1: group->dominance_list() ) {
+      auto node1 = mNodeMap.at(group1->id());
+      if ( node1 == node ) {
+	continue;
+      }
       node->mDownLink.push_back(node1);
       node1->mUpLink.push_back(node);
+      ++ node1->mCount;
     }
   }
 
-  print(std::cout);
-
   // ランクを計算する．
-  std::unordered_set<SizeType> mark;
   std::vector<DomNode*> node_list;
   for ( auto& node: mNodeList ) {
-    if ( node->mUpLink.empty() ) {
+    if ( node->mCount == 0 ) {
       node_list.push_back(node.get());
     }
   }
-  for ( auto node: node_list ) {
-    node->mRank = 0;
-    mark.insert(node->id());
-  }
-  while ( !node_list.empty() ) {
-    {
-      std::cout << "node_list: ";
-      for ( auto node: node_list ) {
-	std::cout << " " << node->fault().str();
-      }
-      std::cout << std::endl;
+  for ( SizeType rank = 0; !node_list.empty(); ++ rank ) {
+    for ( auto node: node_list ) {
+      node->mRank = rank;
+      node->mHasRank = true;
     }
     std::vector<DomNode*> new_list;
     for ( auto node: node_list ) {
       for ( auto node1: node->mDownLink ) {
-	++ node1->mCount;
-	if ( node1->mCount == node1->mUpLink.size() ) {
-	  SizeType rank = 0;
-	  for ( auto node2: node1->mUpLink ) {
-	    rank = std::max(rank, node2->rank());
-	  }
-	  node1->mRank = rank + 1;
+	-- node1->mCount;
+	if ( node1->mCount == 0 ) {
 	  new_list.push_back(node1);
-	  mark.insert(node1->id());
 	}
       }
     }
     std::swap(node_list, new_list);
   }
+  SizeType total_num = 0;
+  SizeType imm_num = 0;
   for ( auto& node: mNodeList ) {
-    if ( mark.count(node->id()) == 0 ) {
-      abort();
+    total_num += node->mDownLink.size();
+    auto rank = node->rank();
+    for ( auto node1: node->mDownLink ) {
+      auto rank1 = node1->rank();
+      if ( rank1 == rank + 1 ) {
+	++ imm_num;
+      }
     }
   }
+  std::cout << "Total # of domcands:           " << total_num << std::endl
+	    << "Total # of immediate comcands: " << imm_num << std::endl;
 }
 
 // @brief 故障のランクを返す．
 SizeType
 DomGraph::rank(
-  const TpgFault& fault
+  SizeType id
 ) const
 {
-  auto node = mNodeMap.at(fault.id());
+  auto node = mNodeMap.at(id);
   return node->rank();
 }
 
@@ -103,20 +101,21 @@ DomGraph::print(
 ) const
 {
   for ( auto& node: mNodeList ) {
-    auto f = node->fault();
-    s << f.str() << "[" << node->rank() << "]:" << std::endl;
+    node->print(s);
+    s << std::endl;
     s << "  --> ";
     for ( auto node1: node->mDownLink ) {
-      auto f1 = node1->fault();
-      s << " " << f1.str() << "[" << node1->rank() << "]";
+      s << " ";
+      node1->print(s);
     }
     s << std::endl;
     s << "  <--";
     for ( auto node1: node->mUpLink ) {
-      auto f1 = node1->fault();
-      s << " " << f1.str() << "[" << node1->rank() << "]";
+      s << " ";
+      node1->print(s);
     }
-    s << std::endl;
+    s << std::endl
+      << std::endl;
   }
 }
 

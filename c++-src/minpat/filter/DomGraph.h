@@ -15,7 +15,7 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class EqDomCand;
+class DichoCandMgr;
 class DomNode;
 
 //////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ public:
 
   /// @brief コンストラクタ
   DomGraph(
-    const EqDomCand& cand ///< [in] 支配故障の情報
+    const DichoCandMgr& candmgr
   );
 
   /// @brief デストラクタ
@@ -40,10 +40,10 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障のランクを返す．
+  /// @brief ノードのランクを返す．
   SizeType
   rank(
-    const TpgFault& fault ///< [in] 故障
+    SizeType id ///< [in] ノード番号
   ) const;
 
   /// @brief 内容を出力する．
@@ -67,7 +67,7 @@ private:
   // ノードのリスト
   std::vector<std::unique_ptr<DomNode>> mNodeList;
 
-  // 故障番号をキーにして DomNode を持つ辞書
+  // ノード番号をキーにして DomNode を持つ辞書
   std::unordered_map<SizeType, DomNode*> mNodeMap;
 
 };
@@ -85,8 +85,8 @@ public:
 
   /// @brief コンストラクタ
   DomNode(
-    const TpgFault& fault ///< [in] 故障
-  ) : mFault{fault}
+    SizeType id ///< [in] ノード番号
+  ) : mId{id}
   {
   }
 
@@ -99,18 +99,11 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障を返す．
-  TpgFault
-  fault() const
-  {
-    return mFault;
-  }
-
-  /// @brief 故障番号を返す．
+  /// @brief ノード番号を返す．
   SizeType
   id() const
   {
-    return mFault.id();
+    return mId;
   }
 
   /// @brief ランクを返す．
@@ -120,11 +113,20 @@ public:
     return mRank;
   }
 
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
+  /// @grief 内容を出力する．
+  void
+  print(
+    std::ostream& s ///< [in] 出力ストリーム
+  ) const
+  {
+    s << "Node#" << id();
+    if ( mHasRank ) {
+      s << "@" << mRank;
+    }
+    else {
+      s << "[" << mCount << "]";
+    }
+  }
 
 
 private:
@@ -132,11 +134,13 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障
-  TpgFault mFault;
+  // ノード番号
+  SizeType mId;
 
   // ランク
   SizeType mRank{0};
+
+  bool mHasRank{false};
 
   SizeType mCount{0};
 

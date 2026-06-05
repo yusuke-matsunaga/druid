@@ -221,12 +221,6 @@ filter_test(
     cand2.print(std::cout);
   }
 
-  {
-    SizeType total_cand = cand2.total_cand_num();
-    SizeType imm_cand = cand2.total_imm_cand_num();
-    std::cout << "Total # of dominance candidate: " << total_cand << std::endl
-	      << "Total # of immediate domminance candidate: " << imm_cand << std::endl;
-  }
   return 0;
 }
 
