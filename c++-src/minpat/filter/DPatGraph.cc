@@ -11,6 +11,11 @@
 
 BEGIN_NAMESPACE_DRUID
 
+BEGIN_NONAMESPACE
+
+
+END_NONAMESPACE
+
 //////////////////////////////////////////////////////////////////////
 // クラス DPatGraph
 //////////////////////////////////////////////////////////////////////
@@ -21,123 +26,80 @@ DPatGraph::DPatGraph(
 ) : mPatList{pat_list}
 {
   auto npat = pat_list.size();
-  mNodeList.reserve(npat);
   for ( SizeType id = 0; id < npat; ++ id ) {
     auto pat = pat_list[id];
-    auto node = new DPatNode(id, pat);
-    mNodeList.push_back(std::unique_ptr<DPatNode>{node});
-    mNodeMap.emplace(pat, node);
+    mIdMap.emplace(pat, id);
   }
 
-  // 支配関係を表すリンクを作る．
-  for ( SizeType i1 = 0; i1 < npat - 1; ++ i1 ) {
-    auto pat1 = pat_list[i1];
-    auto node1 = mNodeMap.at(pat1);
-    for ( SizeType i2 = i1 + 1; i2 < npat; ++ i2 ) {
-      auto pat2 = pat_list[i2];
-      auto node2 = mNodeMap.at(pat2);
-      auto cap = pat1 & pat2;
-      if ( cap == pat1 ) {
-	node1->mDownLink.push_back(node2);
-	node2->mUpLink.push_back(node1);
-	++ node2->mCount;
+  POSet::Builder builder;
+  builder.mElemList.reserve(npat);
+  for ( SizeType id1 = 0; id1 < npat - 1; ++ id1 ) {
+    auto pat1 = pat_list[id1];
+    for ( SizeType id2 = id1 + 1; id2 < npat; ++ id2 ) {
+      auto pat2 = pat_list[id2];
+      auto pat3 = pat1 & pat2;
+      if ( pat3 == pat1 ) {
+	builder.add(id1, id2);
       }
-      else if ( cap == pat2 ) {
-	node2->mDownLink.push_back(node1);
-	node1->mUpLink.push_back(node2);
-	++ node1->mCount;
+      else if ( pat3 == pat2 ) {
+	builder.add(id2, id1);
       }
     }
   }
 
-  // ランクを計算する．
-  for ( auto& node: mNodeList ) {
-    if ( node->mCount == 0 ) {
-      mRank0List.push_back(node.get());
-    }
-  }
-  auto node_list = mRank0List;
-  for ( SizeType rank = 0; !node_list.empty(); ++ rank ) {
-    for ( auto node: node_list ) {
-      node->mRank = rank;
-      node->mHasRank = true;
-    }
-    std::vector<DPatNode*> new_list;
-    for ( auto node: node_list ) {
-      for ( auto node1: node->mDownLink ) {
-	-- node1->mCount;
-	if ( node1->mCount == 0 ) {
-	  new_list.push_back(node1);
-	}
-      }
-    }
-    std::swap(node_list, new_list);
-  }
-#if 0
-  SizeType total_num = 0;
-  SizeType imm_num = 0;
-  for ( auto& node: mNodeList ) {
-    total_num += node->mDownLink.size();
-    auto rank = node->rank();
-    for ( auto node1: node->mDownLink ) {
-      auto rank1 = node1->rank();
-      if ( rank1 == rank + 1 ) {
-	++ imm_num;
-      }
-    }
-  }
-  std::cout << "Total # of domcands:           " << total_num << std::endl
-	    << "Total # of immediate comcands: " << imm_num << std::endl;
-#endif
+  mPOSet = POSet(builder);
 }
 
 // @brief 直接の支配関係にあるパタンのリストを返す．
 std::vector<PackedVal>
 DPatGraph::dom_list(
-  PackedVal pat
+  PackedVal root_pat,
+  const std::vector<PackedVal>& target_pats,
+  const std::vector<PackedVal>& block_pats
 ) const
 {
-  if ( mNodeMap.count(pat) > 0 ) {
-    auto node = mNodeMap.at(pat);
-    return node->dom_list();
+  // マーク
+  // 0: なし
+  // 1: target
+  // 2: block
+  std::vector<int> mark(mPatList.size(), 0);
+  for ( auto pat: block_pats) {
+    auto id = mIdMap.at(pat);
+    mark[id] = 2;
   }
-
-  std::vector<PackedVal> ans_list;
-  std::unordered_set<PackedVal> mark;
-  for ( auto node: mRank0List ) {
-    auto pat1 = node->pat();
-    if ( (pat1 & pat) == pat ) {
-      ans_list.push_back(pat1);
-    }
-    else {
-      dfs(node, pat, mark, ans_list);
-    }
+  // target は block より優先する．
+  for ( auto pat: target_pats ) {
+    auto id = mIdMap.at(pat);
+    mark[id] = 1;
   }
-  return ans_list;
+  auto id = mIdMap.at(root_pat);
+  if ( mark[id] == 1 ) {
+    // root_pat が target だった場合はそれだけ
+    return {root_pat};
+  }
+  std::vector<PackedVal> pat_list;
+  dfs(id, mark, pat_list);
+  return pat_list;
 }
 
 /// @brief dom_list() 用の下請け関数
 void
 DPatGraph::dfs(
-  const DPatNode* node,
-  PackedVal pat,
-  std::unordered_set<PackedVal>& mark,
+  SizeType id,
+  std::vector<int>& mark,
   std::vector<PackedVal>& ans_list
 ) const
 {
-  auto pat1 = node->pat();
-  if ( mark.count(pat1) > 0 ) {
-    return;
-  }
-  mark.insert(pat1);
-  if ( (pat1 & pat) == pat ) {
-    ans_list.push_back(pat1);
-    return;
-  }
-  if ( (pat1 & pat) == pat1 ) {
-    for ( auto node1: node->mDownLink ) {
-      dfs(node1, pat, mark, ans_list);
+  if ( mark[id] > 0 ) {
+    if ( mark[id] == 1 ) {
+      auto pat = mPatList[id];
+      ans_list.push_back(pat);
     }
+    return;
+  }
+  mark[id] = 2;
+  for ( auto id1: mPOSet.imm_succ_list(id) ) {
+    dfs(id1, mark, ans_list);
   }
 }
 
@@ -147,57 +109,20 @@ DPatGraph::print(
   std::ostream& s
 ) const
 {
-  for ( auto& node: mNodeList ) {
-    node->print(s);
-    s << std::endl;
-    s << "  --> ";
-    for ( auto node1: node->mDownLink ) {
-      s << " ";
-      node1->print(s);
+  auto rank_size = mPOSet.rank_size();
+  for ( SizeType rank = 0; rank < rank_size; ++ rank ) {
+    s << "Rank#" << rank << ":" << std::endl;
+    auto& id_list = mPOSet.rank_list(rank);
+    for ( auto id: id_list ) {
+      auto pat = mPatList[id];
+      s << id << "[" << std::hex << std::setw(16) << pat << std::dec << "]";
+      s << "  --> ";
+      for ( auto id1: mPOSet.imm_succ_list(id) ) {
+	s << " " << id1;
+      }
+      s << std::endl;
     }
     s << std::endl;
-    s << "  <--";
-    for ( auto node1: node->mUpLink ) {
-      s << " ";
-      node1->print(s);
-    }
-    s << std::endl
-      << std::endl;
-  }
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// クラス DPatNode
-//////////////////////////////////////////////////////////////////////
-
-// @brief 直接支配するパタンのリストを返す．
-std::vector<PackedVal>
-DPatNode::dom_list() const
-{
-  std::vector<PackedVal> pat_list;
-  pat_list.reserve(mDownLink.size());
-  for ( auto node: mDownLink ) {
-    if ( node->mRank == mRank + 1 ) {
-      // ランクが 1 違いのノードが直接支配しているノード
-      pat_list.push_back(node->pat());
-    }
-  }
-  return pat_list;
-}
-
-// @grief 内容を出力する．
-void
-DPatNode::print(
-  std::ostream& s
-) const
-{
-  s << "Node#" << id();
-  if ( mHasRank ) {
-    s << "@" << mRank;
-  }
-  else {
-    s << "[" << mCount << "]";
   }
 }
 

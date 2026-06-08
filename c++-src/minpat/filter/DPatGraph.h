@@ -10,11 +10,10 @@
 
 #include "druid.h"
 #include "types/PackedVal.h"
+#include "POSet.h"
 
 
 BEGIN_NAMESPACE_DRUID
-
-class DPatNode;
 
 //////////////////////////////////////////////////////////////////////
 /// @class DPatGraph DPatGraph.h "DPatGraph.h"
@@ -29,9 +28,6 @@ class DPatNode;
 class DPatGraph
 {
 public:
-
-  /// @brief 空のコンストラクタ
-  DPatGraph() = default;
 
   /// @brief コンストラクタ
   DPatGraph(
@@ -56,12 +52,13 @@ public:
 
   /// @brief 直接の支配関係にあるパタンのリストを返す．
   ///
-  /// pat はこのグラフに含まれていない場合がある．
+  /// - ただしブロックされたパタンに到達した場合はそこで止まる．
   std::vector<PackedVal>
   dom_list(
-    PackedVal pat ///< [in] 対象のパタン
+    PackedVal pat,                             ///< [in] 始点となるパタン
+    const std::vector<PackedVal>& target_pats, ///< [in] ターゲットのパタンのリスト
+    const std::vector<PackedVal>& block_pats   ///< [in] ブロックするパタンのリスト
   ) const;
-
 
   /// @brief 内容を出力する．
   void
@@ -78,9 +75,8 @@ private:
   /// @brief dom_list() 用の下請け関数
   void
   dfs(
-    const DPatNode* node,
-    PackedVal pat,
-    std::unordered_set<PackedVal>& mark,
+    SizeType id,
+    std::vector<int>& mark,
     std::vector<PackedVal>& ans_list
   ) const;
 
@@ -93,101 +89,12 @@ private:
   // パタンのリスト
   std::vector<PackedVal> mPatList;
 
-  // ノードのリスト
-  std::vector<std::unique_ptr<DPatNode>> mNodeList;
+  // パタンをキーにしてノード番号を持つ辞書
+  // mPatList の逆関数
+  std::unordered_map<PackedVal, SizeType> mIdMap;
 
-  // パタンをキーにして DPatNode を持つ辞書
-  std::unordered_map<PackedVal, DPatNode*> mNodeMap;
-
-  // ランク0のノードのリスト
-  std::vector<DPatNode*> mRank0List;
-
-};
-
-
-//////////////////////////////////////////////////////////////////////
-/// @class DPatNode DPatGraph.h "DPatGraph.h"
-/// @brief DPatGraph のノードを表すクラス
-//////////////////////////////////////////////////////////////////////
-class DPatNode
-{
-  friend class DPatGraph;
-
-public:
-
-  /// @brief コンストラクタ
-  DPatNode(
-    SizeType id,  ///< [in] ID番号
-    PackedVal pat ///< [in] パタン
-  ) : mId{id},
-      mPat{pat}
-  {
-  }
-
-  /// @brief デストラクタ
-  ~DPatNode() = default;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief ID番号を返す.
-  SizeType
-  id() const
-  {
-    return mId;
-  }
-
-  /// @brief パタンを返す．
-  PackedVal
-  pat() const
-  {
-    return mPat;
-  }
-
-  /// @brief 直接支配するパタンのリストを返す．
-  std::vector<PackedVal>
-  dom_list() const;
-
-  /// @brief ランクを返す．
-  SizeType
-  rank() const
-  {
-    return mRank;
-  }
-
-  /// @grief 内容を出力する．
-  void
-  print(
-    std::ostream& s ///< [in] 出力ストリーム
-  ) const;
-
-
-private:
-  //////////////////////////////////////////////////////////////////////
-  // データメンバ
-  //////////////////////////////////////////////////////////////////////
-
-  // ノード番号
-  SizeType mId;
-
-  // パタン
-  PackedVal mPat;
-
-  // ランク
-  SizeType mRank{0};
-
-  bool mHasRank{false};
-
-  SizeType mCount{0};
-
-  // 支配する故障のリスト
-  std::vector<DPatNode*> mDownLink;
-
-  // 支配している故障のリスト
-  std::vector<DPatNode*> mUpLink;
+  // 半順序構造
+  POSet mPOSet;
 
 };
 

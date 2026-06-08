@@ -289,21 +289,22 @@ DichoCandMgr::update(
 EqDomCand
 DichoCandMgr::end()
 {
-  {
-    DomGraph dg(*this);
-    //dg.print(std::cout);
-  }
+  DomGraph dg(*this);
   EqDomCand cand;
   cand.init(fault_list());
 
   for ( auto& group: mCurGroupList ) {
     cand.add_eqgroup(group->fault_list());
+    auto rank = dg.rank(group->id());
     for ( auto fault: group->fault_list() ) {
       TpgFaultList dom_list;
       for ( auto dom_group: group->dominance_list() ) {
-	for ( auto fault1: dom_group->fault_list() ) {
-	  if ( fault1 != fault ) {
-	    dom_list.push_back(fault1);
+	auto rank1 = dg.rank(dom_group->id());
+	if ( rank1 == rank + 1 ) {
+	  for ( auto fault1: dom_group->fault_list() ) {
+	    if ( fault1 != fault ) {
+	      dom_list.push_back(fault1);
+	    }
 	  }
 	}
       }
@@ -366,15 +367,17 @@ DichoCandMgr2::update(
 {
   using SubGroupInfo = std::unordered_map<PackedVal, DiGroup*>;
 
-  // まずグループの数を数える．
-  // 同時に現れた d_pat のリストを作る．
+  // dapt_array に含まれるパタンの包含関係を表すグラフを作る．
+  DPatGraph dpat_graph(dpat_array);
+
+  // グループの数を数える．
+  // 同時にグループごとに現れた d_pat のリストを作る．
   auto ng = mCurGroupList.size();
-  std::vector<std::unique_ptr<DPatGraph>> dpat_graph_array;
-  dpat_graph_array.reserve(ng);
+  std::vector<std::vector<PackedVal>> dpat_list_array(ng);
   SizeType new_group_num = 0;
   for ( auto& src_group: mCurGroupList ) {
+    auto& dpat_list = dpat_list_array[src_group->id()];
     std::unordered_set<PackedVal> d_hash;
-    std::vector<PackedVal> dpat_list;
     for ( auto fault: src_group->fault_list() ) {
       auto d = dpat_array[fault.id()];
       if ( d_hash.count(d) == 0 ) {
@@ -383,7 +386,6 @@ DichoCandMgr2::update(
 	++ new_group_num;
       }
     }
-    dpat_graph_array.push_back(std::unique_ptr<DPatGraph>{new DPatGraph(dpat_list)});
   }
 
   // 細分化したグループを作る．
@@ -394,7 +396,7 @@ DichoCandMgr2::update(
     auto& src_group = mCurGroupList[id];
     auto& fault_list = src_group->fault_list();
     std::unordered_map<SizeType, TpgFaultList> fault_list_dict;
-    auto& d_list = dpat_graph_array[id]->pat_list();
+    auto& d_list = dpat_list_array[id];
     for ( auto d: d_list ) {
       fault_list_dict.emplace(d, TpgFaultList());
     }
@@ -444,6 +446,27 @@ DichoCandMgr2::update(
   return false;
 }
 
+BEGIN_NONAMESPACE
+
+void
+transitive_dominance_list(
+  DiGroup* group,
+  std::unordered_set<SizeType>& mark,
+  std::vector<DiGroup*>& ans_list
+)
+{
+  if ( mark.count(group->id()) > 0 ) {
+    return;
+  }
+  mark.emplace(group->id());
+  ans_list.push_back(group);
+  for ( auto group1: group->dominance_list() ) {
+    transitive_dominance_list(group1, mark, ans_list);
+  }
+}
+
+END_NONAMESPACE
+
 // @brief 終了処理
 EqDomCand
 DichoCandMgr2::end()
@@ -453,9 +476,12 @@ DichoCandMgr2::end()
 
   for ( auto& group: mCurGroupList ) {
     cand.add_eqgroup(group->fault_list());
+    std::vector<DiGroup*> dom_group_list;
+    std::unordered_set<SizeType> mark;
+    transitive_dominance_list(group.get(), mark, dom_group_list);
     for ( auto fault: group->fault_list() ) {
       TpgFaultList dom_list;
-      for ( auto dom_group: group->dominance_list() ) {
+      for ( auto dom_group: dom_group_list ) {
 	for ( auto fault1: dom_group->fault_list() ) {
 	  if ( fault1 != fault ) {
 	    dom_list.push_back(fault1);
