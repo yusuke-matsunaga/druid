@@ -16,8 +16,38 @@ BEGIN_NAMESPACE_DRUID
 // クラス POSet
 //////////////////////////////////////////////////////////////////////
 
+// @brief 空のコンストラクタ
+POSet::POSet()
+{
+}
+
 // @brief コンストラクタ
 POSet::POSet(
+  const Builder& builder
+)
+{
+  _set(builder);
+}
+
+// @brief デストラクタ
+POSet::~POSet()
+{
+}
+
+// @brief 最初期化
+void
+POSet::rebuild(
+  const Builder& builder
+)
+{
+  mNodeList.clear();
+  mRankArray.clear();
+  _set(builder);
+}
+
+// @brief 内容を設定する．
+void
+POSet::_set(
   const Builder& builder
 )
 {

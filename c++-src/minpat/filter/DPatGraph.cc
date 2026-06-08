@@ -47,7 +47,7 @@ DPatGraph::DPatGraph(
     }
   }
 
-  mPOSet = POSet(builder);
+  mPOSet.rebuild(builder);
 }
 
 // @brief 直接の支配関係にあるパタンのリストを返す．
