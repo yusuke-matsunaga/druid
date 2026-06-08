@@ -21,7 +21,6 @@ BEGIN_NAMESPACE_DRUID
 /// 以下の情報を持つ．
 /// - ID番号
 /// - 故障のリスト
-/// - conflict している候補グループのリスト
 /// - dominate している候補グループのリスト
 ///
 /// ID番号は親の DiGroupMgr に対して唯一のものとなっている．
@@ -80,6 +79,41 @@ public:
     std::swap(mDominanceList, src_list);
   }
 
+  /// @brief サブグループの情報を初期化する．
+  void
+  init()
+  {
+    mDPatList.clear();
+    mSubGroupDict.clear();
+  }
+
+  /// @brief 細分化のパタンリストを返す．
+  const std::vector<PackedVal>&
+  dpat_list() const
+  {
+    return mDPatList;
+  }
+
+  /// @brief 細分化したサブグループを返す．
+  DiGroup*
+  subgroup(
+    PackedVal dpat ///< [in] 細分化するパタン (dpat_list() の要素)
+  ) const
+  {
+    return mSubGroupDict.at(dpat);
+  }
+
+  /// @brief サブグループを追加する．
+  void
+  add_subgroup(
+    PackedVal dpat,
+    DiGroup* group
+  )
+  {
+    mDPatList.push_back(dpat);
+    mSubGroupDict.emplace(dpat, group);
+  }
+
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -94,6 +128,12 @@ private:
 
   // dominate している候補のリスト
   std::vector<DiGroup*> mDominanceList;
+
+  // 細分化用のパタンリスト
+  std::vector<PackedVal> mDPatList;
+
+  // 細分化したサブグループの辞書
+  std::unordered_map<PackedVal, DiGroup*> mSubGroupDict;
 
 };
 
