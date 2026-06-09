@@ -52,7 +52,7 @@ public:
     )
     {
       mSize = std::max(mSize, id1 + 1);
-      mSize = std::max(mSize, id2 + 2);
+      mSize = std::max(mSize, id2 + 1);
       mElemList.push_back({id1, id2});
     }
 

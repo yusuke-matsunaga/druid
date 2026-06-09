@@ -11,11 +11,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-BEGIN_NONAMESPACE
-
-
-END_NONAMESPACE
-
 //////////////////////////////////////////////////////////////////////
 // クラス DPatGraph
 //////////////////////////////////////////////////////////////////////
@@ -23,15 +18,23 @@ END_NONAMESPACE
 // @brief コンストラクタ
 DPatGraph::DPatGraph(
   const std::vector<PackedVal>& pat_list
-) : mPatList{pat_list}
+)
 {
-  auto npat = pat_list.size();
-  for ( SizeType id = 0; id < npat; ++ id ) {
-    auto pat = pat_list[id];
-    mIdMap.emplace(pat, id);
+  SizeType id = 0;
+  for ( auto pat: pat_list ) {
+    if ( mIdMap.count(pat) == 0 ) {
+      mIdMap.emplace(pat, id);
+      ++ id;
+    }
+  }
+  mPatList.resize(id);
+  for ( auto pat: pat_list ) {
+    auto id = mIdMap.at(pat);
+    mPatList[id] = pat;
   }
 
   POSet::Builder builder;
+  auto npat = mPatList.size();
   builder.mElemList.reserve(npat);
   for ( SizeType id1 = 0; id1 < npat - 1; ++ id1 ) {
     auto pat1 = pat_list[id1];
@@ -63,14 +66,14 @@ DPatGraph::dom_list(
   // 1: target
   // 2: block
   std::vector<int> mark(mPatList.size(), 0);
-  for ( auto pat: block_pats) {
-    auto id = mIdMap.at(pat);
-    mark[id] = 2;
-  }
-  // target は block より優先する．
+  // block は target より優先する．
   for ( auto pat: target_pats ) {
     auto id = mIdMap.at(pat);
     mark[id] = 1;
+  }
+  for ( auto pat: block_pats) {
+    auto id = mIdMap.at(pat);
+    mark[id] = 2;
   }
   auto id = mIdMap.at(root_pat);
   if ( mark[id] == 1 ) {

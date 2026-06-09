@@ -60,9 +60,9 @@ Reducer::run(
   SizeType eq_succ_count = 0;
   Timer eq_timer;
   eq_timer.start();
-  auto ng = cand.eqgroup_num();
+  auto ng = cand.group_num();
   for ( SizeType g = 0; g < ng; ++ g ) {
-    auto& group = cand.eqgroup(g);
+    auto& group = cand.group(g);
     auto nf = group.size();
     if ( nf == 1 ) {
       continue;
@@ -146,23 +146,26 @@ Reducer::run(
     if ( !fault_info.is_rep(fault1) ) {
       continue;
     }
-    auto& domcand = cand.domcand(fault1);
-    for ( auto fault2: domcand ) {
-      if ( !fault_info.is_rep(fault2) ) {
-	continue;
-      }
-      NaiveDualEngine engine(fault1, fault2, option);
-      auto res = engine.solve(true, false, TIME_LIMIT);
-      ++ dom_check_count;
-      if ( res == SatBool3::False ) {
-	fault_info.set_dominator(fault2, fault1);
-	++ dom_succ_count;
-	if ( debug > 0 ) {
-	  std::cout << "    "
-		    << fault2.str() << " is dominated by "
-		    << fault1.str() << std::endl;
+    auto id1 = cand.group_id(fault1);
+    auto& dom_list = cand.dom_list(id1);
+    for ( auto id2: dom_list ) {
+      for ( auto fault2: cand.group(id2) ) {
+	if ( !fault_info.is_rep(fault2) ) {
+	  continue;
 	}
-	continue;
+	NaiveDualEngine engine(fault1, fault2, option);
+	auto res = engine.solve(true, false, TIME_LIMIT);
+	++ dom_check_count;
+	if ( res == SatBool3::False ) {
+	  fault_info.set_dominator(fault2, fault1);
+	  ++ dom_succ_count;
+	  if ( debug > 0 ) {
+	    std::cout << "    "
+		      << fault2.str() << " is dominated by "
+		      << fault1.str() << std::endl;
+	  }
+	  continue;
+	}
       }
     }
   }

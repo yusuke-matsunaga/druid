@@ -48,13 +48,6 @@ public:
     return mId;
   }
 
-  /// @brief 等価ノードの代表ノードを返す．
-  const PONode*
-  rep_node() const
-  {
-    return mRepNode;
-  }
-
   /// @brief 後続ノードのリストを返す．
   const std::vector<PONode*>&
   succ_list() const
@@ -107,9 +100,6 @@ private:
   bool mHasRank{false};
 
   SizeType mCount{0};
-
-  // 等価ノードの代表ノード
-  PONode* mRepNode{nullptr};
 
   // 後続ノードのリスト
   std::vector<PONode*> mSuccList;

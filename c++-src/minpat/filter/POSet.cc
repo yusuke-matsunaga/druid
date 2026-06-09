@@ -69,35 +69,9 @@ POSet::_set(
     ++ node2->mCount;
   }
 
-  // 等価ノードグループを求める．
-  std::vector<std::unordered_set<SizeType>> succset_array(size);
-  for ( auto& node: mNodeList ) {
-    auto& succset = succset_array[node->id()];
-    for ( auto node1: node->mSuccList ) {
-      succset.insert(node1->id());
-    }
-  }
-  for ( auto& node: mNodeList ) {
-    for ( auto node1: node->mSuccList ) {
-      auto& succset1 = succset_array[node1->id()];
-      if ( succset1.count(node->id()) > 0 ) {
-	if ( node->id() < node1->id() ) {
-	  node1->mRepNode = node.get();
-	}
-	else {
-	  node->mRepNode = node1;
-	}
-      }
-    }
-  }
-  // 以降は mRepNode == nullptr のノードのみを対象とする．
-
   // ランクを計算する．
   std::vector<PONode*> node_list;
   for ( auto& node: mNodeList ) {
-    if ( node->mRepNode != nullptr ) {
-      continue;
-    }
     if ( node->mCount == 0 ) {
       node_list.push_back(node.get());
     }
@@ -110,9 +84,6 @@ POSet::_set(
     std::vector<PONode*> new_list;
     for ( auto node: node_list ) {
       for ( auto node1: node->mSuccList ) {
-	if ( node1->mRepNode != nullptr ) {
-	  continue;
-	}
 	-- node1->mCount;
 	if ( node1->mCount == 0 ) {
 	  new_list.push_back(node1);
@@ -123,9 +94,6 @@ POSet::_set(
   }
   // mImmSuccList を作る．
   for ( auto& node: mNodeList ) {
-    if ( node->mRepNode != nullptr ) {
-      continue;
-    }
     auto ref_rank = node->rank() + 1;
     for ( auto node1: node->mSuccList ) {
       auto rank1 = node1->rank();
@@ -206,7 +174,7 @@ POSet::print(
   std::ostream& s
 ) const
 {
-  for ( SizeType rank = 0; rank < mRankArray.size(); ++ rank ) {
+  for ( SizeType rank = 0; rank < rank_size(); ++ rank ) {
     s << "Rank#" << rank << ":" << std::endl;
     for ( auto id: mRankArray[rank] ) {
       s << id << "  --> ";
@@ -214,6 +182,7 @@ POSet::print(
       for ( auto node1: node->mImmSuccList ) {
 	s << " " << node1->id();
       }
+      s << std::endl;
     }
     s << std::endl;
   }

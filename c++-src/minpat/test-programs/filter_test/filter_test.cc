@@ -44,6 +44,7 @@ filter_test(
   int no_change_limit = 0;
   int batch_size = 0;
   int sat_time_limit = 0;
+  bool dicho2 = false;
   bool multi_thread = false;
   bool verbose = false;
   int debug = 0;
@@ -90,6 +91,9 @@ filter_test(
       }
       std::string val = argv[argpos];
       batch_size = stoi(val);
+    }
+    else if ( arg == "--dichotomy2" ) {
+      dicho2 = true;
     }
     else if ( arg == "--multi-thread" ) {
       multi_thread = true;
@@ -207,7 +211,12 @@ filter_test(
       filter_option.add("batch_size", batch_size);
     }
     auto cand_option = JsonValue::object();
-    cand_option.add("method", std::string{"dichotomy"});
+    if ( dicho2 ) {
+      cand_option.add("method", std::string{"dichotomy2"});
+    }
+    else {
+      cand_option.add("method", std::string{"dichotomy"});
+    }
     filter_option.add("candmgr", cand_option);
     dicho_option.add("filter", filter_option);
   }

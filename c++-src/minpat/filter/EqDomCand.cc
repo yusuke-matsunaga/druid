@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "EqDomCand.h"
-#include "DomGraph.h"
+#include "POSet.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -16,38 +16,71 @@ BEGIN_NAMESPACE_DRUID
 // クラス EqDomCand
 //////////////////////////////////////////////////////////////////////
 
-// @brief 支配故障の候補数を返す．
-SizeType
-EqDomCand::total_cand_num() const
+// @brief 内容を指定したコンストラクタ
+EqDomCand::EqDomCand(
+  const std::vector<TpgFaultList>& group_list,
+  const DomPairList& dom_list,
+  bool prune
+) : mGroupList{group_list},
+    mDomListArray(mGroupList.size())
 {
-  SizeType total_cand = 0;
-  for ( auto fault: mFaultList ) {
-    total_cand += domcand(fault).size();
+  auto ng = mGroupList.size();
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto& fault_list = mGroupList[id];
+    fault_list.sort();
+    for ( auto fault: fault_list ) {
+      mIdMap.emplace(fault.id(), id);
+    }
   }
-  return total_cand;
-}
-
-// @brief 直接支配故障の候補数を返す．
-SizeType
-EqDomCand::total_imm_cand_num() const
-{
-#if 0
-  DomGraph dg(*this);
-  dg.print(std::cout);
-  SizeType imm_cand = 0;
-  for ( auto fault: mFaultList ) {
-    auto rank = dg.rank(fault);
-    for ( auto fault1: domcand(fault) ) {
-      auto rank1 = dg.rank(fault1);
-      if ( rank1 == rank + 1 ) {
-	++ imm_cand;
+  if ( prune ) {
+    POSet::Builder builder;
+    for ( auto& p: dom_list ) {
+      auto id1 = p.first;
+      if ( id1 >= ng ) {
+	throw std::out_of_range{"id1 is out of range"};
+      }
+      auto id2 = p.second;
+      if ( id2 >= ng ) {
+	throw std::out_of_range{"id2 is out of range"};
+      }
+      builder.add(id1, id2);
+    }
+    POSet poset(builder);
+    for ( SizeType id1 = 0; id1 < ng; ++ id1 ) {
+      auto id2_list = poset.imm_succ_list(id1);
+      for ( auto id2: id2_list ) {
+	mDomListArray[id1].push_back(id2);
       }
     }
   }
-  return imm_cand;
-#else
-  return 0;
-#endif
+  else {
+    for ( auto& p: dom_list ) {
+      auto id1 = p.first;
+      if ( id1 >= ng ) {
+	throw std::out_of_range{"id1 is out of range"};
+      }
+      auto id2 = p.second;
+      if ( id2 >= ng ) {
+	throw std::out_of_range{"id2 is out of range"};
+      }
+      mDomListArray[id1].push_back(id2);
+    }
+  }
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto& dom_list = mDomListArray[id];
+    std::sort(dom_list.begin(), dom_list.end());
+  }
+}
+
+// @brief 支配故障の候補数を返す．
+SizeType
+EqDomCand::total_num() const
+{
+  SizeType count = 0;
+  for ( auto& tmp: mDomListArray ) {
+    count += tmp.size();
+  }
+  return count;
 }
 
 // @brief 内容を出力する．
@@ -56,39 +89,22 @@ EqDomCand::print(
   std::ostream& s
 ) const
 {
-  SizeType id = 0;
-  for ( auto& eqgroup: mEqGroupList ) {
-    s << "EQ#" << id << ":";
-    for ( auto fault: eqgroup ) {
+  for ( SizeType id = 0; id < mGroupList.size(); ++ id ) {
+    auto& group = mGroupList[id];
+    s << "Group#" << id << ":";
+    for ( auto fault: group ) {
       s << " " << fault.str();
     }
-    s << std::endl;
-    ++ id;
-  }
-  s << "--------------------------" << std::endl;
-  for ( auto fault: mFaultList ) {
-    s << fault.str() << ":";
-    for ( auto fault1: mDomCandArray[fault.id()] ) {
-      s << " " << fault1.str();
+    s << std::endl
+      << "  ";
+    auto& dom_list = mDomListArray[id];
+    const char* comma = "";
+    for ( auto id1: dom_list ) {
+      s << comma << "Group#" << id1;
+      comma = ", ";
     }
     s << std::endl;
   }
-  s << std::endl;
-}
-
-// @brief 故障リストを設定する．
-void
-EqDomCand::init(
-  const TpgFaultList& fault_list
-)
-{
-  mFaultList = fault_list;
-  SizeType max_id = 0;
-  for ( auto fault: mFaultList ) {
-    max_id = std::max(max_id, fault.id());
-  }
-  ++ max_id;
-  mDomCandArray.resize(max_id);
 }
 
 END_NAMESPACE_DRUID

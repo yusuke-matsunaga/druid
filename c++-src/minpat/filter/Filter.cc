@@ -109,10 +109,14 @@ Filter::run(
   timer.stop();
 
   if ( verbose ) {
-    std::cout << "# of faults:            " << std::setw(8) << std::right << fault_list.size() << std::endl
-	      << "# of Groups:            " << std::setw(8) << std::right << cand.eqgroup_num() << std::endl
-	      << "Total # of patterns:    " << std::setw(8) << std::right << tv_count << std::endl
-	      << "No Change Limit:        " << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
+    std::cout << "# of faults:            "
+	      << std::setw(8) << std::right << fault_list.size() << std::endl
+	      << "# of Groups:            "
+	      << std::setw(8) << std::right << cand.group_num() << std::endl
+	      << "Total # of patterns:    "
+	      << std::setw(8) << std::right << tv_count << std::endl
+	      << "No Change Limit:        "
+	      << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
 	      << "Filtering time:           " << time_str(timer) << std::endl
 	      << " (Fsim time):             " << time_str(fsim_timer) << std::endl;
   }

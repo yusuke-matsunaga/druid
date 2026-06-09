@@ -46,7 +46,9 @@ set ( minpat_SOURCES
   filter/EqDomCand.cc
   filter/PatGen.cc
   filter/CandMgr.cc
-  filter/DomGraph.cc
+  filter/NaiveCandMgr.cc
+  filter/DichoCandMgr.cc
+  filter/DichoCandMgr2.cc
   filter/DPatGraph.cc
   filter/POSet.cc
   )

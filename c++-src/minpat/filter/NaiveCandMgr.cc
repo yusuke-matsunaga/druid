@@ -6,6 +6,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
+#include "CandMgr.h"
 #include "NaiveCandMgr.h"
 
 
@@ -87,28 +88,41 @@ NaiveCandMgr::update(
 EqDomCand
 NaiveCandMgr::end()
 {
-  EqDomCand cand;
-  cand.init(fault_list());
-  {
+  std::vector<TpgFaultList> group_list;
+  std::unordered_map<SizeType, SizeType> id_map;
+  { // 等価故障グループを求める．
     std::vector<bool> mark(mSize, false);
     for ( auto fault: fault_list() ) {
       if ( mark[fault.id()] ) {
 	continue;
       }
+      auto gid = group_list.size();
       auto eq_list = eqcand_list(fault);
       eq_list.push_back(fault);
-      eq_list.sort();
-      cand.add_eqgroup(eq_list);
       for ( auto fault1: eq_list ) {
 	mark[fault1.id()] = true;
+	id_map.emplace(fault1.id(), gid);
+      }
+      group_list.push_back(eq_list);
+    }
+  }
+  // 支配関係のリストを作る．
+  std::vector<std::pair<SizeType, SizeType>> dom_list;
+  auto ng = group_list.size();
+  for ( SizeType id1 = 0; id1 < ng; ++ id1 ) {
+    std::unordered_set<SizeType> id_set;
+    id_set.insert(id1);
+    for ( auto fault1: group_list[id1] ) {
+      for ( auto fault2: mDomCandListArray[fault1.id()] ) {
+	auto id2 = id_map.at(fault2.id());
+	if ( id_set.count(id2) == 0 ) {
+	  id_set.insert(id2);
+	  dom_list.push_back({id1, id2});
+	}
       }
     }
   }
-  for ( auto fault: fault_list() ) {
-    auto dom_list = mDomCandListArray[fault.id()];
-    cand.set_domcand(fault, dom_list);
-  }
-  return cand;
+  return EqDomCand(group_list, dom_list, true);
 }
 
 // @brief 等価な可能性のある故障のリストを返す．

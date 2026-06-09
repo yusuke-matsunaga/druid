@@ -18,13 +18,25 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 /// @class EqDomCand EqDomCand.h "EqDomCand.h"
 /// @brief 等価故障と支配故障の候補を表すクラス
+///
+/// - 全ての故障はいずれかの等価故障グループに属する．
+/// - 等価故障グループ間には支配関係がある．
 //////////////////////////////////////////////////////////////////////
 class EqDomCand
 {
+  using DomPairList = std::vector<std::pair<SizeType, SizeType>>;
+
 public:
 
   /// @brief コンストラクタ
   EqDomCand() = default;
+
+  /// @brief 内容を指定したコンストラクタ
+  EqDomCand(
+    const std::vector<TpgFaultList>& group_list, ///< [in] 等価故障グループのリスト
+    const DomPairList& dom_list,                 ///< [in] 支配関係のペアのリスト
+    bool prune = false                           ///< [in] 推移的な関係を除外する時 true
+  );
 
   /// @brief デストラクタ
   ~EqDomCand() = default;
@@ -35,48 +47,45 @@ public:
   // 情報を取得する関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 対象の故障のリストを返す．
-  const TpgFaultList&
-  fault_list() const
-  {
-    return mFaultList;
-  }
-
   /// @brief 等価故障のグループ数を返す．
   SizeType
-  eqgroup_num() const
+  group_num() const
   {
-    return mEqGroupList.size();
+    return mGroupList.size();
   }
 
   /// @brief 等価故障のグループを返す．
   const TpgFaultList&
-  eqgroup(
+  group(
     SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
   ) const
   {
-    if ( id >= eqgroup_num() ) {
-      throw std::out_of_range{"id is ouf of range"};
-    }
-    return mEqGroupList[id];
+    _check_id(id);
+    return mGroupList[id];
   }
 
-  /// @brief 支配故障の候補リストを返す．
-  const TpgFaultList&
-  domcand(
+  /// @brief 等価故障グループ番号を返す．
+  SizeType
+  group_id(
     const TpgFault& fault ///< [in] 故障
   ) const
   {
-    return mDomCandArray[fault.id()];
+    return mIdMap.at(fault.id());
   }
 
-  /// @brief 支配故障の候補数を返す．
-  SizeType
-  total_cand_num() const;
+  /// @brief 支配関係の候補リストを返す．
+  const std::vector<SizeType>&
+  dom_list(
+    SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
+  ) const
+  {
+    _check_id(id);
+    return mDomListArray[id];
+  }
 
-  /// @brief 直接支配故障の候補数を返す．
+  /// @brief 支配関係の総数を返す．
   SizeType
-  total_imm_cand_num() const;
+  total_num() const;
 
   /// @brief 内容を出力する．
   void
@@ -90,8 +99,8 @@ public:
     const EqDomCand& right
   ) const
   {
-    return mEqGroupList == right.mEqGroupList &&
-    mDomCandArray == right.mDomCandArray;
+    return mGroupList == right.mGroupList &&
+    mDomListArray == right.mDomListArray;
   }
 
   /// @brief 非等価比較演算子
@@ -104,47 +113,20 @@ public:
   }
 
 
-public:
+private:
   //////////////////////////////////////////////////////////////////////
-  // 情報を設定する関数
+  // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障リストを設定する．
+  /// @brief グループ番号をチェックする．
   void
-  init(
-    const TpgFaultList& fault_list ///< [in] 故障リスト
-  );
-
-  /// @brief 等価故障グループを追加する．
-  void
-  add_eqgroup(
-    const TpgFaultList& fault_list ///< [in] 等価故障グループのリスト
-  )
+  _check_id(
+    SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
+  ) const
   {
-    mEqGroupList.push_back(fault_list);
-  }
-
-  /// @brief 等価故障グループのリストをソートする．
-  void
-  sort()
-  {
-    std::sort(mEqGroupList.begin(), mEqGroupList.end(),
-	      [](const TpgFaultList& a, const TpgFaultList& b)->bool {
-		return a[0].id() < b[0].id();
-	      });
-  }
-
-  /// @brief 支配故障の候補リストを設定する．
-  void
-  set_domcand(
-    const TpgFault& fault,         ///< [in] 対象の故障
-    const TpgFaultList& fault_list ///< [in] 支配故障の候補リスト
-  )
-  {
-    if ( fault.id() >= mDomCandArray.size() ) {
-      throw std::out_of_range{"fault.id() is out of range"};
+    if ( id >= group_num() ) {
+      throw std::out_of_range{"id is out of range"};
     }
-    mDomCandArray[fault.id()] = fault_list;
   }
 
 
@@ -153,15 +135,15 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 対象の故障リスト
-  TpgFaultList mFaultList;
-
   // 等価故障グループのリスト
-  std::vector<TpgFaultList> mEqGroupList;
+  std::vector<TpgFaultList> mGroupList;
 
-  // 支配故障の候補リストの配列
-  // キーは故障番号
-  std::vector<TpgFaultList> mDomCandArray;
+  // 故障番号をキーにして等価故障グループ番号を保持する辞書
+  std::unordered_map<SizeType, SizeType> mIdMap;
+
+  // 支配関係の候補リストの配列
+  // キーはグループ番号
+  std::vector<std::vector<SizeType>> mDomListArray;
 
 };
 
