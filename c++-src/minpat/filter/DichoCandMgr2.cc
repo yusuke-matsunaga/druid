@@ -36,67 +36,21 @@ DichoCandMgr2::~DichoCandMgr2()
 
 BEGIN_NONAMESPACE
 
-struct SearchMgr {
-  std::vector<std::vector<PackedVal>> dpat_list_array;
-  DPatGraph dpat_graph;
-  std::vector<DiGroup*> dom_list;
-
-  SearchMgr(
-    const std::vector<PackedVal>& dpat_array,
-    const std::vector<std::unique_ptr<DiGroup>>& group_list
-  ) : dpat_graph(dpat_array),
-      dpat_list_array(group_list.size())
-  {
-    auto ng = group_list.size();
-    for ( SizeType id = 0; id < ng; ++ id ) {
-      auto& group = group_list[id];
-      std::unordered_set<PackedVal> d_hash;
-      auto& dpat_list = dpat_list_array[group->id()];
-      for ( auto fault: group->fault_list() ) {
-	auto dpat = dpat_array[fault.id()];
-	if ( d_hash.count(dpat) == 0 ) {
-	  d_hash.insert(dpat);
-	  dpat_list.push_back(dpat);
-	}
-      }
-      std::sort(dpat_list.begin(), dpat_list.end(), std::greater<>());
-    }
-  }
-
-  void
-  get_dom_subgroup(
-    PackedVal dpat,
-    DiGroup* group,
-    const std::vector<PackedVal>& block_pats
-  );
-
-};
-
-
 void
-SearchMgr::get_dom_subgroup(
+get_dom_subgroup(
   PackedVal dpat,
   DiGroup* group,
-  const std::vector<PackedVal>& block_pats
+  std::vector<DiGroup*>& dom_list
 )
 {
-  auto& target_pats = dpat_list_array[group->id()];
-  auto pats = dpat_graph.dom_list(dpat, target_pats, block_pats);
-  auto block_pats1 = block_pats;
-  bool stopped = false;
-  for ( auto pat1: pats ) {
-    if ( pat1 == dpat ) {
-      stopped = true;
-    }
-    auto subgroup = group->subgroup(pat1);
+  if ( group->has_subgroup(dpat) ) {
+    auto subgroup = group->subgroup(dpat);
     dom_list.push_back(subgroup);
-    block_pats1.push_back(pat1);
-  }
-  if ( stopped ) {
     return;
   }
+  // 後続に再帰する．
   for ( auto dom_group: group->dominance_list() ) {
-    get_dom_subgroup(dpat, dom_group, block_pats1);
+    get_dom_subgroup(dpat, dom_group, dom_list);
   }
 }
 
@@ -108,20 +62,39 @@ DichoCandMgr2::update(
   const std::vector<PackedVal>& dpat_array
 )
 {
-  SearchMgr mgr(dpat_array, mCurGroupList);
+  DPatGraph dpat_graph(dpat_array);
 
+  auto ng = mCurGroupList.size();
+  // グループごとに現れる dpat のリスト
+  std::vector<std::vector<PackedVal>> dpat_list_array(ng);
   // グループの数を数える．
   // 同時にグループごとに現れた dpat のリストを作る．
   SizeType new_group_num = 0;
-  for ( auto& src_group: mCurGroupList ) {
-    auto& dpat_list = mgr.dpat_list_array[src_group->id()];
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto& group = mCurGroupList[id];
     std::unordered_set<PackedVal> d_hash;
-    for ( auto fault: src_group->fault_list() ) {
-      auto d = dpat_array[fault.id()];
-      if ( d_hash.count(d) == 0 ) {
-	d_hash.insert(d);
-	dpat_list.push_back(d);
+    auto& dpat_list = dpat_list_array[id];
+    for ( auto fault: group->fault_list() ) {
+      auto dpat = dpat_array[fault.id()];
+      if ( d_hash.count(dpat) == 0 ) {
+	d_hash.insert(dpat);
+	dpat_list.push_back(dpat);
 	++ new_group_num;
+      }
+    }
+    // 深い意味はないけどデバッグ時に見やすいように．
+    std::sort(dpat_list.begin(), dpat_list.end());
+  }
+  // パタンのリスト
+  std::vector<PackedVal> all_dpat_list;
+  {
+    std::unordered_set<PackedVal> dpat_hash;
+    for ( auto& dpat_list: dpat_list_array ) {
+      for ( auto dpat: dpat_list ) {
+	if ( dpat_hash.count(dpat) == 0 ) {
+	  dpat_hash.insert(dpat);
+	  all_dpat_list.push_back(dpat);
+	}
       }
     }
   }
@@ -129,12 +102,11 @@ DichoCandMgr2::update(
   // 細分化したグループを作る．
   std::vector<std::unique_ptr<DiGroup>> new_group_list;
   new_group_list.reserve(new_group_num);
-  auto ng = mCurGroupList.size();
   for ( SizeType id = 0; id < ng; ++ id ) {
     auto& src_group = mCurGroupList[id];
     auto& fault_list = src_group->fault_list();
     std::unordered_map<SizeType, TpgFaultList> fault_list_dict;
-    auto& dpat_list = mgr.dpat_list_array[id];
+    auto& dpat_list = dpat_list_array[id];
     for ( auto dpat: dpat_list ) {
       fault_list_dict.emplace(dpat, TpgFaultList());
     }
@@ -151,6 +123,10 @@ DichoCandMgr2::update(
       auto new_group = new DiGroup(id, fault_list);
       new_group_list.push_back(std::unique_ptr<DiGroup>{new_group});
       src_group->add_subgroup(dpat, new_group);
+      {
+	std::cout << std::hex << dpat << std::dec
+		  << ": Group#" << new_group->id() << std::endl;
+      }
     }
   }
 
@@ -161,29 +137,52 @@ DichoCandMgr2::update(
     auto& src_dom_list = src_group->dominance_list();
     for ( auto dpat: dpat_list ) {
       auto group = src_group->subgroup(dpat);
+      {
+	std::cout << "Group#" << group->id() << std::endl;
+      }
       std::vector<DiGroup*> dom_list;
       // まず自己ループに対する細分化
       // dpat_graph 上で直接の後続を求める．
       // ターゲットは src_group から細分化されたサブグループ
       // ブロックはなし．
       std::vector<PackedVal> target_pats;
-      target_pats.reserve(mgr.dpat_list_array[id].size() - 1);
-      for ( auto dpat1: mgr.dpat_list_array[id] ) {
+      target_pats.reserve(dpat_list_array[id].size() - 1);
+      for ( auto dpat1: dpat_list_array[id] ) {
 	if ( dpat1 != dpat ) {
 	  target_pats.push_back(dpat1);
 	}
       }
-      auto imm_succ_pats = mgr.dpat_graph.dom_list(dpat, target_pats, {});
+      auto imm_succ_pats = dpat_graph.dom_list(dpat, target_pats, {});
       for ( auto pat1: imm_succ_pats ) {
 	auto group1 = src_group->subgroup(pat1);
 	dom_list.push_back(group1);
+	{
+	  std::cout << " [1]-> " << std::hex << pat1 << std::dec
+		    << " Group#" << group1->id() << std::endl;
+	}
       }
 
       // src_group の後続に対する細分化
       // 注意が必要なのは細分化した結果，対応するサブグループがない場合には
       // そのさらに後続を調べる必要がある．
       for ( auto src_dom_group: src_dom_list ) {
-	mgr.get_dom_subgroup(dpat, src_dom_group, imm_succ_pats);
+	get_dom_subgroup(dpat, src_dom_group, dom_list);
+      }
+      // dpat と imm_succ_pats の間にパタンがある場合，
+      // それらのパタンに対してもサブグループを求める必要がある．
+      std::vector<PackedVal> target_pats2;
+      target_pats2.reserve(all_dpat_list.size() - 1);
+      for ( auto pat: all_dpat_list ) {
+	if ( pat != dpat ) {
+	  target_pats2.push_back(pat);
+	}
+      }
+      auto extra_pats = dpat_graph.dom_list(dpat, target_pats2, imm_succ_pats);
+      for ( auto dpat1: extra_pats ) {
+	// この dpat1 に関連した src_group のサブグループは存在しない．
+	for ( auto src_dom_group: src_dom_list ) {
+	  get_dom_subgroup(dpat1, src_dom_group, dom_list);
+	}
       }
       group->set_dominance_list(std::move(dom_list));
     }
@@ -192,58 +191,48 @@ DichoCandMgr2::update(
   // 変化があったら更新する．
   if ( check(new_group_list) ) {
     std::swap(mCurGroupList, new_group_list);
+
+    print(std::cout);
     return true;
   }
 
   return false;
 }
 
-BEGIN_NONAMESPACE
-
-void
-transitive_dominance_list(
-  DiGroup* group,
-  std::unordered_set<SizeType>& mark,
-  std::vector<DiGroup*>& ans_list
-)
-{
-  if ( mark.count(group->id()) > 0 ) {
-    return;
-  }
-  mark.emplace(group->id());
-  ans_list.push_back(group);
-  for ( auto group1: group->dominance_list() ) {
-    transitive_dominance_list(group1, mark, ans_list);
-  }
-}
-
-END_NONAMESPACE
-
 // @brief 終了処理
 EqDomCand
 DichoCandMgr2::end()
 {
-  EqDomCand cand;
-#if 0
-  for ( auto& group: mCurGroupList ) {
-    cand.add_eqgroup(group->fault_list());
-    std::vector<DiGroup*> dom_group_list;
-    std::unordered_set<SizeType> mark;
-    transitive_dominance_list(group.get(), mark, dom_group_list);
-    for ( auto fault: group->fault_list() ) {
-      TpgFaultList dom_list;
-      for ( auto dom_group: dom_group_list ) {
-	for ( auto fault1: dom_group->fault_list() ) {
-	  if ( fault1 != fault ) {
-	    dom_list.push_back(fault1);
-	  }
-	}
+  // fault_list() の先頭の故障番号の昇順でソートする．
+  std::sort(mCurGroupList.begin(), mCurGroupList.end(),
+	    [](const std::unique_ptr<DiGroup>& a,
+	       const std::unique_ptr<DiGroup>& b) -> bool {
+	      auto f1 = a->fault_list()[0];
+	      auto f2 = b->fault_list()[0];
+	      return f1.id() < f2.id();
+	    });
+  // グループ番号を付け直す．
+  auto ng = group_num();
+  std::vector<TpgFaultList> group_list;
+  group_list.reserve(ng);
+  std::unordered_map<SizeType, SizeType> id_map;
+  for ( SizeType id = 0; id < ng; ++ id ) {
+    auto& group = mCurGroupList[id];
+    id_map.emplace(group->id(), id);
+    group_list.push_back(group->fault_list());
+  }
+  std::vector<std::pair<SizeType, SizeType>> dom_list;
+  for ( SizeType id1 = 0; id1 < ng; ++ id1 ) {
+    auto group1 = mCurGroupList[id1].get();
+    auto& domgroup_list = group1->dominance_list();
+    for ( auto dom_group: domgroup_list ) {
+      auto id2 = id_map.at(dom_group->id());
+      if ( id2 != id1 ) {
+	dom_list.push_back({id1, id2});
       }
-      cand.set_domcand(fault, dom_list);
     }
   }
-#endif
-  return cand;
+  return EqDomCand(group_list, dom_list);
 }
 
 // @brief 変化があったか調べる．
@@ -267,6 +256,31 @@ DichoCandMgr2::check(
     dom_num2 += group->dominance_list().size();
   }
   return dom_num1 != dom_num2;
+}
+
+// @brief 内容を出力する．
+void
+DichoCandMgr2::print(
+  std::ostream& s
+) const
+{
+  s << "-------------------------------------------" << std::endl;
+  for ( auto& group: mCurGroupList ) {
+    s << "Group#" << group->id() << ":";
+    for ( auto fault: group->fault_list() ) {
+      s << " " << fault.str();
+    }
+    s << std::endl
+      << "  ";
+    auto& dom_list = group->dominance_list();
+    const char* comma = "";
+    for ( auto group1: dom_list ) {
+      s << comma << "Group#" << group1->id();
+      comma = ", ";
+    }
+    s << std::endl;
+  }
+  s << "-------------------------------------------" << std::endl;
 }
 
 END_NAMESPACE_DRUID

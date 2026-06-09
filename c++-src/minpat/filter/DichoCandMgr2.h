@@ -73,6 +73,12 @@ public:
     return mCurGroupList[id].get();
   }
 
+  /// @brief 内容を出力する．
+  void
+  print(
+    std::ostream& s ///< [in] 出力ストリーム
+  ) const;
+
 
 private:
   //////////////////////////////////////////////////////////////////////

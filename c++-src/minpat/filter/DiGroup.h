@@ -94,6 +94,15 @@ public:
     return mDPatList;
   }
 
+  /// @brief パタンに対応したサブグループを持っている時 true を返す．
+  bool
+  has_subgroup(
+    PackedVal dpat ///< [in] 細分化するパタン (dpat_list() の要素)
+  ) const
+  {
+    return mSubGroupDict.count(dpat) > 0;
+  }
+
   /// @brief 細分化したサブグループを返す．
   DiGroup*
   subgroup(
