@@ -50,14 +50,13 @@ public:
     return mPatList;
   }
 
-  /// @brief 直接の支配関係にあるパタンのリストを返す．
-  ///
-  /// - ただしブロックされたパタンに到達した場合はそこで止まる．
-  std::vector<PackedVal>
-  dom_list(
-    PackedVal pat,                             ///< [in] 始点となるパタン
-    const std::vector<PackedVal>& target_pats, ///< [in] ターゲットのパタンのリスト
-    const std::vector<PackedVal>& block_pats   ///< [in] ブロックするパタンのリスト
+  /// @brief ブロックされたノードまでたどる．
+  void
+  traverse(
+    PackedVal start_pat,                      ///< [in] 始点のパタン
+    const std::vector<PackedVal>& block_pats, ///< [in] ブロックするパタンのリスト
+    std::vector<PackedVal>& medial_pats,      ///< [out] 内側のパタンのリスト
+    std::vector<PackedVal>& boundary_pats     ///< [out] 境界のパタンのリスト
   ) const;
 
   /// @brief 内容を出力する．
@@ -71,14 +70,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief dom_list() 用の下請け関数
-  void
-  dfs(
-    SizeType id,
-    std::vector<int>& mark,
-    std::vector<PackedVal>& ans_list
-  ) const;
 
 
 private:

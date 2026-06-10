@@ -53,56 +53,34 @@ DPatGraph::DPatGraph(
   mPOSet.rebuild(builder);
 }
 
-// @brief 直接の支配関係にあるパタンのリストを返す．
-std::vector<PackedVal>
-DPatGraph::dom_list(
-  PackedVal root_pat,
-  const std::vector<PackedVal>& target_pats,
-  const std::vector<PackedVal>& block_pats
-) const
-{
-  // マーク
-  // 0: なし
-  // 1: target
-  // 2: block
-  std::vector<int> mark(mPatList.size(), 0);
-  // block は target より優先する．
-  for ( auto pat: target_pats ) {
-    auto id = mIdMap.at(pat);
-    mark[id] = 1;
-  }
-  for ( auto pat: block_pats) {
-    auto id = mIdMap.at(pat);
-    mark[id] = 2;
-  }
-  auto id = mIdMap.at(root_pat);
-  if ( mark[id] == 1 ) {
-    // root_pat が target だった場合はそれだけ
-    return {root_pat};
-  }
-  std::vector<PackedVal> pat_list;
-  dfs(id, mark, pat_list);
-  return pat_list;
-}
-
-/// @brief dom_list() 用の下請け関数
+// @brief ブロックされたノードまでたどる．
 void
-DPatGraph::dfs(
-  SizeType id,
-  std::vector<int>& mark,
-  std::vector<PackedVal>& ans_list
+DPatGraph::traverse(
+  PackedVal start_pat,
+  const std::vector<PackedVal>& block_pats,
+  std::vector<PackedVal>& medial_pats,
+  std::vector<PackedVal>& boundary_pats
 ) const
 {
-  if ( mark[id] > 0 ) {
-    if ( mark[id] == 1 ) {
-      auto pat = mPatList[id];
-      ans_list.push_back(pat);
-    }
-    return;
+  auto start_id = mIdMap.at(start_pat);
+  std::vector<SizeType> block_list;
+  block_list.reserve(block_pats.size());
+  for ( auto pat: block_pats ) {
+    auto id = mIdMap.at(pat);
+    block_list.push_back(id);
   }
-  mark[id] = 2;
-  for ( auto id1: mPOSet.imm_succ_list(id) ) {
-    dfs(id1, mark, ans_list);
+  std::vector<SizeType> medial_list;
+  std::vector<SizeType> boundary_list;
+  mPOSet.traverse(start_id, block_list, medial_list, boundary_list);
+  medial_pats.reserve(medial_list.size());
+  for ( auto id: medial_list ) {
+    auto pat = mPatList[id];
+    medial_pats.push_back(pat);
+  }
+  boundary_pats.reserve(boundary_list.size());
+  for ( auto id: boundary_list ) {
+    auto pat = mPatList[id];
+    boundary_pats.push_back(pat);
   }
 }
 

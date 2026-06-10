@@ -111,6 +111,15 @@ public:
     SizeType id ///< [in] 要素番号 ( 0 <= id < elem_num() )
   ) const;
 
+  /// @brief block された要素までたどる．
+  void
+  traverse(
+    SizeType id,             ///< [in] 始点の要素番号 ( 0 <= id < elem_num() )
+    const std::vector<SizeType>& block_list, ///< [in] ブロックする接点番号のリスト
+    std::vector<SizeType>& medial_list,      ///< [out] 内部の節点番号を格納するリスト
+    std::vector<SizeType>& boundary_list     ///< [out] 境界の節点番号を格納するリスト
+  ) const;
+
   /// @brief ランクサイズ(最大ランク + 1)を返す．
   SizeType
   rank_size() const
@@ -153,6 +162,15 @@ private:
   _set(
     const Builder& builder ///< [in] ビルダオブジェクト
   );
+
+  /// @brief traverse の下請け関数
+  void
+  _dfs(
+    SizeType id,                         ///< [in] 要素番号
+    std::vector<int>& mark,              ///< [in] マーク
+    std::vector<SizeType>& media_list,   ///< [out] 内側の要素番号のリスト
+    std::vector<SizeType>& boundary_list ///< [out] 境界の要素番号のリスト
+  ) const;
 
   /// @brief ノードを取り出す．
   const PONode*
