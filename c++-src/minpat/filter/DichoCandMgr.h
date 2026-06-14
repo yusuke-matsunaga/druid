@@ -16,7 +16,7 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DichoCandMgr DichoCandMgr.h "DichoCandMgr.h"
-/// @brief 単純な CandMgr
+/// @brief 二分法を用いた CandMgr
 //////////////////////////////////////////////////////////////////////
 class DichoCandMgr :
   public CandMgr
@@ -60,20 +60,20 @@ public:
       return mFaultList;
     }
 
-    /// @brief 全ての後続グループのリストを返す．
+    /// @brief 後続グループのリストを返す．
     const std::vector<Group*>&
-    transitive_succ_list() const
+    succ_list() const
     {
-      return mTranSuccList;
+      return mSuccList;
     }
 
-    /// @brief transitive_succ_list を設定する．
+    /// @brief succ_list を設定する．
     void
-    set_transitive_succ_list(
+    set_succ_list(
       std::vector<Group*>&& src_list ///< [in] 設定するグループのリストの右辺値
     )
     {
-      std::swap(mTranSuccList, src_list);
+      std::swap(mSuccList, src_list);
     }
 
     /// @brief サブグループの情報を初期化する．
@@ -81,7 +81,7 @@ public:
     clear_subgroup()
     {
       mDPatList.clear();
-      mSubGroupDict.clear();
+      mSubGroupList.clear();
     }
 
     /// @brief 細分化のパタンリストを返す．
@@ -91,24 +91,11 @@ public:
       return mDPatList;
     }
 
-    /// @brief パタンに対応したサブグループを持っている時 true を返す．
-    bool
-    has_subgroup(
-      PackedVal dpat ///< [in] 細分化するパタン
-    ) const
+    /// @brief サブグループのリストを返す．
+    const std::vector<Group*>&
+    subgroup_list() const
     {
-      return mSubGroupDict.count(dpat) > 0;
-    }
-
-    /// @brief 細分化したサブグループを返す．
-    ///
-    /// has_subgroup(dpat) == true の時のみ有効
-    Group*
-    subgroup(
-      PackedVal dpat ///< [in] 細分化するパタン (dpat_list() の要素)
-    ) const
-    {
-      return mSubGroupDict.at(dpat);
+      return mSubGroupList;
     }
 
     /// @brief サブグループを追加する．
@@ -119,7 +106,7 @@ public:
     )
     {
       mDPatList.push_back(dpat);
-      mSubGroupDict.emplace(dpat, group);
+      mSubGroupList.push_back(group);
     }
 
 
@@ -134,15 +121,14 @@ public:
     // 故障のリスト
     TpgFaultList mFaultList;
 
-    // 推移的な後続グループのリスト
-    std::vector<Group*> mTranSuccList;
+    // 後続グループのリスト
+    std::vector<Group*> mSuccList;
 
     // 細分化用のパタンリスト
-    // mSubGroupDict のキーに一致する．
     std::vector<PackedVal> mDPatList;
 
-    // 細分化したサブグループの辞書
-    std::unordered_map<PackedVal, Group*> mSubGroupDict;
+    // サブグループのリスト
+    std::vector<Group*> mSubGroupList;
 
   };
 
@@ -160,7 +146,7 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // Filter の仮想関数
+  // CandMgr の仮想関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 更新処理
@@ -174,31 +160,6 @@ private:
   end(
     bool reduce ///< [in] 推移簡約を行う時 true
   ) const override;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief グループ数を返す．
-  SizeType
-  group_num() const
-  {
-    return mCurGroupList.size();
-  }
-
-  /// @brief グループを返す．
-  const Group*
-  group(
-    SizeType id ///< [in] グループ番号
-  ) const
-  {
-    if ( id >= group_num() ) {
-      throw std::out_of_range{"id is out of range"};
-    }
-    return mCurGroupList[id].get();
-  }
 
 
 private:
