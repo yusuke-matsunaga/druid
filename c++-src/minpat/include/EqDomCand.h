@@ -112,6 +112,11 @@ public:
     return !operator==(right);
   }
 
+  void
+  check(
+    const EqDomCand& right
+  ) const;
+
 
 private:
   //////////////////////////////////////////////////////////////////////

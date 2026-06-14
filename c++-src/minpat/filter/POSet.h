@@ -163,6 +163,23 @@ private:
     const Builder& builder ///< [in] ビルダオブジェクト
   );
 
+  /// @brief 到達可能か調べる．
+  static
+  bool
+  _reachable(
+    PONode* from,
+    PONode* to
+  );
+
+  /// @brief _reachable の下請け関数
+  static
+  bool
+  _reachable_sub(
+    PONode* node,
+    std::unordered_set<SizeType>& mark,
+    PONode* to
+  );
+
   /// @brief traverse の下請け関数
   void
   _dfs(

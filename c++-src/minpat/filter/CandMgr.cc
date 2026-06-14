@@ -7,8 +7,6 @@
 /// All rights reserved.
 
 #include "CandMgr.h"
-#include "NaiveCandMgr.h"
-#include "DichoCandMgr.h"
 #include "DichoCandMgr2.h"
 
 
@@ -28,10 +26,10 @@ CandMgr::new_obj(
   auto str = option.get_string_elem("method", "naive");
   CandMgr* mgr = nullptr;
   if ( str == "naive" ) {
-    mgr = new NaiveCandMgr(fault_list);
+    return new_naive_mgr(fault_list, option);
   }
-  else if ( str == "dichotomy" ) {
-    mgr = new DichoCandMgr(fault_list);
+  if ( str == "dichotomy" ) {
+    return new_dichotomy_mgr(fault_list, option);
   }
   else if ( str == "dichotomy2" ) {
     mgr = new DichoCandMgr2(fault_list);

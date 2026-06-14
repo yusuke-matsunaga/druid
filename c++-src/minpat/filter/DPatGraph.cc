@@ -37,9 +37,9 @@ DPatGraph::DPatGraph(
   auto npat = mPatList.size();
   builder.mElemList.reserve(npat);
   for ( SizeType id1 = 0; id1 < npat - 1; ++ id1 ) {
-    auto pat1 = pat_list[id1];
+    auto pat1 = mPatList[id1];
     for ( SizeType id2 = id1 + 1; id2 < npat; ++ id2 ) {
-      auto pat2 = pat_list[id2];
+      auto pat2 = mPatList[id2];
       auto pat3 = pat1 & pat2;
       if ( pat3 == pat1 ) {
 	builder.add(id1, id2);
@@ -51,6 +51,23 @@ DPatGraph::DPatGraph(
   }
 
   mPOSet.rebuild(builder);
+}
+
+// @brief 直接の後続パタンのリストを返す．
+std::vector<PackedVal>
+DPatGraph::imm_succ_list(
+  PackedVal pat
+) const
+{
+  auto id = mIdMap.at(pat);
+  auto tmp_list = mPOSet.imm_succ_list(id);
+  std::vector<PackedVal> pat_list;
+  pat_list.reserve(tmp_list.size());
+  for ( auto id1: tmp_list ) {
+    auto pat = mPatList[id1];
+    pat_list.push_back(pat);
+  }
+  return pat_list;
 }
 
 // @brief ブロックされたノードまでたどる．

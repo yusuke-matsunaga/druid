@@ -92,12 +92,15 @@ POSet::_set(
     }
     std::swap(node_list, new_list);
   }
-  // mImmSuccList を作る．
+  // 直接の後続を求める．
   for ( auto& node: mNodeList ) {
     auto ref_rank = node->rank() + 1;
     for ( auto node1: node->mSuccList ) {
-      auto rank1 = node1->rank();
-      if ( rank1 == ref_rank ) {
+      // node と rank が 1 違いの場合は無条件で直接の後続だとわかる．
+      // それ以外の場合は node -> node1 に到達する他の経路がない
+      // ときに直接の後続となる．
+      if ( node1->rank() == ref_rank ||
+	   !_reachable(node.get(), node1) ) {
 	node->mImmSuccList.push_back(node1);
       }
     }
@@ -121,6 +124,50 @@ POSet::_set(
     auto rank = node->rank();
     mRankArray[rank].push_back(node->id());
   }
+}
+
+// @brief 到達可能か調べる．
+bool
+POSet::_reachable(
+  PONode* from,
+  PONode* to
+)
+{
+  std::unordered_set<SizeType> mark;
+  for ( auto node: from->mSuccList ) {
+    if ( node != to ) {
+      if ( _reachable_sub(node, mark, to) ) {
+	return true;
+      }
+    }
+  }
+  return false;
+}
+
+// @brief _reachable の下請け関数
+bool
+POSet::_reachable_sub(
+  PONode* node,
+  std::unordered_set<SizeType>& mark,
+  PONode* to
+)
+{
+  if ( node == to ) {
+    return true;
+  }
+  if ( mark.count(node->id()) > 0 ) {
+    return false;
+  }
+  mark.insert(node->id());
+  if ( node->rank() >= to->rank() ) {
+    return false;
+  }
+  for ( auto node1: node->mSuccList ) {
+    if ( _reachable_sub(node1, mark, to) ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // @brief 後続の要素番号のリストを返す．

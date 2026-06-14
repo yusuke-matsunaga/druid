@@ -177,27 +177,6 @@ filter_test(
     std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
   }
 
-  // Naive method
-  std::cout << std::endl;
-  std::cout << "Naive" << std::endl;
-  auto naive_option = option;
-  {
-    auto filter_option = JsonValue::object();
-    if ( no_change_limit > 0 ) {
-      filter_option.add("no_change_limit", no_change_limit);
-    }
-    if ( batch_size > 0 ) {
-      filter_option.add("batch_size", batch_size);
-    }
-    auto cand_option = JsonValue::object();
-    cand_option.add("method", std::string{"naive"});
-    filter_option.add("candmgr", cand_option);
-    filter_option.add("*", global_option);
-    naive_option.add("filter", filter_option);
-  }
-
-  auto cand1 = Filter::run(fault_info, ConfigParam(naive_option).get_param("filter"));
-
   // Dichotomy method
   std::cout << std::endl;
   std::cout << dicho_str << std::endl;
@@ -216,17 +195,7 @@ filter_test(
     dicho_option.add("filter", filter_option);
   }
 
-  auto cand2 = Filter::run(fault_info, ConfigParam(dicho_option).get_param("filter"));
-
-  if ( *cand1 != *cand2 ) {
-    std::cout << "cand1" << std::endl;
-    cand1->print(std::cout);
-    std::cout << std::endl;
-    std::cout << "cand2" << std::endl;
-    cand2->print(std::cout);
-    std::cout << std::endl;
-    cand1->check(*cand2);
-  }
+  auto cand2 = Filter::run2(fault_info, ConfigParam(dicho_option).get_param("filter"));
 
   return 0;
 }

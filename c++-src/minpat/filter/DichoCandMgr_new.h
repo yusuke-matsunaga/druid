@@ -16,7 +16,7 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DichoCandMgr DichoCandMgr.h "DichoCandMgr.h"
-/// @brief 単純な CandMgr
+/// @brief 二分法を用いた CandMgr
 //////////////////////////////////////////////////////////////////////
 class DichoCandMgr :
   public CandMgr
@@ -30,9 +30,13 @@ public:
 
     /// @brief コンストラクタ
     Group(
-      SizeType id,                   ///< [in] ID番号
-      const TpgFaultList& fault_list ///< [in] 故障のリスト
+      SizeType id,                            ///< [in] ID番号
+      SizeType rank,                          ///< [in] ランク
+      const std::vector<PackedVal>& pat_list, ///< [in] パタンのリスト
+      const TpgFaultList& fault_list          ///< [in] 故障のリスト
     ) : mId{id},
+	mRank{rank},
+	mPatList{pat_list},
 	mFaultList{fault_list}
     {
     }
@@ -53,6 +57,20 @@ public:
       return mId;
     }
 
+    /// @brief ランクを返す．
+    SizeType
+    rank() const
+    {
+      return mRank;
+    }
+
+    /// @brief パタンのリストを返す．
+    const std::vector<PackedVal>&
+    pat_list() const
+    {
+      return mPatList;
+    }
+
     /// @brief 故障のリストを返す．
     const TpgFaultList&
     fault_list() const
@@ -60,11 +78,27 @@ public:
       return mFaultList;
     }
 
+    /// @brief 直接の後続グループのリストを返す．
+    const std::vector<Group*>&
+    immediate_succ_list() const
+    {
+      return mImmSuccList;
+    }
+
     /// @brief 全ての後続グループのリストを返す．
     const std::vector<Group*>&
     transitive_succ_list() const
     {
       return mTranSuccList;
+    }
+
+    /// @brief immediate_succ_list を設定する．
+    void
+    set_immediate_succ_list(
+      std::vector<Group*>&& src_list ///< [in] 設定するグループのリストの右辺値
+    )
+    {
+      std::swap(mImmSuccList, src_list);
     }
 
     /// @brief transitive_succ_list を設定する．
@@ -131,8 +165,17 @@ public:
     // ID番号
     SizeType mId;
 
+    // ランク
+    SizeType mRank;
+
+    // パタンのリスト
+    std::vector<PackedVal> mPatList;
+
     // 故障のリスト
     TpgFaultList mFaultList;
+
+    // 直接の後続グループのリスト
+    std::vector<Group*> mImmSuccList;
 
     // 推移的な後続グループのリスト
     std::vector<Group*> mTranSuccList;
@@ -201,9 +244,9 @@ public:
   }
 
 
-private:
+protected:
   //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
+  // 継承クラスから用いられる関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 変化があったか調べる．
@@ -234,6 +277,32 @@ private:
 
 
 private:
+  //////////////////////////////////////////////////////////////////////
+  // 内部で用いられる関数
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障グループのリストの情報を出力する．
+  ///
+  /// print() と似ているが中間的な状態にも対応している．
+  static
+  void
+  print_group_list(
+    std::ostream& s,                                      ///< [in] 出力ストリーム
+    const std::vector<std::unique_ptr<Group>>& group_list ///< [in] グループのリスト
+  );
+
+  /// @brief 故障グループの情報を出力する．
+  ///
+  /// print() と似ているが中間的な状態にも対応している．
+  static
+  void
+  print_group(
+    std::ostream& s,   ///< [in] 出力ストリーム
+    const Group* group ///< [in] グループのリスト
+  );
+
+
+protected:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////

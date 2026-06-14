@@ -139,6 +139,7 @@ private:
   std::vector<DiGroup*> mDominanceList;
 
   // 細分化用のパタンリスト
+  // mSubGroupDict のキーに一致する．
   std::vector<PackedVal> mDPatList;
 
   // 細分化したサブグループの辞書

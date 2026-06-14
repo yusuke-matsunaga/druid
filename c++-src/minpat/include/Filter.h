@@ -32,8 +32,19 @@ public:
 
   /// @brief 等価故障と支配故障の候補を求める．
   static
-  EqDomCand
+  std::unique_ptr<EqDomCand>
   run(
+    const FaultInfo& fault_info, ///< [in] 対象の故障の情報
+    const ConfigParam& option    ///< [in] オプション
+  );
+
+  /// @brief 等価故障と支配故障の候補を求める．
+  ///
+  /// デバッグ用
+  /// 並行して NaiveCandMgr を実行する．
+  static
+  std::unique_ptr<EqDomCand>
+  run2(
     const FaultInfo& fault_info, ///< [in] 対象の故障の情報
     const ConfigParam& option    ///< [in] オプション
   );

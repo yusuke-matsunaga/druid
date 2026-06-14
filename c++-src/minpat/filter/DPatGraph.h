@@ -50,6 +50,12 @@ public:
     return mPatList;
   }
 
+  /// @brief 直接の後続パタンのリストを返す．
+  std::vector<PackedVal>
+  imm_succ_list(
+    PackedVal pat ///< [in] 対象のパタン
+  ) const;
+
   /// @brief ブロックされたノードまでたどる．
   void
   traverse(

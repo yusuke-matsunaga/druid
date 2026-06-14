@@ -45,6 +45,22 @@ public:
     const ConfigParam& option       ///< [in] オプション
   );
 
+  /// @brief 新しいオブジェクトを作る．
+  static
+  std::unique_ptr<CandMgr>
+  new_naive_mgr(
+    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
+    const ConfigParam& option       ///< [in] オプション
+  );
+
+  /// @brief 新しいオブジェクトを作る．
+  static
+  std::unique_ptr<CandMgr>
+  new_dichotomy_mgr(
+    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
+    const ConfigParam& option       ///< [in] オプション
+  );
+
   /// @brief デストラクタ
   virtual
   ~CandMgr() = default;
@@ -64,8 +80,10 @@ public:
 
   /// @brief 結果を返す．
   virtual
-  EqDomCand
-  end() = 0;
+  std::unique_ptr<EqDomCand>
+  end(
+    bool reduce ///< [in] 推移簡約を行う時 true
+  ) const = 0;
 
 
 public:

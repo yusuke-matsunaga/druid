@@ -9,6 +9,8 @@
 #include "EqDomCand.h"
 #include "POSet.h"
 
+#define DEBUG 0
+
 
 BEGIN_NAMESPACE_DRUID
 
@@ -24,6 +26,24 @@ EqDomCand::EqDomCand(
 ) : mGroupList{group_list},
     mDomListArray(mGroupList.size())
 {
+#if DEBUG
+  {
+    auto ng = mGroupList.size();
+    for ( SizeType id = 0; id < ng; ++ id ) {
+      std::cout << "Group#" << id << ":";
+      for ( auto f: group_list[id] ) {
+	std::cout << " " << f.str();
+      }
+      std::cout << std::endl;
+    }
+    for ( auto& p: dom_list ) {
+      auto g1 = group_list[p.first];
+      auto g2 = group_list[p.second];
+      std::cout << g1[0].str() << " -> " << g2[0].str()
+		<< " (" << p.first << ", " << p.second << ")" << std::endl;
+    }
+  }
+#endif
   auto ng = mGroupList.size();
   for ( SizeType id = 0; id < ng; ++ id ) {
     auto& fault_list = mGroupList[id];
@@ -91,19 +111,150 @@ EqDomCand::print(
 {
   for ( SizeType id = 0; id < mGroupList.size(); ++ id ) {
     auto& group = mGroupList[id];
-    s << "Group#" << id << ":";
+    const char* spc = "";
     for ( auto fault: group ) {
-      s << " " << fault.str();
+      s << spc << fault.str();
+      spc = " ";
     }
     s << std::endl
-      << "  ";
+      << "  ==> ";
     auto& dom_list = mDomListArray[id];
     const char* comma = "";
     for ( auto id1: dom_list ) {
-      s << comma << "Group#" << id1;
+      auto& group1 = mGroupList[id1];
+      s << comma << group1[0].str();
       comma = ", ";
     }
     s << std::endl;
+  }
+}
+
+inline
+int
+compare(
+  const TpgFaultList& group1,
+  const TpgFaultList& group2
+)
+{
+  auto n1 = group1.size();
+  auto n2 = group2.size();
+  SizeType i1 = 0;
+  SizeType i2 = 0;
+  while ( i1 < n1 && i2 < n2 ) {
+    auto f1 = group1[i1];
+    auto f2 = group2[i2];
+    if ( f1.id() < f2.id() ) {
+      return -1;
+    }
+    if ( f1.id() > f2.id() ) {
+      return 1;
+    }
+    ++ i1;
+    ++ i2;
+  }
+  if ( i1 < n1 ) {
+    return 1;
+  }
+  if ( i2 < n2 ) {
+    return -1;
+  }
+  return 0;
+}
+
+void
+EqDomCand::check(
+  const EqDomCand& right
+) const
+{
+  if ( mGroupList != right.mGroupList ) {
+    std::cout << "mGroupList mismatch" << std::endl;
+    std::vector<TpgFaultList> group_list1;
+    std::vector<TpgFaultList> group_list2;
+    SizeType i1 = 0;
+    SizeType i2 = 0;
+    while ( i1 < mGroupList.size() && i2 < right.mGroupList.size() ) {
+      auto group1 = mGroupList[i1];
+      auto group2 = right.mGroupList[i2];
+      auto r = compare(group1, group2);
+      if ( r == 0 ) {
+	++ i1;
+	++ i2;
+      }
+      else if ( r < 0 ) {
+	++ i1;
+	group_list1.push_back(group1);
+      }
+      else {
+	++ i2;
+	group_list2.push_back(group2);
+      }
+    }
+    for ( ; i1 < mGroupList.size(); ++ i1 ) {
+      group_list1.push_back(mGroupList[i1]);
+    }
+    for ( ; i2 < right.mGroupList.size(); ++ i2 ) {
+      group_list2.push_back(right.mGroupList[i2]);
+    }
+    std::cout << "Only in the left" << std::endl;
+    for ( auto& group: group_list1 ) {
+      for ( auto f: group ) {
+	std::cout << " " << f.str();
+      }
+      std::cout << std::endl;
+    }
+    std::cout << "Only in the right" << std::endl;
+    for ( auto& group: group_list2 ) {
+      for ( auto f: group ) {
+	std::cout << " " << f.str();
+      }
+      std::cout << std::endl;
+    }
+    return;
+  }
+  auto ng = mGroupList.size();
+  for ( SizeType g = 0; g < ng; ++ g ) {
+    auto& dom_list1 = mDomListArray[g];
+    auto& dom_list2 = right.mDomListArray[g];
+    SizeType n1 = dom_list1.size();
+    SizeType n2 = dom_list2.size();
+    SizeType i1 = 0;
+    SizeType i2 = 0;
+    while ( i1 < n1 && i2 < n2 ) {
+      auto g1 = dom_list1[i1];
+      auto g2 = dom_list2[i2];
+      if ( g1 < g2 ) {
+	++ i1;
+	auto f1 = mGroupList[g][0];
+	auto f2 = mGroupList[g1][0];
+	std::cout << "Only in the left" << std::endl;
+	std::cout << f1.str() << " ==> " << f2.str() << std::endl;
+      }
+      else if ( g1 > g2 ) {
+	++ i2;
+	auto f1 = mGroupList[g][0];
+	auto f2 = mGroupList[g2][0];
+	std::cout << "Only in the right" << std::endl;
+	std::cout << f1.str() << " ==> " << f2.str() << std::endl;
+      }
+      else {
+	++ i1;
+	++ i2;
+      }
+    }
+    for ( ; i1 < n1; ++ i1 ) {
+      auto g1 = dom_list1[i1];
+      auto f1 = mGroupList[g][0];
+      auto f2 = mGroupList[g1][0];
+      std::cout << "Only in the left" << std::endl;
+      std::cout << f1.str() << " ==> " << f2.str() << std::endl;
+    }
+    for ( ; i2 < n2; ++ i2 ) {
+      auto g2 = dom_list2[i2];
+      auto f1 = mGroupList[g][0];
+      auto f2 = mGroupList[g2][0];
+      std::cout << "Only in the right" << std::endl;
+      std::cout << f1.str() << " ==> " << f2.str() << std::endl;
+    }
   }
 }
 

@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "DichoCandMgr.h"
+#include "DiGroup.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -30,15 +31,29 @@ CandMgr::new_dichotomy_mgr(
 // クラス DichoCandMgr
 //////////////////////////////////////////////////////////////////////
 
+BEGIN_NONAMESPACE
+
+// 分割されたグループの情報
+struct SubGroup {
+  PackedVal d_pat; // 検出パタン
+  DiGroup* group;  // 分割されたグループ
+};
+
+struct SubGroupInfo {
+  std::vector<SubGroup> sglist;
+};
+
+END_NONAMESPACE
+
 // @brief コンストラクタ
 DichoCandMgr::DichoCandMgr(
   const TpgFaultList& fault_list
 ) : CandMgr(fault_list)
 {
   // 最初は１つのグループ
-  auto group = new Group(0, fault_list);
-  group->set_transitive_succ_list({group});
-  mCurGroupList.push_back(std::unique_ptr<Group>{group});
+  auto group = new DiGroup(0, fault_list);
+  group->set_dominance_list({group});
+  mCurGroupList.push_back(std::unique_ptr<DiGroup>{group});
 }
 
 // @brief デストラクタ
@@ -72,8 +87,9 @@ DichoCandMgr::update(
   }
 
   // 細分化したグループを作る．
-  std::vector<std::unique_ptr<Group>> new_group_list;
+  std::vector<std::unique_ptr<DiGroup>> new_group_list;
   new_group_list.reserve(new_group_num);
+  std::vector<SubGroupInfo> sginfo_array(ng);
   for ( SizeType id = 0; id < ng; ++ id ) {
     auto& src_group = mCurGroupList[id];
     auto& fault_list = src_group->fault_list();
@@ -86,36 +102,39 @@ DichoCandMgr::update(
       auto d = dpat_array[fault.id()];
       fault_list_dict.at(d).push_back(fault);
     }
+    auto& sginfo = sginfo_array[id];
     for ( auto d: d_list ) {
       auto& fault_list = fault_list_dict.at(d);
       if ( fault_list.empty() ) {
 	continue;
       }
       auto id = new_group_list.size();
-      auto new_group = new Group(id, fault_list);
-      new_group_list.push_back(std::unique_ptr<Group>{new_group});
-      src_group->add_subgroup(d, new_group);
+      auto new_group = new DiGroup(id, fault_list);
+      new_group_list.push_back(std::unique_ptr<DiGroup>{new_group});
+      sginfo.sglist.push_back({d, new_group});
     }
   }
 
   // dominance list を作る．
   for ( SizeType id = 0; id < ng; ++ id ) {
     auto& src_group = mCurGroupList[id];
-    auto& dpat_list = src_group->dpat_list();
-    auto& src_dom_list = src_group->transitive_succ_list();
-    for ( auto dpat: dpat_list ) {
-      std::vector<Group*> dom_list;
-      auto group = src_group->subgroup(dpat);
+    auto& sginfo = sginfo_array[id];
+    std::vector<DiGroup*> dom_list;
+    auto& src_dom_list = src_group->dominance_list();
+    for ( auto& sg: sginfo.sglist ) {
+      auto d = sg.d_pat;
+      auto group = sg.group;
       for ( auto src_dom_group: src_dom_list ) {
-	auto& dpat1_list = src_dom_group->dpat_list();
-	for ( auto dpat1: dpat1_list ) {
-	  if ( (dpat & dpat1) == dpat ) {
-	    auto subgroup1 = src_dom_group->subgroup(dpat1);
-	    dom_list.push_back(subgroup1);
+	auto& src_dom_sginfo = sginfo_array[src_dom_group->id()];
+	for ( auto& sg1: src_dom_sginfo.sglist ) {
+	  auto d1 = sg1.d_pat;
+	  if ( (d & d1) == d ) {
+	    auto src_dom_subgroup = sg1.group;
+	    dom_list.push_back(src_dom_subgroup);
 	  }
 	}
       }
-      group->set_transitive_succ_list(std::move(dom_list));
+      group->set_dominance_list(std::move(dom_list));
     }
   }
 
@@ -123,10 +142,6 @@ DichoCandMgr::update(
   if ( check(new_group_list) ) {
     std::swap(mCurGroupList, new_group_list);
     return true;
-  }
-  // サブグループの情報を初期化しておく．
-  for ( auto& group: mCurGroupList ) {
-    group->clear_subgroup();
   }
   return false;
 }
@@ -150,7 +165,7 @@ DichoCandMgr::end(
   std::vector<std::pair<SizeType, SizeType>> dom_list;
   for ( auto group1: tmp_list ) {
     auto id1 = id_map.at(group1->id());
-    auto& succ_list = group1->transitive_succ_list();
+    auto& succ_list = group1->dominance_list();
     for ( auto group2: succ_list ) {
       auto id2 = id_map.at(group2->id());
       if ( id2 != id1 ) {
@@ -162,13 +177,13 @@ DichoCandMgr::end(
 }
 
 // @brief 故障番号の昇順にソートする．
-std::vector<DichoCandMgr::Group*>
+std::vector<DiGroup*>
 DichoCandMgr::sort(
   std::unordered_map<SizeType, SizeType>& id_map
 ) const
 {
   // 故障リストを持つグループを抜き出す．
-  std::vector<Group*> tmp_list;
+  std::vector<DiGroup*> tmp_list;
   tmp_list.reserve(mCurGroupList.size());
   for ( auto& group: mCurGroupList ) {
     if ( group->fault_list().empty() ) {
@@ -178,8 +193,8 @@ DichoCandMgr::sort(
   }
   // fault_list() の先頭の故障番号の昇順でソートする．
   std::sort(tmp_list.begin(), tmp_list.end(),
-	    [](Group* a,
-	       Group* b) -> bool {
+	    [](DiGroup* a,
+	       DiGroup* b) -> bool {
 	      auto f1 = a->fault_list()[0];
 	      auto f2 = b->fault_list()[0];
 	      return f1.id() < f2.id();
@@ -197,7 +212,7 @@ DichoCandMgr::sort(
 // @brief 変化があったか調べる．
 bool
 DichoCandMgr::check(
-  const std::vector<std::unique_ptr<Group>>& new_group_list
+  const std::vector<std::unique_ptr<DiGroup>>& new_group_list
 ) const
 {
   if ( new_group_list.size() != mCurGroupList.size() ) {
@@ -208,39 +223,13 @@ DichoCandMgr::check(
   // 支配故障の候補数を調べる．
   SizeType dom_num1 = 0;
   for ( auto& group: mCurGroupList ) {
-    dom_num1 += group->transitive_succ_list().size();
+    dom_num1 += group->dominance_list().size();
   }
   SizeType dom_num2 = 0;
   for ( auto& group: new_group_list ) {
-    dom_num2 += group->transitive_succ_list().size();
+    dom_num2 += group->dominance_list().size();
   }
   return dom_num1 != dom_num2;
-}
-
-// @brief パタンを文字列にする．
-std::string
-DichoCandMgr::pat_str(
-  PackedVal pat
-)
-{
-  std::ostringstream buf;
-  buf << "[" << std::hex << pat << std::dec << "]";
-  return buf.str();
-}
-
-// @brief パタンのリストを文字列にする．
-std::string
-DichoCandMgr::pat_list_str(
-  const std::vector<PackedVal>& pat_list
-)
-{
-  std::ostringstream buf;
-  buf << "[" << std::hex;
-  for ( auto pat: pat_list ) {
-    buf << pat;
-  }
-  buf << std::dec << "]";
-  return buf.str();
 }
 
 END_NAMESPACE_DRUID

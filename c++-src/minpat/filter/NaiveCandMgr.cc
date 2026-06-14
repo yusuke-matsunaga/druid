@@ -12,6 +12,21 @@
 
 BEGIN_NAMESPACE_DRUID
 
+
+//////////////////////////////////////////////////////////////////////
+// クラス CandMgr
+//////////////////////////////////////////////////////////////////////
+
+// @brief 新しいオブジェクトを作る．
+std::unique_ptr<CandMgr>
+CandMgr::new_naive_mgr(
+  const TpgFaultList& fault_list,
+  const ConfigParam& option
+)
+{
+  return std::unique_ptr<CandMgr>{new NaiveCandMgr(fault_list)};
+}
+
 //////////////////////////////////////////////////////////////////////
 // クラス NaiveCandMgr
 //////////////////////////////////////////////////////////////////////
@@ -85,8 +100,10 @@ NaiveCandMgr::update(
 }
 
 // @brief 終了処理
-EqDomCand
-NaiveCandMgr::end()
+std::unique_ptr<EqDomCand>
+NaiveCandMgr::end(
+  bool reduce
+) const
 {
   std::vector<TpgFaultList> group_list;
   std::unordered_map<SizeType, SizeType> id_map;
@@ -122,7 +139,7 @@ NaiveCandMgr::end()
       }
     }
   }
-  return EqDomCand(group_list, dom_list, true);
+  return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, dom_list, reduce)};
 }
 
 // @brief 等価な可能性のある故障のリストを返す．

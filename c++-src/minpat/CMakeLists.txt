@@ -12,6 +12,7 @@ include_directories (
 # ===================================================================
 
 add_subdirectory( gtest )
+add_subdirectory( filter/gtest )
 add_subdirectory( test-programs )
 
 
