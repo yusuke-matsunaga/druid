@@ -173,11 +173,23 @@ private:
     const std::vector<std::unique_ptr<Group>>& new_group_list
   ) const;
 
-  /// @brief 故障番号の昇順にソートする．
-  std::vector<Group*>
-  sort(
-    std::unordered_map<SizeType, SizeType>& id_map
-  ) const;
+  /// @brief 故障グループのリスト情報を出力する．
+  ///
+  /// print() と似ているが中間的な状態にも対応している．
+  static
+  void
+  print_group_list(
+    std::ostream& s,                                      ///< [in] 出力ストリーム
+    const std::vector<std::unique_ptr<Group>>& group_list ///< [in] グループのリスト
+  );
+
+  /// @brief 故障グループの情報を出力する．
+  static
+  void
+  print_group(
+    std::ostream& s, ///< [in] 出力ストリーム
+    Group* group     ///< [in] グループ
+  );
 
   /// @brief パタンを文字列にする．
   static

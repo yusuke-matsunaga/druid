@@ -76,7 +76,7 @@ DichoCandMgr::update(
   // 細分化したグループを作る．
   std::vector<std::unique_ptr<Group>> new_group_list;
   new_group_list.reserve(new_group_num);
-  for ( auto& group: mCurGroupList[id] ) {
+  for ( auto& group: mCurGroupList ) {
     auto& fault_list = group->fault_list();
     std::unordered_map<SizeType, TpgFaultList> fault_list_dict;
     auto& dpat_list = dpat_list_array[group->id()];
@@ -109,7 +109,7 @@ DichoCandMgr::update(
     for ( SizeType i = 0; i < ng; ++ i ) {
       auto dpat = dpat_list[i];
       auto subgroup = subgroup_list[i];
-      std::vector<Group*> succ_list;
+      std::vector<Group*> sub_succ_list;
       for ( auto succ_group: succ_list ) {
 	auto& dpat1_list = succ_group->dpat_list();
 	auto& subgroup1_list = succ_group->subgroup_list();
@@ -118,11 +118,11 @@ DichoCandMgr::update(
 	  auto dpat1 = dpat1_list[i];
 	  if ( (dpat & dpat1) == dpat ) {
 	    auto subgroup1 = subgroup1_list[i];
-	    succ_list.push_back(subgroup1);
+	    sub_succ_list.push_back(subgroup1);
 	  }
 	}
       }
-      subgroup->set_succ_list(std::move(succ_list));
+      subgroup->set_succ_list(std::move(sub_succ_list));
     }
   }
 
@@ -132,7 +132,8 @@ DichoCandMgr::update(
     return true;
   }
 
-  // サブグループの情報を初期化しておく．
+  // 変化がなかったのでそのまま
+  // ただしサブグループの情報を初期化しておく．
   for ( auto& group: mCurGroupList ) {
     group->clear_subgroup();
   }
@@ -146,45 +147,12 @@ DichoCandMgr::end(
 ) const
 {
   // fault_list() の先頭の故障番号の昇順でソートする．
-  std::unordered_map<SizeType, SizeType> id_map;
-  auto tmp_list = sort(id_map);
-  // グループ番号を付け直す．
-  auto ng = tmp_list.size();
-  std::vector<TpgFaultList> group_list;
-  group_list.reserve(ng);
-  for ( auto group: tmp_list ) {
-    group_list.push_back(group->fault_list());
-  }
-  std::vector<std::pair<SizeType, SizeType>> succ_list;
-  for ( auto group1: tmp_list ) {
-    auto id1 = id_map.at(group1->id());
-    auto& succ_list = group1->succ_list();
-    for ( auto group2: succ_list ) {
-      auto id2 = id_map.at(group2->id());
-      if ( id2 != id1 ) {
-	succ_list.push_back({id1, id2});
-      }
-    }
-  }
-  return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, succ_list, reduce)};
-}
-
-// @brief 故障番号の昇順にソートする．
-std::vector<DichoCandMgr::Group*>
-DichoCandMgr::sort(
-  std::unordered_map<SizeType, SizeType>& id_map
-) const
-{
-  // 故障リストを持つグループを抜き出す．
+  // mCurGroupList は変更できないので tmp_list にコピーする．
   std::vector<Group*> tmp_list;
   tmp_list.reserve(mCurGroupList.size());
   for ( auto& group: mCurGroupList ) {
-    if ( group->fault_list().empty() ) {
-      continue;
-    }
     tmp_list.push_back(group.get());
   }
-  // fault_list() の先頭の故障番号の昇順でソートする．
   std::sort(tmp_list.begin(), tmp_list.end(),
 	    [](Group* a,
 	       Group* b) -> bool {
@@ -193,13 +161,34 @@ DichoCandMgr::sort(
 	      return f1.id() < f2.id();
 	    });
   // グループ番号を付け直す．
+  std::unordered_map<SizeType, SizeType> id_map;
   auto ng = tmp_list.size();
-  id_map.clear();
   for ( SizeType id = 0; id < ng; ++ id ) {
     auto group = tmp_list[id];
     id_map.emplace(group->id(), id);
   }
-  return tmp_list;
+
+  // 故障グループを作る．
+  auto ng = tmp_list.size();
+  std::vector<TpgFaultList> group_list;
+  group_list.reserve(ng);
+  for ( auto group: tmp_list ) {
+    group_list.push_back(group->fault_list());
+  }
+
+  // 順序関係を表すペアのリストを作る．
+  std::vector<std::pair<SizeType, SizeType>> succ_pair_list;
+  for ( auto group1: tmp_list ) {
+    auto id1 = id_map.at(group1->id());
+    auto& succ_list = group1->succ_list();
+    for ( auto group2: succ_list ) {
+      auto id2 = id_map.at(group2->id());
+      if ( id2 != id1 ) {
+	succ_pair_list.push_back({id1, id2});
+      }
+    }
+  }
+  return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, succ_pair_list, reduce)};
 }
 
 // @brief 変化があったか調べる．
@@ -224,6 +213,50 @@ DichoCandMgr::check(
     }
   }
   return false;
+}
+
+// @brief 故障グループの情報を出力する．
+void
+DichoCandMgr::print_group_list(
+  std::ostream& s,
+  const std::vector<std::unique_ptr<Group>>& group_list
+)
+{
+  s << "-------------------------------------------" << std::endl;
+  for ( auto& group: group_list ) {
+    print_group(s, group.get());
+  }
+  s << "-------------------------------------------" << std::endl;
+}
+
+// @brief 故障グループの情報を出力する．
+void
+DichoCandMgr::print_group(
+  std::ostream& s,
+  Group* group
+)
+{
+  s << "[G#" << group->id() << "]:";
+  if ( group->fault_list().empty() ) {
+    s << "***";
+  }
+  else {
+    for ( auto fault: group->fault_list() ) {
+      s << " " << fault.str();
+    }
+  }
+  s << std::endl
+    << "  ==> ";
+  auto& succ_list = group->succ_list();
+  const char* comma = "";
+  for ( auto group: succ_list ) {
+    s << comma << "[G#" << group->id() << "]";
+    comma = ", ";
+    if ( !group->fault_list().empty() ) {
+      s << "(" << group->fault_list()[0].str() << ")";
+    };
+  }
+  s << std::endl;
 }
 
 // @brief パタンを文字列にする．
