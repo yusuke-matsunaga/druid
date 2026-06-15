@@ -44,7 +44,6 @@ filter_test(
   int no_change_limit = 0;
   int batch_size = 0;
   int sat_time_limit = 0;
-  std::string dicho_str = "dichotomy";
   bool multi_thread = false;
   bool verbose = false;
   int debug = 0;
@@ -91,9 +90,6 @@ filter_test(
       }
       std::string val = argv[argpos];
       batch_size = stoi(val);
-    }
-    else if ( arg == "--dichotomy2" ) {
-      dicho_str = "dichotomy2";
     }
     else if ( arg == "--multi-thread" ) {
       multi_thread = true;
@@ -200,7 +196,7 @@ filter_test(
 
   // Dichotomy method
   std::cout << std::endl;
-  std::cout << dicho_str << std::endl;
+  std::cout << "DichoCandMgr" << std::endl;
   auto dicho_option = option;
   {
     auto filter_option = JsonValue::object();
@@ -211,7 +207,7 @@ filter_test(
       filter_option.add("batch_size", batch_size);
     }
     auto cand_option = JsonValue::object();
-    cand_option.add("method", dicho_str);
+    cand_option.add("method", std::string{"dichotomy"});
     filter_option.add("candmgr", cand_option);
     dicho_option.add("filter", filter_option);
   }
@@ -226,6 +222,38 @@ filter_test(
     cand2->print(std::cout);
     std::cout << std::endl;
     cand1->check(*cand2);
+    return 1;
+  }
+
+  // Dichotomy method
+  std::cout << std::endl;
+  std::cout << "DichoCandMgr1" << std::endl;
+  auto dicho1_option = option;
+  {
+    auto filter_option = JsonValue::object();
+    if ( no_change_limit > 0 ) {
+      filter_option.add("no_change_limit", no_change_limit);
+    }
+    if ( batch_size > 0 ) {
+      filter_option.add("batch_size", batch_size);
+    }
+    auto cand_option = JsonValue::object();
+    cand_option.add("method", std::string{"dichotomy1"});
+    filter_option.add("candmgr", cand_option);
+    dicho1_option.add("filter", filter_option);
+  }
+
+  auto cand3 = Filter::run(fault_info, ConfigParam(dicho1_option).get_param("filter"));
+
+  if ( *cand1 != *cand3 ) {
+    std::cout << "cand1" << std::endl;
+    cand1->print(std::cout);
+    std::cout << std::endl;
+    std::cout << "cand3" << std::endl;
+    cand3->print(std::cout);
+    std::cout << std::endl;
+    cand1->check(*cand3);
+    return 1;
   }
 
   return 0;

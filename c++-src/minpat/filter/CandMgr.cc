@@ -31,6 +31,9 @@ CandMgr::new_obj(
   if ( str == "dichotomy" ) {
     return new_dichotomy_mgr(fault_list, option);
   }
+  else if ( str == "dichotomy1" ) {
+    return new_dichotomy_mgr1(fault_list, option);
+  }
   else if ( str == "dichotomy2" ) {
     mgr = new DichoCandMgr2(fault_list);
   }

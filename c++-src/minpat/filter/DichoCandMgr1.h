@@ -1,8 +1,8 @@
-#ifndef DICHOCANDMGR_H
-#define DICHOCANDMGR_H
+#ifndef DICHOCANDMGR1_H
+#define DICHOCANDMGR1_H
 
-/// @file DichoCandMgr.h
-/// @brief DichoCandMgr のヘッダファイル
+/// @file DichoCandMgr1.h
+/// @brief DichoCandMgr1 のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -15,10 +15,10 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class DichoCandMgr DichoCandMgr.h "DichoCandMgr.h"
+/// @class DichoCandMgr1 DichoCandMgr1.h "DichoCandMgr1.h"
 /// @brief 二分法を用いた CandMgr
 //////////////////////////////////////////////////////////////////////
-class DichoCandMgr :
+class DichoCandMgr1 :
   public CandMgr
 {
 public:
@@ -31,12 +31,8 @@ public:
     /// @brief コンストラクタ
     Group(
       SizeType id,                            ///< [in] ID番号
-      SizeType rank,                          ///< [in] ランク
-      const std::vector<PackedVal>& pat_list, ///< [in] パタンのリスト
       const TpgFaultList& fault_list          ///< [in] 故障のリスト
     ) : mId{id},
-	mRank{rank},
-	mPatList{pat_list},
 	mFaultList{fault_list}
     {
     }
@@ -57,20 +53,6 @@ public:
       return mId;
     }
 
-    /// @brief ランクを返す．
-    SizeType
-    rank() const
-    {
-      return mRank;
-    }
-
-    /// @brief パタンのリストを返す．
-    const std::vector<PackedVal>&
-    pat_list() const
-    {
-      return mPatList;
-    }
-
     /// @brief 故障のリストを返す．
     const TpgFaultList&
     fault_list() const
@@ -78,27 +60,11 @@ public:
       return mFaultList;
     }
 
-    /// @brief 直接の後続グループのリストを返す．
-    const std::vector<Group*>&
-    immediate_succ_list() const
-    {
-      return mImmSuccList;
-    }
-
     /// @brief 全ての後続グループのリストを返す．
     const std::vector<Group*>&
     transitive_succ_list() const
     {
       return mTranSuccList;
-    }
-
-    /// @brief immediate_succ_list を設定する．
-    void
-    set_immediate_succ_list(
-      std::vector<Group*>&& src_list ///< [in] 設定するグループのリストの右辺値
-    )
-    {
-      std::swap(mImmSuccList, src_list);
     }
 
     /// @brief transitive_succ_list を設定する．
@@ -165,17 +131,8 @@ public:
     // ID番号
     SizeType mId;
 
-    // ランク
-    SizeType mRank;
-
-    // パタンのリスト
-    std::vector<PackedVal> mPatList;
-
     // 故障のリスト
     TpgFaultList mFaultList;
-
-    // 直接の後続グループのリスト
-    std::vector<Group*> mImmSuccList;
 
     // 推移的な後続グループのリスト
     std::vector<Group*> mTranSuccList;
@@ -193,12 +150,12 @@ public:
 public:
 
   /// @brief コンストラクタ
-  DichoCandMgr(
+  DichoCandMgr1(
     const TpgFaultList& fault_list ///< [in] 対象の故障リスト
   );
 
   /// @brief デストラクタ
-  ~DichoCandMgr();
+  ~DichoCandMgr1();
 
 
 private:
@@ -217,31 +174,6 @@ private:
   end(
     bool reduce ///< [in] 推移簡約を行う時 true
   ) const override;
-
-
-public:
-  //////////////////////////////////////////////////////////////////////
-  // 外部インターフェイス
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief グループ数を返す．
-  SizeType
-  group_num() const
-  {
-    return mCurGroupList.size();
-  }
-
-  /// @brief グループを返す．
-  const Group*
-  group(
-    SizeType id ///< [in] グループ番号
-  ) const
-  {
-    if ( id >= group_num() ) {
-      throw std::out_of_range{"id is out of range"};
-    }
-    return mCurGroupList[id].get();
-  }
 
 
 protected:
@@ -315,4 +247,4 @@ protected:
 
 END_NAMESPACE_DRUID
 
-#endif // DICHOCANDMGR_H
+#endif // DICHOCANDMGR1_H

@@ -1,33 +1,18 @@
 
-/// @file DichoCandMgr.cc
-/// @brief DichoCandMgr の実装ファイル
+/// @file DichoCandMgr1.cc
+/// @brief DichoCandMgr1 の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
 #include "CandMgr.h"
-#include "DichoCandMgr.h"
+#include "DichoCandMgr1.h"
 
 #define DEBUG 0
 
 
 BEGIN_NAMESPACE_DRUID
-
-BEGIN_NONAMESPACE
-
-inline
-std::string
-pat_str(
-  PackedVal pat
-)
-{
-  std::ostringstream buf;
-  buf << "[" << std::hex << pat << std::dec << "]";
-  return buf.str();
-}
-
-END_NONAMESPACE
 
 //////////////////////////////////////////////////////////////////////
 // クラス CandMgr
@@ -35,38 +20,38 @@ END_NONAMESPACE
 
 // @brief 新しいオブジェクトを作る．
 std::unique_ptr<CandMgr>
-CandMgr::new_dichotomy_mgr(
+CandMgr::new_dichotomy_mgr1(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<CandMgr>{new DichoCandMgr(fault_list)};
+  return std::unique_ptr<CandMgr>{new DichoCandMgr1(fault_list)};
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス DichoCandMgr
+// クラス DichoCandMgr1
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-DichoCandMgr::DichoCandMgr(
+DichoCandMgr1::DichoCandMgr1(
   const TpgFaultList& fault_list
 ) : CandMgr(fault_list)
 {
   // 最初は１つのグループ
-  auto group = new Group(0, 0, {}, fault_list);
+  auto group = new Group(0, fault_list);
   group->set_transitive_succ_list({group});
   mCurGroupList.push_back(std::unique_ptr<Group>{group});
 }
 
 // @brief デストラクタ
-DichoCandMgr::~DichoCandMgr()
+DichoCandMgr1::~DichoCandMgr1()
 {
 }
 
 // @brief 更新処理
 bool
-DichoCandMgr::update(
+DichoCandMgr1::update(
   const std::vector<PackedVal>& dpat_array
 )
 {
@@ -127,10 +112,7 @@ DichoCandMgr::update(
 	continue;
       }
       auto id = new_group_list.size();
-      auto rank = src_group->rank() + count_ones(dpat);
-      auto pat_list = src_group->pat_list();
-      pat_list.push_back(dpat);
-      auto new_group = new Group(id, rank, pat_list, fault_list);
+      auto new_group = new Group(id, fault_list);
       new_group_list.push_back(std::unique_ptr<Group>{new_group});
       src_group->add_subgroup(dpat, new_group);
 #if DEBUG
@@ -182,7 +164,7 @@ DichoCandMgr::update(
 
 #if DEBUG
   {
-    std::cout << "DichoCandMgr::update()" << std::endl;
+    std::cout << "DichoCandMgr1::update()" << std::endl;
     print_group_list(std::cout, new_group_list);
     std::cout << std::endl;
   }
@@ -202,13 +184,13 @@ DichoCandMgr::update(
 
 // @brief 終了処理
 std::unique_ptr<EqDomCand>
-DichoCandMgr::end(
+DichoCandMgr1::end(
   bool reduce
 ) const
 {
 #if DEBUG
   {
-    std::cout << "DichoCandMgr::end()" << std::endl;
+    std::cout << "DichoCandMgr1::end()" << std::endl;
     print_group_list(std::cout, mCurGroupList);
   }
 #endif
@@ -237,8 +219,8 @@ DichoCandMgr::end(
 }
 
 // @brief 故障番号の昇順にソートする．
-std::vector<DichoCandMgr::Group*>
-DichoCandMgr::sort(
+std::vector<DichoCandMgr1::Group*>
+DichoCandMgr1::sort(
   std::unordered_map<SizeType, SizeType>& id_map
 ) const
 {
@@ -295,7 +277,7 @@ END_NONAMESPACE
 
 // @brief 変化があったか調べる．
 bool
-DichoCandMgr::check(
+DichoCandMgr1::check(
   const std::vector<std::unique_ptr<Group>>& new_group_list
 ) const
 {
@@ -344,7 +326,7 @@ DichoCandMgr::check(
 
 // @brief 故障グループの情報を出力する．
 void
-DichoCandMgr::print_group_list(
+DichoCandMgr1::print_group_list(
   std::ostream& s,
   const std::vector<std::unique_ptr<Group>>& group_list
 )
@@ -358,7 +340,7 @@ DichoCandMgr::print_group_list(
 
 // @brief 故障グループの情報を出力する．
 void
-DichoCandMgr::print_group(
+DichoCandMgr1::print_group(
   std::ostream& s,
   const Group* group
 )
@@ -372,8 +354,8 @@ DichoCandMgr::print_group(
     << "  ==> ";
   auto succ_list = group->transitive_succ_list();
   std::sort(succ_list.begin(), succ_list.end(),
-	    [](DichoCandMgr::Group* a,
-	       DichoCandMgr::Group* b) -> bool {
+	    [](DichoCandMgr1::Group* a,
+	       DichoCandMgr1::Group* b) -> bool {
 	      return a->id() < b->id();
 	    });
   const char* comma = "";
@@ -389,7 +371,7 @@ DichoCandMgr::print_group(
 
 // @brief パタンを文字列にする．
 std::string
-DichoCandMgr::pat_str(
+DichoCandMgr1::pat_str(
   PackedVal pat
 )
 {
@@ -400,7 +382,7 @@ DichoCandMgr::pat_str(
 
 // @brief パタンのリストを文字列にする．
 std::string
-DichoCandMgr::pat_list_str(
+DichoCandMgr1::pat_list_str(
   const std::vector<PackedVal>& pat_list
 )
 {
