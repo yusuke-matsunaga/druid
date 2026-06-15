@@ -105,7 +105,7 @@ Filter::run(
   }
 
   // 結果の EqDomCand を作る．
-  auto cand = candmgr->end(false);
+  auto cand = candmgr->end(true);
   timer.stop();
 
   if ( verbose ) {

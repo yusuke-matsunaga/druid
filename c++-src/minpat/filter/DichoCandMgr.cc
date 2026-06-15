@@ -169,7 +169,6 @@ DichoCandMgr::end(
   }
 
   // 故障グループを作る．
-  auto ng = tmp_list.size();
   std::vector<TpgFaultList> group_list;
   group_list.reserve(ng);
   for ( auto group: tmp_list ) {

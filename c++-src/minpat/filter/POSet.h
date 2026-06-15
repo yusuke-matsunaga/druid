@@ -56,7 +56,14 @@ public:
       mElemList.push_back({id1, id2});
     }
 
-    // 要素数
+    /// @brief 要素対の数
+    SizeType
+    size() const
+    {
+      return mElemList.size();
+    }
+
+    // 要素番号のサイズ(最大値+1)
     SizeType mSize{0};
 
     // 要素対のリスト

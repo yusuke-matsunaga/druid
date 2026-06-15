@@ -72,6 +72,9 @@ EqDomCand::EqDomCand(
 	mDomListArray[id1].push_back(id2);
       }
     }
+    {
+      std::cout << builder.size() << " -> " << total_num() << std::endl;
+    }
   }
   else {
     for ( auto& p: dom_list ) {
