@@ -51,6 +51,7 @@ Filter::run(
   // パラメータの取得
   SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
   SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
+  auto reduce = option.get_bool_elem("reduce", false);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -105,7 +106,7 @@ Filter::run(
   }
 
   // 結果の EqDomCand を作る．
-  auto cand = candmgr->end(true);
+  auto cand = candmgr->end(reduce);
   timer.stop();
 
   if ( verbose ) {

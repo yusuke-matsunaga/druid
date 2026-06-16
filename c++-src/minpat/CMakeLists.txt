@@ -49,6 +49,7 @@ set ( minpat_SOURCES
   filter/CandMgr.cc
   filter/NaiveCandMgr.cc
   filter/DichoCandMgr.cc
+  filter/DichoCandMgr0.cc
   filter/DichoCandMgr1.cc
   filter/DichoCandMgr2.cc
   filter/DPatGraph.cc

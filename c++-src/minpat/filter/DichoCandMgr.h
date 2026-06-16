@@ -76,39 +76,6 @@ public:
       std::swap(mSuccList, src_list);
     }
 
-    /// @brief サブグループの情報を初期化する．
-    void
-    clear_subgroup()
-    {
-      mDPatList.clear();
-      mSubGroupList.clear();
-    }
-
-    /// @brief 細分化のパタンリストを返す．
-    const std::vector<PackedVal>&
-    dpat_list() const
-    {
-      return mDPatList;
-    }
-
-    /// @brief サブグループのリストを返す．
-    const std::vector<Group*>&
-    subgroup_list() const
-    {
-      return mSubGroupList;
-    }
-
-    /// @brief サブグループを追加する．
-    void
-    add_subgroup(
-      PackedVal dpat,
-      Group* group
-    )
-    {
-      mDPatList.push_back(dpat);
-      mSubGroupList.push_back(group);
-    }
-
 
   private:
     //////////////////////////////////////////////////////////////////////
@@ -124,12 +91,13 @@ public:
     // 後続グループのリスト
     std::vector<Group*> mSuccList;
 
-    // 細分化用のパタンリスト
-    std::vector<PackedVal> mDPatList;
+  };
 
-    // サブグループのリスト
-    std::vector<Group*> mSubGroupList;
 
+  /// @brief 細分化したサブグループの情報
+  struct SubGroupInfo {
+    std::vector<PackedVal> dpat_list;
+    std::vector<Group*> group_list;
   };
 
 

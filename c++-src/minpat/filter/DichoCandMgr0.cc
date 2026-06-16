@@ -1,12 +1,12 @@
 
-/// @file DichoCandMgr.cc
-/// @brief DichoCandMgr の実装ファイル
+/// @file DichoCandMgr0.cc
+/// @brief DichoCandMgr0 の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DichoCandMgr.h"
+#include "DichoCandMgr0.h"
 #include "DiGroup.h"
 
 
@@ -18,17 +18,17 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief 新しいオブジェクトを作る．
 std::unique_ptr<CandMgr>
-CandMgr::new_dichotomy_mgr(
+CandMgr::new_dichotomy_mgr0(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<CandMgr>{new DichoCandMgr(fault_list)};
+  return std::unique_ptr<CandMgr>{new DichoCandMgr0(fault_list)};
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス DichoCandMgr
+// クラス DichoCandMgr0
 //////////////////////////////////////////////////////////////////////
 
 BEGIN_NONAMESPACE
@@ -46,7 +46,7 @@ struct SubGroupInfo {
 END_NONAMESPACE
 
 // @brief コンストラクタ
-DichoCandMgr::DichoCandMgr(
+DichoCandMgr0::DichoCandMgr0(
   const TpgFaultList& fault_list
 ) : CandMgr(fault_list)
 {
@@ -57,13 +57,13 @@ DichoCandMgr::DichoCandMgr(
 }
 
 // @brief デストラクタ
-DichoCandMgr::~DichoCandMgr()
+DichoCandMgr0::~DichoCandMgr0()
 {
 }
 
 // @brief 更新処理
 bool
-DichoCandMgr::update(
+DichoCandMgr0::update(
   const std::vector<PackedVal>& dpat_array
 )
 {
@@ -148,7 +148,7 @@ DichoCandMgr::update(
 
 // @brief 終了処理
 std::unique_ptr<EqDomCand>
-DichoCandMgr::end(
+DichoCandMgr0::end(
   bool reduce
 ) const
 {
@@ -178,7 +178,7 @@ DichoCandMgr::end(
 
 // @brief 故障番号の昇順にソートする．
 std::vector<DiGroup*>
-DichoCandMgr::sort(
+DichoCandMgr0::sort(
   std::unordered_map<SizeType, SizeType>& id_map
 ) const
 {
@@ -211,7 +211,7 @@ DichoCandMgr::sort(
 
 // @brief 変化があったか調べる．
 bool
-DichoCandMgr::check(
+DichoCandMgr0::check(
   const std::vector<std::unique_ptr<DiGroup>>& new_group_list
 ) const
 {
