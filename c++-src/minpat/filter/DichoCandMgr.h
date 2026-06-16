@@ -30,8 +30,15 @@ public:
 
     /// @brief コンストラクタ
     Group(
+      SizeType id ///< [in] ID番号
+    ) : mId{id}
+    {
+    }
+
+    /// @brief コンストラクタ
+    Group(
       SizeType id,                   ///< [in] ID番号
-      const TpgFaultList& fault_list ///< [in] 故障のリスト
+      const TpgFaultList& fault_list ///< [in] 故障リスト
     ) : mId{id},
 	mFaultList{fault_list}
     {
@@ -58,6 +65,15 @@ public:
     fault_list() const
     {
       return mFaultList;
+    }
+
+    /// @brief 故障を追加する．
+    void
+    add_fault(
+      const TpgFault& fault ///< [in] 追加する故障
+    )
+    {
+      mFaultList.push_back(fault);
     }
 
     /// @brief 後続グループのリストを返す．
@@ -94,13 +110,6 @@ public:
   };
 
 
-  /// @brief 細分化したサブグループの情報
-  struct SubGroupInfo {
-    std::vector<PackedVal> dpat_list;
-    std::vector<Group*> group_list;
-  };
-
-
 public:
 
   /// @brief コンストラクタ
@@ -134,12 +143,6 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
-
-  /// @brief 変化があったか調べる．
-  bool
-  check(
-    const std::vector<std::unique_ptr<Group>>& new_group_list
-  ) const;
 
   /// @brief 故障グループのリスト情報を出力する．
   ///
