@@ -15,6 +15,21 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
+// クラス CandMgr
+//////////////////////////////////////////////////////////////////////
+
+// @brief 新しいオブジェクトを作る．
+std::unique_ptr<CandMgr>
+CandMgr::new_dichotomy_mgr2(
+  const TpgFaultList& fault_list,
+  const ConfigParam& option
+)
+{
+  return std::unique_ptr<CandMgr>{new DichoCandMgr2(fault_list)};
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // クラス DichoCandMgr2
 //////////////////////////////////////////////////////////////////////
 
@@ -23,6 +38,9 @@ DichoCandMgr2::DichoCandMgr2(
   const TpgFaultList& fault_list
 ) : CandMgr(fault_list)
 {
+  // 最初は１つのグループ
+  auto group = new Group(0, fault_list);
+  mCurGroupList.push_back(std::unique_ptr<Group>{group});
 }
 
 // @brief デストラクタ
@@ -36,132 +54,97 @@ DichoCandMgr2::update(
   const std::vector<PackedVal>& dpat_array
 )
 {
-  // パタン間の順序関係を表すグラフ
-  DPatGraph dpat_graph(dpat_array);
+  // 細分化したサブグループの情報
+  struct SubGroupInfo {
+    PackedVal dpat;
+    Group* group;
+  };
 
-  // 重複のないパタンのリスト
-  auto all_dpat_list = dpat_graph.pat_list();
-
-  // パタン数
-  auto npat = all_dpat_list.size();
+  // パタンをキーしたGroupの辞書
+  using GroupDict = std::unordered_map<PackedVal, Group*>;
 
   // もとのグループ数
   auto ng = mCurGroupList.size();
 
-  // サブグループの配列
-  // キーは group->id() * npat + pat_id
-  std::vector<SubGroup> subgroup_array(ng * npat);
-  // サブグループ間の順序関係を作る．
-  for ( auto& group: mCurGroupList ) {
-    auto offset = group->id() * npat;
-    auto succ_list = group->succ_list();
-    for ( SizeType pid = 0; pid < npat; ++ pid ) {
-      auto id = offset + pid;
-      auto& subgroup = subgroup_array[id];
-      subgroup.id = id;
-      // 同じグループから細分化したサブグループ
-      auto succ_id_list = dpat_graph.poset().imm_succ_list(pid);
-      for ( auto pid1: succ_id_list ) {
-	auto id1 = offset + pid1;
-	auto& subgroup1 = subgroup_array[id1];
-	subgroup.succ_list.push_back(&subgroup1);
-      }
-      // group の後続のサブグループで同じパタン番号を持つもの
-      for ( auto group1: succ_list ) {
-	auto offset1 = group1->id() * npat;
-	auto id1 = offset1 + pid;
-	auto& subgroup1 = subgroup_array[id1];
-	subgroup.succ_list.push_back(&subgroup1);
-      }
-    }
-  }
+  // グループごとのパタンをキーにしたサブグループの辞書の配列
+  std::vector<GroupDict> group_dict_array(ng);
 
-  // 故障をサブグループに割り当てる．
-  for ( auto& group: mCurGroupList ) {
-    auto offset = group->id() * npat;
-    for ( auto fault: group->fault_list() ) {
-      auto dpat = dpat_array[fault.id()];
-      auto pid = dpat_graph.id(dpat);
-      auto id = offset + pid;
-      auto& subgroup = subgroup_array[id];
-      subgroup.fault_list.push_back(fault);
-    }
-  }
+  // グループごとのSubGroupInfoのリストの配列
+  std::vector<std::vector<SubGroupInfo>> sg_list_array(ng);
 
   // 細分化したグループのリスト
   std::vector<std::unique_ptr<Group>> new_group_list;
-  // Group::id() をキーにして SubGroup 番号を格納する配列
-  std::vector<SubGroup*> subgroup_list;
-  { // 要素数を数える．
-    SizeType n = 0;
-    for ( auto& group: mCurGroupList ) {
-      auto offset = group->id() * npat;
-      for ( SizeType pid = 0; pid < npat; ++ pid ) {
-	auto id = offset + pid;
-	auto& subgroup = subgroup_array[id];
-	auto& fault_list = subgroup.fault_list;
-	if ( !fault_list.empty() ) {
-	  ++ n;
-	}
-      }
-    }
-    new_group_list.reserve(n);
-    subgroup_list.reserve(n);
-  }
 
-  // 故障を持つサブグループにグループを結びつける．
+  // 細分化したサブグループを作る．
   for ( auto& group: mCurGroupList ) {
-    auto offset = group->id() * npat;
-    for ( SizeType pid = 0; pid < npat; ++ pid ) {
-      auto id = offset + pid;
-      auto& subgroup = subgroup_array[id];
-      auto& fault_list = subgroup.fault_list;
-      if ( fault_list.empty() ) {
-	subgroup.group = nullptr;
+    // group の故障をパタンごとに分ける．
+    auto& group_dict = group_dict_array[group->id()];
+    auto& sg_list = sg_list_array[group->id()];
+    for ( auto fault: group->fault_list() ) {
+      auto dpat = dpat_array[fault.id()];
+      if ( group_dict.count(dpat) == 0 ) {
+	// 新しいグループを作る．
+	auto id = new_group_list.size();
+	auto new_group = new Group(id);
+	new_group->add_fault(fault);
+	new_group_list.push_back(std::unique_ptr<Group>{new_group});
+	group_dict.emplace(dpat, new_group);
+	sg_list.push_back({dpat, new_group});
       }
       else {
-	auto gid = new_group_list.size();
-	auto new_group = new Group(gid, fault_list);
-	new_group_list.push_back(std::unique_ptr<Group>{new_group});
-	subgroup.group = new_group;
-	subgroup_list.push_back(&subgroup);
+	auto group = group_dict.at(dpat);
+	group->add_fault(fault);
       }
     }
   }
-  auto nng = new_group_list.size();
+
+  // 変化があったことを示すフラグ
+  bool changed = new_group_list.size() != ng;
+
+  // グループごとの DPatGraph の配列
+  std::vector<DPatGraph> dpat_graph_array(ng);
+  for ( SizeType i = 0; i < ng; ++ i ) {
+    auto& sg_list = sg_list_array[i];
+    std::vector<PackedVal> pat_list;
+    pat_list.reserve(sg_list.size());
+    for ( auto& sg: sg_list ) {
+      auto pat = sg.dpat;
+      pat_list.push_back(pat);
+    }
+    dpat_graph_array[i].rebuild(pat_list);
+  }
 
   // グループ間の順序関係を求める．
-  auto builder = POSet::Builder();
-  for ( auto& group: new_group_list ) {
-    auto subgroup = subgroup_list[group->id()];
-    std::unordered_set<SizeType> mark;
-    dfs(subgroup, group.get(), mark, builder);
-  }
-  auto poset = POSet(builder);
-  // 推移簡約を行った結果をセットする．
-  SizeType total_count = 0;
-  for ( auto& group: new_group_list ) {
-    auto succ_id_list = poset.imm_succ_list(group->id());
-    std::vector<Group*> succ_list;
-    succ_list.reserve(succ_id_list.size());
-    for ( auto id1: succ_id_list ) {
-      auto& group1 = new_group_list[id1];
-      succ_list.push_back(group1.get());
+  for ( auto& group: mCurGroupList ) {
+    auto& succ_list = group->succ_list();
+    auto& sg_list = sg_list_array[group->id()];
+    for ( auto& sg: sg_list ) {
+      auto dpat = sg.dpat;
+      auto subgroup = sg.group;
+      std::vector<Group*> sub_succ_list;
+      for ( auto succ_group: succ_list ) {
+	auto& group_dict = group_dict_array[succ_group->id()];
+	auto& dpat_graph1 = dpat_graph_array[succ_group->id()];
+	for ( auto pat1: dpat_graph1.imm_succ_list(dpat) ) {
+	  auto subgroup1 = group_dict.at(pat1);
+	  sub_succ_list.push_back(subgroup1);
+	}
+      }
+      subgroup->set_succ_list(std::move(sub_succ_list));
     }
-    total_count += succ_list.size();
-    group->set_succ_list(std::move(succ_list));
+    if ( !changed && sg_list.size() == 1 ) {
+      // 後続リストの要素数が変化しているか調べる．
+      auto& subgroup = sg_list.front().group;
+      if ( group->succ_list().size() != subgroup->succ_list().size() ) {
+	changed = true;
+      }
+    }
   }
 
   // 変化があったら更新する．
-  if ( nng != ng ) {
-    SizeType total_count0 = 0;
-    for ( auto& group: mCurGroupList ) {
-      total_count0 += group->succ_list().size();
-    }
-    if ( total_count != total_count0 ) {
-      std::swap(mCurGroupList, new_group_list );
-      return true;
-    }
+  if ( changed ) {
+    std::swap(mCurGroupList, new_group_list );
+    return true;
   }
   return false;
 }

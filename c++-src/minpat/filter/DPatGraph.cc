@@ -15,8 +15,38 @@ BEGIN_NAMESPACE_DRUID
 // クラス DPatGraph
 //////////////////////////////////////////////////////////////////////
 
+// @brief 空のコンストラクタ
+DPatGraph::DPatGraph()
+{
+}
+
 // @brief コンストラクタ
 DPatGraph::DPatGraph(
+  const std::vector<PackedVal>& pat_list
+)
+{
+  _set(pat_list);
+}
+
+// @brief デストラクタ
+DPatGraph::~DPatGraph()
+{
+}
+
+// @brief 内容をセットする．
+void
+DPatGraph::rebuild(
+  const std::vector<PackedVal>& pat_list
+)
+{
+  mPatList.clear();
+  mIdMap.clear();
+  _set(pat_list);
+}
+
+// @brief 内容をセットする．
+void
+DPatGraph::_set(
   const std::vector<PackedVal>& pat_list
 )
 {

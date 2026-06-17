@@ -68,6 +68,15 @@ public:
       return mFaultList;
     }
 
+    /// @brief 故障を追加する．
+    void
+    add_fault(
+      const TpgFault& fault ///< [in] 追加する故障
+    )
+    {
+      mFaultList.push_back(fault);
+    }
+
     /// @brief 後続グループのリストを返す．
     const std::vector<Group*>&
     succ_list() const

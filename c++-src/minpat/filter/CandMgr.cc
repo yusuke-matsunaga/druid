@@ -24,22 +24,19 @@ CandMgr::new_obj(
 )
 {
   auto str = option.get_string_elem("method", "naive");
-  CandMgr* mgr = nullptr;
   if ( str == "naive" ) {
     return new_naive_mgr(fault_list, option);
   }
   if ( str == "dichotomy" ) {
     return new_dichotomy_mgr(fault_list, option);
   }
-  else if ( str == "dichotomy2" ) {
-    mgr = new DichoCandMgr2(fault_list);
+  if ( str == "dichotomy2" ) {
+    return new_dichotomy_mgr2(fault_list, option);
   }
-  else {
-    std::ostringstream buf;
-    buf << str << ": unknown option for 'method'";
-    throw std::invalid_argument{buf.str()};
-  }
-  return std::unique_ptr<CandMgr>{mgr};
+
+  std::ostringstream buf;
+  buf << str << ": unknown option for 'method'";
+  throw std::invalid_argument{buf.str()};
 }
 
 END_NAMESPACE_DRUID

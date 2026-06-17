@@ -32,19 +32,28 @@ class DPatGraph
 {
 public:
 
+  /// @brief 空のコンストラクタ
+  DPatGraph();
+
   /// @brief コンストラクタ
   DPatGraph(
     const std::vector<PackedVal>& pat_list ///< [in] パタンのリスト
   );
 
   /// @brief デストラクタ
-  ~DPatGraph() = default;
+  ~DPatGraph();
 
 
 public:
   //////////////////////////////////////////////////////////////////////
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief 内容をセットする．
+  void
+  rebuild(
+    const std::vector<PackedVal>& pat_list ///< [in] パタンのリスト
+  );
 
   /// @brief パタンのリストを返す．
   const std::vector<PackedVal>&
@@ -105,6 +114,12 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief 内容をセットする．
+  void
+  _set(
+    const std::vector<PackedVal>& pat_list ///< [in] パタンのリスト
+  );
 
   /// @brief ID番号をチェックする．
   void

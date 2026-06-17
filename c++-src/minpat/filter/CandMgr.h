@@ -77,6 +77,14 @@ public:
     const ConfigParam& option       ///< [in] オプション
   );
 
+  /// @brief 新しいオブジェクトを作る．
+  static
+  std::unique_ptr<CandMgr>
+  new_dichotomy_mgr2(
+    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
+    const ConfigParam& option       ///< [in] オプション
+  );
+
   /// @brief デストラクタ
   virtual
   ~CandMgr() = default;
