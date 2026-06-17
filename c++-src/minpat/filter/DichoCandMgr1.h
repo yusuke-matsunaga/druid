@@ -30,8 +30,15 @@ public:
 
     /// @brief コンストラクタ
     Group(
-      SizeType id,                            ///< [in] ID番号
-      const TpgFaultList& fault_list          ///< [in] 故障のリスト
+      SizeType id ///< [in] ID番号
+    ) : mId{id}
+    {
+    }
+
+    /// @brief コンストラクタ
+    Group(
+      SizeType id,                   ///< [in] ID番号
+      const TpgFaultList& fault_list ///< [in] 故障リスト
     ) : mId{id},
 	mFaultList{fault_list}
     {
@@ -60,66 +67,29 @@ public:
       return mFaultList;
     }
 
-    /// @brief 全ての後続グループのリストを返す．
-    const std::vector<Group*>&
-    transitive_succ_list() const
+    /// @brief 故障を追加する．
+    void
+    add_fault(
+      const TpgFault& fault ///< [in] 追加する故障
+    )
     {
-      return mTranSuccList;
+      mFaultList.push_back(fault);
     }
 
-    /// @brief transitive_succ_list を設定する．
+    /// @brief 後続グループのリストを返す．
+    const std::vector<Group*>&
+    succ_list() const
+    {
+      return mSuccList;
+    }
+
+    /// @brief succ_list を設定する．
     void
-    set_transitive_succ_list(
+    set_succ_list(
       std::vector<Group*>&& src_list ///< [in] 設定するグループのリストの右辺値
     )
     {
-      std::swap(mTranSuccList, src_list);
-    }
-
-    /// @brief サブグループの情報を初期化する．
-    void
-    clear_subgroup()
-    {
-      mDPatList.clear();
-      mSubGroupDict.clear();
-    }
-
-    /// @brief 細分化のパタンリストを返す．
-    const std::vector<PackedVal>&
-    dpat_list() const
-    {
-      return mDPatList;
-    }
-
-    /// @brief パタンに対応したサブグループを持っている時 true を返す．
-    bool
-    has_subgroup(
-      PackedVal dpat ///< [in] 細分化するパタン
-    ) const
-    {
-      return mSubGroupDict.count(dpat) > 0;
-    }
-
-    /// @brief 細分化したサブグループを返す．
-    ///
-    /// has_subgroup(dpat) == true の時のみ有効
-    Group*
-    subgroup(
-      PackedVal dpat ///< [in] 細分化するパタン (dpat_list() の要素)
-    ) const
-    {
-      return mSubGroupDict.at(dpat);
-    }
-
-    /// @brief サブグループを追加する．
-    void
-    add_subgroup(
-      PackedVal dpat,
-      Group* group
-    )
-    {
-      mDPatList.push_back(dpat);
-      mSubGroupDict.emplace(dpat, group);
+      std::swap(mSuccList, src_list);
     }
 
 
@@ -134,15 +104,8 @@ public:
     // 故障のリスト
     TpgFaultList mFaultList;
 
-    // 推移的な後続グループのリスト
-    std::vector<Group*> mTranSuccList;
-
-    // 細分化用のパタンリスト
-    // mSubGroupDict のキーに一致する．
-    std::vector<PackedVal> mDPatList;
-
-    // 細分化したサブグループの辞書
-    std::unordered_map<PackedVal, Group*> mSubGroupDict;
+    // 後続グループのリスト
+    std::vector<Group*> mSuccList;
 
   };
 
@@ -160,7 +123,7 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
-  // Filter の仮想関数
+  // CandMgr の仮想関数
   //////////////////////////////////////////////////////////////////////
 
   /// @brief 更新処理
@@ -176,22 +139,43 @@ private:
   ) const override;
 
 
-protected:
+private:
   //////////////////////////////////////////////////////////////////////
-  // 継承クラスから用いられる関数
+  // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 変化があったか調べる．
-  bool
-  check(
-    const std::vector<std::unique_ptr<Group>>& new_group_list
-  ) const;
+  // 細分化したサブグループの情報
+  struct SubGroupInfo {
+    PackedVal dpat;
+    Group* group;
+  };
 
-  /// @brief 故障番号の昇順にソートする．
+  /// @brief 後続のリストを求める．
+  static
   std::vector<Group*>
-  sort(
-    std::unordered_map<SizeType, SizeType>& id_map
-  ) const;
+  get_succ_list(
+    const SubGroupInfo& sg,
+    const std::vector<std::vector<SubGroupInfo>>& sg_list_array,
+    const DPatGraph& dpat_graph
+  );
+
+  /// @brief 故障グループのリスト情報を出力する．
+  ///
+  /// print() と似ているが中間的な状態にも対応している．
+  static
+  void
+  print_group_list(
+    std::ostream& s,                                      ///< [in] 出力ストリーム
+    const std::vector<std::unique_ptr<Group>>& group_list ///< [in] グループのリスト
+  );
+
+  /// @brief 故障グループの情報を出力する．
+  static
+  void
+  print_group(
+    std::ostream& s, ///< [in] 出力ストリーム
+    Group* group     ///< [in] グループ
+  );
 
   /// @brief パタンを文字列にする．
   static
@@ -209,32 +193,6 @@ protected:
 
 
 private:
-  //////////////////////////////////////////////////////////////////////
-  // 内部で用いられる関数
-  //////////////////////////////////////////////////////////////////////
-
-  /// @brief 故障グループのリストの情報を出力する．
-  ///
-  /// print() と似ているが中間的な状態にも対応している．
-  static
-  void
-  print_group_list(
-    std::ostream& s,                                      ///< [in] 出力ストリーム
-    const std::vector<std::unique_ptr<Group>>& group_list ///< [in] グループのリスト
-  );
-
-  /// @brief 故障グループの情報を出力する．
-  ///
-  /// print() と似ているが中間的な状態にも対応している．
-  static
-  void
-  print_group(
-    std::ostream& s,   ///< [in] 出力ストリーム
-    const Group* group ///< [in] グループのリスト
-  );
-
-
-protected:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////

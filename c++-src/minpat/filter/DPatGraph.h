@@ -24,6 +24,9 @@ BEGIN_NAMESPACE_DRUID
 /// ここでは与えられたパタンの集合の支配関係をグラフにして直接の支配関係
 /// のみを取り出す．
 /// つまり，推移律を用いて導かれる支配関係は記録しない．
+///
+/// 実装としては POSet にパタンとID番号の変換用のリストと辞書を
+/// 追加したもの
 //////////////////////////////////////////////////////////////////////
 class DPatGraph
 {
@@ -50,6 +53,25 @@ public:
     return mPatList;
   }
 
+  /// @brief ID番号からパタンを返す．
+  PackedVal
+  pat(
+    SizeType id ///< [in] パタン番号
+  ) const
+  {
+    _check_id(id);
+    return mPatList[id];
+  }
+
+  /// @brief パタンからID番号を返す．
+  SizeType
+  id(
+    PackedVal pat ///< [in] パタン
+  ) const
+  {
+    return mIdMap.at(pat);
+  }
+
   /// @brief 直接の後続パタンのリストを返す．
   std::vector<PackedVal>
   imm_succ_list(
@@ -65,6 +87,13 @@ public:
     std::vector<PackedVal>& boundary_pats     ///< [out] 境界のパタンのリスト
   ) const;
 
+  /// @brief 順序関係を表すグラフ構造を返す．
+  const POSet&
+  poset() const
+  {
+    return mPOSet;
+  }
+
   /// @brief 内容を出力する．
   void
   print(
@@ -76,6 +105,17 @@ private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief ID番号をチェックする．
+  void
+  _check_id(
+    SizeType id ///< [in] パタン番号
+  ) const
+  {
+    if ( id >= mPatList.size() ) {
+      throw std::out_of_range{"id is out of range"};
+    }
+  }
 
 
 private:

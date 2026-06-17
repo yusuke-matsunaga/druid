@@ -72,17 +72,19 @@ DichoCandMgr::update(
 
   // 細分化したサブグループを作る．
   for ( auto& group: mCurGroupList ) {
+    // group の故障をパタンごとに分ける．
     GroupDict group_dict;
     auto& sg_list = sg_list_array[group->id()];
     for ( auto fault: group->fault_list() ) {
       auto dpat = dpat_array[fault.id()];
       if ( group_dict.count(dpat) == 0 ) {
+	// 新しいグループを作る．
 	auto id = new_group_list.size();
 	auto new_group = new Group(id);
+	new_group->add_fault(fault);
 	new_group_list.push_back(std::unique_ptr<Group>{new_group});
 	group_dict.emplace(dpat, new_group);
 	sg_list.push_back({dpat, new_group});
-	new_group->add_fault(fault);
       }
       else {
 	auto group = group_dict.at(dpat);
@@ -90,6 +92,7 @@ DichoCandMgr::update(
       }
     }
   }
+
   // 変化があったことを示すフラグ
   bool changed = new_group_list.size() != ng;
 
@@ -114,6 +117,7 @@ DichoCandMgr::update(
       subgroup->set_succ_list(std::move(sub_succ_list));
     }
     if ( !changed && sg_list.size() == 1 ) {
+      // 後続リストの要素数が変化しているか調べる．
       auto& subgroup = sg_list.front().group;
       if ( group->succ_list().size() != subgroup->succ_list().size() ) {
 	changed = true;
@@ -150,6 +154,7 @@ DichoCandMgr::end(
 	      auto f2 = b->fault_list()[0];
 	      return f1.id() < f2.id();
 	    });
+
   // グループ番号を付け直す．
   std::unordered_map<SizeType, SizeType> id_map;
   auto ng = tmp_list.size();
