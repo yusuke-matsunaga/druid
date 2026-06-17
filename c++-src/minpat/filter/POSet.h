@@ -19,15 +19,16 @@ class PONode;
 /// @class POSet POSet.h "POSet.h"
 /// @brief Partially Ordered Set の構造を表すクラス
 ///
-/// いわゆる Lattice Structure
-/// 入力として与えられる順序関係は推移的閉包になっている．
-/// 推移的でない直接の関係を抽出するために用いる．
+/// いわゆる順序関係の構造を表すグラフ
+/// 順序関係とは以下の性質を満たす二項関係である．
+/// - 反射律:   a -> a がすべて a に対して成り立つ．
+/// - 反対称律: a -> b かつ b -> a が成り立つのは a = b の時のみ
+/// - 推移律:   a -> b かつ b -> c でるようなすべての
+///            a, b, c に対して a -> c が成り立つ．
 ///
-/// ただし， a -> b, b -> a の場合もある．
-/// この場合，{a, b} をひとかたまりで扱う．
-/// もとの順序関係は推移的閉包なので
-/// {a, b} が同じグループの場合，
-/// a -> c があれば b -> c も含まれているはず．
+/// 与えられた順序関係から推移律を用いることで導出できる関係を除外することを
+/// 推移簡約(transitive reduction)と呼ぶ．
+/// このクラスは主に推移簡約を行うために用いられる．
 //////////////////////////////////////////////////////////////////////
 class POSet
 {
@@ -58,7 +59,7 @@ public:
 
     /// @brief 要素対の数
     SizeType
-    size() const
+    elem_size() const
     {
       return mElemList.size();
     }
@@ -91,7 +92,7 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 最初期化
+  /// @brief 再初期化
   ///
   /// 以前の内容は消去される．
   void
@@ -117,34 +118,6 @@ public:
   pred_list(
     SizeType id ///< [in] 要素番号 ( 0 <= id < elem_num() )
   ) const;
-
-  /// @brief block された要素までたどる．
-  void
-  traverse(
-    SizeType id,             ///< [in] 始点の要素番号 ( 0 <= id < elem_num() )
-    const std::vector<SizeType>& block_list, ///< [in] ブロックする接点番号のリスト
-    std::vector<SizeType>& medial_list,      ///< [out] 内部の節点番号を格納するリスト
-    std::vector<SizeType>& boundary_list     ///< [out] 境界の節点番号を格納するリスト
-  ) const;
-
-  /// @brief ランクサイズ(最大ランク + 1)を返す．
-  SizeType
-  rank_size() const
-  {
-    return mRankArray.size();
-  }
-
-  /// @brief 指定されたランクの要素番号のリストを返す．
-  const std::vector<SizeType>&
-  rank_list(
-    SizeType rank ///< [in] ランク ( 0 <= rank < rank_size() )
-  ) const
-  {
-    if ( rank >= rank_size() ) {
-      throw std::out_of_range{"rank is out of range"};
-    }
-    return mRankArray[rank];
-  }
 
   /// @brief 直接の後続の要素番号のリストを返す．
   std::vector<SizeType>

@@ -157,24 +157,6 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 細分化したサブグループの情報
-  struct SubGroup {
-    SizeType id;
-    Group* group;
-    TpgFaultList fault_list;
-    std::vector<SubGroup*> succ_list;
-  };
-
-  /// @brief subgroup から到達可能な Group のリストを求める．
-  static
-  void
-  dfs(
-    const SubGroup* subgroup,
-    Group* from,
-    std::unordered_set<SizeType>& mark,
-    POSet::Builder& builder
-  );
-
   /// @brief 故障グループのリスト情報を出力する．
   ///
   /// print() と似ているが中間的な状態にも対応している．

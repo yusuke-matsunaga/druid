@@ -25,8 +25,7 @@ BEGIN_NAMESPACE_DRUID
 /// のみを取り出す．
 /// つまり，推移律を用いて導かれる支配関係は記録しない．
 ///
-/// 実装としては POSet にパタンとID番号の変換用のリストと辞書を
-/// 追加したもの
+/// 内部ではパタン中の1の数で区別する．
 //////////////////////////////////////////////////////////////////////
 class DPatGraph
 {
@@ -82,26 +81,12 @@ public:
   }
 
   /// @brief 直接の後続パタンのリストを返す．
+  ///
+  /// pat はこの集合に含まれているとは限らない．
   std::vector<PackedVal>
   imm_succ_list(
     PackedVal pat ///< [in] 対象のパタン
   ) const;
-
-  /// @brief ブロックされたノードまでたどる．
-  void
-  traverse(
-    PackedVal start_pat,                      ///< [in] 始点のパタン
-    const std::vector<PackedVal>& block_pats, ///< [in] ブロックするパタンのリスト
-    std::vector<PackedVal>& medial_pats,      ///< [out] 内側のパタンのリスト
-    std::vector<PackedVal>& boundary_pats     ///< [out] 境界のパタンのリスト
-  ) const;
-
-  /// @brief 順序関係を表すグラフ構造を返す．
-  const POSet&
-  poset() const
-  {
-    return mPOSet;
-  }
 
   /// @brief 内容を出力する．
   void
@@ -145,8 +130,8 @@ private:
   // mPatList の逆関数
   std::unordered_map<PackedVal, SizeType> mIdMap;
 
-  // 半順序構造
-  POSet mPOSet;
+  // ランク(パタン中の1の数)ごとのパタンのリストの配列
+  std::vector<std::vector<PackedVal>> mLayeredList;
 
 };
 

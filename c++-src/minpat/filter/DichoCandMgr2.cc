@@ -40,6 +40,7 @@ DichoCandMgr2::DichoCandMgr2(
 {
   // 最初は１つのグループ
   auto group = new Group(0, fault_list);
+  group->set_succ_list({group});
   mCurGroupList.push_back(std::unique_ptr<Group>{group});
 }
 
@@ -147,30 +148,6 @@ DichoCandMgr2::update(
     return true;
   }
   return false;
-}
-
-// @brief subgroup から到達可能な Group のリストを求める．
-void
-DichoCandMgr2::dfs(
-  const SubGroup* subgroup,
-  Group* from,
-  std::unordered_set<SizeType>& mark,
-  POSet::Builder& builder
-)
-{
-  if ( mark.count(subgroup->id) > 0 ) {
-    return;
-  }
-  mark.insert(subgroup->id);
-  auto group = subgroup->group;
-  if ( group != nullptr ) {
-    builder.add(from->id(), group->id());
-  }
-  else {
-    for ( auto subgroup1: subgroup->succ_list ) {
-      dfs(subgroup1, from, mark, builder);
-    }
-  }
 }
 
 // @brief 終了処理

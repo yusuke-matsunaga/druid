@@ -201,52 +201,6 @@ POSet::imm_succ_list(
   return _id_list(node->mImmSuccList);
 }
 
-// @brief block された要素までたどる．
-void
-POSet::traverse(
-  SizeType start_id,
-  const std::vector<SizeType>& block_list,
-  std::vector<SizeType>& medial_list,
-  std::vector<SizeType>& boundary_list
-) const
-{
-  // マーク
-  // 0: なし
-  // 1: 内側
-  // 2: ブロック
-  std::vector<int> mark(mNodeList.size(), 0);
-  for ( auto id: block_list ) {
-    mark[id] = 2;
-  }
-  _dfs(start_id, mark, medial_list, boundary_list);
-}
-
-// @brief traverse の下請け関数
-void
-POSet::_dfs(
-  SizeType id,
-  std::vector<int>& mark,
-  std::vector<SizeType>& media_list,
-  std::vector<SizeType>& boundary_list
-) const
-{
-  auto m = mark[id];
-  if ( m == 2 ) {
-    // 境界ノードに到達した．
-    boundary_list.push_back(id);
-    return;
-  }
-  if ( m == 1 ) {
-    // すでに処理済みのノード
-    return;
-  }
-  mark[id] = 1;
-  media_list.push_back(id);
-  for ( auto id1: imm_succ_list(id) ) {
-    _dfs(id1, mark, media_list, boundary_list);
-  }
-}
-
 // @brief ノードのリストを要素番号のリストに変換する．
 std::vector<SizeType>
 POSet::_id_list(
@@ -267,6 +221,7 @@ POSet::print(
   std::ostream& s
 ) const
 {
+#if 0
   for ( SizeType rank = 0; rank < rank_size(); ++ rank ) {
     s << "Rank#" << rank << ":" << std::endl;
     for ( auto id: mRankArray[rank] ) {
@@ -279,6 +234,7 @@ POSet::print(
     }
     s << std::endl;
   }
+#endif
 }
 
 END_NAMESPACE_DRUID
