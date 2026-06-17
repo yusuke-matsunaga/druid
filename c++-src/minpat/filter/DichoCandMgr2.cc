@@ -30,152 +30,6 @@ DichoCandMgr2::~DichoCandMgr2()
 {
 }
 
-BEGIN_NONAMESPACE
-
-void
-dfs(
-  DichoCandMgr2::Group* group,
-  std::unordered_set<SizeType>& mark,
-  std::vector<DichoCandMgr2::Group*>& ans_list
-)
-{
-  if ( mark.count(group->id()) > 0 ) {
-    return;
-  }
-  mark.insert(group->id());
-  if ( !group->fault_list().empty() ) {
-    ans_list.push_back(group);
-    return;
-  }
-  for ( auto group1: group->immediate_succ_list() ) {
-    dfs(group1, mark, ans_list);
-  }
-}
-
-bool
-dfs2(
-  DichoCandMgr2::Group* group,
-  std::unordered_set<SizeType>& mark,
-  DichoCandMgr2::Group* target
-)
-{
-  if ( group == target ) {
-    return true;
-  }
-  if ( mark.count(group->id()) > 0 ) {
-    return false;
-  }
-  mark.insert(group->id());
-  if ( group->rank() >= target->rank() ) {
-    return false;
-  }
-  for ( auto group1: group->immediate_succ_list() ) {
-    if ( dfs2(group1, mark, target) ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool
-reachable(
-  const std::vector<DichoCandMgr2::Group*>& group_list,
-  SizeType start,
-  DichoCandMgr2::Group* target
-)
-{
-  std::unordered_set<SizeType> mark;
-  auto n = group_list.size();
-  for ( SizeType i = start; i < n; ++ i ) {
-    auto group1 = group_list[i];
-    if ( dfs2(group1, mark, target) ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-// 空のグループと推移的な後続を取り除く
-std::vector<DichoCandMgr2::Group*>
-true_succ_list(
-  const std::vector<DichoCandMgr2::Group*>& src_list
-)
-{
-  // まず単純にDFSで到達可能なグループを求める．
-  std::unordered_set<SizeType> mark;
-  std::vector<DichoCandMgr2::Group*> tmp_list;
-  for ( auto group: src_list ) {
-    dfs(group, mark, tmp_list);
-  }
-  // tmp_list に含まれるグループの最大 rank までBFSを行い，
-  // 冗長な枝を取り除く．
-  std::sort(tmp_list.begin(), tmp_list.end(),
-	    [](DichoCandMgr2::Group* a,
-	       DichoCandMgr2::Group* b) -> bool {
-	      return a->rank() > b->rank();
-	    });
-  auto n = tmp_list.size();
-  std::vector<DichoCandMgr2::Group*> ans_list;
-  ans_list.reserve(n);
-  for ( SizeType i = 0; i < n; ++ i ) {
-    auto group1 = tmp_list[i];
-    if ( !reachable(tmp_list, i + 1, group1) ) {
-      ans_list.push_back(group1);
-    }
-  }
-  // 故障番号の昇順にソートする．
-  std::sort(ans_list.begin(), ans_list.end(),
-	    [](DichoCandMgr2::Group* a, DichoCandMgr2::Group* b) -> bool {
-	      return a->fault_list()[0].id() < b->fault_list()[0].id();
-	    });
-  return ans_list;
-}
-
-void
-mark_succ(
-  DichoCandMgr2::Group* group,
-  std::unordered_set<SizeType>& mark
-)
-{
-  for ( auto group1: group->transitive_succ_list() ) {
-    if ( group1 == group ) {
-      continue;
-    }
-    if ( mark.count(group1->id()) == 0 ) {
-      mark.insert(group1->id());
-      mark_succ(group1, mark);
-    }
-  }
-}
-
-std::vector<DichoCandMgr2::Group*>
-get_imm_succ(
-  DichoCandMgr2::Group* group
-)
-{
-  auto& succ_list = group->transitive_succ_list();
-  std::unordered_set<SizeType> mark;
-  mark.insert(group->id());
-  for ( auto group1: succ_list ) {
-    if ( group1 != group ) {
-      mark_succ(group1, mark);
-    }
-  }
-  std::vector<DichoCandMgr2::Group*> ans_list;
-  for ( auto group1: succ_list ) {
-    if ( mark.count(group1->id()) == 0 ) {
-      ans_list.push_back(group1);
-    }
-  }
-  std::sort(ans_list.begin(), ans_list.end(),
-	    [](DichoCandMgr2::Group* a, DichoCandMgr2::Group* b) -> bool {
-	      return a->id() < b->id();
-	    });
-  return ans_list;
-}
-
-END_NONAMESPACE
-
 // @brief 更新処理
 bool
 DichoCandMgr2::update(
@@ -183,7 +37,7 @@ DichoCandMgr2::update(
 )
 {
   // パタン間の順序関係を表すグラフ
-  DPatGraph dpat_graph(all_dpat_list);
+  DPatGraph dpat_graph(dpat_array);
 
   // 重複のないパタンのリスト
   auto all_dpat_list = dpat_graph.pat_list();
@@ -200,7 +54,7 @@ DichoCandMgr2::update(
   // サブグループ間の順序関係を作る．
   for ( auto& group: mCurGroupList ) {
     auto offset = group->id() * npat;
-    auto succ_list = group.succ_list();
+    auto succ_list = group->succ_list();
     for ( SizeType pid = 0; pid < npat; ++ pid ) {
       auto id = offset + pid;
       auto& subgroup = subgroup_array[id];
@@ -227,7 +81,7 @@ DichoCandMgr2::update(
     auto offset = group->id() * npat;
     for ( auto fault: group->fault_list() ) {
       auto dpat = dpat_array[fault.id()];
-      auto pid = pat_map.at(dpat);
+      auto pid = dpat_graph.id(dpat);
       auto id = offset + pid;
       auto& subgroup = subgroup_array[id];
       subgroup.fault_list.push_back(fault);
@@ -276,89 +130,64 @@ DichoCandMgr2::update(
   }
   auto nng = new_group_list.size();
 
-  // 変化があったことを示すフラグ
-  bool changed = nng != ng;
-
-  // グループ番号をキーにして後続グループのリストを持つ配列
-  std::vector<std::vector<Group*>> succ_list_array(nng);
-  // グループ番号をキーにして先行グループのリストを持つ配列
-  std::vector<std::vector<Group*>> pred_list_array(nng);
-  // グループ間の順序関係を作る．
+  // グループ間の順序関係を求める．
+  auto builder = POSet::Builder();
   for ( auto& group: new_group_list ) {
     auto subgroup = subgroup_list[group->id()];
     std::unordered_set<SizeType> mark;
-    dfs(subgroup, group, mark, succ_list_array, pred_list_array);
+    dfs(subgroup, group.get(), mark, builder);
   }
-  // グループのランクを計算する．
-  std::vector<SizeType> rank_array(nng);
-  set_rank(succ_list_array, pred_list_array, rank_array);
-  std::vector<SizeType> id_list(nng);
-  for ( SizeType i = 0; i < nng; ++ i ) {
-    id_list[i] = i;
-  }
-  // id_list をランクの昇順にソートする．
-  std::sort(id_list.begin(), id_list.end(),
-	    [&](SizeType a, SizeType b) -> bool {
-	      return rank_array[a] < rank_array[b];
-	    });
-  // 推移簡約を行う．
-  for ( auto id: id_list ) {
-    auto& group = new_group_list[id];
-    auto succ_list = tr_red(group.get(), succ_list_array, id_list);
-    group->set_succ_list(succ_list);
+  auto poset = POSet(builder);
+  // 推移簡約を行った結果をセットする．
+  SizeType total_count = 0;
+  for ( auto& group: new_group_list ) {
+    auto succ_id_list = poset.imm_succ_list(group->id());
+    std::vector<Group*> succ_list;
+    succ_list.reserve(succ_id_list.size());
+    for ( auto id1: succ_id_list ) {
+      auto& group1 = new_group_list[id1];
+      succ_list.push_back(group1.get());
+    }
+    total_count += succ_list.size();
+    group->set_succ_list(std::move(succ_list));
   }
 
   // 変化があったら更新する．
-  if ( check(new_group_list) ) {
-    std::swap(mCurGroupList, new_group_list );
-    return true;
+  if ( nng != ng ) {
+    SizeType total_count0 = 0;
+    for ( auto& group: mCurGroupList ) {
+      total_count0 += group->succ_list().size();
+    }
+    if ( total_count != total_count0 ) {
+      std::swap(mCurGroupList, new_group_list );
+      return true;
+    }
   }
   return false;
 }
 
 // @brief subgroup から到達可能な Group のリストを求める．
+void
 DichoCandMgr2::dfs(
   const SubGroup* subgroup,
   Group* from,
   std::unordered_set<SizeType>& mark,
-  std::vector<std::vector<Group*>>& succ_list_array,
-  std::vector<std::vector<Group*>>& pred_list_array
+  POSet::Builder& builder
 )
 {
-  if ( mark.count(subgroup.id) > 0 ) {
+  if ( mark.count(subgroup->id) > 0 ) {
     return;
   }
-  mark.insert(subgroup.id);
-  auto group = subgroup.group;
+  mark.insert(subgroup->id);
+  auto group = subgroup->group;
   if ( group != nullptr ) {
-    succ_list_array[from->id()].push_back(group);
-    pred_list_array[group->id()].push_back(from);
+    builder.add(from->id(), group->id());
   }
   else {
     for ( auto subgroup1: subgroup->succ_list ) {
-      dfs(subgroup1, from, mark, succ_list_array, pred_list_array);
+      dfs(subgroup1, from, mark, builder);
     }
   }
-}
-
-// @brief 推移的簡約を行う．
-std::vector<Group*>
-DichoCandMgr2::tr_red(
-  Group* from,
-  const std::vector<std::vector<Group*>>& succ_list_array
-)
-{
-  // from に隣接したグループのうち，直接のリンク以外で経路が
-  // 存在するものは推移的なリンク
-  std::vector<Group*> ans_list;
-  for ( auto to: succ_list_array[from->id()] ) {
-    if ( rank_array[to] == ref_rank ) {
-      // ランクが1違いなら確実に必要なリンク
-      ans_list.push_back(to);
-      continue;
-    }
-  }
-  return ans_list;
 }
 
 // @brief 終了処理
@@ -401,7 +230,7 @@ DichoCandMgr2::end(
   std::vector<std::pair<SizeType, SizeType>> dom_list;
   for ( auto group1: tmp_list ) {
     auto id1 = id_map.at(group1->id());
-    auto& succ_list = group1->immediate_succ_list();
+    auto& succ_list = group1->succ_list();
     for ( auto group2: succ_list ) {
       auto id2 = id_map.at(group2->id());
       if ( id2 != id1 ) {
@@ -429,7 +258,7 @@ DichoCandMgr2::print(
       spc = " ";
     }
     s << std::endl;
-    auto succ_list = group->immediate_succ_list();
+    auto succ_list = group->succ_list();
     std::sort(succ_list.begin(), succ_list.end(),
 	      [](Group* a, Group* b) -> bool {
 		return a->id() < b->id();
@@ -477,7 +306,7 @@ DichoCandMgr2::print_group(
   }
   s << std::endl
     << "  ==> ";
-  auto& succ_list = group->immediate_succ_list();
+  auto& succ_list = group->succ_list();
   const char* comma = "";
   for ( auto group: succ_list ) {
     s << comma << "[G#" << group->id() << "]";

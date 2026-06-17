@@ -209,7 +209,7 @@ filter_test(
       filter_option.add("batch_size", batch_size);
     }
     auto cand_option = JsonValue::object();
-    cand_option.add("method", std::string{"dichotomy0"});
+    cand_option.add("method", std::string{"dichotomy"});
     filter_option.add("candmgr", cand_option);
     dicho_option.add("filter", filter_option);
   }
@@ -231,7 +231,7 @@ filter_test(
 
   // Dichotomy method
   std::cout << std::endl;
-  std::cout << "DichoCandMgr1" << std::endl;
+  std::cout << "DichoCandMgr2" << std::endl;
   auto dicho1_option = option;
   {
     auto filter_option = JsonValue::object();
@@ -242,7 +242,7 @@ filter_test(
       filter_option.add("batch_size", batch_size);
     }
     auto cand_option = JsonValue::object();
-    cand_option.add("method", std::string{"dichotomy1"});
+    cand_option.add("method", std::string{"dichotomy2"});
     filter_option.add("candmgr", cand_option);
     dicho1_option.add("filter", filter_option);
   }

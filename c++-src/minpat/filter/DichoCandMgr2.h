@@ -10,6 +10,7 @@
 
 #include "CandMgr.h"
 #include "types/TpgFaultList.h"
+#include "POSet.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -157,20 +158,12 @@ private:
 
   /// @brief subgroup から到達可能な Group のリストを求める．
   static
+  void
   dfs(
     const SubGroup* subgroup,
     Group* from,
     std::unordered_set<SizeType>& mark,
-    std::vector<std::vector<Group*>>& succ_list_array,
-    std::vector<std::vector<Group*>>& pred_list_array
-  );
-
-  /// @brief 推移的簡約を行う．
-  static
-  std::vector<Group*>
-  tr_red(
-    Group* from,
-    const std::vector<std::vector<Group*>>& succ_list_array
+    POSet::Builder& builder
   );
 
   /// @brief 故障グループのリスト情報を出力する．

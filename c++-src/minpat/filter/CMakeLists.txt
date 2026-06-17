@@ -3,7 +3,6 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-  include
   )
 
 
@@ -11,44 +10,34 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( filter )
-add_subdirectory( gtest )
-add_subdirectory( filter/gtest )
-add_subdirectory( test-programs )
 
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
 
-set ( minpat_SOURCES
-  MinPat.cc
-  MpInit.cc
-  MpReduce.cc
-  MpComp.cc
-  MpCompImpl.cc
-  MpComp_MinCov.cc
-  MpComp_Expand.cc
-  MpComp_Pack.cc
-  MpComp_Simple.cc
-  MpComp_Merge.cc
-  MpAnalyze.cc
-  MpVerify.cc
-  FaultAnalyze.cc
-  FFRAnalyze.cc
-  FaultInfo.cc
-  MFFCAnalyze.cc
-  DomChecker.cc
+set ( minpat_filter_SOURCES
+  #${CMAKE_CURRENT_SOURCE_DIR}/Dichotomy.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/DiGroupMgr.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/NaiveReduce.cc
+  #${CMAKE_CURRENT_SOURCE_DIR}/NaiveMgr.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/Reducer.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/Filter.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/EqDomCand.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PatGen.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/CandMgr.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/NaiveCandMgr.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/DichoCandMgr.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/DichoCandMgr2.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/DPatGraph.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/POSet.cc
+  PARENT_SCOPE
   )
 
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
-ym_add_object_library ( druid_minpat
-  ${minpat_SOURCES}
-  ${minpat_filter_SOURCES}
-  )
 
 
 # ===================================================================
