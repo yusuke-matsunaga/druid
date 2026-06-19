@@ -36,9 +36,9 @@ DichoCandMgr::DichoCandMgr(
 ) : CandMgr(fault_list)
 {
   // 最初は１つのグループ
-  auto group = new Group(0, fault_list);
+  auto group = new DichoGroup(0, fault_list);
   group->set_succ_list({group});
-  mCurGroupList.push_back(std::unique_ptr<Group>{group});
+  mCurGroupList.push_back(DichoGroup::Ptr{group});
 }
 
 // @brief デストラクタ
@@ -55,11 +55,11 @@ DichoCandMgr::update(
   // 細分化したサブグループの情報
   struct SubGroupInfo {
     PackedVal dpat;
-    Group* group;
+    DichoGroup* group;
   };
 
   // パタンをキーしたGroupの辞書
-  using GroupDict = std::unordered_map<PackedVal, Group*>;
+  using GroupDict = std::unordered_map<PackedVal, DichoGroup*>;
 
   // もとのグループ数
   auto ng = mCurGroupList.size();
@@ -68,7 +68,7 @@ DichoCandMgr::update(
   std::vector<std::vector<SubGroupInfo>> sg_list_array(ng);
 
   // 細分化したグループのリスト
-  std::vector<std::unique_ptr<Group>> new_group_list;
+  std::vector<DichoGroup::Ptr> new_group_list;
 
   // 細分化したサブグループを作る．
   for ( auto& group: mCurGroupList ) {
@@ -80,9 +80,9 @@ DichoCandMgr::update(
       if ( group_dict.count(dpat) == 0 ) {
 	// 新しいグループを作る．
 	auto id = new_group_list.size();
-	auto new_group = new Group(id);
+	auto new_group = new DichoGroup(id);
 	new_group->add_fault(fault);
-	new_group_list.push_back(std::unique_ptr<Group>{new_group});
+	new_group_list.push_back(DichoGroup::Ptr{new_group});
 	group_dict.emplace(dpat, new_group);
 	sg_list.push_back({dpat, new_group});
       }
@@ -103,7 +103,7 @@ DichoCandMgr::update(
     for ( auto& sg: sg_list ) {
       auto dpat = sg.dpat;
       auto subgroup = sg.group;
-      std::vector<Group*> sub_succ_list;
+      std::vector<DichoGroup*> sub_succ_list;
       for ( auto succ_group: succ_list ) {
 	auto& sg_list1 = sg_list_array[succ_group->id()];
 	for ( auto& sg1: sg_list1 ) {
@@ -130,7 +130,6 @@ DichoCandMgr::update(
     std::swap(mCurGroupList, new_group_list);
     return true;
   }
-
   return false;
 }
 
@@ -142,14 +141,14 @@ DichoCandMgr::end(
 {
   // fault_list() の先頭の故障番号の昇順でソートする．
   // mCurGroupList は変更できないので tmp_list にコピーする．
-  std::vector<Group*> tmp_list;
+  std::vector<DichoGroup*> tmp_list;
   tmp_list.reserve(mCurGroupList.size());
   for ( auto& group: mCurGroupList ) {
     tmp_list.push_back(group.get());
   }
   std::sort(tmp_list.begin(), tmp_list.end(),
-	    [](Group* a,
-	       Group* b) -> bool {
+	    [](DichoGroup* a,
+	       DichoGroup* b) -> bool {
 	      auto f1 = a->fault_list()[0];
 	      auto f2 = b->fault_list()[0];
 	      return f1.id() < f2.id();
@@ -189,44 +188,14 @@ DichoCandMgr::end(
 void
 DichoCandMgr::print_group_list(
   std::ostream& s,
-  const std::vector<std::unique_ptr<Group>>& group_list
+  const std::vector<DichoGroup::Ptr>& group_list
 )
 {
   s << "-------------------------------------------" << std::endl;
   for ( auto& group: group_list ) {
-    print_group(s, group.get());
+    group->print(s);
   }
   s << "-------------------------------------------" << std::endl;
-}
-
-// @brief 故障グループの情報を出力する．
-void
-DichoCandMgr::print_group(
-  std::ostream& s,
-  Group* group
-)
-{
-  s << "[G#" << group->id() << "]:";
-  if ( group->fault_list().empty() ) {
-    s << "***";
-  }
-  else {
-    for ( auto fault: group->fault_list() ) {
-      s << " " << fault.str();
-    }
-  }
-  s << std::endl
-    << "  ==> ";
-  auto& succ_list = group->succ_list();
-  const char* comma = "";
-  for ( auto group: succ_list ) {
-    s << comma << "[G#" << group->id() << "]";
-    comma = ", ";
-    if ( !group->fault_list().empty() ) {
-      s << "(" << group->fault_list()[0].str() << ")";
-    };
-  }
-  s << std::endl;
 }
 
 // @brief パタンを文字列にする．

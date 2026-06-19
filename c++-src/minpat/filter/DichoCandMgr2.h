@@ -10,7 +10,7 @@
 
 #include "CandMgr.h"
 #include "types/TpgFaultList.h"
-#include "POSet.h"
+#include "DichoGroup.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -22,95 +22,6 @@ BEGIN_NAMESPACE_DRUID
 class DichoCandMgr2 :
   public CandMgr
 {
-public:
-
-  /// @brief 故障グループを表すクラス
-  class Group
-  {
-  public:
-
-    /// @brief コンストラクタ
-    Group(
-      SizeType id                   ///< [in] ID番号
-    ) : mId{id}
-    {
-    }
-
-    /// @brief コンストラクタ
-    Group(
-      SizeType id,                   ///< [in] ID番号
-      const TpgFaultList& fault_list ///< [in] 故障のリスト
-    ) : mId{id},
-	mFaultList{fault_list}
-    {
-    }
-
-    /// @brief デストラクタ
-    ~Group() = default;
-
-
-  public:
-    //////////////////////////////////////////////////////////////////////
-    // 外部インターフェイス
-    //////////////////////////////////////////////////////////////////////
-
-    /// @brief ID番号を返す．
-    SizeType
-    id() const
-    {
-      return mId;
-    }
-
-    /// @brief 故障のリストを返す．
-    const TpgFaultList&
-    fault_list() const
-    {
-      return mFaultList;
-    }
-
-    /// @brief 故障を追加する．
-    void
-    add_fault(
-      const TpgFault& fault ///< [in] 追加する故障
-    )
-    {
-      mFaultList.push_back(fault);
-    }
-
-    /// @brief 後続グループのリストを返す．
-    const std::vector<Group*>&
-    succ_list() const
-    {
-      return mSuccList;
-    }
-
-    /// @brief succ_list を設定する．
-    void
-    set_succ_list(
-      std::vector<Group*>&& src_list ///< [in] 設定するグループのリストの右辺値
-    )
-    {
-      std::swap(mSuccList, src_list);
-    }
-
-
-  private:
-    //////////////////////////////////////////////////////////////////////
-    // データメンバ
-    //////////////////////////////////////////////////////////////////////
-
-    // ID番号
-    SizeType mId;
-
-    // 故障のリスト
-    TpgFaultList mFaultList;
-
-    // 後続グループのリスト
-    std::vector<Group*> mSuccList;
-
-  };
-
-
 public:
 
   /// @brief コンストラクタ
@@ -163,16 +74,8 @@ private:
   static
   void
   print_group_list(
-    std::ostream& s,                                      ///< [in] 出力ストリーム
-    const std::vector<std::unique_ptr<Group>>& group_list ///< [in] グループのリスト
-  );
-
-  /// @brief 故障グループの情報を出力する．
-  static
-  void
-  print_group(
-    std::ostream& s, ///< [in] 出力ストリーム
-    Group* group     ///< [in] グループ
+    std::ostream& s,                               ///< [in] 出力ストリーム
+    const std::vector<DichoGroup::Ptr>& group_list ///< [in] グループのリスト
   );
 
   /// @brief パタンを文字列にする．
@@ -196,8 +99,8 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // 現在のグループのリスト
-  // Group の所有権を持つ．
-  std::vector<std::unique_ptr<Group>> mCurGroupList;
+  // グループの所有権を持つ．
+  std::vector<DichoGroup::Ptr> mCurGroupList;
 
 };
 

@@ -86,17 +86,19 @@ DPatGraph::_set(
 // @brief 直接の後続パタンのリストを返す．
 std::vector<PackedVal>
 DPatGraph::imm_succ_list(
-  PackedVal pat
+  PackedVal pat,
+  const std::vector<PackedVal>& block_pats
 ) const
 {
   auto rank0 = count_ones(pat);
   std::vector<PackedVal> pat_list;
+  std::vector<PackedVal> tmp_list = block_pats;
   auto rank_max = mLayeredList.size();
   for ( auto rank = rank0 + 1; rank < rank_max; ++ rank ) {
     for ( auto pat1: mLayeredList[rank] ) {
       if ( (pat1 & pat) == pat ) {
 	bool blocked = false;
-	for ( auto pat2: pat_list ) {
+	for ( auto pat2: tmp_list ) {
 	  if ( (pat1 & pat2) == pat2 ) {
 	    // pat1 は pat2 の後続
 	    blocked = true;
@@ -105,6 +107,7 @@ DPatGraph::imm_succ_list(
 	}
 	if ( !blocked ) {
 	  pat_list.push_back(pat1);
+	  tmp_list.push_back(pat1);
 	}
       }
     }

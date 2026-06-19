@@ -35,7 +35,7 @@ public:
   EqDomCand(
     const std::vector<TpgFaultList>& group_list, ///< [in] 等価故障グループのリスト
     const DomPairList& dom_list,                 ///< [in] 支配関係のペアのリスト
-    bool prune = false                           ///< [in] 推移的な関係を除外する時 true
+    bool reduce = false                          ///< [in] 推移簡約を行う時 true
   );
 
   /// @brief デストラクタ

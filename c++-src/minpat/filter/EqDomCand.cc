@@ -22,7 +22,7 @@ BEGIN_NAMESPACE_DRUID
 EqDomCand::EqDomCand(
   const std::vector<TpgFaultList>& group_list,
   const DomPairList& dom_list,
-  bool prune
+  bool reduce
 ) : mGroupList{group_list},
     mDomListArray(mGroupList.size())
 {
@@ -52,7 +52,7 @@ EqDomCand::EqDomCand(
       mIdMap.emplace(fault.id(), id);
     }
   }
-  if ( prune ) {
+  if ( reduce ) {
     POSet::Builder builder;
     for ( auto& p: dom_list ) {
       auto id1 = p.first;

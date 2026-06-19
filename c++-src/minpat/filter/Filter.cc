@@ -154,7 +154,6 @@ Filter::run2(
   // 等価故障/支配故障の候補を管理するオブジェクト
   auto candmgr_option = option.get_param("candmgr");
   auto candmgr = CandMgr::new_obj(fault_list, candmgr_option);
-  //auto naive_mgr = CandMgr::new_naive_mgr(fault_list, candmgr_option);
   auto naive_mgr = CandMgr::new_dichotomy_mgr(fault_list, candmgr_option);
   auto network = fault_info.network();
   auto max_size = network.max_fault_id();

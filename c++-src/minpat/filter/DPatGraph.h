@@ -86,6 +86,18 @@ public:
   std::vector<PackedVal>
   imm_succ_list(
     PackedVal pat ///< [in] 対象のパタン
+  ) const
+  {
+    return imm_succ_list(pat, {});
+  }
+
+  /// @brief 直接の後続パタンのリストを返す．
+  ///
+  /// pat はこの集合に含まれているとは限らない．
+  std::vector<PackedVal>
+  imm_succ_list(
+    PackedVal pat,                           ///< [in] 対象のパタン
+    const std::vector<PackedVal>& block_pats ///< [in] 境界パタンのリスト
   ) const;
 
   /// @brief 内容を出力する．

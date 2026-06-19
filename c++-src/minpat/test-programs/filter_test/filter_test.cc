@@ -173,7 +173,6 @@ filter_test(
     std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
   }
 
-#if 0
   // Naive method
   std::cout << std::endl;
   std::cout << "Naive" << std::endl;
@@ -194,7 +193,6 @@ filter_test(
   }
 
   auto cand1 = Filter::run(fault_info, ConfigParam(naive_option).get_param("filter"));
-#endif
 
   // Dichotomy method
   std::cout << std::endl;
@@ -216,7 +214,6 @@ filter_test(
 
   auto cand2 = Filter::run(fault_info, ConfigParam(dicho_option).get_param("filter"));
 
-#if 0
   if ( *cand1 != *cand2 ) {
     std::cout << "cand1" << std::endl;
     cand1->print(std::cout);
@@ -227,8 +224,8 @@ filter_test(
     cand1->check(*cand2);
     return 1;
   }
-#endif
 
+#if 0
   // Dichotomy method
   std::cout << std::endl;
   std::cout << "DichoCandMgr2" << std::endl;
@@ -248,6 +245,7 @@ filter_test(
   }
 
   auto cand3 = Filter::run(fault_info, ConfigParam(dicho1_option).get_param("filter"));
+#endif
 
 #if 0
   if ( *cand1 != *cand3 ) {
