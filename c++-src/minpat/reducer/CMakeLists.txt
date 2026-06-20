@@ -22,6 +22,7 @@ set ( minpat_reducer_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/FFRAnalyze.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/FaultInfo.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/MFFCAnalyze.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/Reducer.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/DomChecker.cc
   PARENT_SCOPE
   )

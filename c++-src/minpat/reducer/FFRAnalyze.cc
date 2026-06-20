@@ -27,6 +27,7 @@ FFRAnalyze::run(
   }
 
   auto ffr_reduction = option.get_bool_elem("ffr_reduction", true);
+  auto mand_cond = option.get_bool_elem("get_mandatory_condition", false);
   auto debug = option.get_int_elem("debug", 0);
 
   if ( debug ) {
@@ -58,20 +59,22 @@ FFRAnalyze::run(
       auto tv = TestVector(pi_assign);
       auto det_cond = suff_cond.main_cond();
       fault_info.set_detected(fault, det_cond, tv);
-      AssignList mand_cond;
-      for ( auto as: det_cond ) {
-	auto lit = engine.conv_to_literal(as);
-	auto tmp_lits = lits;
-	tmp_lits.push_back(~lit);
-	auto res = engine.solver().solve(tmp_lits);
-	if ( res == SatBool3::False ) {
-	  // lit(as) を否定したら充足できなくなった．
-	  // -> as は必須条件
-	  mand_cond.add(as);
-	}
-      }
-      fault_info.set_mandatory_condition(fault, mand_cond);
       det_list.push_back(fault);
+      if ( mand_cond ) {
+	AssignList mand_cond;
+	for ( auto as: det_cond ) {
+	  auto lit = engine.conv_to_literal(as);
+	  auto tmp_lits = lits;
+	  tmp_lits.push_back(~lit);
+	  auto res = engine.solver().solve(tmp_lits);
+	  if ( res == SatBool3::False ) {
+	    // lit(as) を否定したら充足できなくなった．
+	    // -> as は必須条件
+	    mand_cond.add(as);
+	  }
+	}
+	fault_info.set_mandatory_condition(fault, mand_cond);
+      }
     }
     else if ( res == SatBool3::False ) {
       fault_info.set_untestable(fault);

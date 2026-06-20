@@ -8,10 +8,13 @@
 
 #include "FaultAnalyze.h"
 #include "types/TpgFaultList.h"
-#include "dtpg/BdEngine.h"
 #include "FFRAnalyze.h"
 #include "MFFCAnalyze.h"
 #include "DomChecker.h"
+#include "Filter.h"
+#include "Reducer.h"
+#include "EqDomCand.h"
+#include "ym/Timer.h"
 #include "ym/MtMgr.h"
 #include "ym/IdPool.h"
 #include "ym/ExLock.h"
@@ -21,83 +24,6 @@
 BEGIN_NAMESPACE_DRUID
 
 BEGIN_NONAMESPACE
-
-void
-dfs(
-  const TpgNode& node,
-  std::vector<SizeType>& support,
-  std::vector<bool>& mark
-)
-{
-  if ( mark[node.id()] ) {
-    return;
-  }
-  mark[node.id()] = true;
-
-  if ( node.is_ppi() ) {
-    support.push_back(node.input_id());
-  }
-  else {
-    for ( auto inode: node.fanin_list() ) {
-      dfs(inode, support, mark);
-    }
-  }
-}
-
-bool
-check_intersect(
-  const std::vector<SizeType>& sup1,
-  const std::vector<SizeType>& sup2
-)
-{
-  auto p1 = sup1.begin();
-  auto e1 = sup1.end();
-  auto p2 = sup2.begin();
-  auto e2 = sup2.end();
-  while ( p1 != e1 && p2 != e2 ) {
-    auto v1 = *p1;
-    auto v2 = *p2;
-    if ( v1 < v2 ) {
-      ++ p1;
-    }
-    else if ( v1 > v2 ) {
-      ++ p2;
-    }
-    else { // v1 == v2
-      return true;
-    }
-  }
-  return false;
-}
-
-SizeType
-count_intersect(
-  const std::vector<SizeType>& sup1,
-  const std::vector<SizeType>& sup2
-)
-{
-  SizeType count = 0;
-  auto p1 = sup1.begin();
-  auto e1 = sup1.end();
-  auto p2 = sup2.begin();
-  auto e2 = sup2.end();
-  while ( p1 != e1 && p2 != e2 ) {
-    auto v1 = *p1;
-    auto v2 = *p2;
-    if ( v1 < v2 ) {
-      ++ p1;
-    }
-    else if ( v1 > v2 ) {
-      ++ p2;
-    }
-    else { // v1 == v2
-      ++ count;
-      ++ p1;
-      ++ p2;
-    }
-  }
-  return count;
-}
 
 TpgFaultList
 update_fault_list(
@@ -115,7 +41,7 @@ update_fault_list(
 }
 
 void
-phase1(
+ffr_analyze(
   FaultInfo& fault_info,
   const ConfigParam& option
 )
@@ -156,7 +82,7 @@ phase1(
   timer.stop();
   if ( verbose ) {
     auto nf = fault_info.rep_fault_list().size();
-    std::cout << "Phase1 end" << std::endl
+    std::cout << "FFR analyze end" << std::endl
 	      << " # of faults:            " << nf << std::endl
 	      << " CPU time:               " << timer.get_time()
 	      << "ms" << std::endl;
@@ -164,7 +90,7 @@ phase1(
 }
 
 void
-phase2(
+mffc_reduction(
   FaultInfo& fault_info,
   const ConfigParam& option
 )
@@ -217,7 +143,7 @@ phase2(
   timer.stop();
   if ( verbose ) {
     auto nf = fault_info.rep_fault_list().size();
-    std::cout << "Phase2 end" << std::endl
+    std::cout << "MFFC reduction end" << std::endl
 	      << " # of faults:            " << nf << std::endl
 	      << " CPU time:               " << timer.get_time()
 	      << "ms" << std::endl;
@@ -225,7 +151,7 @@ phase2(
 }
 
 void
-phase3(
+global_reduction(
   FaultInfo& fault_info,
   const ConfigParam& option
 )
@@ -236,6 +162,7 @@ phase3(
   auto multi_thread = option.get_bool_elem("multi_thread", false);
   auto verbose = option.get_bool_elem("verbose", false);
 
+#if 0
   auto fault_list_array = fault_info.rep_fault_list().ffr_split();
   auto network = fault_info.network();
 
@@ -321,6 +248,13 @@ phase3(
       p.dom2_count = checker.dom2_count();
     }
   }
+#else
+  auto filter_option = option.get_param("filter");
+  auto cand = Filter::run(fault_info, filter_option);
+  auto reducer_option = option.get_param("reducer");
+  Reducer::run(fault_info, *cand, reducer_option);
+#endif
+
   timer.stop();
   if ( verbose ) {
     auto nf = fault_info.rep_fault_list().size();
@@ -340,22 +274,22 @@ FaultAnalyze::run(
   const ConfigParam& option
 )
 {
-  auto mffc_reduction = option.get_bool_elem("mffc_reduction", true);
-  auto global_reduction = option.get_bool_elem("global_reduction", true);
+  auto do_mffc_reduction = option.get_bool_elem("mffc_reduction", true);
+  auto do_global_reduction = option.get_bool_elem("global_reduction", true);
 
   auto fault_info = FaultInfo(fault_list);
 
   // phase1: FFR ごとに故障の検出状況を求める．
-  phase1(fault_info, option);
+  ffr_analyze(fault_info, option);
 
-  if ( mffc_reduction ) {
+  if ( do_mffc_reduction ) {
     // Phase2: MFFC ごとに故障の支配関係を調べる．
-    phase2(fault_info, option);
+    mffc_reduction(fault_info, option);
   }
 
-  if ( global_reduction ) {
+  if ( do_global_reduction ) {
     // Phase3: 異なる FFR の故障の間の支配関係を調べる．
-    phase3(fault_info, option);
+    global_reduction(fault_info, option);
   }
 
   return fault_info;

@@ -23,7 +23,7 @@ CandMgr::new_obj(
   const ConfigParam& option
 )
 {
-  auto str = option.get_string_elem("method", "naive");
+  auto str = option.get_string_elem("method", "dichotomy");
   if ( str == "naive" ) {
     return new_naive_mgr(fault_list, option);
   }

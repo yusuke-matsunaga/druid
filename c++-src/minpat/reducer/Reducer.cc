@@ -142,9 +142,14 @@ Reducer::run(
   SizeType dom_succ_count = 0;
   Timer dom_timer;
   dom_timer.start();
+  SizeType fault_count = 0;
   for ( auto fault1: fault_list ) {
     if ( !fault_info.is_rep(fault1) ) {
       continue;
+    }
+    if ( debug > 1 ) {
+      std::cout << "   " << fault_count << "/" << fault_list.size() << std::endl;
+      ++ fault_count;
     }
     auto id1 = cand.group_id(fault1);
     auto& dom_list = cand.dom_list(id1);

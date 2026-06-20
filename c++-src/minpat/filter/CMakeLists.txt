@@ -17,11 +17,6 @@ include_directories (
 # ===================================================================
 
 set ( minpat_filter_SOURCES
-  #${CMAKE_CURRENT_SOURCE_DIR}/Dichotomy.cc
-  #${CMAKE_CURRENT_SOURCE_DIR}/DiGroupMgr.cc
-  #${CMAKE_CURRENT_SOURCE_DIR}/NaiveReduce.cc
-  #${CMAKE_CURRENT_SOURCE_DIR}/NaiveMgr.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/Reducer.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/Filter.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/EqDomCand.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/PatGen.cc
