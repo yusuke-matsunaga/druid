@@ -3,7 +3,6 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories (
-  include
   )
 
 
@@ -11,41 +10,26 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( reducer )
-add_subdirectory( filter )
 add_subdirectory( gtest )
-add_subdirectory( filter/gtest )
-add_subdirectory( test-programs )
 
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
 
-set ( minpat_SOURCES
-  MinPat.cc
-  MpInit.cc
-  MpReduce.cc
-  MpComp.cc
-  MpCompImpl.cc
-  MpComp_MinCov.cc
-  MpComp_Expand.cc
-  MpComp_Pack.cc
-  MpComp_Simple.cc
-  MpComp_Merge.cc
-  MpAnalyze.cc
-  MpVerify.cc
+set ( minpat_reducer_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/FaultAnalyze.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/FFRAnalyze.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/FaultInfo.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/MFFCAnalyze.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/DomChecker.cc
+  PARENT_SCOPE
   )
 
 
 # ===================================================================
 # ターゲットの設定
 # ===================================================================
-ym_add_object_library ( druid_minpat
-  ${minpat_SOURCES}
-  ${minpat_reducer_SOURCES}
-  ${minpat_filter_SOURCES}
-  )
 
 
 # ===================================================================
