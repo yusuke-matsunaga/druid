@@ -75,12 +75,22 @@ public:
 
   /// @brief 支配関係の候補リストを返す．
   const std::vector<SizeType>&
-  dom_list(
+  dom_list1(
     SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
   ) const
   {
     _check_id(id);
-    return mDomListArray[id];
+    return mDomListArray1[id];
+  }
+
+  /// @brief 支配関係の候補リストを返す．
+  const std::vector<SizeType>&
+  dom_list2(
+    SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
+  ) const
+  {
+    _check_id(id);
+    return mDomListArray2[id];
   }
 
   /// @brief 支配関係の総数を返す．
@@ -100,7 +110,7 @@ public:
   ) const
   {
     return mGroupList == right.mGroupList &&
-    mDomListArray == right.mDomListArray;
+    mDomListArray1 == right.mDomListArray1;
   }
 
   /// @brief 非等価比較演算子
@@ -147,8 +157,12 @@ private:
   std::unordered_map<SizeType, SizeType> mIdMap;
 
   // 支配関係の候補リストの配列
-  // キーはグループ番号
-  std::vector<std::vector<SizeType>> mDomListArray;
+  // キーは支配しているグループ番号
+  std::vector<std::vector<SizeType>> mDomListArray1;
+
+  // 支配関係の候補リストの配列
+  // キーは支配されているグループ番号
+  std::vector<std::vector<SizeType>> mDomListArray2;
 
 };
 

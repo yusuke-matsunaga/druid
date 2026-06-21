@@ -24,7 +24,8 @@ EqDomCand::EqDomCand(
   const DomPairList& dom_list,
   bool reduce
 ) : mGroupList{group_list},
-    mDomListArray(mGroupList.size())
+    mDomListArray1(mGroupList.size()),
+    mDomListArray2(mGroupList.size())
 {
 #if DEBUG
   {
@@ -69,7 +70,8 @@ EqDomCand::EqDomCand(
     for ( SizeType id1 = 0; id1 < ng; ++ id1 ) {
       auto id2_list = poset.imm_succ_list(id1);
       for ( auto id2: id2_list ) {
-	mDomListArray[id1].push_back(id2);
+	mDomListArray1[id1].push_back(id2);
+	mDomListArray2[id2].push_back(id1);
       }
     }
   }
@@ -83,12 +85,15 @@ EqDomCand::EqDomCand(
       if ( id2 >= ng ) {
 	throw std::out_of_range{"id2 is out of range"};
       }
-      mDomListArray[id1].push_back(id2);
+      mDomListArray1[id1].push_back(id2);
+      mDomListArray2[id2].push_back(id1);
     }
   }
   for ( SizeType id = 0; id < ng; ++ id ) {
-    auto& dom_list = mDomListArray[id];
-    std::sort(dom_list.begin(), dom_list.end());
+    auto& dom_list1 = mDomListArray1[id];
+    std::sort(dom_list1.begin(), dom_list1.end());
+    auto& dom_list2 = mDomListArray2[id];
+    std::sort(dom_list2.begin(), dom_list2.end());
   }
 }
 
@@ -97,7 +102,7 @@ SizeType
 EqDomCand::total_num() const
 {
   SizeType count = 0;
-  for ( auto& tmp: mDomListArray ) {
+  for ( auto& tmp: mDomListArray1 ) {
     count += tmp.size();
   }
   return count;
@@ -118,7 +123,7 @@ EqDomCand::print(
     }
     s << std::endl
       << "  ==> ";
-    auto& dom_list = mDomListArray[id];
+    auto& dom_list = mDomListArray1[id];
     const char* comma = "";
     for ( auto id1: dom_list ) {
       auto& group1 = mGroupList[id1];
@@ -213,8 +218,8 @@ EqDomCand::check(
   }
   auto ng = mGroupList.size();
   for ( SizeType g = 0; g < ng; ++ g ) {
-    auto& dom_list1 = mDomListArray[g];
-    auto& dom_list2 = right.mDomListArray[g];
+    auto& dom_list1 = mDomListArray1[g];
+    auto& dom_list2 = right.mDomListArray1[g];
     SizeType n1 = dom_list1.size();
     SizeType n2 = dom_list2.size();
     SizeType i1 = 0;

@@ -143,19 +143,17 @@ Reducer::run(
   Timer dom_timer;
   dom_timer.start();
   SizeType fault_count = 0;
-  for ( auto fault1: fault_list ) {
-    if ( !fault_info.is_rep(fault1) ) {
-      continue;
-    }
+  for ( auto fault2: fault_list ) {
     if ( debug > 1 ) {
       std::cout << "   " << fault_count << "/" << fault_list.size() << std::endl;
       ++ fault_count;
     }
-    auto id1 = cand.group_id(fault1);
-    auto& dom_list = cand.dom_list(id1);
-    for ( auto id2: dom_list ) {
-      for ( auto fault2: cand.group(id2) ) {
-	if ( !fault_info.is_rep(fault2) ) {
+    auto id2 = cand.group_id(fault2);
+    auto& dom_list = cand.dom_list2(id2);
+    bool done = false;
+    for ( auto id1: dom_list ) {
+      for ( auto fault1: cand.group(id1) ) {
+	if ( !fault_info.is_rep(fault1) ) {
 	  continue;
 	}
 	NaiveDualEngine engine(fault1, fault2, option);
@@ -169,8 +167,12 @@ Reducer::run(
 		      << fault2.str() << " is dominated by "
 		      << fault1.str() << std::endl;
 	  }
-	  continue;
+	  done = true;
+	  break;
 	}
+      }
+      if ( done ) {
+	break;
       }
     }
   }
