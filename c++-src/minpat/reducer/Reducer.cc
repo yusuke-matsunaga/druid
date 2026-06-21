@@ -144,6 +144,9 @@ Reducer::run(
   dom_timer.start();
   SizeType fault_count = 0;
   for ( auto fault2: fault_list ) {
+    if ( !fault_info.is_rep(fault2) ) {
+      continue;
+    }
     if ( debug > 1 ) {
       std::cout << "   " << fault_count << "/" << fault_list.size() << std::endl;
       ++ fault_count;
