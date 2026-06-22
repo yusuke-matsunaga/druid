@@ -8,7 +8,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CandMgr.h"
+#include "EqDomCandMgr.h"
 #include "types/TpgFaultList.h"
 #include "DichoGroup.h"
 
@@ -17,10 +17,10 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DichoCandMgr2 DichoCandMgr2.h "DichoCandMgr2.h"
-/// @brief 二分法を用いた CandMgr
+/// @brief 二分法を用いた EqDomCandMgr
 //////////////////////////////////////////////////////////////////////
 class DichoCandMgr2 :
-  public CandMgr
+  public EqDomCandMgr
 {
 public:
 
@@ -48,6 +48,12 @@ private:
   std::unique_ptr<EqDomCand>
   end(
     bool reduce ///< [in] 推移簡約を行う時 true
+  ) const override;
+
+  /// @brief 等価故障グループの候補を返す．
+  TpgFaultList
+  eqcand(
+    const TpgFault& fault ///< [in] 対象の故障
   ) const override;
 
 

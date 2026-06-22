@@ -7,8 +7,11 @@
 /// All rights reserved.
 
 #include "Reducer.h"
+#include "EqDomCandMgr.h"
 #include "EqDomCand.h"
+#include "PatGen.h"
 #include "dtpg/NaiveDualEngine.h"
+#include "fsim/Fsim.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -39,15 +42,15 @@ END_NONAMESPACE
 void
 Reducer::run(
   FaultInfo& fault_info,
-  const EqDomCand& cand,
   const ConfigParam& option
 )
 {
+  // パラメータの取得
+  SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
+  SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
   SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
-
-  // 故障シミュレーションを用いて候補を絞る．
 
   // 現時点での代表故障のリスト
   auto fault_list = fault_info.rep_fault_list();
@@ -55,14 +58,74 @@ Reducer::run(
   Timer timer;
   timer.start();
 
+  // 故障シミュレータ
+  auto fsim_option = option.get_param("fsim");
+  Fsim fsim(fault_list, fsim_option);
+
+  // パタンを作るオブジェクト
+  auto patgen_option = option.get_param("patgen");
+  auto patgen = PatGen::new_obj(fault_info, patgen_option);
+
+  // 等価故障/支配故障の候補を管理するオブジェクト
+  auto candmgr_option = option.get_param("candmgr");
+  auto candmgr = EqDomCandMgr::new_obj(fault_list, candmgr_option);
+
+  auto network = fault_info.network();
+  auto max_size = network.max_fault_id();
+
+  Timer fsim_timer;
+  SizeType tv_count = 0;
+  SizeType no_change = 0;
+  while ( no_change < NO_CHANGE_LIMIT ) {
+    std::vector<TestVector> tv_list(BATCH_SIZE);
+    patgen->gen(BATCH_SIZE, tv_list);
+    fsim_timer.start();
+    auto res = fsim.run_multi(tv_list, true);
+    fsim_timer.stop();
+    tv_count += BATCH_SIZE;
+    patgen->update(res);
+
+    auto ntv = res.tv_num();
+    std::vector<PackedVal> dpat_array(max_size, PV_ALL0);
+    for ( SizeType i = 0; i < ntv; ++ i ) {
+      PackedVal bit = 1ULL << i;
+      for ( auto fault: res.fault_list(i) ) {
+	auto fid = fault.id();
+	dpat_array[fid] |= bit;
+      }
+    }
+    auto change = candmgr->update(dpat_array);
+    if ( change ) {
+      no_change = 0;
+    }
+    else {
+      no_change += BATCH_SIZE;
+    }
+  }
+
+  auto cand = candmgr->end(false);
+
+  if ( verbose ) {
+    std::cout << "# of faults:            "
+	      << std::setw(8) << std::right << fault_list.size() << std::endl
+	      << "# of Groups:            "
+	      << std::setw(8) << std::right << cand->group_num() << std::endl
+	      << "Total # of patterns:    "
+	      << std::setw(8) << std::right << tv_count << std::endl
+	      << "No Change Limit:        "
+	      << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
+	      << "Filtering time:           " << time_str(timer) << std::endl
+	      << " (Fsim time):             " << time_str(fsim_timer) << std::endl;
+  }
+
   // 等価故障の検査を行う．
   SizeType eq_check_count = 0;
   SizeType eq_succ_count = 0;
   Timer eq_timer;
   eq_timer.start();
-  auto ng = cand.group_num();
+  auto ng = cand->group_num();
   for ( SizeType g = 0; g < ng; ++ g ) {
-    auto& group = cand.group(g);
+    auto& group = cand->group(g);
     auto nf = group.size();
     if ( nf == 1 ) {
       continue;
@@ -151,11 +214,11 @@ Reducer::run(
       std::cout << "   " << fault_count << "/" << fault_list.size() << std::endl;
       ++ fault_count;
     }
-    auto id2 = cand.group_id(fault2);
-    auto& dom_list = cand.dom_list2(id2);
+    auto id2 = cand->group_id(fault2);
+    auto& dom_list = cand->dom_list2(id2);
     bool done = false;
     for ( auto id1: dom_list ) {
-      for ( auto fault1: cand.group(id1) ) {
+      for ( auto fault1: cand->group(id1) ) {
 	if ( !fault_info.is_rep(fault1) ) {
 	  continue;
 	}

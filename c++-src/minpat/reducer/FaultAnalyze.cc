@@ -249,10 +249,8 @@ global_reduction(
     }
   }
 #else
-  auto filter_option = option.get_param("filter");
-  auto cand = Filter::run(fault_info, filter_option);
   auto reducer_option = option.get_param("reducer");
-  Reducer::run(fault_info, *cand, reducer_option);
+  Reducer::run(fault_info, reducer_option);
 #endif
 
   timer.stop();

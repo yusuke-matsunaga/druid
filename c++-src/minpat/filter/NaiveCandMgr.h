@@ -8,17 +8,17 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CandMgr.h"
+#include "EqDomCandMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class NaiveCandMgr NaiveCandMgr.h "NaiveCandMgr.h"
-/// @brief 単純な CandMgr
+/// @brief 単純な EqDomCandMgr
 //////////////////////////////////////////////////////////////////////
 class NaiveCandMgr :
-  public CandMgr
+  public EqDomCandMgr
 {
 public:
 
@@ -46,6 +46,12 @@ private:
   std::unique_ptr<EqDomCand>
   end(
     bool reduce ///< [in] 推移簡約を行う時 true
+  ) const override;
+
+  /// @brief 等価故障グループの候補を返す．
+  TpgFaultList
+  eqcand(
+    const TpgFault& fault ///< [in] 対象の故障
   ) const override;
 
 

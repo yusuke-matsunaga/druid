@@ -1,8 +1,8 @@
-#ifndef CANDMGR_H
-#define CANDMGR_H
+#ifndef EQDOMCANDMGR_H
+#define EQDOMCANDMGR_H
 
-/// @file CandMgr.h
-/// @brief CandMgr のヘッダファイル
+/// @file EqDomCandMgr.h
+/// @brief EqDomCandMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -19,19 +19,19 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class CandMgr CandMgr.h "CandMgr.h"
+/// @class EqDomCandMgr EqDomCandMgr.h "EqDomCandMgr.h"
 /// @brief 等価故障と支配故障候補のマネージャクラス
 ///
 /// f1 が検出されて f2 が検出されないパタンがあった場合，
 /// f1 が f2 を支配することはない．
 /// この情報を管理するためのクラス
 //////////////////////////////////////////////////////////////////////
-class CandMgr
+class EqDomCandMgr
 {
 public:
 
   /// @brief コンストラクタ
-  CandMgr(
+  EqDomCandMgr(
     const TpgFaultList& fault_list ///< [in] 対象の故障リスト
   ) : mFaultList{fault_list}
   {
@@ -39,7 +39,7 @@ public:
 
   /// @brief 新しいオブジェクトを作る．
   static
-  std::unique_ptr<CandMgr>
+  std::unique_ptr<EqDomCandMgr>
   new_obj(
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
     const ConfigParam& option       ///< [in] オプション
@@ -47,7 +47,7 @@ public:
 
   /// @brief 新しいオブジェクトを作る．
   static
-  std::unique_ptr<CandMgr>
+  std::unique_ptr<EqDomCandMgr>
   new_naive_mgr(
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
     const ConfigParam& option       ///< [in] オプション
@@ -55,7 +55,7 @@ public:
 
   /// @brief 新しいオブジェクトを作る．
   static
-  std::unique_ptr<CandMgr>
+  std::unique_ptr<EqDomCandMgr>
   new_dichotomy_mgr(
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
     const ConfigParam& option       ///< [in] オプション
@@ -63,23 +63,7 @@ public:
 
   /// @brief 新しいオブジェクトを作る．
   static
-  std::unique_ptr<CandMgr>
-  new_dichotomy_mgr0(
-    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
-    const ConfigParam& option       ///< [in] オプション
-  );
-
-  /// @brief 新しいオブジェクトを作る．
-  static
-  std::unique_ptr<CandMgr>
-  new_dichotomy_mgr1(
-    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
-    const ConfigParam& option       ///< [in] オプション
-  );
-
-  /// @brief 新しいオブジェクトを作る．
-  static
-  std::unique_ptr<CandMgr>
+  std::unique_ptr<EqDomCandMgr>
   new_dichotomy_mgr2(
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
     const ConfigParam& option       ///< [in] オプション
@@ -87,7 +71,7 @@ public:
 
   /// @brief デストラクタ
   virtual
-  ~CandMgr() = default;
+  ~EqDomCandMgr() = default;
 
 
 public:
@@ -107,6 +91,13 @@ public:
   std::unique_ptr<EqDomCand>
   end(
     bool reduce ///< [in] 推移簡約を行う時 true
+  ) const = 0;
+
+  /// @brief 等価故障グループの候補を返す．
+  virtual
+  TpgFaultList
+  eqcand(
+    const TpgFault& fault ///< [in] 対象の故障
   ) const = 0;
 
 
@@ -149,4 +140,4 @@ protected:
 
 END_NAMESPACE_DRUID
 
-#endif // CANDMGR_H
+#endif // EQDOMCANDMGR_H

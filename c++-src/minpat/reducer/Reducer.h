@@ -15,8 +15,6 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class EqDomCand;
-
 //////////////////////////////////////////////////////////////////////
 /// @class Reducer Reducer.h "Reducer.h"
 /// @brief 故障の支配関係を用いて対象の故障を削減するクラス
@@ -30,12 +28,11 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 故障グループの細分化を行ってから支配関係を調べる．
+  /// @brief 支配関係を用いて対象の故障を削減する．
   static
   void
   run(
     FaultInfo& fault_info,    ///< [in] 故障情報を収めたオブジェクト
-    const EqDomCand& cand,    ///< [in] 等価故障/支配故障の候補の情報
     const ConfigParam& option ///< [in] オプション
   );
 

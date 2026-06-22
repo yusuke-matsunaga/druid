@@ -6,7 +6,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CandMgr.h"
+#include "EqDomCandMgr.h"
 #include "DichoCandMgr2.h"
 #include "DCM2Helper.h"
 
@@ -15,17 +15,17 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス CandMgr
+// クラス EqDomCandMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<CandMgr>
-CandMgr::new_dichotomy_mgr2(
+std::unique_ptr<EqDomCandMgr>
+EqDomCandMgr::new_dichotomy_mgr2(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<CandMgr>{new DichoCandMgr2(fault_list)};
+  return std::unique_ptr<EqDomCandMgr>{new DichoCandMgr2(fault_list)};
 }
 
 
@@ -36,7 +36,7 @@ CandMgr::new_dichotomy_mgr2(
 // @brief コンストラクタ
 DichoCandMgr2::DichoCandMgr2(
   const TpgFaultList& fault_list
-) : CandMgr(fault_list)
+) : EqDomCandMgr(fault_list)
 {
   // 最初は１つのグループ
   auto group = new DichoGroup(0, fault_list);
@@ -108,6 +108,15 @@ DichoCandMgr2::end(
     }
   }
   return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, dom_list, reduce)};
+}
+
+// @brief 等価故障グループの候補を返す．
+TpgFaultList
+DichoCandMgr2::eqcand(
+  const TpgFault& fault
+) const
+{
+  return TpgFaultList();
 }
 
 // @brief 内容を出力する．

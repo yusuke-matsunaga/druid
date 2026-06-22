@@ -12,17 +12,17 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス CandMgr
+// クラス EqDomCandMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<CandMgr>
-CandMgr::new_dichotomy_mgr(
+std::unique_ptr<EqDomCandMgr>
+EqDomCandMgr::new_dichotomy_mgr(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<CandMgr>{new DichoCandMgr(fault_list)};
+  return std::unique_ptr<EqDomCandMgr>{new DichoCandMgr(fault_list)};
 }
 
 
@@ -33,12 +33,13 @@ CandMgr::new_dichotomy_mgr(
 // @brief コンストラクタ
 DichoCandMgr::DichoCandMgr(
   const TpgFaultList& fault_list
-) : CandMgr(fault_list)
+) : EqDomCandMgr(fault_list)
 {
   // 最初は１つのグループ
   auto group = new DichoGroup(0, fault_list);
   group->set_succ_list({group});
   mCurGroupList.push_back(DichoGroup::Ptr{group});
+  _fix_group_map();
 }
 
 // @brief デストラクタ
@@ -128,6 +129,7 @@ DichoCandMgr::update(
   // 変化があったら更新する．
   if ( changed ) {
     std::swap(mCurGroupList, new_group_list);
+    _fix_group_map();
     return true;
   }
   return false;
@@ -182,6 +184,29 @@ DichoCandMgr::end(
     }
   }
   return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, succ_pair_list, reduce)};
+}
+
+// @brief 等価故障グループの候補を返す．
+TpgFaultList
+DichoCandMgr::eqcand(
+  const TpgFault& fault
+) const
+{
+  auto group = mGroupMap[fault.id()];
+  return group->fault_list();
+}
+
+// @brief mGroupMap を作る．
+void
+DichoCandMgr::_fix_group_map()
+{
+  mGroupMap.clear();
+  mGroupMap.resize(max_fault_size(), nullptr);
+  for ( auto& group: mCurGroupList ) {
+    for ( auto fault: group->fault_list() ) {
+      mGroupMap[fault.id()] = group.get();
+    }
+  }
 }
 
 // @brief 故障グループの情報を出力する．

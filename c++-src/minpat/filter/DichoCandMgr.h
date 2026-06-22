@@ -8,7 +8,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CandMgr.h"
+#include "EqDomCandMgr.h"
 #include "types/TpgFaultList.h"
 #include "DichoGroup.h"
 
@@ -17,10 +17,10 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DichoCandMgr DichoCandMgr.h "DichoCandMgr.h"
-/// @brief 二分法を用いた CandMgr
+/// @brief 二分法を用いた EqDomCandMgr
 //////////////////////////////////////////////////////////////////////
 class DichoCandMgr :
-  public CandMgr
+  public EqDomCandMgr
 {
 public:
 
@@ -50,11 +50,21 @@ private:
     bool reduce ///< [in] 推移簡約を行う時 true
   ) const override;
 
+  /// @brief 等価故障グループの候補を返す．
+  TpgFaultList
+  eqcand(
+    const TpgFault& fault ///< [in] 対象の故障
+  ) const override;
+
 
 private:
   //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
+
+  /// @brief mGroupMap を作る．
+  void
+  _fix_group_map();
 
   /// @brief 故障グループのリスト情報を出力する．
   ///
@@ -89,6 +99,9 @@ private:
   // 現在のグループのリスト
   // Group の所有権を持つ．
   std::vector<DichoGroup::Ptr> mCurGroupList;
+
+  // 故障番号をキーにして対象のグループを格納する配列
+  std::vector<DichoGroup*> mGroupMap;
 
 };
 

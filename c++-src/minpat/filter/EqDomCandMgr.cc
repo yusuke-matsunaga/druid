@@ -1,24 +1,24 @@
 
-/// @file CandMgr.cc
-/// @brief CandMgr の実装ファイル
+/// @file EqDomCandMgr.cc
+/// @brief EqDomCandMgr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CandMgr.h"
+#include "EqDomCandMgr.h"
 #include "DichoCandMgr2.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス CandMgr
+// クラス EqDomCandMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<CandMgr>
-CandMgr::new_obj(
+std::unique_ptr<EqDomCandMgr>
+EqDomCandMgr::new_obj(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )

@@ -6,24 +6,24 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "CandMgr.h"
+#include "EqDomCandMgr.h"
 #include "NaiveCandMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス CandMgr
+// クラス EqDomCandMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<CandMgr>
-CandMgr::new_naive_mgr(
+std::unique_ptr<EqDomCandMgr>
+EqDomCandMgr::new_naive_mgr(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<CandMgr>{new NaiveCandMgr(fault_list)};
+  return std::unique_ptr<EqDomCandMgr>{new NaiveCandMgr(fault_list)};
 }
 
 
@@ -34,7 +34,7 @@ CandMgr::new_naive_mgr(
 // @brief コンストラクタ
 NaiveCandMgr::NaiveCandMgr(
   const TpgFaultList& fault_list
-) : CandMgr(fault_list),
+) : EqDomCandMgr(fault_list),
     mSize{max_fault_size()},
     mArray(mSize * mSize, false),
     mDomCandListArray(mSize)
@@ -114,7 +114,7 @@ NaiveCandMgr::end(
 	continue;
       }
       auto gid = group_list.size();
-      auto eq_list = eqcand_list(fault);
+      auto eq_list = eqcand(fault);
       eq_list.push_back(fault);
       for ( auto fault1: eq_list ) {
 	mark[fault1.id()] = true;
@@ -142,9 +142,9 @@ NaiveCandMgr::end(
   return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, dom_list, reduce)};
 }
 
-// @brief 等価な可能性のある故障のリストを返す．
+// @brief 等価故障グループの候補を返す．
 TpgFaultList
-NaiveCandMgr::eqcand_list(
+NaiveCandMgr::eqcand(
   const TpgFault& fault
 ) const
 {
