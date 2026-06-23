@@ -150,7 +150,6 @@ check_dominance(
   const ConfigParam& option
 )
 {
-  SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
   SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
@@ -163,8 +162,6 @@ check_dominance(
   for ( ; ; ) {
     bool changed = false;
     auto fault_list = fault_info.rep_fault_list();
-    std::vector<TestVector> tv_list;
-    tv_list.reserve(BATCH_SIZE);
     for ( auto fault2: fault_list ) {
       if ( !fault_info.is_rep(fault2) ) {
 	continue;
@@ -179,6 +176,8 @@ check_dominance(
 	    continue;
 	  }
 
+	  std::vector<TestVector> tv_list;
+	  tv_list.reserve(1);
 	  NaiveDualEngine engine(fault1, fault2, option);
 	  auto res = engine.solve(true, false, TIME_LIMIT);
 	  ++ check_count;
@@ -201,10 +200,9 @@ check_dominance(
 	    tv_list.push_back(tv);
 	  }
 	  // ここに来たということは fault1 と fault2 の関係は不明
-	  if ( tv_list.size() == BATCH_SIZE ) {
+	  if ( !tv_list.empty() ) {
 	    // 今求まったテストパタンで細分化する．
 	    changed = candmgr->subdivide(tv_list);
-	    tv_list.clear();
 	    if ( changed ) {
 	      goto exit_loop;
 	    }
@@ -214,10 +212,6 @@ check_dominance(
 	  break;
 	}
       }
-    }
-    if ( !tv_list.empty() ) {
-      // 今求まったテストパタンで細分化する．
-      changed = candmgr->subdivide(tv_list);
     }
   exit_loop:
     if ( !changed ) {
