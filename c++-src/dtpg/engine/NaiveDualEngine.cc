@@ -163,6 +163,15 @@ NaiveDualEngine::justify(
   return mEngine.justify(suff_cond, model, assign_list);
 }
 
+// @brief 現在の外部入力の割当を得る．
+AssignList
+NaiveDualEngine::get_pi_assign(
+  const SatModel& model
+)
+{
+  return mEngine.get_pi_assign(model);
+}
+
 // @brief 値割り当てを対応するリテラルに変換する．
 SatLiteral
 NaiveDualEngine::conv_to_literal(

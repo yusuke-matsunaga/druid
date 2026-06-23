@@ -103,6 +103,15 @@ public:
     const AssignList& assign_list = {} ///< [in] 事前の値割り当て
   );
 
+  /// @brief 現在の外部入力の割当を得る．
+  /// @return 外部入力の割り当てリストを返す．
+  ///
+  /// * すべての外部入力になんらかの値が入る
+  AssignList
+  get_pi_assign(
+    const SatModel& model ///< [in] SAT問題の解
+  );
+
   /// @brief 値割り当てを対応するリテラルに変換する．
   SatLiteral
   conv_to_literal(

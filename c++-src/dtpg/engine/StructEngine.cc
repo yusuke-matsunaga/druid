@@ -402,6 +402,9 @@ StructEngine::val(
 )
 {
   auto lit = (time == 0) ? hvar(node) : gvar(node);
+  if ( lit == SatLiteral::X ) {
+    return false;
+  }
   return model[lit] == SatBool3::True;
 }
 
