@@ -90,6 +90,22 @@ public:
     std::swap(mSuccList, src_list);
   }
 
+  /// @brief 先行グループのリストを返す．
+  const std::vector<DichoGroup*>&
+  prev_list() const
+  {
+    return mPrevList;
+  }
+
+  /// @brief 先行グループを追加する．
+  void
+  add_prev(
+    DichoGroup* group ///< [in] 追加するグループ
+  )
+  {
+    mPrevList.push_back(group);
+  }
+
   /// @brief 故障グループの情報を出力する．
   void
   print(
@@ -134,6 +150,9 @@ private:
 
   // 後続グループのリスト
   std::vector<DichoGroup*> mSuccList;
+
+  // 先行グループのリスト
+  std::vector<DichoGroup*> mPrevList;
 
 };
 

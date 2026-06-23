@@ -23,7 +23,7 @@ EqDomCandMgr::new_naive_mgr(
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<EqDomCandMgr>{new NaiveCandMgr(fault_list)};
+  return std::unique_ptr<EqDomCandMgr>{new NaiveCandMgr(fault_list, option)};
 }
 
 
@@ -33,8 +33,9 @@ EqDomCandMgr::new_naive_mgr(
 
 // @brief コンストラクタ
 NaiveCandMgr::NaiveCandMgr(
-  const TpgFaultList& fault_list
-) : EqDomCandMgr(fault_list),
+  const TpgFaultList& fault_list,
+  const ConfigParam& option
+) : EqDomCandMgr(fault_list, option),
     mSize{max_fault_size()},
     mArray(mSize * mSize, false),
     mDomCandListArray(mSize)
@@ -54,7 +55,7 @@ NaiveCandMgr::update(
 {
   if ( mInitialized ) {
     bool change = false;
-    for ( auto fault1: fault_list() ) {
+    for ( auto fault1: EqDomCandMgr::fault_list() ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& old_list = mDomCandListArray[fault1.id()];
       TpgFaultList new_list;
@@ -71,16 +72,17 @@ NaiveCandMgr::update(
       }
       if ( new_list.size() != old_list.size() ) {
 	std::swap(new_list, old_list);
+	mHasGroup = false;
 	change = true;
       }
     }
     return change;
   }
   else {
-    for ( auto fault1: fault_list() ) {
+    for ( auto fault1: EqDomCandMgr::fault_list() ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& new_list = mDomCandListArray[fault1.id()];
-      for ( auto fault2: fault_list() ) {
+      for ( auto fault2: EqDomCandMgr::fault_list() ) {
 	if ( fault2 == fault1 ) {
 	  continue;
 	}
@@ -95,6 +97,7 @@ NaiveCandMgr::update(
       }
     }
     mInitialized = true;
+    mHasGroup = false;
     return true;
   }
 }
@@ -105,57 +108,134 @@ NaiveCandMgr::end(
   bool reduce
 ) const
 {
+  _make_group();
   std::vector<TpgFaultList> group_list;
-  std::unordered_map<SizeType, SizeType> id_map;
-  { // 等価故障グループを求める．
-    std::vector<bool> mark(mSize, false);
-    for ( auto fault: fault_list() ) {
-      if ( mark[fault.id()] ) {
-	continue;
-      }
-      auto gid = group_list.size();
-      auto eq_list = eqcand(fault);
-      eq_list.push_back(fault);
-      for ( auto fault1: eq_list ) {
-	mark[fault1.id()] = true;
-	id_map.emplace(fault1.id(), gid);
-      }
-      group_list.push_back(eq_list);
-    }
-  }
-  // 支配関係のリストを作る．
+  group_list.reserve(mGroupArray.size());
   std::vector<std::pair<SizeType, SizeType>> dom_list;
-  auto ng = group_list.size();
-  for ( SizeType id1 = 0; id1 < ng; ++ id1 ) {
-    std::unordered_set<SizeType> id_set;
-    id_set.insert(id1);
-    for ( auto fault1: group_list[id1] ) {
-      for ( auto fault2: mDomCandListArray[fault1.id()] ) {
-	auto id2 = id_map.at(fault2.id());
-	if ( id_set.count(id2) == 0 ) {
-	  id_set.insert(id2);
-	  dom_list.push_back({id1, id2});
-	}
-      }
+  for ( auto& group1: mGroupArray ) {
+    group_list.push_back(group1.mFaultList);
+    auto id1 = group1.mId;
+    for ( auto id2: group1.mSuccList ) {
+      dom_list.push_back({id1, id2});
     }
   }
   return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, dom_list, reduce)};
 }
 
-// @brief 等価故障グループの候補を返す．
-TpgFaultList
-NaiveCandMgr::eqcand(
+// @brief 等価グループを求める．
+void
+NaiveCandMgr::_make_group() const
+{
+  if ( mHasGroup ) {
+    return;
+  }
+
+  mGroupArray.clear();
+  mIdMap.clear();
+  mIdMap.resize(mSize);
+  // 等価グループを作る．
+  std::vector<bool> mark(mSize, false);
+  for ( auto fault: EqDomCandMgr::fault_list() ) {
+    if ( mark[fault.id()] ) {
+      continue;
+    }
+    auto gid = mGroupArray.size();
+    TpgFaultList eq_list;
+    for ( auto fault2: mDomCandListArray[fault.id()] ) {
+      auto idx2 = _index(fault2, fault);
+      if ( !mArray[idx2] ) {
+	eq_list.push_back(fault2);
+      }
+    }
+    eq_list.push_back(fault);
+    for ( auto fault1: eq_list ) {
+      mark[fault1.id()] = true;
+      mIdMap[fault1.id()] = gid;
+    }
+    mGroupArray.push_back(Group{gid, eq_list});
+  }
+  // 支配関係のリストを作る．
+  auto ng = mGroupArray.size();
+  for ( SizeType id1 = 0; id1 < ng; ++ id1 ) {
+    std::unordered_set<SizeType> id_set;
+    id_set.insert(id1);
+    auto& group1 = mGroupArray[id1];
+    auto fault1 = group1.mFaultList[0];
+    for ( auto fault2: mDomCandListArray[fault1.id()] ) {
+      auto id2 = mIdMap[fault2.id()];
+      if ( id2 == id1 ) {
+	// self-loop は記録しない．
+	continue;
+      }
+      if ( id_set.count(id2) == 0 ) {
+	id_set.insert(id2);
+	auto& group2 = mGroupArray[id2];
+	group1.mSuccList.push_back(id2);
+	group2.mPrevList.push_back(id1);
+      }
+    }
+  }
+  mHasGroup = true;
+}
+
+// @brief 等価故障グループ数を返す．
+SizeType
+NaiveCandMgr::group_num() const
+{
+  _make_group();
+  return mGroupArray.size();
+}
+
+// @brief 等価故障グループ番号を返す．
+SizeType
+NaiveCandMgr::group_id(
   const TpgFault& fault
 ) const
 {
-  TpgFaultList ans_list;
-  for ( auto fault2: mDomCandListArray[fault.id()] ) {
-    auto idx2 = _index(fault2, fault);
-    if ( !mArray[idx2] ) {
-      ans_list.push_back(fault2);
-    }
+  _make_group();
+  return mIdMap[fault.id()];
+}
+
+// @brief 等価故障グループの故障リストを返す．
+TpgFaultList
+NaiveCandMgr::fault_list(
+  SizeType group_id
+) const
+{
+  _make_group();
+  return mGroupArray[group_id].mFaultList;
+}
+
+// @brief 後続グループ番号のリスト返す．
+std::vector<SizeType>
+NaiveCandMgr::succ_list(
+  SizeType group_id
+) const
+{
+  _make_group();
+  return mGroupArray[group_id].mSuccList;
+}
+
+// @brief 先行グループ番号のリスト返す．
+std::vector<SizeType>
+NaiveCandMgr::prev_list(
+  SizeType group_id
+) const
+{
+  _make_group();
+  return mGroupArray[group_id].mPrevList;
+}
+
+// @brief 順序関係の要素数を返す．
+SizeType
+NaiveCandMgr::domcand_num() const
+{
+  _make_group();
+  SizeType num = 0;
+  for ( auto& group: mGroupArray ) {
+    num += group.mSuccList.size();
   }
-  return ans_list;
+  return num;
 }
 
 END_NAMESPACE_DRUID

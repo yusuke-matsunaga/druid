@@ -7,7 +7,6 @@
 /// All rights reserved.
 
 #include "EqDomCandMgr.h"
-#include "DichoCandMgr2.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -37,6 +36,40 @@ EqDomCandMgr::new_obj(
   std::ostringstream buf;
   buf << str << ": unknown option for 'method'";
   throw std::invalid_argument{buf.str()};
+}
+
+// @brief コンストラクタ
+EqDomCandMgr::EqDomCandMgr(
+  const TpgFaultList& fault_list,
+  const ConfigParam& option
+) : mFsim(fault_list, option.get_param("fsim")),
+    mFaultList{fault_list}
+{
+}
+
+// @brief 故障シミュレーションを行って故障グループを細分化する．
+bool
+EqDomCandMgr::subdivide(
+  const std::vector<TestVector>& tv_list,
+  std::function<void(const FsimResults&)> callback
+)
+{
+  mFsimTimer.start();
+  auto res = mFsim.run_multi(tv_list, true);
+  mFsimTimer.stop();
+  callback(res);
+
+  auto ntv = res.tv_num();
+  std::vector<PackedVal> dpat_array(max_fault_size(), PV_ALL0);
+  for ( SizeType i = 0; i < ntv; ++ i ) {
+    PackedVal bit = 1ULL << i;
+    for ( auto fault: res.fault_list(i) ) {
+      auto fid = fault.id();
+      dpat_array[fid] |= bit;
+    }
+  }
+  auto change = update(dpat_array);
+  return change;
 }
 
 END_NAMESPACE_DRUID

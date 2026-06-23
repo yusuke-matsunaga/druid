@@ -24,7 +24,8 @@ public:
 
   /// @brief コンストラクタ
   NaiveCandMgr(
-    const TpgFaultList& fault_list ///< [in] 対象の故障リスト
+    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
+    const ConfigParam& option       ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -48,11 +49,37 @@ private:
     bool reduce ///< [in] 推移簡約を行う時 true
   ) const override;
 
-  /// @brief 等価故障グループの候補を返す．
-  TpgFaultList
-  eqcand(
+  /// @brief 等価故障グループ数を返す．
+  SizeType
+  group_num() const override;
+
+  /// @brief 等価故障グループ番号を返す．
+  SizeType
+  group_id(
     const TpgFault& fault ///< [in] 対象の故障
   ) const override;
+
+  /// @brief 等価故障グループの故障リストを返す．
+  TpgFaultList
+  fault_list(
+    SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
+  ) const override;
+
+  /// @brief 後続グループ番号のリスト返す．
+  std::vector<SizeType>
+  succ_list(
+    SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
+  ) const override;
+
+  /// @brief 先行グループ番号のリスト返す．
+  std::vector<SizeType>
+  prev_list(
+    SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
+  ) const override;
+
+  /// @brief 順序関係の要素数を返す．
+  SizeType
+  domcand_num() const override;
 
 
 private:
@@ -60,11 +87,9 @@ private:
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 等価な可能性のある故障のリストを返す．
-  TpgFaultList
-  eqcand_list(
-    const TpgFault& fault
-  ) const;
+  /// @brief 等価グループを求める．
+  void
+  _make_group() const;
 
   /// 故障対に対するインデックスを計算する．
   SizeType
@@ -82,6 +107,18 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
+  // 故障グループの情報を表す構造体
+  struct Group {
+    // グループ番号
+    SizeType mId;
+    // 故障リスト
+    TpgFaultList mFaultList;
+    // 後続グループのリスト
+    std::vector<SizeType> mSuccList;
+    // 先行グループのリスト
+    std::vector<SizeType> mPrevList;
+  };
+
   // 故障番号の最大値
   SizeType mSize;
 
@@ -94,8 +131,20 @@ private:
   // サイズは mSize
   std::vector<TpgFaultList> mDomCandListArray;
 
+  // 等価故障グループの配列
+  mutable
+  std::vector<Group> mGroupArray;
+
+  // 故障番号をキーにしてグループ番号を格納する配列
+  mutable
+  std::vector<SizeType> mIdMap;
+
   // mDomCandListArray が初期化されていたら true となるフラグ
   bool mInitialized{false};
+
+  // 等価グループが計算済みなら true となるフラグ
+  mutable
+  bool mHasGroup{false};
 
 };
 

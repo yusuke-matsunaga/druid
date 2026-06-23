@@ -57,11 +57,11 @@ public:
   /// @brief 等価故障のグループを返す．
   const TpgFaultList&
   group(
-    SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
+    SizeType id ///< [in] グループ番号 ( 0 <= id < group_num() )
   ) const
   {
-    _check_id(id);
-    return mGroupList[id];
+    auto& group = _group(id);
+    return group.mFaultList;
   }
 
   /// @brief 等価故障グループ番号を返す．
@@ -73,29 +73,29 @@ public:
     return mIdMap.at(fault.id());
   }
 
-  /// @brief 支配関係の候補リストを返す．
-  const std::vector<SizeType>&
-  dom_list1(
-    SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
-  ) const
-  {
-    _check_id(id);
-    return mDomListArray1[id];
-  }
-
-  /// @brief 支配関係の候補リストを返す．
-  const std::vector<SizeType>&
-  dom_list2(
-    SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
-  ) const
-  {
-    _check_id(id);
-    return mDomListArray2[id];
-  }
-
-  /// @brief 支配関係の総数を返す．
+  /// @brief 支配関係の候補ペア数を返す．
   SizeType
-  total_num() const;
+  domcand_num() const;
+
+  /// @brief 後続グループ番号のリストを返す．
+  const std::vector<SizeType>&
+  suc_list(
+    SizeType id ///< [in] グループ番号 ( 0 <= id < group_num() )
+  ) const
+  {
+    auto& group = _group(id);
+    return group.mSuccList;
+  }
+
+  /// @brief 先行グループ番号のリストを返す．
+  const std::vector<SizeType>&
+  prev_list(
+    SizeType id ///< [in] グループ番号 ( 0 <= id < group_num() )
+  ) const
+  {
+    auto& group = _group(id);
+    return group.mPrevList;
+  }
 
   /// @brief 内容を出力する．
   void
@@ -107,11 +107,7 @@ public:
   bool
   operator==(
     const EqDomCand& right
-  ) const
-  {
-    return mGroupList == right.mGroupList &&
-    mDomListArray1 == right.mDomListArray1;
-  }
+  ) const;
 
   /// @brief 非等価比較演算子
   bool
@@ -130,18 +126,35 @@ public:
 
 private:
   //////////////////////////////////////////////////////////////////////
+  // 内部で用いられるデータ構造
+  //////////////////////////////////////////////////////////////////////
+
+  // グループの情報
+  struct GroupInfo {
+    // 故障リスト
+    TpgFaultList mFaultList;
+    // 後続グループ番号のリスト
+    std::vector<SizeType> mSuccList;
+    // 先行グループ番号のリスト
+    std::vector<SizeType> mPrevList;
+  };
+
+
+private:
+  //////////////////////////////////////////////////////////////////////
   // 内部で用いられる関数
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief グループ番号をチェックする．
-  void
-  _check_id(
+  /// @brief グループの情報を返す．
+  const GroupInfo&
+  _group(
     SizeType id ///< [in] グループ番号 ( 0 <= id < eqgroup_num() )
   ) const
   {
     if ( id >= group_num() ) {
       throw std::out_of_range{"id is out of range"};
     }
+    return mGroupList[id];
   }
 
 
@@ -150,19 +163,11 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 等価故障グループのリスト
-  std::vector<TpgFaultList> mGroupList;
+  // グループのリスト
+  std::vector<GroupInfo> mGroupList;
 
   // 故障番号をキーにして等価故障グループ番号を保持する辞書
   std::unordered_map<SizeType, SizeType> mIdMap;
-
-  // 支配関係の候補リストの配列
-  // キーは支配しているグループ番号
-  std::vector<std::vector<SizeType>> mDomListArray1;
-
-  // 支配関係の候補リストの配列
-  // キーは支配されているグループ番号
-  std::vector<std::vector<SizeType>> mDomListArray2;
 
 };
 

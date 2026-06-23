@@ -22,7 +22,7 @@ EqDomCandMgr::new_dichotomy_mgr(
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<EqDomCandMgr>{new DichoCandMgr(fault_list)};
+  return std::unique_ptr<EqDomCandMgr>{new DichoCandMgr(fault_list, option)};
 }
 
 
@@ -32,8 +32,9 @@ EqDomCandMgr::new_dichotomy_mgr(
 
 // @brief コンストラクタ
 DichoCandMgr::DichoCandMgr(
-  const TpgFaultList& fault_list
-) : EqDomCandMgr(fault_list)
+  const TpgFaultList& fault_list,
+  const ConfigParam& option
+) : EqDomCandMgr(fault_list, option)
 {
   // 最初は１つのグループ
   auto group = new DichoGroup(0, fault_list);
@@ -186,14 +187,85 @@ DichoCandMgr::end(
   return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, succ_pair_list, reduce)};
 }
 
-// @brief 等価故障グループの候補を返す．
-TpgFaultList
-DichoCandMgr::eqcand(
+// @brief 等価故障グループ数を返す．
+SizeType
+DichoCandMgr::group_num() const
+{
+  return mCurGroupList.size();
+}
+
+// @brief 等価故障グループ番号を返す．
+SizeType
+DichoCandMgr::group_id(
   const TpgFault& fault
 ) const
 {
   auto group = mGroupMap[fault.id()];
+  return group->id();
+}
+
+// @brief 等価故障グループの故障リストを返す．
+TpgFaultList
+DichoCandMgr::fault_list(
+  SizeType group_id
+) const
+{
+  _check_group_id(group_id);
+  auto& group = mCurGroupList[group_id];
   return group->fault_list();
+}
+
+// @brief 後続グループ番号のリスト返す．
+std::vector<SizeType>
+DichoCandMgr::succ_list(
+  SizeType group_id
+) const
+{
+  _check_group_id(group_id);
+  auto& group = mCurGroupList[group_id];
+  std::vector<SizeType> ans_list;
+  auto& src_list = group->succ_list();
+  ans_list.reserve(src_list.size());
+  for ( auto group1: src_list ) {
+    if ( group1->id() == group->id() ) {
+      // self-loop は記録しない．
+      continue;
+    }
+    ans_list.push_back(group1->id());
+  }
+  return ans_list;
+}
+
+// @brief 先行グループ番号のリスト返す．
+std::vector<SizeType>
+DichoCandMgr::prev_list(
+  SizeType group_id
+) const
+{
+  _check_group_id(group_id);
+  auto& group = mCurGroupList[group_id];
+  std::vector<SizeType> ans_list;
+  auto& src_list = group->prev_list();
+  ans_list.reserve(src_list.size());
+  for ( auto group1: src_list ) {
+    if ( group1->id() == group->id() ) {
+      // self-loop は記録しない．
+      continue;
+    }
+    ans_list.push_back(group1->id());
+  }
+  return ans_list;
+}
+
+// @brief 順序関係の要素数を返す．
+SizeType
+DichoCandMgr::domcand_num() const
+{
+  SizeType num = 0;
+  for ( auto& group: mCurGroupList ) {
+    num += group->succ_list().size();
+  }
+  return num;
 }
 
 // @brief mGroupMap を作る．
@@ -205,6 +277,9 @@ DichoCandMgr::_fix_group_map()
   for ( auto& group: mCurGroupList ) {
     for ( auto fault: group->fault_list() ) {
       mGroupMap[fault.id()] = group.get();
+    }
+    for ( auto succ_group: group->succ_list() ) {
+      succ_group->add_prev(group.get());
     }
   }
 }

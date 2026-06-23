@@ -25,7 +25,7 @@ EqDomCandMgr::new_dichotomy_mgr2(
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<EqDomCandMgr>{new DichoCandMgr2(fault_list)};
+  return std::unique_ptr<EqDomCandMgr>{new DichoCandMgr2(fault_list, option)};
 }
 
 
@@ -35,8 +35,9 @@ EqDomCandMgr::new_dichotomy_mgr2(
 
 // @brief コンストラクタ
 DichoCandMgr2::DichoCandMgr2(
-  const TpgFaultList& fault_list
-) : EqDomCandMgr(fault_list)
+  const TpgFaultList& fault_list,
+  const ConfigParam& option
+) : EqDomCandMgr(fault_list, option)
 {
   // 最初は１つのグループ
   auto group = new DichoGroup(0, fault_list);
@@ -110,13 +111,58 @@ DichoCandMgr2::end(
   return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, dom_list, reduce)};
 }
 
-// @brief 等価故障グループの候補を返す．
-TpgFaultList
-DichoCandMgr2::eqcand(
+// @brief 等価故障グループ数を返す．
+SizeType
+DichoCandMgr2::group_num() const
+{
+  return mCurGroupList.size();
+}
+
+// @brief 等価故障グループ番号を返す．
+SizeType
+DichoCandMgr2::group_id(
   const TpgFault& fault
 ) const
 {
+  return 0;
+}
+
+// @brief 等価故障グループの故障リストを返す．
+TpgFaultList
+DichoCandMgr2::fault_list(
+  SizeType group_id
+) const
+{
   return TpgFaultList();
+}
+
+// @brief 後続グループ番号のリスト返す．
+std::vector<SizeType>
+DichoCandMgr2::succ_list(
+  SizeType group_id
+) const
+{
+  return {};
+}
+
+// @brief 先行グループ番号のリスト返す．
+std::vector<SizeType>
+DichoCandMgr2::prev_list(
+  SizeType group_id
+) const
+{
+  return {};
+}
+
+// @brief 順序関係の要素数を返す．
+SizeType
+DichoCandMgr2::domcand_num() const
+{
+  SizeType num = 0;
+  for ( auto& group: mCurGroupList ) {
+    num += group->succ_list().size();
+  }
+  return num;
 }
 
 // @brief 内容を出力する．

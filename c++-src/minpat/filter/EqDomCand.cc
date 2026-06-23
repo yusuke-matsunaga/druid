@@ -23,35 +23,17 @@ EqDomCand::EqDomCand(
   const std::vector<TpgFaultList>& group_list,
   const DomPairList& dom_list,
   bool reduce
-) : mGroupList{group_list},
-    mDomListArray1(mGroupList.size()),
-    mDomListArray2(mGroupList.size())
+)
 {
-#if DEBUG
-  {
-    auto ng = mGroupList.size();
-    for ( SizeType id = 0; id < ng; ++ id ) {
-      std::cout << "Group#" << id << ":";
-      for ( auto f: group_list[id] ) {
-	std::cout << " " << f.str();
-      }
-      std::cout << std::endl;
-    }
-    for ( auto& p: dom_list ) {
-      auto g1 = group_list[p.first];
-      auto g2 = group_list[p.second];
-      std::cout << g1[0].str() << " -> " << g2[0].str()
-		<< " (" << p.first << ", " << p.second << ")" << std::endl;
-    }
-  }
-#endif
-  auto ng = mGroupList.size();
+  auto ng = group_list.size();
+  mGroupList.reserve(ng);
   for ( SizeType id = 0; id < ng; ++ id ) {
-    auto& fault_list = mGroupList[id];
+    auto fault_list = group_list[id];
     fault_list.sort();
     for ( auto fault: fault_list ) {
       mIdMap.emplace(fault.id(), id);
     }
+    mGroupList.push_back({fault_list});
   }
   if ( reduce ) {
     POSet::Builder builder;
@@ -70,8 +52,8 @@ EqDomCand::EqDomCand(
     for ( SizeType id1 = 0; id1 < ng; ++ id1 ) {
       auto id2_list = poset.imm_succ_list(id1);
       for ( auto id2: id2_list ) {
-	mDomListArray1[id1].push_back(id2);
-	mDomListArray2[id2].push_back(id1);
+	mGroupList[id1].mSuccList.push_back(id2);
+	mGroupList[id2].mPrevList.push_back(id1);
       }
     }
   }
@@ -85,27 +67,51 @@ EqDomCand::EqDomCand(
       if ( id2 >= ng ) {
 	throw std::out_of_range{"id2 is out of range"};
       }
-      mDomListArray1[id1].push_back(id2);
-      mDomListArray2[id2].push_back(id1);
+      mGroupList[id1].mSuccList.push_back(id2);
+      mGroupList[id2].mPrevList.push_back(id1);
     }
   }
   for ( SizeType id = 0; id < ng; ++ id ) {
-    auto& dom_list1 = mDomListArray1[id];
-    std::sort(dom_list1.begin(), dom_list1.end());
-    auto& dom_list2 = mDomListArray2[id];
-    std::sort(dom_list2.begin(), dom_list2.end());
+    auto& group = mGroupList[id];
+    auto& succ_list = group.mSuccList;
+    std::sort(succ_list.begin(), succ_list.end());
+    auto& prev_list = group.mPrevList;
+    std::sort(prev_list.begin(), prev_list.end());
   }
 }
 
 // @brief 支配故障の候補数を返す．
 SizeType
-EqDomCand::total_num() const
+EqDomCand::domcand_num() const
 {
   SizeType count = 0;
-  for ( auto& tmp: mDomListArray1 ) {
-    count += tmp.size();
+  for ( auto& group: mGroupList ) {
+    count += group.mSuccList.size();
   }
   return count;
+}
+
+// @brief 等価比較演算子
+bool
+EqDomCand::operator==(
+  const EqDomCand& right
+) const
+{
+  auto ng = mGroupList.size();
+  if ( right.mGroupList.size() != ng ) {
+    return false;
+  }
+  for ( SizeType g = 0; g < ng; ++ g ) {
+    auto& group1 = mGroupList[g];
+    auto& group2 = right.mGroupList[g];
+    if ( group1.mFaultList != group2.mFaultList ) {
+      return false;
+    }
+    if ( group1.mSuccList != group2.mSuccList ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // @brief 内容を出力する．
@@ -117,20 +123,22 @@ EqDomCand::print(
   for ( SizeType id = 0; id < mGroupList.size(); ++ id ) {
     auto& group = mGroupList[id];
     const char* spc = "";
-    for ( auto fault: group ) {
+    for ( auto fault: group.mFaultList ) {
       s << spc << fault.str();
       spc = " ";
     }
-    s << std::endl
-      << "  ==> ";
-    auto& dom_list = mDomListArray1[id];
-    const char* comma = "";
-    for ( auto id1: dom_list ) {
-      auto& group1 = mGroupList[id1];
-      s << comma << group1[0].str();
-      comma = ", ";
-    }
     s << std::endl;
+    auto& succ_list = group.mSuccList;
+    for ( auto id1: succ_list ) {
+      auto& group1 = mGroupList[id1];
+      const char* comma = "";
+      s << "  ==> ";
+      for ( auto fault: group1.mFaultList ) {
+	s << comma << fault.str();
+	comma = ", ";
+      }
+      s << std::endl;
+    }
   }
 }
 
@@ -171,35 +179,41 @@ EqDomCand::check(
   const EqDomCand& right
 ) const
 {
-  if ( mGroupList != right.mGroupList ) {
+  auto ng1 = mGroupList.size();
+  auto ng2 = right.mGroupList.size();
+  if ( ng1 != ng2 ) {
     std::cout << "mGroupList mismatch" << std::endl;
-    std::vector<TpgFaultList> group_list1;
-    std::vector<TpgFaultList> group_list2;
-    SizeType i1 = 0;
-    SizeType i2 = 0;
-    while ( i1 < mGroupList.size() && i2 < right.mGroupList.size() ) {
-      auto group1 = mGroupList[i1];
-      auto group2 = right.mGroupList[i2];
-      auto r = compare(group1, group2);
-      if ( r == 0 ) {
-	++ i1;
-	++ i2;
-      }
-      else if ( r < 0 ) {
-	++ i1;
-	group_list1.push_back(group1);
-      }
-      else {
-	++ i2;
-	group_list2.push_back(group2);
-      }
+  }
+  std::vector<TpgFaultList> group_list1;
+  std::vector<TpgFaultList> group_list2;
+  SizeType i1 = 0;
+  SizeType i2 = 0;
+  while ( i1 < ng1 && i2 < ng2 ) {
+    auto& group1 = mGroupList[i1];
+    auto& group2 = right.mGroupList[i2];
+    auto r = compare(group1.mFaultList, group2.mFaultList);
+    if ( r == 0 ) {
+      ++ i1;
+      ++ i2;
     }
-    for ( ; i1 < mGroupList.size(); ++ i1 ) {
-      group_list1.push_back(mGroupList[i1]);
+    else if ( r < 0 ) {
+      ++ i1;
+      group_list1.push_back(group1.mFaultList);
     }
-    for ( ; i2 < right.mGroupList.size(); ++ i2 ) {
-      group_list2.push_back(right.mGroupList[i2]);
+    else {
+      ++ i2;
+      group_list2.push_back(group2.mFaultList);
     }
+  }
+  for ( ; i1 < ng1; ++ i1 ) {
+    group_list1.push_back(mGroupList[i1].mFaultList);
+  }
+  for ( ; i2 < ng2; ++ i2 ) {
+    group_list2.push_back(right.mGroupList[i2].mFaultList);
+  }
+  bool error = false;
+  if ( !group_list1.empty() ) {
+    error = true;
     std::cout << "Only in the left" << std::endl;
     for ( auto& group: group_list1 ) {
       for ( auto f: group ) {
@@ -207,6 +221,9 @@ EqDomCand::check(
       }
       std::cout << std::endl;
     }
+  }
+  if ( !group_list2.empty() ) {
+    error = true;
     std::cout << "Only in the right" << std::endl;
     for ( auto& group: group_list2 ) {
       for ( auto f: group ) {
@@ -214,30 +231,33 @@ EqDomCand::check(
       }
       std::cout << std::endl;
     }
+  }
+  if ( error ) {
     return;
   }
-  auto ng = mGroupList.size();
-  for ( SizeType g = 0; g < ng; ++ g ) {
-    auto& dom_list1 = mDomListArray1[g];
-    auto& dom_list2 = right.mDomListArray1[g];
-    SizeType n1 = dom_list1.size();
-    SizeType n2 = dom_list2.size();
+
+  // この時点で ng1 == ng2 のはず
+  for ( SizeType g = 0; g < ng1; ++ g ) {
+    auto& succ_list1 = mGroupList[g].mSuccList;
+    auto& succ_list2 = right.mGroupList[g].mSuccList;
+    SizeType n1 = succ_list1.size();
+    SizeType n2 = succ_list2.size();
     SizeType i1 = 0;
     SizeType i2 = 0;
     while ( i1 < n1 && i2 < n2 ) {
-      auto g1 = dom_list1[i1];
-      auto g2 = dom_list2[i2];
+      auto g1 = succ_list1[i1];
+      auto g2 = succ_list2[i2];
       if ( g1 < g2 ) {
 	++ i1;
-	auto f1 = mGroupList[g][0];
-	auto f2 = mGroupList[g1][0];
+	auto f1 = mGroupList[g].mFaultList[0];
+	auto f2 = mGroupList[g1].mFaultList[0];
 	std::cout << "Only in the left" << std::endl;
 	std::cout << f1.str() << " ==> " << f2.str() << std::endl;
       }
       else if ( g1 > g2 ) {
 	++ i2;
-	auto f1 = mGroupList[g][0];
-	auto f2 = mGroupList[g2][0];
+	auto f1 = mGroupList[g].mFaultList[0];
+	auto f2 = mGroupList[g2].mFaultList[0];
 	std::cout << "Only in the right" << std::endl;
 	std::cout << f1.str() << " ==> " << f2.str() << std::endl;
       }
@@ -247,16 +267,16 @@ EqDomCand::check(
       }
     }
     for ( ; i1 < n1; ++ i1 ) {
-      auto g1 = dom_list1[i1];
-      auto f1 = mGroupList[g][0];
-      auto f2 = mGroupList[g1][0];
+      auto g1 = succ_list1[i1];
+      auto f1 = mGroupList[g].mFaultList[0];
+      auto f2 = mGroupList[g1].mFaultList[0];
       std::cout << "Only in the left" << std::endl;
       std::cout << f1.str() << " ==> " << f2.str() << std::endl;
     }
     for ( ; i2 < n2; ++ i2 ) {
-      auto g2 = dom_list2[i2];
-      auto f1 = mGroupList[g][0];
-      auto f2 = mGroupList[g2][0];
+      auto g2 = succ_list2[i2];
+      auto f1 = mGroupList[g].mFaultList[0];
+      auto f2 = mGroupList[g2].mFaultList[0];
       std::cout << "Only in the right" << std::endl;
       std::cout << f1.str() << " ==> " << f2.str() << std::endl;
     }

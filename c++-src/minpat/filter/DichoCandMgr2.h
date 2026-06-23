@@ -26,7 +26,8 @@ public:
 
   /// @brief コンストラクタ
   DichoCandMgr2(
-    const TpgFaultList& fault_list ///< [in] 対象の故障リスト
+    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
+    const ConfigParam& option       ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -50,11 +51,37 @@ private:
     bool reduce ///< [in] 推移簡約を行う時 true
   ) const override;
 
-  /// @brief 等価故障グループの候補を返す．
-  TpgFaultList
-  eqcand(
+  /// @brief 等価故障グループ数を返す．
+  SizeType
+  group_num() const override;
+
+  /// @brief 等価故障グループ番号を返す．
+  SizeType
+  group_id(
     const TpgFault& fault ///< [in] 対象の故障
   ) const override;
+
+  /// @brief 等価故障グループの故障リストを返す．
+  TpgFaultList
+  fault_list(
+    SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
+  ) const override;
+
+  /// @brief 後続グループ番号のリスト返す．
+  std::vector<SizeType>
+  succ_list(
+    SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
+  ) const override;
+
+  /// @brief 先行グループ番号のリスト返す．
+  std::vector<SizeType>
+  prev_list(
+    SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
+  ) const override;
+
+  /// @brief 順序関係の要素数を返す．
+  SizeType
+  domcand_num() const override;
 
 
 public:
