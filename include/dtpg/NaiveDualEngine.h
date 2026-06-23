@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "dtpg/StructEngine.h"
+#include "types/TpgFault.h"
 #include "misc/ConfigParam.h"
 
 
@@ -131,22 +132,28 @@ private:
   // 構造エンジン
   StructEngine mEngine;
 
-  // fault1 用のエンコーダー
+  // 故障1
+  TpgFault mFault1;
+
+  // 故障2
+  TpgFault mFault2;
+
+  // 故障1用のエンコーダー
   BoolDiffEnc* mEnc1;
 
-  // fault2 用のエンコーダー
+  // 故障2用のエンコーダー
   BoolDiffEnc* mEnc2;
 
-  // fault1 の検出条件
+  // 故障1の検出条件
   std::vector<SatLiteral> mDlits1;
 
-  // fault1 の非検出条件
+  // 故障1の非検出条件
   SatLiteral mClit1;
 
-  // fault2 の検出条件
+  // 故障2の検出条件
   std::vector<SatLiteral> mDlits2;
 
-  // fault2 の非検出条件
+  // 故障2の非検出条件
   SatLiteral mClit2;
 
 };
