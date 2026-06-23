@@ -20,6 +20,8 @@ NaiveDualEngine::NaiveDualEngine(
   const TpgFault& fault2,
   const ConfigParam& option
 ) : mEngine(fault1.network(), option),
+    mFault1{fault1},
+    mFault2{fault2},
     mEnc1{new BoolDiffEnc(fault1.ffr_root(), option)},
     mEnc2{new BoolDiffEnc(fault2.ffr_root(), option)}
 {
@@ -100,7 +102,10 @@ NaiveDualEngine::extract_sufficient_condition1(
 )
 {
   auto cond = mEnc1->extract_sufficient_condition(model, assign_list);
-  return cond;
+  auto main_cond = cond.main_cond();
+  main_cond.merge(mFault1.excitation_condition());
+  auto aux_cond = cond.aux_cond();
+  return SuffCond(main_cond, aux_cond);
 }
 
 // @brief SATの解から十分条件を得る．
@@ -112,7 +117,10 @@ NaiveDualEngine::extract_sufficient_condition1(
 )
 {
   auto cond = mEnc1->extract_sufficient_condition(pos, model, assign_list);
-  return cond;
+  auto main_cond = cond.main_cond();
+  main_cond.merge(mFault1.excitation_condition());
+  auto aux_cond = cond.aux_cond();
+  return SuffCond(main_cond, aux_cond);
 }
 
 // @brief SATの解から十分条件を得る．
@@ -123,7 +131,10 @@ NaiveDualEngine::extract_sufficient_condition2(
 )
 {
   auto cond = mEnc2->extract_sufficient_condition(model, assign_list);
-  return cond;
+  auto main_cond = cond.main_cond();
+  main_cond.merge(mFault2.excitation_condition());
+  auto aux_cond = cond.aux_cond();
+  return SuffCond(main_cond, aux_cond);
 }
 
 // @brief SATの解から十分条件を得る．
@@ -135,7 +146,10 @@ NaiveDualEngine::extract_sufficient_condition2(
 )
 {
   auto cond = mEnc2->extract_sufficient_condition(pos, model, assign_list);
-  return cond;
+  auto main_cond = cond.main_cond();
+  main_cond.merge(mFault2.excitation_condition());
+  auto aux_cond = cond.aux_cond();
+  return SuffCond(main_cond, aux_cond);
 }
 
 // @brief 与えられた割り当てを満足する外部入力の割り当てを求める．

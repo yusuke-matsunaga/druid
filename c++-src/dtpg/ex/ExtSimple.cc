@@ -39,24 +39,6 @@ ExtSimple::backtrace(
   dfs(output, false, mark);
 
   return SuffCond(mAssignList, {});
-#if 0
-  std::vector<std::vector<TpgNode>> choice_list;
-  std::vector<TpgNode> aux_side_inputs;
-  auto node_list = data.backtrace(output, choice_list, aux_side_inputs);
-  auto cnode_list = select_cnode(choice_list);
-  node_list.insert(node_list.end(), cnode_list.begin(), cnode_list.end());
-  // AssignList に変換する．
-  AssignList assign_list;
-  for ( auto& node: node_list ) {
-    auto bval = (data.gval(node) == Val3::_1);
-    assign_list.add(node, 1, bval);
-  }
-  for ( auto& node: aux_side_inputs ) {
-    auto bval = (data.gval(node) == Val3::_1);
-    assign_list.add(node, 1, bval);
-  }
-  return SuffCond(assign_list, AssignList());
-#endif
 }
 
 // @brief 深さ優先順で探索を行う．
@@ -81,6 +63,9 @@ ExtSimple::dfs(
 
   if ( node == mPropGraph->root() ) {
     // 起点に到達した．
+    if ( debug ) {
+      std::cout << " reached to the root" << std::endl;
+    }
     return;
   }
 
@@ -170,6 +155,10 @@ ExtSimple::dfs(
     mark.insert(node.id() * 2 + 0);
     auto bval = pg_node->gval();
     mAssignList.add(node, 1, bval);
+    if ( debug ) {
+      std::cout << "  Node#" << node.id()
+		<< " => " << bval << std::endl;
+    }
   }
 }
 
@@ -181,53 +170,5 @@ ExtSimple::get_node(
 {
   return mPropGraph->get_node(id);
 }
-
-#if 0
-// @brief 制御値を持つ side input を選ぶ．
-std::vector<TpgNode>
-ExtSimple::select_cnode(
-  const std::vector<std::vector<TpgNode>>& choice_list
-)
-{
-  // 出現回数を数える．
-  std::unordered_map<SizeType, SizeType> node_count;
-  for ( auto& cnode_list: choice_list ) {
-    for ( auto& cnode: cnode_list ) {
-      if ( node_count.count(cnode.id()) == 0 ) {
-	node_count.emplace(cnode.id(), 1);
-      }
-      else {
-	++ node_count.at(cnode.id());
-      }
-    }
-  }
-
-  // 出現回数の多い順に選択する．
-  std::vector<TpgNode> ans_list;
-  std::unordered_set<SizeType> selected;
-  for ( auto& cnode_list: choice_list ) {
-    SizeType max_count = 0;
-    TpgNode max_node;
-    bool done = false;
-    for ( auto& cnode: cnode_list ) {
-      if ( selected.count(cnode.id()) > 0 ) {
-	done = true;
-	break;
-      }
-      SizeType count = node_count.at(cnode.id());
-      if ( max_count < count ) {
-	max_count = count;
-	max_node = cnode;
-      }
-    }
-    if ( !done ) {
-      ans_list.push_back(max_node);
-      selected.emplace(max_node.id());
-    }
-  }
-
-  return ans_list;
-}
-#endif
 
 END_NAMESPACE_DRUID
