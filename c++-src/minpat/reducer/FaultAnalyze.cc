@@ -10,7 +10,6 @@
 #include "types/TpgFaultList.h"
 #include "FFRAnalyze.h"
 #include "MFFCAnalyze.h"
-#include "DomChecker.h"
 #include "Filter.h"
 #include "Reducer.h"
 #include "EqDomCand.h"
@@ -162,96 +161,8 @@ global_reduction(
   auto multi_thread = option.get_bool_elem("multi_thread", false);
   auto verbose = option.get_bool_elem("verbose", false);
 
-#if 0
-  auto fault_list_array = fault_info.rep_fault_list().ffr_split();
-  auto network = fault_info.network();
-
-  SizeType check_count = 0;
-  SizeType dom1_count = 0;
-  SizeType dom2_count = 0;
-
-  struct FFR_Pair {
-    TpgFFR ffr1;
-    TpgFFR ffr2;
-    SizeType intersect{0};
-    SizeType dom1_count{0};
-    SizeType dom2_count{0};
-  };
-
-  // FFR のペアのリストを求める．
-  std::vector<FFR_Pair> pair_list;
-  auto nffr = network.ffr_num();
-  pair_list.reserve( nffr * (nffr - 1) / 2 );
-  for ( SizeType i1 = 0; i1 < nffr - 1; ++ i1 ) {
-    auto ffr1 = network.ffr(i1);
-    for ( SizeType i2 = i1 + 1; i2 < nffr; ++ i2 ) {
-      auto ffr2 = network.ffr(i2);
-      pair_list.push_back({ffr1, ffr2});
-    }
-  }
-  SizeType npairs = pair_list.size();
-
-  if ( multi_thread ) {
-    SizeType thread_num = option.get_int_elem("thread_num", 0);
-    IdPool id_pool(npairs);
-    ExLock all_lock;
-    MtMgr::run(
-      [&](){
-	for ( ; ; ) {
-	  SizeType id;
-	  if ( !id_pool.get(id) ) {
-	    // 終わり
-	    break;
-	  }
-	  auto& p = pair_list[id];
-	  auto ffr1 = p.ffr1;
-	  auto id1 = ffr1.id();
-	  auto fault_list1 = update_fault_list(fault_list_array[id1],
-					       fault_info);
-	  auto ffr2 = p.ffr2;
-	  auto id2 = ffr2.id();
-	  auto fault_list2 = update_fault_list(fault_list_array[id2],
-					       fault_info);
-	  auto checker = DomChecker(ffr1, ffr2,
-				    fault_list1, fault_list2,
-				    option);
-	  all_lock.run([&]() {
-	    check_count += checker.check_count();
-	    dom1_count += checker.dom1_count();
-	    dom2_count += checker.dom2_count();
-	    checker.copy(fault_info);
-	    p.dom1_count = checker.dom1_count();
-	    p.dom2_count = checker.dom2_count();
-	  });
-	}
-      }, thread_num
-    );
-  }
-  else {
-    for ( auto& p: pair_list ) {
-      auto ffr1 = p.ffr1;
-      auto id1 = ffr1.id();
-      auto fault_list1 = update_fault_list(fault_list_array[id1],
-					   fault_info);
-      auto ffr2 = p.ffr2;
-      auto id2 = ffr2.id();
-      auto fault_list2 = update_fault_list(fault_list_array[id2],
-					   fault_info);
-      auto checker = DomChecker(ffr1, ffr2,
-				fault_list1, fault_list2,
-				option);
-      check_count += checker.check_count();
-      dom1_count += checker.dom1_count();
-      dom2_count += checker.dom2_count();
-      checker.copy(fault_info);
-      p.dom1_count = checker.dom1_count();
-      p.dom2_count = checker.dom2_count();
-    }
-  }
-#else
   auto reducer_option = option.get_param("reducer");
   Reducer::run(fault_info, reducer_option);
-#endif
 
   timer.stop();
   if ( verbose ) {

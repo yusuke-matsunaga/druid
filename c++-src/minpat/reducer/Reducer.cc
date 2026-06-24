@@ -9,8 +9,11 @@
 #include "Reducer.h"
 #include "EqDomCandMgr.h"
 #include "PatGen.h"
+#include "EqDomChecker.h"
 #include "dtpg/NaiveDualEngine.h"
-#include "dtpg/SuffCond.h"
+#include "ym/MtMgr.h"
+#include "ym/IdPool.h"
+#include "ym/ExLock.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -39,52 +42,6 @@ time_str(
   return time_str(timer.get_time());
 }
 
-// 等価故障のチェック結果を表す列挙型
-enum class EqCheck {
-  Unknown = 0, // 不明
-  Dom1 = 1,    // fault1 が fault2 を支配している．
-  Dom2 = 2     // fault2 が fault1 を支配している．
-};
-
-EqCheck
-check_equiv_sub(
-  const TpgFault& fault1,
-  const TpgFault& fault2,
-  std::vector<TestVector>& tv_list,
-  const ConfigParam& option
-)
-{
-  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
-
-  NaiveDualEngine engine(fault1, fault2, option);
-  auto res1 = engine.solve(true, false, TIME_LIMIT);
-  if ( res1 == SatBool3::False ) {
-    // fault2 は fault1 に支配されている．
-    return EqCheck::Dom1;
-  }
-  if ( res1 == SatBool3::True ) {
-    // この時の入力を求める．
-    auto model = engine.solver().model();
-    auto pi_assign = engine.get_pi_assign(model);
-    auto tv = TestVector(pi_assign);
-    tv_list.push_back(tv);
-  }
-
-  auto res2 = engine.solve(false, true, TIME_LIMIT);
-  if ( res2 == SatBool3::False ) {
-    // fault1 は fault2 に支配されている．
-    return EqCheck::Dom2;
-  }
-  if ( res2 == SatBool3::True ) {
-    // この時の入力を求める．
-    auto model = engine.solver().model();
-    auto pi_assign = engine.get_pi_assign(model);
-    auto tv = TestVector(pi_assign);
-    tv_list.push_back(tv);
-  }
-  return EqCheck::Unknown;
-}
-
 void
 check_equiv(
   EqDomCandMgr* candmgr,
@@ -92,6 +49,7 @@ check_equiv(
   const ConfigParam& option
 )
 {
+  auto multi_thread = option.get_bool_elem("multi_thread", false);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -99,58 +57,52 @@ check_equiv(
   SizeType success_count = 0;
   Timer timer;
   timer.start();
+
   for ( ; ; ) {
     auto ng = candmgr->group_num();
     bool changed = false;
-    for ( SizeType i = 0; i < ng; ++ i ) {
-      auto fault_list = candmgr->fault_list(i);
-      auto nf = fault_list.size();
-      if ( nf == 1 ) {
-	continue;
-      }
-
-      // とりあえずリファレンス用に単純なアルゴリズムを用いる．
-      for ( SizeType i1 = 0; i1 < nf - 1; ++ i1 ) {
-	auto fault1 = fault_list[i1];
-	if ( !fault_info.is_rep(fault1) ) {
-	  continue;
-	}
-	for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
-	  auto fault2 = fault_list[i2];
-	  if ( !fault_info.is_rep(fault2) ) {
-	    continue;
-	  }
-
-	  std::vector<TestVector> tv_list;
-	  tv_list.reserve(2);
-	  auto res = check_equiv_sub(fault1, fault2, tv_list, option);
-	  ++ check_count;
-	  if ( res == EqCheck::Dom1 ) {
-	    // fault2 は fault1 に支配されている．
-	    fault_info.set_dominator(fault2, fault1);
-	    ++ success_count;
-	    changed = true;
-	    continue;
-	  }
-	  if ( res == EqCheck::Dom2 ) {
-	    // fault1 は fault2 に支配されている．
-	    fault_info.set_dominator(fault1, fault2);
-	    ++ success_count;
-	    changed = true;
-	    break;
-	  }
-	  // ここに来たということは fault1 と fault2 の関係は不明
-	  if ( !tv_list.empty() ) {
-	    // 今求まったテストパタンで細分化する．
-	    if ( candmgr->subdivide(tv_list) ) {
-	      changed = true;
-	      goto exit_loop;
+    std::vector<TestVector> tv_list;
+    if ( multi_thread ) {
+      SizeType thread_num = option.get_int_elem("thread_num", 0);
+      IdPool id_pool(ng);
+      ExLock lock;
+      MtMgr::run(
+	[&]() {
+	  for ( ; ; ) {
+	    SizeType id;
+	    if ( !id_pool.get(id) ) {
+	      // 終わり
+	      break;
 	    }
+	    auto fault_list = candmgr->fault_list(id);
+	    EqDomChecker checker;
+	    auto changed1 = checker.check_equiv(fault_list, fault_info, option);
+	    lock.run([&]() {
+	      if ( changed1 ) {
+		changed = true;
+	      }
+	      checker.update_results(check_count, success_count, tv_list);
+	    });
 	  }
+	}, thread_num
+      );
+    }
+    else {
+      for ( SizeType i = 0; i < ng; ++ i ) {
+	auto fault_list = candmgr->fault_list(i);
+	EqDomChecker checker;
+	if ( checker.check_equiv(fault_list, fault_info, option) ) {
+	  changed = true;
 	}
+	checker.update_results(check_count, success_count, tv_list);
       }
     }
-  exit_loop:
+    if ( !tv_list.empty() ) {
+      // 反例を用いて細分化する．
+      if ( candmgr->subdivide(tv_list) ) {
+	changed = true;
+      }
+    }
     if ( !changed ) {
       break;
     }
