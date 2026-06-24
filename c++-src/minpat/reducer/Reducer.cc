@@ -39,6 +39,52 @@ time_str(
   return time_str(timer.get_time());
 }
 
+// 等価故障のチェック結果を表す列挙型
+enum class EqCheck {
+  Unknown = 0, // 不明
+  Dom1 = 1,    // fault1 が fault2 を支配している．
+  Dom2 = 2     // fault2 が fault1 を支配している．
+};
+
+EqCheck
+check_equiv_sub(
+  const TpgFault& fault1,
+  const TpgFault& fault2,
+  std::vector<TestVector>& tv_list,
+  const ConfigParam& option
+)
+{
+  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
+
+  NaiveDualEngine engine(fault1, fault2, option);
+  auto res1 = engine.solve(true, false, TIME_LIMIT);
+  if ( res1 == SatBool3::False ) {
+    // fault2 は fault1 に支配されている．
+    return EqCheck::Dom1;
+  }
+  if ( res1 == SatBool3::True ) {
+    // この時の入力を求める．
+    auto model = engine.solver().model();
+    auto pi_assign = engine.get_pi_assign(model);
+    auto tv = TestVector(pi_assign);
+    tv_list.push_back(tv);
+  }
+
+  auto res2 = engine.solve(false, true, TIME_LIMIT);
+  if ( res2 == SatBool3::False ) {
+    // fault1 は fault2 に支配されている．
+    return EqCheck::Dom2;
+  }
+  if ( res2 == SatBool3::True ) {
+    // この時の入力を求める．
+    auto model = engine.solver().model();
+    auto pi_assign = engine.get_pi_assign(model);
+    auto tv = TestVector(pi_assign);
+    tv_list.push_back(tv);
+  }
+  return EqCheck::Unknown;
+}
+
 void
 check_equiv(
   EqDomCandMgr* candmgr,
@@ -46,7 +92,6 @@ check_equiv(
   const ConfigParam& option
 )
 {
-  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -78,37 +123,21 @@ check_equiv(
 
 	  std::vector<TestVector> tv_list;
 	  tv_list.reserve(2);
-	  NaiveDualEngine engine(fault1, fault2, option);
+	  auto res = check_equiv_sub(fault1, fault2, tv_list, option);
 	  ++ check_count;
-	  auto res1 = engine.solve(true, false, TIME_LIMIT);
-	  if ( res1 == SatBool3::False ) {
+	  if ( res == EqCheck::Dom1 ) {
 	    // fault2 は fault1 に支配されている．
 	    fault_info.set_dominator(fault2, fault1);
 	    ++ success_count;
 	    changed = true;
 	    continue;
 	  }
-	  if ( res1 == SatBool3::True ) {
-	    // この時の入力を求める．
-	    auto model = engine.solver().model();
-	    auto pi_assign = engine.get_pi_assign(model);
-	    auto tv = TestVector(pi_assign);
-	    tv_list.push_back(tv);
-	  }
-	  auto res2 = engine.solve(false, true, TIME_LIMIT);
-	  if ( res2 == SatBool3::False ) {
+	  if ( res == EqCheck::Dom2 ) {
 	    // fault1 は fault2 に支配されている．
 	    fault_info.set_dominator(fault1, fault2);
 	    ++ success_count;
 	    changed = true;
 	    break;
-	  }
-	  if ( res2 == SatBool3::True ) {
-	    // この時の入力を求める．
-	    auto model = engine.solver().model();
-	    auto pi_assign = engine.get_pi_assign(model);
-	    auto tv = TestVector(pi_assign);
-	    tv_list.push_back(tv);
 	  }
 	  // ここに来たということは fault1 と fault2 の関係は不明
 	  if ( !tv_list.empty() ) {
@@ -141,6 +170,52 @@ check_equiv(
 	      << "CPU time:                 " << time_str(timer) << std::endl;
 
   }
+
+#if 0
+  for ( SizeType i = 0; i < candmgr->group_num(); ++ i ) {
+    auto fault_list = candmgr->fault_list(i);
+    TpgFaultList tmp_list;
+    tmp_list.reserve(fault_list.size());
+    for ( auto fault: fault_list ) {
+      if ( fault_info.is_rep(fault) ) {
+	tmp_list.push_back(fault);
+      }
+    }
+    if ( tmp_list.empty() ) {
+      continue;
+    }
+    std::cout << "Group#" << i << ":";
+    for ( auto fault: tmp_list ) {
+      std::cout << " " << fault.str();
+    }
+    std::cout << std::endl;
+  }
+#endif
+}
+
+bool
+check_dominance_sub(
+  const TpgFault& fault1,
+  const TpgFault& fault2,
+  std::vector<TestVector>& tv_list,
+  const ConfigParam& option
+)
+{
+  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
+
+  NaiveDualEngine engine(fault1, fault2, option);
+  auto res = engine.solve(true, false, TIME_LIMIT);
+  if ( res == SatBool3::False ) {
+    return true;
+  }
+  if ( res == SatBool3::True ) {
+    // この時の入力を求める．
+    auto model = engine.solver().model();
+    auto pi_assign = engine.get_pi_assign(model);
+    auto tv = TestVector(pi_assign);
+    tv_list.push_back(tv);
+  }
+  return false;
 }
 
 void
@@ -150,7 +225,6 @@ check_dominance(
   const ConfigParam& option
 )
 {
-  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -178,10 +252,9 @@ check_dominance(
 
 	  std::vector<TestVector> tv_list;
 	  tv_list.reserve(1);
-	  NaiveDualEngine engine(fault1, fault2, option);
-	  auto res = engine.solve(true, false, TIME_LIMIT);
+	  auto res = check_dominance_sub(fault1, fault2, tv_list, option);
 	  ++ check_count;
-	  if ( res == SatBool3::False ) {
+	  if ( res ) {
 	    fault_info.set_dominator(fault2, fault1);
 	    ++ succ_count;
 	    done = true;
@@ -191,13 +264,6 @@ check_dominance(
 			<< fault1.str() << std::endl;
 	    }
 	    break;
-	  }
-	  if ( res == SatBool3::True ) {
-	    // この時の入力を求める．
-	    auto model = engine.solver().model();
-	    auto pi_assign = engine.get_pi_assign(model);
-	    auto tv = TestVector(pi_assign);
-	    tv_list.push_back(tv);
 	  }
 	  // ここに来たということは fault1 と fault2 の関係は不明
 	  if ( !tv_list.empty() ) {
@@ -247,7 +313,6 @@ Reducer::run(
   // パラメータの取得
   SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
   SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
-  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -261,11 +326,6 @@ Reducer::run(
   // 等価故障/支配故障の候補を管理するオブジェクト
   auto candmgr_option = option.get_param("candmgr");
   auto candmgr = EqDomCandMgr::new_obj(fault_list, candmgr_option);
-
-#if 0
-  auto network = fault_info.network();
-  auto max_size = network.max_fault_id();
-#endif
 
   Timer filter_timer;
   filter_timer.start();

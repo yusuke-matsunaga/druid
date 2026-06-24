@@ -47,6 +47,7 @@ analyze_test(
   bool mffc_reduction = false;
   bool multi_thread = false;
   bool global_reduction = false;
+  int no_change_limit = 0;
   bool dump = false;
   bool verify = false;
   bool verbose = false;
@@ -60,112 +61,119 @@ analyze_test(
 
   int pos = 1;
   for ( ; pos < argc; ++ pos) {
-    if ( argv[pos][0] == '-' ) {
-      auto arg = std::string(argv[pos]);
-      if ( arg == "--sat_type" ) {
-	++ pos;
-	if ( pos < argc ) {
-	  sat_type = argv[pos];
-	}
-	else {
-	  std::cerr << "--sat_type requires <string> argument"
-		    << std::endl;
-	  return -1;
-	}
-      }
-      else if ( arg == "--blif" ) {
-	format = "blif";
-      }
-      else if ( strcmp(argv[pos], "--iscas89") == 0 ) {
-	format = "iscas89";
-      }
-      else if ( arg == "--stuck-at" ) {
-	if ( td_mode ) {
-	  std::cerr << "--stuck-at and --transition-delay are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	sa_mode = true;
-      }
-      else if ( arg == "--transition-delay" ) {
-	if ( td_mode ) {
-	  std::cerr << "--stuck-at and --transition-delay are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	td_mode = true;
-      }
-      else if ( arg == "--just_naive" ) {
-	if ( !just_type.empty() ) {
-	  std::cerr << "--just_naive and " << just_type << " are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	just_type = "naive";
-      }
-      else if ( strcmp(argv[pos], "--just1") == 0 ) {
-	if ( !just_type.empty() ) {
-	  std::cerr << "--just1 and " << just_type << " are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	just_type = "just1";
-      }
-      else if ( strcmp(argv[pos], "--just2") == 0 ) {
-	if ( !just_type.empty() ) {
-	  std::cerr << "--just2 and " << just_type << " are mutually exclusive"
-		    << std::endl;
-	  return -1;
-	}
-	just_type = "just2";
-      }
-      else if ( arg == "--multi-thread" ) {
-	multi_thread = true;
-      }
-      else if ( arg == "--ffr-reduction" ) {
-	ffr_reduction = true;
-      }
-      else if ( arg == "--mffc-reduction" ) {
-	mffc_reduction = true;
-      }
-      else if ( arg == "--global-reduction" ) {
-	global_reduction = true;
-      }
-      else if ( arg == "--dump" ) {
-	dump = true;
-      }
-      else if ( arg == "--verify" ) {
-	verify = true;
-      }
-      else if ( arg == "--verbose" ) {
-	verbose = true;
-      }
-      else if ( arg == "--debug" ) {
-	++ debug;
-      }
-      else if ( arg == "--dom-dump" ) {
-	dom_dump = true;
-      }
-      else if ( arg == "--sat_log" ) {
-	++ pos;
-	if ( pos < argc ) {
-	  sat_log = argv[pos];
-	}
-	else {
-	  std::cerr << "--sat_log requires <string> argument"
-		    << std::endl;
-	  return -1;
-	}
+    if ( argv[pos][0] != '-' ) {
+      break;
+    }
+    auto arg = std::string(argv[pos]);
+    if ( arg == "--sat_type" ) {
+      ++ pos;
+      if ( pos < argc ) {
+	sat_type = argv[pos];
       }
       else {
-	std::cerr << argv[pos] << ": illegal option"
+	std::cerr << "--sat_type requires <string> argument"
 		  << std::endl;
-	usage();
+	return -1;
+      }
+    }
+    else if ( arg == "--blif" ) {
+      format = "blif";
+    }
+    else if ( strcmp(argv[pos], "--iscas89") == 0 ) {
+      format = "iscas89";
+    }
+    else if ( arg == "--stuck-at" ) {
+      if ( td_mode ) {
+	std::cerr << "--stuck-at and --transition-delay are mutually exclusive"
+		  << std::endl;
+	return -1;
+      }
+      sa_mode = true;
+    }
+    else if ( arg == "--transition-delay" ) {
+      if ( td_mode ) {
+	std::cerr << "--stuck-at and --transition-delay are mutually exclusive"
+		  << std::endl;
+	return -1;
+      }
+      td_mode = true;
+    }
+    else if ( arg == "--just_naive" ) {
+      if ( !just_type.empty() ) {
+	std::cerr << "--just_naive and " << just_type << " are mutually exclusive"
+		  << std::endl;
+	return -1;
+      }
+      just_type = "naive";
+    }
+    else if ( strcmp(argv[pos], "--just1") == 0 ) {
+      if ( !just_type.empty() ) {
+	std::cerr << "--just1 and " << just_type << " are mutually exclusive"
+		  << std::endl;
+	return -1;
+      }
+      just_type = "just1";
+    }
+    else if ( strcmp(argv[pos], "--just2") == 0 ) {
+      if ( !just_type.empty() ) {
+	std::cerr << "--just2 and " << just_type << " are mutually exclusive"
+		  << std::endl;
+	return -1;
+      }
+      just_type = "just2";
+    }
+    else if ( arg == "--multi-thread" ) {
+      multi_thread = true;
+    }
+    else if ( arg == "--ffr-reduction" ) {
+      ffr_reduction = true;
+    }
+    else if ( arg == "--mffc-reduction" ) {
+      mffc_reduction = true;
+    }
+    else if ( arg == "--global-reduction" ) {
+      global_reduction = true;
+    }
+    else if ( arg == "--no-change-limit" ) {
+      ++ pos;
+      if ( pos >= argc ) {
+	std::cerr << "'--no-change-limit' requires <int> value";
+	return 2;
+      }
+      std::string val = argv[pos];
+      no_change_limit = stoi(val);
+    }
+    else if ( arg == "--dump" ) {
+      dump = true;
+    }
+    else if ( arg == "--verify" ) {
+      verify = true;
+    }
+    else if ( arg == "--verbose" ) {
+      verbose = true;
+    }
+    else if ( arg == "--debug" ) {
+      ++ debug;
+    }
+    else if ( arg == "--dom-dump" ) {
+      dom_dump = true;
+    }
+    else if ( arg == "--sat_log" ) {
+      ++ pos;
+      if ( pos < argc ) {
+	sat_log = argv[pos];
+      }
+      else {
+	std::cerr << "--sat_log requires <string> argument"
+		  << std::endl;
 	return -1;
       }
     }
     else {
-      break;
+      std::cerr << argv[pos] << ": illegal option"
+		<< std::endl;
+      usage();
+      return -1;
     }
   }
 
@@ -214,6 +222,7 @@ analyze_test(
   global_option.add("ffr_reduction", ffr_reduction);
   global_option.add("mffc_reduction", mffc_reduction);
   global_option.add("global_reduction", global_reduction);
+  global_option.add("no_change_limit", no_change_limit);
   global_option.add("debug", debug);
   global_option.add("verbose", verbose);
   auto option = JsonValue::object();
