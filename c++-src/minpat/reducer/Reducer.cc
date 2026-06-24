@@ -43,6 +43,37 @@ time_str(
 }
 
 void
+print_candmgr(
+  const EqDomCandMgr* candmgr,
+  const FaultInfo& fault_info
+)
+{
+  SizeType act_num = 0;
+  for ( SizeType i = 0; i < candmgr->group_num(); ++ i ) {
+    auto fault_list = candmgr->fault_list(i);
+    TpgFaultList tmp_list;
+    tmp_list.reserve(fault_list.size());
+    for ( auto fault: fault_list ) {
+      if ( fault_info.is_rep(fault) ) {
+	tmp_list.push_back(fault);
+      }
+    }
+    if ( tmp_list.size() == 0 ) {
+      continue;
+    }
+    ++ act_num;
+    if ( tmp_list.size() > 1 ) {
+      std::cout << "Group#" << i << ":";
+      for ( auto fault: tmp_list ) {
+	std::cout << " " << fault.str();
+      }
+      std::cout << std::endl;
+    }
+  }
+  std::cout << "Total " << act_num << " groups" << std::endl;
+}
+
+void
 check_equiv(
   EqDomCandMgr* candmgr,
   FaultInfo& fault_info,
@@ -123,25 +154,8 @@ check_equiv(
 
   }
 
-#if 0
-  for ( SizeType i = 0; i < candmgr->group_num(); ++ i ) {
-    auto fault_list = candmgr->fault_list(i);
-    TpgFaultList tmp_list;
-    tmp_list.reserve(fault_list.size());
-    for ( auto fault: fault_list ) {
-      if ( fault_info.is_rep(fault) ) {
-	tmp_list.push_back(fault);
-      }
-    }
-    if ( tmp_list.empty() ) {
-      continue;
-    }
-    std::cout << "Group#" << i << ":";
-    for ( auto fault: tmp_list ) {
-      std::cout << " " << fault.str();
-    }
-    std::cout << std::endl;
-  }
+#if 1
+  print_candmgr(candmgr, fault_info);
 #endif
 }
 
@@ -170,6 +184,25 @@ check_dominance_sub(
   return false;
 }
 
+// 支配故障の候補を１つ取り出す．
+TpgFault
+get_dom_fault(
+  const TpgFault& fault,
+  EqDomCandMgr* candmgr,
+  const FaultInfo& fault_info
+)
+{
+  auto id = candmgr->group_id(fault);
+  for ( auto id1: candmgr->prev_list(id) ) {
+    for ( auto fault1: candmgr->fault_list(id1) ) {
+      if ( fault_info.is_rep(fault1) ) {
+	return fault1;
+      }
+    }
+  }
+  return TpgFault();
+}
+
 void
 check_dominance(
   EqDomCandMgr* candmgr,
@@ -177,6 +210,7 @@ check_dominance(
   const ConfigParam& option
 )
 {
+  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -192,46 +226,33 @@ check_dominance(
       if ( !fault_info.is_rep(fault2) ) {
 	continue;
       }
-      auto id2 = candmgr->group_id(fault2);
-      auto prev_list = candmgr->prev_list(id2);
-      bool done = false;
-      for ( auto id1: prev_list ) {
-	auto fault_list1 = candmgr->fault_list(id1);
-	for ( auto fault1: fault_list1 ) {
-	  if ( !fault_info.is_rep(fault1) ) {
-	    continue;
-	  }
+      auto dom_fault = get_dom_fault(fault2, candmgr, fault_info);
+      if ( !dom_fault.is_valid() ) {
+	continue;
+      }
 
-	  std::vector<TestVector> tv_list;
-	  tv_list.reserve(1);
-	  auto res = check_dominance_sub(fault1, fault2, tv_list, option);
-	  ++ check_count;
-	  if ( res ) {
-	    fault_info.set_dominator(fault2, fault1);
-	    ++ succ_count;
-	    done = true;
-	    if ( debug > 0 ) {
-	      std::cout << "    "
-			<< fault2.str() << " is dominated by "
-			<< fault1.str() << std::endl;
-	    }
-	    break;
-	  }
-	  // ここに来たということは fault1 と fault2 の関係は不明
-	  if ( !tv_list.empty() ) {
-	    // 今求まったテストパタンで細分化する．
-	    changed = candmgr->subdivide(tv_list);
-	    if ( changed ) {
-	      goto exit_loop;
-	    }
-	  }
+      NaiveDualEngine engine(dom_fault, fault2, option);
+      auto res = engine.solve(true, false, TIME_LIMIT);
+      ++ check_count;
+      if ( res == SatBool3::False ) {
+	fault_info.set_dominator(fault2, dom_fault);
+	++ succ_count;
+	changed = true;
+	continue;
+      }
+      if ( res == SatBool3::True ) {
+	// この時の入力を求める．
+	auto model = engine.solver().model();
+	auto pi_assign = engine.get_pi_assign(model);
+	auto tv = TestVector(pi_assign);
+	std::vector<TestVector> tv_list{tv};
+	// 反例を用いて細分化する．
+	if ( candmgr->subdivide(tv_list) ) {
+	  changed = true;
 	}
-	if ( done ) {
-	  break;
-	}
+	break;
       }
     }
-  exit_loop:
     if ( !changed ) {
       break;
     }

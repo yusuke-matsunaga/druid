@@ -95,7 +95,7 @@ EqDomChecker::check_equiv(
 bool
 EqDomChecker::check_dominance(
   const TpgFault& fault,
-  const TpgFaultList& dom_list,
+  const TpgFault& dom_fault,
   FaultInfo& fault_info,
   const ConfigParam& option
 )
@@ -106,28 +106,22 @@ EqDomChecker::check_dominance(
   mSuccessCount = 0;
   mTvList.clear();
 
-  for ( auto dom_fault: dom_list ) {
-    if ( !fault_info.is_rep(dom_fault) ) {
-      continue;
-    }
-
-    NaiveDualEngine engine(dom_fault, fault, option);
-    auto res = engine.solve(true, false, TIME_LIMIT);
-    ++ mCheckCount;
-    if ( res == SatBool3::False ) {
-      fault_info.set_dominator(fault, dom_fault);
-      ++ mSuccessCount;
-      return true;
-    }
-    if ( res == SatBool3::True ) {
-      // この時の入力を求める．
-      auto model = engine.solver().model();
-      auto pi_assign = engine.get_pi_assign(model);
-      auto tv = TestVector(pi_assign);
-      mTvList.push_back(tv);
-    }
-    return false;
+  NaiveDualEngine engine(dom_fault, fault, option);
+  auto res = engine.solve(true, false, TIME_LIMIT);
+  ++ mCheckCount;
+  if ( res == SatBool3::False ) {
+    fault_info.set_dominator(fault, dom_fault);
+    ++ mSuccessCount;
+    return true;
   }
+  if ( res == SatBool3::True ) {
+    // この時の入力を求める．
+    auto model = engine.solver().model();
+    auto pi_assign = engine.get_pi_assign(model);
+    auto tv = TestVector(pi_assign);
+    mTvList.push_back(tv);
+  }
+  return false;
 }
 
 END_NAMESPACE_DRUID

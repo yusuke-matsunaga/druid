@@ -51,10 +51,10 @@ public:
   /// @return 変化があったら true を返す．
   bool
   check_dominance(
-    const TpgFault& fault,        ///< [in] 対象の故障
-    const TpgFaultList& dom_list, ///< [in] 支配故障の候補リスト
-    FaultInfo& fault_info,        ///< [in] 故障の情報
-    const ConfigParam& option     ///< [in] オプション
+    const TpgFault& fault,     ///< [in] 対象の故障
+    const TpgFault& dom_fault, ///< [in] 支配故障の候補
+    FaultInfo& fault_info,     ///< [in] 故障の情報
+    const ConfigParam& option  ///< [in] オプション
   );
 
   /// @brief 結果の情報を更新する．
