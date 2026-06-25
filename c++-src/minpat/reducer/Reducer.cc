@@ -71,6 +71,7 @@ check_equiv(
 )
 {
   auto multi_thread = option.get_bool_elem("multi_thread", false);
+  SizeType thread_num = option.get_int_elem("thread_num", 0);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -84,7 +85,6 @@ check_equiv(
     bool changed = false;
     std::vector<TestVector> tv_list;
     if ( multi_thread ) {
-      SizeType thread_num = option.get_int_elem("thread_num", 0);
       IdPool id_pool(ng);
       ExLock lock;
       MtMgr::run(
@@ -114,6 +114,9 @@ check_equiv(
 	  changed = true;
 	}
 	checker.update_results(check_count, success_count, tv_list);
+	if ( !tv_list.empty() ) {
+	  break;
+	}
       }
     }
     if ( !tv_list.empty() ) {
@@ -154,6 +157,8 @@ check_dominance(
   const ConfigParam& option
 )
 {
+  auto multi_thread = option.get_bool_elem("multi_thread", false);
+  SizeType thread_num = option.get_int_elem("thread_num", 0);
   SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
@@ -166,17 +171,52 @@ check_dominance(
   for ( ; ; ) {
     bool changed = false;
     std::vector<TestVector> tv_list;
-    for ( auto fault2: candmgr->fault_list() ) {
-      if ( !candmgr->is_rep(fault2) ) {
-	continue;
-      }
-      EqDomChecker checker;
-      if ( checker.check_dominance(candmgr, fault2, option) ) {
-	changed = true;
-      }
-      checker.update_results(check_count, succ_count, tv_list);
-      if ( !tv_list.empty() ) {
-	break;
+    auto fault_list = candmgr->fault_list();
+    if ( multi_thread ) {
+      auto nf = fault_list.size();
+      SizeType thread_num = option.get_int_elem("thread_num", 0);
+      IdPool id_pool(nf);
+      ExLock lock;
+      MtMgr::run(
+	[&]() {
+	  for ( ; ; ) {
+	    SizeType id;
+	    if ( !id_pool.get(id) ) {
+	      // 終わり
+	      break;
+	    }
+	    auto fault = fault_list[id];
+	    if ( !candmgr->is_rep(fault) ) {
+	      continue;
+	    }
+	    EqDomChecker checker;
+	    auto changed1 = checker.check_dominance(candmgr, fault, option);
+	    lock.run([&]() {
+	      if ( changed1 ) {
+		changed = true;
+	      }
+	      checker.update_results(check_count, succ_count, tv_list);
+	    });
+	    if ( checker.has_tv() ) {
+	      break;
+	    }
+	  }
+	}, thread_num
+      );
+    }
+    else {
+      for ( auto fault2: fault_list ) {
+	if ( !candmgr->is_rep(fault2) ) {
+	  continue;
+	}
+	EqDomChecker checker;
+	if ( checker.check_dominance(candmgr, fault2, option) ) {
+	  changed = true;
+	}
+	checker.update_results(check_count, succ_count, tv_list);
+	if ( checker.has_tv() ) {
+	  break;
+	}
       }
     }
     if ( !tv_list.empty() ) {
