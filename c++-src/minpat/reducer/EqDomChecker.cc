@@ -19,8 +19,8 @@ BEGIN_NAMESPACE_DRUID
 // @brief 等価故障のチェックを行う．
 bool
 EqDomChecker::check_equiv(
-  const TpgFaultList& fault_list,
-  FaultInfo& fault_info,
+  EqDomMgr* mgr,
+  SizeType group_id,
   const ConfigParam& option
 )
 {
@@ -28,8 +28,9 @@ EqDomChecker::check_equiv(
   mSuccessCount = 0;
   mTvList.clear();
 
+  auto fault_list = mgr->fault_list(group_id);
   auto nf = fault_list.size();
-  if ( nf == 1 ) {
+  if ( nf <= 1 ) {
     return false;
   }
 
@@ -39,12 +40,12 @@ EqDomChecker::check_equiv(
   bool changed = false;
   for ( SizeType i1 = 0; i1 < nf - 1; ++ i1 ) {
     auto fault1 = fault_list[i1];
-    if ( !fault_info.is_rep(fault1) ) {
+    if ( !mgr->is_rep(fault1) ) {
       continue;
     }
     for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
       auto fault2 = fault_list[i2];
-      if ( !fault_info.is_rep(fault2) ) {
+      if ( !mgr->is_rep(fault2) ) {
 	continue;
       }
 
@@ -53,7 +54,7 @@ EqDomChecker::check_equiv(
       ++ mCheckCount;
       if ( res1 == SatBool3::False ) {
 	// fault2 は fault1 に支配されている．
-	fault_info.set_dominator(fault2, fault1);
+	mgr->set_rep(fault2, fault1);
 	++ mSuccessCount;
 	changed = true;
 	continue;
@@ -69,7 +70,7 @@ EqDomChecker::check_equiv(
       auto res2 = engine.solve(false, true, TIME_LIMIT);
       if ( res2 == SatBool3::False ) {
 	// fault1 は fault2 に支配されている．
-	fault_info.set_dominator(fault1, fault2);
+	mgr->set_rep(fault1, fault2);
 	++ mSuccessCount;
 	changed = true;
 	break;
@@ -94,9 +95,8 @@ EqDomChecker::check_equiv(
 // @brief 支配故障のチェックを行う．
 bool
 EqDomChecker::check_dominance(
+  EqDomMgr* mgr,
   const TpgFault& fault,
-  const TpgFault& dom_fault,
-  FaultInfo& fault_info,
   const ConfigParam& option
 )
 {
@@ -106,11 +106,24 @@ EqDomChecker::check_dominance(
   mSuccessCount = 0;
   mTvList.clear();
 
+  // 支配故障の候補を一つ取り出す．
+  TpgFault dom_fault;
+  auto id = mgr->group_id(fault);
+  for ( auto id1: mgr->prev_list(id) ) {
+    for ( auto fault1: mgr->fault_list(id1) ) {
+      dom_fault = fault1;
+      break;
+    }
+  }
+  if ( !dom_fault.is_valid() ) {
+    return false;
+  }
+
   NaiveDualEngine engine(dom_fault, fault, option);
   auto res = engine.solve(true, false, TIME_LIMIT);
   ++ mCheckCount;
   if ( res == SatBool3::False ) {
-    fault_info.set_dominator(fault, dom_fault);
+    mgr->set_rep(fault, dom_fault);
     ++ mSuccessCount;
     return true;
   }

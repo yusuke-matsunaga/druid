@@ -10,7 +10,6 @@
 #include "EqDomMgr.h"
 #include "PatGen.h"
 #include "EqDomChecker.h"
-#include "dtpg/NaiveDualEngine.h"
 #include "ym/MtMgr.h"
 #include "ym/IdPool.h"
 #include "ym/ExLock.h"
@@ -44,27 +43,19 @@ time_str(
 
 void
 print_candmgr(
-  const EqDomMgr* candmgr,
-  const FaultInfo& fault_info
+  const EqDomMgr* candmgr
 )
 {
   SizeType act_num = 0;
   for ( SizeType i = 0; i < candmgr->group_num(); ++ i ) {
     auto fault_list = candmgr->fault_list(i);
-    TpgFaultList tmp_list;
-    tmp_list.reserve(fault_list.size());
-    for ( auto fault: fault_list ) {
-      if ( fault_info.is_rep(fault) ) {
-	tmp_list.push_back(fault);
-      }
-    }
-    if ( tmp_list.size() == 0 ) {
+    if ( fault_list.size() == 0 ) {
       continue;
     }
     ++ act_num;
-    if ( tmp_list.size() > 1 ) {
+    if ( fault_list.size() > 1 ) {
       std::cout << "Group#" << i << ":";
-      for ( auto fault: tmp_list ) {
+      for ( auto fault: fault_list ) {
 	std::cout << " " << fault.str();
       }
       std::cout << std::endl;
@@ -76,7 +67,6 @@ print_candmgr(
 void
 check_equiv(
   EqDomMgr* candmgr,
-  FaultInfo& fault_info,
   const ConfigParam& option
 )
 {
@@ -105,9 +95,8 @@ check_equiv(
 	      // 終わり
 	      break;
 	    }
-	    auto fault_list = candmgr->fault_list(id);
 	    EqDomChecker checker;
-	    auto changed1 = checker.check_equiv(fault_list, fault_info, option);
+	    auto changed1 = checker.check_equiv(candmgr, id, option);
 	    lock.run([&]() {
 	      if ( changed1 ) {
 		changed = true;
@@ -120,9 +109,8 @@ check_equiv(
     }
     else {
       for ( SizeType i = 0; i < ng; ++ i ) {
-	auto fault_list = candmgr->fault_list(i);
 	EqDomChecker checker;
-	if ( checker.check_equiv(fault_list, fault_info, option) ) {
+	if ( checker.check_equiv(candmgr, i, option) ) {
 	  changed = true;
 	}
 	checker.update_results(check_count, success_count, tv_list);
@@ -141,7 +129,12 @@ check_equiv(
   timer.stop();
 
   if ( verbose ) {
-    auto rep_num = fault_info.rep_fault_list().size();
+    auto rep_num = 0;
+    for ( auto fault: candmgr->fault_list() ) {
+      if ( candmgr->is_rep(fault) ) {
+	++ rep_num;
+      }
+    }
     std::cout << std::endl
 	      << "Equivalence check end:    " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right
@@ -153,60 +146,11 @@ check_equiv(
 	      << "CPU time:                 " << time_str(timer) << std::endl;
 
   }
-
-#if 1
-  print_candmgr(candmgr, fault_info);
-#endif
-}
-
-bool
-check_dominance_sub(
-  const TpgFault& fault1,
-  const TpgFault& fault2,
-  std::vector<TestVector>& tv_list,
-  const ConfigParam& option
-)
-{
-  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
-
-  NaiveDualEngine engine(fault1, fault2, option);
-  auto res = engine.solve(true, false, TIME_LIMIT);
-  if ( res == SatBool3::False ) {
-    return true;
-  }
-  if ( res == SatBool3::True ) {
-    // この時の入力を求める．
-    auto model = engine.solver().model();
-    auto pi_assign = engine.get_pi_assign(model);
-    auto tv = TestVector(pi_assign);
-    tv_list.push_back(tv);
-  }
-  return false;
-}
-
-// 支配故障の候補を１つ取り出す．
-TpgFault
-get_dom_fault(
-  const TpgFault& fault,
-  EqDomMgr* candmgr,
-  const FaultInfo& fault_info
-)
-{
-  auto id = candmgr->group_id(fault);
-  for ( auto id1: candmgr->prev_list(id) ) {
-    for ( auto fault1: candmgr->fault_list(id1) ) {
-      if ( fault_info.is_rep(fault1) ) {
-	return fault1;
-      }
-    }
-  }
-  return TpgFault();
 }
 
 void
 check_dominance(
   EqDomMgr* candmgr,
-  FaultInfo& fault_info,
   const ConfigParam& option
 )
 {
@@ -221,36 +165,24 @@ check_dominance(
 
   for ( ; ; ) {
     bool changed = false;
-    auto fault_list = fault_info.rep_fault_list();
-    for ( auto fault2: fault_list ) {
-      if ( !fault_info.is_rep(fault2) ) {
+    std::vector<TestVector> tv_list;
+    for ( auto fault2: candmgr->fault_list() ) {
+      if ( !candmgr->is_rep(fault2) ) {
 	continue;
       }
-      auto dom_fault = get_dom_fault(fault2, candmgr, fault_info);
-      if ( !dom_fault.is_valid() ) {
-	continue;
-      }
-
-      NaiveDualEngine engine(dom_fault, fault2, option);
-      auto res = engine.solve(true, false, TIME_LIMIT);
-      ++ check_count;
-      if ( res == SatBool3::False ) {
-	fault_info.set_dominator(fault2, dom_fault);
-	++ succ_count;
+      EqDomChecker checker;
+      if ( checker.check_dominance(candmgr, fault2, option) ) {
 	changed = true;
-	continue;
       }
-      if ( res == SatBool3::True ) {
-	// この時の入力を求める．
-	auto model = engine.solver().model();
-	auto pi_assign = engine.get_pi_assign(model);
-	auto tv = TestVector(pi_assign);
-	std::vector<TestVector> tv_list{tv};
-	// 反例を用いて細分化する．
-	if ( candmgr->subdivide(tv_list) ) {
-	  changed = true;
-	}
+      checker.update_results(check_count, succ_count, tv_list);
+      if ( !tv_list.empty() ) {
 	break;
+      }
+    }
+    if ( !tv_list.empty() ) {
+      // 反例を用いて細分化する．
+      if ( candmgr->subdivide(tv_list) ) {
+	changed = true;
       }
     }
     if ( !changed ) {
@@ -342,10 +274,18 @@ Reducer::run(
   }
 
   // 等価故障の検査を行う．
-  check_equiv(candmgr.get(), fault_info, option);
+  check_equiv(candmgr.get(), option);
 
   // 支配故障の検査を行う．
-  check_dominance(candmgr.get(), fault_info, option);
+  check_dominance(candmgr.get(), option);
+
+  // candmgr の結果を FaultInfo に転送する．
+  for ( auto fault: fault_info.rep_fault_list() ) {
+    if ( !candmgr->is_rep(fault) ) {
+      auto rep = candmgr->rep_fault(fault);
+      fault_info.set_dominator(fault, rep);
+    }
+  }
 }
 
 END_NAMESPACE_DRUID

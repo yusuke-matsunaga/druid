@@ -212,7 +212,15 @@ DichoMgr::fault_list(
 {
   _check_group_id(group_id);
   auto& group = mCurGroupList[group_id];
-  return group->fault_list();
+  auto& src_list = group->fault_list();
+  TpgFaultList ans_list;
+  ans_list.reserve(src_list.size());
+  for ( auto fault: src_list ) {
+    if ( is_rep(fault) ) {
+      ans_list.push_back(fault);
+    }
+  }
+  return ans_list;
 }
 
 // @brief 後続グループ番号のリスト返す．
@@ -255,6 +263,15 @@ DichoMgr::prev_list(
     ans_list.push_back(group1->id());
   }
   return ans_list;
+}
+
+// @brief set_rep() に関連した処理を行う．
+void
+DichoMgr::after_set_rep(
+  const TpgFault& fault
+)
+{
+  // なにもしない．
 }
 
 // @brief 順序関係の要素数を返す．

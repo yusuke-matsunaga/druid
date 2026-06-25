@@ -139,6 +139,9 @@ NaiveMgr::_make_group() const
     if ( mark[fault.id()] ) {
       continue;
     }
+    if ( !is_rep(fault) ) {
+      continue;
+    }
     auto gid = mGroupArray.size();
     TpgFaultList eq_list;
     for ( auto fault2: mDomCandListArray[fault.id()] ) {
@@ -224,6 +227,15 @@ NaiveMgr::prev_list(
 {
   _make_group();
   return mGroupArray[group_id].mPrevList;
+}
+
+// @brief set_rep() に関連した処理を行う．
+void
+NaiveMgr::after_set_rep(
+  const TpgFault& fault
+)
+{
+  mHasGroup = false;
 }
 
 // @brief 順序関係の要素数を返す．

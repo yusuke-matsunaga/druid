@@ -154,6 +154,15 @@ DichoMgr2::prev_list(
   return {};
 }
 
+// @brief set_rep() に関連した処理を行う．
+void
+DichoMgr2::after_set_rep(
+  const TpgFault& fault
+)
+{
+  // 何もしない．
+}
+
 // @brief 順序関係の要素数を返す．
 SizeType
 DichoMgr2::domcand_num() const

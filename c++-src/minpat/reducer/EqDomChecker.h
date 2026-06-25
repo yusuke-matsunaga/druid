@@ -10,6 +10,7 @@
 
 #include "druid.h"
 #include "types/TpgFaultList.h"
+#include "EqDomMgr.h"
 #include "FaultInfo.h"
 #include "misc/ConfigParam.h"
 
@@ -42,18 +43,17 @@ public:
   /// @return 変化があったら true を返す．
   bool
   check_equiv(
-    const TpgFaultList& fault_list, ///< [in] 故障リスト
-    FaultInfo& fault_info,          ///< [in] 故障の情報
-    const ConfigParam& option       ///< [in] オプション
+    EqDomMgr* mgr,            ///< [in] マネージャ
+    SizeType group_id,        ///< [in] グループ番号
+    const ConfigParam& option ///< [in] オプション
   );
 
   /// @brief 支配故障のチェックを行う．
   /// @return 変化があったら true を返す．
   bool
   check_dominance(
+    EqDomMgr* mgr,             ///< [in] マネージャ
     const TpgFault& fault,     ///< [in] 対象の故障
-    const TpgFault& dom_fault, ///< [in] 支配故障の候補
-    FaultInfo& fault_info,     ///< [in] 故障の情報
     const ConfigParam& option  ///< [in] オプション
   );
 

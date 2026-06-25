@@ -132,6 +132,7 @@ public:
   )
   {
     mRepFaultArray[fault.id()] = rep_fault;
+    after_set_rep(fault);
   }
 
   /// @brief 故障番号の最大値を返す．
@@ -213,6 +214,13 @@ public:
   prev_list(
     SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
   ) const = 0;
+
+  /// @brief set_rep() に関連した処理を行う．
+  virtual
+  void
+  after_set_rep(
+    const TpgFault& fault ///< [in] 変化した故障
+  ) = 0;
 
   /// @brief 順序関係の要素数を返す．
   virtual

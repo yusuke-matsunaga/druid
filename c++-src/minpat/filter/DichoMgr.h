@@ -79,6 +79,12 @@ private:
     SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
   ) const override;
 
+  /// @brief set_rep() に関連した処理を行う．
+  void
+  after_set_rep(
+    const TpgFault& fault ///< [in] 変化した故障
+  ) override;
+
   /// @brief 順序関係の要素数を返す．
   SizeType
   domcand_num() const override;
