@@ -1,41 +1,41 @@
 
-/// @file NaiveCandMgr.cc
-/// @brief NaiveCandMgr の実装ファイル
+/// @file NaiveMgr.cc
+/// @brief NaiveMgr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "EqDomCandMgr.h"
-#include "NaiveCandMgr.h"
+#include "EqDomMgr.h"
+#include "NaiveMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス EqDomCandMgr
+// クラス EqDomMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<EqDomCandMgr>
-EqDomCandMgr::new_naive_mgr(
+std::unique_ptr<EqDomMgr>
+EqDomMgr::new_naive_mgr(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<EqDomCandMgr>{new NaiveCandMgr(fault_list, option)};
+  return std::unique_ptr<EqDomMgr>{new NaiveMgr(fault_list, option)};
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス NaiveCandMgr
+// クラス NaiveMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-NaiveCandMgr::NaiveCandMgr(
+NaiveMgr::NaiveMgr(
   const TpgFaultList& fault_list,
   const ConfigParam& option
-) : EqDomCandMgr(fault_list, option),
+) : EqDomMgr(fault_list, option),
     mSize{max_fault_size()},
     mArray(mSize * mSize, false),
     mDomCandListArray(mSize)
@@ -43,19 +43,19 @@ NaiveCandMgr::NaiveCandMgr(
 }
 
 // @brief デストラクタ
-NaiveCandMgr::~NaiveCandMgr()
+NaiveMgr::~NaiveMgr()
 {
 }
 
 // @brief 更新処理
 bool
-NaiveCandMgr::update(
+NaiveMgr::update(
   const std::vector<PackedVal>& dpat_array
 )
 {
   if ( mInitialized ) {
     bool change = false;
-    for ( auto fault1: EqDomCandMgr::fault_list() ) {
+    for ( auto fault1: EqDomMgr::fault_list() ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& old_list = mDomCandListArray[fault1.id()];
       TpgFaultList new_list;
@@ -79,10 +79,10 @@ NaiveCandMgr::update(
     return change;
   }
   else {
-    for ( auto fault1: EqDomCandMgr::fault_list() ) {
+    for ( auto fault1: EqDomMgr::fault_list() ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& new_list = mDomCandListArray[fault1.id()];
-      for ( auto fault2: EqDomCandMgr::fault_list() ) {
+      for ( auto fault2: EqDomMgr::fault_list() ) {
 	if ( fault2 == fault1 ) {
 	  continue;
 	}
@@ -104,7 +104,7 @@ NaiveCandMgr::update(
 
 // @brief 終了処理
 std::unique_ptr<EqDomCand>
-NaiveCandMgr::end(
+NaiveMgr::end(
   bool reduce
 ) const
 {
@@ -124,7 +124,7 @@ NaiveCandMgr::end(
 
 // @brief 等価グループを求める．
 void
-NaiveCandMgr::_make_group() const
+NaiveMgr::_make_group() const
 {
   if ( mHasGroup ) {
     return;
@@ -135,7 +135,7 @@ NaiveCandMgr::_make_group() const
   mIdMap.resize(mSize);
   // 等価グループを作る．
   std::vector<bool> mark(mSize, false);
-  for ( auto fault: EqDomCandMgr::fault_list() ) {
+  for ( auto fault: EqDomMgr::fault_list() ) {
     if ( mark[fault.id()] ) {
       continue;
     }
@@ -180,7 +180,7 @@ NaiveCandMgr::_make_group() const
 
 // @brief 等価故障グループ数を返す．
 SizeType
-NaiveCandMgr::group_num() const
+NaiveMgr::group_num() const
 {
   _make_group();
   return mGroupArray.size();
@@ -188,7 +188,7 @@ NaiveCandMgr::group_num() const
 
 // @brief 等価故障グループ番号を返す．
 SizeType
-NaiveCandMgr::group_id(
+NaiveMgr::group_id(
   const TpgFault& fault
 ) const
 {
@@ -198,7 +198,7 @@ NaiveCandMgr::group_id(
 
 // @brief 等価故障グループの故障リストを返す．
 TpgFaultList
-NaiveCandMgr::fault_list(
+NaiveMgr::fault_list(
   SizeType group_id
 ) const
 {
@@ -208,7 +208,7 @@ NaiveCandMgr::fault_list(
 
 // @brief 後続グループ番号のリスト返す．
 std::vector<SizeType>
-NaiveCandMgr::succ_list(
+NaiveMgr::succ_list(
   SizeType group_id
 ) const
 {
@@ -218,7 +218,7 @@ NaiveCandMgr::succ_list(
 
 // @brief 先行グループ番号のリスト返す．
 std::vector<SizeType>
-NaiveCandMgr::prev_list(
+NaiveMgr::prev_list(
   SizeType group_id
 ) const
 {
@@ -228,7 +228,7 @@ NaiveCandMgr::prev_list(
 
 // @brief 順序関係の要素数を返す．
 SizeType
-NaiveCandMgr::domcand_num() const
+NaiveMgr::domcand_num() const
 {
   _make_group();
   SizeType num = 0;

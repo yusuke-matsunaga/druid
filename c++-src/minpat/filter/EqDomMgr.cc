@@ -1,23 +1,23 @@
 
-/// @file EqDomCandMgr.cc
-/// @brief EqDomCandMgr の実装ファイル
+/// @file EqDomMgr.cc
+/// @brief EqDomMgr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "EqDomCandMgr.h"
+#include "EqDomMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス EqDomCandMgr
+// クラス EqDomMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<EqDomCandMgr>
-EqDomCandMgr::new_obj(
+std::unique_ptr<EqDomMgr>
+EqDomMgr::new_obj(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )
@@ -38,18 +38,33 @@ EqDomCandMgr::new_obj(
   throw std::invalid_argument{buf.str()};
 }
 
+inline
+SizeType
+get_max_size(
+  const TpgFaultList& fault_list
+)
+{
+  SizeType max_size = 0;
+  for ( auto fault: fault_list ) {
+    max_size = std::max(max_size, fault.id());
+  }
+  ++ max_size;
+  return max_size;
+}
+
 // @brief コンストラクタ
-EqDomCandMgr::EqDomCandMgr(
+EqDomMgr::EqDomMgr(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 ) : mFsim(fault_list, option.get_param("fsim")),
-    mFaultList{fault_list}
+    mFaultList{fault_list},
+    mRepFaultArray(max_fault_size())
 {
 }
 
 // @brief 故障シミュレーションを行って故障グループを細分化する．
 bool
-EqDomCandMgr::subdivide(
+EqDomMgr::subdivide(
   const std::vector<TestVector>& tv_list,
   std::function<void(const FsimResults&)> callback
 )

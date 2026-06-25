@@ -8,7 +8,7 @@
 
 #include "druid.h"
 #include "PatGen.h"
-#include "EqDomCandMgr.h"
+#include "EqDomMgr.h"
 #include "EqDomCand.h"
 #include "FaultAnalyze.h"
 #include "types/TpgNetwork.h"
@@ -234,8 +234,8 @@ filter_test(
 
   // 等価故障/支配故障の候補を管理するオブジェクト
   auto candmgr_option = ConfigParam(option).get_param("candmgr");
-  auto candmgr = EqDomCandMgr::new_obj(fault_list, candmgr_option);
-  auto naive_mgr = EqDomCandMgr::new_dichotomy_mgr(fault_list, candmgr_option);
+  auto candmgr = EqDomMgr::new_obj(fault_list, candmgr_option);
+  auto naive_mgr = EqDomMgr::new_dichotomy_mgr(fault_list, candmgr_option);
   auto max_size = network.max_fault_id();
 
   Timer fsim_timer;

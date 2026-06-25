@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "Reducer.h"
-#include "EqDomCandMgr.h"
+#include "EqDomMgr.h"
 #include "PatGen.h"
 #include "EqDomChecker.h"
 #include "dtpg/NaiveDualEngine.h"
@@ -44,7 +44,7 @@ time_str(
 
 void
 print_candmgr(
-  const EqDomCandMgr* candmgr,
+  const EqDomMgr* candmgr,
   const FaultInfo& fault_info
 )
 {
@@ -75,7 +75,7 @@ print_candmgr(
 
 void
 check_equiv(
-  EqDomCandMgr* candmgr,
+  EqDomMgr* candmgr,
   FaultInfo& fault_info,
   const ConfigParam& option
 )
@@ -188,7 +188,7 @@ check_dominance_sub(
 TpgFault
 get_dom_fault(
   const TpgFault& fault,
-  EqDomCandMgr* candmgr,
+  EqDomMgr* candmgr,
   const FaultInfo& fault_info
 )
 {
@@ -205,7 +205,7 @@ get_dom_fault(
 
 void
 check_dominance(
-  EqDomCandMgr* candmgr,
+  EqDomMgr* candmgr,
   FaultInfo& fault_info,
   const ConfigParam& option
 )
@@ -298,7 +298,7 @@ Reducer::run(
 
   // 等価故障/支配故障の候補を管理するオブジェクト
   auto candmgr_option = option.get_param("candmgr");
-  auto candmgr = EqDomCandMgr::new_obj(fault_list, candmgr_option);
+  auto candmgr = EqDomMgr::new_obj(fault_list, candmgr_option);
 
   Timer filter_timer;
   filter_timer.start();

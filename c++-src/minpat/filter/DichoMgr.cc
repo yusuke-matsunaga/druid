@@ -1,40 +1,40 @@
 
-/// @file DichoCandMgr.cc
-/// @brief DichoCandMgr の実装ファイル
+/// @file DichoMgr.cc
+/// @brief DichoMgr の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "DichoCandMgr.h"
+#include "DichoMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス EqDomCandMgr
+// クラス EqDomMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<EqDomCandMgr>
-EqDomCandMgr::new_dichotomy_mgr(
+std::unique_ptr<EqDomMgr>
+EqDomMgr::new_dichotomy_mgr(
   const TpgFaultList& fault_list,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<EqDomCandMgr>{new DichoCandMgr(fault_list, option)};
+  return std::unique_ptr<EqDomMgr>{new DichoMgr(fault_list, option)};
 }
 
 
 //////////////////////////////////////////////////////////////////////
-// クラス DichoCandMgr
+// クラス DichoMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief コンストラクタ
-DichoCandMgr::DichoCandMgr(
+DichoMgr::DichoMgr(
   const TpgFaultList& fault_list,
   const ConfigParam& option
-) : EqDomCandMgr(fault_list, option)
+) : EqDomMgr(fault_list, option)
 {
   // 最初は１つのグループ
   auto group = new DichoGroup(0, fault_list);
@@ -44,13 +44,13 @@ DichoCandMgr::DichoCandMgr(
 }
 
 // @brief デストラクタ
-DichoCandMgr::~DichoCandMgr()
+DichoMgr::~DichoMgr()
 {
 }
 
 // @brief 更新処理
 bool
-DichoCandMgr::update(
+DichoMgr::update(
   const std::vector<PackedVal>& dpat_array
 )
 {
@@ -138,7 +138,7 @@ DichoCandMgr::update(
 
 // @brief 終了処理
 std::unique_ptr<EqDomCand>
-DichoCandMgr::end(
+DichoMgr::end(
   bool reduce
 ) const
 {
@@ -189,14 +189,14 @@ DichoCandMgr::end(
 
 // @brief 等価故障グループ数を返す．
 SizeType
-DichoCandMgr::group_num() const
+DichoMgr::group_num() const
 {
   return mCurGroupList.size();
 }
 
 // @brief 等価故障グループ番号を返す．
 SizeType
-DichoCandMgr::group_id(
+DichoMgr::group_id(
   const TpgFault& fault
 ) const
 {
@@ -206,7 +206,7 @@ DichoCandMgr::group_id(
 
 // @brief 等価故障グループの故障リストを返す．
 TpgFaultList
-DichoCandMgr::fault_list(
+DichoMgr::fault_list(
   SizeType group_id
 ) const
 {
@@ -217,7 +217,7 @@ DichoCandMgr::fault_list(
 
 // @brief 後続グループ番号のリスト返す．
 std::vector<SizeType>
-DichoCandMgr::succ_list(
+DichoMgr::succ_list(
   SizeType group_id
 ) const
 {
@@ -238,7 +238,7 @@ DichoCandMgr::succ_list(
 
 // @brief 先行グループ番号のリスト返す．
 std::vector<SizeType>
-DichoCandMgr::prev_list(
+DichoMgr::prev_list(
   SizeType group_id
 ) const
 {
@@ -259,7 +259,7 @@ DichoCandMgr::prev_list(
 
 // @brief 順序関係の要素数を返す．
 SizeType
-DichoCandMgr::domcand_num() const
+DichoMgr::domcand_num() const
 {
   SizeType num = 0;
   for ( auto& group: mCurGroupList ) {
@@ -270,7 +270,7 @@ DichoCandMgr::domcand_num() const
 
 // @brief mGroupMap を作る．
 void
-DichoCandMgr::_fix_group_map()
+DichoMgr::_fix_group_map()
 {
   mGroupMap.clear();
   mGroupMap.resize(max_fault_size(), nullptr);
@@ -286,7 +286,7 @@ DichoCandMgr::_fix_group_map()
 
 // @brief 故障グループの情報を出力する．
 void
-DichoCandMgr::print_group_list(
+DichoMgr::print_group_list(
   std::ostream& s,
   const std::vector<DichoGroup::Ptr>& group_list
 )
@@ -300,7 +300,7 @@ DichoCandMgr::print_group_list(
 
 // @brief パタンを文字列にする．
 std::string
-DichoCandMgr::pat_str(
+DichoMgr::pat_str(
   PackedVal pat
 )
 {
@@ -311,7 +311,7 @@ DichoCandMgr::pat_str(
 
 // @brief パタンのリストを文字列にする．
 std::string
-DichoCandMgr::pat_list_str(
+DichoMgr::pat_list_str(
   const std::vector<PackedVal>& pat_list
 )
 {

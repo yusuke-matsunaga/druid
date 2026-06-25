@@ -1,35 +1,35 @@
-#ifndef NAIVECANDMGR_H
-#define NAIVECANDMGR_H
+#ifndef NAIVEMGR_H
+#define NAIVEMGR_H
 
-/// @file NaiveCandMgr.h
-/// @brief NaiveCandMgr のヘッダファイル
+/// @file NaiveMgr.h
+/// @brief NaiveMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "EqDomCandMgr.h"
+#include "EqDomMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class NaiveCandMgr NaiveCandMgr.h "NaiveCandMgr.h"
-/// @brief 単純な EqDomCandMgr
+/// @class NaiveMgr NaiveMgr.h "NaiveMgr.h"
+/// @brief 単純な EqDomMgr
 //////////////////////////////////////////////////////////////////////
-class NaiveCandMgr :
-  public EqDomCandMgr
+class NaiveMgr :
+  public EqDomMgr
 {
 public:
 
   /// @brief コンストラクタ
-  NaiveCandMgr(
+  NaiveMgr(
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
     const ConfigParam& option       ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~NaiveCandMgr();
+  ~NaiveMgr();
 
 
 private:
@@ -150,4 +150,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // NAIVECANDMGR_H
+#endif // NAIVEMGR_H

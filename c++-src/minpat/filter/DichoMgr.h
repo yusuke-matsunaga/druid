@@ -1,14 +1,14 @@
-#ifndef DICHOCANDMGR_H
-#define DICHOCANDMGR_H
+#ifndef DICHOMGR_H
+#define DICHOMGR_H
 
-/// @file DichoCandMgr.h
-/// @brief DichoCandMgr のヘッダファイル
+/// @file DichoMgr.h
+/// @brief DichoMgr のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "EqDomCandMgr.h"
+#include "EqDomMgr.h"
 #include "types/TpgFaultList.h"
 #include "DichoGroup.h"
 
@@ -16,22 +16,22 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class DichoCandMgr DichoCandMgr.h "DichoCandMgr.h"
-/// @brief 二分法を用いた EqDomCandMgr
+/// @class DichoMgr DichoMgr.h "DichoMgr.h"
+/// @brief 二分法を用いた EqDomMgr
 //////////////////////////////////////////////////////////////////////
-class DichoCandMgr :
-  public EqDomCandMgr
+class DichoMgr :
+  public EqDomMgr
 {
 public:
 
   /// @brief コンストラクタ
-  DichoCandMgr(
+  DichoMgr(
     const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
     const ConfigParam& option       ///< [in] オプション
   );
 
   /// @brief デストラクタ
-  ~DichoCandMgr();
+  ~DichoMgr();
 
 
 private:
@@ -145,4 +145,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // DICHOCANDMGR_H
+#endif // DICHOMGR_H
