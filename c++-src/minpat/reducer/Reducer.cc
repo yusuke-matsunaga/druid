@@ -114,9 +114,6 @@ check_equiv(
 	  changed = true;
 	}
 	checker.update_results(check_count, success_count, tv_list);
-	if ( !tv_list.empty() ) {
-	  break;
-	}
       }
     }
     if ( !tv_list.empty() ) {
@@ -174,7 +171,6 @@ check_dominance(
     auto fault_list = candmgr->fault_list();
     if ( multi_thread ) {
       auto nf = fault_list.size();
-      SizeType thread_num = option.get_int_elem("thread_num", 0);
       IdPool id_pool(nf);
       ExLock lock;
       MtMgr::run(
@@ -197,9 +193,6 @@ check_dominance(
 	      }
 	      checker.update_results(check_count, succ_count, tv_list);
 	    });
-	    if ( checker.has_tv() ) {
-	      break;
-	    }
 	  }
 	}, thread_num
       );
@@ -214,9 +207,6 @@ check_dominance(
 	  changed = true;
 	}
 	checker.update_results(check_count, succ_count, tv_list);
-	if ( checker.has_tv() ) {
-	  break;
-	}
       }
     }
     if ( !tv_list.empty() ) {

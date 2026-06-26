@@ -151,6 +151,27 @@ public:
     = [](const FsimResults&) { }
   );
 
+  /// @brief 支配故障の候補を返す．
+  ///
+  /// ない場合は不正な値が返される．
+  TpgFault
+  domcand(
+    const TpgFault& fault ///< [in] 対象の故障
+  ) const
+  {
+    TpgFault ans;
+    if ( is_rep(fault) ) {
+      auto id = group_id(fault);
+      for ( auto id1: prev_list(id) ) {
+	for ( auto fault1: fault_list(id1) ) {
+	  ans = fault1;
+	  break;
+	}
+      }
+    }
+    return ans;
+  }
+
   /// @brief 故障シミュレーションの時間を返す．
   double
   fsim_time() const

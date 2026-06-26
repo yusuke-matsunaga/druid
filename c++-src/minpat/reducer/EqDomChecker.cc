@@ -107,14 +107,7 @@ EqDomChecker::check_dominance(
   mTvList.clear();
 
   // 支配故障の候補を一つ取り出す．
-  TpgFault dom_fault;
-  auto id = mgr->group_id(fault);
-  for ( auto id1: mgr->prev_list(id) ) {
-    for ( auto fault1: mgr->fault_list(id1) ) {
-      dom_fault = fault1;
-      break;
-    }
-  }
+  auto dom_fault = mgr->domcand(fault);
   if ( !dom_fault.is_valid() ) {
     return false;
   }
