@@ -89,31 +89,30 @@ check_equiv(
       ExLock lock;
       MtMgr::run(
 	[&]() {
+	  EqDomChecker checker;
 	  for ( ; ; ) {
 	    SizeType id;
 	    if ( !id_pool.get(id) ) {
 	      // 終わり
 	      break;
 	    }
-	    EqDomChecker checker;
-	    auto changed1 = checker.check_equiv(candmgr, id, option);
-	    lock.run([&]() {
-	      if ( changed1 ) {
-		changed = true;
-	      }
-	      checker.update_results(check_count, success_count, tv_list);
-	    });
+	    checker.check_equiv(candmgr, id, option);
 	  }
+	  lock.run([&]() {
+	    if ( checker.update_results(check_count, success_count, tv_list) ) {
+	      changed = true;
+	    }
+	  });
 	}, thread_num
       );
     }
     else {
+      EqDomChecker checker;
       for ( SizeType i = 0; i < ng; ++ i ) {
-	EqDomChecker checker;
-	if ( checker.check_equiv(candmgr, i, option) ) {
-	  changed = true;
-	}
-	checker.update_results(check_count, success_count, tv_list);
+	checker.check_equiv(candmgr, i, option);
+      }
+      if ( checker.update_results(check_count, success_count, tv_list) ) {
+	changed = true;
       }
     }
     if ( !tv_list.empty() ) {
@@ -175,6 +174,7 @@ check_dominance(
       ExLock lock;
       MtMgr::run(
 	[&]() {
+	  EqDomChecker checker;
 	  for ( ; ; ) {
 	    SizeType id;
 	    if ( !id_pool.get(id) ) {
@@ -185,29 +185,25 @@ check_dominance(
 	    if ( !candmgr->is_rep(fault) ) {
 	      continue;
 	    }
-	    EqDomChecker checker;
-	    auto changed1 = checker.check_dominance(candmgr, fault, option);
-	    lock.run([&]() {
-	      if ( changed1 ) {
-		changed = true;
-	      }
-	      checker.update_results(check_count, succ_count, tv_list);
-	    });
+	    checker.check_dominance(candmgr, fault, option);
 	  }
+	  lock.run([&]() {
+	    if ( checker.update_results(check_count, succ_count, tv_list) ) {
+	      changed = true;
+	    }
+	  });
 	}, thread_num
       );
     }
     else {
+      EqDomChecker checker;
       for ( auto fault2: fault_list ) {
 	if ( !candmgr->is_rep(fault2) ) {
 	  continue;
 	}
-	EqDomChecker checker;
-	if ( checker.check_dominance(candmgr, fault2, option) ) {
-	  changed = true;
-	}
-	checker.update_results(check_count, succ_count, tv_list);
+	checker.check_dominance(candmgr, fault2, option);
       }
+      changed = checker.update_results(check_count, succ_count, tv_list);
     }
     if ( !tv_list.empty() ) {
       // 反例を用いて細分化する．

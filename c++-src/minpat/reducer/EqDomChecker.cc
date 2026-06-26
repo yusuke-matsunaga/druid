@@ -17,27 +17,23 @@ BEGIN_NAMESPACE_DRUID
 //////////////////////////////////////////////////////////////////////
 
 // @brief 等価故障のチェックを行う．
-bool
+void
 EqDomChecker::check_equiv(
   EqDomMgr* mgr,
   SizeType group_id,
   const ConfigParam& option
 )
 {
-  mCheckCount = 0;
-  mSuccessCount = 0;
-  mTvList.clear();
-
   auto fault_list = mgr->fault_list(group_id);
   auto nf = fault_list.size();
   if ( nf <= 1 ) {
-    return false;
+    return;
   }
 
   SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
 
   // とりあえずリファレンス用に単純なアルゴリズムを用いる．
-  bool changed = false;
+  bool has_tv = false;
   for ( SizeType i1 = 0; i1 < nf - 1; ++ i1 ) {
     auto fault1 = fault_list[i1];
     if ( !mgr->is_rep(fault1) ) {
@@ -56,7 +52,7 @@ EqDomChecker::check_equiv(
 	// fault2 は fault1 に支配されている．
 	mgr->set_rep(fault2, fault1);
 	++ mSuccessCount;
-	changed = true;
+	mChanged = true;
 	continue;
       }
       if ( res1 == SatBool3::True ) {
@@ -65,6 +61,7 @@ EqDomChecker::check_equiv(
 	auto pi_assign = engine.get_pi_assign(model);
 	auto tv = TestVector(pi_assign);
 	mTvList.push_back(tv);
+	has_tv = true;
       }
 
       auto res2 = engine.solve(false, true, TIME_LIMIT);
@@ -72,7 +69,7 @@ EqDomChecker::check_equiv(
 	// fault1 は fault2 に支配されている．
 	mgr->set_rep(fault1, fault2);
 	++ mSuccessCount;
-	changed = true;
+	mChanged = true;
 	break;
       }
       if ( res2 == SatBool3::True ) {
@@ -81,19 +78,19 @@ EqDomChecker::check_equiv(
 	auto pi_assign = engine.get_pi_assign(model);
 	auto tv = TestVector(pi_assign);
 	mTvList.push_back(tv);
+	has_tv = true;
       }
       // ここに来たということは fault1 と fault2 の関係は不明
-      if ( !mTvList.empty() ) {
+      if ( has_tv ) {
 	// 反例があるので一旦戻る．
-	return changed;
+	return;
       }
     }
   }
-  return changed;
 }
 
 // @brief 支配故障のチェックを行う．
-bool
+void
 EqDomChecker::check_dominance(
   EqDomMgr* mgr,
   const TpgFault& fault,
@@ -102,14 +99,10 @@ EqDomChecker::check_dominance(
 {
   SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
 
-  mCheckCount = 0;
-  mSuccessCount = 0;
-  mTvList.clear();
-
   // 支配故障の候補を一つ取り出す．
   auto dom_fault = mgr->domcand(fault);
   if ( !dom_fault.is_valid() ) {
-    return false;
+    return;
   }
 
   NaiveDualEngine engine(dom_fault, fault, option);
@@ -118,7 +111,8 @@ EqDomChecker::check_dominance(
   if ( res == SatBool3::False ) {
     mgr->set_rep(fault, dom_fault);
     ++ mSuccessCount;
-    return true;
+    mChanged = true;
+    return;
   }
   if ( res == SatBool3::True ) {
     // この時の入力を求める．
@@ -127,7 +121,6 @@ EqDomChecker::check_dominance(
     auto tv = TestVector(pi_assign);
     mTvList.push_back(tv);
   }
-  return false;
 }
 
 END_NAMESPACE_DRUID
