@@ -21,16 +21,15 @@ DomMgr::DomMgr(
   const EqGroupMgr* eqmgr,
   FaultInfo& fault_info,
   Fsim& fsim
-) : mFaultInfo{fault_info},
-    mFsim{fsim},
+) : RedMgr(fault_info, fsim),
     mCandListArray(fault_info.network().max_fault_id())
 {
-  for ( auto fault: mFaultInfo.rep_fault_list() ) {
+  for ( auto fault: fault_info.rep_fault_list() ) {
     auto& cand_list = mCandListArray[fault.id()];
     auto gid = eqmgr->group_id(fault);
     for ( auto gid1: eqmgr->prev_list(gid) ) {
       for ( auto fault1: eqmgr->fault_list(gid1) ) {
-	if ( mFaultInfo.is_rep(fault1) ) {
+	if ( is_rep(fault1) ) {
 	  cand_list.push_back(fault1);
 	}
       }
@@ -44,22 +43,11 @@ DomMgr::update(
   const std::vector<TestVector>& tv_list
 )
 {
-  mFsimTimer.start();
-  auto res = mFsim.run_multi(tv_list, true);
-  mFsimTimer.stop();
-
-  auto ntv = res.tv_num();
-  std::vector<PackedVal> dpat_array(mFaultInfo.network().max_fault_id(), PV_ALL0);
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    PackedVal bit = 1ULL << i;
-    for ( auto fault: res.fault_list(i) ) {
-      auto fid = fault.id();
-      dpat_array[fid] |= bit;
-    }
-  }
+  std::vector<PackedVal> dpat_array;
+  simulate(tv_list, dpat_array);
 
   bool changed = false;
-  for ( auto fault: mFaultInfo.rep_fault_list() ) {
+  for ( auto fault: fault_info().rep_fault_list() ) {
     auto dpat = dpat_array[fault.id()];
     auto& cand_list = mCandListArray[fault.id()];
     TpgFaultList new_cand_list;

@@ -58,9 +58,8 @@ EqGroupMgr::EqGroupMgr(
   FaultInfo& fault_info,
   Fsim& fsim,
   const ConfigParam& option
-) : mFaultInfo{fault_info},
-    mFsim{fsim},
-    mFaultList{mFaultInfo.rep_fault_list()}
+) : RedMgr(fault_info, fsim),
+    mFaultList{fault_info.rep_fault_list()}
 {
 }
 
@@ -71,20 +70,9 @@ EqGroupMgr::subdivide(
   std::function<void(const FsimResults&)> callback
 )
 {
-  mFsimTimer.start();
-  auto res = mFsim.run_multi(tv_list, true);
-  mFsimTimer.stop();
+  std::vector<PackedVal> dpat_array;
+  auto res = simulate(tv_list, dpat_array);
   callback(res);
-
-  auto ntv = res.tv_num();
-  std::vector<PackedVal> dpat_array(max_fault_size(), PV_ALL0);
-  for ( SizeType i = 0; i < ntv; ++ i ) {
-    PackedVal bit = 1ULL << i;
-    for ( auto fault: res.fault_list(i) ) {
-      auto fid = fault.id();
-      dpat_array[fid] |= bit;
-    }
-  }
   auto change = update(dpat_array);
   return change;
 }

@@ -87,6 +87,7 @@ check_equiv(
     bool changed = false;
     std::vector<TestVector> tv_list;
     if ( multi_thread ) {
+#if 0
       IdPool id_pool(ng);
       ExLock lock;
       MtMgr::run(
@@ -107,6 +108,28 @@ check_equiv(
 	  });
 	}, thread_num
       );
+#else
+      auto th_num = MtMgr::actual_thread_num(thread_num);
+      ExLock lock;
+      MtMgr::run(
+	[&]() {
+	  EqChecker checker;
+	  for ( ; ; ) {
+	    SizeType id;
+	    if ( !id_pool.get(id) ) {
+	      // 終わり
+	      break;
+	    }
+	    checker.check_equiv(candmgr, id, option);
+	  }
+	  lock.run([&]() {
+	    if ( checker.update_results(check_count, success_count, tv_list) ) {
+	      changed = true;
+	    }
+	  });
+	}, thread_num
+      );
+#endif
     }
     else {
       EqChecker checker;
@@ -167,21 +190,13 @@ check_dominance(
     auto fault_list = dommgr.fault_info().rep_fault_list();
     if ( multi_thread ) {
       auto nf = fault_list.size();
-      IdPool id_pool(nf);
+      auto th_num = MtMgr::actual_thread_num(thread_num);
       ExLock lock;
       MtMgr::run(
-	[&]() {
+	[&](SizeType th_id) {
 	  DomChecker checker;
-	  for ( ; ; ) {
-	    SizeType id;
-	    if ( !id_pool.get(id) ) {
-	      // 終わり
-	      break;
-	    }
+	  for ( SizeType id = th_id; id < nf; id += th_num ) {
 	    auto fault = fault_list[id];
-	    if ( !dommgr.fault_info().is_rep(fault) ) {
-	      continue;
-	    }
 	    checker.check_dominance(dommgr, fault, option);
 	  }
 	  lock.run([&]() {
@@ -195,9 +210,6 @@ check_dominance(
     else {
       DomChecker checker;
       for ( auto fault2: fault_list ) {
-	if ( !dommgr.fault_info().is_rep(fault2) ) {
-	  continue;
-	}
 	checker.check_dominance(dommgr, fault2, option);
       }
       changed = checker.update_results(check_count, succ_count, tv_list);

@@ -218,7 +218,7 @@ DichoMgr::fault_list(
   TpgFaultList ans_list;
   ans_list.reserve(src_list.size());
   for ( auto fault: src_list ) {
-    if ( mFaultInfo.is_rep(fault) ) {
+    if ( is_rep(fault) ) {
       ans_list.push_back(fault);
     }
   }

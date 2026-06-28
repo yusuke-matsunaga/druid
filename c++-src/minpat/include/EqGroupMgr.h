@@ -9,12 +9,10 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "FaultInfo.h"
+#include "RedMgr.h"
 #include "EqDomCand.h"
 #include "types/TpgNetwork.h"
 #include "types/TpgFaultList.h"
-#include "types/PackedVal.h"
-#include "fsim/Fsim.h"
 #include "misc/ConfigParam.h"
 #include "ym/Timer.h"
 
@@ -34,7 +32,8 @@ BEGIN_NAMESPACE_DRUID
 ///
 /// * 反対称律: a < b かつ b < a となるのは a = b の時のみ
 //////////////////////////////////////////////////////////////////////
-class EqGroupMgr
+class EqGroupMgr :
+  public RedMgr
 {
 public:
 
@@ -101,27 +100,6 @@ public:
     return mFaultList;
   }
 
-  /// @brief 対象のネットワークを返す．
-  TpgNetwork
-  network() const
-  {
-    return mFaultInfo.network();
-  }
-
-  /// @brief 故障番号の最大値を返す．
-  SizeType
-  max_fault_size() const
-  {
-    return network().max_fault_id();
-  }
-
-  /// @brief FaultInfo を返す．
-  FaultInfo&
-  fault_info() const
-  {
-    return mFaultInfo;
-  }
-
   /// @brief 故障シミュレーションを行って故障グループを細分化する．
   /// @return 変化があったら true を返す．
   bool
@@ -130,13 +108,6 @@ public:
     std::function<void(const FsimResults&)> callback ///< [in] コールバック関数
     = [](const FsimResults&) { }
   );
-
-  /// @brief 故障シミュレーションの時間を返す．
-  double
-  fsim_time() const
-  {
-    return mFsimTimer.get_time();
-  }
 
 
 public:
@@ -206,17 +177,8 @@ protected:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障の情報
-  FaultInfo& mFaultInfo;
-
-  // 故障シミュレータ
-  Fsim& mFsim;
-
   // 対象の故障のリスト
   TpgFaultList mFaultList;
-
-  // 故障シミュレータ用のタイマ
-  Timer mFsimTimer;
 
 };
 

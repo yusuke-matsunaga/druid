@@ -9,12 +9,8 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "types/TpgFault.h"
+#include "RedMgr.h"
 #include "types/TpgFaultList.h"
-#include "types/PackedVal.h"
-#include "fsim/Fsim.h"
-#include "FaultInfo.h"
-#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -28,7 +24,8 @@ class EqGroupMgr;
 /// 等価故障のチェックが済んでいるものと仮定しているので
 /// グループ単位ではなく故障単位で表す．
 //////////////////////////////////////////////////////////////////////
-class DomMgr
+class DomMgr :
+  public RedMgr
 {
 public:
 
@@ -48,18 +45,11 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief FaultIfno を返す．
-  FaultInfo&
-  fault_info()
-  {
-    return mFaultInfo;
-  }
-
   /// @brief 支配故障の候補リストを得る．
-  TpgFaultList
+  TpgFaultList&
   cand_list(
     const TpgFault& fault ///< [in] 対象の故障
-  ) const
+  )
   {
     return mCandListArray[fault.id()];
   }
@@ -69,13 +59,6 @@ public:
   update(
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   );
-
-  /// @brief 故障シミュレーションの時間を返す．
-  double
-  fsim_time() const
-  {
-    return mFsimTimer.get_time();
-  }
 
 
 private:
@@ -89,17 +72,8 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 故障の情報
-  FaultInfo& mFaultInfo;
-
-  // 故障シミュレータ
-  Fsim& mFsim;
-
   // 故障番号をキーにして支配故障の候補のリストを持つ配列
   std::vector<TpgFaultList> mCandListArray;
-
-  // 故障シミュレータ用のタイマ
-  Timer mFsimTimer;
 
 };
 

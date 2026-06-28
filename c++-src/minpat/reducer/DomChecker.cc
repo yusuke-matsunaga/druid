@@ -26,9 +26,11 @@ DomChecker::check_dominance(
 {
   SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
 
-  // 支配故障の候補を一つ取り出す．
-  for ( auto dom_fault: dommgr.cand_list(fault) ) {
-    if ( !dommgr.fault_info().is_rep(dom_fault) ) {
+  auto& cand_list = dommgr.cand_list(fault);
+  while ( !cand_list.empty() ) {
+    // 支配故障の候補を一つ取り出す．
+    auto dom_fault = cand_list.pop_back();
+    if ( !dommgr.is_rep(dom_fault) ) {
       continue;
     }
 

@@ -141,7 +141,7 @@ NaiveMgr::_make_group() const
     if ( mark[fault.id()] ) {
       continue;
     }
-    if ( !mFaultInfo.is_rep(fault) ) {
+    if ( !is_rep(fault) ) {
       continue;
     }
     auto gid = mGroupArray.size();
