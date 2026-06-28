@@ -300,6 +300,15 @@ protected:
     return mIdList.end();
   }
 
+  /// @brief 末尾のIDを取り出す．
+  SizeType
+  _pop_back()
+  {
+    auto id = mIdList.back();
+    mIdList.pop_back();
+    return id;
+  }
+
   /// @brief ID を末尾に追加する．
   void
   put_id(

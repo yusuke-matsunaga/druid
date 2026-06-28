@@ -165,6 +165,14 @@ public:
     return TpgBase::fault(get_id(index));
   }
 
+  /// @brief 末尾の要素を取り出す．
+  TpgFault
+  pop_back()
+  {
+    auto id = _pop_back();
+    return TpgBase::fault(id);
+  }
+
   /// @brief 最大の故障番号を返す．
   SizeType
   max_fid() const
