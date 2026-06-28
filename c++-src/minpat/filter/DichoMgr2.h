@@ -8,7 +8,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "EqDomMgr.h"
+#include "EqGroupMgr.h"
 #include "types/TpgFaultList.h"
 #include "DichoGroup.h"
 
@@ -17,17 +17,18 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DichoMgr2 DichoMgr2.h "DichoMgr2.h"
-/// @brief 二分法を用いた EqDomMgr
+/// @brief 二分法を用いた EqGroupMgr
 //////////////////////////////////////////////////////////////////////
 class DichoMgr2 :
-  public EqDomMgr
+  public EqGroupMgr
 {
 public:
 
   /// @brief コンストラクタ
   DichoMgr2(
-    const TpgFaultList& fault_list, ///< [in] 対象の故障リスト
-    const ConfigParam& option       ///< [in] オプション
+    FaultInfo& fault_info,    ///< [in] 故障の情報
+    Fsim& fsim,               ///< [in] 故障シミュレータ
+    const ConfigParam& option ///< [in] オプション
   );
 
   /// @brief デストラクタ
@@ -78,12 +79,6 @@ private:
   prev_list(
     SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
   ) const override;
-
-  /// @brief set_rep() に関連した処理を行う．
-  void
-  after_set_rep(
-    const TpgFault& fault ///< [in] 変化した故障
-  ) override;
 
   /// @brief 順序関係の要素数を返す．
   SizeType

@@ -8,7 +8,7 @@
 
 #include "druid.h"
 #include "PatGen.h"
-#include "EqDomMgr.h"
+#include "EqGroupMgr.h"
 #include "EqDomCand.h"
 #include "FaultAnalyze.h"
 #include "types/TpgNetwork.h"
@@ -53,7 +53,7 @@ END_NONAMESPACE
 
 std::unique_ptr<EqDomCand>
 make_cand(
-    const FaultInfo& fault_info,
+  FaultInfo& fault_info,
   const ConfigParam& option
 )
 {
@@ -79,7 +79,7 @@ make_cand(
 
   // 等価故障/支配故障の候補を管理するオブジェクト
   auto candmgr_option = option.get_param("candmgr");
-  auto candmgr = EqDomMgr::new_obj(fault_list, candmgr_option);
+  auto candmgr = EqGroupMgr::new_obj(fault_info, fsim, candmgr_option);
 
   auto network = fault_info.network();
   auto max_size = network.max_fault_id();

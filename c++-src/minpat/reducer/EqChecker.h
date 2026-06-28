@@ -1,8 +1,8 @@
-#ifndef EQDOMCHECKER_H
-#define EQDOMCHECKER_H
+#ifndef EQCHECKER_H
+#define EQCHECKER_H
 
-/// @file EqDomChecker.h
-/// @brief EqDomChecker のヘッダファイル
+/// @file EqChecker.h
+/// @brief EqChecker のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -18,20 +18,20 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class EqDomChecker EqDomChecker.h "EqDomChecker.h"
+/// @class EqChecker EqChecker.h "EqChecker.h"
 /// @brief 等価故障のチェックを行うクラス
 ///
 /// 複数の結果を保持するために用いる．
 //////////////////////////////////////////////////////////////////////
-class EqDomChecker
+class EqChecker
 {
 public:
 
   /// @brief コンストラクタ
-  EqDomChecker() = default;
+  EqChecker() = default;
 
   /// @brief デストラクタ
-  ~EqDomChecker() = default;
+  ~EqChecker() = default;
 
 
 public:
@@ -45,14 +45,6 @@ public:
     EqGroupMgr* mgr,          ///< [in] マネージャ
     SizeType group_id,        ///< [in] グループ番号
     const ConfigParam& option ///< [in] オプション
-  );
-
-  /// @brief 支配故障のチェックを行う．
-  void
-  check_dominance(
-    EqGroupMgr* mgr,           ///< [in] マネージャ
-    const TpgFault& fault,     ///< [in] 対象の故障
-    const ConfigParam& option  ///< [in] オプション
   );
 
   /// @brief 結果の情報を更新する．
@@ -106,4 +98,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // EQDOMCHECKER_H
+#endif // EQCHECKER_H

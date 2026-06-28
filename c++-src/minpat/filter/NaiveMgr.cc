@@ -6,24 +6,25 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "EqDomMgr.h"
+#include "EqGroupMgr.h"
 #include "NaiveMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス EqDomMgr
+// クラス EqGroupMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<EqDomMgr>
-EqDomMgr::new_naive_mgr(
-  const TpgFaultList& fault_list,
+std::unique_ptr<EqGroupMgr>
+EqGroupMgr::new_naive_mgr(
+  FaultInfo& fault_info,
+  Fsim& fsim,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<EqDomMgr>{new NaiveMgr(fault_list, option)};
+  return std::unique_ptr<EqGroupMgr>{new NaiveMgr(fault_info, fsim, option)};
 }
 
 
@@ -33,9 +34,10 @@ EqDomMgr::new_naive_mgr(
 
 // @brief コンストラクタ
 NaiveMgr::NaiveMgr(
-  const TpgFaultList& fault_list,
+  FaultInfo& fault_info,
+  Fsim& fsim,
   const ConfigParam& option
-) : EqDomMgr(fault_list, option),
+) : EqGroupMgr(fault_info, fsim, option),
     mSize{max_fault_size()},
     mArray(mSize * mSize, false),
     mDomCandListArray(mSize)
@@ -55,7 +57,7 @@ NaiveMgr::update(
 {
   if ( mInitialized ) {
     bool change = false;
-    for ( auto fault1: EqDomMgr::fault_list() ) {
+    for ( auto fault1: EqGroupMgr::fault_list() ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& old_list = mDomCandListArray[fault1.id()];
       TpgFaultList new_list;
@@ -79,10 +81,10 @@ NaiveMgr::update(
     return change;
   }
   else {
-    for ( auto fault1: EqDomMgr::fault_list() ) {
+    for ( auto fault1: EqGroupMgr::fault_list() ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& new_list = mDomCandListArray[fault1.id()];
-      for ( auto fault2: EqDomMgr::fault_list() ) {
+      for ( auto fault2: EqGroupMgr::fault_list() ) {
 	if ( fault2 == fault1 ) {
 	  continue;
 	}
@@ -135,11 +137,11 @@ NaiveMgr::_make_group() const
   mIdMap.resize(mSize);
   // 等価グループを作る．
   std::vector<bool> mark(mSize, false);
-  for ( auto fault: EqDomMgr::fault_list() ) {
+  for ( auto fault: EqGroupMgr::fault_list() ) {
     if ( mark[fault.id()] ) {
       continue;
     }
-    if ( !is_rep(fault) ) {
+    if ( !mFaultInfo.is_rep(fault) ) {
       continue;
     }
     auto gid = mGroupArray.size();
@@ -227,15 +229,6 @@ NaiveMgr::prev_list(
 {
   _make_group();
   return mGroupArray[group_id].mPrevList;
-}
-
-// @brief set_rep() に関連した処理を行う．
-void
-NaiveMgr::after_set_rep(
-  const TpgFault& fault
-)
-{
-  mHasGroup = false;
 }
 
 // @brief 順序関係の要素数を返す．

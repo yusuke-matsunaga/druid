@@ -7,9 +7,11 @@
 /// All rights reserved.
 
 #include "Reducer.h"
-#include "EqDomMgr.h"
+#include "EqGroupMgr.h"
 #include "PatGen.h"
-#include "EqDomChecker.h"
+#include "EqChecker.h"
+#include "DomMgr.h"
+#include "DomChecker.h"
 #include "ym/MtMgr.h"
 #include "ym/IdPool.h"
 #include "ym/ExLock.h"
@@ -43,7 +45,7 @@ time_str(
 
 void
 print_candmgr(
-  const EqDomMgr* candmgr
+  const EqGroupMgr* candmgr
 )
 {
   SizeType act_num = 0;
@@ -66,7 +68,7 @@ print_candmgr(
 
 void
 check_equiv(
-  EqDomMgr* candmgr,
+  EqGroupMgr* candmgr,
   const ConfigParam& option
 )
 {
@@ -89,7 +91,7 @@ check_equiv(
       ExLock lock;
       MtMgr::run(
 	[&]() {
-	  EqDomChecker checker;
+	  EqChecker checker;
 	  for ( ; ; ) {
 	    SizeType id;
 	    if ( !id_pool.get(id) ) {
@@ -107,7 +109,7 @@ check_equiv(
       );
     }
     else {
-      EqDomChecker checker;
+      EqChecker checker;
       for ( SizeType i = 0; i < ng; ++ i ) {
 	checker.check_equiv(candmgr, i, option);
       }
@@ -128,12 +130,7 @@ check_equiv(
   timer.stop();
 
   if ( verbose ) {
-    auto rep_num = 0;
-    for ( auto fault: candmgr->fault_list() ) {
-      if ( candmgr->is_rep(fault) ) {
-	++ rep_num;
-      }
-    }
+    auto rep_num = candmgr->fault_info().rep_fault_list().size();
     std::cout << std::endl
 	      << "Equivalence check end:    " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right
@@ -149,7 +146,7 @@ check_equiv(
 
 void
 check_dominance(
-  EqDomMgr* candmgr,
+  DomMgr& dommgr,
   const ConfigParam& option
 )
 {
@@ -167,14 +164,14 @@ check_dominance(
   for ( ; ; ) {
     bool changed = false;
     std::vector<TestVector> tv_list;
-    auto fault_list = candmgr->fault_list();
+    auto fault_list = dommgr.fault_info().rep_fault_list();
     if ( multi_thread ) {
       auto nf = fault_list.size();
       IdPool id_pool(nf);
       ExLock lock;
       MtMgr::run(
 	[&]() {
-	  EqDomChecker checker;
+	  DomChecker checker;
 	  for ( ; ; ) {
 	    SizeType id;
 	    if ( !id_pool.get(id) ) {
@@ -182,10 +179,10 @@ check_dominance(
 	      break;
 	    }
 	    auto fault = fault_list[id];
-	    if ( !candmgr->is_rep(fault) ) {
+	    if ( !dommgr.fault_info().is_rep(fault) ) {
 	      continue;
 	    }
-	    checker.check_dominance(candmgr, fault, option);
+	    checker.check_dominance(dommgr, fault, option);
 	  }
 	  lock.run([&]() {
 	    if ( checker.update_results(check_count, succ_count, tv_list) ) {
@@ -196,18 +193,18 @@ check_dominance(
       );
     }
     else {
-      EqDomChecker checker;
+      DomChecker checker;
       for ( auto fault2: fault_list ) {
-	if ( !candmgr->is_rep(fault2) ) {
+	if ( !dommgr.fault_info().is_rep(fault2) ) {
 	  continue;
 	}
-	checker.check_dominance(candmgr, fault2, option);
+	checker.check_dominance(dommgr, fault2, option);
       }
       changed = checker.update_results(check_count, succ_count, tv_list);
     }
     if ( !tv_list.empty() ) {
-      // 反例を用いて細分化する．
-      if ( candmgr->subdivide(tv_list) ) {
+      // 反例を用いて更新する．
+      if ( dommgr.update(tv_list) ) {
 	changed = true;
       }
     }
@@ -229,6 +226,7 @@ check_dominance(
 }
 
 END_NONAMESPACE
+
 
 //////////////////////////////////////////////////////////////////////
 // クラス Reducer
@@ -254,9 +252,13 @@ Reducer::run(
   auto patgen_option = option.get_param("patgen");
   auto patgen = PatGen::new_obj(fault_info, patgen_option);
 
-  // 等価故障/支配故障の候補を管理するオブジェクト
-  auto candmgr_option = option.get_param("candmgr");
-  auto candmgr = EqDomMgr::new_obj(fault_list, candmgr_option);
+  // 故障シミュレータ
+  auto fsim_option = option.get_param("fsim");
+  Fsim fsim(fault_list, fsim_option);
+
+  // 等価故障の候補を管理するオブジェクト
+  auto eqmgr_option = option.get_param("eqmmgr");
+  auto eqmgr = EqGroupMgr::new_obj(fault_info, fsim, eqmgr_option);
 
   Timer filter_timer;
   filter_timer.start();
@@ -268,9 +270,9 @@ Reducer::run(
     patgen->gen(BATCH_SIZE, tv_list);
 
     // 故障シミュレーションを行って故障グループを細分化する．
-    auto change = candmgr->subdivide(tv_list,
-				     [&](const FsimResults& res) {
-				       patgen->update(res);
+    auto change = eqmgr->subdivide(tv_list,
+				   [&](const FsimResults& res) {
+				     patgen->update(res);
 				     });
     tv_count += BATCH_SIZE;
 
@@ -287,31 +289,24 @@ Reducer::run(
     std::cout << "# of faults:            "
 	      << std::setw(8) << std::right << fault_list.size() << std::endl
 	      << "# of Groups:            "
-	      << std::setw(8) << std::right << candmgr->group_num() << std::endl
+	      << std::setw(8) << std::right << eqmgr->group_num() << std::endl
 	      << "# of DomCand pairs:     "
-	      << std::setw(8) << std::right << candmgr->domcand_num() << std::endl
+	      << std::setw(8) << std::right << eqmgr->domcand_num() << std::endl
 	      << "Total # of patterns:    "
 	      << std::setw(8) << std::right << tv_count << std::endl
 	      << "No Change Limit:        "
 	      << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
 	      << "Filtering time:           " << time_str(filter_timer) << std::endl
-	      << " (Fsim time):             " << time_str(candmgr->fsim_time())
+	      << " (Fsim time):             " << time_str(eqmgr->fsim_time())
 	      << std::endl;
   }
 
   // 等価故障の検査を行う．
-  check_equiv(candmgr.get(), option);
+  check_equiv(eqmgr.get(), option);
 
   // 支配故障の検査を行う．
-  check_dominance(candmgr.get(), option);
-
-  // candmgr の結果を FaultInfo に転送する．
-  for ( auto fault: fault_info.rep_fault_list() ) {
-    if ( !candmgr->is_rep(fault) ) {
-      auto rep = candmgr->rep_fault(fault);
-      fault_info.set_dominator(fault, rep);
-    }
-  }
+  DomMgr dommgr(eqmgr.get(), fault_info, fsim);
+  check_dominance(dommgr, option);
 }
 
 END_NAMESPACE_DRUID

@@ -1,8 +1,8 @@
-#ifndef EQDOMCHECKER_H
-#define EQDOMCHECKER_H
+#ifndef DOMCHECKER_H
+#define DOMCHECKER_H
 
-/// @file EqDomChecker.h
-/// @brief EqDomChecker のヘッダファイル
+/// @file DomChecker.h
+/// @brief DomChecker のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -10,28 +10,27 @@
 
 #include "druid.h"
 #include "types/TpgFaultList.h"
-#include "EqGroupMgr.h"
-#include "FaultInfo.h"
+#include "DomMgr.h"
 #include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-/// @class EqDomChecker EqDomChecker.h "EqDomChecker.h"
+/// @class DomChecker DomChecker.h "DomChecker.h"
 /// @brief 等価故障のチェックを行うクラス
 ///
 /// 複数の結果を保持するために用いる．
 //////////////////////////////////////////////////////////////////////
-class EqDomChecker
+class DomChecker
 {
 public:
 
   /// @brief コンストラクタ
-  EqDomChecker() = default;
+  DomChecker() = default;
 
   /// @brief デストラクタ
-  ~EqDomChecker() = default;
+  ~DomChecker() = default;
 
 
 public:
@@ -39,20 +38,12 @@ public:
   // 外部インターフェイス
   //////////////////////////////////////////////////////////////////////
 
-  /// @brief 等価故障のチェックを行う．
-  void
-  check_equiv(
-    EqGroupMgr* mgr,          ///< [in] マネージャ
-    SizeType group_id,        ///< [in] グループ番号
-    const ConfigParam& option ///< [in] オプション
-  );
-
   /// @brief 支配故障のチェックを行う．
   void
   check_dominance(
-    EqGroupMgr* mgr,           ///< [in] マネージャ
-    const TpgFault& fault,     ///< [in] 対象の故障
-    const ConfigParam& option  ///< [in] オプション
+    DomMgr& mgr,              ///< [in] マネージャ
+    const TpgFault& fault,    ///< [in] 対象の故障
+    const ConfigParam& option ///< [in] オプション
   );
 
   /// @brief 結果の情報を更新する．

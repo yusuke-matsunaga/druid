@@ -12,17 +12,18 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス EqDomMgr
+// クラス EqGroupMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<EqDomMgr>
-EqDomMgr::new_dichotomy_mgr(
-  const TpgFaultList& fault_list,
+std::unique_ptr<EqGroupMgr>
+EqGroupMgr::new_dichotomy_mgr(
+  FaultInfo& fault_info,
+  Fsim& fsim,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<EqDomMgr>{new DichoMgr(fault_list, option)};
+  return std::unique_ptr<EqGroupMgr>{new DichoMgr(fault_info, fsim, option)};
 }
 
 
@@ -32,12 +33,13 @@ EqDomMgr::new_dichotomy_mgr(
 
 // @brief コンストラクタ
 DichoMgr::DichoMgr(
-  const TpgFaultList& fault_list,
+  FaultInfo& fault_info,
+  Fsim& fsim,
   const ConfigParam& option
-) : EqDomMgr(fault_list, option)
+) : EqGroupMgr(fault_info, fsim, option)
 {
   // 最初は１つのグループ
-  auto group = new DichoGroup(0, fault_list);
+  auto group = new DichoGroup(0, EqGroupMgr::fault_list());
   group->set_succ_list({group});
   mCurGroupList.push_back(DichoGroup::Ptr{group});
   _fix_group_map();
@@ -216,7 +218,7 @@ DichoMgr::fault_list(
   TpgFaultList ans_list;
   ans_list.reserve(src_list.size());
   for ( auto fault: src_list ) {
-    if ( is_rep(fault) ) {
+    if ( mFaultInfo.is_rep(fault) ) {
       ans_list.push_back(fault);
     }
   }
@@ -263,15 +265,6 @@ DichoMgr::prev_list(
     ans_list.push_back(group1->id());
   }
   return ans_list;
-}
-
-// @brief set_rep() に関連した処理を行う．
-void
-DichoMgr::after_set_rep(
-  const TpgFault& fault
-)
-{
-  // なにもしない．
 }
 
 // @brief 順序関係の要素数を返す．

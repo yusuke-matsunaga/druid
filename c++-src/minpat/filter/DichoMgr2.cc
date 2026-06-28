@@ -6,7 +6,7 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "EqDomMgr.h"
+#include "EqGroupMgr.h"
 #include "DichoMgr2.h"
 #include "DCM2Helper.h"
 
@@ -15,17 +15,18 @@
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス EqDomMgr
+// クラス EqGroupMgr
 //////////////////////////////////////////////////////////////////////
 
 // @brief 新しいオブジェクトを作る．
-std::unique_ptr<EqDomMgr>
-EqDomMgr::new_dichotomy_mgr2(
-  const TpgFaultList& fault_list,
+std::unique_ptr<EqGroupMgr>
+EqGroupMgr::new_dichotomy_mgr2(
+  FaultInfo& fault_info,
+  Fsim& fsim,
   const ConfigParam& option
 )
 {
-  return std::unique_ptr<EqDomMgr>{new DichoMgr2(fault_list, option)};
+  return std::unique_ptr<EqGroupMgr>{new DichoMgr2(fault_info, fsim, option)};
 }
 
 
@@ -35,12 +36,13 @@ EqDomMgr::new_dichotomy_mgr2(
 
 // @brief コンストラクタ
 DichoMgr2::DichoMgr2(
-  const TpgFaultList& fault_list,
+  FaultInfo& fault_info,
+  Fsim& fsim,
   const ConfigParam& option
-) : EqDomMgr(fault_list, option)
+) : EqGroupMgr(fault_info, fsim, option)
 {
   // 最初は１つのグループ
-  auto group = new DichoGroup(0, fault_list);
+  auto group = new DichoGroup(0, EqGroupMgr::fault_list());
   mCurGroupList.push_back(DichoGroup::Ptr{group});
 }
 
@@ -152,15 +154,6 @@ DichoMgr2::prev_list(
 ) const
 {
   return {};
-}
-
-// @brief set_rep() に関連した処理を行う．
-void
-DichoMgr2::after_set_rep(
-  const TpgFault& fault
-)
-{
-  // 何もしない．
 }
 
 // @brief 順序関係の要素数を返す．
