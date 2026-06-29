@@ -13,7 +13,6 @@
 #include "DomMgr.h"
 #include "DomChecker.h"
 #include "ym/MtMgr.h"
-#include "ym/IdPool.h"
 #include "ym/ExLock.h"
 
 
@@ -87,39 +86,12 @@ check_equiv(
     bool changed = false;
     std::vector<TestVector> tv_list;
     if ( multi_thread ) {
-#if 0
-      IdPool id_pool(ng);
-      ExLock lock;
-      MtMgr::run(
-	[&]() {
-	  EqChecker checker;
-	  for ( ; ; ) {
-	    SizeType id;
-	    if ( !id_pool.get(id) ) {
-	      // 終わり
-	      break;
-	    }
-	    checker.check_equiv(candmgr, id, option);
-	  }
-	  lock.run([&]() {
-	    if ( checker.update_results(check_count, success_count, tv_list) ) {
-	      changed = true;
-	    }
-	  });
-	}, thread_num
-      );
-#else
       auto th_num = MtMgr::actual_thread_num(thread_num);
       ExLock lock;
       MtMgr::run(
-	[&]() {
+	[&](SizeType th_id) {
 	  EqChecker checker;
-	  for ( ; ; ) {
-	    SizeType id;
-	    if ( !id_pool.get(id) ) {
-	      // 終わり
-	      break;
-	    }
+	  for ( SizeType id = th_id; id < ng; id += th_num ) {
 	    checker.check_equiv(candmgr, id, option);
 	  }
 	  lock.run([&]() {
@@ -129,12 +101,11 @@ check_equiv(
 	  });
 	}, thread_num
       );
-#endif
     }
     else {
       EqChecker checker;
-      for ( SizeType i = 0; i < ng; ++ i ) {
-	checker.check_equiv(candmgr, i, option);
+      for ( SizeType id = 0; id < ng; ++ id ) {
+	checker.check_equiv(candmgr, id, option);
       }
       if ( checker.update_results(check_count, success_count, tv_list) ) {
 	changed = true;

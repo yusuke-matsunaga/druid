@@ -60,6 +60,12 @@ public:
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   );
 
+  /// @brief 内容を出力する．
+  void
+  print(
+    std::ostream& s ///< [in] 出力ストリーム
+  ) const;
+
 
 private:
   //////////////////////////////////////////////////////////////////////

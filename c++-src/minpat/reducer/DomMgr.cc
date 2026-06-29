@@ -66,4 +66,19 @@ DomMgr::update(
   return changed;
 }
 
+// @brief 内容を出力する．
+void
+DomMgr::print(
+  std::ostream& s
+) const
+{
+  for ( auto fault: fault_info().rep_fault_list() ) {
+    s << fault.str() << ":";
+    for ( auto dom_fault: mCandListArray[fault.id()] ) {
+      s << " " << dom_fault.str();
+    }
+    s << std::endl;
+  }
+}
+
 END_NAMESPACE_DRUID

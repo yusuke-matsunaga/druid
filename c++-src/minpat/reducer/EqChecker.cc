@@ -47,10 +47,11 @@ EqChecker::check_equiv(
 
       NaiveDualEngine engine(fault1, fault2, option);
       auto res1 = engine.solve(true, false, TIME_LIMIT);
+      auto res2 = engine.solve(false, true, TIME_LIMIT);
       ++ mCheckCount;
-      if ( res1 == SatBool3::False ) {
-	// fault2 は fault1 に支配されている．
-	mgr->fault_info().set_dominator(fault2, fault1);
+      if ( res1 == SatBool3::False && res2 == SatBool3::False ) {
+	// fault1 と fault2 は等価故障
+	mgr->fault_info().set_rep(fault2, fault1);
 	++ mSuccessCount;
 	mChanged = true;
 	continue;
@@ -62,15 +63,6 @@ EqChecker::check_equiv(
 	auto tv = TestVector(pi_assign);
 	mTvList.push_back(tv);
 	has_tv = true;
-      }
-
-      auto res2 = engine.solve(false, true, TIME_LIMIT);
-      if ( res2 == SatBool3::False ) {
-	// fault1 は fault2 に支配されている．
-	mgr->fault_info().set_dominator(fault1, fault2);
-	++ mSuccessCount;
-	mChanged = true;
-	break;
       }
       if ( res2 == SatBool3::True ) {
 	// この時の入力を求める．

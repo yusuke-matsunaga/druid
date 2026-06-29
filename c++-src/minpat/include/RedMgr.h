@@ -53,6 +53,13 @@ public:
     return mFaultInfo;
   }
 
+  /// @brief FaultIfno を返す．
+  const FaultInfo&
+  fault_info() const
+  {
+    return mFaultInfo;
+  }
+
   /// @brief 対象のネットワークを返す．
   TpgNetwork
   network() const
