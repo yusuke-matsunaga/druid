@@ -167,9 +167,9 @@ public:
 
   /// @brief 末尾の要素を取り出す．
   TpgFault
-  pop_back()
+  back()
   {
-    auto id = _pop_back();
+    auto id = back_id();
     return TpgBase::fault(id);
   }
 

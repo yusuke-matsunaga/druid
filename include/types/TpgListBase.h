@@ -252,6 +252,13 @@ public:
     return mIdList.clear();
   }
 
+  /// @brief 末尾の要素を取り除く
+  void
+  pop_back()
+  {
+    mIdList.pop_back();
+  }
+
   /// @brief 容量を確保する．
   void
   reserve(
@@ -302,10 +309,9 @@ protected:
 
   /// @brief 末尾のIDを取り出す．
   SizeType
-  _pop_back()
+  back_id() const
   {
     auto id = mIdList.back();
-    mIdList.pop_back();
     return id;
   }
 
