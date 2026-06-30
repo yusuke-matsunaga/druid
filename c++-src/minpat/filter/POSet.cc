@@ -201,6 +201,16 @@ POSet::imm_succ_list(
   return _id_list(node->mImmSuccList);
 }
 
+// @brief ランクを返す．
+SizeType
+POSet::rank(
+  SizeType id
+) const
+{
+  auto node = _node(id);
+  return node->rank();
+}
+
 // @brief ノードのリストを要素番号のリストに変換する．
 std::vector<SizeType>
 POSet::_id_list(

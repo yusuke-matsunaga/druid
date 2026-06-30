@@ -125,6 +125,12 @@ public:
     SizeType id ///< [in] 要素番号
   ) const;
 
+  /// @brief ランクを返す．
+  SizeType
+  rank(
+    SizeType id ///< [in] 要素番号 ( 0 <= id < elem_num() )
+  ) const;
+
   /// @brief 内容を出力する．
   void
   print(
