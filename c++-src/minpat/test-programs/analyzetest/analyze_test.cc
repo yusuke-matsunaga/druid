@@ -48,6 +48,7 @@ analyze_test(
   bool multi_thread = false;
   bool global_reduction = false;
   int no_change_limit = 0;
+  bool naive = false;
   bool dump = false;
   bool verify = false;
   bool verbose = false;
@@ -143,6 +144,9 @@ analyze_test(
       std::string val = argv[pos];
       no_change_limit = stoi(val);
     }
+    else if ( arg == "--naive-reduction" ) {
+      naive = true;
+    }
     else if ( arg == "--dump" ) {
       dump = true;
     }
@@ -223,6 +227,7 @@ analyze_test(
   global_option.add("mffc_reduction", mffc_reduction);
   global_option.add("global_reduction", global_reduction);
   global_option.add("no_change_limit", no_change_limit);
+  global_option.add("naive_reduction", naive);
   global_option.add("debug", debug);
   global_option.add("verbose", verbose);
   auto option = JsonValue::object();

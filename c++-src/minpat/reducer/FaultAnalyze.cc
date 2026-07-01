@@ -161,8 +161,13 @@ global_reduction(
   auto multi_thread = option.get_bool_elem("multi_thread", false);
   auto verbose = option.get_bool_elem("verbose", false);
 
-  auto reducer_option = option.get_param("reducer");
-  Reducer::run(fault_info, reducer_option);
+  if ( option.get_bool_elem("naive_reduction", false) ) {
+    Reducer::naive_run(fault_info, option);
+  }
+  else {
+    auto reducer_option = option.get_param("reducer");
+    Reducer::run(fault_info, reducer_option);
+  }
 
   timer.stop();
   if ( verbose ) {

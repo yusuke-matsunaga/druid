@@ -36,6 +36,14 @@ public:
     const ConfigParam& option ///< [in] オプション
   );
 
+  /// @brief 支配関係を用いて対象の故障を削減する．
+  static
+  void
+  naive_run(
+    FaultInfo& fault_info,    ///< [in] 故障情報を収めたオブジェクト
+    const ConfigParam& option ///< [in] オプション
+  );
+
 };
 
 END_NAMESPACE_DRUID

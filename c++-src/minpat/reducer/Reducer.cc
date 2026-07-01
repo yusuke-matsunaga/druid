@@ -12,6 +12,7 @@
 #include "EqChecker.h"
 #include "DomMgr.h"
 #include "DomChecker.h"
+#include "dtpg/NaiveDualEngine.h"
 #include "ym/MtMgr.h"
 #include "ym/IdPool.h"
 #include "ym/ExLock.h"
@@ -245,7 +246,7 @@ Reducer::run(
   Fsim fsim(fault_list, fsim_option);
 
   // 等価故障の候補を管理するオブジェクト
-  auto eqmgr_option = option.get_param("eqmmgr");
+  auto eqmgr_option = option.get_param("eqmgr");
   auto eqmgr = EqGroupMgr::new_obj(fault_info, fsim, eqmgr_option);
 
   Timer filter_timer;
@@ -295,6 +296,73 @@ Reducer::run(
   // 支配故障の検査を行う．
   DomMgr dommgr(eqmgr.get(), fault_info, fsim);
   check_dominance(dommgr, option);
+}
+
+// @brief 支配関係を用いて対象の故障を削減する．
+void
+Reducer::naive_run(
+  FaultInfo& fault_info,
+  const ConfigParam& option
+)
+{
+  SizeType TIME_LIMIT = option.get_int_elem("time_limit", 0);
+  auto verbose = option.get_bool_elem("verbose", false);
+  auto debug = option.get_int_elem("debug", 0);
+
+  SizeType check_count = 0;
+  SizeType succ_count = 0;
+
+  Timer timer;
+  timer.start();
+
+  // 現時点での代表故障のリスト
+  auto fault_list = fault_info.rep_fault_list();
+  auto nf = fault_list.size();
+  for ( SizeType i1 = 0; i1 < nf - 1; ++ i1 ) {
+    auto fault1 = fault_list[i1];
+    if ( !fault_info.is_rep(fault1) ) {
+      continue;
+    }
+    for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
+      auto fault2 = fault_list[i2];
+      if ( !fault_info.is_rep(fault2) ) {
+	continue;
+      }
+      NaiveDualEngine engine(fault1, fault2, option);
+      auto res1 = engine.solve(true, false, TIME_LIMIT);
+      auto res2 = engine.solve(false, true, TIME_LIMIT);
+      ++ check_count;
+      if ( res1 == SatBool3::False && res2 == SatBool3::False ) {
+	// fault1 と fault2 は等価故障
+	fault_info.set_rep(fault2, fault1);
+	++ succ_count;
+	continue;
+      }
+      if ( res1 == SatBool3::False ) {
+	// fault2 は fault1 に支配されている．
+	fault_info.set_dominator(fault2, fault1);
+	++ succ_count;
+	continue;
+      }
+      if ( res2 == SatBool3::False ) {
+	// fault1 は fault2 に支配されている．
+	fault_info.set_dominator(fault1, fault2);
+	++ succ_count;
+	break;
+      }
+    }
+  }
+  timer.stop();
+
+  if ( verbose ) {
+    std::cout << std::endl
+	      << "Dominance check end:      " << std::endl
+	      << "Total checks:             " << std::setw(8) << std::right
+	      << check_count << std::endl
+	      << "Total succeeds:           " << std::setw(8) << std::right
+	      << succ_count << std::endl
+	      << "Dominate check Time:      " << time_str(timer) << std::endl;
+  }
 }
 
 END_NAMESPACE_DRUID

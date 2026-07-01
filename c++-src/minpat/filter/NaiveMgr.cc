@@ -55,9 +55,10 @@ NaiveMgr::update(
   const std::vector<PackedVal>& dpat_array
 )
 {
+  auto fault_list = fault_info().rep_fault_list();
   if ( mInitialized ) {
     bool change = false;
-    for ( auto fault1: EqGroupMgr::fault_list() ) {
+    for ( auto fault1: fault_list ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& old_list = mDomCandListArray[fault1.id()];
       TpgFaultList new_list;
@@ -81,10 +82,10 @@ NaiveMgr::update(
     return change;
   }
   else {
-    for ( auto fault1: EqGroupMgr::fault_list() ) {
+    for ( auto fault1: fault_list ) {
       auto pat1 = dpat_array[fault1.id()];
       auto& new_list = mDomCandListArray[fault1.id()];
-      for ( auto fault2: EqGroupMgr::fault_list() ) {
+      for ( auto fault2: fault_list ) {
 	if ( fault2 == fault1 ) {
 	  continue;
 	}
@@ -137,7 +138,7 @@ NaiveMgr::_make_group() const
   mIdMap.resize(mSize);
   // 等価グループを作る．
   std::vector<bool> mark(mSize, false);
-  for ( auto fault: EqGroupMgr::fault_list() ) {
+  for ( auto fault: fault_info().rep_fault_list() ) {
     if ( mark[fault.id()] ) {
       continue;
     }

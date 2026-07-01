@@ -39,7 +39,7 @@ DichoMgr::DichoMgr(
 ) : EqGroupMgr(fault_info, fsim, option)
 {
   // 最初は１つのグループ
-  auto group = new DichoGroup(0, EqGroupMgr::fault_list());
+  auto group = new DichoGroup(0, fault_info.rep_fault_list());
   group->set_succ_list({group});
   mCurGroupList.push_back(DichoGroup::Ptr{group});
   _fix_group_map();

@@ -58,8 +58,7 @@ EqGroupMgr::EqGroupMgr(
   FaultInfo& fault_info,
   Fsim& fsim,
   const ConfigParam& option
-) : RedMgr(fault_info, fsim),
-    mFaultList{fault_info.rep_fault_list()}
+) : RedMgr(fault_info, fsim)
 {
 }
 
