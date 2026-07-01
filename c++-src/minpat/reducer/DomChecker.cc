@@ -29,8 +29,9 @@ DomChecker::check_dominance(
   auto& cand_list = dommgr.cand_list(fault);
   while ( !cand_list.empty() ) {
     // 支配故障の候補を一つ取り出す．
-    auto dom_fault = cand_list.pop_back();
+    auto dom_fault = cand_list.back();
     if ( !dommgr.is_rep(dom_fault) ) {
+      cand_list.pop_back();
       continue;
     }
 
@@ -51,6 +52,7 @@ DomChecker::check_dominance(
       mTvList.push_back(tv);
       return;
     }
+    cand_list.pop_back();
   }
 }
 

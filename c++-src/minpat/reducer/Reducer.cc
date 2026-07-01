@@ -13,6 +13,7 @@
 #include "DomMgr.h"
 #include "DomChecker.h"
 #include "ym/MtMgr.h"
+#include "ym/IdPool.h"
 #include "ym/ExLock.h"
 
 
@@ -85,13 +86,16 @@ check_equiv(
     auto ng = candmgr->group_num();
     bool changed = false;
     std::vector<TestVector> tv_list;
+    std::cout << " # of groups: " << ng << std::endl;
     if ( multi_thread ) {
       auto th_num = MtMgr::actual_thread_num(thread_num);
+      IdPool pool(ng);
       ExLock lock;
       MtMgr::run(
 	[&](SizeType th_id) {
 	  EqChecker checker;
-	  for ( SizeType id = th_id; id < ng; id += th_num ) {
+	  SizeType id;
+	  while ( pool.get(id) ) {
 	    checker.check_equiv(candmgr, id, option);
 	  }
 	  lock.run([&]() {
@@ -111,6 +115,7 @@ check_equiv(
 	changed = true;
       }
     }
+    std ::cout << "  updating ..." << std::endl;
     if ( !tv_list.empty() ) {
       // 反例を用いて細分化する．
       if ( candmgr->subdivide(tv_list) ) {
@@ -159,14 +164,17 @@ check_dominance(
     bool changed = false;
     std::vector<TestVector> tv_list;
     auto fault_list = dommgr.fault_info().rep_fault_list();
+    std::cout << " # of faults: " << fault_list.size() << std::endl;
     if ( multi_thread ) {
       auto nf = fault_list.size();
       auto th_num = MtMgr::actual_thread_num(thread_num);
+      IdPool pool(nf);
       ExLock lock;
       MtMgr::run(
 	[&](SizeType th_id) {
 	  DomChecker checker;
-	  for ( SizeType id = th_id; id < nf; id += th_num ) {
+	  SizeType id;
+	  while ( pool.get(id) ) {
 	    auto fault = fault_list[id];
 	    checker.check_dominance(dommgr, fault, option);
 	  }
@@ -185,6 +193,7 @@ check_dominance(
       }
       changed = checker.update_results(check_count, succ_count, tv_list);
     }
+    std::cout << "  updating ..." << std::endl;
     if ( !tv_list.empty() ) {
       // 反例を用いて更新する．
       if ( dommgr.update(tv_list) ) {

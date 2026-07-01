@@ -34,6 +34,13 @@ BEGIN_NAMESPACE_DRUID
 /// を表している．
 ///
 /// 0 番目のビットは 0 ビットめに対応する．
+///
+/// ただし，ビット長が可変なのですこし不適切な実装をしている．
+/// 具体的にはクラス定義としては空の固定配列を用意しておいて
+/// 実際には容量分を加味したメモリ領域を確保する．
+/// そのため普通のコンストラクタ/デストラクタは使えない．
+/// さらに複数の BitVector オブジェクトから共有されることを考えて
+/// 共有カウンタを持たせる(前記の理由で std::shared_ptr は使えない)．
 //////////////////////////////////////////////////////////////////////
 class BitVectorRep
 {
@@ -46,22 +53,33 @@ public:
   ///
   /// 内容は X に初期化される．
   static
-  std::shared_ptr<BitVectorRep>
+  BitVectorRep*
   new_vector(
     SizeType len  ///< [in] ベクタ長
   );
 
-  /// @brief 内容をコピーする．
+#if 0
+  /// @brief 内容をコピーしたオブジェクトを作る．
   static
-  std::shared_ptr<BitVectorRep>
+  BitVectorRep*
   new_vector(
     const BitVectorRep& src  ///< [in] コピー元のオブジェクト
   );
+#endif
+
+  /// @brief オブジェクトを破壊する．
+  static
+  void
+  delete_vector(
+    BitVectorRep* rep
+  );
 
 
-public:
+private:
 
   /// @brief デストラクタ
+  ///
+  /// この関数が呼ばれることはない．
   ~BitVectorRep() = default;
 
 
@@ -288,6 +306,39 @@ public:
   SizeType
   hash() const;
 
+  /// @brief 参照数を返す．
+  SizeType
+  ref_count() const
+  {
+    return mRefCount;
+  }
+
+  /// @brief 参照数を増やす．
+  static
+  void
+  inc_ref(
+    BitVectorRep* rep
+  )
+  {
+    if ( rep != nullptr ) {
+      ++ rep->mRefCount;
+    }
+  }
+
+  /// @brief 参照数を減らす．
+  static
+  void
+  dec_ref(
+    BitVectorRep* rep
+  )
+  {
+    if ( rep != nullptr ) {
+      -- rep->mRefCount;
+      if ( rep->mRefCount == 0 ) {
+	delete_vector(rep);
+      }
+    }
+  }
 
 private:
   //////////////////////////////////////////////////////////////////////
@@ -376,6 +427,9 @@ private:
   //////////////////////////////////////////////////////////////////////
   // データメンバ
   //////////////////////////////////////////////////////////////////////
+
+  // 共有カウント
+  SizeType mRefCount{0};
 
   // ベクタ長
   SizeType mLength;

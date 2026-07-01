@@ -25,31 +25,54 @@ DomMgr::DomMgr(
 ) : RedMgr(fault_info, fsim),
     mCandListArray(fault_info.network().max_fault_id())
 {
-  POSet::Builder builder;
+  // 各故障を支配故障の候補を作る．
   auto fault_list = fault_info.rep_fault_list();
+  std::vector<SizeType> count_array(mCandListArray.size(), 0);
   for ( auto fault: fault_list ) {
+    auto& cand_list = mCandListArray[fault.id()];
     auto gid = eqmgr->group_id(fault);
     for ( auto gid1: eqmgr->prev_list(gid) ) {
       for ( auto fault1: eqmgr->fault_list(gid1) ) {
 	if ( fault_info.is_rep(fault1) ) {
-	  builder.add(fault1.id(), fault.id());
+	  cand_list.push_back(fault1);
 	}
       }
     }
+    count_array[fault.id()] = cand_list.size();
   }
-  POSet poset(builder);
-  auto network = fault_info.network();
-  for ( auto fault: fault_list ) {
-    auto pred_list = poset.pred_list(fault.id());
-    std::sort(pred_list.begin(), pred_list.end(),
-	      [&](SizeType id1, SizeType id2) -> bool {
-		return poset.rank(id1) < poset.rank(id2);
-	      });
-    auto& cand_list = mCandListArray[fault.id()];
-    for ( auto id: pred_list ) {
-      auto fault1 = network.fault(id);
-      cand_list.push_back(fault1);
+  // ランクを求める．
+  std::vector<SizeType> rank_array(mCandListArray.size(), 0);
+  {
+    std::vector<SizeType> id_list;
+    for ( auto fault: fault_list ) {
+      if ( count_array[fault.id()] == 0 ) {
+	id_list.push_back(fault.id());
+      }
     }
+    for ( SizeType rank = 0; !id_list.empty(); ++ rank ) {
+      for ( auto id: id_list ) {
+	rank_array[id] = rank;
+      }
+      std::vector<SizeType> new_list;
+      for ( auto id: id_list ) {
+	auto& cand_list = mCandListArray[id];
+	for ( auto fault1: cand_list ) {
+	  auto id1 = fault1.id();
+	  -- count_array[id1];
+	  if ( count_array[id1] == 0 ) {
+	    new_list.push_back(id1);
+	  }
+	}
+      }
+      std::swap(id_list, new_list);
+    }
+  }
+
+  for ( auto fault: fault_list ) {
+    auto& cand_list = mCandListArray[fault.id()];
+    cand_list.sort([&](SizeType id1, SizeType id2) -> bool {
+      return rank_array[id1] < rank_array[id2];
+    });
   }
 }
 

@@ -275,6 +275,15 @@ public:
     std::sort(mIdList.begin(), mIdList.end());
   }
 
+  /// @brief 比較関数を与えたソート関数
+  void
+  sort(
+    std::function<bool(SizeType, SizeType)> compfunc ///< [in] 比較関数
+  )
+  {
+    std::sort(mIdList.begin(), mIdList.end(), compfunc);
+  }
+
 
 protected:
   //////////////////////////////////////////////////////////////////////

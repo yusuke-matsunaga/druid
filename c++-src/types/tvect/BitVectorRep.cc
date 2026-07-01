@@ -29,18 +29,19 @@ _check_len(
 END_NONAMESPACE
 
 // @brief ベクタ長を指定してオブジェクトを作る．
-std::shared_ptr<BitVectorRep>
+BitVectorRep*
 BitVectorRep::new_vector(
   SizeType len
 )
 {
   auto size = sizeof(BitVectorRep) + sizeof(PackedVal) * block_num(len);
   void* p = new char[size];
-  return std::shared_ptr<BitVectorRep>{new (p) BitVectorRep(len)};
+  return new (p) BitVectorRep(len);
 }
 
-// @brief 内容をコピーする．
-std::shared_ptr<BitVectorRep>
+#if 0
+// @brief 内容をコピーしたオブジェクトを作る．
+BitVectorRep*
 BitVectorRep::new_vector(
   const BitVectorRep& src
 )
@@ -53,6 +54,7 @@ BitVectorRep::new_vector(
   }
   return rep;
 }
+#endif
 
 // @brief コンストラクタ
 BitVectorRep::BitVectorRep(
@@ -61,6 +63,16 @@ BitVectorRep::BitVectorRep(
 {
   // X に初期化しておく．
   init();
+}
+
+// @brief オブジェクトを破壊する．
+void
+BitVectorRep::delete_vector(
+  BitVectorRep* rep
+)
+{
+  auto p = reinterpret_cast<char*>(rep);
+  delete [] p;
 }
 
 // @brief X の個数を得る．

@@ -75,11 +75,15 @@ add_executable ( analyze_test_d
   )
 
 target_compile_options ( analyze_test_d
-  PRIVATE "-g"
+  PRIVATE "-g" "-fsanitize=address"
   )
 
 target_link_libraries ( analyze_test_d
   ${YM_LIB_DEPENDS}
+  )
+
+target_link_options ( analyze_test_d
+  PRIVATE "-fsanitize=address"
   )
 
 if ( GPERFTOOLS_FOUND )

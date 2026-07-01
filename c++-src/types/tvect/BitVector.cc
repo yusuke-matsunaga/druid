@@ -15,15 +15,18 @@ BEGIN_NAMESPACE_DRUID
 // @brief コンストラクタ
 BitVector::BitVector(
   SizeType len
-) : mPtr{BitVectorRep::new_vector(len)}
+)
 {
+  auto rep = BitVectorRep::new_vector(len);
+  set_rep(rep);
 }
 
 // @brief コピーコンストラクタ
 BitVector::BitVector(
   const BitVector& src
-) : mPtr{src.mPtr}
+)
 {
+  set_rep(src.mPtr);
 }
 
 // @brief コピー代入演算子
@@ -32,7 +35,7 @@ BitVector::operator=(
   const BitVector& src
 )
 {
-  mPtr = src.mPtr;
+  set_rep(src.mPtr);
 
   return *this;
 }
@@ -230,13 +233,25 @@ BitVector::hash() const
   return mPtr->hash();
 }
 
+// @brief 内容をセットする．
+void
+BitVector::set_rep(
+  BitVectorRep* rep
+)
+{
+  BitVectorRep::inc_ref(rep);
+  BitVectorRep::dec_ref(mPtr);
+  mPtr = rep;
+}
+
 // @brief 多重参照の場合に複製して単一参照にする．
 void
 BitVector::uniquefy()
 {
-  if ( mPtr.use_count() > 1) {
+  if ( mPtr->ref_count() > 1) {
     // 内容を変更するので複製する．
-    mPtr = BitVectorRep::new_vector(*mPtr);
+    auto rep = BitVectorRep::new_vector(*mPtr);
+    set_rep(rep);
   }
 }
 
