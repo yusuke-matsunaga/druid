@@ -58,14 +58,9 @@ public:
     SizeType len  ///< [in] ベクタ長
   );
 
-#if 0
   /// @brief 内容をコピーしたオブジェクトを作る．
-  static
   BitVectorRep*
-  new_vector(
-    const BitVectorRep& src  ///< [in] コピー元のオブジェクト
-  );
-#endif
+  duplicate() const;
 
   /// @brief オブジェクトを破壊する．
   static

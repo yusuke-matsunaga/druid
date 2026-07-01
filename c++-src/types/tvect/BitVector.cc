@@ -250,7 +250,7 @@ BitVector::uniquefy()
 {
   if ( mPtr->ref_count() > 1) {
     // 内容を変更するので複製する．
-    auto rep = BitVectorRep::new_vector(*mPtr);
+    auto rep = mPtr->duplicate();
     set_rep(rep);
   }
 }

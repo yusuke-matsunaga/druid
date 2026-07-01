@@ -39,22 +39,19 @@ BitVectorRep::new_vector(
   return new (p) BitVectorRep(len);
 }
 
-#if 0
 // @brief 内容をコピーしたオブジェクトを作る．
 BitVectorRep*
-BitVectorRep::new_vector(
-  const BitVectorRep& src
-)
+BitVectorRep::duplicate() const
 {
-  auto rep = new_vector(src.len());
+  auto l = len();
+  auto rep = new_vector(l);
 
-  auto n = block_num(src.len());
+  auto n = block_num(l);
   for ( auto i: Range_<SizeType>(0, n) ) {
-    rep->mPat[i] = src.mPat[i];
+    rep->mPat[i] = mPat[i];
   }
   return rep;
 }
-#endif
 
 // @brief コンストラクタ
 BitVectorRep::BitVectorRep(
