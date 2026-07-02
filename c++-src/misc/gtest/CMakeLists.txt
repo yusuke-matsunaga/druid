@@ -26,4 +26,5 @@ ym_add_gtest ( druid_misc_Test
   ConfigParamTest.cc
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )

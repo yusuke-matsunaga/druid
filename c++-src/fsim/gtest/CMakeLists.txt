@@ -38,14 +38,7 @@ ym_add_gtest ( druid_FsimTest
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
-  )
-
-target_compile_options ( druid_FsimTest
-  PRIVATE "-fsanitize=address"
-  )
-
-target_link_options ( druid_FsimTest
-  PRIVATE "-fsanitize=address"
+  ADDRESS_SANITIZE
   )
 
 add_executable( refsim_test

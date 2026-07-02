@@ -36,6 +36,7 @@ ym_add_gtest ( druid_dtpg_test
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )
 
 ym_add_gtest ( druid_dtpg_test2
@@ -53,6 +54,7 @@ ym_add_gtest ( druid_dtpg_test2
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )
 
 ym_add_gtest ( druid_DtpgMgr_test
@@ -70,4 +72,5 @@ ym_add_gtest ( druid_DtpgMgr_test
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )

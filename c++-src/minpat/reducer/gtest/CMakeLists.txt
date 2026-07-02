@@ -38,6 +38,7 @@ ym_add_gtest ( druid_FaultAnalyzeTest
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )
 
 
@@ -57,6 +58,7 @@ ym_add_gtest ( druid_FaultAnalyzeTest2
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )
 
 ym_add_gtest ( druid_FFRAnalyzeTest
@@ -75,6 +77,7 @@ ym_add_gtest ( druid_FFRAnalyzeTest
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )
 
 if ( 0 )
@@ -94,5 +97,6 @@ ym_add_gtest ( druid_MFFCAnalyzeTest
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )
 endif ()

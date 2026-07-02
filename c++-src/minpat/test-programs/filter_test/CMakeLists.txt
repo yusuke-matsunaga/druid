@@ -68,18 +68,16 @@ add_executable ( filter_test_d
   )
 
 target_compile_options ( filter_test_d
-  PRIVATE "-g"
+  PRIVATE "-g" "-fsanitize=address"
   )
 
 target_link_libraries ( filter_test_d
   ${YM_LIB_DEPENDS}
   )
 
-if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( filter_test_d
-    ${GPERFTOOLS_LIBRARIES}
-    )
-endif ()
+target_link_options ( filter_test_d
+  PRIVATE "-fsanitize=address"
+  )
 
 add_executable ( filter_test2
   filter_test2.cc

@@ -85,9 +85,3 @@ target_link_libraries ( analyze_test_d
 target_link_options ( analyze_test_d
   PRIVATE "-fsanitize=address"
   )
-
-if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( analyze_test_d
-    ${GPERFTOOLS_LIBRARIES}
-    )
-endif ()

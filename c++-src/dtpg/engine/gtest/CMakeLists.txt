@@ -36,6 +36,7 @@ ym_add_gtest( druid_GateEncTest
   $<TARGET_OBJECTS:druid_fsim_naive_bside2_obj_d>
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
+  ADDRESS_SANITIZE
   )
 
 target_include_directories ( druid_GateEncTest
@@ -58,4 +59,5 @@ ym_add_gtest ( druid_DtpgEngine_test
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  ADDRESS_SANITIZE
   )
