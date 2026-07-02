@@ -37,8 +37,8 @@ SimNode::SimNode(
 SimNode::~SimNode()
 {
   if ( fanout_num() > 1 ) {
-    auto fanouts = reinterpret_cast<SimNode**>(mFanoutTop);
-    delete [] fanouts;
+    auto fo_info = reinterpret_cast<FanoutInfo*>(mFanoutTop);
+    delete fo_info;
   }
 }
 
@@ -151,17 +151,15 @@ SimNode::set_fanout_list(
 )
 {
   auto nfo = fo_list.size();
-  if ( nfo > 0 ) {
-    if ( nfo == 1 ) {
-      mFanoutTop = fo_list[0];
+  if ( nfo == 1 ) {
+    mFanoutTop = fo_list[0];
+  }
+  else if ( nfo >= 2 ) {
+    auto fo_info = new FanoutInfo(nfo);
+    for ( auto i: Range(0, nfo) ) {
+      fo_info->mFoList[i] = fo_list[i];
     }
-    else {
-      auto fo_info = new FanoutInfo(nfo);
-      for ( auto i: Range(0, nfo) ) {
-	fo_info->mFoList[i] = fo_list[i];
-      }
-      mFanoutTop = reinterpret_cast<SimNode*>(fo_info);
-    }
+    mFanoutTop = reinterpret_cast<SimNode*>(fo_info);
   }
 
   mFanoutNum = (nfo << 8) | ipos;
