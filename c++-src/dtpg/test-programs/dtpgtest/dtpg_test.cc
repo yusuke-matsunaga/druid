@@ -140,6 +140,7 @@ dtpg_test(
   bool ex_std = false;
   bool drop = false;
   bool fix = false;
+  bool multi_thread = false;
   bool dump = false;
   bool verbose = false;
   std::string sat_log;
@@ -265,6 +266,9 @@ dtpg_test(
       else if ( strcmp(argv[pos], "--fix") == 0 ) {
 	fix = true;
       }
+      else if ( strcmp(argv[pos], "--multi-thread") == 0 ) {
+	multi_thread = true;
+      }
       else if ( strcmp(argv[pos], "--dump") == 0 ) {
 	dump = true;
       }
@@ -346,6 +350,9 @@ dtpg_test(
     sat_option.add("log", log_option);
   }
   option.add("sat_param", sat_option);
+  auto global_option = JsonValue::object();
+  option.add("multi_thread", multi_thread);
+  option.add("verbose", verbose);
 
   Timer timer;
   timer.start();

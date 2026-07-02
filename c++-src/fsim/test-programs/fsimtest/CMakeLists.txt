@@ -18,15 +18,15 @@ include_directories(
 
 
 # ===================================================================
-#  FsimTest
+#  fsim_test
 # ===================================================================
 
-set ( FsimTest_SOURCES
-  FsimTest.cc
+set ( fsim_test_SOURCES
+  fsim_test.cc
   )
 
-add_executable ( FsimTest
-  ${FsimTest_SOURCES}
+add_executable ( fsim_test
+  ${fsim_test_SOURCES}
   $<TARGET_OBJECTS:druid_types_obj>
   $<TARGET_OBJECTS:druid_fsim_obj>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj>
@@ -40,27 +40,27 @@ add_executable ( FsimTest
   ${YM_SUBMODULE_OBJ_LIST}
   )
 
-target_compile_options ( FsimTest
+target_compile_options ( fsim_test
   PRIVATE "-O3"
   )
 
-target_compile_definitions ( FsimTest
+target_compile_definitions ( fsim_test
   PRIVATE "-DNDEBUG"
   )
 
-target_link_libraries ( FsimTest
+target_link_libraries ( fsim_test
   ${YM_LIB_DEPENDS}
   )
 
 if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( FsimTest
+  target_link_libraries ( fsim_test
     ${GPERFTOOLS_LIBRARIES}
     )
 endif ()
 
 
-add_executable ( FsimTest_d
-  ${FsimTest_SOURCES}
+add_executable ( fsim_test_d
+  ${fsim_test_SOURCES}
   $<TARGET_OBJECTS:druid_types_obj_d>
   $<TARGET_OBJECTS:druid_fsim_obj_d>
   $<TARGET_OBJECTS:druid_fsim_multi_combi2_obj_d>
@@ -74,16 +74,14 @@ add_executable ( FsimTest_d
   ${YM_SUBMODULE_OBJ_D_LIST}
   )
 
-target_compile_options ( FsimTest_d
-  PRIVATE "-g"
+target_compile_options ( fsim_test_d
+  PRIVATE "-g" "-fsanitize=address"
   )
 
-target_link_libraries ( FsimTest_d
+target_link_libraries ( fsim_test_d
   ${YM_LIB_DEPENDS}
   )
 
-if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( FsimTest_d
-    ${GPERFTOOLS_LIBRARIES}
-    )
-endif ()
+target_link_options ( fsim_test_d
+  PRIVATE "-fsanitize=address"
+  )

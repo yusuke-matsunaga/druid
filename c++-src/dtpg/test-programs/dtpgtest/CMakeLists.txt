@@ -73,15 +73,13 @@ add_executable ( dtpg_test_d
   )
 
 target_compile_options ( dtpg_test_d
-  PRIVATE "-g"
+  PRIVATE "-g" "-fsanitize=address"
   )
 
 target_link_libraries ( dtpg_test_d
   ${YM_LIB_DEPENDS}
   )
 
-if ( GPERFTOOLS_FOUND )
-  target_link_libraries ( dtpg_test_d
-    ${GPERFTOOLS_LIBRARIES}
-    )
-endif ()
+target_link_options ( dtpg_test_d
+  PRIVATE "-fsanitize=address"
+  )

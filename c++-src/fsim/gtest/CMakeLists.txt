@@ -22,7 +22,7 @@ include_directories(
 #  テスト用のターゲットの設定
 # ===================================================================
 
-ym_add_gtest ( druid_fsim_Test
+ym_add_gtest ( druid_FsimTest
   FsimTest.cc
   RefSim.cc
   $<TARGET_OBJECTS:druid_types_obj_d>
@@ -38,6 +38,14 @@ ym_add_gtest ( druid_fsim_Test
   $<TARGET_OBJECTS:druid_fsim_naive_bside3_obj_d>
   ${YM_SUBMODULE_OBJ_D_LIST}
   DEFINITIONS "-DTESTDATA_DIR=\"${TESTDATA_DIR}\""
+  )
+
+target_compile_options ( druid_FsimTest
+  PRIVATE "-fsanitize=address"
+  )
+
+target_link_options ( druid_FsimTest
+  PRIVATE "-fsanitize=address"
   )
 
 add_executable( refsim_test
