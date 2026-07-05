@@ -193,36 +193,12 @@ check_dominance(
     }
     if ( !tv_list.empty() ) {
       // 反例を用いて更新する．
-#if 1
-      if ( dommgr.update(tv_list) ) {
-	changed = true;
-      }
-      else {
-	std::cout << "dommgr.update() failed" << std::endl
-		  << " # of tv_list = " << tv_list.size() << std::endl;
-	abort();
-      }
-#else
       dommgr.update(tv_list);
       changed = true;
-#endif
     }
-#if 1
     if ( !changed ) {
       break;
     }
-#else
-    bool no_cand = true;
-    for ( auto fault: fault_list ) {
-      if ( !dommgr.cand_list(fault).empty() ) {
-	no_cand = false;
-	break;
-      }
-    }
-    if ( no_cand ) {
-      break;
-    }
-#endif
   }
   timer.stop();
 
