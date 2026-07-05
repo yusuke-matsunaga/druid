@@ -30,9 +30,11 @@ EqGroupMgr::new_obj(
   if ( str == "dichotomy" ) {
     return new_dichotomy_mgr(fault_info, fsim, option);
   }
+#if 0
   if ( str == "dichotomy2" ) {
     return new_dichotomy_mgr2(fault_info, fsim, option);
   }
+#endif
 
   std::ostringstream buf;
   buf << str << ": unknown option for 'method'";
@@ -69,7 +71,7 @@ EqGroupMgr::subdivide(
   std::function<void(const FsimResults&)> callback
 )
 {
-  std::vector<PackedVal> dpat_array;
+  std::vector<DPat> dpat_array;
   auto res = simulate(tv_list, dpat_array);
   callback(res);
   auto change = update(dpat_array);

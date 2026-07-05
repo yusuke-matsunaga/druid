@@ -112,7 +112,7 @@ public:
   virtual
   bool
   update(
-    const std::vector<PackedVal>& dpat_array ///< [in] 故障の検出状況のピットパタン
+    const std::vector<DPat>& dpat_array ///< [in] 故障の検出状況のピットパタンの配列
   ) = 0;
 
   /// @brief 結果を返す．

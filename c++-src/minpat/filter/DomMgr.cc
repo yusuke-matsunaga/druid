@@ -82,19 +82,21 @@ DomMgr::update(
   const std::vector<TestVector>& tv_list
 )
 {
-  std::vector<PackedVal> dpat_array;
+  std::vector<DPat> dpat_array;
   simulate(tv_list, dpat_array);
 
   bool changed = false;
   for ( auto fault: fault_info().rep_fault_list() ) {
-    auto dpat = dpat_array[fault.id()];
+    auto& dpat = dpat_array[fault.id()];
     auto& cand_list = mCandListArray[fault.id()];
     TpgFaultList new_cand_list;
     new_cand_list.reserve(cand_list.size());
     for ( auto fault1: cand_list ) {
-      auto dpat1 = dpat_array[fault1.id()];
-      if ( (dpat1 & dpat) == dpat1 ) {
-	new_cand_list.push_back(fault1);
+      if ( fault_info().is_rep(fault1) ) {
+	auto& dpat1 = dpat_array[fault1.id()];
+	if ( dpat1.check_contain(dpat) ) {
+	  new_cand_list.push_back(fault1);
+	}
       }
     }
     if ( new_cand_list.size() != cand_list.size() ) {

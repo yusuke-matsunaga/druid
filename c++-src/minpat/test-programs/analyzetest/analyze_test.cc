@@ -382,9 +382,23 @@ analyze_test(
 
   if ( dom_dump ) {
     for ( auto fault: fault_list ) {
-      if ( fault_info.is_rep(fault) ) {
-	std::cout << fault.str() << std::endl;
+      auto status = fault_info.status(fault);
+      std::cout << fault.str() << ": "
+		<< str(status);
+      if ( status == FaultStatus::Detected ) {
+	if ( fault_info.is_rep(fault) ) {
+	  std::cout << " ***";
+	}
+	else if ( fault_info.is_dominated(fault) ) {
+	  auto dom_fault = fault_info.dominator(fault);
+	  std::cout << " <= " << dom_fault.str();
+	}
+	else {
+	  auto rep_fault = fault_info.rep_fault(fault);
+	  std::cout << " == " << rep_fault.str();
+	}
       }
+      std::cout << std::endl;
     }
   }
 

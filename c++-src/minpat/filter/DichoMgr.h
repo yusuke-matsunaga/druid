@@ -43,7 +43,7 @@ private:
   /// @brief 更新処理
   bool
   update(
-    const std::vector<PackedVal>& dpat_array ///< [in] 故障の検出状況のピットパタン
+    const std::vector<DPat>& dpat_array ///< [in] 故障の検出状況のピットパタンの配列
   ) override;
 
   /// @brief 終了処理
@@ -113,20 +113,6 @@ private:
   print_group_list(
     std::ostream& s,                               ///< [in] 出力ストリーム
     const std::vector<DichoGroup::Ptr>& group_list ///< [in] グループのリスト
-  );
-
-  /// @brief パタンを文字列にする．
-  static
-  std::string
-  pat_str(
-    PackedVal pat
-  );
-
-  /// @brief パタンのリストを文字列にする．
-  static
-  std::string
-  pat_list_str(
-    const std::vector<PackedVal>& pat_list
   );
 
 

@@ -60,6 +60,17 @@ public:
     const std::vector<TestVector>& tv_list ///< [in] テストベクタのリスト
   );
 
+  /// @brief 対象の故障に対する支配故障を設定する．
+  void
+  set_dominator(
+    const TpgFault& fault,    ///< [in] 対象の故障
+    const TpgFault& dom_fault ///< [in] 支配故障
+  )
+  {
+    RedMgr::set_dominator(fault, dom_fault);
+    mCandListArray[fault.id()].clear();
+  }
+
   /// @brief 内容を出力する．
   void
   print(

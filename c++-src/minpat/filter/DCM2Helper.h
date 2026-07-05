@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "types/PackedVal.h"
+#include "DPat.h"
 #include "DichoGroup.h"
 #include "DPatGraph.h"
 
@@ -25,7 +25,7 @@ class DCM2Helper
 public:
 
   // パタンをキーしたGroupの辞書
-  using GroupDict = std::unordered_map<PackedVal, DichoGroup*>;
+  using GroupDict = std::unordered_map<DPat, DichoGroup*>;
 
 
 public:
@@ -49,7 +49,7 @@ public:
   bool
   run(
     std::vector<DichoGroup::Ptr>& group_list, ///< [in] グループのリスト
-    const std::vector<PackedVal>& dpat_array  ///< [in] 故障の検出状況のピットパタン
+    const std::vector<DPat>& dpat_array  ///< [in] 故障の検出状況のピットパタンの配列
   );
 
 

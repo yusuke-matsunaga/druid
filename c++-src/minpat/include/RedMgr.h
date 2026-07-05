@@ -10,10 +10,9 @@
 
 #include "druid.h"
 #include "types/TpgFault.h"
-//#include "types/TpgFaultList.h"
-#include "types/PackedVal.h"
 #include "fsim/Fsim.h"
 #include "FaultInfo.h"
+#include "DPat.h"
 #include "ym/Timer.h"
 
 
@@ -83,6 +82,28 @@ public:
     return mFaultInfo.is_rep(fault);
   }
 
+  /// @brief 対象の故障に対する代表故障を設定する．
+  void
+  set_rep(
+    const TpgFault& fault,    ///< [in] 対象の故障
+    const TpgFault& rep_fault ///< [in] 代表故障
+  )
+  {
+    mFaultInfo.set_rep(fault, rep_fault);
+    mFsim.set_skip(fault);
+  }
+
+  /// @brief 対象の故障に対する支配故障を設定する．
+  void
+  set_dominator(
+    const TpgFault& fault,    ///< [in] 対象の故障
+    const TpgFault& dom_fault ///< [in] 支配故障
+  )
+  {
+    mFaultInfo.set_dominator(fault, dom_fault);
+    mFsim.set_skip(fault);
+  }
+
   /// @brief 故障シミュレーションの時間を返す．
   double
   fsim_time() const
@@ -100,22 +121,26 @@ protected:
   FsimResults
   simulate(
     const std::vector<TestVector>& tv_list, ///< [in] テストパタンのリスト
-    std::vector<PackedVal>& dpat_array      ///< [in] 故障ごとの検出結果を入れる配列
+    std::vector<DPat>& dpat_array           ///< [in] 故障ごとの検出結果を入れる配列
   )
   {
     mFsimTimer.start();
     auto res = mFsim.run_multi(tv_list, true);
     mFsimTimer.stop();
 
-    dpat_array.clear();
-    dpat_array.resize(max_fault_size(), PV_ALL0);
+    auto ntv = tv_list.size();
+    auto nf = max_fault_size();
 
-    auto ntv = res.tv_num();
+    dpat_array.clear();
+    dpat_array.reserve(nf);
+    for ( SizeType i = 0; i < nf; ++ i ) {
+      dpat_array.push_back(DPat(ntv));
+    }
+
     for ( SizeType i = 0; i < ntv; ++ i ) {
-      PackedVal bit = 1ULL << i;
       for ( auto fault: res.fault_list(i) ) {
 	auto fid = fault.id();
-	dpat_array[fid] |= bit;
+	dpat_array[fid].set(i);
       }
     }
 

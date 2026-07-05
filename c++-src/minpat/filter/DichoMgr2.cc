@@ -54,7 +54,7 @@ DichoMgr2::~DichoMgr2()
 // @brief 更新処理
 bool
 DichoMgr2::update(
-  const std::vector<PackedVal>& dpat_array
+  const std::vector<DPat>& dpat_array
 )
 {
   DCM2Helper helper;

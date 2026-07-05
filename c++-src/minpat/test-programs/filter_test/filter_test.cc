@@ -97,12 +97,11 @@ make_cand(
     patgen->update(res);
 
     auto ntv = res.tv_num();
-    std::vector<PackedVal> dpat_array(max_size, PV_ALL0);
+    std::vector<DPat> dpat_array(max_size, DPat(ntv));
     for ( SizeType i = 0; i < ntv; ++ i ) {
-      PackedVal bit = 1ULL << i;
       for ( auto fault: res.fault_list(i) ) {
 	auto fid = fault.id();
-	dpat_array[fid] |= bit;
+	dpat_array[fid].set(i);
       }
     }
     auto change = candmgr->update(dpat_array);

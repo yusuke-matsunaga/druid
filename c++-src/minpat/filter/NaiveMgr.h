@@ -41,7 +41,7 @@ private:
   /// @brief 更新処理
   bool
   update(
-    const std::vector<PackedVal>& dpat_array ///< [in] 故障の検出状況のピットパタン
+    const std::vector<DPat>& dpat_array ///< [in] 故障の検出状況のピットパタンの配列
   ) override;
 
   /// @brief 終了処理

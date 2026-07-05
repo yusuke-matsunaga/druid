@@ -53,17 +53,17 @@ DichoMgr::~DichoMgr()
 // @brief 更新処理
 bool
 DichoMgr::update(
-  const std::vector<PackedVal>& dpat_array
+  const std::vector<DPat>& dpat_array
 )
 {
   // 細分化したサブグループの情報
   struct SubGroupInfo {
-    PackedVal dpat;
+    DPat dpat;
     DichoGroup* group;
   };
 
   // パタンをキーしたGroupの辞書
-  using GroupDict = std::unordered_map<PackedVal, DichoGroup*>;
+  using GroupDict = std::unordered_map<DPat, DichoGroup*>;
 
   // もとのグループ数
   auto ng = mCurGroupList.size();
@@ -80,7 +80,7 @@ DichoMgr::update(
     GroupDict group_dict;
     auto& sg_list = sg_list_array[group->id()];
     for ( auto fault: group->fault_list() ) {
-      auto dpat = dpat_array[fault.id()];
+      auto& dpat = dpat_array[fault.id()];
       if ( group_dict.count(dpat) == 0 ) {
 	// 新しいグループを作る．
 	auto id = new_group_list.size();
@@ -105,14 +105,14 @@ DichoMgr::update(
     auto& succ_list = group->succ_list();
     auto& sg_list = sg_list_array[group->id()];
     for ( auto& sg: sg_list ) {
-      auto dpat = sg.dpat;
+      auto& dpat = sg.dpat;
       auto subgroup = sg.group;
       std::vector<DichoGroup*> sub_succ_list;
       for ( auto succ_group: succ_list ) {
 	auto& sg_list1 = sg_list_array[succ_group->id()];
 	for ( auto& sg1: sg_list1 ) {
-	  auto dpat1 = sg1.dpat;
-	  if ( (dpat & dpat1) == dpat ) {
+	  auto& dpat1 = sg1.dpat;
+	  if ( dpat.check_contain(dpat1) ) {
 	    auto subgroup1 = sg1.group;
 	    sub_succ_list.push_back(subgroup1);
 	  }
@@ -306,32 +306,6 @@ DichoMgr::print_group_list(
     group->print(s);
   }
   s << "-------------------------------------------" << std::endl;
-}
-
-// @brief パタンを文字列にする．
-std::string
-DichoMgr::pat_str(
-  PackedVal pat
-)
-{
-  std::ostringstream buf;
-  buf << "[" << std::hex << pat << std::dec << "]";
-  return buf.str();
-}
-
-// @brief パタンのリストを文字列にする．
-std::string
-DichoMgr::pat_list_str(
-  const std::vector<PackedVal>& pat_list
-)
-{
-  std::ostringstream buf;
-  buf << "[" << std::hex;
-  for ( auto pat: pat_list ) {
-    buf << pat;
-  }
-  buf << std::dec << "]";
-  return buf.str();
 }
 
 END_NAMESPACE_DRUID

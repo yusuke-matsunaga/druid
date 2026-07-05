@@ -52,25 +52,25 @@ NaiveMgr::~NaiveMgr()
 // @brief 更新処理
 bool
 NaiveMgr::update(
-  const std::vector<PackedVal>& dpat_array
+  const std::vector<DPat>& dpat_array
 )
 {
   auto fault_list = fault_info().rep_fault_list();
   if ( mInitialized ) {
     bool change = false;
     for ( auto fault1: fault_list ) {
-      auto pat1 = dpat_array[fault1.id()];
+      auto& pat1 = dpat_array[fault1.id()];
       auto& old_list = mDomCandListArray[fault1.id()];
       TpgFaultList new_list;
       new_list.reserve(old_list.size());
       for ( auto fault2: old_list ) {
-	auto pat2 = dpat_array[fault2.id()];
-	if ( (pat1 & ~pat2) != PV_ALL0 ) {
-	  auto idx1 = _index(fault1, fault2);
-	  mArray[idx1] = true;
+	auto& pat2 = dpat_array[fault2.id()];
+	if ( pat2.check_contain(pat1) ) {
+	  new_list.push_back(fault2);
 	}
 	else {
-	  new_list.push_back(fault2);
+	  auto idx1 = _index(fault1, fault2);
+	  mArray[idx1] = true;
 	}
       }
       if ( new_list.size() != old_list.size() ) {
@@ -83,19 +83,19 @@ NaiveMgr::update(
   }
   else {
     for ( auto fault1: fault_list ) {
-      auto pat1 = dpat_array[fault1.id()];
+      auto& pat1 = dpat_array[fault1.id()];
       auto& new_list = mDomCandListArray[fault1.id()];
       for ( auto fault2: fault_list ) {
 	if ( fault2 == fault1 ) {
 	  continue;
 	}
-	auto pat2 = dpat_array[fault2.id()];
-	if ( (pat1 & ~pat2) != PV_ALL0 ) {
-	  auto idx1 = _index(fault1, fault2);
-	  mArray[idx1] = true;
+	auto& pat2 = dpat_array[fault2.id()];
+	if ( pat2.check_contain(pat1) ) {
+	  new_list.push_back(fault2);
 	}
 	else {
-	  new_list.push_back(fault2);
+	  auto idx1 = _index(fault1, fault2);
+	  mArray[idx1] = true;
 	}
       }
     }

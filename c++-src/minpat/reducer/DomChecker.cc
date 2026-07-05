@@ -39,7 +39,7 @@ DomChecker::check_dominance(
     auto res = engine.solve(true, false, TIME_LIMIT);
     ++ mCheckCount;
     if ( res == SatBool3::False ) {
-      dommgr.fault_info().set_dominator(fault, dom_fault);
+      dommgr.set_dominator(fault, dom_fault);
       ++ mSuccessCount;
       mChanged = true;
       return;
