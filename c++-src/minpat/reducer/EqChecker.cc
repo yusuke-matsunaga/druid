@@ -53,7 +53,6 @@ EqChecker::check_equiv(
 	// fault1 と fault2 は等価故障
 	mgr.set_rep(fault2, fault1);
 	++ mSuccessCount;
-	mChanged = true;
 	continue;
       }
       if ( res1 == SatBool3::True ) {

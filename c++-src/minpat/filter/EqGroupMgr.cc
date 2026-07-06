@@ -41,20 +41,6 @@ EqGroupMgr::new_obj(
   throw std::invalid_argument{buf.str()};
 }
 
-inline
-SizeType
-get_max_size(
-  const TpgFaultList& fault_list
-)
-{
-  SizeType max_size = 0;
-  for ( auto fault: fault_list ) {
-    max_size = std::max(max_size, fault.id());
-  }
-  ++ max_size;
-  return max_size;
-}
-
 // @brief コンストラクタ
 EqGroupMgr::EqGroupMgr(
   FaultInfo& fault_info,

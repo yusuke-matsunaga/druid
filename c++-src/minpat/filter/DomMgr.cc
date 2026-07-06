@@ -66,12 +66,21 @@ DomMgr::DomMgr(
     }
   }
 
+#if 0
   for ( auto fault: fault_list ) {
     auto& cand_list = mCandListArray[fault.id()];
     cand_list.sort([&](SizeType id1, SizeType id2) -> bool {
-      return rank_array[id1] < rank_array[id2];
+      auto r1 = rank_array[id1];
+      auto r2 = rank_array[id2];
+#if 0
+      if ( r1 == r2 ) {
+	return id1 < id2;
+      }
+#endif
+      return r1 > r2;
     });
   }
+#endif
 }
 
 // @brief 故障シミュレーションの結果で候補リストを更新する．

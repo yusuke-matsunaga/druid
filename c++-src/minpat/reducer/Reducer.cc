@@ -142,10 +142,8 @@ check_equiv(
 
   for ( ; ; ) {
     auto ng = eqmgr.group_num();
-    bool changed = false;
     std::vector<TestVector> tv_list;
     if ( multi_thread ) {
-      auto th_num = MtMgr::actual_thread_num(thread_num);
       IdPool pool(ng);
       ExLock lock;
       MtMgr::run(
@@ -156,9 +154,7 @@ check_equiv(
 	    checker.check_equiv(eqmgr, id, option);
 	  }
 	  lock.run([&]() {
-	    if ( checker.update_results(check_count, success_count, tv_list) ) {
-	      changed = true;
-	    }
+	    checker.update_results(check_count, success_count, tv_list);
 	  });
 	}, thread_num
       );
@@ -168,19 +164,13 @@ check_equiv(
       for ( SizeType id = 0; id < ng; ++ id ) {
 	checker.check_equiv(eqmgr, id, option);
       }
-      if ( checker.update_results(check_count, success_count, tv_list) ) {
-	changed = true;
-      }
+      checker.update_results(check_count, success_count, tv_list);
     }
-    if ( !tv_list.empty() ) {
-      // 反例を用いて細分化する．
-      if ( eqmgr.subdivide(tv_list) ) {
-	changed = true;
-      }
-    }
-    if ( !changed ) {
+    if ( tv_list.empty() ) {
       break;
     }
+    // 反例を用いて細分化する．
+    eqmgr.subdivide(tv_list);
   }
   timer.stop();
 
@@ -217,12 +207,10 @@ check_dominance(
   timer.start();
 
   for ( ; ; ) {
-    bool changed = false;
     std::vector<TestVector> tv_list;
     auto fault_list = dommgr.fault_info().rep_fault_list();
     if ( multi_thread ) {
       auto nf = fault_list.size();
-      auto th_num = MtMgr::actual_thread_num(thread_num);
       IdPool pool(nf);
       ExLock lock;
       MtMgr::run(
@@ -234,9 +222,7 @@ check_dominance(
 	    checker.check_dominance(dommgr, fault, option);
 	  }
 	  lock.run([&]() {
-	    if ( checker.update_results(check_count, succ_count, tv_list) ) {
-	      changed = true;
-	    }
+	    checker.update_results(check_count, succ_count, tv_list);
 	  });
 	}, thread_num
       );
@@ -246,16 +232,13 @@ check_dominance(
       for ( auto fault2: fault_list ) {
 	checker.check_dominance(dommgr, fault2, option);
       }
-      changed = checker.update_results(check_count, succ_count, tv_list);
+      checker.update_results(check_count, succ_count, tv_list);
     }
-    if ( !tv_list.empty() ) {
-      // 反例を用いて更新する．
-      dommgr.update(tv_list);
-      changed = true;
-    }
-    if ( !changed ) {
+    if ( tv_list.empty() ) {
       break;
     }
+    // 反例を用いて更新する．
+    dommgr.update(tv_list);
   }
   timer.stop();
 

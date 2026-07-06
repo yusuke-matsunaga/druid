@@ -47,7 +47,7 @@ public:
   );
 
   /// @brief 結果の情報を更新する．
-  bool
+  void
   update_results(
     SizeType& check_count,
     SizeType& success_count,
@@ -59,7 +59,6 @@ public:
     if ( !mTvList.empty() ) {
       tv_list.insert(tv_list.end(), mTvList.begin(), mTvList.end());
     }
-    return mChanged;
   }
 
   /// @brief 反例のテストベクタを持つとき true を返す．
@@ -86,9 +85,6 @@ private:
 
   // チェックが成功した回数
   SizeType mSuccessCount{0};
-
-  // 変化があった時 true にするフラグ
-  bool mChanged{false};
 
   // 反例のテストベクタ
   std::vector<TestVector> mTvList;
