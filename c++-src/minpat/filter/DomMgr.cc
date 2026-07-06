@@ -92,7 +92,7 @@ DomMgr::update(
     for ( auto fault1: cand_list ) {
       if ( fault_info().is_rep(fault1) ) {
 	auto& dpat1 = dpat_array[fault1.id()];
-	if ( dpat1.check_contain(dpat) ) {
+	if ( dpat1.check_contained(dpat) ) {
 	  new_cand_list.push_back(fault1);
 	}
       }

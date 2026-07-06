@@ -9,7 +9,7 @@
 /// All rights reserved.
 
 #include "druid.h"
-#include "types/PackedVal.h"
+#include "DPat.h"
 #include "POSet.h"
 
 
@@ -17,7 +17,7 @@ BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
 /// @class DPatGraph DPatGraph.h "DPatGraph.h"
-/// @brief PackedVal の支配関係を表すグラフ
+/// @brief DPat の支配関係を表すグラフ
 ///
 /// pat1 が pat2 に含まれるとき pat1 が pat2 を支配すると定義する．
 /// これだけならただのビットワイズ演算でチェック可能だが，
@@ -36,7 +36,7 @@ public:
 
   /// @brief コンストラクタ
   DPatGraph(
-    const std::vector<PackedVal>& pat_list ///< [in] パタンのリスト
+    const std::vector<DPat>& pat_list ///< [in] パタンのリスト
   );
 
   /// @brief デストラクタ
@@ -51,18 +51,18 @@ public:
   /// @brief 内容をセットする．
   void
   rebuild(
-    const std::vector<PackedVal>& pat_list ///< [in] パタンのリスト
+    const std::vector<DPat>& pat_list ///< [in] パタンのリスト
   );
 
   /// @brief パタンのリストを返す．
-  const std::vector<PackedVal>&
+  const std::vector<DPat>&
   pat_list() const
   {
     return mPatList;
   }
 
   /// @brief ID番号からパタンを返す．
-  PackedVal
+  const DPat&
   pat(
     SizeType id ///< [in] パタン番号
   ) const
@@ -74,7 +74,7 @@ public:
   /// @brief パタンからID番号を返す．
   SizeType
   id(
-    PackedVal pat ///< [in] パタン
+    const DPat& pat ///< [in] パタン
   ) const
   {
     return mIdMap.at(pat);
@@ -83,9 +83,9 @@ public:
   /// @brief 直接の後続パタンのリストを返す．
   ///
   /// pat はこの集合に含まれているとは限らない．
-  std::vector<PackedVal>
+  std::vector<DPat>
   imm_succ_list(
-    PackedVal pat ///< [in] 対象のパタン
+    const DPat& pat ///< [in] 対象のパタン
   ) const
   {
     return imm_succ_list(pat, {});
@@ -94,10 +94,10 @@ public:
   /// @brief 直接の後続パタンのリストを返す．
   ///
   /// pat はこの集合に含まれているとは限らない．
-  std::vector<PackedVal>
+  std::vector<DPat>
   imm_succ_list(
-    PackedVal pat,                           ///< [in] 対象のパタン
-    const std::vector<PackedVal>& block_pats ///< [in] 境界パタンのリスト
+    const DPat& pat,                    ///< [in] 対象のパタン
+    const std::vector<DPat>& block_pats ///< [in] 境界パタンのリスト
   ) const;
 
   /// @brief 内容を出力する．
@@ -115,7 +115,7 @@ private:
   /// @brief 内容をセットする．
   void
   _set(
-    const std::vector<PackedVal>& pat_list ///< [in] パタンのリスト
+    const std::vector<DPat>& pat_list ///< [in] パタンのリスト
   );
 
   /// @brief ID番号をチェックする．
@@ -136,14 +136,14 @@ private:
   //////////////////////////////////////////////////////////////////////
 
   // パタンのリスト
-  std::vector<PackedVal> mPatList;
+  std::vector<DPat> mPatList;
 
   // パタンをキーにしてノード番号を持つ辞書
   // mPatList の逆関数
-  std::unordered_map<PackedVal, SizeType> mIdMap;
+  std::unordered_map<DPat, SizeType> mIdMap;
 
   // ランク(パタン中の1の数)ごとのパタンのリストの配列
-  std::vector<std::vector<PackedVal>> mLayeredList;
+  std::vector<std::vector<DPat>> mLayeredList;
 
 };
 

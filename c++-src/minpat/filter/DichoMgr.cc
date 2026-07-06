@@ -112,7 +112,7 @@ DichoMgr::update(
 	auto& sg_list1 = sg_list_array[succ_group->id()];
 	for ( auto& sg1: sg_list1 ) {
 	  auto& dpat1 = sg1.dpat;
-	  if ( dpat.check_contain(dpat1) ) {
+	  if ( dpat.check_contained(dpat1) ) {
 	    auto subgroup1 = sg1.group;
 	    sub_succ_list.push_back(subgroup1);
 	  }

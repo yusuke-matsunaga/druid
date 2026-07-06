@@ -65,7 +65,7 @@ NaiveMgr::update(
       new_list.reserve(old_list.size());
       for ( auto fault2: old_list ) {
 	auto& pat2 = dpat_array[fault2.id()];
-	if ( pat2.check_contain(pat1) ) {
+	if ( pat2.check_contained(pat1) ) {
 	  new_list.push_back(fault2);
 	}
 	else {
@@ -90,7 +90,7 @@ NaiveMgr::update(
 	  continue;
 	}
 	auto& pat2 = dpat_array[fault2.id()];
-	if ( pat2.check_contain(pat1) ) {
+	if ( pat2.check_contained(pat1) ) {
 	  new_list.push_back(fault2);
 	}
 	else {

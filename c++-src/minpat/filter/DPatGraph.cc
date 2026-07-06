@@ -22,7 +22,7 @@ DPatGraph::DPatGraph()
 
 // @brief コンストラクタ
 DPatGraph::DPatGraph(
-  const std::vector<PackedVal>& pat_list
+  const std::vector<DPat>& pat_list
 )
 {
   _set(pat_list);
@@ -36,7 +36,7 @@ DPatGraph::~DPatGraph()
 // @brief 内容をセットする．
 void
 DPatGraph::rebuild(
-  const std::vector<PackedVal>& pat_list
+  const std::vector<DPat>& pat_list
 )
 {
   mPatList.clear();
@@ -48,28 +48,25 @@ DPatGraph::rebuild(
 // @brief 内容をセットする．
 void
 DPatGraph::_set(
-  const std::vector<PackedVal>& pat_list
+  const std::vector<DPat>& pat_list
 )
 {
   { // pat_list が重複していることも考慮してユニークな番号を割り当てる．
-    SizeType id = 0;
     for ( auto pat: pat_list ) {
       if ( mIdMap.count(pat) == 0 ) {
+	auto id = mPatList.size();
+	mPatList.push_back(pat);
 	mIdMap.emplace(pat, id);
-	++ id;
       }
     }
-    mPatList.resize(id);
   }
   // mPatList を作りランクを計算する．
   auto npat = mPatList.size();
   SizeType max_rank = 0;
   std::vector<SizeType> rank_array(npat);
-  for ( auto& p: mIdMap ) {
-    auto pat = p.first;
-    auto id = p.second;
-    mPatList[id] = pat;
-    auto rank = count_ones(pat);
+  for ( SizeType id = 0; id < npat; ++ id ) {
+    auto& pat = mPatList[id];
+    auto rank = pat.count_ones();
     rank_array[id] = rank;
     max_rank = std::max(max_rank, rank);
   }
@@ -77,29 +74,29 @@ DPatGraph::_set(
   ++ max_rank;
   mLayeredList.resize(max_rank);
   for ( SizeType i = 0; i < npat; ++ i ) {
-    auto pat = mPatList[i];
+    auto& pat = mPatList[i];
     auto rank = rank_array[i];
     mLayeredList[rank].push_back(pat);
   }
 }
 
 // @brief 直接の後続パタンのリストを返す．
-std::vector<PackedVal>
+std::vector<DPat>
 DPatGraph::imm_succ_list(
-  PackedVal pat,
-  const std::vector<PackedVal>& block_pats
+  const DPat& pat,
+  const std::vector<DPat>& block_pats
 ) const
 {
-  auto rank0 = count_ones(pat);
-  std::vector<PackedVal> pat_list;
-  std::vector<PackedVal> tmp_list = block_pats;
+  auto rank0 = pat.count_ones();
+  std::vector<DPat> pat_list;
+  std::vector<DPat> tmp_list = block_pats;
   auto rank_max = mLayeredList.size();
   for ( auto rank = rank0 + 1; rank < rank_max; ++ rank ) {
-    for ( auto pat1: mLayeredList[rank] ) {
-      if ( (pat1 & pat) == pat ) {
+    for ( auto& pat1: mLayeredList[rank] ) {
+      if ( pat.check_contained(pat1) ) {
 	bool blocked = false;
-	for ( auto pat2: tmp_list ) {
-	  if ( (pat1 & pat2) == pat2 ) {
+	for ( auto& pat2: tmp_list ) {
+	  if ( pat2.check_contained(pat1) ) {
 	    // pat1 は pat2 の後続
 	    blocked = true;
 	    break;
@@ -125,13 +122,12 @@ DPatGraph::print(
   for ( SizeType rank = 0; rank < rank_size; ++ rank ) {
     s << "Rank#" << rank << ":" << std::endl;
     auto& pat_list = mLayeredList[rank];
-    for ( auto pat: pat_list ) {
-      s << std::hex << std::setw(16) << pat << std::dec;
-      s << "  --> ";
+    for ( auto& pat: pat_list ) {
+      s << pat.to_str() << std::endl;
       for ( auto pat1: imm_succ_list(pat) ) {
-	s << " " << std::hex << pat1 << std::dec;
+	s << "  --> "
+	  << pat1.to_str() << std::endl;
       }
-      s << std::endl;
     }
     s << std::endl;
   }
