@@ -47,16 +47,16 @@ public:
 
   /// @brief FaultIfno を返す．
   FaultInfo&
-  fault_info()
+  fault_info() const
   {
     return mFaultInfo;
   }
 
-  /// @brief FaultIfno を返す．
-  const FaultInfo&
-  fault_info() const
+  /// @brief 故障シミュレータを返す．
+  Fsim&
+  fsim() const
   {
-    return mFaultInfo;
+    return mFsim;
   }
 
   /// @brief 対象のネットワークを返す．

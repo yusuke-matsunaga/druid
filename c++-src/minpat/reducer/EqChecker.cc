@@ -19,12 +19,12 @@ BEGIN_NAMESPACE_DRUID
 // @brief 等価故障のチェックを行う．
 void
 EqChecker::check_equiv(
-  EqGroupMgr* mgr,
+  EqGroupMgr& mgr,
   SizeType group_id,
   const ConfigParam& option
 )
 {
-  auto fault_list = mgr->fault_list(group_id);
+  auto fault_list = mgr.fault_list(group_id);
   auto nf = fault_list.size();
   if ( nf <= 1 ) {
     return;
@@ -36,12 +36,12 @@ EqChecker::check_equiv(
   bool has_tv = false;
   for ( SizeType i1 = 0; i1 < nf - 1; ++ i1 ) {
     auto fault1 = fault_list[i1];
-    if ( !mgr->fault_info().is_rep(fault1) ) {
+    if ( !mgr.fault_info().is_rep(fault1) ) {
       continue;
     }
     for ( SizeType i2 = i1 + 1; i2 < nf; ++ i2 ) {
       auto fault2 = fault_list[i2];
-      if ( !mgr->fault_info().is_rep(fault2) ) {
+      if ( !mgr.fault_info().is_rep(fault2) ) {
 	continue;
       }
 
@@ -51,7 +51,7 @@ EqChecker::check_equiv(
       ++ mCheckCount;
       if ( res1 == SatBool3::False && res2 == SatBool3::False ) {
 	// fault1 と fault2 は等価故障
-	mgr->set_rep(fault2, fault1);
+	mgr.set_rep(fault2, fault1);
 	++ mSuccessCount;
 	mChanged = true;
 	continue;

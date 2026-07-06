@@ -68,8 +68,65 @@ print_candmgr(
 }
 
 void
+filtering(
+  EqGroupMgr& eqmgr,
+  const ConfigParam& option
+)
+{
+  // パラメータの取得
+  SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
+  SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
+  auto verbose = option.get_bool_elem("verbose", false);
+
+  // パタンを作るオブジェクト
+  auto patgen_option = option.get_param("patgen");
+  auto patgen = PatGen::new_obj(eqmgr.fault_info(), patgen_option);
+
+  Timer filter_timer;
+  filter_timer.start();
+  SizeType tv_count = 0;
+  SizeType no_change = 0;
+  while ( no_change < NO_CHANGE_LIMIT ) {
+    // パタンを作る．
+    std::vector<TestVector> tv_list(BATCH_SIZE);
+    patgen->gen(BATCH_SIZE, tv_list);
+
+    // 故障シミュレーションを行って故障グループを細分化する．
+    auto change = eqmgr.subdivide(tv_list,
+				  [&](const FsimResults& res) {
+				    patgen->update(res);
+				  });
+    tv_count += BATCH_SIZE;
+
+    if ( change ) {
+      no_change = 0;
+    }
+    else {
+      no_change += BATCH_SIZE;
+    }
+  }
+  filter_timer.stop();
+
+  if ( verbose ) {
+    std::cout << "# of faults:            "
+	      << std::setw(8) << std::right << eqmgr.fault_info().rep_fault_list().size() << std::endl
+	      << "# of Groups:            "
+	      << std::setw(8) << std::right << eqmgr.group_num() << std::endl
+	      << "# of DomCand pairs:     "
+	      << std::setw(8) << std::right << eqmgr.domcand_num() << std::endl
+	      << "Total # of patterns:    "
+	      << std::setw(8) << std::right << tv_count << std::endl
+	      << "No Change Limit:        "
+	      << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
+	      << "Filtering time:           " << time_str(filter_timer) << std::endl
+	      << " (Fsim time):             " << time_str(eqmgr.fsim_time())
+	      << std::endl;
+  }
+}
+
+void
 check_equiv(
-  EqGroupMgr* candmgr,
+  EqGroupMgr& eqmgr,
   const ConfigParam& option
 )
 {
@@ -84,7 +141,7 @@ check_equiv(
   timer.start();
 
   for ( ; ; ) {
-    auto ng = candmgr->group_num();
+    auto ng = eqmgr.group_num();
     bool changed = false;
     std::vector<TestVector> tv_list;
     if ( multi_thread ) {
@@ -96,7 +153,7 @@ check_equiv(
 	  EqChecker checker;
 	  SizeType id;
 	  while ( pool.get(id) ) {
-	    checker.check_equiv(candmgr, id, option);
+	    checker.check_equiv(eqmgr, id, option);
 	  }
 	  lock.run([&]() {
 	    if ( checker.update_results(check_count, success_count, tv_list) ) {
@@ -109,7 +166,7 @@ check_equiv(
     else {
       EqChecker checker;
       for ( SizeType id = 0; id < ng; ++ id ) {
-	checker.check_equiv(candmgr, id, option);
+	checker.check_equiv(eqmgr, id, option);
       }
       if ( checker.update_results(check_count, success_count, tv_list) ) {
 	changed = true;
@@ -117,7 +174,7 @@ check_equiv(
     }
     if ( !tv_list.empty() ) {
       // 反例を用いて細分化する．
-      if ( candmgr->subdivide(tv_list) ) {
+      if ( eqmgr.subdivide(tv_list) ) {
 	changed = true;
       }
     }
@@ -128,7 +185,7 @@ check_equiv(
   timer.stop();
 
   if ( verbose ) {
-    auto rep_num = candmgr->fault_info().rep_fault_list().size();
+    auto rep_num = eqmgr.fault_info().rep_fault_list().size();
     std::cout << std::endl
 	      << "Equivalence check end:    " << std::endl
 	      << "Total checks:             " << std::setw(8) << std::right
@@ -228,17 +285,11 @@ Reducer::run(
 )
 {
   // パラメータの取得
-  SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
-  SizeType BATCH_SIZE = std::min(64, option.get_int_elem("batch_size", 64));
   auto verbose = option.get_bool_elem("verbose", false);
   auto debug = option.get_int_elem("debug", 0);
 
   // 現時点での代表故障のリスト
   auto fault_list = fault_info.rep_fault_list();
-
-  // パタンを作るオブジェクト
-  auto patgen_option = option.get_param("patgen");
-  auto patgen = PatGen::new_obj(fault_info, patgen_option);
 
   // 故障シミュレータ
   auto fsim_option = option.get_param("fsim");
@@ -246,54 +297,17 @@ Reducer::run(
 
   // 等価故障の候補を管理するオブジェクト
   auto eqmgr_option = option.get_param("eqmgr");
-  auto eqmgr = EqGroupMgr::new_obj(fault_info, fsim, eqmgr_option);
+  auto eqmgr_ptr = EqGroupMgr::new_obj(fault_info, fsim, eqmgr_option);
+  auto& eqmgr = *eqmgr_ptr;
 
-  Timer filter_timer;
-  filter_timer.start();
-  SizeType tv_count = 0;
-  SizeType no_change = 0;
-  while ( no_change < NO_CHANGE_LIMIT ) {
-    // パタンを作る．
-    std::vector<TestVector> tv_list(BATCH_SIZE);
-    patgen->gen(BATCH_SIZE, tv_list);
-
-    // 故障シミュレーションを行って故障グループを細分化する．
-    auto change = eqmgr->subdivide(tv_list,
-				   [&](const FsimResults& res) {
-				     patgen->update(res);
-				     });
-    tv_count += BATCH_SIZE;
-
-    if ( change ) {
-      no_change = 0;
-    }
-    else {
-      no_change += BATCH_SIZE;
-    }
-  }
-  filter_timer.stop();
-
-  if ( verbose ) {
-    std::cout << "# of faults:            "
-	      << std::setw(8) << std::right << fault_list.size() << std::endl
-	      << "# of Groups:            "
-	      << std::setw(8) << std::right << eqmgr->group_num() << std::endl
-	      << "# of DomCand pairs:     "
-	      << std::setw(8) << std::right << eqmgr->domcand_num() << std::endl
-	      << "Total # of patterns:    "
-	      << std::setw(8) << std::right << tv_count << std::endl
-	      << "No Change Limit:        "
-	      << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
-	      << "Filtering time:           " << time_str(filter_timer) << std::endl
-	      << " (Fsim time):             " << time_str(eqmgr->fsim_time())
-	      << std::endl;
-  }
+  // 故障シミュレータを用いて支配故障の候補のフィルタリングを行う．
+  filtering(eqmgr, option);
 
   // 等価故障の検査を行う．
-  check_equiv(eqmgr.get(), option);
+  check_equiv(eqmgr, option);
 
   // 支配故障の検査を行う．
-  DomMgr dommgr(eqmgr.get(), fault_info, fsim);
+  DomMgr dommgr(eqmgr);
   check_dominance(dommgr, option);
 }
 

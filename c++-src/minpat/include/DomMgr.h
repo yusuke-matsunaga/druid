@@ -31,9 +31,7 @@ public:
 
   /// @brief コンストラクタ
   DomMgr(
-    const EqGroupMgr* eqmgr, ///< [in] 等価故障の情報
-    FaultInfo& fault_info,   ///< [in] 故障の情報
-    Fsim& fsim               ///< [in] 故障シミュレータ
+    const EqGroupMgr& eqmgr ///< [in] 等価故障の情報
   );
 
   /// @brief デストラクタ

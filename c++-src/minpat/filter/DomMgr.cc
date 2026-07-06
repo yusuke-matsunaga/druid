@@ -19,21 +19,19 @@ BEGIN_NAMESPACE_DRUID
 
 // @brief コンストラクタ
 DomMgr::DomMgr(
-  const EqGroupMgr* eqmgr,
-  FaultInfo& fault_info,
-  Fsim& fsim
-) : RedMgr(fault_info, fsim),
-    mCandListArray(fault_info.network().max_fault_id())
+  const EqGroupMgr& eqmgr
+) : RedMgr(eqmgr.fault_info(), eqmgr.fsim()),
+    mCandListArray(max_fault_size())
 {
   // 各故障を支配故障の候補を作る．
-  auto fault_list = fault_info.rep_fault_list();
+  auto fault_list = fault_info().rep_fault_list();
   std::vector<SizeType> count_array(mCandListArray.size(), 0);
   for ( auto fault: fault_list ) {
     auto& cand_list = mCandListArray[fault.id()];
-    auto gid = eqmgr->group_id(fault);
-    for ( auto gid1: eqmgr->prev_list(gid) ) {
-      for ( auto fault1: eqmgr->fault_list(gid1) ) {
-	if ( fault_info.is_rep(fault1) ) {
+    auto gid = eqmgr.group_id(fault);
+    for ( auto gid1: eqmgr.prev_list(gid) ) {
+      for ( auto fault1: eqmgr.fault_list(gid1) ) {
+	if ( fault_info().is_rep(fault1) ) {
 	  cand_list.push_back(fault1);
 	}
       }

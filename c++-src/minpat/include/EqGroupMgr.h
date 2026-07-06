@@ -14,7 +14,6 @@
 #include "types/TpgNetwork.h"
 #include "types/TpgFaultList.h"
 #include "misc/ConfigParam.h"
-#include "ym/Timer.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -35,9 +34,6 @@ BEGIN_NAMESPACE_DRUID
 class EqGroupMgr :
   public RedMgr
 {
-public:
-
-  /// @brief 結果を表す
 public:
 
   /// @brief コンストラクタ

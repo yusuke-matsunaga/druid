@@ -42,7 +42,7 @@ public:
   /// @brief 等価故障のチェックを行う．
   void
   check_equiv(
-    EqGroupMgr* mgr,          ///< [in] マネージャ
+    EqGroupMgr& mgr,          ///< [in] マネージャ
     SizeType group_id,        ///< [in] グループ番号
     const ConfigParam& option ///< [in] オプション
   );
