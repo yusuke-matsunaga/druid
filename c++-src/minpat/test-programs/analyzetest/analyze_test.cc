@@ -48,7 +48,8 @@ analyze_test(
   bool multi_thread = false;
   bool global_reduction = false;
   int no_change_limit = 0;
-  bool naive = false;
+  bool naive_filter = false;
+  bool naive_reduction = false;
   bool dump = false;
   bool verify = false;
   bool verbose = false;
@@ -144,8 +145,11 @@ analyze_test(
       std::string val = argv[pos];
       no_change_limit = stoi(val);
     }
+    else if ( arg == "--naive-filter" ) {
+      naive_filter = true;
+    }
     else if ( arg == "--naive-reduction" ) {
-      naive = true;
+      naive_reduction = true;
     }
     else if ( arg == "--dump" ) {
       dump = true;
@@ -200,38 +204,52 @@ analyze_test(
     return 0;
   }
 
-  auto global_option = JsonValue::object();
-  if ( !just_type.empty() ) {
-    global_option.add("justifier", just_type);
-  }
-  auto sat_option = JsonValue::object();
-  if ( !sat_type.empty() ) {
-    sat_option.add("type", sat_type);
-  }
-  if ( !sat_log.empty() ) {
-    auto log_option = JsonValue::object();
-    if ( sat_log == "stdout" ) {
-      log_option.add("stdout", true);
-    }
-    else if ( sat_log == "stderr" ) {
-      log_option.add("stderr", true);
-    }
-    else {
-      log_option.add("file", sat_log);
-    }
-    sat_option.add("log", log_option);
-  }
-  global_option.add("sat_param", sat_option);
-  global_option.add("multi_thread", multi_thread);
-  global_option.add("ffr_reduction", ffr_reduction);
-  global_option.add("mffc_reduction", mffc_reduction);
-  global_option.add("global_reduction", global_reduction);
-  global_option.add("no_change_limit", no_change_limit);
-  global_option.add("naive_reduction", naive);
-  global_option.add("debug", debug);
-  global_option.add("verbose", verbose);
   auto option = JsonValue::object();
-  option.add("*", global_option);
+  {
+    auto analyze_option = JsonValue::object();
+    analyze_option.add("ffr_reduction", ffr_reduction);
+    analyze_option.add("mffc_reduction", mffc_reduction);
+    analyze_option.add("global_reduction", global_reduction);
+    analyze_option.add("no_change_limit", no_change_limit);
+    analyze_option.add("naive_reduction", naive_reduction);
+
+    {
+      auto eqmgr_option = JsonValue::object();
+      if ( naive_filter ) {
+	eqmgr_option.add("method", std::string{"naive"});
+      }
+      analyze_option.add("eqmgr", eqmgr_option);
+    }
+    option.add("analyze", analyze_option);
+  }
+  {
+    auto global_option = JsonValue::object();
+    if ( !just_type.empty() ) {
+      global_option.add("justifier", just_type);
+    }
+    auto sat_option = JsonValue::object();
+    if ( !sat_type.empty() ) {
+      sat_option.add("type", sat_type);
+    }
+    if ( !sat_log.empty() ) {
+      auto log_option = JsonValue::object();
+      if ( sat_log == "stdout" ) {
+	log_option.add("stdout", true);
+      }
+      else if ( sat_log == "stderr" ) {
+	log_option.add("stderr", true);
+      }
+      else {
+	log_option.add("file", sat_log);
+      }
+      sat_option.add("log", log_option);
+    }
+    global_option.add("sat_param", sat_option);
+    global_option.add("multi_thread", multi_thread);
+    global_option.add("debug", debug);
+    global_option.add("verbose", verbose);
+    option.add("*", global_option);
+  }
 
   Timer timer;
   timer.start();
