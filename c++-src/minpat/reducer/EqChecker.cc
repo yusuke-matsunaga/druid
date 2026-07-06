@@ -64,6 +64,10 @@ EqChecker::check_equiv(
 	mTvList.push_back(tv);
 	has_tv = true;
       }
+      else if ( res1 == SatBool3::False ) {
+	// fault2 は fault1 に支配されている．
+	mgr.set_dominator(fault2, fault1);
+      }
       if ( res2 == SatBool3::True ) {
 	// この時の入力を求める．
 	auto model = engine.solver().model();
@@ -71,6 +75,10 @@ EqChecker::check_equiv(
 	auto tv = TestVector(pi_assign);
 	mTvList.push_back(tv);
 	has_tv = true;
+      }
+      else if ( res2 == SatBool3::False ) {
+	// fault1 は fault2 に支配されている．
+	mgr.set_dominator(fault1, fault2);
       }
       // ここに来たということは fault1 と fault2 の関係は不明
       if ( has_tv ) {
