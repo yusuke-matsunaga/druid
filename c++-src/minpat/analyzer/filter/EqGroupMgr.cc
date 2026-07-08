@@ -7,7 +7,7 @@
 /// All rights reserved.
 
 #include "EqGroupMgr.h"
-#include "EqGroupState.h"
+#include "EqGroupGraph.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -66,10 +66,10 @@ EqGroupMgr::subdivide(
 }
 
 // @brief 現在の状態を取り出す．
-EqGroupState
+EqGroupGraph
 EqGroupMgr::cur_state() const
 {
-  return EqGroupState(*this);
+  return EqGroupGraph(*this);
 }
 
 END_NAMESPACE_DRUID

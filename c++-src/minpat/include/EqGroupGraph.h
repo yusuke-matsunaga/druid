@@ -1,8 +1,8 @@
-#ifndef EQGROUPSTATE_H
-#define EQGROUPSTATE_H
+#ifndef EQGROUPGRAPH_H
+#define EQGROUPGRAPH_H
 
-/// @file EqGroupState.h
-/// @brief EqGroupState のヘッダファイル
+/// @file EqGroupGraph.h
+/// @brief EqGroupGraph のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -17,23 +17,23 @@ BEGIN_NAMESPACE_DRUID
 class EqGroupMgr;
 
 //////////////////////////////////////////////////////////////////////
-/// @class EqGroupState EqGroupState.h "EqGroupState.h"
+/// @class EqGroupGraph EqGroupGraph.h "EqGroupGraph.h"
 /// @brief EqGroupMgr の現在の状態を表すクラス
 //////////////////////////////////////////////////////////////////////
-class EqGroupState
+class EqGroupGraph
 {
 public:
 
   /// @brief 空のコンストラクタ
-  EqGroupState() = default;
+  EqGroupGraph() = default;
 
   /// @brief EqGroupMgr の現在の内容を取り出すコンストラクタ
-  EqGroupState(
+  EqGroupGraph(
     const EqGroupMgr& mgr
   );
 
   /// @brief デストラクタ
-  ~EqGroupState() = default;
+  ~EqGroupGraph() = default;
 
 
 public:
@@ -77,13 +77,13 @@ public:
   /// @brief 等価比較演算子
   bool
   operator==(
-    const EqGroupState& right
+    const EqGroupGraph& right
   ) const;
 
   /// @brief 非等価比較演算子
   bool
   operator!=(
-    const EqGroupState& right
+    const EqGroupGraph& right
   ) const
   {
     return !operator==(right);
@@ -94,8 +94,8 @@ public:
   void
   print_diff(
     std::ostream& s,
-    const EqGroupState& left,
-    const EqGroupState& right
+    const EqGroupGraph& left,
+    const EqGroupGraph& right
   );
 
 
@@ -135,4 +135,4 @@ private:
 
 END_NAMESPACE_DRUID
 
-#endif // EQGROUPSTATE_H
+#endif // EQGROUPGRAPH_H

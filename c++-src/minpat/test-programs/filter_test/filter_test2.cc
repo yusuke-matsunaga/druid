@@ -10,7 +10,7 @@
 #include "PatGen.h"
 #include "EqGroupMgr.h"
 //#include "EqDomCand.h"
-#include "EqGroupState.h"
+#include "EqGroupGraph.h"
 #include "FaultAnalyze.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
@@ -270,7 +270,7 @@ filter_test(
       std::cout << "naive_state" << std::endl;
       state2.print(std::cout);
       std::cout << std::endl;
-      EqGroupState::print_diff(std::cout, state1, state2);
+      EqGroupGraph::print_diff(std::cout, state1, state2);
       abort();
     }
   }
@@ -287,7 +287,7 @@ filter_test(
     std::cout << "naive_cand" << std::endl;
     naive_state.print(std::cout);
     std::cout << std::endl;
-    EqGroupState::print_diff(std::cout, state, naive_state);
+    EqGroupGraph::print_diff(std::cout, state, naive_state);
   }
 
   if ( verbose ) {

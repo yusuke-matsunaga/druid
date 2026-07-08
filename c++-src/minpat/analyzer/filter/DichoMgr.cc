@@ -138,59 +138,6 @@ DichoMgr::update(
   return false;
 }
 
-#if EQDOMCAND
-// @brief 終了処理
-std::unique_ptr<EqDomCand>
-DichoMgr::end(
-  bool reduce
-) const
-{
-  // fault_list() の先頭の故障番号の昇順でソートする．
-  // mCurGroupList は変更できないので tmp_list にコピーする．
-  std::vector<DichoGroup*> tmp_list;
-  tmp_list.reserve(mCurGroupList.size());
-  for ( auto& group: mCurGroupList ) {
-    tmp_list.push_back(group.get());
-  }
-  std::sort(tmp_list.begin(), tmp_list.end(),
-	    [](DichoGroup* a,
-	       DichoGroup* b) -> bool {
-	      auto f1 = a->fault_list()[0];
-	      auto f2 = b->fault_list()[0];
-	      return f1.id() < f2.id();
-	    });
-
-  // グループ番号を付け直す．
-  std::unordered_map<SizeType, SizeType> id_map;
-  auto ng = tmp_list.size();
-  for ( SizeType id = 0; id < ng; ++ id ) {
-    auto group = tmp_list[id];
-    id_map.emplace(group->id(), id);
-  }
-
-  // 故障グループを作る．
-  std::vector<TpgFaultList> group_list;
-  group_list.reserve(ng);
-  for ( auto group: tmp_list ) {
-    group_list.push_back(group->fault_list());
-  }
-
-  // 順序関係を表すペアのリストを作る．
-  std::vector<std::pair<SizeType, SizeType>> succ_pair_list;
-  for ( auto group1: tmp_list ) {
-    auto id1 = id_map.at(group1->id());
-    auto& succ_list = group1->succ_list();
-    for ( auto group2: succ_list ) {
-      auto id2 = id_map.at(group2->id());
-      if ( id2 != id1 ) {
-	succ_pair_list.push_back({id1, id2});
-      }
-    }
-  }
-  return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, succ_pair_list, reduce)};
-}
-#endif
-
 // @brief 等価故障グループ数を返す．
 SizeType
 DichoMgr::group_num() const

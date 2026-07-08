@@ -10,7 +10,7 @@
 #include "PatGen.h"
 #include "EqGroupMgr.h"
 //#include "EqDomCand.h"
-#include "EqGroupState.h"
+#include "EqGroupGraph.h"
 #include "FFRAnalyze.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
@@ -52,7 +52,7 @@ time_str(
 
 END_NONAMESPACE
 
-EqGroupState
+EqGroupGraph
 make_cand(
   FaultInfo& fault_info,
   const ConfigParam& option
@@ -108,7 +108,7 @@ make_cand(
     }
   }
 
-  // 結果の EqGroupState を作る．
+  // 結果の EqGroupGraph を作る．
   auto state = candmgr->cur_state();
   timer.stop();
 
@@ -314,7 +314,7 @@ filter_test(
     std::cout << "state2" << std::endl;
     state2.print(std::cout);
     std::cout << std::endl;
-    EqGroupState::print_diff(std::cout, state1, state2);
+    EqGroupGraph::print_diff(std::cout, state1, state2);
     return 1;
   }
 

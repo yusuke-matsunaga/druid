@@ -1,72 +1,76 @@
 
-/// @file EqGroupState.cc
-/// @brief EqGroupState の実装ファイル
+/// @file EqGroupGraph.cc
+/// @brief EqGroupGraph の実装ファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
-#include "EqGroupState.h"
+#include "EqGroupGraph.h"
 #include "EqGroupMgr.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 //////////////////////////////////////////////////////////////////////
-// クラス EqGroupState
+// クラス EqGroupGraph
 //////////////////////////////////////////////////////////////////////
 
 // @brief EqGroupMgr の現在の内容を取り出すコンストラクタ
-EqGroupState::EqGroupState(
+EqGroupGraph::EqGroupGraph(
   const EqGroupMgr& mgr
 ) : mGroupList(mgr.group_num())
 {
   auto ng = mgr.group_num();
 
-  // 故障グループのソート用の構造体
-  struct GroupInfo {
-    SizeType key;
-    SizeType orig_id;
-  };
-
-  // 故障グループを最初の故障番号の昇順にソートする．
-  // 実際にはグループ番号のマッピングのみを求める．
-  std::vector<GroupInfo> tmp_list;
-  tmp_list.reserve(ng);
+  // 故障番号をキーにして対応するグループ番号を格納する配列
+  std::vector<SizeType> gid_map(mgr.max_fault_size());
   for ( SizeType gid = 0; gid < ng; ++ gid ) {
-    auto fault_list = mgr.fault_list(gid);
-    auto fault1 = fault_list[0];
-    tmp_list.push_back({fault1.id(), gid});
+    for ( auto fault: mgr.fault_list(gid) ) {
+      gid_map[fault.id()] = gid;
+    }
   }
-  std::sort(tmp_list.begin(), tmp_list.end(),
-	    [](const GroupInfo& a, const GroupInfo& b) -> bool {
-	      return a.key < b.key;
-	    });
 
-  // 元のグループ番号からソートされたグループ番号へのマッピングを作る．
-  std::vector<SizeType> id_map(ng);
-  for ( SizeType gid = 0; gid < ng; ++ gid ) {
-    auto orig_id = tmp_list[gid].orig_id;
-    id_map[orig_id] = gid;
+  // グループを先頭の故障番号の昇順にソートする．
+  // 実際には先頭の故障から所属しているグループを調べる．
+  // これなら O(N)
+
+  // ソートされたグループ番号のリスト
+  std::vector<SizeType> id_list;
+  id_list.reserve(ng);
+
+  // もとのグループ番号をキーにしてソートされたグループ番号を格納した配列
+  std::vector<SizeType> id_map(ng, ng);
+  for ( auto fault: mgr.fault_info().fault_list() ) {
+    auto gid = gid_map[fault.id()];
+    if ( id_map[gid] < ng ) {
+      // 処理済み
+      continue;
+    }
+    auto new_id = id_list.size();
+    id_list.push_back(gid);
+    id_map[gid] = new_id;
   }
 
   // 故障グループを作る．
   for ( SizeType gid = 0; gid < ng; ++ gid ) {
-    auto orig_id = tmp_list[gid].orig_id;
-    auto& group = mGroupList[orig_id];
-    group.mFaultList = mgr.fault_list(gid);
+    auto orig_id = id_list[gid];
+    auto& group = mGroupList[gid];
+    group.mFaultList = mgr.fault_list(orig_id);
     auto orig_pred_list = mgr.pred_list(orig_id);
-    group.mPredList.reserve(orig_pred_list.size());
+    auto& pred_list = group.mPredList;
+    pred_list.reserve(orig_pred_list.size());
     for ( auto orig_id: orig_pred_list ) {
       auto id = id_map[orig_id];
-      group.mPredList.push_back(id);
+      pred_list.push_back(id);
     }
+    std::sort(pred_list.begin(), pred_list.end());
   }
 }
 
 // @brief 内容を出力する．
 void
-EqGroupState::print(
+EqGroupGraph::print(
   std::ostream& s
 ) const
 {
@@ -85,8 +89,8 @@ EqGroupState::print(
 
 // @brief 等価比較演算子
 bool
-EqGroupState::operator==(
-  const EqGroupState& right
+EqGroupGraph::operator==(
+  const EqGroupGraph& right
 ) const
 {
   auto ng = group_num();
@@ -142,10 +146,10 @@ END_NONAMESPACE
 
 // @brief 詳細な比較を行う．
 void
-EqGroupState::print_diff(
+EqGroupGraph::print_diff(
   std::ostream& s,
-  const EqGroupState& left,
-  const EqGroupState& right
+  const EqGroupGraph& left,
+  const EqGroupGraph& right
 )
 {
   auto ng1 = left.group_num();

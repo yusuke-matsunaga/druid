@@ -105,28 +105,6 @@ NaiveMgr::update(
   }
 }
 
-#if EQDOMCAND
-// @brief 終了処理
-std::unique_ptr<EqDomCand>
-NaiveMgr::end(
-  bool reduce
-) const
-{
-  _make_group();
-  std::vector<TpgFaultList> group_list;
-  group_list.reserve(mGroupArray.size());
-  std::vector<std::pair<SizeType, SizeType>> dom_list;
-  for ( auto& group1: mGroupArray ) {
-    group_list.push_back(group1.mFaultList);
-    auto id1 = group1.mId;
-    for ( auto id2: group1.mSuccList ) {
-      dom_list.push_back({id1, id2});
-    }
-  }
-  return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, dom_list, reduce)};
-}
-#endif
-
 // @brief 等価グループを求める．
 void
 NaiveMgr::_make_group() const
@@ -156,6 +134,7 @@ NaiveMgr::_make_group() const
       }
     }
     eq_list.push_back(fault);
+    eq_list.sort();
     for ( auto fault1: eq_list ) {
       mark[fault1.id()] = true;
       mIdMap[fault1.id()] = gid;
