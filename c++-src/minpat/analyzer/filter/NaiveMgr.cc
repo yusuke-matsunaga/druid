@@ -105,6 +105,7 @@ NaiveMgr::update(
   }
 }
 
+#if EQDOMCAND
 // @brief 終了処理
 std::unique_ptr<EqDomCand>
 NaiveMgr::end(
@@ -124,6 +125,7 @@ NaiveMgr::end(
   }
   return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, dom_list, reduce)};
 }
+#endif
 
 // @brief 等価グループを求める．
 void
@@ -177,7 +179,7 @@ NaiveMgr::_make_group() const
 	id_set.insert(id2);
 	auto& group2 = mGroupArray[id2];
 	group1.mSuccList.push_back(id2);
-	group2.mPrevList.push_back(id1);
+	group2.mPredList.push_back(id1);
       }
     }
   }
@@ -224,12 +226,12 @@ NaiveMgr::succ_list(
 
 // @brief 先行グループ番号のリスト返す．
 std::vector<SizeType>
-NaiveMgr::prev_list(
+NaiveMgr::pred_list(
   SizeType group_id
 ) const
 {
   _make_group();
-  return mGroupArray[group_id].mPrevList;
+  return mGroupArray[group_id].mPredList;
 }
 
 // @brief 順序関係の要素数を返す．

@@ -138,6 +138,7 @@ DichoMgr::update(
   return false;
 }
 
+#if EQDOMCAND
 // @brief 終了処理
 std::unique_ptr<EqDomCand>
 DichoMgr::end(
@@ -188,6 +189,7 @@ DichoMgr::end(
   }
   return std::unique_ptr<EqDomCand>{new EqDomCand(group_list, succ_pair_list, reduce)};
 }
+#endif
 
 // @brief 等価故障グループ数を返す．
 SizeType
@@ -248,14 +250,14 @@ DichoMgr::succ_list(
 
 // @brief 先行グループ番号のリスト返す．
 std::vector<SizeType>
-DichoMgr::prev_list(
+DichoMgr::pred_list(
   SizeType group_id
 ) const
 {
   _check_group_id(group_id);
   auto& group = mCurGroupList[group_id];
   std::vector<SizeType> ans_list;
-  auto& src_list = group->prev_list();
+  auto& src_list = group->pred_list();
   ans_list.reserve(src_list.size());
   for ( auto group1: src_list ) {
     if ( group1->id() == group->id() ) {
@@ -289,7 +291,7 @@ DichoMgr::_fix_group_map()
       mGroupMap[fault.id()] = group.get();
     }
     for ( auto succ_group: group->succ_list() ) {
-      succ_group->add_prev(group.get());
+      succ_group->add_pred(group.get());
     }
   }
 }

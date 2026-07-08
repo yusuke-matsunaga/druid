@@ -46,11 +46,13 @@ private:
     const std::vector<DPat>& dpat_array ///< [in] 故障の検出状況のピットパタンの配列
   ) override;
 
+#if EQDOMCAND
   /// @brief 終了処理
   std::unique_ptr<EqDomCand>
   end(
     bool reduce ///< [in] 推移簡約を行う時 true
   ) const override;
+#endif
 
   /// @brief 等価故障グループ数を返す．
   SizeType
@@ -76,7 +78,7 @@ private:
 
   /// @brief 先行グループ番号のリスト返す．
   std::vector<SizeType>
-  prev_list(
+  pred_list(
     SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
   ) const override;
 

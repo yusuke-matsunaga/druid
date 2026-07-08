@@ -8,15 +8,21 @@
 /// Copyright (C) 2026 Yusuke Matsunaga
 /// All rights reserved.
 
+#define EQDOMCAND 0
+
 #include "druid.h"
 #include "RedMgr.h"
+#if EQDOMCAND
 #include "EqDomCand.h"
+#endif
 #include "types/TpgNetwork.h"
 #include "types/TpgFaultList.h"
 #include "misc/ConfigParam.h"
 
 
 BEGIN_NAMESPACE_DRUID
+
+class EqGroupState;
 
 //////////////////////////////////////////////////////////////////////
 /// @class EqGroupMgr EqGroupMgr.h "EqGroupMgr.h"
@@ -98,6 +104,10 @@ public:
     = [](const FsimResults&) { }
   );
 
+  /// @brief 現在の状態を取り出す．
+  EqGroupState
+  cur_state() const;
+
 
 public:
   //////////////////////////////////////////////////////////////////////
@@ -111,12 +121,14 @@ public:
     const std::vector<DPat>& dpat_array ///< [in] 故障の検出状況のピットパタンの配列
   ) = 0;
 
+#if EQDOMCAND
   /// @brief 結果を返す．
   virtual
   std::unique_ptr<EqDomCand>
   end(
     bool reduce ///< [in] 推移簡約を行う時 true
   ) const = 0;
+#endif
 
   /// @brief 等価故障グループ数を返す．
   virtual
@@ -151,7 +163,7 @@ public:
   /// 自身は含まない
   virtual
   std::vector<SizeType>
-  prev_list(
+  pred_list(
     SizeType group_id ///< [in] 故障グループ番号 ( 0 <= group_id < group_num() )
   ) const = 0;
 

@@ -92,18 +92,18 @@ public:
 
   /// @brief 先行グループのリストを返す．
   const std::vector<DichoGroup*>&
-  prev_list() const
+  pred_list() const
   {
-    return mPrevList;
+    return mPredList;
   }
 
   /// @brief 先行グループを追加する．
   void
-  add_prev(
+  add_pred(
     DichoGroup* group ///< [in] 追加するグループ
   )
   {
-    mPrevList.push_back(group);
+    mPredList.push_back(group);
   }
 
   /// @brief 故障グループの情報を出力する．
@@ -152,7 +152,7 @@ private:
   std::vector<DichoGroup*> mSuccList;
 
   // 先行グループのリスト
-  std::vector<DichoGroup*> mPrevList;
+  std::vector<DichoGroup*> mPredList;
 
 };
 

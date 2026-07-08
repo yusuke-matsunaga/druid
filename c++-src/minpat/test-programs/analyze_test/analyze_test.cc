@@ -241,9 +241,6 @@ analyze_test(
 
   auto fault_list = network.rep_fault_list();
   auto analyze_option = ConfigParam(option).get_param("analyze");
-  {
-    analyze_option.print(std::cout);
-  }
   auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
 
   timer.stop();

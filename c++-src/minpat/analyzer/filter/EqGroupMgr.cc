@@ -7,6 +7,7 @@
 /// All rights reserved.
 
 #include "EqGroupMgr.h"
+#include "EqGroupState.h"
 
 
 BEGIN_NAMESPACE_DRUID
@@ -62,6 +63,13 @@ EqGroupMgr::subdivide(
   callback(res);
   auto change = update(dpat_array);
   return change;
+}
+
+// @brief 現在の状態を取り出す．
+EqGroupState
+EqGroupMgr::cur_state() const
+{
+  return EqGroupState(*this);
 }
 
 END_NAMESPACE_DRUID

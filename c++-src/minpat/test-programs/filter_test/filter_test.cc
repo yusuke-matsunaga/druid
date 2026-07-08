@@ -9,7 +9,8 @@
 #include "druid.h"
 #include "PatGen.h"
 #include "EqGroupMgr.h"
-#include "EqDomCand.h"
+//#include "EqDomCand.h"
+#include "EqGroupState.h"
 #include "FFRAnalyze.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
@@ -51,7 +52,7 @@ time_str(
 
 END_NONAMESPACE
 
-std::unique_ptr<EqDomCand>
+EqGroupState
 make_cand(
   FaultInfo& fault_info,
   const ConfigParam& option
@@ -107,15 +108,15 @@ make_cand(
     }
   }
 
-  // 結果の EqDomCand を作る．
-  auto cand = candmgr->end(reduce);
+  // 結果の EqGroupState を作る．
+  auto state = candmgr->cur_state();
   timer.stop();
 
   if ( verbose ) {
     std::cout << "# of faults:            "
 	      << std::setw(8) << std::right << fault_list.size() << std::endl
 	      << "# of Groups:            "
-	      << std::setw(8) << std::right << cand->group_num() << std::endl
+	      << std::setw(8) << std::right << state.group_num() << std::endl
 	      << "Total # of patterns:    "
 	      << std::setw(8) << std::right << tv_count << std::endl
 	      << "No Change Limit:        "
@@ -124,7 +125,7 @@ make_cand(
 	      << " (Fsim time):             " << time_str(fsim_timer) << std::endl;
   }
 
-  return cand;
+  return state;
 }
 
 int
@@ -284,7 +285,7 @@ filter_test(
     naive_option.add("filter", filter_option);
   }
 
-  auto cand1 = make_cand(fault_info, ConfigParam(naive_option).get_param("filter"));
+  auto state1 = make_cand(fault_info, ConfigParam(naive_option).get_param("filter"));
 
   // Dichotomy method
   std::cout << std::endl;
@@ -304,16 +305,16 @@ filter_test(
     dicho_option.add("filter", filter_option);
   }
 
-  auto cand2 = make_cand(fault_info, ConfigParam(dicho_option).get_param("filter"));
+  auto state2 = make_cand(fault_info, ConfigParam(dicho_option).get_param("filter"));
 
-  if ( *cand1 != *cand2 ) {
-    std::cout << "cand1" << std::endl;
-    cand1->print(std::cout);
+  if ( state1 != state2 ) {
+    std::cout << "state1" << std::endl;
+    state1.print(std::cout);
     std::cout << std::endl;
-    std::cout << "cand2" << std::endl;
-    cand2->print(std::cout);
+    std::cout << "state2" << std::endl;
+    state2.print(std::cout);
     std::cout << std::endl;
-    cand1->check(*cand2);
+    EqGroupState::print_diff(std::cout, state1, state2);
     return 1;
   }
 

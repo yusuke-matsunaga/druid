@@ -9,7 +9,8 @@
 #include "druid.h"
 #include "PatGen.h"
 #include "EqGroupMgr.h"
-#include "EqDomCand.h"
+//#include "EqDomCand.h"
+#include "EqGroupState.h"
 #include "FaultAnalyze.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
@@ -59,8 +60,6 @@ filter_test(
 {
   std::string format = "blif";
   FaultType ftype = FaultType::StuckAt;
-  bool ffr_reduction = false;
-  bool mffc_reduction = false;
   int no_change_limit = 0;
   int batch_size = 0;
   int sat_time_limit = 0;
@@ -87,12 +86,6 @@ filter_test(
     }
     else if ( arg == "--transition-delay" ) {
       ftype = FaultType::TransitionDelay;
-    }
-    else if ( arg == "--ffr-reduction" ) {
-      ffr_reduction = true;
-    }
-    else if ( arg == "--mffc-reduction" ) {
-      mffc_reduction = true;
     }
     else if ( arg == "--no-change-limit" ) {
       ++ argpos;
@@ -172,9 +165,6 @@ filter_test(
   option.add("*", global_option);
   {
     auto analyze_option = JsonValue::object();
-    analyze_option.add("ffr_reduction", ffr_reduction);
-    analyze_option.add("mffc_reduction", mffc_reduction);
-    analyze_option.add("global_reduction", false);
     if ( no_change_limit > 0 ) {
       analyze_option.add("no_change_limit", no_change_limit);
     }
@@ -271,40 +261,40 @@ filter_test(
     else {
       no_change += BATCH_SIZE;
     }
-    auto cand1 = candmgr->end(true);
-    auto cand2 = naive_mgr->end(true);
-    if ( *cand1 != *cand2 ) {
-      std::cout << "cand1" << std::endl;
-      cand1->print(std::cout);
+    auto state1 = candmgr->cur_state();
+    auto state2 = naive_mgr->cur_state();
+    if ( state1 != state2 ) {
+      std::cout << "state1" << std::endl;
+      state1.print(std::cout);
       std::cout << std::endl;
-      std::cout << "naive_cand" << std::endl;
-      cand2->print(std::cout);
+      std::cout << "naive_state" << std::endl;
+      state2.print(std::cout);
       std::cout << std::endl;
-      cand1->check(*cand2);
+      EqGroupState::print_diff(std::cout, state1, state2);
       abort();
     }
   }
 
   // 結果の EqDomCand を作る．
-  auto cand = candmgr->end(true);
-  auto naive_cand = naive_mgr->end(true);
+  auto state = candmgr->cur_state();
+  auto naive_state = naive_mgr->cur_state();
   timer.stop();
 
-  if ( *cand != *naive_cand ) {
+  if ( state != naive_state ) {
     std::cout << "cand" << std::endl;
-    cand->print(std::cout);
+    state.print(std::cout);
     std::cout << std::endl;
     std::cout << "naive_cand" << std::endl;
-    naive_cand->print(std::cout);
+    naive_state.print(std::cout);
     std::cout << std::endl;
-    cand->check(*naive_cand);
+    EqGroupState::print_diff(std::cout, state, naive_state);
   }
 
   if ( verbose ) {
     std::cout << "# of faults:            "
 	      << std::setw(8) << std::right << fault_list.size() << std::endl
 	      << "# of Groups:            "
-	      << std::setw(8) << std::right << cand->group_num() << std::endl
+	      << std::setw(8) << std::right << state.group_num() << std::endl
 	      << "Total # of patterns:    "
 	      << std::setw(8) << std::right << tv_count << std::endl
 	      << "No Change Limit:        "

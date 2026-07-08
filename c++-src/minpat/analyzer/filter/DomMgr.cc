@@ -29,7 +29,7 @@ DomMgr::DomMgr(
   for ( auto fault: fault_list ) {
     auto& cand_list = mCandListArray[fault.id()];
     auto gid = eqmgr.group_id(fault);
-    for ( auto gid1: eqmgr.prev_list(gid) ) {
+    for ( auto gid1: eqmgr.pred_list(gid) ) {
       for ( auto fault1: eqmgr.fault_list(gid1) ) {
 	if ( fault_info().is_rep(fault1) ) {
 	  cand_list.push_back(fault1);
