@@ -45,6 +45,7 @@ analyze_test(
   bool td_mode = false;
   bool multi_thread = false;
   int no_change_limit = 0;
+  int batch_size = 0;
   bool naive_filter = false;
   bool naive_reduction = false;
   bool dump = false;
@@ -133,6 +134,15 @@ analyze_test(
       std::string val = argv[pos];
       no_change_limit = stoi(val);
     }
+    else if ( arg == "--batch-size" ) {
+      ++ pos;
+      if ( pos >= argc ) {
+	std::cerr << "'--batch-size' requires <int> value";
+	return 2;
+      }
+      std::string val = argv[pos];
+      batch_size = stoi(val);
+    }
     else if ( arg == "--naive-filter" ) {
       naive_filter = true;
     }
@@ -196,6 +206,9 @@ analyze_test(
   {
     auto analyze_option = JsonValue::object();
     analyze_option.add("no_change_limit", no_change_limit);
+    if ( batch_size > 0 ) {
+      analyze_option.add("batch_size", batch_size);
+    }
     analyze_option.add("naive_reduction", naive_reduction);
 
     {
