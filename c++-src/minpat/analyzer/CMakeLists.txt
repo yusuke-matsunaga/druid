@@ -10,24 +10,22 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
+add_subdirectory( filter )
+add_subdirectory( gtest )
 
 
 # ===================================================================
 #  ソースファイルの設定
 # ===================================================================
 
-set ( minpat_filter_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/PatGen.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/EqDomCand.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/EqGroupMgr.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/NaiveMgr.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/DichoMgr.cc
-  #${CMAKE_CURRENT_SOURCE_DIR}/DichoMgr2.cc
-  #${CMAKE_CURRENT_SOURCE_DIR}/DCM2Helper.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/DPat.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/DPatGraph.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/DomMgr.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/POSet.cc
+set ( minpat_analyzer_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/FaultAnalyze.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/FFRAnalyze.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/FaultInfo.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/Reducer.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/EqChecker.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/DomChecker.cc
+  ${minpat_filter_SOURCES}
   PARENT_SCOPE
   )
 

@@ -79,7 +79,6 @@ EqChecker::check_equiv(
 	// fault1 は fault2 に支配されている．
 	mgr.set_dominator(fault1, fault2);
       }
-      // ここに来たということは fault1 と fault2 の関係は不明
       if ( has_tv ) {
 	// 反例があるので一旦戻る．
 	return;

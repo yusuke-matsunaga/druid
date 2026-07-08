@@ -11,10 +11,8 @@ include_directories (
 # サブディレクトリの設定
 # ===================================================================
 
-add_subdirectory( reducer )
-add_subdirectory( filter )
+add_subdirectory( analyzer )
 add_subdirectory( gtest )
-add_subdirectory( filter/gtest )
 add_subdirectory( test-programs )
 
 
@@ -43,8 +41,7 @@ set ( minpat_SOURCES
 # ===================================================================
 ym_add_object_library ( druid_minpat
   ${minpat_SOURCES}
-  ${minpat_reducer_SOURCES}
-  ${minpat_filter_SOURCES}
+  ${minpat_analyzer_SOURCES}
   )
 
 

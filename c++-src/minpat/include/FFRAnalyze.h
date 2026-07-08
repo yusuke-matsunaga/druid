@@ -29,8 +29,6 @@ public:
   static
   void
   run(
-    const TpgFFR& ffr,              ///< [in] FFR
-    const TpgFaultList& fault_list, ///< [in] 故障のリスト
     FaultInfo& fault_info,          ///< [in] 情報を格納するオブジェクト
     const ConfigParam& option = {}  ///< [in] オプション
   );

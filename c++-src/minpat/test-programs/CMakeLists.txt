@@ -3,7 +3,6 @@
 # インクルードパスの設定
 # ===================================================================
 include_directories(
-  ../
   )
 
 
@@ -14,7 +13,7 @@ include_directories(
 add_subdirectory ( minpat )
 add_subdirectory ( filter_test )
 add_subdirectory ( reduce_test )
-add_subdirectory ( analyzetest )
+add_subdirectory ( analyze_test )
 
 
 

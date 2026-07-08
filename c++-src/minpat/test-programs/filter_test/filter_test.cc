@@ -10,7 +10,7 @@
 #include "PatGen.h"
 #include "EqGroupMgr.h"
 #include "EqDomCand.h"
-#include "FaultAnalyze.h"
+#include "FFRAnalyze.h"
 #include "types/TpgNetwork.h"
 #include "types/FaultType.h"
 #include "types/TestVector.h"
@@ -90,21 +90,15 @@ make_cand(
   while ( no_change < NO_CHANGE_LIMIT ) {
     std::vector<TestVector> tv_list(BATCH_SIZE);
     patgen->gen(BATCH_SIZE, tv_list);
-    fsim_timer.start();
-    auto res = fsim.run_multi(tv_list, true);
-    fsim_timer.stop();
-    tv_count += BATCH_SIZE;
-    patgen->update(res);
 
-    auto ntv = res.tv_num();
-    std::vector<DPat> dpat_array(max_size, DPat(ntv));
-    for ( SizeType i = 0; i < ntv; ++ i ) {
-      for ( auto fault: res.fault_list(i) ) {
-	auto fid = fault.id();
-	dpat_array[fid].set(i);
-      }
-    }
-    auto change = candmgr->update(dpat_array);
+
+    // 故障シミュレーションを行って故障グループを細分化する．
+    auto change = candmgr->subdivide(tv_list,
+				     [&](const FsimResults& res) {
+				       patgen->update(res);
+				     });
+    tv_count += BATCH_SIZE;
+
     if ( change ) {
       no_change = 0;
     }
@@ -250,9 +244,6 @@ filter_test(
   option.add("*", global_option);
   {
     auto analyze_option = JsonValue::object();
-    analyze_option.add("ffr_reduction", ffr_reduction);
-    analyze_option.add("mffc_reduction", mffc_reduction);
-    analyze_option.add("global_reduction", false);
     if ( no_change_limit > 0 ) {
       analyze_option.add("no_change_limit", no_change_limit);
     }
@@ -266,11 +257,10 @@ filter_test(
   }
 
   auto fault_list = network.rep_fault_list();
-
-  FaultInfo fault_info;
+  auto fault_info = FaultInfo(fault_list);
+  auto analyze_option = ConfigParam(option).get_param("analyze");
+  FFRAnalyze::run(fault_info, analyze_option);
   {
-    auto analyze_option = ConfigParam(option).get_param("analyze");
-    fault_info = FaultAnalyze::run(fault_list, analyze_option);
     auto rep_fault_list = fault_info.rep_fault_list();
     std::cout << "# of initial faults: " << rep_fault_list.size() << std::endl;
   }

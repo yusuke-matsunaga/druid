@@ -9,13 +9,17 @@
 #include "FFRAnalyze.h"
 #include "types/TpgFaultList.h"
 #include "dtpg/FFREngine.h"
+#include "ym/Timer.h"
+#include "ym/MtMgr.h"
+#include "ym/IdPool.h"
+#include "ym/ExLock.h"
 
 
 BEGIN_NAMESPACE_DRUID
 
 // @brief 処理を行うクラスメソッド
 void
-FFRAnalyze::run(
+ffr_analyze(
   const TpgFFR& ffr,
   const TpgFaultList& fault_list,
   FaultInfo& fault_info,
@@ -26,7 +30,6 @@ FFRAnalyze::run(
     return;
   }
 
-  auto ffr_reduction = option.get_bool_elem("ffr_reduction", true);
   auto mand_cond = option.get_bool_elem("get_mandatory_condition", false);
   auto debug = option.get_int_elem("debug", 0);
 
@@ -41,7 +44,7 @@ FFRAnalyze::run(
 
   // fault_list の FFR に対する故障伝搬条件を表すCNF式を持つSATソルバを作る．
   auto engine_option = option;
-  engine_option.add("has_ulit", ffr_reduction);
+  engine_option.add("has_ulit", true);
   FFREngine engine(ffr, fault_list, engine_option);
 
   // 個々の故障の検出状況を調べる．
@@ -116,74 +119,123 @@ FFRAnalyze::run(
       if  ( res != SatBool3::True ) {
 	continue;
       }
-      if ( ffr_reduction ) {
-	// fault1 を検出して fault2 を検出しない条件を調べる．
-	auto tmp_lits1 = dlits1;
-	auto ulit2 = engine.ulit(fault2);
-	tmp_lits1.push_back(ulit2);
-	auto res1 = engine.solver().solve(tmp_lits1);
-	auto dom1 = res1 == SatBool3::False;
-	if ( dom1 ) {
+
+      // fault1 を検出して fault2 を検出しない条件を調べる．
+      auto tmp_lits1 = dlits1;
+      auto ulit2 = engine.ulit(fault2);
+      tmp_lits1.push_back(ulit2);
+      auto res1 = engine.solver().solve(tmp_lits1);
+      auto dom1 = res1 == SatBool3::False;
+      if ( dom1 ) {
+	if ( debug ) {
+	  std::cout << "    " << fault2.str()
+		    << " is dominated by "
+		    << fault1.str()
+		    << std::endl;
+	}
+	// fault2 は支配されている．
+	fault_info.set_dominator(fault2, fault1);
+	// fault2 は削除されたので逆は調べない．
+	continue;
+      }
+      // fault2 を検出して fault1 を検出しない条件を調べる．
+      auto tmp_lits2 = dlits2;
+      auto ulit1 = engine.ulit(fault1);
+      tmp_lits2.push_back(ulit1);
+      auto res2 = engine.solver().solve(tmp_lits2);
+      auto dom2 = res2 == SatBool3::False;
+      if ( dom1 ) {
+	// fault1 が fault2 を支配している．
+	if ( dom2 ) {
+	  if ( debug ) {
+	    std::cout << "    " << fault1.str()
+		      << " and "
+		      << fault2.str()
+		      << " are equivalent"
+		      << std::endl;
+	  }
+	  // fault2 が fault1 を支配している．
+	  // -> fault1 と fault2 は等価
+	  if ( fault1.id() < fault2.id() ) {
+	    fault_info.set_rep(fault2, fault1);
+	  }
+	  else {
+	    fault_info.set_rep(fault1, fault2);
+	    break;
+	  }
+	}
+	else {
 	  if ( debug ) {
 	    std::cout << "    " << fault2.str()
 		      << " is dominated by "
 		      << fault1.str()
 		      << std::endl;
 	  }
-	  // fault2 は支配されている．
 	  fault_info.set_dominator(fault2, fault1);
-	  // fault2 は削除されたので逆は調べない．
-	  continue;
-	}
-	// fault2 を検出して fault1 を検出しない条件を調べる．
-	auto tmp_lits2 = dlits2;
-	auto ulit1 = engine.ulit(fault1);
-	tmp_lits2.push_back(ulit1);
-	auto res2 = engine.solver().solve(tmp_lits2);
-	auto dom2 = res2 == SatBool3::False;
-	if ( dom1 ) {
-	  // fault1 が fault2 を支配している．
-	  if ( dom2 ) {
-	    if ( debug ) {
-	      std::cout << "    " << fault1.str()
-			<< " and "
-			<< fault2.str()
-			<< " are equivalent"
-			<< std::endl;
-	    }
-	    // fault2 が fault1 を支配している．
-	    // -> fault1 と fault2 は等価
-	    if ( fault1.id() < fault2.id() ) {
-	      fault_info.set_rep(fault2, fault1);
-	    }
-	    else {
-	      fault_info.set_rep(fault1, fault2);
-	      break;
-	    }
-	  }
-	  else {
-	    if ( debug ) {
-	      std::cout << "    " << fault2.str()
-			<< " is dominated by "
-			<< fault1.str()
-			<< std::endl;
-	    }
-	    fault_info.set_dominator(fault2, fault1);
-	  }
-	}
-	else if ( dom2 ) {
-	  if ( debug ) {
-	    std::cout << "    " << fault1.str()
-		      << " is dominated by "
-		      << fault2.str()
-		      << std::endl;
-	  }
-	  // fault2 が fault1 を支配している．
-	  fault_info.set_dominator(fault1, fault2);
-	  break;
 	}
       }
+      else if ( dom2 ) {
+	if ( debug ) {
+	  std::cout << "    " << fault1.str()
+		    << " is dominated by "
+		    << fault2.str()
+		    << std::endl;
+	}
+	// fault2 が fault1 を支配している．
+	fault_info.set_dominator(fault1, fault2);
+	break;
+      }
     }
+  }
+}
+
+// @brief 処理を行う．
+void
+FFRAnalyze::run(
+  FaultInfo& fault_info,
+  const ConfigParam& option
+)
+{
+  Timer timer;
+  timer.start();
+
+  auto multi_thread = option.get_bool_elem("multi_thread", false);
+  auto verbose = option.get_bool_elem("verbose", false);
+
+  auto fault_list_array = fault_info.fault_list().ffr_split();
+  auto network = fault_info.network();
+  if ( multi_thread ) {
+    SizeType thread_num = option.get_int_elem("thread_num", 0);
+    IdPool id_pool(network.ffr_num());
+    MtMgr::run(
+      [&](){
+	for ( ; ; ) {
+	  SizeType id;
+	  if ( !id_pool.get(id) ) {
+	    // 終わり
+	    break;
+	  }
+	  auto ffr = network.ffr(id);
+	  auto fault_list1 = fault_list_array[id];
+	  ffr_analyze(ffr, fault_list1, fault_info, option);
+	}
+      }, thread_num
+    );
+  }
+  else {
+    for ( auto ffr: network.ffr_list() ) {
+      auto fault_list1 = fault_list_array[ffr.id()];
+      ffr_analyze(ffr, fault_list1, fault_info, option);
+    }
+  }
+
+  timer.stop();
+  if ( verbose ) {
+    auto nf = fault_info.rep_fault_list().size();
+    std::cout << "FFR analyze end" << std::endl
+	      << " # of faults:            " << nf << std::endl
+	      << " CPU time:               " << timer.get_time()
+	      << "ms" << std::endl;
   }
 }
 

@@ -140,6 +140,7 @@ check_equiv(
   Timer timer;
   timer.start();
 
+  Timer update_timer;
   for ( ; ; ) {
     auto ng = eqmgr.group_num();
     std::vector<TestVector> tv_list;
@@ -170,7 +171,9 @@ check_equiv(
       break;
     }
     // 反例を用いて細分化する．
+    update_timer.start();
     eqmgr.subdivide(tv_list);
+    update_timer.stop();
   }
   timer.stop();
 
@@ -184,7 +187,8 @@ check_equiv(
 	      << success_count << std::endl
 	      << "# of faults:              " << std::setw(8) << std::right
 	      << rep_num << std::endl
-	      << "CPU time:                 " << time_str(timer) << std::endl;
+	      << "Equivalent check Time:    " << time_str(timer) << std::endl
+	      << " (Update Time):           " << time_str(update_timer) << std::endl;
 
   }
 }
@@ -206,6 +210,7 @@ check_dominance(
   Timer timer;
   timer.start();
 
+  Timer update_timer;
   for ( ; ; ) {
     std::vector<TestVector> tv_list;
     auto fault_list = dommgr.fault_info().rep_fault_list();
@@ -238,7 +243,9 @@ check_dominance(
       break;
     }
     // 反例を用いて更新する．
+    update_timer.start();
     dommgr.update(tv_list);
+    update_timer.stop();
   }
   timer.stop();
 
@@ -249,7 +256,8 @@ check_dominance(
 	      << check_count << std::endl
 	      << "Total succeeds:           " << std::setw(8) << std::right
 	      << succ_count << std::endl
-	      << "Dominate check Time:      " << time_str(timer) << std::endl;
+	      << "Dominate check Time:      " << time_str(timer) << std::endl
+	      << " (Update Time):           " << time_str(update_timer) << std::endl;
   }
 }
 

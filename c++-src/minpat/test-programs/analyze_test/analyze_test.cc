@@ -43,10 +43,7 @@ analyze_test(
 
   bool sa_mode = false;
   bool td_mode = false;
-  bool ffr_reduction = false;
-  bool mffc_reduction = false;
   bool multi_thread = false;
-  bool global_reduction = false;
   int no_change_limit = 0;
   bool naive_filter = false;
   bool naive_reduction = false;
@@ -127,15 +124,6 @@ analyze_test(
     else if ( arg == "--multi-thread" ) {
       multi_thread = true;
     }
-    else if ( arg == "--ffr-reduction" ) {
-      ffr_reduction = true;
-    }
-    else if ( arg == "--mffc-reduction" ) {
-      mffc_reduction = true;
-    }
-    else if ( arg == "--global-reduction" ) {
-      global_reduction = true;
-    }
     else if ( arg == "--no-change-limit" ) {
       ++ pos;
       if ( pos >= argc ) {
@@ -207,9 +195,6 @@ analyze_test(
   auto option = JsonValue::object();
   {
     auto analyze_option = JsonValue::object();
-    analyze_option.add("ffr_reduction", ffr_reduction);
-    analyze_option.add("mffc_reduction", mffc_reduction);
-    analyze_option.add("global_reduction", global_reduction);
     analyze_option.add("no_change_limit", no_change_limit);
     analyze_option.add("naive_reduction", naive_reduction);
 
@@ -256,6 +241,9 @@ analyze_test(
 
   auto fault_list = network.rep_fault_list();
   auto analyze_option = ConfigParam(option).get_param("analyze");
+  {
+    analyze_option.print(std::cout);
+  }
   auto fault_info = FaultAnalyze::run(fault_list, analyze_option);
 
   timer.stop();

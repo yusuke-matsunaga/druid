@@ -35,11 +35,12 @@ FFRAnalyzeTest::check(
 )
 {
   auto fault_list = network.rep_fault_list();
+  auto fault_info = FaultInfo(fault_list);
+  FFRAnalyze::run(fault_info);
+
   auto ffr_fault_list_array = fault_list.ffr_split();
   for ( auto ffr: network.ffr_list() ) {
     auto fault_list1 = ffr_fault_list_array[ffr.id()];
-    auto fault_info = FaultInfo(fault_list1);
-    FFRAnalyze::run(ffr, fault_list1, fault_info);
 
     auto nf = fault_list1.size();
     std::vector<bool> mark(nf, true);
