@@ -23,9 +23,8 @@ DomMgr::DomMgr(
 ) : RedMgr(eqmgr.fault_info(), eqmgr.fsim()),
     mCandListArray(max_fault_size())
 {
-  // 各故障を支配故障の候補を作る．
+  // 各故障の支配故障の候補を作る．
   auto fault_list = fault_info().rep_fault_list();
-  std::vector<SizeType> count_array(mCandListArray.size(), 0);
   for ( auto fault: fault_list ) {
     auto& cand_list = mCandListArray[fault.id()];
     auto gid = eqmgr.group_id(fault);
@@ -36,51 +35,9 @@ DomMgr::DomMgr(
 	}
       }
     }
-    count_array[fault.id()] = cand_list.size();
+    // 単純に故障番号でソートしておく．
+    cand_list.sort();
   }
-  // ランクを求める．
-  std::vector<SizeType> rank_array(mCandListArray.size(), 0);
-  {
-    std::vector<SizeType> id_list;
-    for ( auto fault: fault_list ) {
-      if ( count_array[fault.id()] == 0 ) {
-	id_list.push_back(fault.id());
-      }
-    }
-    for ( SizeType rank = 0; !id_list.empty(); ++ rank ) {
-      for ( auto id: id_list ) {
-	rank_array[id] = rank;
-      }
-      std::vector<SizeType> new_list;
-      for ( auto id: id_list ) {
-	auto& cand_list = mCandListArray[id];
-	for ( auto fault1: cand_list ) {
-	  auto id1 = fault1.id();
-	  -- count_array[id1];
-	  if ( count_array[id1] == 0 ) {
-	    new_list.push_back(id1);
-	  }
-	}
-      }
-      std::swap(id_list, new_list);
-    }
-  }
-
-#if 0
-  for ( auto fault: fault_list ) {
-    auto& cand_list = mCandListArray[fault.id()];
-    cand_list.sort([&](SizeType id1, SizeType id2) -> bool {
-      auto r1 = rank_array[id1];
-      auto r2 = rank_array[id2];
-#if 0
-      if ( r1 == r2 ) {
-	return id1 < id2;
-      }
-#endif
-      return r1 > r2;
-    });
-  }
-#endif
 }
 
 // @brief 故障シミュレーションの結果で候補リストを更新する．
