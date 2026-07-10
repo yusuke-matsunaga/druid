@@ -73,36 +73,48 @@ filtering(
   const ConfigParam& option
 )
 {
-  // パラメータの取得
-  SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 1000);
+  // パラメータ
+  // MAX_PAT:         最大のパタン数
+  // MAX_PAT_FACTOR:  MAX_PAT = 故障数 * MAX_PAT_FACTOR とする．
+  // NO_CHANGE_LIMIT: 変化がないターンがこの回数を超えたらループを抜ける．
+  // BATCH_SIZE:      一回のシミュレーションで用いるパタン数
+  SizeType MAX_PAT = option.get_int_elem("max_pat",
+					 std::numeric_limits<int>::max());
+  SizeType MAX_PAT_FACTOR = option.get_int_elem("max_pat_factor", 0);
+  if ( MAX_PAT_FACTOR > 0 ) {
+    auto nf = eqmgr.fault_info().rep_fault_list().size();
+    MAX_PAT = std::min(MAX_PAT, nf * MAX_PAT_FACTOR);
+  }
+  SizeType NO_CHANGE_LIMIT = option.get_int_elem("no_change_limit", 10);
   SizeType BATCH_SIZE = option.get_int_elem("batch_size", 64);
+
   auto verbose = option.get_bool_elem("verbose", false);
 
   // パタンを作るオブジェクト
   auto patgen_option = option.get_param("patgen");
-  auto patgen = PatGen::new_obj(eqmgr.fault_info(), patgen_option);
+  auto patgen = PatGen(eqmgr.fault_info(), patgen_option);
 
   Timer filter_timer;
   filter_timer.start();
-  SizeType tv_count = 0;
+  SizeType pat_count = 0;
   SizeType no_change = 0;
-  while ( no_change < NO_CHANGE_LIMIT ) {
+  while ( pat_count < MAX_PAT && no_change < NO_CHANGE_LIMIT ) {
     // パタンを作る．
     std::vector<TestVector> tv_list(BATCH_SIZE);
-    patgen->gen(BATCH_SIZE, tv_list);
+    patgen(BATCH_SIZE, tv_list);
 
     // 故障シミュレーションを行って故障グループを細分化する．
     auto change = eqmgr.subdivide(tv_list,
 				  [&](const FsimResults& res) {
 				    patgen->update(res);
 				  });
-    tv_count += BATCH_SIZE;
+    pat_count += BATCH_SIZE;
 
     if ( change ) {
       no_change = 0;
     }
     else {
-      no_change += BATCH_SIZE;
+      ++ no_change;
     }
   }
   filter_timer.stop();
@@ -115,7 +127,9 @@ filtering(
 	      << "# of DomCand pairs:     "
 	      << std::setw(8) << std::right << eqmgr.domcand_num() << std::endl
 	      << "Total # of patterns:    "
-	      << std::setw(8) << std::right << tv_count << std::endl
+	      << std::setw(8) << std::right << pat_count << std::endl
+	      << "Max Pat:                "
+	      << std::setw(8) << std::right << MAX_PAT << std::endl
 	      << "No Change Limit:        "
 	      << std::setw(8) << std::right << NO_CHANGE_LIMIT << std::endl
 	      << "Filtering time:           " << time_str(filter_timer) << std::endl

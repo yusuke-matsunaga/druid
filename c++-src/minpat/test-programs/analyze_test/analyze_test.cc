@@ -45,9 +45,12 @@ analyze_test(
   bool td_mode = false;
   bool multi_thread = false;
   int no_change_limit = 0;
+  int max_pat = 0;
+  int max_pat_factor = 0;
   int batch_size = 0;
   bool naive_filter = false;
   bool naive_reduction = false;
+  bool tv2pat = false;
   bool dump = false;
   bool verify = false;
   bool verbose = false;
@@ -134,6 +137,24 @@ analyze_test(
       std::string val = argv[pos];
       no_change_limit = stoi(val);
     }
+    else if ( arg == "--max-pat" ) {
+      ++ pos;
+      if ( pos >= argc ) {
+	std::cerr << "'--max-pat' requires <int> value";
+	return 2;
+      }
+      std::string val = argv[pos];
+      max_pat = stoi(val);
+    }
+    else if ( arg == "--max-pat-factor" ) {
+      ++ pos;
+      if ( pos >= argc ) {
+	std::cerr << "'--max-pat-factor' requires <int> value";
+	return 2;
+      }
+      std::string val = argv[pos];
+      max_pat_factor = stoi(val);
+    }
     else if ( arg == "--batch-size" ) {
       ++ pos;
       if ( pos >= argc ) {
@@ -148,6 +169,9 @@ analyze_test(
     }
     else if ( arg == "--naive-reduction" ) {
       naive_reduction = true;
+    }
+    else if ( arg == "--tv2pat" ) {
+      tv2pat = true;
     }
     else if ( arg == "--dump" ) {
       dump = true;
@@ -206,11 +230,21 @@ analyze_test(
   {
     auto analyze_option = JsonValue::object();
     analyze_option.add("no_change_limit", no_change_limit);
+    if ( max_pat > 0 ) {
+      analyze_option.add("max_pat", max_pat);
+    }
+    if ( max_pat_factor > 0 ) {
+      analyze_option.add("max_pat_factor", max_pat_factor);
+    }
     if ( batch_size > 0 ) {
       analyze_option.add("batch_size", batch_size);
     }
     analyze_option.add("naive_reduction", naive_reduction);
-
+    if ( tv2pat ) {
+      auto patgen_option = JsonValue::object();
+      patgen_option.add("method", std::string{"tv2"});
+      analyze_option.add("patgen", patgen_option);
+    }
     {
       auto eqmgr_option = JsonValue::object();
       if ( naive_filter ) {

@@ -1,8 +1,8 @@
-#ifndef PATGEN_H
-#define PATGEN_H
+#ifndef PGIMPL_H
+#define PGIMPL_H
 
-/// @file PatGen.h
-/// @brief PatGen のヘッダファイル
+/// @file PGImpl.h
+/// @brief PGImpl のヘッダファイル
 /// @author Yusuke Matsunaga (松永 裕介)
 ///
 /// Copyright (C) 2026 Yusuke Matsunaga
@@ -16,24 +16,25 @@
 
 BEGIN_NAMESPACE_DRUID
 
-class PGImpl;
-
 //////////////////////////////////////////////////////////////////////
-/// @class PatGen PatGen.h "PatGen.h"
-/// @brief 故障シミュレーション用のパタンを生成するクラス
+/// @class PGImpl PGImpl.h "PGImpl.h"
+/// @brief PatGen の実装クラス
 //////////////////////////////////////////////////////////////////////
-class PatGen
+class PGImpl
 {
 public:
 
   /// @brief コンストラクタ
-  PatGen(
+  PGImpl(
     const FaultInfo& fault_info, ///< [in] 故障情報を持つオブジェクト
     const ConfigParam& option    ///< [in] オプション
-  );
+  ) : mFaultInfo{fault_info}
+  {
+  }
 
   /// @brief デストラクタ
-  ~PatGen();
+  virtual
+  ~PGImpl() = default;
 
 
 public:
@@ -42,17 +43,46 @@ public:
   //////////////////////////////////////////////////////////////////////
 
   /// @brief パタンを作る．
-  void
-  operator()(
-    SizeType size,                   ///< [in] パタンのサイズ
-    std::vector<TestVector>& tv_buff ///< [in] 生成したパタンを格納するオブジェクト
-  );
+  /// @return パタンを生成した時 true を返す．
+  virtual
+  bool
+  get_pat(
+    TestVector& tv ///< [in] 生成したパタンを格納するオブジェクト
+  ) = 0;
 
   /// @brief 検出結果で更新する．
+  virtual
   void
   update(
     const FsimResults& res ///< [in] 故障シミュレーションの結果
   );
+
+
+public:
+  //////////////////////////////////////////////////////////////////////
+  // 外部インターフェイス
+  //////////////////////////////////////////////////////////////////////
+
+  /// @brief 故障の情報を得る．
+  const FaultInfo&
+  fault_info() const
+  {
+    return mFaultInfo;
+  }
+
+  /// @brief 対象の故障リストを得る．
+  TpgFaultList
+  fault_list() const
+  {
+    return mFaultInfo.rep_fault_list();
+  }
+
+  /// @brief 対象のネットワークを得る．
+  TpgNetwork
+  network() const
+  {
+    return mFaultInfo.network();
+  }
 
 
 private:
@@ -60,11 +90,11 @@ private:
   // データメンバ
   //////////////////////////////////////////////////////////////////////
 
-  // 実装クラスのリスト
-  std::vector<std::unique_ptr<PGImpl>> mImplList;
+  // 故障の情報
+  const FaultInfo& mFaultInfo;
 
 };
 
 END_NAMESPACE_DRUID
 
-#endif // PATGEN_H
+#endif // PGIMPL_H

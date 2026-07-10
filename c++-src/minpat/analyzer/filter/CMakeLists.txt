@@ -19,6 +19,7 @@ add_subdirectory( gtest )
 
 set ( minpat_filter_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/PatGen.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/PGImpl.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/EqGroupMgr.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/EqGroupGraph.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/NaiveMgr.cc
