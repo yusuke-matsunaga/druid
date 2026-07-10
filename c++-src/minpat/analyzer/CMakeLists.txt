@@ -22,7 +22,6 @@ set ( minpat_analyzer_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/FaultAnalyze.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/FFRAnalyze.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/FaultInfo.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/Reducer.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/EqChecker.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/DomChecker.cc
   ${minpat_filter_SOURCES}
