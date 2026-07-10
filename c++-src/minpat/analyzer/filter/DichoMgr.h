@@ -86,7 +86,7 @@ private:
 
   /// @brief mGroupMap を作る．
   void
-  _fix_group_map();
+  _fix_group_map() const;
 
   /// @brief グループ番号をチェックする．
   void
@@ -120,7 +120,12 @@ private:
   std::vector<DichoGroup::Ptr> mCurGroupList;
 
   // 故障番号をキーにして対象のグループを格納する配列
+  mutable
   std::vector<DichoGroup*> mGroupMap;
+
+  // mGroupMap と DichoGroup::mPredList が適切な値を持っているとき true となるフラグ
+  mutable
+  bool mValid{false};
 
 };
 

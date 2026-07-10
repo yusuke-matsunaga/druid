@@ -42,7 +42,7 @@ DichoMgr::DichoMgr(
   auto group = new DichoGroup(0, fault_info.rep_fault_list());
   group->set_succ_list({group});
   mCurGroupList.push_back(DichoGroup::Ptr{group});
-  _fix_group_map();
+  mValid = false;
 }
 
 // @brief デストラクタ
@@ -132,7 +132,7 @@ DichoMgr::update(
   // 変化があったら更新する．
   if ( changed ) {
     std::swap(mCurGroupList, new_group_list);
-    _fix_group_map();
+    mValid = false;
     return true;
   }
   return false;
@@ -151,6 +151,7 @@ DichoMgr::group_id(
   const TpgFault& fault
 ) const
 {
+  _fix_group_map();
   auto group = mGroupMap[fault.id()];
   return group->id();
 }
@@ -201,6 +202,7 @@ DichoMgr::pred_list(
   SizeType group_id
 ) const
 {
+  _fix_group_map();
   _check_group_id(group_id);
   auto& group = mCurGroupList[group_id];
   std::vector<SizeType> ans_list;
@@ -229,8 +231,11 @@ DichoMgr::domcand_num() const
 
 // @brief mGroupMap を作る．
 void
-DichoMgr::_fix_group_map()
+DichoMgr::_fix_group_map() const
 {
+  if ( mValid ) {
+    return;
+  }
   mGroupMap.clear();
   mGroupMap.resize(max_fault_size(), nullptr);
   for ( auto& group: mCurGroupList ) {
@@ -241,6 +246,7 @@ DichoMgr::_fix_group_map()
       succ_group->add_pred(group.get());
     }
   }
+  mValid = true;
 }
 
 // @brief 故障グループの情報を出力する．
