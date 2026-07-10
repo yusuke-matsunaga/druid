@@ -24,8 +24,8 @@ PatGen::PatGen(
   const ConfigParam& option
 )
 {
-  auto impl1 = PGImpl_TV(fault_info);
-  auto impl2 = PGImpl_Random(fault_info);
+  auto impl1 = new PGImpl_TV(fault_info);
+  auto impl2 = new PGImpl_Random(fault_info);
   mImplList.push_back(std::unique_ptr<PGImpl>{impl1});
   mImplList.push_back(std::unique_ptr<PGImpl>{impl2});
 }

@@ -26,8 +26,7 @@ public:
 
   /// @brief コンストラクタ
   PGImpl(
-    const FaultInfo& fault_info, ///< [in] 故障情報を持つオブジェクト
-    const ConfigParam& option    ///< [in] オプション
+    const FaultInfo& fault_info ///< [in] 故障情報を持つオブジェクト
   ) : mFaultInfo{fault_info}
   {
   }
@@ -55,7 +54,7 @@ public:
   void
   update(
     const FsimResults& res ///< [in] 故障シミュレーションの結果
-  );
+  ) = 0;
 
 
 public:

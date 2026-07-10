@@ -76,7 +76,7 @@ make_cand(
 
   // パタンを作るオブジェクト
   auto patgen_option = option.get_param("patgen");
-  auto patgen = PatGen::new_obj(fault_info, patgen_option);
+  auto patgen = PatGen(fault_info, patgen_option);
 
   // 等価故障/支配故障の候補を管理するオブジェクト
   auto candmgr_option = option.get_param("candmgr");
@@ -90,13 +90,13 @@ make_cand(
   SizeType no_change = 0;
   while ( no_change < NO_CHANGE_LIMIT ) {
     std::vector<TestVector> tv_list(BATCH_SIZE);
-    patgen->gen(BATCH_SIZE, tv_list);
+    patgen(BATCH_SIZE, tv_list);
 
 
     // 故障シミュレーションを行って故障グループを細分化する．
     auto change = candmgr->subdivide(tv_list,
 				     [&](const FsimResults& res) {
-				       patgen->update(res);
+				       patgen.update(res);
 				     });
     tv_count += BATCH_SIZE;
 

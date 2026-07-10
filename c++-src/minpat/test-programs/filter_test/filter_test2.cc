@@ -220,7 +220,7 @@ filter_test(
 
   // パタンを作るオブジェクト
   auto patgen_option = ConfigParam(option).get_param("patgen");
-  auto patgen = PatGen::new_obj(fault_info, patgen_option);
+  auto patgen = PatGen(fault_info, patgen_option);
 
   // 等価故障/支配故障の候補を管理するオブジェクト
   auto candmgr_option = ConfigParam(option).get_param("candmgr");
@@ -233,12 +233,12 @@ filter_test(
   SizeType no_change = 0;
   while ( no_change < NO_CHANGE_LIMIT ) {
     std::vector<TestVector> tv_list(BATCH_SIZE);
-    patgen->gen(BATCH_SIZE, tv_list);
+    patgen(BATCH_SIZE, tv_list);
     fsim_timer.start();
     auto res = fsim.run_multi(tv_list, true);
     fsim_timer.stop();
     tv_count += BATCH_SIZE;
-    patgen->update(res);
+    patgen.update(res);
 
     auto ntv = res.tv_num();
     std::vector<DPat> dpat_array(max_size, DPat(ntv));

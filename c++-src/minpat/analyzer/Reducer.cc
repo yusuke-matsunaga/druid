@@ -106,7 +106,7 @@ filtering(
     // 故障シミュレーションを行って故障グループを細分化する．
     auto change = eqmgr.subdivide(tv_list,
 				  [&](const FsimResults& res) {
-				    patgen->update(res);
+				    patgen.update(res);
 				  });
     pat_count += BATCH_SIZE;
 
